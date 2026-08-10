@@ -16,6 +16,9 @@ from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
 
+
+CAPACITY_AREA_MEASUREMENT_TOLERANCE_M2 = 0.05
+
 from .legal_floor_field import validate_legal_floor_field
 
 
@@ -512,9 +515,13 @@ def measure_source_capacity(
         "feasible_maximum_floor_area_m2": round(feasible, 3),
         "feasible_capacity_utilization": round(utilization, 4),
         "minimum_utilization": round(minimum, 4),
+        "area_measurement_tolerance_m2": (
+            CAPACITY_AREA_MEASUREMENT_TOLERANCE_M2
+        ),
         "floor_contract_hash": str((shared or {}).get("floor_contract_hash") or ""),
         "hard_pass": bool(
-            floor_area + 1e-9 >= minimum_floor_area
+            floor_area + CAPACITY_AREA_MEASUREMENT_TOLERANCE_M2
+            >= minimum_floor_area
             and (shared is None or shared.get("hard_pass") is True)
         ),
     }

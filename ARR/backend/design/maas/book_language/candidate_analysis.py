@@ -23,13 +23,21 @@ from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.program_massing import resolve_program_profile
 from design.maas.program_massing.assembly import program_component_chassis
 from design.maas.program_massing.morphology import (
+    authoritative_surface_morphology,
     intrinsic_section_profile_distance,
     intrinsic_silhouette_distance,
 )
 from design.maas.program_massing.competition_gestalt import (
     competition_gestalt_distance,
     competition_gestalt_key,
+    mandatory_legal_contraction,
 )
+from .agent_authored_supply import (
+    AgentAuthoredAdmission,
+    CODEX_OAUTH_AUTHOR_PROVIDER,
+    is_validated_codex_oauth_candidate,
+)
+from .paid_provider_admission import is_admitted_paid_provider_program
 
 @dataclass(frozen=True)
 class _Candidate:
@@ -150,6 +158,16 @@ def _capacity_target_gate(candidate: _Candidate) -> bool | None:
     ):
         return None
     if "selectable_capacity_hard_pass" in evidence:
+        measurement = (
+            metadata.get("source_capacity_measurement")
+            if isinstance(metadata, dict)
+            else {}
+        ) or {}
+        if isinstance(measurement, dict) and measurement:
+            return bool(resolve_capacity_band_evidence(
+                evidence,
+                capacity_measurement=measurement,
+            )["resolved_capacity_hard_pass"])
         return bool(evidence.get("selectable_capacity_hard_pass"))
     return bool(evidence.get("target_hard_pass"))
 
@@ -328,14 +346,83 @@ def _vlm_reviewed_program_candidate(candidate: _Candidate) -> bool:
     )
 
 
-def _llm_authored_candidate(candidate: _Candidate) -> bool:
+def _validated_paid_provider_candidate(candidate: _Candidate) -> bool:
+    program_payload = _candidate_geometry_program_payload(candidate)
+    if not isinstance(program_payload, dict):
+        return False
+    try:
+        current_hash = GeometryProgram.from_dict(
+            program_payload
+        ).program_hash()
+    except (TypeError, ValueError):
+        return False
     metadata = _geometry_program_metadata(candidate)
+    source = candidate.source if hasattr(candidate, "source") else candidate
+    source_metadata = getattr(source, "metadata", {})
+    bridge = (
+        source_metadata.get("geometry_program_bridge_evidence")
+        if isinstance(source_metadata, dict)
+        else {}
+    ) or {}
+    proof = bridge.get("pre_book_lineage_parent_proof") or {}
+    response_id = str(metadata.get("author_response_id") or "")
+    author_diagnostics = metadata.get("author_failure_diagnostics") or {}
+    initial_hash = str(
+        bridge.get("initial_llm_authored_pre_book_program_hash") or ""
+    )
     return bool(
         metadata.get("author_provider") == "openai_llm_geometry_author"
-        or metadata.get("llm_geometry_author_active")
-        or str(metadata.get("author_representation") or "") == "typed_json_ast"
-        or _geometry_program_family(candidate).startswith("llm_")
+        and metadata.get("llm_geometry_author_active") is True
+        and metadata.get("author_representation") == "typed_json_ast"
+        and response_id
+        and str(metadata.get("author_prompt_contract") or "").startswith(
+            "arr.maas.geometry_llm_author."
+        )
+        and metadata.get("author_provider_request_kind")
+        in {
+            "geometry_author_initial",
+            "geometry_author_replenishment",
+            "provider_retry",
+        }
+        and isinstance(author_diagnostics, dict)
+        and author_diagnostics.get("schema_version")
+        == "arr.maas.geometry_author_failure_diagnostics.v1"
+        and int(author_diagnostics.get("valid_program_count") or 0) >= 1
+        and is_admitted_paid_provider_program(
+            response_id=response_id,
+            request_kind=str(
+                metadata.get("author_provider_request_kind") or ""
+            ),
+            prompt_contract=str(
+                metadata.get("author_prompt_contract") or ""
+            ),
+            program_hash=initial_hash,
+        )
+        and isinstance(bridge, dict)
+        and isinstance(proof, dict)
+        and bridge.get("llm_geometry_author_active") is True
+        and bridge.get("author_provider") == "openai_llm_geometry_author"
+        and bridge.get("author_response_id") == response_id
+        and bridge.get("post_book_authored_program_hash") == current_hash
+        and initial_hash
+        and proof.get("program_hash") == initial_hash
+        and proof.get("compiler_clean") is True
+        and proof.get("contained") is True
     )
+
+
+def _llm_authored_candidate(
+    candidate: _Candidate,
+    *,
+    codex_admission: AgentAuthoredAdmission | None = None,
+) -> bool:
+    metadata = _geometry_program_metadata(candidate)
+    if metadata.get("author_provider") == CODEX_OAUTH_AUTHOR_PROVIDER:
+        return is_validated_codex_oauth_candidate(
+            candidate,
+            admission=codex_admission,
+        )
+    return _validated_paid_provider_candidate(candidate)
 
 
 def _seed_is_llm_authored(seed: VerbSequence) -> bool:
@@ -358,10 +445,19 @@ def _verified_exact_profiled_sloped_mesh(source: Any) -> bool:
         != "arr.maas.floorwise_visual_projection.v1"
         or certificate.get("hard_pass") is not True
         or certificate.get("status") != "certified"
-        or certificate.get("certification_mode")
-        != "floorwise_profiled_legal_clip"
-        or certificate.get("visible_geometry_operation")
-        != "authored_profiled_mesh_legal_solid_intersection"
+        or (
+            certificate.get("certification_mode"),
+            certificate.get("visible_geometry_operation"),
+        ) not in {
+            (
+                "floorwise_profiled_continuous_envelope_clip",
+                "authored_profiled_mesh_continuous_legal_envelope_intersection",
+            ),
+            (
+                "floorwise_profiled_legal_clip",
+                "authored_profiled_mesh_legal_solid_intersection",
+            ),
+        }
         or certificate.get("visible_step_fallback") is not False
         or not isinstance(bridge, dict)
         or not isinstance(payload, dict)
@@ -561,6 +657,7 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
             "visible_stepped",
             "authored_stepped",
             "legal_seam_stepped",
+            "mandatory_legal_contraction",
         }
         if required_step_fields <= set(cached):
             return cached
@@ -573,6 +670,21 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
             ),
         )
         enriched = {**cached, **origins}
+        authoritative = authoritative_surface_morphology(source)
+        if authoritative.get("hard_pass") is True:
+            enriched.update({
+                "phenotype": str(authoritative["phenotype"]),
+                "body_phenotype": str(authoritative["phenotype"]),
+                "visible_stepped": bool(
+                    authoritative.get("visible_stepped")
+                ),
+                "pyramidal_like": bool(
+                    authoritative.get("pyramidal_like")
+                ),
+                "measurement_authority": (
+                    "renderer_authoritative_profiled_surface_mesh"
+                ),
+            })
         source.metadata["measured_solid_morphology"] = enriched
         return enriched
     total_area = horizontal_area = vertical_area = sloped_area = 0.0
@@ -804,6 +916,8 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
         phenotype = "oblique"
     elif measured_curve:
         phenotype = "curved"
+    elif step_origins["mandatory_legal_contraction"]:
+        phenotype = "legal_tapered"
     elif triangle_count == 0 and section_graph_phenotype:
         # Legacy/program-role solids do not carry recursive-mesh surface tags,
         # but their executable typed section graph still changes the rendered
@@ -854,6 +968,21 @@ def _solid_morphology_metrics(candidate: Any) -> dict[str, Any]:
             else "compiled_program_section_graph"
         ),
     }
+    authoritative = authoritative_surface_morphology(source)
+    if authoritative.get("hard_pass") is True:
+        result.update({
+            "phenotype": str(authoritative["phenotype"]),
+            "body_phenotype": str(authoritative["phenotype"]),
+            "visible_stepped": bool(
+                authoritative.get("visible_stepped")
+            ),
+            "pyramidal_like": bool(
+                authoritative.get("pyramidal_like")
+            ),
+            "measurement_authority": (
+                "renderer_authoritative_profiled_surface_mesh"
+            ),
+        })
     source.metadata["measured_solid_morphology"] = result
     return result
 
@@ -898,6 +1027,7 @@ def _step_origin_evidence(
     ), "")
     legal_seam = projection_mode == "intentional_floorwise_stepped"
     competition_evidence: dict[str, Any] = {}
+    legal_contraction = mandatory_legal_contraction(source)
     visible = bool(fallback_visible)
     if (
         getattr(source, "volumes", ())
@@ -914,6 +1044,7 @@ def _step_origin_evidence(
         "visible_stepped": visible,
         "authored_stepped": authored,
         "legal_seam_stepped": legal_seam,
+        "mandatory_legal_contraction": legal_contraction,
         "step_projection_mode": projection_mode,
         "competition_gestalt": competition_evidence,
     }

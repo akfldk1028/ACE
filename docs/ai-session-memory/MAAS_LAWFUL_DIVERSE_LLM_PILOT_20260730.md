@@ -1127,3 +1127,50 @@ Recommended next step (non-breaking, diagnostic-only):
     `visual_certificate.visible_step_fallback`를 우선 점검.
   - `visible_step_fallback=true`이며 authored가 비계단형이면 현재 설정 오차 또는
     이전 코드 경로 잔존 가능성이므로 즉시 폴백 경로 단일 추적이 필요.
+
+## 2026-08-02 full MASS test definition and interrupted runs
+
+- A run without at least one actual bounded VLM review is not a full MASS test. It may only be called a deterministic hard-gate run or geometry diagnostic.
+- Required order: real PNU -> BaseVolume/BOOK/GeometryProgram -> compile/5 floors -> law/FAR/parking/program hard gates -> exact final render -> bounded live VLM review -> typed revision when requested -> selector -> one board.
+- r319-neighborhood-publishable20 stopped at the 10 minute cap: phase=replenishment, cycle_index=1/7, selection_pool_count=14, selected_mass_count=0. Zero was pre-selector progress, not fourteen rejections.
+- r320-neighborhood-fullgate-smoke was terminated after rejecting the VLM-free definition. Last phase=candidate_generation.
+- Both had live_vlm_requested=false, produced no final PNG, and are not full MASS tests.
+- Current shell reports MAAS_LIVE_GEOMETRY_VLM, MAAS_LIVE_VLM_CREDENTIAL_ROTATED, and OPENAI_API_KEY missing. Live VLM must fail closed until supplied. Never silently downgrade a requested full MASS test to no-VLM.
+
+### 2026-08-02 r321 bounded-live-VLM full-path diagnostic
+
+- Command: real PNU 1168011800104170004, neighborhood, recursive-only, diagnostic-target=3, live-vlm=true.
+- Runtime: 409.4 seconds; command exited 0 with diagnostic result 0/3.
+- State: completed_with_failed_gate; evaluated=36, compiled=23, program_passed=20, selection_pool=0, selected=0.
+- VLM was requested and backend credentials passed startup validation, but paid_provider_budget.request_count=0. The final VLM gate status was empty_input because no candidate survived into the downstream hard-pass selection pool.
+- This is not a VLM rejection. It is a pre-VLM candidate projection failure.
+- Logs repeatedly report projected_visible_stepped=true and/or projected_pyramidal_like=true plus unrequested_visible_step_fallback or unrequested_legal_step_collapse. This reproduces the staircase/pyramid regression in the legal projection path even though MAAS_ALLOW_VISIBLE_STEP_FALLBACK was removed.
+- Result board (failure evidence): D:\Data\25_ACE\docs\playwright\design-route-live-verify\book-program-portfolios-r321-neighborhood-target3-live-vlm\maas-book-neighborhood-3.png
+- Board contains 0/3 floor-verified masses. Do not present it as visual acceptance.
+- Next code target: trace why legal projection emits visible_step_fallback=true and pyramidal-like output for authored non-step programs, then preserve intentional authored step programs without allowing legal projection to invent steps.
+
+### 2026-08-02 r322-r325 sequential morphology/VLM debugging
+
+- Fixed authored-step false rejection: a source already measured as visibly stepped is legitimate authored morphology even when its operator list lacks an explicit terrace/setback token. A projection-created step/pyramid from a non-step source remains rejected.
+- Fixed stale VLM certificate propagation: when summary-only feature surfaces are materialized from the current SourceMass, the current source floorwise_visual_projection certificate now replaces stale feature metadata.
+- Fixed VLM certificate payload-set mismatch: preview validation now hashes the complete certified surface payload while separately requiring at least one profiled surface.
+- Fixed exact-coordinate loss: SourceSurface.signature() rounds vertices_m to 3 decimals, while the visual certificate hashes at 8 decimals. VLM materialization now preserves exact source vertices_m and keeps rounded vertices_world_m only for display.
+- Focused tests: diagnostic morphology policy 3/3, preference/VLM preview 54/54.
+- r322-r324 remained API-preflight failures while the certificate chain was isolated. Do not treat them as VLM aesthetic rejection evidence.
+- r325 used real PNU 1168011800104170004, diagnostic target 3, live VLM, base top-k 3 and final top-k 3. Replenishment caused 7 total candidate_vlm requests.
+- r325 reached real base/final VLM review. Final reviewed candidate count was 1 and hard-pass count was 0. Failures: arbitrary tier silhouette, below-competition program appropriateness, program fit failed, unresolved public threshold, too box-like, weak form continuity, and wrong program typology.
+- r325 preview evidence shows the remaining architectural regression clearly: nearly all candidates are staircase/terrace recompositions, despite diverse upstream BOOK families. One preview is effectively blank.
+- The next correction must not ban stepped masses. It must make legal placement morphology-aware: first fit each authored MASS through one common principal-frame Matrix4/common legal host so prismatic, voided, oblique, curved, disc and interlocking forms survive; use floor-varying legal CSG/recomposition only as a bounded explicit alternative. Keep intentional stepped/terraced candidates as one family, not the universal fallback.
+- r325 preview root: D:\Data\25_ACE\docs\playwright\design-route-live-verify\book-program-portfolios-r325-neighborhood-target3-live-vlm\neighborhood
+
+## 2026-08-10 C173 three-language diagnostic recovery
+
+- Current concise handoff: `docs/ai-session-memory/maas-mass-flow/08_C173_THREE_LANGUAGE_CHECKPOINT.md`.
+- C173 is the first current-chain diagnostic with program pass 3/3, selection pool 3, and selected 3.
+- Direct ISO inspection shows three readable languages: shallow ridge/bar, west-open U courtyard, and branched L/oblique wing. This is no longer a staircase-only board.
+- Selected GFA values are 199.392, 201.140, and 229.574 m²; renderer-authoritative phenotypes are voided, winged, and oblique.
+- The enabling generic fixes are stack-aware one-Matrix4 translation, one bounded capacity measurement contract, renderer-authoritative phenotype selection, and certified-manifold morphology handling.
+- Neighborhood now permits the already-generic `profiled_hall` operator. No completed-form template, PNU coordinate, or finished mesh was added to production code.
+- The final ridge AST repair was semantic ordering: west threshold/notch first, terminal `profiled_hall` last.
+- Output: `ARR/docs/playwright/design-route-live-verify/legal-mass-v31-c173-ridge-terminal-court-wing/maas-book-neighborhood-3.png`.
+- This remains diagnostic-only with VLM not evaluated. Canonical publishable count remains 0/20.

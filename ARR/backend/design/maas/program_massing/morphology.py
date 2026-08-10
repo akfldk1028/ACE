@@ -7,12 +7,13 @@ metrics without rewriting the archive loop.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
-from math import atan2, degrees
+from math import atan2, cos, degrees, isfinite, radians, sin
 
 from shapely.affinity import rotate, scale, translate
-from shapely.geometry import Polygon, box
+from shapely.geometry import MultiPoint, Polygon, box
 from shapely.wkb import loads as load_wkb
 
 from design.maas.source_geometry.ir import SourceMass
@@ -23,6 +24,8 @@ from .visual_silhouette import visual_silhouette_distance
 LayeredFootprint = tuple[Polygon, float, float]
 MorphologyKey = tuple[tuple[str, float, float], ...]
 SectionProfileKey = tuple[tuple[tuple[float, float], ...], ...]
+
+
 
 
 @dataclass(frozen=True)
@@ -56,6 +59,250 @@ class MorphologyNoveltyPolicy:
 
 
 DEFAULT_NOVELTY_POLICY = MorphologyNoveltyPolicy()
+
+
+def authoritative_surface_morphology(source: SourceMass) -> dict[str, object]:
+    """Measure visual identity exclusively from renderer-authoritative surfaces."""
+
+    normalized = _normalized_authoritative_surface_triangles(source)
+    if normalized is None:
+        return {
+            "hard_pass": False,
+            "phenotype": "",
+            "visible_stepped": False,
+            "pyramidal_like": False,
+        }
+    triangles, views = normalized
+    horizontal_levels: set[int] = set()
+    horizontal_area = sloped_area = total_area = 0.0
+    for triangle in triangles:
+        a, b, c = triangle
+        ux, uy, uz = (b[index] - a[index] for index in range(3))
+        vx, vy, vz = (c[index] - a[index] for index in range(3))
+        nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+        magnitude = (nx * nx + ny * ny + nz * nz) ** 0.5
+        if magnitude <= 1e-12:
+            # Closed CSG meshes may retain zero-area transport facets after
+            # splitting. They preserve topology but carry no visible area.
+            continue
+        area = magnitude / 2.0
+        total_area += area
+        absolute_z = abs(nz / magnitude)
+        triangle_z_span = max(point[2] for point in triangle) - min(
+            point[2] for point in triangle
+        )
+        if triangle_z_span <= 1e-8:
+            horizontal_area += area
+            horizontal_levels.add(round(sum(point[2] for point in triangle) / 3.0 * 50))
+        elif absolute_z >= 0.90:
+            # A shallow continuous slope contributes to the near-horizontal
+            # area ratio, but its triangle centroid is not a terrace datum.
+            horizontal_area += area
+        elif absolute_z > 0.12:
+            sloped_area += area
+    denominator = max(total_area, 1e-9)
+    vertices = [point for triangle in triangles for point in triangle]
+    measured_z_min = min(point[2] for point in vertices)
+    measured_z_span = max(point[2] for point in vertices) - measured_z_min
+    low = [point for point in vertices if point[2] <= measured_z_min + measured_z_span * 0.15]
+    high = [point for point in vertices if point[2] >= measured_z_min + measured_z_span * 0.85]
+
+    def span_area(points: list[tuple[float, float, float]]) -> float:
+        if not points:
+            return 0.0
+        xs = [point[0] for point in points]
+        ys = [point[1] for point in points]
+        return max(max(xs) - min(xs), 0.0) * max(max(ys) - min(ys), 0.0)
+
+    upper_ratio = span_area(high) / max(span_area(low), 1e-9)
+    sloped_ratio = sloped_area / denominator
+    pyramidal = bool(sloped_ratio >= 0.20 and upper_ratio <= 0.35)
+    stepped = bool(not pyramidal and len(horizontal_levels) >= 4)
+    top = views[0]
+    convexity = float(top.area) / max(float(top.convex_hull.area), 1e-9)
+    if pyramidal:
+        phenotype = "pyramidal"
+    elif stepped:
+        phenotype = "stepped"
+    elif any(isinstance(item, Polygon) and item.interiors for item in getattr(top, "geoms", (top,))):
+        phenotype = "voided"
+    elif convexity <= 0.84:
+        phenotype = "winged"
+    elif sloped_ratio >= 0.08:
+        phenotype = "oblique"
+    else:
+        phenotype = "prismatic"
+    return {
+        "hard_pass": True,
+        "phenotype": phenotype,
+        "visible_stepped": stepped,
+        "pyramidal_like": pyramidal,
+        "horizontal_level_count": len(horizontal_levels),
+        "horizontal_surface_ratio": round(horizontal_area / denominator, 6),
+        "sloped_surface_ratio": round(sloped_ratio, 6),
+    }
+
+
+def authoritative_surface_silhouette_distance(left: SourceMass, right: SourceMass) -> float:
+    """Return pose-invariant 3-view distance without reading proxy volumes."""
+
+    left_payload = _normalized_authoritative_surface_triangles(left)
+    right_payload = _normalized_authoritative_surface_triangles(right)
+    if left_payload is None or right_payload is None:
+        return 1.0
+    left_views = left_payload[1]
+    right_triangles = right_payload[0]
+    best = 1.0
+    for angle in (0.0, 90.0, 180.0, 270.0):
+        theta = radians(angle)
+        for mirror_x in (False, True):
+            transformed = tuple(tuple(
+                (
+                    ((-x if mirror_x else x) * cos(theta) - y * sin(theta)),
+                    ((-x if mirror_x else x) * sin(theta) + y * cos(theta)),
+                    z,
+                )
+                for x, y, z in triangle
+            ) for triangle in right_triangles)
+            right_views = _surface_views(transformed)
+            distances = tuple(
+                float(a.symmetric_difference(b).area) / max(float(a.union(b).area), 1e-9)
+                for a, b in zip(left_views, right_views)
+            )
+            best = min(best, distances[0] * 0.40 + distances[1] * 0.30 + distances[2] * 0.30)
+    return min(1.0, best)
+
+
+def _normalized_authoritative_surface_triangles(source: SourceMass):
+    surfaces = tuple(getattr(source, "surfaces", ()) or ())
+    if not surfaces:
+        return None
+    triangles: list[tuple[tuple[float, float, float], ...]] = []
+    for surface in surfaces:
+        vertices = tuple(getattr(surface, "vertices_m", ()) or ())
+        if not str(getattr(surface, "surface_type", "")).startswith("profiled_") or len(vertices) != 3:
+            return None
+        try:
+            triangle = tuple(tuple(float(value) for value in point) for point in vertices)
+        except (TypeError, ValueError):
+            return None
+        if any(len(point) != 3 or not all(isfinite(value) for value in point) for point in triangle):
+            return None
+        triangles.append(triangle)
+    points = [point for triangle in triangles for point in triangle]
+    coordinate_span = max(
+        max(point[index] for point in points) - min(point[index] for point in points)
+        for index in range(3)
+    )
+    if coordinate_span <= 1e-9:
+        return None
+    def vertex_key(point):
+        # Keep this identity exactly aligned with the renderer-authoritative
+        # completeness gate.  A scale-relative tolerance coarsened valid CSG
+        # split edges on building-sized meshes and made morphology reject a
+        # surface payload that the projection gate had already certified.
+        return tuple(round(value, 8) for value in point)
+
+    edge_counts: Counter[tuple[tuple[int, ...], tuple[int, ...]]] = Counter()
+    edge_incidents: dict[
+        tuple[tuple[int, ...], tuple[int, ...]],
+        list[tuple[int, tuple[tuple[int, ...], tuple[int, ...]]]],
+    ] = {}
+    vertex_faces: dict[tuple[int, ...], set[int]] = {}
+    for face_index, triangle in enumerate(triangles):
+        keys = tuple(vertex_key(point) for point in triangle)
+        if len(set(keys)) != 3:
+            return None
+        for key in keys:
+            vertex_faces.setdefault(key, set()).add(face_index)
+        for left, right in ((keys[0], keys[1]), (keys[1], keys[2]), (keys[2], keys[0])):
+            edge_key = tuple(sorted((left, right)))
+            edge_counts[edge_key] += 1
+            edge_incidents.setdefault(edge_key, []).append(
+                (face_index, (left, right))
+            )
+    directed_topology = bool(edge_counts) and all(
+        count == 2 and len(edge_incidents.get(edge, ())) == 2
+        for edge, count in edge_counts.items()
+    )
+    vertex_face_adjacency: dict[
+        tuple[int, ...], dict[int, set[int]]
+    ] = {
+        vertex: {face: set() for face in faces}
+        for vertex, faces in vertex_faces.items()
+    }
+    if directed_topology:
+        for edge, incidents in edge_incidents.items():
+            (left_face, left_direction), (right_face, right_direction) = incidents
+            if left_direction != tuple(reversed(right_direction)):
+                directed_topology = False
+                break
+            for vertex in edge:
+                vertex_face_adjacency[vertex][left_face].add(right_face)
+                vertex_face_adjacency[vertex][right_face].add(left_face)
+    if directed_topology:
+        for vertex, incident_faces in vertex_faces.items():
+            pending = [next(iter(incident_faces))]
+            visited: set[int] = set()
+            while pending:
+                face = pending.pop()
+                if face in visited:
+                    continue
+                visited.add(face)
+                pending.extend(vertex_face_adjacency[vertex][face] - visited)
+            if visited != incident_faces:
+                directed_topology = False
+                break
+    if not directed_topology:
+        # Boolean kernels may retain redundant coplanar transport facets.
+        # The visual metric can safely union those triangles only when the
+        # same complete payload is independently certified as a closed
+        # manifold; open legacy triangle soups remain rejected.
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            _kernel_certifies_complete_surface_mesh,
+        )
+
+        if not _kernel_certifies_complete_surface_mesh(surfaces):
+            return None
+    hull = MultiPoint([(point[0], point[1]) for point in points]).convex_hull
+    if hull.is_empty or float(hull.area) <= 1e-12:
+        return None
+    rectangle = hull.minimum_rotated_rectangle
+    coordinates = list(rectangle.exterior.coords)
+    edges = [
+        (((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5, atan2(y2 - y1, x2 - x1))
+        for (x1, y1), (x2, y2) in zip(coordinates, coordinates[1:])
+    ]
+    major, angle = max(edges, key=lambda item: item[0])
+    z_min = min(point[2] for point in points)
+    z_span = max(point[2] for point in points) - z_min
+    if major <= 1e-9 or z_span <= 1e-9:
+        return None
+    center = hull.centroid
+    theta = -angle
+    normalized = tuple(tuple(
+        (
+            ((point[0] - center.x) * cos(theta) - (point[1] - center.y) * sin(theta)) / major,
+            ((point[0] - center.x) * sin(theta) + (point[1] - center.y) * cos(theta)) / major,
+            (point[2] - z_min) / z_span,
+        )
+        for point in triangle
+    ) for triangle in triangles)
+    views = _surface_views(normalized)
+    if any(view.is_empty or float(view.area) <= 1e-12 for view in views):
+        return None
+    return normalized, views
+
+
+def _surface_views(triangles):
+    def projected(indices):
+        polygons = []
+        for triangle in triangles:
+            polygon = Polygon([(point[indices[0]], point[indices[1]]) for point in triangle])
+            if polygon.is_valid and not polygon.is_empty and float(polygon.area) > 1e-12:
+                polygons.append(polygon)
+        return safe_unary_union(polygons) or Polygon()
+    return projected((0, 1)), projected((0, 2)), projected((1, 2))
 
 
 def intrinsic_shape_distance(left: SourceMass, right: SourceMass) -> tuple[float, float]:
@@ -330,6 +577,8 @@ def layered_volume_distance(left: list[LayeredFootprint], right: list[LayeredFoo
 __all__ = [
     "DEFAULT_NOVELTY_POLICY",
     "MorphologyNoveltyPolicy",
+    "authoritative_surface_morphology",
+    "authoritative_surface_silhouette_distance",
     "intrinsic_shape_distance",
     "intrinsic_shape_distance_from_keys",
     "intrinsic_silhouette_distance",

@@ -149,7 +149,7 @@
       "aliases": ["근린생활시설", "근린생활", "근생", "neighborhood living", "neighborhood commercial"],
       "design_intent": "compact capacity-aware street building with an active ground edge, one clear public void or terrace, and calm upper massing",
       "geometry_language_contract": {
-        "allowed_macro_operators": ["courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "bridge", "grid_mass", "cross_mass", "bent_bar", "split_wing", "attach_volume", "lift", "puncture", "cut_corner", "stepped_mass"],
+        "allowed_macro_operators": ["profiled_hall", "courtyard", "carve_void", "notch", "setback", "terrace", "cantilever", "bridge", "grid_mass", "cross_mass", "bent_bar", "split_wing", "attach_volume", "lift", "puncture", "cut_corner", "stepped_mass"],
         "required_macro_operators_any": ["courtyard", "carve_void", "notch", "lift", "split_wing"],
         "requires_access_bound_relation": true,
         "public_space_operators": ["courtyard", "split_wing"],

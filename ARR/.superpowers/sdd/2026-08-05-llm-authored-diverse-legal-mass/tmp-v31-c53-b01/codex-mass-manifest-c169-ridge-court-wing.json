@@ -1,0 +1,90 @@
+{
+  "schema_version": "arr.maas.codex_oauth_geometry_manifest.v3_causal_book_paths",
+  "provider": "codex_oauth_llm_geometry_author",
+  "authoring_session_id": "codex-oauth-mass-20260810-c169-ridge-court-wing",
+  "request_id": "competition-mass-book-20260810-c169-ridge-court-wing",
+  "oauth_author_response": {
+    "schema_version": "arr.maas.codex_oauth_author_response.v1",
+    "response_id": "codex-response-mass-book-20260810-c169-ridge-court-wing",
+    "selected_bindings": [
+      {"program_name": "c169_long_ridge_hall", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"},
+      {"program_name": "c167_open_courtyard_taper", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"},
+      {"program_name": "c167_branched_wing", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"}
+    ],
+    "response_sha256": "8132521eab30e6edea99f8847be5641e4e4dd52b9b65bc07b1e1483ca145107e"
+  },
+  "programs": [
+    {
+      "name": "c169_long_ridge_hall",
+      "base_seed": "bar",
+      "intent_tags": ["long_span_ridge", "continuous_section", "west_public_threshold"],
+      "root_id": "profiled_body",
+      "nodes": [
+        {"id": "unit", "kind": "primitive", "operator": "box", "inputs": [], "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"},
+        {"id": "bar_seed", "kind": "transform", "operator": "scale", "inputs": ["unit"], "parameters": {"vector": [2.8, 0.62, 0.48]}, "semantic_role": "normalized_bar_seed"},
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["bar_seed"],
+          "parameters": {"matrix4": [[1.6, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {"id": "entry_threshold", "kind": "macro", "operator": "notch", "inputs": ["base_volume"], "parameters": {"side": "west", "corner": "sw", "ratio": 0.06, "width_ratio": 0.16, "height_ratio": 0.16}, "semantic_role": "west_public_access"},
+        {"id": "profiled_body", "kind": "macro", "operator": "profiled_hall", "inputs": ["entry_threshold"], "parameters": {"section_family": "ridge", "section_controls": [[0.0, 0.9], [0.5, 1.0], [1.0, 0.9]], "span_axis": "x"}, "semantic_role": "continuous_long_span_ridge"}
+      ],
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {"schema_version": "arr.maas.codex_book_path_execution_binding.v1", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84", "author_response_sha256": "8132521eab30e6edea99f8847be5641e4e4dd52b9b65bc07b1e1483ca145107e"}
+    },
+    {
+      "name": "c167_open_courtyard_taper",
+      "base_seed": "block",
+      "intent_tags": ["open_courtyard", "perimeter_block", "continuous_taper", "west_public_threshold"],
+      "root_id": "tapered_body",
+      "nodes": [
+        {"id": "unit", "kind": "primitive", "operator": "box", "inputs": [], "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"},
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["unit"],
+          "parameters": {"matrix4": [[1.6, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {"id": "authored_body", "kind": "macro", "operator": "courtyard", "inputs": ["base_volume"], "parameters": {"margin_ratio": 0.32, "open_side": "west"}, "semantic_role": "west_open_public_court"},
+        {
+          "id": "tapered_body", "kind": "modifier", "operator": "taper", "inputs": ["authored_body"],
+          "parameters": {"axis": "z", "start_scale": [1.0, 1.0], "end_scale": [0.9, 0.9], "lower_floor_fraction": 0.5, "subdivisions": 4},
+          "semantic_role": "continuous_legal_taper"
+        }
+      ],
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {"schema_version": "arr.maas.codex_book_path_execution_binding.v1", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84", "author_response_sha256": "8132521eab30e6edea99f8847be5641e4e4dd52b9b65bc07b1e1483ca145107e"}
+    },
+    {
+      "name": "c167_branched_wing",
+      "base_seed": "block",
+      "intent_tags": ["branched_wing", "forked_plan", "continuous_taper", "west_public_threshold"],
+      "root_id": "entry_threshold",
+      "nodes": [
+        {"id": "unit", "kind": "primitive", "operator": "box", "inputs": [], "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"},
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["unit"],
+          "parameters": {"matrix4": [[-1.6, 0.0, 0.0, 1.6], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {
+          "id": "wing_profile", "kind": "primitive", "operator": "loft", "inputs": [],
+          "parameters": {"profiles": [
+            {"z": 0.0, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 0.36], [0.66, 0.36], [0.66, 1.0], [0.0, 1.0]]},
+            {"z": 1.0, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 0.36], [0.66, 0.36], [0.66, 1.0], [0.0, 1.0]]}
+          ]},
+          "semantic_role": "branched_l_plan"
+        },
+        {"id": "authored_body", "kind": "boolean", "operator": "intersection", "inputs": ["base_volume", "wing_profile"], "parameters": {}, "semantic_role": "basevolume_wing_intersection"},
+        {
+          "id": "tapered_body", "kind": "modifier", "operator": "taper", "inputs": ["authored_body"],
+          "parameters": {"axis": "z", "start_scale": [1.0, 1.0], "end_scale": [0.78, 0.78], "lower_floor_fraction": 0.25, "subdivisions": 4},
+          "semantic_role": "continuous_legal_taper"
+        },
+        {"id": "entry_threshold", "kind": "macro", "operator": "notch", "inputs": ["tapered_body"], "parameters": {"side": "west", "corner": "sw", "ratio": 0.06, "width_ratio": 0.16, "height_ratio": 0.16}, "semantic_role": "west_public_access"}
+      ],
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {"schema_version": "arr.maas.codex_book_path_execution_binding.v1", "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84", "author_response_sha256": "8132521eab30e6edea99f8847be5641e4e4dd52b9b65bc07b1e1483ca145107e"}
+    }
+  ]
+}

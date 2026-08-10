@@ -27,6 +27,7 @@ def selected_candidate_execution_passport(
     descriptor: Mapping[str, Any],
     pnu: str,
     candidate_finalization_evidence: Mapping[str, Any] | None = None,
+    expected_finalization_identity: Mapping[str, Any] | None = None,
     allow_relaxed_finalization: bool = False,
 ) -> dict[str, Any]:
     """Merge already-computed candidate evidence; never rerun a hard gate."""
@@ -131,6 +132,7 @@ def selected_candidate_execution_passport(
         return _bind_candidate_finalization_to_passport(
             passport,
             candidate_finalization_evidence,
+            expected_identity=expected_finalization_identity,
             allow_relaxed_finalization=allow_relaxed_finalization,
         )
 
@@ -149,67 +151,172 @@ def selected_candidate_execution_passport(
     return _bind_candidate_finalization_to_passport(
         passport,
         candidate_finalization_evidence,
+        expected_identity=expected_finalization_identity,
         allow_relaxed_finalization=allow_relaxed_finalization,
     )
 
 
 def _bind_candidate_finalization_to_passport(
     passport: dict[str, Any],
-    evidence: Mapping[str, Any] | None,
+    evidence: Any,
     *,
+    expected_identity: Mapping[str, Any] | None = None,
     allow_relaxed_finalization: bool = False,
 ) -> dict[str, Any]:
     """Bind the already-certified final-mesh floor authority once."""
 
     if not isinstance(evidence, Mapping):
-        return passport
+        reason = "candidate_finalization_evidence_missing_or_invalid"
+        if not allow_relaxed_finalization:
+            raise ValueError(reason)
+        return _append_relaxed_finalization_stage(
+            passport,
+            evidence={},
+            reason=reason,
+        )
     payload = deepcopy(dict(evidence))
     certificate = payload.get("candidate_actual_gfa_stop_certificate")
     measured_identity = payload.get("measured_identity")
+    reason = ""
+    finalization_schema = payload.get("schema_version")
     if (
-        payload.get("schema_version")
-        != "arr.maas.candidate_final_mesh_floor_finalization.v1"
+        finalization_schema not in {
+            "arr.maas.candidate_final_mesh_floor_finalization.v1",
+            "arr.maas.candidate_final_mesh_floor_finalization.v2",
+        }
         or payload.get("status") != "certified"
         or payload.get("hard_pass") is not True
-        or not isinstance(certificate, dict)
-        or not isinstance(measured_identity, dict)
     ):
-        if not allow_relaxed_finalization:
-            raise ValueError("candidate finalization evidence is invalid")
-        passport["stages"] = [
-            *deepcopy(passport.get("stages") or ()),
-            {
-                "id": "candidate_finalization_fallback",
-                "label": "Candidate finalization evidence fallback",
-                "status": "not_evaluated",
-                "required_for_final": False,
-                "node_ids": [],
-                "evidence": {
-                    "status": "warn",
-                    "reason": (
-                        "candidate finalization evidence did not meet "
-                        "strict diagnostic passport schema"
-                    ),
-                    "candidate_finalization_evidence": deepcopy(payload),
-                },
-            },
-        ]
-        return passport
-    bindings = {
-        "program_hash": str(passport.get("program_hash") or ""),
-        "final_geometry_hash": str(
-            passport.get("final_legal_geometry_hash")
-            or measured_identity.get("final_geometry_hash")
-            or ""
-        ),
-        "visual_hash": str(passport.get("visual_hash") or ""),
-    }
-    for key, expected in bindings.items():
-        measured = str(measured_identity.get(key) or "")
-        if expected and measured != expected:
-            raise ValueError(
-                f"candidate finalization identity mismatch: {key}"
+        reason = "candidate_finalization_evidence_invalid_or_failed"
+    elif not isinstance(certificate, Mapping):
+        reason = (
+            "candidate_finalization_missing_required_field:"
+            "candidate_actual_gfa_stop_certificate"
+        )
+    elif not isinstance(measured_identity, Mapping):
+        reason = (
+            "candidate_finalization_missing_required_field:"
+            "measured_identity"
+        )
+    else:
+        expected = (
+            dict(expected_identity)
+            if isinstance(expected_identity, Mapping)
+            else {}
+        )
+        required_values = {
+            "expected_identity.program_hash": expected.get("program_hash"),
+            "expected_identity.final_geometry_hash": expected.get(
+                "final_geometry_hash"
+            ),
+            "expected_identity.visual_hash": expected.get("visual_hash"),
+            "passport.program_hash": passport.get("program_hash"),
+            "passport.visual_hash": passport.get("visual_hash"),
+            "measured_identity.program_hash": measured_identity.get(
+                "program_hash"
+            ),
+            "measured_identity.final_geometry_hash": measured_identity.get(
+                "final_geometry_hash"
+            ),
+            "measured_identity.visual_hash": measured_identity.get(
+                "visual_hash"
+            ),
+            "legal_floor_field_hash": payload.get("legal_floor_field_hash"),
+            "candidate_actual_gfa_stop_hash": payload.get(
+                "candidate_actual_gfa_stop_hash"
+            ),
+            "certificate.program_hash": certificate.get("program_hash"),
+            "certificate.final_geometry_hash": certificate.get(
+                "final_geometry_hash"
+            ),
+            "certificate.visual_hash": certificate.get("visual_hash"),
+            "certificate.legal_floor_field_hash": certificate.get(
+                "legal_floor_field_hash"
+            ),
+            "certificate.candidate_actual_gfa_stop_hash": certificate.get(
+                "candidate_actual_gfa_stop_hash"
+            ),
+        }
+        missing = next(
+            (key for key, value in required_values.items() if not str(value or "")),
+            "",
+        )
+        if missing:
+            reason = f"candidate_finalization_missing_required_field:{missing}"
+        elif certificate.get("hard_pass") is not True:
+            reason = "candidate_finalization_evidence_invalid_or_failed"
+        else:
+            identity_bindings = {
+                "passport.program_hash": (
+                    passport.get("program_hash"),
+                    expected.get("program_hash"),
+                ),
+                "passport.visual_hash": (
+                    passport.get("visual_hash"),
+                    expected.get("visual_hash"),
+                ),
+                "measured_identity.program_hash": (
+                    measured_identity.get("program_hash"),
+                    expected.get("program_hash"),
+                ),
+                "measured_identity.final_geometry_hash": (
+                    measured_identity.get("final_geometry_hash"),
+                    expected.get("final_geometry_hash"),
+                ),
+                "measured_identity.visual_hash": (
+                    measured_identity.get("visual_hash"),
+                    expected.get("visual_hash"),
+                ),
+                "certificate.program_hash": (
+                    certificate.get("program_hash"),
+                    expected.get("program_hash"),
+                ),
+                "certificate.final_geometry_hash": (
+                    certificate.get("final_geometry_hash"),
+                    expected.get("final_geometry_hash"),
+                ),
+                "certificate.visual_hash": (
+                    certificate.get("visual_hash"),
+                    expected.get("visual_hash"),
+                ),
+                "certificate.legal_floor_field_hash": (
+                    certificate.get("legal_floor_field_hash"),
+                    payload.get("legal_floor_field_hash"),
+                ),
+                "certificate.candidate_actual_gfa_stop_hash": (
+                    certificate.get("candidate_actual_gfa_stop_hash"),
+                    payload.get("candidate_actual_gfa_stop_hash"),
+                ),
+            }
+            mismatch = next(
+                (
+                    key
+                    for key, (actual, expected_value) in identity_bindings.items()
+                    if str(actual) != str(expected_value)
+                ),
+                "",
             )
+            if mismatch:
+                reason = f"candidate_finalization_identity_mismatch:{mismatch}"
+            elif (
+                finalization_schema
+                == "arr.maas.candidate_final_mesh_floor_finalization.v2"
+                and not _valid_v2_finalization_capacity_contract(
+                    payload,
+                    certificate,
+                )
+            ):
+                reason = (
+                    "candidate_finalization_capacity_contract_mismatch"
+                )
+    if reason:
+        if not allow_relaxed_finalization:
+            raise ValueError(reason)
+        return _append_relaxed_finalization_stage(
+            passport,
+            evidence=payload,
+            reason=reason,
+        )
     passport.update({
         "final_legal_geometry_hash": str(
             measured_identity.get("final_geometry_hash") or ""
@@ -226,7 +333,126 @@ def _bind_candidate_finalization_to_passport(
             "candidate_target_gfa_m2"
         ),
         "achieved_gfa_m2": payload.get("achieved_gfa_m2"),
+        "requested_candidate_target_gfa_m2": payload.get(
+            "requested_candidate_target_gfa_m2"
+        ),
+        "candidate_feasible_maximum_gfa_m2": payload.get(
+            "candidate_feasible_maximum_gfa_m2"
+        ),
+        "candidate_minimum_capacity_utilization": payload.get(
+            "candidate_minimum_capacity_utilization"
+        ),
+        "achieved_capacity_utilization": payload.get(
+            "achieved_capacity_utilization"
+        ),
+        "candidate_capacity_resolution_hard_pass": payload.get(
+            "candidate_capacity_resolution_hard_pass"
+        ),
+        "capacity_contract_mode": payload.get(
+            "capacity_contract_mode"
+        ),
     })
+    return passport
+
+
+def _valid_v2_finalization_capacity_contract(
+    payload: Mapping[str, Any],
+    certificate: Mapping[str, Any],
+) -> bool:
+    """Validate the resolved minimum-band contract bound to final mesh v2."""
+
+    names = (
+        "candidate_target_gfa_m2",
+        "requested_candidate_target_gfa_m2",
+        "achieved_gfa_m2",
+        "candidate_feasible_maximum_gfa_m2",
+        "candidate_minimum_capacity_utilization",
+        "achieved_capacity_utilization",
+    )
+    if any(
+        type(payload.get(name)) not in (int, float)
+        or not isfinite(float(payload[name]))
+        for name in names
+    ):
+        return False
+    actual_target = float(payload["candidate_target_gfa_m2"])
+    requested_target = float(
+        payload["requested_candidate_target_gfa_m2"]
+    )
+    achieved = float(payload["achieved_gfa_m2"])
+    feasible = float(payload["candidate_feasible_maximum_gfa_m2"])
+    minimum = float(payload["candidate_minimum_capacity_utilization"])
+    utilization = float(payload["achieved_capacity_utilization"])
+    certificate_target = certificate.get("target_gfa_m2")
+    certificate_achieved = certificate.get("achieved_gfa_m2")
+    if (
+        type(certificate_target) not in (int, float)
+        or type(certificate_achieved) not in (int, float)
+        or not isfinite(float(certificate_target))
+        or not isfinite(float(certificate_achieved))
+    ):
+        return False
+    return bool(
+        payload.get("capacity_contract_mode")
+        == "accepted_actual_gfa_minimum_band"
+        and payload.get("candidate_capacity_resolution_hard_pass") is True
+        and actual_target > 0.0
+        and requested_target > 0.0
+        and feasible > 0.0
+        and 0.0 < minimum <= 1.0
+        and utilization + 1e-9 >= minimum
+        and abs(actual_target - achieved) <= 1e-6
+        and abs(float(certificate_target) - actual_target) <= 1e-6
+        and abs(float(certificate_achieved) - achieved) <= 1e-6
+        and abs(utilization - achieved / feasible) <= 1e-9
+    )
+
+
+def _append_relaxed_finalization_stage(
+    passport: dict[str, Any],
+    *,
+    evidence: Mapping[str, Any],
+    reason: str,
+) -> dict[str, Any]:
+    """Persist one bounded diagnostic reason without granting authority."""
+
+    passport.update({
+        "hard_pass": False,
+        "final_hard_pass": False,
+        "full_flow_complete": False,
+        "publishable": False,
+        "status": "diagnostic_non_publishable",
+        "candidate_finalization_hard_pass": False,
+    })
+    existing_stages = deepcopy(passport.get("stages") or ())
+    for stage in existing_stages:
+        if not isinstance(stage, dict) or stage.get("id") != "selector":
+            continue
+        stage["status"] = "failed"
+        selector_evidence = stage.get("evidence")
+        if not isinstance(selector_evidence, dict):
+            selector_evidence = {}
+            stage["evidence"] = selector_evidence
+        selector_evidence.update({
+            "selected": False,
+            "hard_pass": False,
+            "reason": "candidate_finalization_diagnostic_non_publishable",
+        })
+    passport["stages"] = [
+        *existing_stages,
+        {
+            "id": "candidate_finalization_fallback",
+            "label": "Candidate finalization evidence fallback",
+            "status": "not_evaluated",
+            "required_for_final": False,
+            "node_ids": [],
+            "evidence": {
+                "status": "warn",
+                "reason": reason,
+                "candidate_finalization_evidence": deepcopy(dict(evidence)),
+            },
+        },
+    ]
     return passport
 
 
@@ -449,6 +675,20 @@ def resolve_capacity_band_evidence(
         and isfinite(minimum)
         and minimum > 0.0
     )
+    measurement_minimum_pass = bool(
+        measured_aggregate
+        and measurement.get("hard_pass") is True
+    )
+
+    def achieved_required_capacity(required: float) -> bool:
+        return bool(
+            achieved + 1e-9 >= required
+            or (
+                required <= minimum + 1e-9
+                and measurement_minimum_pass
+            )
+        )
+
     if selectable_measured:
         resolved_id = str(
             projection.get("selectable_capacity_alternative_id") or ""
@@ -464,7 +704,7 @@ def resolve_capacity_band_evidence(
             and resolved_target > 0.0
             and measured_aggregate
             and minimum_is_authoritative
-            and achieved + 1e-9 >= max(minimum, resolved_target)
+            and achieved_required_capacity(max(minimum, resolved_target))
         )
     else:
         resolved_id = requested_id
@@ -475,8 +715,37 @@ def resolve_capacity_band_evidence(
             and resolved_target > 0.0
             and measured_aggregate
             and minimum_is_authoritative
-            and achieved + 1e-9 >= max(minimum, resolved_target)
+            and achieved_required_capacity(max(minimum, resolved_target))
         )
+    failure_reasons: list[str] = []
+    if not resolved_id:
+        failure_reasons.append("resolved_capacity_alternative_missing")
+    if resolved_target <= 0.0:
+        failure_reasons.append("resolved_capacity_target_invalid")
+    if not measured_available:
+        failure_reasons.append("final_capacity_measurement_missing_or_invalid")
+    elif measurement.get("hard_pass") is False:
+        failure_reasons.append("final_capacity_measurement_failed")
+    if not minimum_is_authoritative:
+        failure_reasons.append("capacity_minimum_missing_or_invalid")
+    if (
+        resolved_id
+        and resolved_target > 0.0
+        and measured_aggregate
+        and minimum_is_authoritative
+        and not achieved_required_capacity(max(minimum, resolved_target))
+    ):
+        failure_reasons.append("achieved_capacity_below_required_threshold")
+    projection_hard_pass = (
+        bool(projection.get("selectable_capacity_hard_pass"))
+        if selectable_measured
+        else requested_hard_pass
+    )
+    if (
+        not projection_hard_pass
+        and not failure_reasons
+    ):
+        failure_reasons.append("capacity_projection_not_hard_pass")
     return {
         "requested_capacity_alternative_id": requested_id,
         "requested_capacity_target_utilization": requested_target,
@@ -484,6 +753,7 @@ def resolve_capacity_band_evidence(
         "resolved_capacity_alternative_id": resolved_id,
         "resolved_capacity_target_utilization": resolved_target,
         "resolved_capacity_hard_pass": resolved_hard_pass,
+        "resolved_capacity_failure_reasons": failure_reasons,
         "resolved_capacity_minimum_utilization": minimum,
         "achieved_capacity_utilization": achieved,
     }

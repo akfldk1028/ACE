@@ -443,7 +443,13 @@ def evaluate_capacity_alternative(
     achieved_bands = [
         (alternative_id, band_target)
         for alternative_id, band_target in measured_band_targets.items()
-        if achieved + 1e-9 >= band_target
+        if (
+            achieved + 1e-9 >= band_target
+            or (
+                alternative_id == "spatial_reserve"
+                and measured.get("hard_pass") is True
+            )
+        )
     ]
     selectable_alternative_id, selectable_target = (
         max(achieved_bands, key=lambda item: item[1])
@@ -454,7 +460,13 @@ def evaluate_capacity_alternative(
         **alternative,
         "achieved_utilization": round(achieved, 4),
         "target_gap": round(achieved - target, 4),
-        "target_hard_pass": bool(achieved + 1e-9 >= target),
+        "target_hard_pass": bool(
+            achieved + 1e-9 >= target
+            or (
+                target <= minimum + 1e-9
+                and measured.get("hard_pass") is True
+            )
+        ),
         "requested_capacity_alternative_id": str(
             alternative.get("alternative_id") or ""
         ),

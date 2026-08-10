@@ -2182,8 +2182,9 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         neighborhood_operators = geometry_llm_adapter._allowed_author_operators(neighborhood_context)
         gym_operators = geometry_llm_adapter._allowed_author_operators(gym_context)
 
-        self.assertNotIn("profiled_hall", neighborhood_operators)
+        self.assertIn("profiled_hall", neighborhood_operators)
         self.assertNotIn("leaning_tower", neighborhood_operators)
+        self.assertNotIn("book_base_volume", neighborhood_operators)
         self.assertIn("courtyard", neighborhood_operators)
         self.assertIn("profiled_hall", gym_operators)
         self.assertNotIn("split_wing", gym_operators)
@@ -2202,6 +2203,189 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertIn("street_access", prompt)
         self.assertIn("Never append a fake result", prompt)
         self.assertIn("allowed macro list", prompt)
+
+    def test_llm_author_prompt_carries_nonnegotiable_mass_memory(self):
+        prompt = geometry_llm_adapter._author_prompt({
+            "building_type": "neighborhood_living",
+            "program_context": program_reference_contract("neighborhood_living"),
+            "base_seeds": ["bar", "slab", "block"],
+            "maximum_operator_depth": 2,
+            "downstream_body_rule_reserve": 1,
+        }, 20)
+
+        self.assertIn("NON-NEGOTIABLE MASS MEMORY", prompt)
+        self.assertIn(
+            "UnitBox -> authored base-form capability -> one global homogeneous 4x4 Matrix4",
+            prompt,
+        )
+        self.assertIn("Qatar National Library", prompt)
+        self.assertIn("continuous public space, circulation-section", prompt)
+        self.assertIn("span, void, and aggregation", prompt)
+        self.assertIn("maximum-FAR staircase", prompt)
+        self.assertIn("final production BOOK/program/legal projection", prompt)
+        self.assertIn("capacity utilization must remain at least 0.70", prompt)
+        self.assertIn("Never numerically inverse-compensate", prompt)
+        self.assertIn("continuous legal-envelope condition", prompt)
+        self.assertIn("Capacity is a whole-building design budget", prompt)
+        self.assertIn("must not become the visible design language", prompt)
+        self.assertIn("BOOK is a compositional graph, not a checklist", prompt)
+        self.assertIn("thousands of executable possibilities", prompt)
+        self.assertIn("Never assign one required language per output", prompt)
+        self.assertIn("Taper is only", prompt)
+        self.assertIn("one possible graph node beside", prompt)
+
+    def test_llm_author_schema_and_prompt_expose_independent_base_form_axis(self):
+        self.assertEqual(
+            geometry_llm_adapter.GEOMETRY_AUTHOR_PROMPT_CONTRACT,
+            "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        )
+        context = {
+            "building_type": "neighborhood_living",
+            "program_context": program_reference_contract("neighborhood_living"),
+            "base_seeds": ["block", "slab", "bar"],
+            "maximum_operator_depth": 2,
+        }
+        prompt = geometry_llm_adapter._author_prompt(context, 1)
+        schema = geometry_llm_adapter._author_schema(
+            1,
+            allowed_base_seeds=["block", "slab", "bar"],
+        )
+        item = schema["properties"]["programs"]["items"]
+
+        self.assertIn("base_form_id", item["required"])
+        self.assertEqual(
+            item["properties"]["base_form_id"]["enum"],
+            ["cube", "elliptical", "tetrahedral"],
+        )
+        self.assertIn(
+            "UnitBox -> authored base-form capability -> one global homogeneous 4x4 Matrix4",
+            prompt,
+        )
+        self.assertIn("cube, elliptical, tetrahedral", prompt)
+        self.assertLess(prompt.index("base-form capability"), prompt.index("BOOK p.3 fraction scope"))
+
+    def test_llm_author_receives_and_binds_a_choice_from_the_full_book_lattice(self):
+        context = {
+            "program_id": "neighborhood_living",
+            "book_graph_vocabulary": {
+                "principles": [{"principle_id": "book:operative:bend"}],
+            },
+        }
+        offered = geometry_llm_adapter._book_composition_path_slice(
+            context,
+            3,
+        )
+        prompt = geometry_llm_adapter._author_prompt(context, 3)
+        schema = geometry_llm_adapter._author_schema(
+            3,
+            book_principle_vocabulary=("book:operative:bend",),
+            book_composition_path_ids=tuple(
+                item["path_id"] for item in offered
+            ),
+        )
+        program_schema = schema["properties"]["programs"]["items"]
+
+        self.assertGreaterEqual(len(offered), 12)
+        self.assertGreater(len({item["principle_id"] for item in offered}), 3)
+        self.assertGreater(len({item["base_volume_label"] for item in offered}), 3)
+        self.assertIn("13,662", prompt)
+        self.assertIn(offered[0]["path_id"], prompt)
+        self.assertIn("book_composition_path_id", program_schema["required"])
+        self.assertEqual(
+            set(program_schema["properties"]["book_composition_path_id"]["enum"]),
+            {item["path_id"] for item in offered},
+        )
+
+    def test_llm_author_book_offer_rotates_across_batches_and_keeps_matrix_contract(self):
+        base = {
+            "program_id": "neighborhood_living",
+            "book_graph_vocabulary": {"principles": []},
+            "author_stage": "replenishment",
+            "author_request_kind": "geometry_author_replenishment",
+        }
+        first = geometry_llm_adapter._book_composition_path_slice({
+            **base,
+            "author_batch_index": 0,
+            "author_variation_offset": 0,
+            "capacity_authoring_deficits": [{"scope": "1/1"}],
+        }, 8)
+        second = geometry_llm_adapter._book_composition_path_slice({
+            **base,
+            "author_batch_index": 1,
+            "author_variation_offset": 20,
+            "capacity_authoring_deficits": [{"scope": "3/8"}],
+        }, 8)
+
+        first_ids = {item["path_id"] for item in first}
+        second_ids = {item["path_id"] for item in second}
+        self.assertNotEqual(first_ids, second_ids)
+        self.assertGreater(len(first_ids | second_ids), len(first_ids))
+        self.assertTrue(all(
+            item["matrix4_contract"] == {
+                "schema_version": "arr.maas.book_basevolume_matrix4.v1",
+                "count": 1,
+                "coordinate_frame": "unitbox",
+                "placement": "after_base_volume_before_ordered_operations",
+                "authorship": "llm_typed_ast",
+            }
+            for item in (*first, *second)
+        ))
+        self.assertTrue(all(
+            item["parameter_state"]["book_variation_count"] == 11
+            for item in (*first, *second)
+        ))
+        rotated = [
+            item
+            for batch_index in range(24)
+            for item in geometry_llm_adapter._book_composition_path_slice({
+                **base,
+                "author_batch_index": batch_index,
+                "author_batch_count": 24,
+                "author_variation_offset": batch_index * 20,
+                "capacity_authoring_deficits": [{"batch": batch_index}],
+            }, 20)
+        ]
+        self.assertGreaterEqual(
+            len({item["path_id"] for item in rotated}),
+            1500,
+        )
+        self.assertEqual(
+            len({item["principle_id"] for item in rotated}),
+            69,
+        )
+
+    def test_llm_author_receives_normalized_legal_field_without_parcel_coordinates(self):
+        ground = {
+            "type": "Polygon",
+            "coordinates": [[[1000.0, 2000.0], [1016.0, 2000.0], [1016.0, 2010.0], [1000.0, 2010.0], [1000.0, 2000.0]]],
+        }
+        upper = {
+            "type": "Polygon",
+            "coordinates": [[[1000.0, 2005.0], [1016.0, 2005.0], [1016.0, 2010.0], [1000.0, 2010.0], [1000.0, 2005.0]]],
+        }
+        capacity = {
+            "feasible_maximum_floor_area_m2": 320.0,
+            "minimum_utilization": 0.70,
+            "target_floor_areas_m2": [100.0, 50.0],
+            "candidate_legal_floor_sections": [ground, upper],
+            "legal_floor_field": {
+                "pnu": "ABSOLUTE-PARCEL-ID",
+                "legal_floor_sections": [ground, upper],
+            },
+        }
+        prompt = geometry_llm_adapter._author_prompt({
+            "program_id": "neighborhood_living",
+            "base_capacity_contract": capacity,
+            "program_context": {"base_capacity_contract": capacity},
+            "book_graph_vocabulary": {"principles": []},
+        }, 1)
+
+        self.assertIn("legal_field_design_context", prompt)
+        self.assertIn("generation_host_principal_frame_normalized", prompt)
+        self.assertIn('"short_axis_max": 0.5', prompt)
+        self.assertNotIn("ABSOLUTE-PARCEL-ID", prompt)
+        self.assertNotIn("2000.0", prompt)
+        self.assertNotIn("candidate_legal_floor_sections", prompt)
 
     def test_llm_author_recognizes_program_invariant_roles_as_access_relations(self):
         context = {
@@ -6675,11 +6859,16 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 ],
             },
         }
+        offered_path_id = geometry_llm_adapter._book_composition_path_slice(
+            context,
+            1,
+        )[0]["path_id"]
         live_payload = {
             "book_principle_ids": ["book:operative:bend"],
             "programs": [{
                 "name": authored.name,
                 "dsl": geometry_llm_adapter.program_to_dsl(authored),
+                "book_composition_path_id": offered_path_id,
             }],
         }
         response_data = {
@@ -6801,6 +6990,14 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             "book_graph_vocabulary": {"principles": principles},
             "oversized_prior_memory": "y" * 26000,
         }
+        offered_path_id = geometry_llm_adapter._book_composition_path_slice(
+            context,
+            1,
+        )[0]["path_id"]
+        authored = replace(authored, metadata={
+            **authored.metadata,
+            "book_composition_path_id": offered_path_id,
+        })
 
         prompt = geometry_llm_adapter._author_prompt(context, 1)
         self.assertIn("book:operative:generated-0000", prompt)
@@ -6836,7 +7033,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 "book:operative:generated-0001",
             ],
         )
-        self.assertIn(".v25_", programs[0].metadata["author_prompt_contract"])
+        self.assertIn(".v31_", programs[0].metadata["author_prompt_contract"])
 
     def test_llm_author_legacy_context_and_v3_cache_remain_compatible(self):
         authored = base_seed_programs()[1]

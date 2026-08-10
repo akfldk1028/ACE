@@ -14,7 +14,7 @@ from dataclasses import dataclass, replace
 import hashlib
 import json
 from math import atan2, cos, degrees, hypot, isfinite, pi, sin
-from typing import Any
+from typing import Any, Sequence
 
 from shapely import make_valid, set_precision
 from shapely.affinity import affine_transform, rotate, translate
@@ -735,10 +735,6 @@ def materialize_floorwise_legal_source(
     )
     pose_rotation_degrees = target_reference_angle - source_reference_angle
     source_reference_center = visual_fit_source.centroid
-    target_reference_center = _access_reserve_target_center(
-        ground_legal,
-        site_access_side,
-    )
     prepared_floors: list[tuple[Any, Polygon, float, float]] = []
     for floor_index, (raw_source, raw_legal) in enumerate(zip(
         active_by_floor,
@@ -788,6 +784,11 @@ def materialize_floorwise_legal_source(
                 else float(legal.area) * coverage
             ),
         ))
+
+    target_reference_center = _access_reserve_target_center(
+        ground_legal,
+        site_access_side,
+    )
 
     planned_floor_targets = tuple(
         planned_area
@@ -906,6 +907,47 @@ def materialize_floorwise_legal_source(
             ),
         )
         return None
+
+    def optimize_stack_translation(
+        fit_result: tuple[
+            Any,
+            tuple[tuple[float, float, float, float], ...],
+        ],
+    ) -> tuple[Any, tuple[tuple[float, float, float, float], ...]]:
+        optimized_matrix = _optimize_floorwise_matrix_translation(
+            fit_result[1],
+            source_sections=tuple(
+                source_plan
+                for source_plan, _legal, _profile, _planned in prepared_floors
+            ),
+            legal_sections=tuple(
+                legal
+                for _source, legal, _profile, _planned in prepared_floors
+            ),
+            site_access_side=site_access_side,
+            minimum_total_area_m2=requested_total,
+        )
+        transformed_ground = affine_transform(
+            ground_source,
+            [
+                optimized_matrix[0][0],
+                optimized_matrix[0][1],
+                optimized_matrix[1][0],
+                optimized_matrix[1][1],
+                optimized_matrix[0][3],
+                optimized_matrix[1][3],
+            ],
+        )
+        occupied_parts = _polygon_parts(
+            transformed_ground.intersection(ground_legal)
+        )
+        return (
+            unary_union(occupied_parts) if occupied_parts else transformed_ground,
+            optimized_matrix,
+        )
+
+    global_fit = optimize_stack_translation(global_fit)
+
     capacity_compensation_iterations = 0
     for _iteration in range(4):
         _occupied, candidate_matrix = global_fit
@@ -950,6 +992,7 @@ def materialize_floorwise_legal_source(
         )
         if next_fit is None:
             break
+        next_fit = optimize_stack_translation(next_fit)
         previous_area = float(global_fit[0].area)
         next_area = float(next_fit[0].area)
         if next_area <= previous_area + 1e-7:
@@ -1937,10 +1980,17 @@ def _matrix_fit_polygon_to_host(
     if (
         representative_center.distance(resolved_target_center) > 1e-7
         and (
-            target_center is None
+            (allow_legal_csg_projection and not allow_pose_reflow)
+            or target_center is None
             or not host.buffer(1e-7).covers(resolved_target_center)
         )
     ):
+        # An access-reserve point can be inside the legal polygon while being
+        # too close to its boundary for the requested building footprint.
+        # The old point-only test then shrank a feasible 68 m2 plate to 4 m2.
+        # A representative-point fallback changes only the one global
+        # translation; the authored Matrix4 linear block and all relative
+        # floor poses remain intact.
         target_centers.append(representative_center)
     target_angle = source_angle + float(target_angle_offset_degrees)
     requested_area_scale_product = (
@@ -1995,6 +2045,8 @@ def _matrix_fit_polygon_to_host(
         if containment_host.covers(fitted):
             evidence.update({
                 "fit_mode": "affine_exact_target",
+                "selected_center_x": float(center.x),
+                "selected_center_y": float(center.y),
                 "scale_factor": 1.0,
                 "achieved_area_m2": float(fitted.area),
                 "lower_scale": 1.0,
@@ -2059,6 +2111,8 @@ def _matrix_fit_polygon_to_host(
             if containment_host.covers(alternate[0]):
                 evidence.update({
                     "fit_mode": "affine_exact_target",
+                    "selected_center_x": float(center.x),
+                    "selected_center_y": float(center.y),
                     "scale_factor": 1.0,
                     "achieved_area_m2": float(alternate[0].area),
                     "lower_scale": 1.0,
@@ -2289,6 +2343,8 @@ def _matrix_fit_polygon_to_host(
         return candidate
     evidence.update({
         "fit_mode": "legal_csg_maximum_lower",
+        "selected_center_x": float(selected_center.x),
+        "selected_center_y": float(selected_center.y),
         "scale_factor": float(projection_lower),
         "achieved_area_m2": float(lower_projected[0].area),
         "lower_scale": float(projection_lower),
@@ -4243,6 +4299,191 @@ def _access_reserve_target_center(
         if legal.covers(candidate):
             return candidate
     return center
+
+
+def _shared_legal_target_center(
+    legal_sections: Sequence[Polygon],
+    site_access_side: str,
+) -> Point:
+    """Choose one access-aware Matrix4 target inside every legal floor.
+
+    Floor-one placement can sit outside a narrower or shifted upper envelope.
+    Projecting that pose floor by floor then carves the authored solid into the
+    same setback silhouette.  The shared legal core supplies a site-generic
+    placement domain while preserving the road-side reserve convention.
+    """
+
+    usable = tuple(
+        repaired
+        for section in legal_sections
+        if (repaired := repair_source_polygon(section, minimum_area=1e-6))
+        is not None
+        and not repaired.is_empty
+    )
+    if not usable:
+        raise ValueError("legal_sections must contain a usable polygon")
+
+    fallback = _access_reserve_target_center(usable[0], site_access_side)
+    shared: Any = usable[0]
+    try:
+        for section in usable[1:]:
+            shared = shared.intersection(section)
+            parts = _polygon_parts(shared)
+            if not parts:
+                return fallback
+            shared = unary_union(parts)
+    except GEOSException:
+        return fallback
+
+    if shared.is_empty or float(shared.area) <= 1e-6:
+        return fallback
+    return _access_reserve_target_center(shared, site_access_side)
+
+
+def _optimize_floorwise_matrix_translation(
+    matrix: tuple[tuple[float, float, float, float], ...],
+    *,
+    source_sections: Sequence[Any],
+    legal_sections: Sequence[Polygon],
+    site_access_side: str,
+    minimum_total_area_m2: float = 0.0,
+) -> tuple[tuple[float, float, float, float], ...]:
+    """Move one Matrix4 to retain the authored section stack as a whole.
+
+    The linear block is immutable: only the global x/y translation is
+    searched.  This keeps the authored axis, aspect, taper and relative floor
+    offsets while avoiding the old floor-one placement that made upper legal
+    sections carve every language into the same setback body.
+    """
+
+    pairs = tuple(zip(source_sections, legal_sections))
+    if not pairs:
+        return matrix
+    transformed = tuple(
+        affine_transform(source, [
+            matrix[0][0], matrix[0][1],
+            matrix[1][0], matrix[1][1],
+            matrix[0][3], matrix[1][3],
+        ])
+        for source, _legal in pairs
+    )
+    if any(section.is_empty or float(section.area) <= 1e-9 for section in transformed):
+        return matrix
+    if all(
+        legal.buffer(1e-7).covers(section)
+        for section, (_source, legal) in zip(transformed, pairs)
+    ):
+        return matrix
+
+    ground_center = transformed[0].centroid
+    preferred = _access_reserve_target_center(
+        pairs[0][1],
+        site_access_side,
+    )
+    candidate_points: list[Point] = [preferred]
+
+    repaired_legal = tuple(
+        repaired
+        for _source, legal in pairs
+        if (repaired := repair_source_polygon(legal, minimum_area=1e-6))
+        is not None
+        and not repaired.is_empty
+    )
+    shared: Any | None = repaired_legal[0] if repaired_legal else None
+    fractions = tuple(index / 8.0 for index in range(9))
+    if repaired_legal:
+        ground_legal = repaired_legal[0]
+        min_x, min_y, max_x, max_y = ground_legal.bounds
+        candidate_points.extend(
+            point
+            for x_fraction in fractions
+            for y_fraction in fractions
+            if ground_legal.covers(point := Point(
+                min_x + (max_x - min_x) * x_fraction,
+                min_y + (max_y - min_y) * y_fraction,
+            ))
+        )
+    try:
+        for legal in repaired_legal[1:]:
+            shared = shared.intersection(legal) if shared is not None else None
+            parts = _polygon_parts(shared) if shared is not None else ()
+            if not parts:
+                shared = None
+                break
+            shared = unary_union(parts)
+    except GEOSException:
+        shared = None
+
+    if shared is not None and not shared.is_empty and float(shared.area) > 1e-6:
+        candidate_points.extend((
+            _access_reserve_target_center(shared, site_access_side),
+            shared.centroid,
+            shared.representative_point(),
+        ))
+        min_x, min_y, max_x, max_y = shared.bounds
+        candidate_points.extend(
+            point
+            for x_fraction in fractions
+            for y_fraction in fractions
+            if shared.covers(point := Point(
+                min_x + (max_x - min_x) * x_fraction,
+                min_y + (max_y - min_y) * y_fraction,
+            ))
+        )
+
+    # Aligning any authored floor centroid with its legal host centroid gives
+    # useful candidates when the authored stack itself shifts or branches.
+    for transformed_section, (_source, legal) in zip(transformed, pairs):
+        relative_x = float(transformed_section.centroid.x - ground_center.x)
+        relative_y = float(transformed_section.centroid.y - ground_center.y)
+        candidate_points.append(Point(
+            float(legal.centroid.x) - relative_x,
+            float(legal.centroid.y) - relative_y,
+        ))
+
+    raw_total = sum(float(section.area) for section in transformed)
+    best_matrix = matrix
+    minimum_total = max(0.0, float(minimum_total_area_m2))
+    best_score: tuple[float, float, float, float, float] | None = None
+    seen: set[tuple[float, float]] = set()
+    for point in candidate_points:
+        key = (round(float(point.x), 7), round(float(point.y), 7))
+        if key in seen:
+            continue
+        seen.add(key)
+        delta_x = float(point.x - ground_center.x)
+        delta_y = float(point.y - ground_center.y)
+        moved = tuple(
+            translate(section, xoff=delta_x, yoff=delta_y)
+            for section in transformed
+        )
+        retained_areas = tuple(
+            float(section.intersection(legal).area)
+            for section, (_source, legal) in zip(moved, pairs)
+        )
+        retention_ratios = tuple(
+            retained / max(float(section.area), 1e-9)
+            for retained, section in zip(retained_areas, moved)
+        )
+        retained_total = sum(retained_areas)
+        retained_ratio = retained_total / max(raw_total, 1e-9)
+        minimum_retention = min(retention_ratios)
+        capacity_pass = retained_total + 1e-7 >= minimum_total
+        score = (
+            1.0 if capacity_pass else 0.0,
+            minimum_retention if capacity_pass else retained_ratio,
+            retained_ratio if capacity_pass else minimum_retention,
+            retained_total,
+            -float(point.distance(preferred)),
+        )
+        if best_score is not None and score <= best_score:
+            continue
+        rows = [list(row) for row in matrix]
+        rows[0][3] = float(rows[0][3]) + delta_x
+        rows[1][3] = float(rows[1][3]) + delta_y
+        best_matrix = tuple(tuple(float(value) for value in row) for row in rows)
+        best_score = score
+    return best_matrix
 
 
 def _contains_internal_horizontal_terrace(

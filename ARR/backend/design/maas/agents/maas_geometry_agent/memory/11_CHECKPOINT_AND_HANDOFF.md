@@ -99,3 +99,19 @@ coordinates, or enormous candidate payloads in agent memory.
   `0.60` capacity contract and exact `0.995` direct affine acceptance. Prefer
   a void, wing, curved or multi-axis continuous phenotype; inspect its ISO
   before requesting three. Do not rerun C118-C124 or launch target 20.
+
+## User-approved next visual contract
+
+- C124's continuous folded architectural direction is approved as one valid
+  result, despite the internal wedge-like diagnostic label.
+- Do not repeat C124 as the whole portfolio. The next bounded run is three
+  genuinely different authored languages/final silhouettes, viewed with the
+  same ISO camera: retain one continuous/folded island and add two from
+  void/court, wing/branch, curved, bridge/interlock, bent or split/merge
+  families.
+- Architectural language may repeat when the certified final geometry is
+  materially different. Diversity is measured from final mesh/ISO form, not
+  from unique operator names or prompt labels.
+- Keep BaseVolume, global Matrix4/NumPy placement, BOOK composition, `0.60`
+  capacity minimum, legal/parking/semantic gates and final identity binding.
+  Do not reintroduce stair synthesis or relax the successful C124 flow.

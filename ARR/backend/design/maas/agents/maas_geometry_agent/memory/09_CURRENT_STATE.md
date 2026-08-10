@@ -544,3 +544,23 @@ Date: 2026-08-09
 - Honest counters: bounded C124 `1/1`; canonical publishable `0/20`. Next run
   must author one new non-wedge continuous topology (void/wing/curved island)
   through this same unweakened flow before attempting three candidates.
+
+## 2026-08-10 user visual-direction confirmation after C124
+
+- The user directly reviewed C124 and confirmed that this continuous folded
+  mass direction is acceptable: "이런 식으로 좋고 나쁘지 않다." Preserve
+  it as one valid architectural language, not as the universal template.
+- The actual request is breadth across architectural languages under the same
+  legal production flow. Future candidates must visibly explore different
+  executable organizations such as void/court, wing or branch, curved shell,
+  bridge/interlock, bent bar, split/merge and multi-axis section. Reusing an
+  operator or language is allowed when the final ISO form is materially
+  different; forcing one unique label per card is not the objective.
+- Do not obtain variety through camera changes, front elevations, parameter-
+  only clones, legal stair stacks or cosmetic labels. Compare consistent ISO
+  views and final certified meshes. C124 may occupy one portfolio island, but
+  the next bounded proof should request three authored candidates and require
+  three visibly distinct ISO masses before increasing toward twenty.
+- `diagnostic-target 1` was intentionally used for C124. Its `1/1` means the
+  restored flow succeeded for the one requested candidate; canonical `0/20`
+  is a separate release-set counter, not a 0% generation success rate.

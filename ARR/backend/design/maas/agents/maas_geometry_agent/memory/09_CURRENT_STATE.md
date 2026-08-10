@@ -428,3 +428,28 @@ Date: 2026-08-09
 - Release truth remains separate: C112 is diagnostic `3/3`; canonical
   publishable remains `0/20`. Do not rewrite C112 as a canonical release or
   add unrelated diagnostic cards together to manufacture twenty.
+
+## 2026-08-10 paper-aligned session handoff checkpoint
+
+- `MGA_R 2026` has now been bound into the required memory read order through
+  `10_MGAR_2026_ALIGNMENT.md`. The adopted mechanism is final-geometry
+  phenotype islands with measured migration and deficit-directed
+  replenishment. 25_ACE does not claim the unavailable ResNet weights,
+  training data, official code, or a direct MGA_R reproduction.
+- `11_CHECKPOINT_AND_HANDOFF.md` makes memory updates mandatory after a bounded
+  run, every three new authored evaluations, every thirty active minutes,
+  every root-cause/policy change, and before a commit or session boundary.
+  `update_run_progress` now also creates an idempotent hash-bound JSON snapshot
+  for every distinct phase/counter state, so identical progress does not spam
+  the memory directory while changed progress cannot be overwritten.
+- The old memory contradiction is removed: `0.60` is the capacity-first hard
+  floor and `0.70` is the preferred competition target. Law, parking,
+  topology, authored identity, and final-mesh diversity remain hard gates.
+- Resume from C112 without another broad target-20 run. The next small
+  experiment is a five-card phenotype-island supply that retains lawful
+  survivors and asks only for missing non-wedge islands. The target-five
+  contract now requires four measured body phenotypes, maximum two per
+  phenotype, four body/roof signatures, maximum one visible step, and `0.10`
+  pair distance; the selector's measured wedge cap remains three. Its first
+  success condition is five compatible cards with visibly broader final-mesh
+  language, not merely five authored labels.

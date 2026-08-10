@@ -13,7 +13,9 @@ Every candidate proceeds sequentially:
    apply one fixed-pose site Matrix4, and intersect it with the continuous
    legal envelope; selector null alone is never a terminal rejection;
 6. require either path to produce a connected, watertight, contained visual
-   mesh and measured capacity utilization >= 0.70;
+   mesh and measured capacity utilization >= 0.60; retain 0.70 as the preferred
+   competition target and report whether it was reached instead of silently
+   converting it back into a hard rejection;
 7. only then freeze/package and invoke canonical validation exactly once;
 8. law, parking, final mesh, authored-identity and diversity certification.
 

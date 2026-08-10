@@ -124,4 +124,37 @@ def write_version_snapshot(
     return target
 
 
-__all__ = ["VERSION_MEMORY_SCHEMA", "write_version_snapshot"]
+def write_progress_checkpoint(
+    output_dir: Path,
+    *,
+    version_id: str,
+    stage: str,
+    payload: dict[str, Any],
+) -> Path:
+    """Persist one idempotent checkpoint for one distinct progress state."""
+
+    parent = str(version_id).strip()
+    if not _VERSION_ID.fullmatch(parent):
+        raise ValueError("invalid MASS version memory id")
+    safe_payload = _safe_payload(payload)
+    checkpoint_hash = hashlib.sha256(
+        _canonical_json({
+            "stage": str(stage),
+            "payload": safe_payload,
+        }).encode("utf-8")
+    ).hexdigest()
+    checkpoint_id = f"{parent[:80]}--cp-{checkpoint_hash[:16]}"
+    return write_version_snapshot(
+        output_dir,
+        version_id=checkpoint_id,
+        parent_version_id=parent,
+        stage=f"progress:{str(stage or 'running')[:100]}",
+        payload=safe_payload,
+    )
+
+
+__all__ = [
+    "VERSION_MEMORY_SCHEMA",
+    "write_progress_checkpoint",
+    "write_version_snapshot",
+]

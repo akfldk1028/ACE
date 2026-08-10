@@ -11,6 +11,7 @@ from time import sleep
 from typing import Any, Callable, TypeVar
 
 from design.maas.agents.maas_geometry_agent.version_memory import (
+    write_progress_checkpoint,
     write_version_snapshot,
 )
 
@@ -79,6 +80,12 @@ def update_run_progress(output_dir: Path, **progress: Any) -> Path:
             "program_passed_count", "candidate_cap",
         }
     }
+    checkpoint_path = write_progress_checkpoint(
+        directory,
+        version_id=directory.name,
+        stage=str(safe_progress.get("phase") or "running"),
+        payload=safe_progress,
+    )
     return write_run_state(directory, {
         **current,
         **safe_progress,
@@ -87,6 +94,7 @@ def update_run_progress(output_dir: Path, **progress: Any) -> Path:
         "pid": int(current.get("pid") or os.getpid()),
         "status": "running",
         "updated_at": _now(),
+        "progress_checkpoint_path": str(checkpoint_path),
     })
 
 

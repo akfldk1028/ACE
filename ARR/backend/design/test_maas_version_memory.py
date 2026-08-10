@@ -9,10 +9,50 @@ from django.test import SimpleTestCase
 from design.maas.agents.maas_geometry_agent.version_memory import (
     write_version_snapshot,
 )
-from design.maas.geometry_language.run_state import tracked_mass_command
+from design.maas.geometry_language.run_state import (
+    tracked_mass_command,
+    update_run_progress,
+)
 
 
 class MaasVersionMemoryTests(SimpleTestCase):
+    def test_progress_updates_create_idempotent_append_only_checkpoints(self):
+        with TemporaryDirectory() as directory:
+            output_dir = Path(directory) / "c112-progress"
+            progress = {
+                "phase": "candidate_generation",
+                "program": "neighborhood",
+                "diagnostic_target": 3,
+                "evaluated_count": 1,
+                "compiled_count": 1,
+                "program_passed_count": 1,
+            }
+
+            update_run_progress(output_dir, **progress)
+            update_run_progress(output_dir, **progress)
+
+            memory_dir = output_dir / "memory"
+            checkpoints = sorted(memory_dir.glob("*--cp-*.json"))
+            self.assertEqual(len(checkpoints), 1)
+            first = json.loads(checkpoints[0].read_text(encoding="utf-8"))
+            self.assertEqual(first["stage"], "progress:candidate_generation")
+            self.assertEqual(first["payload"]["evaluated_count"], 1)
+
+            update_run_progress(
+                output_dir,
+                **{**progress, "evaluated_count": 2},
+            )
+
+            checkpoints = sorted(memory_dir.glob("*--cp-*.json"))
+            self.assertEqual(len(checkpoints), 2)
+            run_state = json.loads(
+                (output_dir / "maas-run-state.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(run_state["evaluated_count"], 2)
+            self.assertTrue(Path(run_state["progress_checkpoint_path"]).is_file())
+
     def test_snapshot_is_append_only_hash_bound_and_credential_free(self):
         with TemporaryDirectory() as directory:
             output_dir = Path(directory)
@@ -111,4 +151,3 @@ class MaasVersionMemoryTests(SimpleTestCase):
             snapshot = json.loads(memory_path.read_text(encoding="utf-8"))
             self.assertEqual(snapshot["stage"], "completed")
             self.assertEqual(snapshot["payload"]["selected_mass_count"], 20)
-

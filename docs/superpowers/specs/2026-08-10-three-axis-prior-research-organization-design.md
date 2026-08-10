@@ -13,8 +13,8 @@
 ```text
 collected_papers/
 ├─ legal/
-│  ├─ SGR_BIM_2026.pdf
-│  ├─ SELECTED_PRIMARY_PAPER_SGR_BIM_2026.md
+│  ├─ Legal_Knowledge_Graph_Neo4j_2024.pdf
+│  ├─ SELECTED_PRIMARY_PAPER_LEGAL_KG_NEO4J_2024.md
 │  └─ figures/
 ├─ mass/
 │  ├─ EvoMass_2024.pdf
@@ -30,7 +30,8 @@ collected_papers/
 
 - 기존 `maas` 폴더의 매싱 관련 자료는 `mass`로 정리한다.
 - 기존 `multi_agent` 폴더의 Text2BIM 자료는 `mas`로 정리한다.
-- 법규 자료는 기존 `legal` 폴더를 유지한다.
+- 법규 자료는 기존 `legal` 폴더를 유지하되, Li et al. (2024)의 Chinese Legal Knowledge Graph 논문을 대표 논문으로 교체한다.
+- 기존 SGR-BIM 논문은 BIM 적합성 검토 보조문헌으로 유지하고 대표 슬라이드에서는 사용하지 않는다.
 - 논문 Figure는 새로 그리지 않고 PDF 원본 Figure를 추출해 각 폴더의 `figures`에 둔다.
 - 이동으로 깨지는 Markdown 상대경로와 색인 경로를 모두 갱신한다.
 
@@ -38,11 +39,11 @@ collected_papers/
 
 총 3장으로 구성하며 논문 한 편이 슬라이드 한 장을 담당한다.
 
-### 1장 — Legal
+### 1장 — Legal / Graph DB
 
-- 논문: SGR-BIM
-- 초점: 자연어 건축법규, IFC 모델, graph reasoning을 연결한 자동 적합성 검토
-- 시각자료: 논문 원본 프레임워크 Figure 1개
+- 논문: Li et al. (2024), *Construction of Legal Knowledge Graph Based on Knowledge-Enhanced Large Language Models*
+- 초점: 법률 조문·사법해석·판례·변론 데이터를 지식그래프로 구축하고 Neo4j에 저장·관리하는 과정
+- 시각자료: 논문 원본 Fig. 1의 legal knowledge acquisition and management framework
 - 본문: 핵심 방법 3줄, 정량 결과 1줄, 한계 및 25_ACE 연결 1줄
 
 ### 2장 — Mass

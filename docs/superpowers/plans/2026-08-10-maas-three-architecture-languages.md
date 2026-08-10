@@ -95,3 +95,16 @@ Append manifest/program hashes, four funnel counters, GFA/utilization per card, 
 - [ ] **Step 3: Run focused regressions and commit**
 
 Run the current source-bridge, affine selector, capacity-alternative and morphology-policy focused tests. Commit only the C125 manifest, directly required code/tests if any, the generated plan/spec memory, and no unrelated dirty-worktree files.
+
+## Execution checkpoint: C145 (incomplete)
+
+- Parser/compiler preflight: `3/3` clean single-component ASTs.
+- Production funnel: `3 evaluated / 3 compiled / 3 clean / 1 program hard-pass
+  / 1 selected`; therefore Tasks 2-3 remain unchecked and canonical remains
+  `0/20`.
+- Direct PNG verdict: rejected; one wedge-like continuous mass and two empty
+  slots.
+- New blocking contract: non-C124 programs reaching typed repair carry only
+  `~2.8-4.2 m2` site coverage in their certified visible sections. Fix the
+  typed-repair Matrix4-to-visible-section scale binding with one focused test
+  before replaying this manifest. Do not create more AST variants first.

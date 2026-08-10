@@ -211,3 +211,20 @@ measured feedback.
   rejects it as a diversity endpoint because the continuous one-sided fold is
   still wedge-like. Keep it as a non-stepped flow proof; do not clone it into
   a three- or twenty-card portfolio.
+- C125-C145 bounded three-program investigation: all final manifests parsed,
+  compiled and produced one clean component per AST, but production remained
+  `3 evaluated / 3 compiled / 3 clean / 1 program hard-pass / 1 selected`.
+  The failed court, cantilever, oblique and alternate continuous-loft bodies
+  entered `whole_solid_affine_fit_infeasible`, then the typed floorwise repair
+  certified renderer/proxy ground sections of only `2.823-4.158 m2` against
+  the `102.931 m2` legal ground host. Program coverage therefore correctly
+  failed at `0.027-0.040`; it was not a threshold bug. The known C124-shaped
+  source remained correctly scaled at `66.343 m2` and coverage `0.645`.
+- Do not weaken the `0.38` neighborhood coverage range, substitute planned
+  capacity for visible geometry, or claim the capacity proxy is the rendered
+  mass. The remaining defect is coordinate/scale propagation in the typed
+  repair path for non-C124 ASTs. A tested helper now reads exact certified
+  `actual_section_wkb_hex` when present, and the outcome graph records coverage
+  numerator/denominator/mode, but C145 proves the upstream certified sections
+  themselves are still tiny. Fix that materialization boundary before any new
+  three- or twenty-candidate generation.

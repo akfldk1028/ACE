@@ -17,6 +17,7 @@ from shapely.geometry import box
 from design.maas.geometry_language.compiler import compile_geometry_program
 from design.maas.geometry_language.affine_matrix import identity_matrix4
 from design.maas.geometry_language.floorwise_visual_projection import (
+    certified_actual_section_areas,
     certify_authored_visual_mesh,
     project_floorwise_visual_mesh,
 )
@@ -45,6 +46,20 @@ from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolu
 
 
 class MaasFlowRegressionTest(SimpleTestCase):
+    def test_certified_visual_floor_areas_come_from_bound_section_geometry(self):
+        sections = (box(0.0, 0.0, 8.0, 5.0), box(0.0, 0.0, 6.0, 4.0))
+        certificate = {
+            "hard_pass": True,
+            "actual_section_wkb_hex": [
+                section.wkb_hex for section in sections
+            ],
+        }
+
+        self.assertEqual(
+            certified_actual_section_areas(certificate),
+            (40.0, 24.0),
+        )
+
     def test_candidate_finalization_binds_passport_floor_authorities(self):
         from design.maas.book_language.mass_passport_bridge import (
             _bind_candidate_finalization_to_passport,
@@ -1535,6 +1550,32 @@ class MaasFlowRegressionTest(SimpleTestCase):
             self.assertEqual(state["selected_mass_count"], 16)
             self.assertEqual(state["phase"], "replenishment")
             self.assertEqual(state["cycle_index"], 1)
+
+    def test_progressive_run_state_records_implied_live_vlm_request(self):
+        with TemporaryDirectory() as temporary:
+            output_dir = Path(temporary)
+
+            @tracked_mass_command
+            def fake_handle(_command, *args, **options):
+                return {"status": "fail", "programs": []}
+
+            fake_handle(
+                SimpleNamespace(),
+                output_dir=str(output_dir),
+                pnu="test-pnu",
+                program=["neighborhood"],
+                recursive_only=False,
+                live_vlm=False,
+                progressive_target=3,
+                outcome_graph=None,
+            )
+
+            state = json.loads(
+                (output_dir / "maas-run-state.json").read_text(
+                    encoding="utf-8",
+                )
+            )
+            self.assertTrue(state["live_vlm_requested"])
 
     def test_run_progress_keeps_lifecycle_identity_and_bounded_cycle_counts(self):
         with TemporaryDirectory() as temporary:

@@ -1,0 +1,159 @@
+{
+  "schema_version": "arr.maas.codex_oauth_geometry_manifest.v3_causal_book_paths",
+  "provider": "codex_oauth_llm_geometry_author",
+  "authoring_session_id": "codex-oauth-mass-20260810-c135-three-languages",
+  "request_id": "competition-mass-book-20260810-c135-three-languages",
+  "oauth_author_response": {
+    "schema_version": "arr.maas.codex_oauth_author_response.v1",
+    "response_id": "codex-response-mass-book-20260810-c135-three-languages",
+    "selected_bindings": [
+      {
+        "program_name": "c135_continuous_one_sided_fold",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"
+      },
+      {
+        "program_name": "c145_shallow_one_sided_fold",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"
+      },
+      {
+        "program_name": "c145_deep_one_sided_fold",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84"
+      }
+    ],
+    "response_sha256": "31d0e91056b8e9525634c8c6c76794e9d4f1da9ffcb3bd0ae57025b6a0ca4b75"
+  },
+  "programs": [
+    {
+      "name": "c135_continuous_one_sided_fold",
+      "base_seed": "block",
+      "intent_tags": ["continuous_one_sided_section", "compact_plan", "west_public_threshold"],
+      "root_id": "entry_threshold",
+      "nodes": [
+        {
+          "id": "unit", "kind": "primitive", "operator": "box", "inputs": [],
+          "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"
+        },
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["unit"],
+          "parameters": {"matrix4": [[1.6, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {
+          "id": "continuous_profile", "kind": "primitive", "operator": "loft", "inputs": [],
+          "parameters": {"profiles": [
+            {"z": 0.0, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.375, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.5, "points": [[0.0, 0.271], [1.6, 0.271], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.75, "points": [[0.0, 0.5], [1.6, 0.5], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 1.0, "points": [[0.0, 0.65], [1.6, 0.65], [1.6, 1.0], [0.0, 1.0]]}
+          ]},
+          "semantic_role": "continuous_section_profile"
+        },
+        {
+          "id": "profiled_base", "kind": "boolean", "operator": "intersection", "inputs": ["base_volume", "continuous_profile"],
+          "parameters": {}, "semantic_role": "basevolume_profile_intersection"
+        },
+        {
+          "id": "entry_threshold", "kind": "macro", "operator": "notch", "inputs": ["profiled_base"],
+          "parameters": {"side": "west", "corner": "sw", "ratio": 0.05, "width_ratio": 0.12, "height_ratio": 0.18},
+          "semantic_role": "west_public_access"
+        }
+      ],
+      "rationale": "A compact BaseVolume carries a continuous one-sided fold and a shallow west public threshold without floor-by-floor stepping.",
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {
+        "schema_version": "arr.maas.codex_book_path_execution_binding.v1",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+        "author_response_sha256": "31d0e91056b8e9525634c8c6c76794e9d4f1da9ffcb3bd0ae57025b6a0ca4b75"
+      }
+    },
+    {
+      "name": "c145_shallow_one_sided_fold",
+      "base_seed": "block",
+      "intent_tags": ["shallow_one_sided_section", "compact_plan", "west_public_threshold"],
+      "root_id": "entry_threshold",
+      "nodes": [
+        {
+          "id": "unit", "kind": "primitive", "operator": "box", "inputs": [],
+          "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"
+        },
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["unit"],
+          "parameters": {"matrix4": [[1.6, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {
+          "id": "oblique_profile", "kind": "primitive", "operator": "loft", "inputs": [],
+          "parameters": {"profiles": [
+            {"z": 0.0, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.375, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.5, "points": [[0.0, 0.15], [1.6, 0.15], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.75, "points": [[0.0, 0.32], [1.6, 0.32], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 1.0, "points": [[0.0, 0.45], [1.6, 0.45], [1.6, 1.0], [0.0, 1.0]]}
+          ]},
+          "semantic_role": "oblique_continuous_profile"
+        },
+        {
+          "id": "profiled_base", "kind": "boolean", "operator": "intersection", "inputs": ["base_volume", "oblique_profile"],
+          "parameters": {}, "semantic_role": "basevolume_oblique_intersection"
+        },
+        {
+          "id": "entry_threshold", "kind": "macro", "operator": "notch", "inputs": ["profiled_base"],
+          "parameters": {"side": "west", "corner": "sw", "ratio": 0.05, "width_ratio": 0.12, "height_ratio": 0.18},
+          "semantic_role": "west_public_access"
+        }
+      ],
+      "rationale": "A shallow one-sided continuous fold preserves a broad upper plate and one west public threshold.",
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {
+        "schema_version": "arr.maas.codex_book_path_execution_binding.v1",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+        "author_response_sha256": "31d0e91056b8e9525634c8c6c76794e9d4f1da9ffcb3bd0ae57025b6a0ca4b75"
+      }
+    },
+    {
+      "name": "c145_deep_one_sided_fold",
+      "base_seed": "block",
+      "intent_tags": ["deep_one_sided_section", "asymmetric_fold", "west_public_threshold"],
+      "root_id": "entry_threshold",
+      "nodes": [
+        {
+          "id": "unit", "kind": "primitive", "operator": "box", "inputs": [],
+          "parameters": {"width": 1.0, "depth": 1.0, "height": 1.0}, "semantic_role": "unit_box"
+        },
+        {
+          "id": "base_volume", "kind": "transform", "operator": "matrix4", "inputs": ["unit"],
+          "parameters": {"matrix4": [[1.6, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]},
+          "semantic_role": "authored_basevolume_placement"
+        },
+        {
+          "id": "torsion_profile", "kind": "primitive", "operator": "loft", "inputs": [],
+          "parameters": {"profiles": [
+            {"z": 0.0, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.375, "points": [[0.0, 0.0], [1.6, 0.0], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.5, "points": [[0.0, 0.35], [1.6, 0.35], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 0.75, "points": [[0.0, 0.62], [1.6, 0.62], [1.6, 1.0], [0.0, 1.0]]},
+            {"z": 1.0, "points": [[0.0, 0.78], [1.6, 0.78], [1.6, 1.0], [0.0, 1.0]]}
+          ]},
+          "semantic_role": "torsioned_continuous_profile"
+        },
+        {
+          "id": "profiled_base", "kind": "boolean", "operator": "intersection", "inputs": ["base_volume", "torsion_profile"],
+          "parameters": {}, "semantic_role": "basevolume_torsion_intersection"
+        },
+        {
+          "id": "entry_threshold", "kind": "macro", "operator": "notch", "inputs": ["profiled_base"],
+          "parameters": {"side": "west", "corner": "sw", "ratio": 0.05, "width_ratio": 0.12, "height_ratio": 0.18},
+          "semantic_role": "west_public_access"
+        }
+      ],
+      "rationale": "A deeper one-sided continuous fold creates a narrower upper plate above one west public threshold.",
+      "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+      "execution_contract": {
+        "schema_version": "arr.maas.codex_book_path_execution_binding.v1",
+        "book_composition_path_id": "book:path:14da43127c73321c324425bd8d6803ece7dbe42d868c355784a984282fd46c84",
+        "author_response_sha256": "31d0e91056b8e9525634c8c6c76794e9d4f1da9ffcb3bd0ae57025b6a0ca4b75"
+      }
+    }
+  ]
+}

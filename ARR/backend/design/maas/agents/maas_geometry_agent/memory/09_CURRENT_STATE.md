@@ -564,3 +564,45 @@ Date: 2026-08-09
 - `diagnostic-target 1` was intentionally used for C124. Its `1/1` means the
   restored flow succeeded for the one requested candidate; canonical `0/20`
   is a separate release-set counter, not a 0% generation success rate.
+
+## 2026-08-10 C125-C145 three-language bounded investigation
+
+- The reusable BOOK path contract was corrected: distinct typed AST programs
+  may reuse the same causal BOOK operation. NumPy principal-frame placement
+  now preserves the real source/legal anisotropy, including an axis-swapped
+  case, and a regression proves an anisotropically compressed source remains
+  reachable. Internal void rims no longer count as an external staircase when
+  the silhouette is unchanged.
+- Program site coverage now consumes the hard-pass authored projection
+  certificate instead of a normalized diagnostic proxy. Both direct-affine
+  and typed-repair certificates carry `achieved_floor_areas_m2`; exact
+  renderer-visible WKB sections are preferred when available. Coverage mode,
+  numerator and denominator are persisted in the mutation outcome graph.
+- These fixes exposed the remaining upstream defect rather than producing a
+  false success. C145 is `3 evaluated / 3 compiled / 3 clean / 1 individual
+  program hard-pass / 1 compatible selected`; canonical remains `0/20`.
+  The selected mass is GFA `202.430667 m2`, feasible utilization `0.6523`, FAR
+  `82.066%`, coverage `0.645`, non-stepped, but still wedge-like.
+- C145 manifest SHA is
+  `e391dea4d6da0b1850eef3fb17bc019b02a15f8f4f67574a1ef6bd87be77a38b`;
+  admitted program hashes are
+  `978e75bf83db1a5f01d3b4a84c684d7898638c5db05f8332df4b00f36f132aab`,
+  `ed05a4f0f0b5658bfed8c729e2c105dad8a40c620e72e87c01a16c85739e967a`
+  and
+  `cd3b4ff52cdd47bcda6247a7755a987ef9a731dec525ff3c95324da4edc772a6`.
+  No paid LLM or VLM call occurred.
+- Direct original-resolution PNG inspection rejects C145 as a three-language
+  board: two slots are absent and the sole survivor is one continuous sloped
+  mass. PNG:
+  `docs/playwright/design-route-live-verify/legal-mass-v31-c145-three-one-sided-folds/maas-book-neighborhood-3.png`,
+  SHA-256
+  `9bf86f5e90e95715356a6d6bc2be4cc8ef79ec5f0d742cca7ee83ae430bfa423`.
+- Next work is one focused materialization regression, not another portfolio
+  run: feed the C145 shallow/deep lofts through the post-BOOK typed-repair
+  boundary and prove the certified visible ground section is site-scaled
+  (tens of square metres), not `~4 m2`. Trace the Matrix4 from
+  `materialize_floorwise_legal_source` into `floorwise_visual_projection` and
+  bind the exact visible sections to that matrix. Only after this focused test
+  passes should the same three admitted ASTs be replayed. VLM remains available
+  after three legal hard-passes and must inspect the same ISO, never replace
+  mesh/law authority.

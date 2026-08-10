@@ -68,6 +68,61 @@ class DiagnosticMorphologyPolicyTests(SimpleTestCase):
         self.assertTrue(evidence["projected_pyramidal_like"])
         self.assertFalse(evidence["projected_visible_stepped"])
 
+    def test_internal_void_rim_is_not_an_external_step_when_silhouette_is_unchanged(self):
+        authored = SimpleNamespace(metadata={
+            "geometry_program": {"nodes": [
+                {"operator": "box"},
+                {"operator": "courtyard"},
+                {"operator": "notch"},
+            ]},
+        })
+        projected = SimpleNamespace(metadata={
+            "floorwise_visual_projection": {
+                "visible_step_fallback": False,
+            },
+        })
+        authored_metrics = {
+            "hard_pass": True,
+            "phenotype": "voided",
+            "visible_stepped": False,
+            "pyramidal_like": False,
+        }
+        projected_metrics = {
+            "hard_pass": True,
+            "phenotype": "stepped",
+            "visible_stepped": True,
+            "pyramidal_like": False,
+        }
+
+        with (
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_morphology",
+                side_effect=(authored_metrics, projected_metrics),
+            ),
+            patch.object(
+                candidate_generation,
+                "authoritative_surface_silhouette_distance",
+                return_value=0.0,
+            ),
+        ):
+            evidence = (
+                candidate_generation._authored_projection_identity_evidence(
+                    authored,
+                    projected,
+                )
+            )
+
+        self.assertTrue(evidence["hard_pass"], evidence)
+        self.assertNotIn(
+            "unrequested_legal_step_collapse",
+            evidence["failure_reasons"],
+        )
+        self.assertIn(
+            "internal_void_surface_step_signal_ignored",
+            evidence["diagnostic_reasons"],
+        )
+
     def test_diagnostic_target_does_not_enable_visible_step_fallback(self):
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("MAAS_ALLOW_VISIBLE_STEP_FALLBACK", None)

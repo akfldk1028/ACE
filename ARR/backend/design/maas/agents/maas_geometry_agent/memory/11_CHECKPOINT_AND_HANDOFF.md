@@ -115,3 +115,23 @@ coordinates, or enormous candidate payloads in agent memory.
 - Keep BaseVolume, global Matrix4/NumPy placement, BOOK composition, `0.60`
   capacity minimum, legal/parking/semantic gates and final identity binding.
   Do not reintroduce stair synthesis or relax the successful C124 flow.
+
+## Current handoff update: C145
+
+- Latest bounded result is honestly `3 evaluated / 3 compiled / 3 clean / 1
+  individual hard-pass / 1 selected`; canonical is still `0/20`.
+- Direct ISO review rejects the board. The one survivor is non-stepped but
+  wedge-like; two cards are empty. Use the C145 PNG and SHA recorded in
+  `09_CURRENT_STATE.md` as failure evidence.
+- The two rejected sources fail architectural site coverage because their
+  hard-pass projection certificates contain only about `4.15 m2` of visible
+  ground section against a `102.931 m2` host. This is now measured explicitly
+  as `certified_projected_ground_floor_area`; do not revert to the old proxy or
+  lower the gate.
+- Resume inside the typed-repair Matrix4/visual-section binding. Add one
+  focused regression using a C145 alternate loft, require a site-scaled exact
+  visible section, then replay the existing three-program manifest once. Do
+  not author more variants, run target 20, or invoke VLM before this passes.
+- VLM support exists and is intentionally `not_requested` in C145. Once three
+  legal hard-passes exist, run it on the identical ISO images as a visual
+  critic; final authority remains the certified mesh plus direct review.

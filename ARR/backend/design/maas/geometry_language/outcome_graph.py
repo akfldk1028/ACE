@@ -325,8 +325,12 @@ class GeometryOutcomeGraph:
                     "role_coverage_score", "dominant_component_ratio",
                     "dominant_ratio_score", "site_coverage_ratio",
                     "site_coverage_score", "hierarchy_score",
+                    "coverage_numerator_m2", "coverage_denominator_m2",
                 )
             },
+            "coverage_measurement_mode": str(
+                spatial.get("coverage_measurement_mode") or ""
+            ),
             "selected": False,
             "vlm_critic_score": authored_metadata.get("vlm_critic_score"),
             "vlm_revision_generation": authored_metadata.get("vlm_revision_generation"),

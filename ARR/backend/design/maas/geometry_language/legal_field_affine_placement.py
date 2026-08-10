@@ -16,7 +16,10 @@ import json
 from math import atan2, degrees, isfinite, sqrt
 from typing import Any
 
+import numpy as np
+import shapely
 from shapely.affinity import affine_transform
+from shapely.errors import GEOSException
 from shapely.geometry import MultiPoint, Polygon
 from shapely.ops import unary_union
 
@@ -125,9 +128,16 @@ def select_legal_field_affine_projection(
     )
     if source_sections is None:
         return None
+    source_band_meshes = _source_closed_band_meshes(
+        compilation,
+        floor_count=len(legal_sections),
+    )
+    if source_band_meshes is None:
+        return None
     alternatives = _screen_affine_alternatives(
         compilation,
         source_sections=source_sections,
+        source_band_meshes=source_band_meshes,
         legal_sections=legal_sections,
         aggregate_target=aggregate_target,
         minimum_aggregate_target_ratio=minimum_target_ratio,
@@ -142,7 +152,7 @@ def select_legal_field_affine_projection(
     )
     exact_records: list[
         tuple[
-            tuple[float, float, float, str],
+            tuple[float, float, float, float, str],
             HostFitTransform,
             (
                 AuthoredLegalPreservationResult
@@ -150,6 +160,7 @@ def select_legal_field_affine_projection(
             ),
             _ScreenedAlternative,
             tuple[float, ...],
+            float,
         ]
     ] = []
     for alternative in exact_shortlist:
@@ -215,29 +226,40 @@ def select_legal_field_affine_projection(
             )
         )
         exact_records.append((
-            (
-                distortion,
-                -min(retention_by_floor),
-                -sum(band_final) / max(
-                    sum(band_preclip),
-                    1e-9,
+            _exact_affine_selection_rank(
+                distortion=distortion,
+                achieved_total=achieved_total,
+                minimum_retention=min(retention_by_floor),
+                aggregate_retention=(
+                    sum(band_final) / max(sum(band_preclip), 1e-9)
                 ),
-                projected.program.program_hash(),
+                program_hash=projected.program.program_hash(),
             ),
             fit,
             projected,
             alternative,
             achieved,
+            distortion,
         ))
     if not exact_records:
         return None
     exact_records.sort(key=lambda record: record[0])
-    _rank, fit, projection, selected, achieved = exact_records[0]
+    _rank, fit, projection, selected, achieved, selected_distortion = (
+        exact_records[0]
+    )
     evidence = {
         "schema_version": "arr.maas.legal_field_affine_placement.v1",
         "authority": "whole_legal_section_field",
         "screening_mode": (
             "bounded_2d_then_exact_authored_preservation"
+        ),
+        "containment_screening_authority": (
+            "closed_z_band_projected_mesh"
+        ),
+        "maximum_containment_solver": (
+            "convex_legal_container_halfspace_vertex_batch"
+            if _convex_legal_halfspaces(legal_sections) is not None
+            else "general_polygon_vectorized_triangle_coverage"
         ),
         "projection_mode": projection.certificate["projection_mode"],
         "screened_candidate_count": len(alternatives),
@@ -251,7 +273,7 @@ def select_legal_field_affine_projection(
         "minimum_aggregate_target_ratio": minimum_target_ratio,
         "achieved_aggregate_area_m2": round(sum(achieved), 8),
         "profile_distortion": round(
-            _rank[0],
+            selected_distortion,
             10,
         ),
         "preclip_floor_areas_m2": [
@@ -274,6 +296,25 @@ def select_legal_field_affine_projection(
         fit=fit,
         projection=projection,
         evidence=evidence,
+    )
+
+
+def _exact_affine_selection_rank(
+    *,
+    distortion: float,
+    achieved_total: float,
+    minimum_retention: float,
+    aggregate_retention: float,
+    program_hash: str,
+) -> tuple[float, float, float, float, str]:
+    """Prefer capacity among numerically equivalent identity-preserving fits."""
+
+    return (
+        round(float(distortion), 6),
+        -float(achieved_total),
+        -float(minimum_retention),
+        -float(aggregate_retention),
+        str(program_hash),
     )
 
 
@@ -308,10 +349,59 @@ def _source_floor_sections(
     return sections
 
 
+def _source_closed_band_meshes(
+    compilation: CompilationResult,
+    *,
+    floor_count: int,
+) -> tuple[Any, ...] | None:
+    """Freeze exact source-band meshes for conservative 2D containment."""
+
+    bounds = (compilation.metrics or {}).get("bounds") or ()
+    solid = getattr(compilation, "_solid", None)
+    if solid is None or len(bounds) != 2 or floor_count <= 0:
+        return None
+    min_z = float(bounds[0][2])
+    max_z = float(bounds[1][2])
+    floor_height = (max_z - min_z) / floor_count
+    if not isfinite(floor_height) or floor_height <= 1e-9:
+        return None
+    result = []
+    for floor_index in range(floor_count):
+        lower_z = min_z + floor_height * floor_index
+        upper_z = (
+            max_z
+            if floor_index == floor_count - 1
+            else lower_z + floor_height
+        )
+        band = solid.trim_by_plane(
+            (0.0, 0.0, 1.0),
+            lower_z,
+        ).trim_by_plane(
+            (0.0, 0.0, -1.0),
+            -upper_z,
+        )
+        if band.is_empty():
+            return None
+        mesh = band.to_mesh64()
+        vertices = tuple(
+            tuple(float(value) for value in row[:3])
+            for row in mesh.vert_properties
+        )
+        triangles = tuple(
+            tuple(int(index) for index in row[:3])
+            for row in mesh.tri_verts
+        )
+        if not vertices or not triangles:
+            return None
+        result.append((vertices, triangles))
+    return tuple(result)
+
+
 def _screen_affine_alternatives(
     compilation: CompilationResult,
     *,
     source_sections: tuple[Any, ...],
+    source_band_meshes: tuple[Any, ...],
     legal_sections: tuple[Polygon, ...],
     aggregate_target: float,
     minimum_aggregate_target_ratio: float,
@@ -339,12 +429,25 @@ def _screen_affine_alternatives(
     uniform_scale = sqrt(desired_plan_area / source_reference_area)
     source_aspect = source_long / source_short
     legal_aspect = legal_long / legal_short
+    # The site-placement Matrix4 must be able to undo an upstream affine BOOK
+    # scale.  The old 0.67..1.28 clamp made an otherwise identical compressed
+    # solid unreachable even though no topology or section relation changed.
+    # Keep the search bounded, but derive the primary candidate from the real
+    # source/legal principal-frame ratio.
     frame_anisotropy = max(
-        0.67,
-        min(1.28, sqrt(legal_aspect / max(source_aspect, 1e-9))),
+        0.20,
+        min(5.0, sqrt(legal_aspect / max(source_aspect, 1e-9))),
+    )
+    swapped_frame_anisotropy = max(
+        0.20,
+        min(
+            5.0,
+            sqrt(1.0 / max(legal_aspect * source_aspect, 1e-9)),
+        ),
     )
     anisotropies = _unique_floats((
         frame_anisotropy,
+        swapped_frame_anisotropy,
         0.78,
         1.0,
     ))
@@ -394,8 +497,16 @@ def _screen_affine_alternatives(
                     legal_long / seed_long,
                     legal_short / seed_short,
                 )
-                scale_multiplier = (
-                    _minimum_scale_multiplier(
+                maximum_contained = _maximum_contained_scale_multiplier(
+                    matrix_at,
+                    source_band_meshes=source_band_meshes,
+                    legal_sections=legal_sections,
+                    scale_upper=scale_upper,
+                )
+                if maximum_contained is None:
+                    continue
+                if minimum_aggregate_target_ratio >= 0.985:
+                    minimum_required = _minimum_scale_multiplier(
                         matrix_at,
                         source_sections=source_sections,
                         legal_sections=legal_sections,
@@ -404,17 +515,15 @@ def _screen_affine_alternatives(
                         source_z_span=z_span,
                         scale_upper=scale_upper,
                     )
-                    if minimum_aggregate_target_ratio >= 0.985
-                    else _maximum_contained_scale_multiplier(
-                        matrix_at,
-                        source_sections=source_sections,
-                        legal_sections=legal_sections,
-                        source_min_z=min_z,
-                        source_z_span=z_span,
-                        scale_upper=scale_upper,
-                    )
-                )
-                if scale_multiplier is None:
+                    if (
+                        minimum_required is None
+                        or minimum_required > maximum_contained + 1e-7
+                    ):
+                        continue
+                    scale_multiplier = minimum_required
+                else:
+                    scale_multiplier = maximum_contained
+                if scale_multiplier <= 1e-9:
                     continue
                 matrix = matrix_at(scale_multiplier)
                 area_factor = scale_multiplier * scale_multiplier
@@ -425,6 +534,7 @@ def _screen_affine_alternatives(
                 screened = _screen_matrix(
                     matrix,
                     source_sections=source_sections,
+                    source_band_meshes=source_band_meshes,
                     legal_sections=legal_sections,
                     aggregate_target=aggregate_target,
                     minimum_aggregate_target_ratio=(
@@ -573,6 +683,183 @@ def _placed_sections(
     return tuple(placed)
 
 
+def _placed_closed_band_projections(
+    matrix: Matrix4,
+    *,
+    source_band_meshes: tuple[Any, ...],
+) -> tuple[Any, ...] | None:
+    """Project every transformed triangle in each closed source z-band."""
+
+    projected_bands = []
+    for vertices, triangles in source_band_meshes:
+        transformed = tuple(
+            transform_point3(matrix, vertex)
+            for vertex in vertices
+        )
+        projected_triangles = []
+        for triangle in triangles:
+            polygon = Polygon(tuple(
+                (transformed[index][0], transformed[index][1])
+                for index in triangle
+            ))
+            if polygon.is_valid and float(polygon.area) > 1e-12:
+                projected_triangles.append(polygon)
+        if not projected_triangles:
+            return None
+        try:
+            projection = unary_union(projected_triangles)
+        except GEOSException:
+            # One numerically non-noded triangle soup is an invalid affine
+            # alternative, not a reason to abort the entire portfolio run.
+            # The caller will reject this matrix/candidate fail-closed.
+            return None
+        if projection.is_empty or not projection.is_valid:
+            return None
+        projected_bands.append(projection)
+    return tuple(projected_bands)
+
+
+def _convex_legal_halfspaces(
+    legal_sections: tuple[Polygon, ...],
+) -> tuple[Any, ...] | None:
+    """Compile convex legal containers once into vectorized edge predicates."""
+
+    compiled = []
+    for polygon in legal_sections:
+        if polygon.interiors:
+            return None
+        hull = polygon.convex_hull
+        tolerance = max(1e-9, float(hull.area) * 1e-10)
+        if abs(float(hull.area) - float(polygon.area)) > tolerance:
+            return None
+        coordinates = [
+            (float(x), float(y))
+            for x, y in list(polygon.exterior.coords)[:-1]
+        ]
+        if len(coordinates) < 3:
+            return None
+        signed_twice_area = sum(
+            x0 * y1 - x1 * y0
+            for (x0, y0), (x1, y1) in zip(
+                coordinates,
+                (*coordinates[1:], coordinates[0]),
+            )
+        )
+        if signed_twice_area < 0.0:
+            coordinates.reverse()
+        rows = []
+        for (x0, y0), (x1, y1) in zip(
+            coordinates,
+            (*coordinates[1:], coordinates[0]),
+        ):
+            dx = x1 - x0
+            dy = y1 - y0
+            length = sqrt(dx * dx + dy * dy)
+            if length <= 1e-12:
+                continue
+            # CCW polygon interior is left of every directed edge:
+            # -dy*x + dx*y + dy*x0 - dx*y0 >= 0.
+            rows.append((
+                -dy / length,
+                dx / length,
+                (dy * x0 - dx * y0) / length,
+            ))
+        if len(rows) < 3:
+            return None
+        compiled.append(np.asarray(rows, dtype=np.float64))
+    return tuple(compiled)
+
+
+def _convex_bands_contained(
+    matrix: Matrix4,
+    *,
+    source_band_meshes: tuple[Any, ...],
+    legal_halfspaces: tuple[Any, ...],
+) -> bool:
+    """Exact convex containment without rebuilding triangle polygons/unions."""
+
+    if len(source_band_meshes) != len(legal_halfspaces):
+        return False
+    projection_matrix = np.asarray((
+        (matrix[0][0], matrix[1][0]),
+        (matrix[0][1], matrix[1][1]),
+        (matrix[0][2], matrix[1][2]),
+    ), dtype=np.float64)
+    translation = np.asarray(
+        (matrix[0][3], matrix[1][3]),
+        dtype=np.float64,
+    )
+    for (vertices, _triangles), halfspaces in zip(
+        source_band_meshes,
+        legal_halfspaces,
+    ):
+        source = np.asarray(vertices, dtype=np.float64)
+        if source.ndim != 2 or source.shape[1] < 3 or source.shape[0] == 0:
+            return False
+        projected = source[:, :3] @ projection_matrix + translation
+        signed_distances = (
+            projected @ halfspaces[:, :2].T
+            + halfspaces[:, 2]
+        )
+        coordinate_scale = max(
+            1.0,
+            float(np.max(np.abs(projected))),
+        )
+        if float(np.min(signed_distances)) < -1e-8 * coordinate_scale:
+            return False
+    return True
+
+
+def _general_bands_contained(
+    matrix: Matrix4,
+    *,
+    source_band_meshes: tuple[Any, ...],
+    legal_sections: tuple[Polygon, ...],
+) -> bool:
+    """Test concave legal containers in GEOS batches without unary unions."""
+
+    if len(source_band_meshes) != len(legal_sections):
+        return False
+    projection_matrix = np.asarray((
+        (matrix[0][0], matrix[1][0]),
+        (matrix[0][1], matrix[1][1]),
+        (matrix[0][2], matrix[1][2]),
+    ), dtype=np.float64)
+    translation = np.asarray(
+        (matrix[0][3], matrix[1][3]),
+        dtype=np.float64,
+    )
+    for (vertices, triangles), legal in zip(
+        source_band_meshes,
+        legal_sections,
+    ):
+        source = np.asarray(vertices, dtype=np.float64)
+        triangle_indices = np.asarray(triangles, dtype=np.int64)
+        if (
+            source.ndim != 2
+            or source.shape[1] < 3
+            or triangle_indices.ndim != 2
+            or triangle_indices.shape[1] != 3
+            or triangle_indices.shape[0] == 0
+        ):
+            return False
+        projected = source[:, :3] @ projection_matrix + translation
+        triangle_coordinates = projected[triangle_indices]
+        triangle_polygons = shapely.polygons(triangle_coordinates)
+        usable = np.logical_and(
+            shapely.is_valid(triangle_polygons),
+            shapely.area(triangle_polygons) > 1e-12,
+        )
+        if not bool(np.any(usable)):
+            return False
+        if not bool(np.all(shapely.covers(
+            legal,
+            triangle_polygons[usable],
+        ))):
+            return False
+    return True
+
+
 def _minimum_scale_multiplier(
     matrix_at: Any,
     *,
@@ -627,27 +914,26 @@ def _minimum_scale_multiplier(
 def _maximum_contained_scale_multiplier(
     matrix_at: Any,
     *,
-    source_sections: tuple[Any, ...],
+    source_band_meshes: tuple[Any, ...],
     legal_sections: tuple[Polygon, ...],
-    source_min_z: float,
-    source_z_span: float,
     scale_upper: float,
 ) -> float | None:
     """Maximize one unchanged affine body inside every legal floor section."""
 
+    legal_halfspaces = _convex_legal_halfspaces(legal_sections)
+
     def contained(scale_multiplier: float) -> bool:
-        placed = _placed_sections(
-            matrix_at(scale_multiplier),
-            source_sections=source_sections,
-            source_min_z=source_min_z,
-            source_z_span=source_z_span,
-        )
-        return bool(
-            placed is not None
-            and all(
-                legal.buffer(1e-7).covers(source)
-                for source, legal in zip(placed, legal_sections)
+        matrix = matrix_at(scale_multiplier)
+        if legal_halfspaces is not None:
+            return _convex_bands_contained(
+                matrix,
+                source_band_meshes=source_band_meshes,
+                legal_halfspaces=legal_halfspaces,
             )
+        return _general_bands_contained(
+            matrix,
+            source_band_meshes=source_band_meshes,
+            legal_sections=legal_sections,
         )
 
     sample_count = 24
@@ -663,7 +949,7 @@ def _maximum_contained_scale_multiplier(
     if best is None:
         return None
     if first_invalid_after_best is None:
-        return best
+        return best * (1.0 - 1e-5)
     lower = best
     upper = first_invalid_after_best
     for _iteration in range(14):
@@ -672,13 +958,14 @@ def _maximum_contained_scale_multiplier(
             lower = probe
         else:
             upper = probe
-    return lower
+    return lower * (1.0 - 1e-5)
 
 
 def _screen_matrix(
     matrix: Matrix4,
     *,
     source_sections: tuple[Any, ...],
+    source_band_meshes: tuple[Any, ...],
     legal_sections: tuple[Polygon, ...],
     aggregate_target: float,
     minimum_aggregate_target_ratio: float,
@@ -690,6 +977,22 @@ def _screen_matrix(
     shear_factor: float,
     matrix_hash: str,
 ) -> _ScreenedAlternative | None:
+    band_projections = _placed_closed_band_projections(
+        matrix,
+        source_band_meshes=source_band_meshes,
+    )
+    if (
+        band_projections is None
+        or len(band_projections) != len(legal_sections)
+        or not all(
+            legal.covers(projection)
+            for projection, legal in zip(
+                band_projections,
+                legal_sections,
+            )
+        )
+    ):
+        return None
     preclip: list[float] = []
     clipped: list[float] = []
     retentions: list[float] = []

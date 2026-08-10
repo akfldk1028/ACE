@@ -6,12 +6,13 @@ renderer-visible profiled mesh through the already-certified floor transforms.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
 import json
 from math import isfinite, sqrt
 from typing import Any, Iterable, Sequence
 
+from shapely import from_wkb
 from shapely.geometry import LineString, MultiPoint, Point, Polygon
 from shapely.ops import unary_union
 
@@ -19,6 +20,7 @@ from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolu
 
 from .affine_matrix import Matrix4, transform_point3, validate_matrix4
 from .profiled_mesh_clip import clip_profiled_mesh_above_z
+from .profiled_mesh_numeric_repair import revalidated_profiled_mesh
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,19 @@ class FloorwiseVisualProjectionCertificate:
     mesh_cleanup_raw_gate_failure_codes: tuple[str, ...] = ()
     mesh_cleanup_clean_indexed_mesh_hash: str = ""
     mesh_cleanup_clean_gate_hard_pass: bool = False
+    occupied_section_topology: tuple[dict[str, Any], ...] = ()
+    legal_section_topology: tuple[dict[str, Any], ...] = ()
+    floor_center_topology_metrics: tuple[dict[str, Any], ...] = ()
+    final_component_count: int = 0
+    final_component_volumes_m3: tuple[float, ...] = ()
+    final_closed_manifold_hard_pass: bool = False
+    legal_revalidation_witness: dict[str, Any] = field(default_factory=dict)
+    failure_witness: dict[str, Any] = field(default_factory=dict)
+    section_geometry_binding_schema: str = ""
+    section_geometry_binding_hash: str = ""
+    occupied_section_wkb_hex: tuple[str, ...] = ()
+    legal_section_wkb_hex: tuple[str, ...] = ()
+    actual_section_wkb_hex: tuple[str, ...] = ()
     authority_binding_hash: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -152,6 +167,32 @@ class FloorwiseVisualProjectionCertificate:
             "mesh_cleanup_clean_gate_hard_pass": (
                 self.mesh_cleanup_clean_gate_hard_pass
             ),
+            "occupied_section_topology": [
+                dict(row) for row in self.occupied_section_topology
+            ],
+            "legal_section_topology": [
+                dict(row) for row in self.legal_section_topology
+            ],
+            "floor_center_topology_metrics": [
+                dict(row) for row in self.floor_center_topology_metrics
+            ],
+            "final_component_count": int(self.final_component_count),
+            "final_component_volumes_m3": [
+                round(float(volume), 10)
+                for volume in self.final_component_volumes_m3
+            ],
+            "final_closed_manifold_hard_pass": (
+                self.final_closed_manifold_hard_pass
+            ),
+            "legal_revalidation_witness": dict(
+                self.legal_revalidation_witness
+            ),
+            "failure_witness": dict(self.failure_witness),
+            "section_geometry_binding_schema": self.section_geometry_binding_schema,
+            "section_geometry_binding_hash": self.section_geometry_binding_hash,
+            "occupied_section_wkb_hex": list(self.occupied_section_wkb_hex),
+            "legal_section_wkb_hex": list(self.legal_section_wkb_hex),
+            "actual_section_wkb_hex": list(self.actual_section_wkb_hex),
             "authority_binding_hash": self.authority_binding_hash,
         }
 
@@ -162,7 +203,34 @@ class FloorwiseVisualProjection:
     certificate: FloorwiseVisualProjectionCertificate
 
 
+def certified_actual_section_areas(
+    certificate: dict[str, Any],
+) -> tuple[float, ...]:
+    """Return areas of the renderer-visible certified floor sections."""
+
+    if certificate.get("hard_pass") is not True:
+        return ()
+    encoded_sections = certificate.get("actual_section_wkb_hex")
+    if not isinstance(encoded_sections, (list, tuple)) or not encoded_sections:
+        return ()
+    areas: list[float] = []
+    try:
+        for encoded in encoded_sections:
+            geometry = from_wkb(bytes.fromhex(str(encoded)))
+            area = float(geometry.area)
+            if geometry.is_empty or not isfinite(area) or area <= 0.0:
+                return ()
+            areas.append(area)
+    except (TypeError, ValueError):
+        return ()
+    return tuple(areas)
+
+
 FLOORWISE_EXACT_AUTHORITY_CONTRACTS = {
+    "floorwise_profiled_continuous_envelope_clip": (
+        "authored_profiled_mesh_continuous_legal_envelope_intersection",
+        False,
+    ),
     "floorwise_profiled_legal_clip": (
         "authored_profiled_mesh_legal_solid_intersection",
         False,
@@ -189,7 +257,12 @@ def valid_floor_center_numeric_equivalence(
 ) -> bool:
     """Fail closed on tampered profiled-clip reconstruction metrics."""
 
-    if certificate.get("certification_mode") != "floorwise_profiled_legal_clip":
+    mode = certificate.get("certification_mode")
+    if mode == "floorwise_profiled_continuous_envelope_clip":
+        return _valid_continuous_visible_sections(certificate)
+    if mode not in {
+        "floorwise_profiled_legal_clip",
+    }:
         return True
     try:
         epsilon = float(certificate["section_numeric_epsilon_m"])
@@ -224,8 +297,10 @@ def valid_floor_center_numeric_equivalence(
     repair_evidence_valid = (
         not repaired
         or (
-            0.0 < cleanup_displacement <= 5e-7
-            and collapse_threshold in (1e-8, 3e-8, 1e-7, 3e-7, 5e-7)
+            0.0 < cleanup_displacement <= 1e-5
+            and collapse_threshold in (
+                1e-8, 3e-8, 1e-7, 3e-7, 1e-5,
+            )
             and cleanup_displacement <= collapse_threshold
             and certificate.get("mesh_numeric_repair_schema")
             == "arr.maas.profiled_mesh_numeric_repair.v1"
@@ -234,6 +309,68 @@ def valid_floor_center_numeric_equivalence(
             and bool(certificate.get("mesh_cleanup_raw_indexed_mesh_hash"))
             and bool(certificate.get("mesh_cleanup_clean_indexed_mesh_hash"))
             and certificate.get("mesh_cleanup_clean_gate_hard_pass") is True
+        )
+    )
+    floor_count = int(certificate.get("floor_count") or 0)
+    occupied_topology = certificate.get("occupied_section_topology")
+    legal_topology = certificate.get("legal_section_topology")
+    topology_metrics = certificate.get("floor_center_topology_metrics")
+    final_component_count = int(certificate.get("final_component_count") or 0)
+    final_component_volumes = certificate.get("final_component_volumes_m3")
+    legal_witness = certificate.get("legal_revalidation_witness")
+    topology_valid = bool(
+        floor_count > 0
+        and isinstance(occupied_topology, list)
+        and isinstance(legal_topology, list)
+        and isinstance(topology_metrics, list)
+        and len(occupied_topology) == floor_count
+        and len(legal_topology) == floor_count
+        and len(topology_metrics) == floor_count
+        and certificate.get("final_closed_manifold_hard_pass") is True
+        and final_component_count > 0
+        and isinstance(final_component_volumes, list)
+        and len(final_component_volumes) == final_component_count
+        and all(float(volume) > 0.0 for volume in final_component_volumes)
+        and all(
+            isinstance(row, dict)
+            and row.get("valid") is True
+            and int(row.get("component_count") or 0) > 0
+            and int(row.get("hole_count") or 0) >= 0
+            for row in (*occupied_topology, *legal_topology)
+        )
+        and all(
+            isinstance(row, dict)
+            and row.get("hard_pass") is True
+            and int(row.get("component_count") or 0)
+            == int(row.get("expected_component_count") or 0)
+            and int(row.get("hole_count") or 0)
+            == int(row.get("expected_hole_count") or 0)
+            and int(row.get("contour_count") or 0)
+            == int(row.get("component_count") or 0)
+            + int(row.get("hole_count") or 0)
+            for row in topology_metrics
+        )
+        and all(
+            int(metric.get("expected_component_count") or 0)
+            == int(occupied.get("component_count") or 0)
+            and int(metric.get("expected_hole_count") or 0)
+            == int(occupied.get("hole_count") or 0)
+            and int(metric.get("floor_index") or 0)
+            == int(occupied.get("floor_index") or 0)
+            for occupied, metric in zip(occupied_topology, topology_metrics)
+        )
+        and isinstance(legal_witness, dict)
+        and int(legal_witness.get("maximum_retained_count") or 0) == 64
+        and isinstance(legal_witness.get("records"), list)
+        and int(legal_witness.get("retained_count") or 0)
+        == len(legal_witness["records"])
+        and len(legal_witness["records"]) <= 64
+        and int(legal_witness.get("total_count") or 0)
+        >= len(legal_witness["records"])
+        and bool(legal_witness.get("truncated"))
+        == (
+            int(legal_witness.get("total_count") or 0)
+            > len(legal_witness["records"])
         )
     )
     return bool(
@@ -250,6 +387,78 @@ def valid_floor_center_numeric_equivalence(
         and hausdorff <= epsilon
         and area_delta <= area_bound
         and symdiff <= area_bound
+        and topology_valid
+    )
+
+
+def _valid_continuous_visible_sections(
+    certificate: dict[str, Any],
+) -> bool:
+    """Validate actual authored sections without equating them to capacity."""
+
+    try:
+        floor_count = int(certificate.get("floor_count") or 0)
+        epsilon = float(certificate["section_numeric_epsilon_m"])
+        final_component_count = int(
+            certificate.get("final_component_count") or 0
+        )
+        final_component_volumes = certificate[
+            "final_component_volumes_m3"
+        ]
+        occupied = certificate["occupied_section_topology"]
+        legal = certificate["legal_section_topology"]
+        metrics = certificate["floor_center_topology_metrics"]
+        actual_wkb = certificate["actual_section_wkb_hex"]
+        decoded = tuple(
+            from_wkb(bytes.fromhex(value))
+            for value in actual_wkb
+        )
+    except (KeyError, TypeError, ValueError):
+        return False
+    legal_witness = certificate.get("legal_revalidation_witness")
+    return bool(
+        certificate.get("floor_center_numeric_equivalence_schema")
+        == "arr.maas.floor_center_visible_section.v1"
+        and floor_count > 0
+        and isfinite(epsilon)
+        and epsilon > 0.0
+        and all(
+            isinstance(rows, list) and len(rows) == floor_count
+            for rows in (occupied, legal, metrics, actual_wkb)
+        )
+        and all(
+            isinstance(row, dict)
+            and row.get("valid") is True
+            and row.get("hard_pass") is True
+            and row.get("authority")
+            == "renderer_visible_authored_section"
+            and int(row.get("component_count") or 0) > 0
+            and int(row.get("hole_count") or 0) >= 0
+            and int(row.get("contour_count") or 0)
+            == int(row.get("component_count") or 0)
+            + int(row.get("hole_count") or 0)
+            and isfinite(float(row.get("area_m2") or 0.0))
+            and float(row.get("area_m2") or 0.0) > 0.0
+            for row in metrics
+        )
+        and all(
+            geometry.is_valid
+            and not geometry.is_empty
+            and geometry.normalize().wkb_hex == value
+            and abs(float(geometry.area) - float(row["area_m2"]))
+            <= max(1e-7, epsilon * max(1.0, float(geometry.length)))
+            for geometry, value, row in zip(decoded, actual_wkb, metrics)
+        )
+        and certificate.get("final_closed_manifold_hard_pass") is True
+        and final_component_count > 0
+        and isinstance(final_component_volumes, list)
+        and len(final_component_volumes) == final_component_count
+        and all(float(volume) > 0.0 for volume in final_component_volumes)
+        and isinstance(legal_witness, dict)
+        and int(legal_witness.get("maximum_retained_count") or 0) == 64
+        and isinstance(legal_witness.get("records"), list)
+        and int(legal_witness.get("retained_count") or 0)
+        == len(legal_witness["records"])
     )
 
 
@@ -281,6 +490,7 @@ def floorwise_authority_binding_hash(
     mesh_cleanup_raw_gate_failure_codes: Sequence[str] = (),
     mesh_cleanup_clean_indexed_mesh_hash: str = "",
     mesh_cleanup_clean_gate_hard_pass: bool = False,
+    section_geometry_binding_hash: str = "",
 ) -> str:
     """Bind the exact visible payload to its legal/capacity authorities."""
 
@@ -315,6 +525,7 @@ def floorwise_authority_binding_hash(
         or mesh_cleanup_raw_gate_failure_codes
         or mesh_cleanup_clean_indexed_mesh_hash
         or mesh_cleanup_clean_gate_hard_pass
+        or section_geometry_binding_hash
     ):
         payload.update({
             "authored_program_hash": str(authored_program_hash or ""),
@@ -376,6 +587,9 @@ def floorwise_authority_binding_hash(
             "mesh_cleanup_clean_gate_hard_pass": bool(
                 mesh_cleanup_clean_gate_hard_pass
             ),
+            "section_geometry_binding_hash": str(
+                section_geometry_binding_hash or ""
+            ),
         })
     return sha256(json.dumps(
         payload,
@@ -389,8 +603,17 @@ def floorwise_authority_binding_hash(
 class _BufferedLegalSections:
     """Lazily reuse the exact numerical-tolerance buffer within one certificate."""
 
-    def __init__(self, legal_sections: Sequence[Any]) -> None:
+    def __init__(
+        self,
+        legal_sections: Sequence[Any],
+        *,
+        buffer_distance_m: float = 1e-7,
+    ) -> None:
         self._sections = tuple(legal_sections)
+        distance = float(buffer_distance_m)
+        if not isfinite(distance) or distance < 0.0:
+            raise ValueError("legal-section buffer distance must be finite and nonnegative")
+        self._buffer_distance_m = distance
         self._buffered: dict[int, Any] = {}
 
     def __len__(self) -> int:
@@ -399,7 +622,9 @@ class _BufferedLegalSections:
     def __getitem__(self, index: int) -> Any:
         normalized = index if index >= 0 else len(self._sections) + index
         if normalized not in self._buffered:
-            self._buffered[normalized] = self._sections[normalized].buffer(1e-7)
+            self._buffered[normalized] = self._sections[normalized].buffer(
+                self._buffer_distance_m
+            )
         return self._buffered[normalized]
 
 
@@ -847,10 +1072,54 @@ def _profiled_export_completeness_failure(
     if raw_count or exported_count:
         if raw_count != exported_count or raw_count != len(surfaces):
             return "incomplete_authored_mesh_export"
+    if _has_closed_directed_edge_topology(surfaces):
+        return ""
     return (
         ""
-        if _has_closed_directed_edge_topology(surfaces)
+        if _kernel_certifies_complete_surface_mesh(surfaces)
         else "unproven_authored_mesh_completeness"
+    )
+
+
+def _kernel_certifies_complete_surface_mesh(
+    surfaces: tuple[SourceSurface, ...],
+) -> bool:
+    """Certify complete CSG triangle soups after the edge-count shortcut.
+
+    Manifold boolean output can contain redundant coplanar facets, so a
+    topologically closed solid may legitimately have an edge count above one
+    in the transported triangle soup. Re-index the exact exported vertices
+    and ask the authoritative kernel; open or non-manifold exports still fail.
+    """
+
+    vertices: list[tuple[float, float, float]] = []
+    vertex_indices: dict[tuple[float, float, float], int] = {}
+    triangles: list[tuple[int, int, int]] = []
+    try:
+        for surface in surfaces:
+            triangle: list[int] = []
+            for raw_point in surface.vertices_m:
+                point = tuple(float(value) for value in raw_point)
+                if len(point) != 3 or not all(isfinite(value) for value in point):
+                    return False
+                if point not in vertex_indices:
+                    vertex_indices[point] = len(vertices)
+                    vertices.append(point)
+                triangle.append(vertex_indices[point])
+            if len(triangle) != 3 or len(set(triangle)) != 3:
+                return False
+            triangles.append(tuple(triangle))
+    except (TypeError, ValueError, OverflowError):
+        return False
+    certified = revalidated_profiled_mesh(
+        tuple(vertices),
+        tuple(triangles),
+    )
+    return bool(
+        certified is not None
+        and certified.status == "compiled"
+        and certified.metrics.get("closed_solid") is True
+        and certified.metrics.get("manifold") is True
     )
 
 
@@ -1537,6 +1806,11 @@ def clip_and_certify_projected_piloti_visual(
                     rebound_certificate.get(
                         "mesh_cleanup_clean_gate_hard_pass"
                     )
+                ),
+                section_geometry_binding_hash=str(
+                    rebound_certificate.get(
+                        "section_geometry_binding_hash"
+                    ) or ""
                 ),
             )
         )

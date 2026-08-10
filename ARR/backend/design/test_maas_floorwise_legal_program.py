@@ -2,9 +2,11 @@
 
 from copy import deepcopy
 from math import hypot
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 from shapely.affinity import rotate, scale
+from shapely.errors import GEOSException
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import polygonize, unary_union
 
@@ -17,11 +19,18 @@ from design.maas.geometry_language import (
 )
 from design.maas.geometry_language.authored_legal_preservation import (
     AuthoredLegalPreservationResult,
+    _valid_authored_request,
     certify_authored_affine_program,
 )
 from design.maas.geometry_language.affine_matrix import identity_matrix4
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.legal_field_affine_placement import (
+    _convex_bands_contained,
+    _convex_legal_halfspaces,
+    _exact_affine_selection_rank,
+    _maximum_contained_scale_multiplier,
+    _general_bands_contained,
+    _placed_closed_band_projections,
     is_intentional_floorwise_stepped_program,
     select_legal_field_affine_projection,
 )
@@ -30,6 +39,7 @@ from design.maas.geometry_language.source_bridge import (
     append_site_placement_matrix,
     compile_site_bound_geometry_program_to_source_mass,
     derive_host_fit_transform,
+    materialize_floorwise_legal_source,
 )
 
 
@@ -233,6 +243,262 @@ def _with_live_step(
 
 
 class AuthoredLegalPreservationTests(SimpleTestCase):
+    def test_closed_band_projection_fails_one_candidate_on_geos_union_error(self):
+        bands = (((
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        ), ((0, 1, 2),)),)
+
+        with patch(
+            "design.maas.geometry_language.legal_field_affine_placement."
+            "unary_union",
+            side_effect=GEOSException("TopologyException: non-noded edge"),
+        ):
+            projected = _placed_closed_band_projections(
+                identity_matrix4(),
+                source_band_meshes=bands,
+            )
+
+        self.assertIsNone(projected)
+
+    def test_convex_halfspace_fast_path_matches_exact_triangle_projection(self):
+        vertices = (
+            (0.0, 0.0, 0.0), (1.0, 0.0, 0.0),
+            (1.0, 1.0, 0.0), (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0), (1.0, 0.0, 1.0),
+            (1.0, 1.0, 1.0), (0.0, 1.0, 1.0),
+        )
+        triangles = (
+            (0, 1, 2), (0, 2, 3), (4, 6, 5), (4, 7, 6),
+            (0, 4, 5), (0, 5, 1), (1, 5, 6), (1, 6, 2),
+            (2, 6, 7), (2, 7, 3), (3, 7, 4), (3, 4, 0),
+        )
+        bands = ((vertices, triangles),)
+        matrix = (
+            (1.0, 0.0, 0.2, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        )
+        for legal in (
+            box(-0.1, -0.1, 1.3, 1.1),
+            box(-0.1, -0.1, 1.1, 1.1),
+        ):
+            exact = legal.covers(
+                _placed_closed_band_projections(
+                    matrix,
+                    source_band_meshes=bands,
+                )[0]
+            )
+            halfspaces = _convex_legal_halfspaces((legal,))
+            self.assertIsNotNone(halfspaces)
+            self.assertEqual(
+                _convex_bands_contained(
+                    matrix,
+                    source_band_meshes=bands,
+                    legal_halfspaces=halfspaces,
+                ),
+                exact,
+            )
+
+    def test_convex_halfspace_fast_path_declines_concave_legal_section(self):
+        concave = Polygon((
+            (0.0, 0.0), (2.0, 0.0), (2.0, 2.0),
+            (1.0, 1.0), (0.0, 2.0),
+        ))
+        self.assertIsNone(_convex_legal_halfspaces((concave,)))
+
+    def test_convex_maximum_scale_never_builds_triangle_unions(self):
+        vertices = (
+            (0.0, 0.0, 0.0), (1.0, 0.0, 0.0),
+            (1.0, 1.0, 1.0), (0.0, 1.0, 1.0),
+        )
+        bands = ((vertices, ((0, 1, 2), (0, 2, 3))),)
+
+        def matrix_at(scale_multiplier):
+            return (
+                (scale_multiplier, 0.0, 0.0, 0.0),
+                (0.0, scale_multiplier, 0.0, 0.0),
+                (0.0, 0.0, 1.0, 0.0),
+                (0.0, 0.0, 0.0, 1.0),
+            )
+
+        with patch(
+            "design.maas.geometry_language.legal_field_affine_placement."
+            "_placed_closed_band_projections",
+            side_effect=AssertionError("convex fast path regressed"),
+        ):
+            result = _maximum_contained_scale_multiplier(
+                matrix_at,
+                source_band_meshes=bands,
+                legal_sections=(box(0.0, 0.0, 1.0, 1.0),),
+                scale_upper=1.5,
+            )
+
+        self.assertIsNotNone(result)
+        self.assertLessEqual(result, 1.0)
+        self.assertGreater(result, 0.99)
+
+    def test_vectorized_general_container_catches_triangle_crossing_concavity(self):
+        legal = Polygon((
+            (0.0, 0.0), (2.0, 0.0), (2.0, 1.0),
+            (1.0, 1.0), (1.0, 2.0), (0.0, 2.0),
+        ))
+        identity = identity_matrix4()
+        inside = (((
+            (0.2, 0.2, 0.0),
+            (1.8, 0.2, 0.0),
+            (0.2, 0.8, 0.0),
+        ), ((0, 1, 2),)),)
+        crossing = (((
+            (0.5, 1.8, 0.0),
+            (1.8, 0.5, 0.0),
+            (0.5, 0.5, 0.0),
+        ), ((0, 1, 2),)),)
+
+        self.assertTrue(_general_bands_contained(
+            identity,
+            source_band_meshes=inside,
+            legal_sections=(legal,),
+        ))
+        self.assertFalse(_general_bands_contained(
+            identity,
+            source_band_meshes=crossing,
+            legal_sections=(legal,),
+        ))
+        exact_projection = _placed_closed_band_projections(
+            identity,
+            source_band_meshes=crossing,
+        )[0]
+        self.assertFalse(legal.covers(exact_projection))
+
+    def test_authored_certifier_allows_typed_cutter_primitive_after_unitbox(self):
+        unit = GeometryNode(
+            "unit_box",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        cutter = GeometryNode(
+            "authored_roof_wedge",
+            "primitive",
+            "wedge",
+            parameters={
+                "width": 1.0,
+                "depth": 1.0,
+                "height": 1.0,
+                "slope_axis": "x",
+                "low_height_ratio": 0.22,
+            },
+            semantic_role="authored_roof_half_space",
+        )
+        shaped = GeometryNode(
+            "authored_wedge_intersection",
+            "boolean",
+            "intersection",
+            inputs=(unit.id, cutter.id),
+            semantic_role="authored_body_cut",
+        )
+        program = GeometryProgram(
+            (unit, cutter, shaped),
+            shaped.id,
+            "unitbox_with_authored_wedge_cutter",
+            metadata={"site_placement": {"matrix4": identity_matrix4()}},
+        )
+
+        self.assertTrue(_valid_authored_request(
+            program,
+            legal_sections=(box(0.0, 0.0, 2.0, 2.0),),
+            target_floor_areas_m2=(1.0,),
+            floor_capacity_plan_hash="capacity-plan:cutter-lineage",
+        ))
+
+    def test_exact_affine_rank_prefers_capacity_inside_same_identity_tier(self):
+        high_capacity = _exact_affine_selection_rank(
+            distortion=3e-8,
+            achieved_total=315.0,
+            minimum_retention=0.999999,
+            aggregate_retention=0.999999,
+            program_hash="high-capacity",
+        )
+        low_capacity = _exact_affine_selection_rank(
+            distortion=1e-8,
+            achieved_total=145.0,
+            minimum_retention=1.0,
+            aggregate_retention=1.0,
+            program_hash="low-capacity",
+        )
+
+        self.assertLess(high_capacity, low_capacity)
+
+    def test_affine_selector_screens_closed_floor_bands_for_continuous_taper(self):
+        """Mid-slice scaling must not make a legal continuous body fail exact."""
+        unit = GeometryNode(
+            "continuous_unit_box",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        base_volume = GeometryNode(
+            "continuous_base_volume",
+            "transform",
+            "matrix4",
+            inputs=(unit.id,),
+            parameters={"matrix4": [
+                [1.5, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]},
+        )
+        tapered = GeometryNode(
+            "continuous_taper",
+            "modifier",
+            "taper",
+            inputs=(base_volume.id,),
+            parameters={
+                "axis": "z",
+                "start_scale": [1.0, 1.0],
+                "end_scale": [0.5, 0.7],
+                "subdivisions": 8,
+            },
+        )
+        program = GeometryProgram(
+            (unit, base_volume, tapered),
+            tapered.id,
+            "continuous_taper_closed_band_screen",
+        )
+        legal_sections = (
+            box(-10.0, -10.0, 10.0, 10.0),
+            box(-8.75, -9.25, 8.75, 9.25),
+            box(-7.5, -8.5, 7.5, 8.5),
+            box(-6.25, -7.75, 6.25, 7.75),
+        )
+
+        selected = select_legal_field_affine_projection(
+            program,
+            legal_sections=legal_sections,
+            target_floor_areas_m2=(200.0, 180.0, 150.0, 120.0),
+            aggregate_target_area_m2=650.0,
+            floor_capacity_plan_hash="capacity-plan:closed-band-taper",
+            minimum_aggregate_target_ratio=0.35,
+        )
+
+        self.assertIsNotNone(selected)
+        assert selected is not None
+        self.assertTrue(
+            selected.projection.certificate["all_sections_contained"]
+        )
+        self.assertGreaterEqual(
+            sum(selected.projection.achieved_floor_areas_m2),
+            650.0 * 0.35,
+        )
+        self.assertEqual(
+            selected.evidence["containment_screening_authority"],
+            "closed_z_band_projected_mesh",
+        )
+
     def test_affine_selector_prefers_unchanged_preservation(self):
         block = next(
             program
@@ -264,6 +530,49 @@ class AuthoredLegalPreservationTests(SimpleTestCase):
         self.assertEqual(
             selected.evidence["projection_mode"],
             "authored_affine_preserved",
+        )
+
+    def test_affine_selector_recovers_anisotropically_compressed_source(self):
+        """A prior affine scale must not make an affine-fit body unreachable."""
+
+        unit = GeometryNode(
+            "compressed_unit",
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        compressed = GeometryNode(
+            "compressed_body",
+            "transform",
+            "matrix4",
+            inputs=(unit.id,),
+            parameters={"matrix4": [
+                [0.10, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]},
+        )
+        program = GeometryProgram(
+            (unit, compressed),
+            compressed.id,
+            "anisotropically_compressed_source",
+        )
+
+        selected = select_legal_field_affine_projection(
+            program,
+            legal_sections=(box(0.0, 0.0, 20.0, 10.0),),
+            target_floor_areas_m2=(190.0,),
+            aggregate_target_area_m2=190.0,
+            floor_capacity_plan_hash="capacity-plan:affine-invariance",
+            minimum_aggregate_target_ratio=0.995,
+        )
+
+        self.assertIsNotNone(selected)
+        assert selected is not None
+        self.assertGreaterEqual(
+            sum(selected.projection.achieved_floor_areas_m2),
+            190.0 * 0.995,
         )
 
     def test_only_explicit_stepped_ast_is_floorwise_csg_eligible(self):
@@ -582,6 +891,41 @@ class FloorwiseLegalProgramTest(SimpleTestCase):
             result.certificate["achieved_aggregate_area_m2"],
             result.certificate["aggregate_target_area_m2"] * 0.995,
         )
+
+    def test_intentional_authored_steps_materialize_without_step_fallback(self):
+        placed_program, host = _placed_u_program()
+        placed_program = _with_live_step(placed_program, setback_ratio=0.12)
+        legal_sections = (host, host, host, host)
+        target_floor_areas_m2 = (20.0, 20.0, 20.0, 20.0)
+        projected = append_floorwise_legal_projection(
+            placed_program,
+            legal_sections=legal_sections,
+            target_floor_areas_m2=target_floor_areas_m2,
+            floor_capacity_plan_hash="capacity-plan:intentional-step-materialized",
+        )
+
+        self.assertIsNotNone(projected)
+        assert projected is not None
+        source = compile_site_bound_geometry_program_to_source_mass(
+            projected.program,
+            host,
+        )
+        self.assertIsNotNone(source)
+        assert source is not None
+        materialized = materialize_floorwise_legal_source(
+            source,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.5,
+            floor_capacity_plan_hash="capacity-plan:intentional-step-materialized",
+            target_floor_areas_m2=target_floor_areas_m2,
+        )
+
+        self.assertIsNotNone(materialized)
+        assert materialized is not None
+        self.assertTrue(materialized.surfaces)
+        certificate = materialized.metadata["floorwise_visual_projection"]
+        self.assertTrue(certificate["hard_pass"], certificate)
+        self.assertFalse(certificate["visible_step_fallback"])
 
     def test_public_floorwise_csg_rejects_unattainable_capacity_target(self):
         placed_program, host = _placed_u_program()

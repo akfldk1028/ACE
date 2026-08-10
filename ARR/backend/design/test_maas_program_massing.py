@@ -542,6 +542,54 @@ class MaasProgramMassingTest(SimpleTestCase):
             "lowest_occupied_floor_band",
         )
 
+    def test_projected_surface_coverage_uses_certified_floor_area_not_proxy(self):
+        diagnostic_proxy = box(0.0, 0.0, 2.0, 2.0)
+        feature = {
+            "type": "Feature",
+            "geometry": mapping(diagnostic_proxy),
+            "properties": {
+                "benchmark_site_area_m2": 200.0,
+                "candidate_floor_context": {
+                    "legal_floor_section_areas_m2": [100.0, 80.0],
+                },
+                "mass_volumes": [{
+                    "role": "primary_mass",
+                    "geometry": mapping(diagnostic_proxy),
+                    "bottom_height": 0.0,
+                    "top_height": 6.0,
+                }],
+                "source_signature": {
+                    "geometry_authority": "authored_projected_surface_payload",
+                    "geometry_program_bridge_evidence": {
+                        "geometry_authority": (
+                            "authored_projected_surface_payload"
+                        ),
+                        "authored_legal_projection_certificate": {
+                            "hard_pass": True,
+                            "achieved_floor_areas_m2": [65.0, 52.0],
+                        },
+                    },
+                    "coherence_evidence": {
+                        "score": 0.8,
+                        "hard_pass": True,
+                    },
+                },
+            },
+        }
+
+        spatial = attach_program_spatial_evidence(
+            feature,
+            building_type="neighborhood living",
+        )
+
+        self.assertEqual(spatial["site_coverage_ratio"], 0.65)
+        self.assertEqual(spatial["coverage_numerator_m2"], 65.0)
+        self.assertEqual(spatial["coverage_denominator_m2"], 100.0)
+        self.assertEqual(
+            spatial["coverage_measurement_mode"],
+            "certified_projected_ground_floor_area",
+        )
+
     def test_final_floorwise_site_coverage_falls_back_to_benchmark_area(self):
         ground_band = box(0.0, 0.0, 10.0, 8.0)
         shifted_upper_band = box(6.25, 0.0, 31.25, 10.0)

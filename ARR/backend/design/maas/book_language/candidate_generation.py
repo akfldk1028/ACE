@@ -48,6 +48,9 @@ from design.maas.paid_provider_budget import (
 from design.maas.geometry_language.floorwise_legal_program import (
     is_intentional_floorwise_stepped_program,
 )
+from design.maas.geometry_language.floorwise_visual_projection import (
+    certified_actual_section_areas,
+)
 from design.maas.geometry_language.gate import GeometryGatePolicy, compilation_gate
 from design.maas.geometry_language.legal_field_affine_placement import (
     select_legal_field_affine_projection,
@@ -2809,6 +2812,14 @@ def _authored_projection_identity_evidence(
     )
     failures: list[str] = []
     diagnostic_reasons: list[str] = []
+    internal_void_step_signal = bool(
+        authored_metrics.get("phenotype") == "voided"
+        and projected_step_visible
+        and not authored_step_visible
+        and not authored_step_intent
+        and silhouette_distance <= 1e-6
+        and visual_certificate.get("visible_step_fallback") is not True
+    )
     if not authored_metrics.get("hard_pass"):
         failures.append("authored_authoritative_visual_surfaces_missing")
     if not projected_metrics.get("hard_pass"):
@@ -2820,12 +2831,17 @@ def _authored_projection_identity_evidence(
         projected_step_visible
         and not authored_step_visible
         and not authored_step_intent
+        and not internal_void_step_signal
     ):
         (
             failures
             if enforce_morphology_preservation
             else diagnostic_reasons
         ).append("unrequested_legal_step_collapse")
+    if internal_void_step_signal:
+        diagnostic_reasons.append(
+            "internal_void_surface_step_signal_ignored"
+        )
     if (
         authored_metrics.get("hard_pass")
         and projected_metrics.get("hard_pass")
@@ -4425,9 +4441,17 @@ def _materialize_directed_geometry(
                 band_areas.get(band, 0.0)
                 + float(volume.footprint.area)
             )
-        achieved_floor_areas = tuple(
+        proxy_floor_areas = tuple(
             band_areas[band]
             for band in sorted(band_areas)
+        )
+        certified_floor_areas = certified_actual_section_areas(
+            materialized.metadata.get("floorwise_visual_projection") or {}
+        )
+        achieved_floor_areas = (
+            certified_floor_areas
+            if certified_floor_areas
+            else proxy_floor_areas
         )
         projection_evidence = deepcopy(
             materialized.metadata.get("floorwise_legal_matrix_stack")
@@ -4481,6 +4505,10 @@ def _materialize_directed_geometry(
             "legal_floor_field_hash": str(legal_floor_field_hash or ""),
             "projected_surface_hash": final_geometry_hash,
             "projected_surface_payload_hash": final_surface_payload_hash,
+            "achieved_floor_areas_m2": [
+                round(float(value), 8)
+                for value in achieved_floor_areas
+            ],
             "legal_proxy_role": "analysis_only_gfa_parking_containment",
         }
         fallback_metadata["authored_legal_projection_certificate"] = (
@@ -4643,6 +4671,10 @@ def _materialize_directed_geometry(
         "legal_floor_field_hash": str(legal_floor_field_hash or ""),
         "projected_surface_hash": final_geometry_hash,
         "projected_surface_payload_hash": final_surface_payload_hash,
+        "achieved_floor_areas_m2": [
+            round(float(value), 8)
+            for value in achieved_floor_areas
+        ],
         "legal_proxy_role": "analysis_only_gfa_parking_containment",
     }
     authoritative_metadata = deepcopy(materialized.metadata)

@@ -52,7 +52,11 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             or bridge.get("geometry_authority")
             or ""
         )
-        == "final_floorwise_legal_geometry_program"
+        in {
+            "authored_projected_surface_payload",
+            "authored_compiled_surface_payload",
+            "final_floorwise_legal_geometry_program",
+        }
         or str(
             (
                 signature.get("program_semantic_carrier_evidence")
@@ -197,6 +201,28 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             or 1.0
         )
         coverage_measurement_mode = "lowest_occupied_floor_band"
+        projection_certificate = (
+            bridge.get("authored_legal_projection_certificate")
+            if isinstance(
+                bridge.get("authored_legal_projection_certificate"),
+                dict,
+            )
+            else {}
+        )
+        certified_floor_areas = projection_certificate.get(
+            "achieved_floor_areas_m2"
+        )
+        if (
+            projection_certificate.get("hard_pass") is True
+            and isinstance(certified_floor_areas, (list, tuple))
+            and certified_floor_areas
+            and type(certified_floor_areas[0]) in (int, float)
+            and float(certified_floor_areas[0]) > 0.0
+        ):
+            coverage_numerator = float(certified_floor_areas[0])
+            coverage_measurement_mode = (
+                "certified_projected_ground_floor_area"
+            )
     coverage = coverage_numerator / max(denominator, 1e-9)
     all_height_projected_plan_union_ratio = (
         union_area / max(denominator, 1e-9)
@@ -400,14 +426,13 @@ def _actual_final_hashes(
     signature: dict[str, Any],
     bridge: dict[str, Any],
 ) -> tuple[str, str]:
-    if (
-        str(signature.get("geometry_authority") or "")
-        == "final_floorwise_legal_geometry_program"
-    ):
-        # The stored program is the law/capacity replay graph.  The certified
-        # authored triangle mesh is the final visual geometry authority, so
-        # recompiling the replay plates cannot reproduce its geometry hash.
-        # Surface-payload and semantic audits independently verify that bridge.
+    if str(signature.get("geometry_authority") or "") in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }:
+        # The stored program and certified authored triangles are the same
+        # visual authority. Surface-payload and semantic audits independently
+        # verify the bridge; legal proxy volumes are not recompiled here.
         return (
             str(bridge.get("program_hash") or ""),
             str(bridge.get("geometry_hash") or ""),

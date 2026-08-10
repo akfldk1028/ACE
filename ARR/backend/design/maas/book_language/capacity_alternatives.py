@@ -136,8 +136,16 @@ def build_capacity_alternative(
     # above the brief while leaving a measured design reserve for the same
     # public threshold, void and parking gates used by every other band.
     maximum_design_yield = brief_target + (1.0 - brief_target) * 0.5
+    # Spatial reserve is the release floor itself.  Raising it even slightly can
+    # cross a discrete floor-capacity boundary: on the live Gangnam parcel,
+    # 60% fits in two lawful plates while 62.5% adds a third sunlight-setback
+    # plate and overwrites authored courts, wings and bars with one wedge.
+    # Public-space operations remain measured downstream; they must fit inside
+    # this target instead of silently increasing the target that names itself
+    # ``feasible_minimum``.
+    spatial_reserve_target = minimum
     targets = {
-        "spatial_reserve": minimum,
+        "spatial_reserve": spatial_reserve_target,
         "balanced_yield": minimum + (brief_target - minimum) * 0.5,
         "brief_target": brief_target,
         "maximum_feasible": maximum_design_yield,
@@ -207,32 +215,25 @@ def capacity_contract_for_alternative(
     _apply_candidate_floor_prefix(
         projected,
         target=float(alternative.get("target_floor_area_m2") or 0.0),
-        preserve_full_lawful_stack=(
-            str(alternative.get("alternative_id") or "")
-            == "spatial_reserve"
-        ),
+        # Use only the lawful prefix required by the measured target. A later
+        # geometry fit may reject a low-retention form, but it may not add an
+        # otherwise unnecessary sunlight-setback floor and call that authored
+        # diversity.
+        preserve_full_lawful_stack=False,
     )
     target_floor_areas = _alternative_floor_targets(
         projected,
         target=float(alternative.get("target_floor_area_m2") or 0.0),
     )
-    preserves_design_reserve_stack = bool(
-        projected.get("candidate_floor_count_authority")
-        == "full_lawful_design_reserve_stack_for_spatial_reserve"
-    )
     projected.update({
         "target_utilization": alternative.get("target_utilization", 0.0),
         "target_floor_area_m2": alternative.get("target_floor_area_m2", 0.0),
         "target_floor_areas_m2": target_floor_areas,
-        "target_base_plan_area_m2": (
-            (base_contract or {}).get("target_base_plan_area_m2", 0.0)
-            if preserves_design_reserve_stack
-            else alternative.get("target_base_plan_area_m2", 0.0)
+        "target_base_plan_area_m2": alternative.get(
+            "target_base_plan_area_m2", 0.0
         ),
-        "target_base_plan_coverage": (
-            (base_contract or {}).get("target_base_plan_coverage", 0.0)
-            if preserves_design_reserve_stack
-            else alternative.get("target_base_plan_coverage", 0.0)
+        "target_base_plan_coverage": alternative.get(
+            "target_base_plan_coverage", 0.0
         ),
         "capacity_alternative_id": alternative.get("alternative_id", ""),
         "floor_target_distribution": (
@@ -504,9 +505,16 @@ def capacity_retry_floor_targets(
         round(max(0.0, float(value)), 3)
         for value in raw_targets
     )
-    target_utilization = max(
+    design_target_utilization = max(
         0.0,
         float(alternative.get("target_utilization") or 0.0),
+    )
+    target_utilization = max(
+        0.0,
+        float(
+            alternative.get("feasible_minimum_utilization")
+            or design_target_utilization
+        ),
     )
     achieved_utilization = max(
         0.0,
@@ -529,6 +537,23 @@ def capacity_retry_floor_targets(
         },
         target=compensated_total,
     ))
+
+
+def capacity_contract_with_retry_targets(
+    contract: dict[str, Any],
+    retry_targets: tuple[float, ...],
+) -> dict[str, Any]:
+    """Bind a recompiled target vector to every finalization identity alias."""
+
+    rebound = deepcopy(contract)
+    targets = [round(float(value), 3) for value in retry_targets]
+    total = round(sum(targets), 3)
+    rebound.update({
+        "target_floor_areas_m2": targets,
+        "target_floor_area_m2": total,
+        "candidate_target_gfa_m2": total,
+    })
+    return rebound
 
 
 def capacity_retry_plan_coverage(
@@ -563,6 +588,7 @@ __all__ = [
     "build_capacity_alternative",
     "capacity_fit_score",
     "capacity_retry_plan_coverage",
+    "capacity_contract_with_retry_targets",
     "capacity_alternative_catalog",
     "capacity_alternative_for_host",
     "capacity_alternative_for_lattice_index",

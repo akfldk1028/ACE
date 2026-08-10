@@ -453,3 +453,52 @@ Date: 2026-08-09
   pair distance; the selector's measured wedge cap remains three. Its first
   success condition is five compatible cards with visibly broader final-mesh
   language, not merely five authored labels.
+
+## 2026-08-10 C113-C117 visual rejection and legal-CSG identity root cause
+
+- C113 selected `3/5`; direct PNG inspection rejected it because two cards
+  remained near-identical wedge/cut forms, one was a curved shell, and two
+  slots were empty. C114 selected `5/5` from the full 66-program admitted
+  cache, but direct inspection again found one curved shell, one cut box, and
+  three staircase/wedge variants. Its eight spatial-reserve hard-pass records
+  rendered as seven near-identical blocks plus one curve. C114 is numerical
+  diagnostic evidence only, not an accepted architectural portfolio.
+- An exact-minimum spatial-reserve target now uses the `0.60` capacity floor.
+  For the current lawful floor caps `[102.931, 102.931, 74.989, 51.471] m2`,
+  the target is `199.393 m2`; this can fit the first two floors and does not
+  itself force a third setback floor. A C115 full-lawful-stack experiment was
+  still visually wedge-convergent and was rejected, so full-stack projection
+  is not the remedy.
+- The decisive defect was in
+  `geometry_language/source_bridge.py::_matrix_fit_polygon_to_host`. Its
+  `minimum_contained_area_ratio=0.78` argument was accepted but never applied.
+  Legal CSG could therefore enlarge a plan symbol until the host intersection
+  met area, even when most authored material was discarded. A clean authored
+  cross prism retained only about `26%` of its enlarged raw polygon and became
+  the legal host silhouette; that false survivor was previously counted as a
+  successful architectural mass.
+- The fitter now measures `projected_area / raw_area` for every legal-CSG
+  candidate, rejects projection below the configured retention floor, and
+  returns the maximum wholly contained affine candidate when available. A
+  concave-host regression also uses the legal host representative point when
+  a supplied centroid falls inside a void. The focused source-bridge suite is
+  `5/5` green.
+- Honest replays after the fix are C116 and C117. C116 evaluated 11 cached
+  programs, compiled 5, and passed 0. C117 screened the full 66-program cache,
+  evaluated 15 high-profile candidates, compiled 4, and passed 0. The four
+  clean C117 sources occupied only about `2.6-3.7%` of feasible GFA; the old
+  fitter had inflated/clipped them to masquerade as `>=60%` masses. Existing
+  cached ASTs are mostly small plan symbols or flat prisms, not site-feasible
+  multisection architectural seeds.
+- Canonical publishable remains honestly `0/20`; there is currently no
+  accepted diverse `3/3` or `5/5` PNG after direct inspection. Do not restore
+  the false legal-CSG behavior, lower the `0.78` authored-retention threshold,
+  sum diagnostic runs, or launch another broad cached replay.
+- Next implementation target: move the `0.60` capacity and `0.78` retention
+  requirements upstream into site-aware GeometryProgram authorship/admission.
+  Before BOOK or expensive generation, compile at four lawful Z sections and
+  require a genuinely three-dimensional vertical profile whose maximum
+  contained aggregate can reach the capacity floor without topology-erasing
+  clipping. BaseVolume, NumPy Matrix4 transforms, typed BOOK operations, law,
+  parking and topology remain active; paper-aligned phenotype islands select
+  among valid seeds but cannot manufacture valid supply from flat symbols.

@@ -201,6 +201,15 @@ class CandidateSpecificFloorContextTests(SimpleTestCase):
                     len(floor_context["legal_sections"]),
                     expected_floors,
                 )
+                self.assertEqual(
+                    floor_context["legal_floor_section_areas_m2"],
+                    tuple(
+                        float(value)
+                        for value in projected[
+                            "legal_floor_section_areas_m2"
+                        ]
+                    ),
+                )
                 self.assertTrue(all(
                     isinstance(section, Polygon)
                     for section in floor_context["legal_sections"]
@@ -209,7 +218,7 @@ class CandidateSpecificFloorContextTests(SimpleTestCase):
         self.assertEqual(hashes, {field["legal_floor_field_hash"]})
         self.assertEqual(base["legal_floor_field"], original_field)
 
-    def test_spatial_reserve_preserves_full_lawful_design_reserve_stack(self):
+    def test_spatial_reserve_uses_minimum_prefix_and_its_own_coverage(self):
         base = _four_floor_design_reserve_contract()
         projected = capacity_contract_for_alternative(
             base,
@@ -222,25 +231,21 @@ class CandidateSpecificFloorContextTests(SimpleTestCase):
             },
         )
 
-        self.assertEqual(projected["requested_floors"], 4)
-        self.assertEqual(projected["requested_height_m"], 12.0)
-        self.assertEqual(projected["target_floor_areas_m2"], [40.0] * 4)
+        self.assertEqual(projected["requested_floors"], 2)
+        self.assertEqual(projected["requested_height_m"], 6.0)
+        self.assertEqual(projected["target_floor_areas_m2"], [80.0, 80.0])
         self.assertEqual(
-            projected["target_base_plan_coverage"],
-            base["target_base_plan_coverage"],
-        )
-        self.assertGreater(
             projected["target_base_plan_coverage"],
             0.40,
         )
         self.assertEqual(
             projected["candidate_floor_count_authority"],
-            "full_lawful_design_reserve_stack_for_spatial_reserve",
+            "minimum_legal_capacity_prefix_for_candidate_target",
         )
 
         context = self._trusted_context(projected, base)
         self.assertTrue(context["hard_pass"], context)
-        self.assertEqual(context["floors"], 4)
+        self.assertEqual(context["floors"], 2)
 
     def test_proportional_targets_do_not_create_sequential_full_slab_terminal_trim(self):
         projected = capacity_contract_for_alternative(

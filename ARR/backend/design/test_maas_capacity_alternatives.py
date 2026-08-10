@@ -6,6 +6,7 @@ from design.maas.book_language.capacity_alternatives import (
     capacity_fit_score,
     capacity_retry_floor_targets,
     capacity_retry_plan_coverage,
+    capacity_contract_with_retry_targets,
     capacity_alternative_for_host,
     capacity_alternative_for_lattice_index,
     capacity_contract_for_alternative,
@@ -39,6 +40,10 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
         self.assertEqual(
             [item["target_utilization"] for item in alternatives],
             [0.70, 0.80, 0.90, 0.95],
+        )
+        self.assertEqual(
+            alternatives[0]["feasible_minimum_utilization"],
+            0.70,
         )
         self.assertEqual(alternatives[-1]["target_floor_area_m2"], 950.0)
         # A floorwise legal field needs the same 95% yield on every section.
@@ -226,3 +231,22 @@ class MaasCapacityAlternativeTest(SimpleTestCase):
                 contract["bcr_adjusted_floor_areas_m2"],
             )
         ))
+
+    def test_retry_targets_replace_all_finalization_target_aliases(self):
+        contract = {
+            "target_floor_area_m2": 299.090,
+            "candidate_target_gfa_m2": 299.090,
+            "target_floor_areas_m2": [92.638, 92.638, 67.490, 46.324],
+        }
+
+        rebound = capacity_contract_with_retry_targets(
+            contract,
+            (92.658, 92.658, 67.505, 46.335),
+        )
+
+        self.assertEqual(rebound["target_floor_areas_m2"], [
+            92.658, 92.658, 67.505, 46.335,
+        ])
+        self.assertEqual(rebound["target_floor_area_m2"], 299.156)
+        self.assertEqual(rebound["candidate_target_gfa_m2"], 299.156)
+        self.assertEqual(contract["candidate_target_gfa_m2"], 299.090)

@@ -57,19 +57,28 @@ coordinates, or enormous candidate payloads in agent memory.
 
 ## Current handoff
 
-- Latest committed recovery contract: `ae44c10`.
-- Latest bounded proof: C112, about 50 seconds,
-  `5 evaluated -> 4 compiled -> 4 individual hard-pass -> 3 compatible`.
-- C112 stepped count is zero; wedge-like count is three. Its minimum selected
-  final-mesh pair distance is `0.15224147` against required `0.10`.
+- Latest committed paper-island checkpoint: `69f6d8b`.
+- C112 and C113-C115 are superseded as visual success claims. Direct PNG
+  inspection found wedge/block convergence, and the legal CSG retention audit
+  proved that some apparent survivors replaced most authored form with the
+  legal host silhouette.
+- The fixed fitter enforces authored plan retention `>=0.78`; it may no longer
+  enlarge a cross/void symbol and keep only its host intersection. Source
+  bridge regressions are `5/5` green.
+- Latest honest bounded replays: C116
+  `11 evaluated -> 5 compiled -> 0 individual hard-pass`, and C117
+  `15 evaluated -> 4 compiled -> 0 individual hard-pass`. The clean C117
+  sources reach only about `2.6-3.7%` feasible utilization before dishonest
+  projection; the admitted cache is not a site-feasible 3D supply.
 - Capacity-first policy is `0.60` hard floor and `0.70` preferred target.
-- PNG:
-  `docs/playwright/design-route-live-verify/legal-mass-v31-c112-diverse3-cap60/maas-book-neighborhood-3.png`.
-- Canonical publishable status remains `0/20`; this is a release certificate,
-  not the generator success counter.
-- Target-five selection now enforces four measured body phenotype islands,
-  maximum two cards per phenotype, four body/roof signatures, maximum one
-  visible step, and pair distance `>= 0.10`; the measured wedge cap is three.
-- Next bounded action: build that five-card final-mesh phenotype-island supply
-  from valid survivors and request only missing non-wedge islands. Do not run a
-  broad target-20 batch and do not relax law, parking, topology, or identity.
+- Canonical publishable status remains `0/20`, and no C113-C117 PNG is an
+  accepted diverse board. C114/C115 boards are retained only as visual failure
+  evidence.
+- Next bounded action: change the site-aware GeometryProgram author/admission
+  contract so a seed must compile at four legal Z sections, genuinely vary in
+  section, reach aggregate utilization `>=0.60`, and retain authored material
+  `>=0.78` before BOOK/production. Then author/revise one seed and render one
+  ISO proof before attempting three or twenty.
+- Do not run another broad cached-manifest replay, weaken the identity or law
+  gates, restore host-replacement CSG, or confuse phenotype-island selection
+  with valid architectural supply.

@@ -181,3 +181,16 @@
 
 Never tune a frozen rejected AST. Author a fresh topology/path using only typed
 measured feedback.
+
+- C113-C115: numerical selection did not survive direct architectural review.
+  C113 produced only two similar wedges plus one curve; C114's five cards were
+  one curve, one cut box and three stair/wedge variants; C115's full lawful
+  stack produced the same convergence. These runs remain diagnostic only.
+- C116-C117: enforcing the previously unused `0.78` legal-CSG containment
+  ratio removed the false survivors. A cross could formerly be enlarged until
+  only about `26%` of its raw area remained inside the host, replacing the
+  authored cross with the envelope while still meeting GFA. After the fix C116
+  is `11 -> 5 -> 0` and C117 is `15 -> 4 -> 0`; clean cached sources provide
+  only `2.6-3.7%` feasible utilization. This is an authored-supply failure,
+  not evidence that legal architectural massing is impossible. Move capacity,
+  four-section 3D profile, and retention checks before BOOK/production.

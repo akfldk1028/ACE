@@ -7,7 +7,12 @@ from functools import wraps
 import json
 import os
 from pathlib import Path
+from time import sleep
 from typing import Any, Callable, TypeVar
+
+from design.maas.agents.maas_geometry_agent.version_memory import (
+    write_version_snapshot,
+)
 
 
 RUN_STATE_FILENAME = "maas-run-state.json"
@@ -30,7 +35,14 @@ def write_run_state(output_dir: Path, payload: dict[str, Any]) -> Path:
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    temporary.replace(target)
+    for attempt in range(5):
+        try:
+            temporary.replace(target)
+            break
+        except PermissionError:
+            if attempt == 4:
+                raise
+            sleep(0.02 * (attempt + 1))
     return target
 
 
@@ -96,11 +108,17 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             "pnu": str(options.get("pnu") or ""),
             "programs": list(options.get("program") or ()),
             "recursive_only": bool(options.get("recursive_only")),
-            "live_vlm_requested": bool(options.get("live_vlm")),
+            "live_vlm_requested": bool(
+                options.get("live_vlm")
+                or options.get("progressive_target") is not None
+            ),
             "outcome_graph_path": str(options.get("outcome_graph") or ""),
             "quality_diversity_archive": quality_diversity,
             "created_at": created_at,
             "pid": os.getpid(),
+            "parent_version_id": str(
+                options.get("parent_version_id") or ""
+            ),
         }
         write_run_state(output_dir, {
             **base,
@@ -124,6 +142,26 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
                         error_evidence = json.loads(serialized_evidence)
                 except (TypeError, ValueError):
                     error_evidence = None
+            version_memory_path = write_version_snapshot(
+                output_dir,
+                version_id=output_dir.name,
+                parent_version_id=base["parent_version_id"],
+                stage="failed",
+                payload={
+                    "pnu": base["pnu"],
+                    "programs": base["programs"],
+                    "selected_mass_count": int(
+                        current.get("selected_mass_count") or 0
+                    ),
+                    "error_type": type(exc).__name__,
+                    "error": str(exc)[:1000],
+                    **(
+                        {"error_evidence": error_evidence}
+                        if error_evidence is not None
+                        else {}
+                    ),
+                },
+            )
             write_run_state(output_dir, {
                 **base,
                 **current,
@@ -137,6 +175,7 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
                     if error_evidence is not None
                     else {}
                 ),
+                "version_memory_path": str(version_memory_path),
             })
             raise
         evidence_result = command_result
@@ -162,6 +201,18 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             else "unknown"
         )
         current = _read_run_state(output_dir)
+        version_memory_path = write_version_snapshot(
+            output_dir,
+            version_id=output_dir.name,
+            parent_version_id=base["parent_version_id"],
+            stage="completed",
+            payload={
+                "pnu": base["pnu"],
+                "programs": base["programs"],
+                "result_status": result_status,
+                "selected_mass_count": selected_count,
+            },
+        )
         write_run_state(output_dir, {
             **base,
             **current,
@@ -173,6 +224,7 @@ def tracked_mass_command(function: Callable[..., _T]) -> Callable[..., _T]:
             ),
             "selected_mass_count": selected_count,
             "result_status": result_status,
+            "version_memory_path": str(version_memory_path),
         })
         return command_result
 

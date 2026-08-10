@@ -42,13 +42,13 @@ def resolve_massing_capacity_policy(
     elif mode in {"balanced", "mixed"}:
         minimum, resolved_mode, source = 0.45, "balanced", "explicit_mode"
     elif mode in {"capacity-first", "capacity", "feasibility"}:
-        minimum, resolved_mode, source = 0.70, "capacity-first", "explicit_mode"
+        minimum, resolved_mode, source = 0.60, "capacity-first", "explicit_mode"
     else:
         label = _normalise_label(building_type)
         if any(_normalise_label(token) in label for token in DESIGN_LED_PROGRAM_TOKENS):
             minimum, resolved_mode = 0.20, "design-led"
         elif any(_normalise_label(token) in label for token in CAPACITY_FIRST_PROGRAM_TOKENS) and site_area_m2 <= 1000.0:
-            minimum, resolved_mode = 0.70, "capacity-first"
+            minimum, resolved_mode = 0.60, "capacity-first"
         elif any(_normalise_label(token) in label for token in CAPACITY_FIRST_PROGRAM_TOKENS):
             minimum, resolved_mode = 0.55, "balanced"
         else:
@@ -58,7 +58,7 @@ def resolve_massing_capacity_policy(
         target = max(minimum, min(1.0, float(explicit_target)))
     else:
         target = {
-            "capacity-first": 0.90,
+            "capacity-first": 0.70,
             "balanced": 0.75,
             "design-led": 0.55,
         }.get(resolved_mode, minimum)

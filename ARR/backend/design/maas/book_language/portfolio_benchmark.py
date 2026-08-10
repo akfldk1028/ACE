@@ -64,7 +64,7 @@ from design.maas.program_massing import (
     program_seed_sequences,
     resolve_program_profile,
 )
-DIAGNOSTIC_TARGET_OPTIONS = (1, 2, 3, 20)
+DIAGNOSTIC_TARGET_OPTIONS = (1, 2, 3, 5, 20)
 _PROJECTED_VISUAL_ARTIFACT_ABSENT = object()
 
 from design.maas.paid_provider_budget import paid_provider_budget_snapshot
@@ -5280,6 +5280,33 @@ def apply_diagnostic_summary_policy(
     for program in summary.get("programs") or ():
         if not isinstance(program, dict):
             continue
+        counts = program.get("counts")
+        if not isinstance(counts, dict):
+            counts = {}
+        selection_trace = counts.get("selection_trace")
+        if not isinstance(selection_trace, dict):
+            selection_trace = {}
+        compatible_selected_count = int(
+            selection_trace.get("portfolio_contract_solver_count")
+            or program.get("selected_count")
+            or 0
+        )
+        program["mass_progress"] = {
+            "schema_version": "arr.maas.mass_progress.v1",
+            "evaluated_count": int(counts.get("evaluated") or 0),
+            "compiled_count": int(counts.get("compiled") or 0),
+            "individual_hard_pass_count": int(
+                counts.get("final_hard_pass_selection_pool_count") or 0
+            ),
+            "compatible_selected_count": compatible_selected_count,
+            "diagnostic_target_count": resolved_target,
+            "diagnostic_target_reached": bool(
+                selection_trace.get("portfolio_contract_solver_target_reached")
+                or compatible_selected_count >= resolved_target
+            ),
+            "canonical_target_count": 20,
+            "canonical_complete": False,
+        }
         program.update({
             "diagnostic_only": True,
             "diagnostic_target": resolved_target,

@@ -96,9 +96,20 @@ class MaasSelectionPolicyTest(TestCase):
             parking_options=None,
         )
         self.assertEqual(neighborhood["mode"], "capacity-first")
-        self.assertEqual(neighborhood["min_far_utilization"], 0.70)
+        self.assertEqual(neighborhood["min_far_utilization"], 0.60)
+        self.assertEqual(neighborhood["target_far_utilization"], 0.70)
         self.assertEqual(gym["mode"], "design-led")
         self.assertEqual(museum["min_far_utilization"], 0.20)
+
+    def test_explicit_capacity_first_uses_competition_mass_floor_and_preference(self):
+        policy = _massing_capacity_policy(
+            building_type="neighborhood_living",
+            site_area_m2=264.0,
+            parking_options={"massing_mode": "capacity-first"},
+        )
+
+        self.assertEqual(policy["min_far_utilization"], 0.60)
+        self.assertEqual(policy["target_far_utilization"], 0.70)
 
     def test_pairwise_visual_similarity_detects_same_precedent_geometry(self):
         common = dict(

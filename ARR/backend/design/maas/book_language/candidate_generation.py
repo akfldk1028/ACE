@@ -4647,9 +4647,15 @@ def _materialize_directed_geometry(
             return None
         final_projection_book_program = authored_program
         final_program_hash = authored_program.program_hash()
-        final_geometry_hash = str(
-            projected.certificate.get("final_geometry_hash") or ""
-        )
+        # `projected.certificate` carries the compiler's own `_mesh_hash` of
+        # the finalized program, taken in the compiler frame. What is delivered
+        # and later certified is the SourceMass just compiled above, whose
+        # identity is the surfaces offset by the footprint centroid. Two
+        # different identities of two different things, so copying the compiler
+        # hash here made the final visual authority certificate hold a digest
+        # that could never match its own surfaces. The typed repair route
+        # already publishes the delivered identity; do the same here.
+        final_geometry_hash = final_floorwise_visual_geometry_hash(materialized)
         achieved_floor_areas = tuple(
             float(value)
             for value in (
@@ -4802,11 +4808,23 @@ def _materialize_directed_geometry(
         )
         else {}
     )
+    # Every other field on this bridge is recomputed from `materialized`, so
+    # the geometry hash must be too. When it was copied from an upstream
+    # certificate instead, nothing here noticed and the candidate died twenty
+    # minutes later inside the final visual authority certificate, which is the
+    # first place that recomputes the identity from the delivered surfaces.
+    try:
+        delivered_geometry_hash = final_floorwise_visual_geometry_hash(
+            materialized
+        )
+    except ValueError:
+        delivered_geometry_hash = ""
     if (
         not final_program_hash
         or not final_geometry_hash
         or str(bridge.get("program_hash") or "") != final_program_hash
         or str(bridge.get("geometry_hash") or "") != final_geometry_hash
+        or delivered_geometry_hash != final_geometry_hash
         or (
             str(bridge.get("geometry_authority") or "")
             == "authored_projected_surface_payload"
@@ -4863,6 +4881,7 @@ def _materialize_directed_geometry(
                 "compilation_geometry_hash": str(
                     compilation.get("geometry_hash") or ""
                 ),
+                "delivered_geometry_hash": delivered_geometry_hash,
             },
         )
         terminal_failure("final_identity_binding")

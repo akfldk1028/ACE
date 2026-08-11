@@ -892,3 +892,42 @@ The pattern: top-venue generative AI went to **2D floor plans**, and 3D massing
 went to **RL placement**. "Statute -> lawful 3D mass" remains largely empty.
 Treat that as a working hypothesis, not a finding — it rests on search
 summaries, not on reading the papers.
+
+## The next blocker, located: composition blocks the ground strategies
+
+After the coverage work the funnel loss moved from generation to **selection**:
+22 of 36 candidates pass the program gate and only 3 are selected. The
+portfolio contract fails on `ground_strategy_count_below_3`, and the measured
+spread is 2 — `direct_edge` twice, `split_threshold` once.
+
+The cause is a direct consequence of the composition supply added this
+session:
+
+```
+a composed program contains `union`
+  -> `union` is in _LIFT_HAZARDS, _OPEN_COURT_HAZARDS and _SPLIT_WING_HAZARDS
+     (program_projection.py:30-41)
+  -> BOOK never adds lift / courtyard / split_wing to a composed program
+  -> every composed mass keeps ground_strategy = direct_edge
+  -> the portfolio can never reach three ground strategies
+```
+
+Those hazard sets exist because an arbitrary union can be severed by a void or
+a lift. **The compositions produced by `scope_composition` cannot** — they are
+connected by construction with a guaranteed overlap, and that property is
+already decidable in closed form.
+
+So the fix is not to delete the hazard, it is to stop treating `union` as a
+proxy for "might disconnect". Options, cheapest first:
+
+1. Mark composed programs in metadata (`connected_by_construction` is already
+   on every scope-union node's provenance) and let the hazard check consult
+   that instead of the operator name.
+2. Verify by compiling, the way `universal_form_bank._is_one_connected_solid`
+   already does for supply admission. Correct but pays a compile per
+   projection decision.
+
+Option 1 costs nothing and uses provenance the generator already writes.
+
+**Do this before adding any more supply.** More composed forms currently make
+ground-strategy diversity *worse*, not better.

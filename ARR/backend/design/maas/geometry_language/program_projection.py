@@ -209,6 +209,20 @@ def _threshold_operator(
     universal form merely to satisfy a label.
     """
     operators = {node.operator for node in program.nodes}
+    # `union` stands in these hazard sets for "this body might be severed by a
+    # void or a lift". That is true of an arbitrary union and false of a scope
+    # composition, which is grown with a guaranteed overlap and is connected by
+    # construction - a property the generator records on the union node itself.
+    # Treating the operator as the proxy meant every composed program kept
+    # ground_strategy = direct_edge, so adding composed supply made the
+    # portfolio's ground-strategy spread worse rather than better and selection
+    # failed on `ground_strategy_count_below_3`.
+    if operators and all(
+        node.provenance.get("connected_by_construction") is True
+        for node in program.nodes
+        if node.operator == "union"
+    ) and any(node.operator == "union" for node in program.nodes):
+        operators = operators - {"union"}
     program_id = str(contract.get("program_id") or "generic")
     language_contract = (
         dict(contract.get("geometry_language_contract") or {})

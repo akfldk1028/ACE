@@ -820,7 +820,30 @@ def materialize_floorwise_legal_source(
             for _source_plan, legal, _profile_ratio, _planned_area
             in prepared_floors
     )
-    source_projection_area = float(unary_union(viable_source_sections).area)
+    # `viable_source_sections` samples the source once per floor, at each
+    # floor's mid-height. Anything that exists only between those heights -
+    # which is what the volume-adding operatives produce - never appears in
+    # them, so using them as the coverage denominator understates the body and
+    # leaves the bound loose. Measured on PNU 4115011300106840001 after the
+    # capacity loop was bounded: lodge still projected 599.9 m2 against a
+    # 499.938 m2 cap, inflate 565.9, branch 540.5, while every mass built from
+    # sampled-and-nothing-else sections landed exactly on the cap.
+    #
+    # 건축면적 is the projection of the whole body, so the denominator has to be
+    # an upper bound on it. Both representations contribute: the volume
+    # footprints span every height band, and the sampled sections carry the
+    # exact authored mesh where one exists.
+    source_projection_area = float(
+        unary_union([
+            *(
+                volume.footprint
+                for volume in source.volumes
+                if volume.footprint is not None
+                and not volume.footprint.is_empty
+            ),
+            *viable_source_sections,
+        ]).area
+    )
     if source_projection_area <= 1e-9:
         _record_terminal_failure(
             terminal_failure_sink,

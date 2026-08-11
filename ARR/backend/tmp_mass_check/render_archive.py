@@ -110,7 +110,7 @@ def main(run_dir, limit=None):
     capacity = declared_capacity(run_dir)
     measured = [projected_area(surfaces_of(record)) for record in records]
     over = (
-        sum(1 for area in measured if area > capacity)
+        sum(1 for area in measured if area > capacity + 1e-6)
         if capacity is not None
         else 0
     )
@@ -131,7 +131,7 @@ def main(run_dir, limit=None):
         column, row = index % COLUMNS, index // COLUMNS
         offset = (column * TILE, row * TILE + 30)
         area = measured[index]
-        breached = capacity is not None and area > capacity
+        breached = capacity is not None and area > capacity + 1e-6
         if breached:
             context.rectangle(
                 [offset[0] + 2, offset[1] + 2,

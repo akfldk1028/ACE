@@ -38,6 +38,20 @@ def declared_capacity(run_dir):
     return float(found.group(1))
 
 
+def declared_tolerance(run_dir):
+    """The run's own area measurement tolerance, never a number invented here.
+
+    A mass whose bound lands exactly on the cap measures a hair above it in
+    floating point, and counting those as breaches reported 15 of 31 when 7 of
+    them were over by 0.0000 m2. The pipeline already states what counts as an
+    area measurement difference; use that rather than picking an epsilon.
+    """
+
+    text = (Path(run_dir) / "maas-book-programs-summary.json").read_text(encoding="utf-8")
+    found = re.search(r'"area_measurement_tolerance_m2"\s*:\s*([0-9.]+)', text)
+    return float(found.group(1)) if found else 0.0
+
+
 def projected_area(record):
     faces = []
     for surface in record.get("final_authored_surface_payload") or []:
@@ -54,6 +68,7 @@ def projected_area(record):
 
 def main(run_dir):
     cap = declared_capacity(run_dir)
+    slack = declared_tolerance(run_dir)
     areas = []
     for record in archived_records(run_dir):
         area = projected_area(record)
@@ -64,11 +79,11 @@ def main(run_dir):
         print(f"{run_dir}: no archived mass carries surfaces")
         return
 
-    over = [item for item in areas if item[0] > cap]
+    over = [item for item in areas if item[0] > cap + slack]
     areas.sort()
     median = areas[len(areas) // 2][0]
     print(f"=== {run_dir} ===")
-    print(f"  건축면적 cap (from run): {cap:.3f} m2")
+    print(f"  건축면적 cap (from run): {cap:.3f} m2  (tolerance {slack} m2)")
     print(f"  archived masses measured: {len(areas)}")
     print(f"  over cap: {len(over)}/{len(areas)}")
     print(f"  min {areas[0][0]:.1f}  median {median:.1f}  max {areas[-1][0]:.1f} m2")
@@ -87,7 +102,7 @@ def main(run_dir):
         label = str((record.get("lineage") or {}).get("principle_label") or "?")
         seen = by_principle.setdefault(label, [0, 0, 0.0])
         seen[0] += 1
-        seen[1] += 1 if area > cap else 0
+        seen[1] += 1 if area > cap + slack else 0
         seen[2] = max(seen[2], area)
     print(f"  {'principle':<26} n  over  max_m2")
     for label, (count, breaches, largest) in sorted(

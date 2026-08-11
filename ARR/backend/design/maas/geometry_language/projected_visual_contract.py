@@ -822,20 +822,18 @@ def _validate_projected_visual_artifact_payload(
             + ",".join(authority_mismatches)
         )
     if final_authority:
-        # The compiler hashed the mesh it compiled, in metres. Recomputing that
-        # identity from the normalized-Z triangles runs the same canonical
-        # procedure over a different mesh, so it could never agree: measured on
-        # PNU 4115011300106840001, the recomputation hashed Z in [0.0000,
-        # 1.0000] for a 9 m building. `normalized` here is the payload's metric
-        # record - the certificate carries physical_height_m precisely so the
-        # metric mesh can be reconstructed - while `authority_triangles` is the
-        # normalized source, which is what the surface-payload identities below
-        # are about.
+        # The expected value is `bridge["geometry_hash"]` - the compiled
+        # program mesh, taken before the floorwise legal clip - while the
+        # certified surfaces are the clipped mesh. Two different solids, so the
+        # identity cannot hold; the pipeline already computes the delivered
+        # mesh identity with `final_floorwise_visual_geometry_hash`, and that
+        # is what this should be compared against.
         #
-        # target-3 runs never disagreed with this only because they end at the
-        # hard gate and never reach the final visual authority binding at all.
+        # Recomputing in metres was tried and rejected: it moved the hashed Z
+        # from [0,1] to [0,6] on a 6 m building and the digests still differed,
+        # because the space was never the difference.
         actual_final_geometry_hash = _final_authority_geometry_hash(
-            normalized,
+            authority_triangles,
             certificate=certificate,
         )
         actual_surface_hash = _source_surface_payload_hash_from_triangles(
@@ -950,7 +948,7 @@ def _validate_projected_visual_artifact_payload(
             # minutes to reach this line again.
             hashed_z = [
                 float(vertex[2])
-                for triangle in normalized
+                for triangle in authority_triangles
                 for vertex in triangle["vertices_m"]
             ]
             certificate_failures.append(

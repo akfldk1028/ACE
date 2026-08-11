@@ -93,7 +93,16 @@ def materialize_legal_floor_field(
     # Coverage is the building's horizontal projection (건축법 시행령 제119조
     # 제1항 제2호), so an overhanging upper plate governs it. Every plate is
     # bounded, not just the ground one - see the note in floor_capacity_plan.
-    floor_caps = [min(area, bcr_cap) for area in areas]
+    # The aggregate is summed from the *stored* per-floor capacities, not from
+    # the raw ones. The validator recomputes it from what the payload carries,
+    # so summing unrounded values and storing the rounded total leaves the
+    # payload inconsistent with itself by up to n x half an ulp of the stored
+    # precision. That stayed inside the 0.002 tolerance only while the plates
+    # differed and their rounding errors cancelled; with coverage bounding
+    # every plate, sixteen identical 499.938 capacities put the error at
+    # 0.0020000000004 - just over - and the whole run was rejected as
+    # `authoritative_run_legal_floor_field_invalid`.
+    floor_caps = [_round(min(area, bcr_cap)) for area in areas]
     height_field_capacity = sum(floor_caps)
     payload = {
         "schema_version": SCHEMA_VERSION,
@@ -109,9 +118,7 @@ def materialize_legal_floor_field(
         "statutory_far_capacity_m2": _round(far_cap),
         "legal_floor_top_heights_m": [_round(value) for value in tops],
         "legal_floor_section_areas_m2": [_round(value) for value in areas],
-        "bcr_adjusted_floor_capacities_m2": [
-            _round(value) for value in floor_caps
-        ],
+        "bcr_adjusted_floor_capacities_m2": list(floor_caps),
         "legal_floor_sections": [mapping(section) for section in sections],
         "measured_usable_floor_count": len(sections),
         "height_field_capacity_m2": _round(height_field_capacity),
@@ -265,11 +272,10 @@ def _validate_legal_floor_field(payload: Mapping[str, Any] | None) -> bool:
             or top > height_cap + 0.002
         ):
             return False
-        expected_cap = (
-            min(area, bcr_cap)
-            if index == 0
-            else area
-        )
+        # Coverage bounds every plate, since it is the building's horizontal
+        # projection (건축법 시행령 제119조 제1항 제2호) - see the note where these
+        # capacities are produced.
+        expected_cap = min(area, bcr_cap)
         if abs(cap - expected_cap) > 0.002:
             return False
         normalized_areas.append(area)

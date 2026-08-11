@@ -1,16 +1,17 @@
-"""A certified source carries Z in one of two frames; both must certify.
+"""Every certified source carries normalized Z, from either identity export.
 
-`_compile_geometry_program_to_source_mass` has two identity-export modes. The
-normalized one divides Z by the compiled vertical span, so Z arrives in [0, 1]
-and the certificate multiplies it back by the physical height. The site-bound
-one exports an already placed compilation and passes the compiled vertices
-straight through, so Z is already metres.
+`_compile_geometry_program_to_source_mass` has two identity-export modes. Both
+divide Z by the compiled vertical span, so Z arrives in [0, 1] and the
+certificate multiplies it back by the physical height.
 
-The certificate assumed the normalized frame unconditionally. That held only
-while every affine placement failed and the repair producers - which do
-normalize - served every candidate. Once placement started succeeding, the
-first site-bound source to reach certification raised. These tests pin both
-frames so the next change to either export cannot silently break the other.
+The site-bound export used to pass the compiled vertices through in metres.
+That stayed invisible while every affine placement failed and the repair
+producers - which do normalize - served every candidate. Once placement
+started succeeding it surfaced twice: first as `certified final visual source
+Z is not normalized`, and then, after the certificate was taught to accept
+metres, as an invalid certificate - because a metric source makes the metric
+and normalized payloads identical and the contract's normalized-source
+comparison meaningless. One frame is the fix; these tests pin it.
 """
 
 from types import SimpleNamespace
@@ -18,7 +19,6 @@ from types import SimpleNamespace
 from django.test import SimpleTestCase
 
 from design.maas.geometry_language.projected_visual_contract import (
-    AUTHORED_COORDINATE_SPACE,
     NORMALIZED_AUTHORED_COORDINATE_SPACE,
     canonical_metric_surface_payload,
 )
@@ -65,32 +65,33 @@ class CertifiedMetricZTests(SimpleTestCase):
             [0.0, 7.5, 15.0],
         )
 
-    def test_a_site_bound_source_keeps_the_metres_it_was_placed_in(self):
+    def test_a_site_bound_source_is_normalized_like_any_other(self):
         source = _source(
             legal_fit_mode="site_bound_matrix4",
-            vertices=((0.0, 0.0, 0.0), (1.0, 0.0, 7.5), (0.0, 1.0, 15.0)),
+            vertices=((0.0, 0.0, 0.0), (1.0, 0.0, 0.5), (0.0, 1.0, 1.0)),
         )
 
         payload = canonical_metric_surface_payload(source)
 
         self.assertEqual(
-            payload["source_coordinate_space"], AUTHORED_COORDINATE_SPACE,
+            payload["source_coordinate_space"],
+            NORMALIZED_AUTHORED_COORDINATE_SPACE,
         )
         self.assertEqual(
             [vertex[2] for vertex in payload["triangles"][0]["vertices_m"]],
             [0.0, 7.5, 15.0],
         )
 
-    def test_a_site_bound_source_may_not_stand_above_its_certified_height(self):
+    def test_a_source_still_carrying_metres_is_rejected(self):
         source = _source(
             legal_fit_mode="site_bound_matrix4",
-            vertices=((0.0, 0.0, 0.0), (1.0, 0.0, 7.5), (0.0, 1.0, 15.4)),
+            vertices=((0.0, 0.0, 0.0), (1.0, 0.0, 7.5), (0.0, 1.0, 15.0)),
         )
 
         with self.assertRaises(ValueError) as raised:
             canonical_metric_surface_payload(source)
 
-        self.assertIn("exceeds its certified height", str(raised.exception))
+        self.assertIn("is not normalized", str(raised.exception))
 
     def test_a_normalized_source_out_of_range_is_still_rejected(self):
         source = _source(

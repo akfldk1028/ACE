@@ -1829,28 +1829,6 @@ def _physical_height_m(source: Any) -> float:
     raise ValueError("certified final visual mesh has no physical height")
 
 
-_METRIC_Z_TOLERANCE_M = 0.002
-_SITE_BOUND_LEGAL_FIT_MODE = "site_bound_matrix4"
-
-
-def _source_is_site_bound(source: Any) -> bool:
-    """Was this source exported from an already placed compilation?
-
-    The export records its own mode, so this reads the source rather than
-    guessing from coordinate magnitudes.
-    """
-
-    metadata = (
-        source.metadata
-        if isinstance(getattr(source, "metadata", None), dict)
-        else {}
-    )
-    bridge = metadata.get("geometry_program_bridge_evidence")
-    if not isinstance(bridge, dict):
-        return False
-    return str(bridge.get("legal_fit_mode") or "") == _SITE_BOUND_LEGAL_FIT_MODE
-
-
 def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
     """Return final render/VLM triangles in one local physical-meter frame."""
 
@@ -1859,31 +1837,16 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
         for surface in tuple(getattr(source, "surfaces", ()) or ())
     ]
     height_m = _physical_height_m(source)
-    # A site-bound source is exported from an already placed compilation, so
-    # its Z is world metres by construction: `_compile_geometry_program_to_
-    # source_mass` normalizes Z only on the `_normalized_compilation` path and
-    # passes the compiled vertices straight through on the site-bound one.
-    # Scaling those by the physical height again would multiply metres by
-    # metres. This branch was effectively unreachable while every affine
-    # placement failed and the repair producers (which do normalize) served
-    # every candidate; once placement started succeeding, the first site-bound
-    # source to reach certification raised
-    # `certified final visual source Z is not normalized`.
-    metric_source = _source_is_site_bound(source)
+    # Every certified source carries normalized Z. Both identity exports in
+    # `_compile_geometry_program_to_source_mass` produce it, so one frame is
+    # enough and there is no site-bound special case: a source already in
+    # metres would make the metric and normalized payloads identical, and the
+    # certificate's normalized-source comparison meaningless.
     metric = []
     for triangle in normalized:
         record = deepcopy(triangle)
         vertices = []
         for x, y, z in triangle["vertices_m"]:
-            if metric_source:
-                # Still bounded: an already placed body may not stand outside
-                # the height its own floor context certified.
-                if z < -_METRIC_Z_TOLERANCE_M or z > height_m + _METRIC_Z_TOLERANCE_M:
-                    raise ValueError(
-                        "certified final visual source Z exceeds its certified height"
-                    )
-                vertices.append([float(x), float(y), float(z)])
-                continue
             if z < 0.0 or z > 1.0:
                 raise ValueError(
                     "certified final visual source Z is not normalized"
@@ -1894,11 +1857,7 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
     return {
         "schema_version": "arr.maas.canonical_metric_surface_payload.v1",
         "coordinate_space": AUTHORED_COORDINATE_SPACE,
-        "source_coordinate_space": (
-            AUTHORED_COORDINATE_SPACE
-            if metric_source
-            else NORMALIZED_AUTHORED_COORDINATE_SPACE
-        ),
+        "source_coordinate_space": NORMALIZED_AUTHORED_COORDINATE_SPACE,
         "physical_height_m": height_m,
         "triangles": metric,
         "exact_payload_hash": exact_triangle_payload_hash(metric),

@@ -13,7 +13,7 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 import hashlib
 import json
-from math import atan2, cos, degrees, hypot, isfinite, pi, sin
+from math import atan2, cos, degrees, hypot, isfinite, pi, sin, sqrt
 from typing import Any, Sequence
 
 from shapely import make_valid, set_precision
@@ -1255,6 +1255,7 @@ def materialize_floorwise_legal_source(
     )
     profiled_clip_attempted = False
     section_loft_attempted = False
+    internal_tread_area_ratio = 0.0
     if (
         not visual_projection.certificate.hard_pass
         and visual_projection.certificate.failure_reasons
@@ -1305,15 +1306,23 @@ def materialize_floorwise_legal_source(
             profiled_projection.certificate.hard_pass
             and profiled_projection.surfaces
         ):
-            if _contains_internal_horizontal_terrace(
-                profiled_projection.surfaces
+            internal_tread_area_ratio = (
+                _internal_horizontal_tread_area_ratio(
+                    profiled_projection.surfaces
+                )
+            )
+            if (
+                internal_tread_area_ratio
+                > INTERNAL_TREAD_COLLAPSE_AREA_RATIO
             ):
-                # Floor-band CSG is a legal analysis operation.  When its
-                # certified skin exposes a new horizontal terrace, replace
-                # only that visible skin with the existing exact-section
-                # loft.  The loft independently proves every occupied
-                # mid-floor section, legal containment and manifold closure;
-                # the original floor plates remain GFA/parking authority.
+                # Floor-band CSG is a legal analysis operation.  Only when its
+                # certified skin has collapsed into treads does replacing the
+                # visible skin with the exact-section loft help.  The loft
+                # independently proves every occupied mid-floor section, legal
+                # containment and manifold closure; the original floor plates
+                # remain GFA/parking authority.  Below that share the authored
+                # clip stays: rebuilding from legal sections alone would trade
+                # one small tread for a fully terraced legal body.
                 from .floorwise_section_loft import (
                     loft_floorwise_legal_sections,
                 )
@@ -1680,6 +1689,18 @@ def materialize_floorwise_legal_source(
     metadata["floorwise_visual_projection"] = (
         visual_projection.certificate.to_dict()
     )
+    # The final authority certificate is rebuilt downstream and drops the
+    # upstream mode, so name the producer of the visible skin here.  Without
+    # it a legal-section loft is indistinguishable from an authored body in
+    # every persisted artifact.
+    metadata["floorwise_visual_projection"]["visible_surface_producer"] = (
+        _visible_surface_producer(
+            visual_projection.certificate.certification_mode
+        )
+    )
+    metadata["floorwise_visual_projection"][
+        "visible_internal_tread_area_ratio"
+    ] = round(float(internal_tread_area_ratio), 6)
     if (
         profiled_section_mode
         and visual_projection.certificate.certification_mode in {
@@ -2505,30 +2526,30 @@ def _compile_geometry_program_to_source_mass(
     base_seed_plan_fraction = _base_seed_plan_occupancy_fraction(program)
     if identity_export:
         effective_target_plan_area = None
-        if normalized_export:
-            bounds = (compilation.metrics or {}).get("bounds") or ()
-            if len(bounds) != 2:
-                return None
-            minimum_z = float(bounds[0][2])
-            vertical_span = float(bounds[1][2]) - minimum_z
-            if not isfinite(vertical_span) or vertical_span <= 1e-9:
-                return None
-            host_fit_matrix4 = compose_matrix4(
-                translation_matrix4((0.0, 0.0, -minimum_z)),
-                scale_matrix4((1.0, 1.0, 1.0 / vertical_span)),
-            )
-            world_vertices = tuple(
-                transform_point3(host_fit_matrix4, vertex)
-                for vertex in compilation.vertices
-            )
-        else:
-            world_vertices = compilation.vertices
-            host_fit_matrix4 = (
-                (1.0, 0.0, 0.0, 0.0),
-                (0.0, 1.0, 0.0, 0.0),
-                (0.0, 0.0, 1.0, 0.0),
-                (0.0, 0.0, 0.0, 1.0),
-            )
+        # Both identity exports normalize Z. The certificate layer compares a
+        # `normalized_source_surface_payload_hash` against the source, and the
+        # metric payload recovers metres by multiplying by the physical height;
+        # a source whose Z was already metres makes those two payloads
+        # identical and the comparison meaningless. The site-bound path used to
+        # pass the compiled vertices through, which only stayed invisible while
+        # every affine placement failed and this export never reached
+        # certification. XY is re-based to the footprint centroid downstream in
+        # both cases, so this makes the two exports one frame.
+        bounds = (compilation.metrics or {}).get("bounds") or ()
+        if len(bounds) != 2:
+            return None
+        minimum_z = float(bounds[0][2])
+        vertical_span = float(bounds[1][2]) - minimum_z
+        if not isfinite(vertical_span) or vertical_span <= 1e-9:
+            return None
+        host_fit_matrix4 = compose_matrix4(
+            translation_matrix4((0.0, 0.0, -minimum_z)),
+            scale_matrix4((1.0, 1.0, 1.0 / vertical_span)),
+        )
+        world_vertices = tuple(
+            transform_point3(host_fit_matrix4, vertex)
+            for vertex in compilation.vertices
+        )
         host_fit_matrix4_exact = True
         legal_fit_mode = (
             "site_bound_matrix4"
@@ -4486,36 +4507,90 @@ def _optimize_floorwise_matrix_translation(
     return best_matrix
 
 
-def _contains_internal_horizontal_terrace(
+INTERNAL_TREAD_COLLAPSE_AREA_RATIO = 0.15
+
+VISIBLE_SURFACE_PRODUCERS = {
+    "floorwise_capacity_projection": "authored_matrix4_projection",
+    "authored_visual_legal_validation": "authored_matrix4_projection",
+    "floorwise_profiled_continuous_envelope_clip": (
+        "authored_continuous_envelope_clip"
+    ),
+    "floorwise_profiled_legal_clip": "authored_continuous_envelope_clip",
+    "floorwise_csg_section_loft": "legal_section_loft",
+}
+
+
+def _visible_surface_producer(certification_mode: str) -> str:
+    """Name what actually built the visible skin, not what certified it."""
+
+    mode = str(certification_mode or "")
+    return VISIBLE_SURFACE_PRODUCERS.get(mode, mode or "unknown")
+
+
+def _triangle_area_m2(triangle: Sequence[Sequence[float]]) -> float:
+    (ax, ay, az), (bx, by, bz), (cx, cy, cz) = triangle
+    ux, uy, uz = bx - ax, by - ay, bz - az
+    vx, vy, vz = cx - ax, cy - ay, cz - az
+    nx = uy * vz - uz * vy
+    ny = uz * vx - ux * vz
+    nz = ux * vy - uy * vx
+    return 0.5 * sqrt(nx * nx + ny * ny + nz * nz)
+
+
+def _internal_horizontal_tread_area_ratio(
     surfaces: Sequence[SourceSurface],
     *,
     z_tolerance: float = 1e-8,
-    minimum_plan_area_m2: float = 1e-6,
-) -> bool:
-    """Detect renderer-visible floor-band treads inside a normalized skin."""
+) -> float:
+    """Return the share of visible skin area formed by interior floor treads.
 
+    Clipping an authored body against a contracting legal field leaves a small
+    tread wherever the body meets a band boundary.  Discarding the whole
+    authored skin for that is worse than the tread: the replacement is rebuilt
+    from legal sections alone and reads as a terraced cake.  Only a tread that
+    dominates the visible skin is a real step collapse, so this reports the
+    magnitude instead of mere presence.
+    """
+
+    triangles: list[tuple[tuple[float, float, float], ...]] = []
     for surface in surfaces:
         vertices = tuple(surface.vertices_m or ())
         if len(vertices) != 3:
             continue
         try:
-            z_values = tuple(float(vertex[2]) for vertex in vertices)
-            z = sum(z_values) / 3.0
-            plan_area = abs(
-                (float(vertices[1][0]) - float(vertices[0][0]))
-                * (float(vertices[2][1]) - float(vertices[0][1]))
-                - (float(vertices[1][1]) - float(vertices[0][1]))
-                * (float(vertices[2][0]) - float(vertices[0][0]))
-            ) / 2.0
+            triangle = tuple(
+                (float(vertex[0]), float(vertex[1]), float(vertex[2]))
+                for vertex in vertices
+            )
         except (IndexError, TypeError, ValueError):
             continue
+        if any(not isfinite(value) for point in triangle for value in point):
+            continue
+        triangles.append(triangle)
+    if not triangles:
+        return 0.0
+    z_values = [point[2] for triangle in triangles for point in triangle]
+    z_floor = min(z_values)
+    z_ceiling = max(z_values)
+    total_area = 0.0
+    tread_area = 0.0
+    for triangle in triangles:
+        area = _triangle_area_m2(triangle)
+        if area <= 0.0:
+            continue
+        total_area += area
+        triangle_z = [point[2] for point in triangle]
+        if max(triangle_z) - min(triangle_z) > z_tolerance:
+            continue
+        level = sum(triangle_z) / 3.0
         if (
-            max(z_values) - min(z_values) <= z_tolerance
-            and z_tolerance < z < 1.0 - z_tolerance
-            and plan_area > minimum_plan_area_m2
+            level - z_floor > z_tolerance
+            and z_ceiling - level > z_tolerance
         ):
-            return True
-    return False
+            tread_area += area
+    if total_area <= 0.0:
+        return 0.0
+    return tread_area / total_area
 
 
 __all__ = [

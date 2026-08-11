@@ -90,9 +90,10 @@ def materialize_legal_floor_field(
     far_limit = max(0.0, float(envelope.far_limit))
     bcr_cap = parcel_area * bcr_limit / 100.0
     far_cap = parcel_area * far_limit / 100.0
-    floor_caps = list(areas)
-    if floor_caps:
-        floor_caps[0] = min(floor_caps[0], bcr_cap)
+    # Coverage is the building's horizontal projection (건축법 시행령 제119조
+    # 제1항 제2호), so an overhanging upper plate governs it. Every plate is
+    # bounded, not just the ground one - see the note in floor_capacity_plan.
+    floor_caps = [min(area, bcr_cap) for area in areas]
     height_field_capacity = sum(floor_caps)
     payload = {
         "schema_version": SCHEMA_VERSION,

@@ -385,10 +385,14 @@ def _candidate_floor_context(
             if not all(is_plain_number(value) for value in trusted_areas):
                 return reject("invalid_trusted_clear_span_floor_plan")
             trusted_capacities = [
+                # Coverage bounds every plate, not only the ground one: it is
+                # the building's horizontal projection (건축법 시행령 제119조
+                # 제1항 제2호).
+                # Coverage bounds every plate, not only the ground one: it is
+                # the building's horizontal projection (건축법 시행령 제119조
+                # 제1항 제2호).
                 min(float(value), bcr_cap)
-                if index == 0
-                else float(value)
-                for index, value in enumerate(trusted_areas)
+                for value in trusted_areas
             ]
         else:
             trusted_sections = trusted_field.get(
@@ -580,6 +584,11 @@ def _candidate_floor_context(
             "height_m": height,
             "floors": floors,
             "legal_sections": tuple(sections),
+            # Keep the ground-floor legal area on the same candidate-specific
+            # authority as the polygons. Recursive BOOK compilation may use a
+            # smaller upper section as its temporary host; that host area is
+            # not a valid denominator for final ground coverage.
+            "legal_floor_section_areas_m2": areas,
             "floor_top_heights_m": tops,
             "upper_legal_section": sections[-1],
             "legal_floor_field_hash": legal_hash,
@@ -602,6 +611,12 @@ def _candidate_floor_context(
         "height_m": float(fallback_height),
         "floors": fallback_count,
         "legal_sections": fallback_sections,
+        "legal_floor_section_areas_m2": tuple(
+            float(section.area)
+            if isinstance(section, Polygon) and not section.is_empty
+            else 0.0
+            for section in fallback_sections
+        ),
         "floor_top_heights_m": tuple(
             float(fallback_height) * (index + 1) / fallback_count
             for index in range(fallback_count)

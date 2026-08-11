@@ -343,3 +343,106 @@ class LawDerivedFloorCapacityPlanTests(SimpleTestCase):
         )
         self.assertEqual(contract["available_legal_floor_count"], 8)
         self.assertEqual(contract["target_floor_areas_m2"], plan["target_floor_areas_m2"])
+
+
+class CoverageBoundsEveryPlateTests(SimpleTestCase):
+    """건축면적 is the building's horizontal projection, not the ground plate.
+
+    건축법 시행령 제119조 제1항 제2호 defines coverage on the projection of the
+    building, and 제4항 binds every other 수평투영면적 to the same method. An
+    upper plate that overhangs the one below therefore governs the coverage,
+    so no plate may exceed the coverage capacity.
+
+    Every fixture above happens to sit on a site where the coverage cap
+    exceeds the legal floor section, which made the cap a no-op and hid a real
+    defect: capping only the ground plate, in a vector that is also the weight
+    vector of a proportional allocator, shrank the ground floor's share rather
+    than its size and handed the difference upward. These fixtures make the
+    cap bind.
+    """
+
+    def _binding_context(self):
+        # 40x40 site, 20% coverage -> 320 m2, against a 30x30 generation site
+        # whose sections are 900 m2. The cap binds by a factor of ~2.8.
+        return _context(
+            site=box(0.0, 0.0, 40.0, 40.0),
+            generation_site=box(0.0, 0.0, 30.0, 30.0),
+            bcr_limit=20.0,
+            far_limit=200.0,
+            height_limit=24.0,
+        )
+
+    def test_no_plate_exceeds_the_coverage_capacity(self):
+        context, site = self._binding_context()
+
+        plan = derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.55,
+        )
+
+        coverage = plan["bcr_footprint_capacity_m2"]
+        self.assertLess(coverage, min(plan["legal_floor_section_areas_m2"]))
+        for index, target in enumerate(plan["target_floor_areas_m2"]):
+            with self.subTest(floor=index):
+                self.assertLessEqual(target, coverage + 1e-6)
+
+    def test_a_bound_stack_is_not_bottom_heavy_or_top_heavy(self):
+        context, site = self._binding_context()
+
+        plan = derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.55,
+        )
+        targets = plan["target_floor_areas_m2"]
+
+        # With uniform legal sections and a binding coverage cap every plate
+        # has the same capacity, so the proportional split is even. The defect
+        # produced [158.211, 608.310, 608.310] on a real parcel - a 4x
+        # cantilever - from exactly this shape of input.
+        self.assertGreater(len(targets), 1)
+        self.assertAlmostEqual(min(targets), max(targets), places=6)
+
+    def test_coverage_bounds_the_feasible_capacity_of_the_stack(self):
+        context, site = self._binding_context()
+
+        plan = derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.55,
+        )
+
+        self.assertLessEqual(
+            plan["feasible_maximum_gfa_m2"],
+            plan["bcr_footprint_capacity_m2"]
+            * len(plan["legal_floor_section_areas_m2"])
+            + 1e-6,
+        )
+
+    def test_the_reported_reserve_is_the_reserve_actually_applied(self):
+        context, site = self._binding_context()
+
+        plan = derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.55,
+        )
+        targets = plan["target_floor_areas_m2"]
+        capacities = [
+            min(area, plan["bcr_footprint_capacity_m2"])
+            for area in plan["legal_floor_section_areas_m2"]
+        ][:len(targets)]
+
+        # The old vector made the realized per-plate utilization 0.316 while
+        # the payload still advertised a 0.45 reserve.
+        for target, capacity in zip(targets, capacities):
+            self.assertAlmostEqual(
+                target / capacity,
+                plan["selected_stack_target_utilization"],
+                places=6,
+            )

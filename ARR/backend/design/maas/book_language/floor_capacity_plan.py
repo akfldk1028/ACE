@@ -158,8 +158,18 @@ def derive_program_floor_capacity_plan(
     far_limit = max(0.0, float(envelope.far_limit))
     bcr_cap = parcel_area * bcr_limit / 100.0
     far_cap = parcel_area * far_limit / 100.0
-    floor_caps = list(section_areas)
-    floor_caps[0] = min(floor_caps[0], bcr_cap)
+    # 건축면적 is the horizontal projection of the *building* - 건축법 시행령
+    # 제119조 제1항 제2호, with 제4항 binding every other 수평투영면적 to the same
+    # method. It is not the ground floor's area, so an upper plate that
+    # overhangs the one below governs the coverage. Capping only index 0 was
+    # therefore wrong twice over: it let upper plates exceed the coverage limit
+    # outright, and because the capped vector is also the weight vector of a
+    # proportional allocator, it shrank the ground floor's *share* instead of
+    # its size and handed the difference upward. Measured on PNU
+    # 4115011300106840001: caps [499.938, 1922.226, 1922.226] against a 1374.83
+    # target produced [158.211, 608.310, 608.310] - a 4x cantilever whose 608
+    # exceeds the 499.938 coverage cap - and every mass came out a plate.
+    floor_caps = [min(area, bcr_cap) for area in section_areas]
     feasible_maximum = min(sum(floor_caps), far_cap)
     utilization = max(0.0, min(1.0, float(target_utilization)))
     target_gfa = feasible_maximum * utilization

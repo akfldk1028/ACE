@@ -14,8 +14,15 @@ import math
 import re
 from typing import Any, Iterable
 
+from .affine_matrix import (
+    compose_matrix4,
+    matrix4_to_lists,
+    scale_matrix4,
+    translation_matrix4,
+)
 from .ast import GeometryNode, GeometryProgram
 from .base_seeds import BASE_SEED_SPECS, base_seed_program, profiled_prism_parameters
+from .scope_composition import sample_connected_scope_set
 from .book_chassis_compatibility import split_wing_gap_ratio_from_unit
 from .section_profiles import SECTION_PROFILES, section_profile_controls
 from .host_face_relations import sample_face_attachment_parameters
@@ -67,6 +74,26 @@ _BODY_PHENOTYPE_INTENTS: dict[str, str] = {
     "lifted": "lifted_ground",
     "attached": "face_composition",
 }
+
+# One in three programs is a composed mass rather than a single body. The
+# counts are walked by the same cursor as the operator palette, so the composed
+# share is spread evenly through a page instead of clustered.
+_COMPOSITION_SCOPE_COUNTS: tuple[int, ...] = (1, 1, 2, 1, 1, 3, 1, 1, 4)
+# Distinct prime bases keep the placement dimensions from correlating.
+_COMPOSITION_BASES: tuple[int, ...] = (2, 3, 5, 7, 11, 13)
+# Macros that remove material through the body, which a composition cannot
+# survive: the cut is parameterized independently of the engagement.
+_VOID_MACROS: frozenset[str] = frozenset({
+    "carve_void", "courtyard", "notch", "puncture",
+})
+# Macros that are already a multi-part figure. `program_projection` keeps its
+# own version of this list (`_OPEN_COURT_HAZARDS`) for the same reason: these
+# operators replicate whatever they are given, so composing underneath one
+# multiplies the parts and the result reads as clutter rather than as a
+# composition. One program makes its parts one way.
+_MULTIPART_MACROS: frozenset[str] = frozenset({
+    "cross_mass", "grid_mass", "radial_array", "split_wing",
+})
 
 _OPERATOR_KIND: dict[str, str] = {
     "bend": "modifier",
@@ -333,9 +360,39 @@ def synthesize_architectural_programs(
             access_operator = access_choices[cursor % len(access_choices)]
             operators.append(access_operator)
             operator_variant_indices.append(cursor)
+        # A CSG tree has rigid motions *and* regularized booleans at its
+        # internal nodes; this generator only ever emitted the motions, so
+        # every synthesized program was one body. The scope count is drawn
+        # from the same low-discrepancy cursor as everything else, so the
+        # composed share is spread through the page rather than blocked.
+        #
+        # The decision rides on the operator stack instead of steering it. An
+        # earlier version drew the operators from a composition-compatible
+        # palette, which raised the composed share but changed the operator
+        # every cursor resolved to - and with it the seed assignment of
+        # programs that were not composing at all. That cost the bank its
+        # slab-borne relational and oblique programs, which two downstream
+        # consumers look up by structure. Composition rides along; it does not
+        # displace what was already there.
+        scope_count = _COMPOSITION_SCOPE_COUNTS[
+            cursor % len(_COMPOSITION_SCOPE_COUNTS)
+        ]
+        if any(
+            operator in _VOID_MACROS or operator in _MULTIPART_MACROS
+            for operator in operators
+        ):
+            # A void macro cut across a composition's engagement severs it, and
+            # no engagement bound prevents that because the void is
+            # parameterized independently - measured on `carve_void`, whose
+            # projected parameters split a composed mass into two components.
+            # A multi-part macro instead multiplies the composition's volumes
+            # into clutter. Either way the program is already making its parts
+            # some other way, so it makes them only that way.
+            scope_count = 1
         program = _program_from_stack(
             seed_id,
             operators,
+            scope_count=scope_count,
             operator_variant_indices=operator_variant_indices,
             variation_index=cursor,
             variation_offset=variation_offset,
@@ -493,6 +550,7 @@ def _program_from_stack(
     seed_id: str,
     operators: Iterable[str],
     *,
+    scope_count: int = 1,
     operator_variant_indices: Iterable[int] | None = None,
     variation_index: int,
     variation_offset: int = 0,
@@ -507,6 +565,11 @@ def _program_from_stack(
     seed = base_seed_program(seed_id, variation_index=variation_index)
     nodes = list(seed.nodes)
     root_id = seed.root_id
+    composed_scope_count = 1
+    if scope_count > 1:
+        composed = _composed_scope_root(nodes, seed, variation_index, scope_count)
+        if composed is not None:
+            root_id, composed_scope_count = composed
     operator_records = list(zip(
         operators,
         operator_variant_indices or (),
@@ -892,6 +955,95 @@ def _bounded_parameters(
             "layout": "parallel" if typology_prior_id == "hshape" else "split",
         }
     return {}
+
+
+def _composed_scope_root(
+    nodes: list[GeometryNode],
+    seed: Any,
+    variation_index: int,
+    scope_count: int,
+) -> tuple[str, int] | None:
+    """Replace the seed body with a connected set of UnitBox placements.
+
+    Returns None when the seed is not UnitBox-derived - a profiled prism has
+    no unit box to place - so those seeds keep their single-body path.
+
+    Every added volume is another Matrix4 over the *same* primitive node, so
+    the program still holds exactly one primitive. That is what the form
+    bank's single-primitive rule checks, and it is why the existing `attach`
+    path (which appends a second primitive) was being silently discarded.
+    """
+
+    unit = next(
+        (node for node in nodes if node.kind == "primitive"),
+        None,
+    )
+    if unit is None or unit.operator != "box":
+        return None
+    seed_matrix = next(
+        (node for node in nodes if node.id == seed.root_id),
+        None,
+    )
+    if seed_matrix is None or seed_matrix.operator != "matrix4":
+        return None
+    rows = seed_matrix.parameters.get("matrix4") or ()
+    try:
+        base_scale = (
+            float(rows[0][0]), float(rows[1][1]), float(rows[2][2]),
+        )
+    except (IndexError, TypeError, ValueError):
+        return None
+    if min(base_scale) <= 0.0:
+        return None
+
+    placements = sample_connected_scope_set(
+        scope_count,
+        base_scale,
+        lambda index: _halton(variation_index * 31 + index + 1,
+                              _COMPOSITION_BASES[index % len(_COMPOSITION_BASES)]),
+    )
+    # Placement 0 is the base scale at zero offset by construction, which is
+    # exactly the seed's own matrix. Reusing it keeps the seed node reachable;
+    # emitting a duplicate left it orphaned and the program failed validation
+    # with `unreachable_node`.
+    placed_ids: list[str] = [seed_matrix.id]
+    for index, placement in enumerate(placements[1:], start=1):
+        node_id = f"scope_{index:02d}"
+        nodes.append(GeometryNode(
+            id=node_id,
+            kind="transform",
+            operator="matrix4",
+            inputs=(unit.id,),
+            parameters={"matrix4": matrix4_to_lists(compose_matrix4(
+                scale_matrix4(placement.scale),
+                translation_matrix4(placement.offset),
+            ))},
+            semantic_role="base_seed" if index == 0 else "composed_scope",
+            provenance={
+                "source": "procedural_geometry_synthesis_agent",
+                "canonical_base_model": "1/1 UnitBox",
+                "composed_scope_index": index,
+                "parcel_coordinates_used": False,
+            },
+        ))
+        placed_ids.append(node_id)
+    root_id = placed_ids[0]
+    for index, placed in enumerate(placed_ids[1:], start=1):
+        node_id = f"scope_union_{index:02d}"
+        nodes.append(GeometryNode(
+            id=node_id,
+            kind="boolean",
+            operator="union",
+            inputs=(root_id, placed),
+            semantic_role="main",
+            provenance={
+                "source": "procedural_geometry_synthesis_agent",
+                "regularized_boolean": True,
+                "connected_by_construction": True,
+            },
+        ))
+        root_id = node_id
+    return root_id, len(placements)
 
 
 def _halton(index: int, base: int) -> float:

@@ -170,6 +170,14 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
                 != {"width": 1.0, "depth": 1.0, "height": 1.0}
             ):
                 continue
+            if not _is_one_connected_solid(program):
+                # A composed mass is connected by construction, but a macro
+                # applied after the union - a courtyard cut across a thin
+                # engagement, say - can still sever it. The downstream loop
+                # rejects a multi-component candidate anyway, at the cost of a
+                # full legal materialization; refusing it here as supply costs
+                # one 3ms compile.
+                continue
             program_hash = program.program_hash()
             if program_hash in synthesis_hashes:
                 continue
@@ -272,6 +280,21 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
         seen_hashes.add(program_hash)
         records.append(normalized)
     return tuple(records)
+
+
+def _is_one_connected_solid(program: GeometryProgram) -> bool:
+    """Does this program compile to a single closed component?"""
+
+    from .compiler import compile_geometry_program
+
+    try:
+        result = compile_geometry_program(program)
+    except Exception:  # noqa: BLE001 - a broken supply entry is just not supply
+        return False
+    return (
+        getattr(result, "status", "") == "compiled"
+        and int((result.metrics or {}).get("component_count") or 0) == 1
+    )
 
 
 def stratified_form_supply_order(

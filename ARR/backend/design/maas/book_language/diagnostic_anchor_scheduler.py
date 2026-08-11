@@ -64,8 +64,9 @@ def diagnostic_anchor_schedule_active(
     parent_indices: Sequence[int],
     has_capacity_contract: bool,
     target_count: int,
+    llm_author_only: bool = False,
 ) -> bool:
-    """Limit anchors to the bounded target3 diagnostic, never target20."""
+    """Limit anchors to legacy target3 diagnostics, never LLM-only supply."""
 
     return bool(
         recursive_only
@@ -73,6 +74,7 @@ def diagnostic_anchor_schedule_active(
         and tuple(parent_indices) == (0,)
         and has_capacity_contract
         and int(target_count) in {0, 3}
+        and not llm_author_only
     )
 
 
@@ -133,14 +135,23 @@ def _typed_anchor_programs() -> Mapping[str, GeometryProgram]:
         for program in page
         if any(node.operator == "stepped_mass" for node in program.nodes)
     ), None)
-    oblique = next((
+    # The anchor wants an oblique *body*; which base seed carries it is
+    # incidental. Requiring slab specifically made this lookup depend on the
+    # exact composition of a bounded page, and it returned nothing - dropping
+    # all three anchors - as soon as a new supply lane displaced that one
+    # program. Prefer slab, accept any sliced body.
+    sliced = tuple(
         program
         for program in page
-        if (
-            str(program.metadata.get("base_seed") or "") == "slab"
-            and any(node.operator == "slice" for node in program.nodes)
-        )
-    ), None)
+        if any(node.operator == "slice" for node in program.nodes)
+    )
+    oblique = next(
+        (
+            program for program in sliced
+            if str(program.metadata.get("base_seed") or "") == "slab"
+        ),
+        sliced[0] if sliced else None,
+    )
     if prism is None or stepped is None or oblique is None:
         return {}
     return {

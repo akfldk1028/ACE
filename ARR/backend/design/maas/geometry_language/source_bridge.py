@@ -820,12 +820,38 @@ def materialize_floorwise_legal_source(
             for _source_plan, legal, _profile_ratio, _planned_area
             in prepared_floors
     )
+    source_projection_area = float(unary_union(viable_source_sections).area)
+    if source_projection_area <= 1e-9:
+        _record_terminal_failure(
+            terminal_failure_sink,
+            "floor_affine_fit",
+            failure_reason="empty_source_plan_projection",
+        )
+        return None
     ground_design_cap = min(
         legal_floor_caps[0],
         max(
             planned_floor_targets[0],
             legal_floor_caps[0] * coverage,
         ),
+    )
+    # Every floor rides the same global plan-linear transform, so the
+    # building's horizontal projection is the transformed union of the source
+    # sections - and that union, not any single plate, is what 건축면적 means
+    # (건축법 시행령 제119조 제1항 제2호). Laterally offset plates each fit under
+    # a per-plate cap while their union does not: measured on PNU
+    # 4115011300106840001, two plates sitting exactly on the 499.938 m2 cap
+    # projected 587.6 m2 together, and the capacity record still reported
+    # 2 x 499.938 because it samples one section per floor.
+    #
+    # The union scales with the same transform as the ground plate, so the cap
+    # converts into ground-plate units in closed form. It bounds the geometry,
+    # never the floor target vector: those targets are the certification
+    # vector, and the authored fit is allowed to underfill them.
+    coverage_ground_target_cap = (
+        ground_source_area * plate_capacity / source_projection_area
+        if plate_capacity is not None
+        else None
     )
     allocated_floor_targets = _allocate_profiled_floor_targets(
         planned_floor_areas_m2=planned_floor_targets,
@@ -895,16 +921,6 @@ def materialize_floorwise_legal_source(
         # projected union is exactly linear in this area scale product and the
         # bound is closed form, the same way it is in the affine placement
         # path.
-        source_projection_area = float(
-            unary_union(viable_source_sections).area
-        )
-        if source_projection_area <= 1e-9:
-            _record_terminal_failure(
-                terminal_failure_sink,
-                "floor_affine_fit",
-                failure_reason="empty_source_plan_projection",
-            )
-            return None
         global_area_scale_product = min(
             global_area_scale_product,
             plate_capacity / source_projection_area,
@@ -1014,7 +1030,11 @@ def materialize_floorwise_legal_source(
             current_ground_target_area_m2=global_ground_target_area,
             requested_total_area_m2=requested_total,
             achieved_total_area_m2=achieved_total,
-            maximum_ground_target_area_m2=ground_design_cap,
+            maximum_ground_target_area_m2=(
+                ground_design_cap
+                if coverage_ground_target_cap is None
+                else min(ground_design_cap, coverage_ground_target_cap)
+            ),
         )
         if compensated_target <= global_ground_target_area + 1e-7:
             break

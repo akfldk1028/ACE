@@ -4089,6 +4089,21 @@ def _materialize_directed_geometry(
         })
         terminal_failure_emitted = True
 
+    # Both legal fit routes read this as "bound present" or "no bound at all",
+    # and a missing capacity took the second branch silently - a mass built with
+    # no 건폐율 bound whatsoever, indistinguishable downstream from one that was
+    # bounded and fit. A candidate whose floors come from a legal floor field
+    # must be bounded by that field's coverage capacity; a trusted field always
+    # carries one. Candidates fitted against the generation context instead
+    # (no field hash) have no capacity to be bounded by, and are left alone.
+    if str(legal_floor_field_hash or "") and coverage_capacity_m2 <= 1e-9:
+        terminal_failure(
+            "coverage_capacity",
+            failure_reason="legal_floor_field_declares_no_coverage_capacity",
+            legal_floor_field_hash=str(legal_floor_field_hash or ""),
+            coverage_capacity_m2=float(coverage_capacity_m2),
+        )
+        return None
     directive = next((
         note.split("=", 1)[1]
         for note in sequence.notes

@@ -833,16 +833,29 @@ def materialize_floorwise_legal_source(
     # an upper bound on it. Both representations contribute: the volume
     # footprints span every height band, and the sampled sections carry the
     # exact authored mesh where one exists.
-    source_projection_area = float(
-        unary_union([
-            *(
-                volume.footprint
-                for volume in source.volumes
-                if volume.footprint is not None
-                and not volume.footprint.is_empty
-            ),
-            *viable_source_sections,
-        ]).area
+    #
+    # Both are proxies for the body, and the thing finally measured is neither:
+    # it is the mesh. A body that bulges between its proxy footprints and its
+    # sampled sections - which is what `inflate` and `shift+notch` produce -
+    # is understated by both, and an understated denominator is a loose bound.
+    # `_source_surface_plan_projection_area` is 건축면적 by its definition, the
+    # union of the delivered triangles projected onto XY, so it is the measure
+    # the bound belongs on. Take the largest of the three: they all measure one
+    # body's projection, so the largest is the honest upper bound, and a
+    # denominator that is too large only costs floor area.
+    source_projection_area = max(
+        float(
+            unary_union([
+                *(
+                    volume.footprint
+                    for volume in source.volumes
+                    if volume.footprint is not None
+                    and not volume.footprint.is_empty
+                ),
+                *viable_source_sections,
+            ]).area
+        ),
+        _source_surface_plan_projection_area(source),
     )
     if source_projection_area <= 1e-9:
         _record_terminal_failure(
@@ -3739,6 +3752,32 @@ def _short_axis_widening_matrix(
         rotation_matrix4((0.0, 0.0, target_angle)),
         translation_matrix4((center.x, center.y, 0.0)),
     )
+
+
+def _source_surface_plan_projection_area(source: SourceMass) -> float:
+    """Return 건축면적 of an authored mesh: its triangles projected onto XY.
+
+    건축면적 is the horizontal projection of the building (건축법 시행령 제119조
+    제1항 제2호), so on a source that already carries surfaces this is the
+    measurement, not an approximation of it. Sources without surfaces - the
+    proxy-only ones - return 0.0 and leave their callers on the proxy measures.
+    """
+
+    vertices: list[tuple[float, float, float]] = []
+    triangles: list[tuple[int, int, int]] = []
+    for surface in tuple(getattr(source, "surfaces", ()) or ()):
+        points = tuple(getattr(surface, "vertices_m", ()) or ())
+        if len(points) != 3 or any(len(point) != 3 for point in points):
+            continue
+        base = len(vertices)
+        vertices.extend(
+            (float(point[0]), float(point[1]), float(point[2]))
+            for point in points
+        )
+        triangles.append((base, base + 1, base + 2))
+    if not triangles:
+        return 0.0
+    return _mesh_plan_projection_area(tuple(vertices), tuple(triangles))
 
 
 def _mesh_plan_projection_area(

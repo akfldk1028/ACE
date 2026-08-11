@@ -111,3 +111,56 @@ class LegalFieldPathPublishesDeliveredIdentityTests(SimpleTestCase):
             "final_identity_binding",
             [record.get("stage") for record in failure_sink],
         )
+
+
+class LegalFloorFieldMustDeclareCoverageCapacityTests(SimpleTestCase):
+    """A missing 건폐율 capacity used to mean "no bound", not "stop"."""
+
+    def _materialize(self, *, legal_floor_field_hash, coverage_capacity_m2):
+        source, _program, legal_section, sequence, context = (
+            _slab_fallback_case()
+        )
+        failure_sink = []
+        candidate_generation._materialize_directed_geometry(
+            source,
+            sequence,
+            containment_host=legal_section,
+            upper_containment_host=legal_section,
+            floor_containment_hosts=(legal_section,) * 4,
+            floor_capacity_plan_hash="contained-stack-plan",
+            legal_floor_field_hash=legal_floor_field_hash,
+            coverage_capacity_m2=coverage_capacity_m2,
+            target_floor_areas_m2=(180.0,) * 4,
+            terminal_failure_sink=failure_sink,
+            **context,
+        )
+        return [record.get("stage") for record in failure_sink]
+
+    def test_a_legal_field_without_a_capacity_stops_the_candidate(self):
+        self.assertIn(
+            "coverage_capacity",
+            self._materialize(
+                legal_floor_field_hash="legal-field-with-no-capacity",
+                coverage_capacity_m2=0.0,
+            ),
+        )
+
+    def test_a_declared_capacity_passes_this_gate(self):
+        self.assertNotIn(
+            "coverage_capacity",
+            self._materialize(
+                legal_floor_field_hash="legal-field-with-capacity",
+                coverage_capacity_m2=499.938,
+            ),
+        )
+
+    def test_candidates_with_no_legal_field_are_left_alone(self):
+        """Context-fitted candidates have no capacity to be bounded by."""
+
+        self.assertNotIn(
+            "coverage_capacity",
+            self._materialize(
+                legal_floor_field_hash="",
+                coverage_capacity_m2=0.0,
+            ),
+        )

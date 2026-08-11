@@ -214,6 +214,61 @@ def build_feasible_capacity_contract(
     }
 
 
+def _plate_projection_coverage(
+    plates: Any,
+    *,
+    capacity_contract: dict[str, Any] | None,
+    tolerance_m2: float,
+) -> dict[str, Any]:
+    """Measure 건축면적 as the union of the plates, against the declared cap.
+
+    The capacity comes from the contract's own parcel area and 건폐율 limit -
+    the same product `legal_floor_field` certifies as
+    `bcr_footprint_capacity_m2` - so this never invents a threshold. When the
+    contract declares neither, there is nothing to measure against and the
+    check reports that rather than passing silently.
+    """
+
+    contract = capacity_contract if isinstance(capacity_contract, dict) else {}
+    try:
+        parcel_area_m2 = float(contract.get("parcel_area_m2") or 0.0)
+        bcr_limit_pct = float(contract.get("bcr_limit_pct") or 0.0)
+    except (TypeError, ValueError):
+        parcel_area_m2, bcr_limit_pct = 0.0, 0.0
+    capacity_m2 = parcel_area_m2 * bcr_limit_pct / 100.0
+    geometries = []
+    for plate in plates or ():
+        if not isinstance(plate, dict):
+            continue
+        raw = plate.get("occupied_geometry_utm")
+        if not raw:
+            continue
+        try:
+            geometry = shape(raw)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            continue
+        if geometry.is_valid and not geometry.is_empty:
+            geometries.append(geometry)
+    if not geometries or not isfinite(capacity_m2) or capacity_m2 <= 1e-9:
+        return {
+            "schema_version": "arr.maas.plate_projection_coverage.v1",
+            "status": "unmeasurable",
+            "measured_plate_count": len(geometries),
+            "coverage_capacity_m2": round(capacity_m2, 3),
+        }
+    projected_area_m2 = float(unary_union(geometries).area)
+    return {
+        "schema_version": "arr.maas.plate_projection_coverage.v1",
+        "status": "measured",
+        "measured_plate_count": len(geometries),
+        "projected_area_m2": round(projected_area_m2, 3),
+        "coverage_capacity_m2": round(capacity_m2, 3),
+        "exceeds_capacity": bool(
+            projected_area_m2 > capacity_m2 + max(0.0, float(tolerance_m2))
+        ),
+    }
+
+
 def evaluate_legal_capacity_authority(
     shared_floor_contract: dict[str, Any] | None,
     source_capacity_measurement: dict[str, Any] | None,
@@ -396,6 +451,24 @@ def evaluate_legal_capacity_authority(
         for record in plate_recertification_failures
         for reason in record.get("reasons", ())
     })
+    # Every check above reads one plate at a time - its legal geometry, its
+    # retention, its support. 건축면적 is not a per-plate quantity: it is the
+    # horizontal projection of the *building* (건축법 시행령 제119조 제1항 제2호),
+    # the union of the plates. Plates that sit side by side each pass their own
+    # check while their union does not, so a mass measured 1.04x over the
+    # coverage capacity on PNU 4115011300106840001 still certified with
+    # `legal_hard_pass: True`. Measure the union here, against the capacity the
+    # contract itself declares.
+    coverage_projection = _plate_projection_coverage(
+        plates,
+        capacity_contract=capacity_contract,
+        tolerance_m2=occupied_area_match_tolerance_m2,
+    )
+    if coverage_projection.get("exceeds_capacity") is True:
+        plate_recertification_failure_reasons = sorted({
+            *plate_recertification_failure_reasons,
+            "coverage_projection_exceeds_capacity",
+        })
     declared_hard_pass = (
         shared.get("hard_pass") if shared is not None else None
     )
@@ -409,6 +482,7 @@ def evaluate_legal_capacity_authority(
     )
     legal_hard_pass = bool(
         plates_recertified
+        and coverage_projection.get("exceeds_capacity") is not True
         and (certified_contract_pass or capacity_only_advisory_override)
     )
 
@@ -466,6 +540,7 @@ def evaluate_legal_capacity_authority(
         "revision_recommended": objective_status in {"below", "above"},
         "plate_recertification_failures": plate_recertification_failures,
         "plate_recertification_failure_reasons": plate_recertification_failure_reasons,
+        "plate_projection_coverage": coverage_projection,
     }
 
 

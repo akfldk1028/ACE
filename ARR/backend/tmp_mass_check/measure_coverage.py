@@ -76,6 +76,25 @@ def main(run_dir):
         worst = max(over)
         print(f"  worst: {worst[1]} at {worst[0]:.1f} m2 ({worst[0] / cap:.2f}x)")
 
+    # Which authoring operative produced the violations. With the coverage
+    # bound in placement, a violation means something grew the mass after the
+    # bound was computed, so the operative name is the first thing to look at.
+    by_principle = {}
+    for record in archived_records(run_dir):
+        area = projected_area(record)
+        if area is None:
+            continue
+        label = str((record.get("lineage") or {}).get("principle_label") or "?")
+        seen = by_principle.setdefault(label, [0, 0, 0.0])
+        seen[0] += 1
+        seen[1] += 1 if area > cap else 0
+        seen[2] = max(seen[2], area)
+    print(f"  {'principle':<26} n  over  max_m2")
+    for label, (count, breaches, largest) in sorted(
+        by_principle.items(), key=lambda item: (-item[1][1], -item[1][0])
+    ):
+        print(f"  {label:<26} {count:<2} {breaches:<5} {largest:7.1f}")
+
 
 if __name__ == "__main__":
     for target in sys.argv[1:]:

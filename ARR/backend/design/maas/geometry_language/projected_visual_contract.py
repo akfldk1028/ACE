@@ -587,6 +587,17 @@ def _serialize_final_authored_surface_authority(
             float(origin.y),
         ],
     }
+    upstream = metadata.get("floorwise_visual_projection")
+    upstream = upstream if isinstance(upstream, dict) else {}
+    # This certificate replaces the upstream one wholesale.  Carry the visible
+    # skin's producer through so a legal-section loft can never be read as an
+    # authored body downstream.
+    certificate["visible_surface_producer"] = str(
+        upstream.get("visible_surface_producer") or "unknown"
+    )
+    certificate["visible_internal_tread_area_ratio"] = float(
+        upstream.get("visible_internal_tread_area_ratio") or 0.0
+    )
     return {
         "authority": PROJECTED_AUTHORITY,
         "geometryProgramRole": CAPACITY_PROGRAM_ROLE,
@@ -1174,7 +1185,11 @@ def _validate_projected_visual_resource_bounds(
                 serialized_bytes += 32
         serialized_bytes += 128
     binding_bytes = 0
-    for field in ("occupied_section_wkb_hex", "legal_section_wkb_hex"):
+    for field in (
+        "occupied_section_wkb_hex",
+        "legal_section_wkb_hex",
+        "actual_section_wkb_hex",
+    ):
         values = certificate.get(field) or ()
         if isinstance(values, list):
             if len(values) > MAX_PROJECTED_VISUAL_FLOORS:
@@ -1331,7 +1346,10 @@ def validate_floorwise_authority_binding(
         raise ValueError(
             "certified floorwise visual numeric equivalence mismatch"
         )
-    if mode == "floorwise_profiled_legal_clip":
+    if mode in {
+        "floorwise_profiled_continuous_envelope_clip",
+        "floorwise_profiled_legal_clip",
+    }:
         if (
             not expected_section_geometry_binding_hash
             or expected_section_geometry_binding_hash
@@ -1359,7 +1377,11 @@ def has_strict_height_dependent_legal_section_contraction(
 ) -> bool:
     """Return true only when every higher certified legal section contracts."""
 
-    if certificate.get("certification_mode") != "floorwise_profiled_legal_clip":
+    if certificate.get("certification_mode") not in {
+        "floorwise_profiled_continuous_envelope_clip",
+        "floorwise_profiled_legal_clip",
+        "floorwise_csg_section_loft",
+    }:
         return False
     raw_sections = certificate.get("legal_section_wkb_hex")
     floor_count = int(certificate.get("floor_count") or 0)
@@ -1388,11 +1410,18 @@ def has_strict_height_dependent_legal_section_contraction(
         )
     ):
         return False
-    return all(
+    transitions = tuple(zip(sections, sections[1:]))
+    monotone_nonexpanding = all(
         upper.covered_by(lower)
-        and float(lower.area) > float(upper.area)
-        for lower, upper in zip(sections, sections[1:])
+        and float(upper.area) <= float(lower.area) + 1e-9
+        for lower, upper in transitions
     )
+    has_strict_contraction = any(
+        float(lower.area) - float(upper.area)
+        > max(1e-9, float(lower.area) * 1e-9)
+        for lower, upper in transitions
+    )
+    return monotone_nonexpanding and has_strict_contraction
 
 
 def _recomputed_floorwise_authority_binding_hash(
@@ -1492,6 +1521,11 @@ def _validate_profiled_mesh_section_binding(
     binding_hash = str(certificate.get("section_geometry_binding_hash") or "")
     occupied_hex = certificate.get("occupied_section_wkb_hex")
     legal_hex = certificate.get("legal_section_wkb_hex")
+    actual_hex = certificate.get("actual_section_wkb_hex")
+    continuous_mode = (
+        certificate.get("certification_mode")
+        == "floorwise_profiled_continuous_envelope_clip"
+    )
     floor_count = int(certificate.get("floor_count") or 0)
     if (
         schema != "arr.maas.profiled_legal_section_geometry_binding.v1"
@@ -1500,6 +1534,13 @@ def _validate_profiled_mesh_section_binding(
         or not isinstance(legal_hex, list)
         or len(occupied_hex) != floor_count
         or len(legal_hex) != floor_count
+        or (
+            continuous_mode
+            and (
+                not isinstance(actual_hex, list)
+                or len(actual_hex) != floor_count
+            )
+        )
         or not triangle_payload
     ):
         raise ValueError("profiled lawful section binding missing")
@@ -1540,6 +1581,11 @@ def _validate_profiled_mesh_section_binding(
 
     occupied_sections = decode_sections(occupied_hex)
     legal_sections = decode_sections(legal_hex)
+    actual_sections = (
+        decode_sections(actual_hex)
+        if continuous_mode
+        else occupied_sections
+    )
     actual_component_count = 0
     actual_contour_count = 0
     actual_point_count = 0
@@ -1597,7 +1643,7 @@ def _validate_profiled_mesh_section_binding(
         measured, contour_count, _ = section_result
         metric = floor_center_numeric_equivalence(
             measured,
-            occupied_sections[floor_index],
+            actual_sections[floor_index],
             epsilon_m=float(certificate.get("section_numeric_epsilon_m") or 0.0),
             contour_count=contour_count,
         )
@@ -1614,6 +1660,17 @@ def _validate_profiled_mesh_section_binding(
         if any(int(expected_rows[floor_index].get(key, -1)) != value for key, value in measured_counts.items()):
             raise ValueError(
                 "profiled serialized mesh lawful section midplane topology mismatch"
+            )
+        if continuous_mode and abs(
+            float(expected_rows[floor_index].get("area_m2") or 0.0)
+            - float(measured.area)
+        ) > max(
+            1e-7,
+            float(certificate.get("section_numeric_epsilon_m") or 0.0)
+            * max(1.0, float(measured.length)),
+        ):
+            raise ValueError(
+                "profiled serialized mesh visible section area mismatch"
             )
         occupied = occupied_sections[floor_index]
         legal = legal_sections[floor_index]
@@ -1648,7 +1705,10 @@ def _validate_profiled_mesh_section_binding(
                 f"metric={key} expected={certificate.get(key)!r} measured={measured!r}"
             )
     legal_count, witness = _legal_band_projection_sample_count(
-        tuple(vertices), tuple(triangles), legal_sections
+        tuple(vertices),
+        tuple(triangles),
+        legal_sections,
+        numeric_epsilon_m=section_epsilon,
     )
     if legal_count is None:
         raise ValueError(
@@ -1769,6 +1829,28 @@ def _physical_height_m(source: Any) -> float:
     raise ValueError("certified final visual mesh has no physical height")
 
 
+_METRIC_Z_TOLERANCE_M = 0.002
+_SITE_BOUND_LEGAL_FIT_MODE = "site_bound_matrix4"
+
+
+def _source_is_site_bound(source: Any) -> bool:
+    """Was this source exported from an already placed compilation?
+
+    The export records its own mode, so this reads the source rather than
+    guessing from coordinate magnitudes.
+    """
+
+    metadata = (
+        source.metadata
+        if isinstance(getattr(source, "metadata", None), dict)
+        else {}
+    )
+    bridge = metadata.get("geometry_program_bridge_evidence")
+    if not isinstance(bridge, dict):
+        return False
+    return str(bridge.get("legal_fit_mode") or "") == _SITE_BOUND_LEGAL_FIT_MODE
+
+
 def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
     """Return final render/VLM triangles in one local physical-meter frame."""
 
@@ -1777,22 +1859,46 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
         for surface in tuple(getattr(source, "surfaces", ()) or ())
     ]
     height_m = _physical_height_m(source)
+    # A site-bound source is exported from an already placed compilation, so
+    # its Z is world metres by construction: `_compile_geometry_program_to_
+    # source_mass` normalizes Z only on the `_normalized_compilation` path and
+    # passes the compiled vertices straight through on the site-bound one.
+    # Scaling those by the physical height again would multiply metres by
+    # metres. This branch was effectively unreachable while every affine
+    # placement failed and the repair producers (which do normalize) served
+    # every candidate; once placement started succeeding, the first site-bound
+    # source to reach certification raised
+    # `certified final visual source Z is not normalized`.
+    metric_source = _source_is_site_bound(source)
     metric = []
     for triangle in normalized:
         record = deepcopy(triangle)
         vertices = []
-        for x, y, normalized_z in triangle["vertices_m"]:
-            if normalized_z < 0.0 or normalized_z > 1.0:
+        for x, y, z in triangle["vertices_m"]:
+            if metric_source:
+                # Still bounded: an already placed body may not stand outside
+                # the height its own floor context certified.
+                if z < -_METRIC_Z_TOLERANCE_M or z > height_m + _METRIC_Z_TOLERANCE_M:
+                    raise ValueError(
+                        "certified final visual source Z exceeds its certified height"
+                    )
+                vertices.append([float(x), float(y), float(z)])
+                continue
+            if z < 0.0 or z > 1.0:
                 raise ValueError(
                     "certified final visual source Z is not normalized"
                 )
-            vertices.append([float(x), float(y), float(normalized_z) * height_m])
+            vertices.append([float(x), float(y), float(z) * height_m])
         record["vertices_m"] = vertices
         metric.append(record)
     return {
         "schema_version": "arr.maas.canonical_metric_surface_payload.v1",
         "coordinate_space": AUTHORED_COORDINATE_SPACE,
-        "source_coordinate_space": NORMALIZED_AUTHORED_COORDINATE_SPACE,
+        "source_coordinate_space": (
+            AUTHORED_COORDINATE_SPACE
+            if metric_source
+            else NORMALIZED_AUTHORED_COORDINATE_SPACE
+        ),
         "physical_height_m": height_m,
         "triangles": metric,
         "exact_payload_hash": exact_triangle_payload_hash(metric),

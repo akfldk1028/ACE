@@ -921,31 +921,56 @@ def _validate_projected_visual_artifact_payload(
                 )
             )
         )
+        # Nine independent conditions used to collapse into one message, so a
+        # run that died here said only that something was wrong. Naming the
+        # condition is the difference between reading a stack trace and
+        # re-deriving which of nine identities broke.
+        certificate_failures = []
         if (
             actual_final_geometry_hash
             != str(certificate.get("final_geometry_hash") or "")
-            or actual_surface_hash
+        ):
+            certificate_failures.append("final_geometry_hash")
+        if (
+            actual_surface_hash
             != str(certificate.get("final_surface_payload_hash") or "")
-            or not normalized_source_identity_valid
-            or audit.get("schema_version")
+        ):
+            certificate_failures.append("final_surface_payload_hash")
+        if not normalized_source_identity_valid:
+            certificate_failures.append("normalized_source_surface_payload_hash")
+        if (
+            audit.get("schema_version")
             != "arr.maas.final_semantic_projection_audit.v1"
-            or (
-                audit.get("status") != "verified"
-                and not capacity_only_semantic_drift
+        ):
+            certificate_failures.append("audit_schema_version")
+        if audit.get("status") != "verified" and not capacity_only_semantic_drift:
+            certificate_failures.append(
+                f"audit_status={audit.get('status') or 'missing'}"
             )
-            or (
-                audit.get("hard_pass") is not True
-                and not capacity_only_semantic_drift
-            )
-            or str(audit.get("semantic_projection_hash") or "")
+        if audit.get("hard_pass") is not True and not capacity_only_semantic_drift:
+            certificate_failures.append("audit_hard_pass")
+        if (
+            str(audit.get("semantic_projection_hash") or "")
             != str(certificate.get("semantic_projection_hash") or "")
-            or str(audit.get("audited_context_hash") or "")
+        ):
+            certificate_failures.append("semantic_projection_hash")
+        if (
+            str(audit.get("audited_context_hash") or "")
             != str(certificate.get("semantic_audit_context_hash") or "")
-            or _canonical_payload_hash(audit)
+        ):
+            certificate_failures.append("semantic_audit_context_hash")
+        if (
+            _canonical_payload_hash(audit)
             != str(certificate.get("semantic_audit_payload_hash") or "")
         ):
+            certificate_failures.append("semantic_audit_payload_hash")
+        if certificate_failures:
             raise ValueError(
-                "invalid final floorwise visual authority certificate"
+                "invalid final floorwise visual authority certificate: "
+                + ", ".join(certificate_failures)
+                + " (audit failures: "
+                + ", ".join(str(reason) for reason in (audit.get("failures") or ()))
+                + ")"
             )
     actual_visual_hash = _task1_visual_hash(normalized)
     expected_triangle_count = int(certificate.get("projected_surface_count") or 0)

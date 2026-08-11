@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 from itertools import product
 from math import isfinite, radians, sqrt
@@ -62,10 +63,10 @@ def resolve_competition_breadth_generation_budget(
     if (
         not recursive_only
         or int(target_count) != 20
-        or explicit_diagnostic_budget
         or smoke_mode
     ):
         return {}
+    _ = explicit_diagnostic_budget
     return competition_breadth_generation_budget(20)
 
 
@@ -94,6 +95,92 @@ def _competition_pre_exact_shortlist(
         for record in schedule.exact_shortlist
     )
     return selected_keys, schedule
+
+
+def _balanced_principle_window(
+    schedule: tuple[tuple[int, dict[str, Any]], ...],
+    *,
+    seed_index: int,
+    count: int,
+) -> tuple[tuple[int, dict[str, Any]], ...]:
+    """Rotate bounded per-parent probes through base and descendant stages."""
+
+    if not schedule or int(count) <= 0:
+        return ()
+    take = min(len(schedule), max(1, int(count)))
+    start = (max(0, int(seed_index)) * take) % len(schedule)
+    return tuple(
+        schedule[(start + offset) % len(schedule)]
+        for offset in range(take)
+    )
+
+
+def _balanced_principle_window_with_lineage_bases(
+    schedule: tuple[tuple[int, dict[str, Any]], ...],
+    *,
+    seed_index: int,
+    count: int,
+) -> tuple[tuple[int, dict[str, Any]], ...]:
+    """Prepend every rotated descendant's canonical base dependency."""
+
+    selected = _balanced_principle_window(
+        schedule,
+        seed_index=seed_index,
+        count=count,
+    )
+    by_id = {
+        str(principle.get("principle_id") or ""): item
+        for item in schedule
+        for principle in (item[1],)
+    }
+    result: list[tuple[int, dict[str, Any]]] = []
+    seen: set[str] = set()
+    for item in selected:
+        principle = item[1]
+        principle_id = str(principle.get("principle_id") or "")
+        base_id = str(
+            principle.get("lineage_base_operative_id")
+            or principle_id
+        )
+        for dependency in (by_id.get(base_id), item):
+            if dependency is None:
+                continue
+            dependency_id = str(
+                dependency[1].get("principle_id") or ""
+            )
+            if dependency_id and dependency_id not in seen:
+                result.append(dependency)
+                seen.add(dependency_id)
+    return tuple(result)
+
+
+def _lineage_stable_scope_label(
+    scope_labels: tuple[str, ...],
+    *,
+    seed_index: int,
+    lineage_base_index: int,
+    variant_index: int,
+) -> str:
+    """Rotate scopes without separating a descendant from its exact base."""
+
+    if not scope_labels:
+        return ""
+    # `variant_index` has to stay out: a descendant is a variant of its base,
+    # and letting it move the scope is exactly what separates the two.
+    #
+    # `lineage_base_index` is the opposite case and was discarded with it by
+    # mistake. A descendant carries its base's `lineage_base_operative_id`, so
+    # it carries the same index, and the invariant above holds either way.
+    # Leaving it out made the scope a function of the seed alone, which pinned
+    # every seed - and so every language it authors - to `seed_index % 6`
+    # permanently. Measured on PNU 4115011300106840001: the scopes received
+    # disjoint sets of languages, 1/2 and 1/4 drew only single-body ones, and
+    # both failed the program gate's hierarchy range en masse (dominant
+    # component ratio 0.83 against cultural's 0.32-0.75) while 1/1 and 3/8
+    # passed 59 of 60 between them.
+    _ = variant_index
+    stable_index = max(0, int(seed_index)) + max(0, int(lineage_base_index))
+    return str(scope_labels[stable_index % len(scope_labels)])
 
 
 def _cheap_morphology_preclassification(
@@ -849,13 +936,32 @@ def _competition_cheap_candidate_records(
             program = GeometryProgram.from_dict(json.loads(payload))
         except (TypeError, ValueError, json.JSONDecodeError):
             continue
+        causal_path = None
+        execution_contract = program.execution_contract
+        if isinstance(execution_contract, dict):
+            from .composition_lattice import book_composition_path_by_id
+
+            causal_path = book_composition_path_by_id(str(
+                execution_contract.get("book_composition_path_id") or ""
+            ))
         # Divide the bounded page evenly across UnitBox/BaseVolume parents:
         # every form is visited before any one form receives excess probes.
-        scheduled_principles = staged_principle_schedule(
-            principles,
-            seed_index,
-            count=max(6, principles_per_parent),
-        )[:principles_per_parent]
+        scheduled_principles = _balanced_principle_window(
+            staged_principle_schedule(
+                principles,
+                seed_index,
+                count=max(6, principles_per_parent),
+            ),
+            seed_index=seed_index,
+            count=principles_per_parent,
+        )
+        if causal_path is not None:
+            selected_principle = principle_by_id.get(
+                causal_path.principle_id
+            )
+            scheduled_principles = (
+                (selected_principle,) if selected_principle else ()
+            )
         if preservation_control:
             scheduled_principles = (
                 principle_by_id["book:operative:skew"],
@@ -870,26 +976,33 @@ def _competition_cheap_candidate_records(
                 lineage_base_id,
                 (principle_index, principle),
             )[0]
-            variation_indices = (
-                (5,)
-                if preservation_control
-                else book_variation_indices(book_probe_count)
-            )
-            indexed_variants = tuple(zip(
-                variation_indices,
-                book_sentence_variants(
+            if causal_path is not None:
+                variant_index = int(causal_path.variation_index)
+                operations = book_sentence_variants(
                     execution_verbs,
-                    count=(
-                        1
-                        if preservation_control
-                        else book_probe_count
+                    count=11,
+                )[variant_index]
+            else:
+                variation_indices = (
+                    (5,)
+                    if preservation_control
+                    else book_variation_indices(book_probe_count)
+                )
+                indexed_variants = tuple(zip(
+                    variation_indices,
+                    book_sentence_variants(
+                        execution_verbs,
+                        count=(
+                            1
+                            if preservation_control
+                            else book_probe_count
+                        ),
                     ),
-                ),
-            ))
-            (variant_index, operations) = indexed_variants[
-                (seed_index + lineage_base_index)
-                % len(indexed_variants)
-            ]
+                ))
+                (variant_index, operations) = indexed_variants[
+                    (seed_index + lineage_base_index)
+                    % len(indexed_variants)
+                ]
             evaluation_index = len(records)
             if evaluation_index >= int(evaluation_limit):
                 return tuple(records)
@@ -974,6 +1087,10 @@ def _competition_cheap_candidate_records(
             scope_label = scope_labels[
                 evaluation_index % len(scope_labels)
             ]
+            orientation = "vertical"
+            if causal_path is not None:
+                scope_label = causal_path.base_volume_label
+                orientation = causal_path.orientation
             if preservation_control:
                 scope_label = "1/1"
             suffix = (
@@ -986,7 +1103,7 @@ def _competition_cheap_candidate_records(
                 operations,
                 name_suffix=suffix,
                 base_volume_label=scope_label,
-                orientation="vertical",
+                orientation=orientation,
             )
             sequence = VerbSequence(
                 name=f"{composed.name}__search_v{variant_index}",
@@ -995,6 +1112,7 @@ def _competition_cheap_candidate_records(
                 notes=composed.notes,
             )
             book_bind_pass = True
+            book_projection_failure_evidence: dict[str, Any] = {}
             projected_program = program
             try:
                 projected_program = (
@@ -1003,8 +1121,24 @@ def _competition_cheap_candidate_records(
                         sequence,
                     )
                 )
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
                 book_bind_pass = False
+                typed_evidence = getattr(exc, "evidence", None)
+                book_projection_failure_evidence = (
+                    deepcopy(typed_evidence)
+                    if isinstance(typed_evidence, dict)
+                    else {
+                        "schema_version": "arr.maas.book_projection_failure.v1",
+                        "code": "book_projection_application_failed",
+                        "failure_type": type(exc).__name__,
+                        "failure_detail": str(exc)[:240],
+                        "pre_identity": {
+                            "program_hash": program.program_hash(),
+                            "root_id": str(program.root_id),
+                        },
+                        "post_identity": {"status": "not_materialized"},
+                    }
+                )
             body, roof, chassis, plan = (
                 _cheap_morphology_preclassification(
                     projected_program,
@@ -1025,6 +1159,9 @@ def _competition_cheap_candidate_records(
             )
             records.append(SimpleNamespace(
                 key=key,
+                book_projection_failure_evidence=(
+                    book_projection_failure_evidence
+                ),
                 page_index=int(page_index),
                 base_scope=scope_label,
                 genotype_family=str(

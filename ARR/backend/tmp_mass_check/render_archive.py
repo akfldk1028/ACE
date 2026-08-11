@@ -3,20 +3,48 @@
 The archive holds every mass that cleared generation, whether or not the
 portfolio contract later selected it. Selection taking zero does not mean no
 mass was built, and this is how to see that.
+
+Each tile carries its measured 건축면적 - the union of the mass projected onto
+XY, per 건축법 시행령 제119조 제1항 제2호 - against the capacity the run itself
+declared. A sheet of pictures alone invites "looks fine to me"; every defect
+this session found was visible only once a number sat next to the shape.
+
+Usage: render_archive.py RUN_DIR [LIMIT]   (no LIMIT renders every mass)
 """
 
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 TILE = 300
 COLUMNS = 7
+
+
+def declared_capacity(run_dir):
+    text = (Path(run_dir) / "maas-book-programs-summary.json").read_text(
+        encoding="utf-8",
+    )
+    found = re.search(r'"bcr_footprint_capacity_m2"\s*:\s*([0-9.]+)', text)
+    return float(found.group(1)) if found else None
+
+
+def projected_area(polygons):
+    faces = [
+        flat
+        for polygon in polygons
+        for flat in (Polygon([(row[0], row[1]) for row in polygon]),)
+        if flat.is_valid and flat.area > 0.0
+    ]
+    return float(unary_union(faces).area) if faces else 0.0
 
 
 def surfaces_of(record):
@@ -64,7 +92,7 @@ def draw(draw_ctx, polygons, offset, size, label):
     draw_ctx.text((offset[0] + 8, offset[1] + size - 16), label, fill=(20, 20, 20))
 
 
-def main(run_dir, limit=28):
+def main(run_dir, limit=None):
     payload = json.loads(
         (Path(run_dir) / "maas-book-programs-summary.json").read_text(encoding="utf-8"),
     )
@@ -72,25 +100,60 @@ def main(run_dir, limit=28):
     for program in payload.get("programs", []):
         archive = (program.get("counts") or {}).get("legal_mass_archive") or {}
         records.extend(archive.get("records") or [])
-    records = [record for record in records if surfaces_of(record)][:limit]
+    records = [record for record in records if surfaces_of(record)]
+    if limit is not None:
+        records = records[:limit]
     if not records:
         print("no archived masses with surfaces")
         return
 
+    capacity = declared_capacity(run_dir)
+    measured = [projected_area(surfaces_of(record)) for record in records]
+    over = (
+        sum(1 for area in measured if area > capacity)
+        if capacity is not None
+        else 0
+    )
+
     rows = (len(records) + COLUMNS - 1) // COLUMNS
     image = Image.new("RGB", (COLUMNS * TILE, rows * TILE + 30), (247, 247, 245))
     context = ImageDraw.Draw(image)
-    context.text((10, 10), f"{Path(run_dir).name}: {len(records)} archived masses",
-                 fill=(0, 0, 0))
+    heading = f"{Path(run_dir).name}: {len(records)} archived masses"
+    if capacity is not None:
+        # ASCII only: the default PIL font has no CJK glyphs and renders the
+        # heading as tofu boxes, which is worse than the English name.
+        heading += (
+            f"   building coverage cap {capacity:.1f} m2"
+            f"   over cap {over}/{len(records)}"
+        )
+    context.text((10, 10), heading, fill=(0, 0, 0))
     for index, record in enumerate(records):
         column, row = index % COLUMNS, index // COLUMNS
+        offset = (column * TILE, row * TILE + 30)
+        area = measured[index]
+        breached = capacity is not None and area > capacity
+        if breached:
+            context.rectangle(
+                [offset[0] + 2, offset[1] + 2,
+                 offset[0] + TILE - 3, offset[1] + TILE - 3],
+                outline=(200, 60, 60), width=3,
+            )
         label = str(record.get("geometry_hash") or "")[:8]
-        draw(context, surfaces_of(record), (column * TILE, row * TILE + 30),
-             TILE, f"{index} {label}")
+        principle = str((record.get("lineage") or {}).get("principle_label") or "")
+        draw(context, surfaces_of(record), offset, TILE, f"{index} {label}")
+        context.text(
+            (offset[0] + 8, offset[1] + 8),
+            f"{area:.0f} m2{'  OVER' if breached else ''}",
+            fill=(200, 60, 60) if breached else (40, 90, 40),
+        )
+        if principle:
+            context.text(
+                (offset[0] + 8, offset[1] + 22), principle, fill=(90, 90, 95),
+            )
     out = Path(run_dir).parent / f"{Path(run_dir).name}-archive.png"
     image.save(out)
-    print(f"wrote {out} ({len(records)} masses)")
+    print(f"wrote {out} ({len(records)} masses, {over} over cap)")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else None)

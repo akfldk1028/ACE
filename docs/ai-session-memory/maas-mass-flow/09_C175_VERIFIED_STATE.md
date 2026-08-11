@@ -815,3 +815,80 @@ Vworld intermittently times out (`VWorld parcel boundary is required`, `PNU
 zoning lookup returned no executable zone`). Three consecutive runs died on it
 within 10-30 s. It is not a code fault — retry. There is no synthetic
 fallback by design.
+
+## 2026-08-11 (end of session) — coverage was never a placement constraint
+
+Fixing the floor plan (`f74554b`) made the *plan* lawful. It did not make the
+*mass* lawful, because nothing carried coverage into placement. Measured by
+projecting every archived mass's surfaces to XY and unioning them:
+
+```
+PNU 4115011300106840001, coverage capacity 499.938 m2
+23 of 28 archived masses exceed it, worst 969.7 m2 (1.94x)
+lawful: 401.8 / 415.2 / 432.9 / 465.3 / 465.3   (5 of 28)
+```
+
+The `bcr_limit_exceeded` hard gate at `downstream_hard_gate.py:707` **does
+exist and does work** — the three selected candidates all passed it. It simply
+catches violations *after* a full legal materialization each, so the lawful
+pool stays thin and `selected_scope_count` stays at 1 of 3.
+
+Two corrections to claims made earlier in this session, both from sloppiness:
+
+1. **`GFA / floors` is not 건축면적.** Coverage is the horizontal projection of
+   the building, so L-shapes, courtyards and stepped bodies have unequal
+   plates. The first estimate said 16/28; the correct union-projection
+   measurement says 23/28.
+2. **"Add a coverage hard gate" was wrong — one already exists.** And
+   "enforce the plan's floor count" was wrong too: a wide two-storey building
+   and a slim five-storey one are equally lawful if coverage and FAR hold. The
+   plan's floor count is one solution, not a requirement. Do not count a mass
+   as defective for choosing a different stack.
+
+`289084c` bounds the pose search itself. The pose scales the body in plan and
+otherwise only translates it, so the projected area is exactly quadratic in
+the multiplier:
+
+```
+s_max = sqrt(coverage_capacity / projected_area_at_scale_1)
+```
+
+applied as a `min` on the `scale_upper` the search already computes. One union
+area per pose; can only tighten. The capacity comes from the trusted legal
+floor field. Passing None leaves the search byte-identical.
+
+**Not verified on a live run.** VWorld timed out on all three endpoints for
+the last hour of the session and there is no synthetic fallback by design.
+`test_maas_coverage_bounded_placement` verifies it instead, including the
+premise that an unbounded placement really does exceed.
+
+### Where the literature actually is (searched 2026-08-11)
+
+The paper the user supplied is **EvoMass** (Wang, Janssen, Ji — CAADRIA 2020,
+*Frontiers of Architectural Research* 2024). Its formulation is better than
+this project's on one specific point: **subtraction is a first-class generator
+with its own count and boundary constraint** (voids on the edge / voids
+inside), and its parameter set is only five numbers — additive mass count
+(4/6/8), horizontal size range, vertical size range, subtractor count (6/4/2),
+boundary constraint. Its Fig. 3 argues that additive+subtractive spans one
+*unified* design space, where typology enumeration (which is what this bank's
+`family` list is) only produces disjoint islands.
+
+That matters here: `_VOID_MACROS` was excluded from composition because voids
+severed the body. EvoMass avoids that by bounding subtractor size relative to
+the host instead of excluding it. **Re-introducing subtraction that way is the
+next supply improvement.**
+
+Newer work, from search only — **none of these were read in full, do not cite
+them as settled**:
+
+| year | work |
+|---|---|
+| 2026 | DQN building arrangement under sunlight/spacing constraints (*Scientific Reports*); high-rise residential layout RL (Springer); multimodal LLM floor-plan tokenization |
+| 2025 | LLM-based floor plan automation (*Automation in Construction*); generative-AI conceptual design scoping review |
+| 2024 | EvoMass follow-up; Building-Agent (LLM + graph 3D form); eCAADe LLM-CAD; Autodesk Forma x Zoneomics zoning-responsive envelopes |
+
+The pattern: top-venue generative AI went to **2D floor plans**, and 3D massing
+went to **RL placement**. "Statute -> lawful 3D mass" remains largely empty.
+Treat that as a working hypothesis, not a finding — it rests on search
+summaries, not on reading the papers.

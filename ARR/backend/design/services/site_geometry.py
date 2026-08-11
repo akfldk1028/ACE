@@ -5,7 +5,10 @@ WGS84↔UTM coordinate conversion, Vworld WFS parcel boundary fetch,
 and site validation.
 """
 
+import json
 import logging
+import pathlib
+from datetime import datetime, timezone
 
 from shapely.geometry import MultiPolygon, Polygon, box, shape, mapping
 from shapely.ops import transform
@@ -44,9 +47,68 @@ def polygon_to_geojson(polygon: Polygon) -> dict:
     return mapping(polygon)
 
 
+PARCEL_BOUNDARY_CACHE_DIR = (
+    pathlib.Path(__file__).resolve().parent.parent.parent
+    / "runtime"
+    / "vworld_parcel_boundaries"
+)
+
+
+def _cached_parcel_boundary_path(pnu: str) -> pathlib.Path:
+    return PARCEL_BOUNDARY_CACHE_DIR / f"{pnu}.json"
+
+
+def _store_parcel_boundary(pnu: str, geometry: dict) -> None:
+    """Keep the real response so an outage does not block a rerun."""
+
+    try:
+        PARCEL_BOUNDARY_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        _cached_parcel_boundary_path(pnu).write_text(
+            json.dumps(
+                {
+                    "source": "vworld_data_api_LP_PA_CBND_BUBUN",
+                    "pnu": pnu,
+                    "fetched_at": datetime.now(timezone.utc).isoformat(),
+                    "geometry": geometry,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    except OSError as error:
+        logger.warning("Could not cache parcel boundary for PNU %s: %s", pnu, error)
+
+
+def _load_parcel_boundary(pnu: str) -> dict | None:
+    path = _cached_parcel_boundary_path(pnu)
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        logger.warning("Unreadable parcel boundary cache for PNU %s: %s", pnu, error)
+        return None
+    geometry = payload.get("geometry")
+    if not isinstance(geometry, dict):
+        return None
+    logger.warning(
+        "Vworld unavailable; using the cached real boundary for PNU %s "
+        "fetched at %s",
+        pnu,
+        payload.get("fetched_at"),
+    )
+    return geometry
+
+
 def fetch_parcel_boundary(pnu: str) -> dict | None:
     """
     Fetch parcel boundary polygon from Vworld Data API (LP_PA_CBND_BUBUN).
+
+    A successful response is cached on disk. A parcel boundary is static, and
+    Vworld goes down for hours at a time - three consecutive verification runs
+    were lost to it in one session. The cache holds the real response, never a
+    synthesized one, and is read only when the live call fails, so live data
+    stays authoritative and the failure is logged rather than hidden.
 
     Args:
         pnu: 19-digit PNU code
@@ -56,7 +118,7 @@ def fetch_parcel_boundary(pnu: str) -> dict | None:
     """
     if not config.VWORLD_API_KEY:
         logger.warning("VWORLD_API_KEY not set, cannot fetch parcel boundary")
-        return None
+        return _load_parcel_boundary(pnu)
 
     try:
         resp = config.vworld_client.get(
@@ -87,13 +149,17 @@ def fetch_parcel_boundary(pnu: str) -> dict | None:
         )
         if not features:
             logger.warning("No parcel boundary found for PNU %s", pnu)
-            return None
+            return _load_parcel_boundary(pnu)
 
-        return polygon_to_geojson(geojson_to_polygon(features[0].get("geometry")))
+        geometry = polygon_to_geojson(
+            geojson_to_polygon(features[0].get("geometry"))
+        )
+        _store_parcel_boundary(pnu, geometry)
+        return geometry
 
     except Exception as e:
         logger.error("Vworld Data API fetch failed for PNU %s: %s", pnu, e)
-        return None
+        return _load_parcel_boundary(pnu)
 
 
 def validate_site(polygon: Polygon) -> dict:

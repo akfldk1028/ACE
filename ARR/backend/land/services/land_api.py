@@ -11,7 +11,9 @@ APIs:
 """
 
 import datetime
+import json
 import logging
+import pathlib
 
 import httpx
 
@@ -89,9 +91,67 @@ def get_land_use_info(pnu: str) -> dict:
     if errors:
         result["errors"] = errors
     if not any_success:
+        # A parcel's zoning does not change, but Vworld goes down for hours at
+        # a time. The cache holds a previous *real* response, never a
+        # synthesized one, and is read only when every live call has failed -
+        # so live data stays authoritative and the substitution is logged.
+        cached = _load_land_use_cache(pnu)
+        if cached is not None:
+            return cached
         result["message"] = "All Vworld API calls failed. " + "; ".join(errors)
+    elif land_use["success"]:
+        _store_land_use_cache(pnu, result)
 
     return result
+
+
+LAND_USE_CACHE_DIR = (
+    pathlib.Path(__file__).resolve().parent.parent.parent
+    / "runtime"
+    / "vworld_land_use"
+)
+
+
+def _land_use_cache_path(pnu: str) -> pathlib.Path:
+    return LAND_USE_CACHE_DIR / f"{pnu}.json"
+
+
+def _store_land_use_cache(pnu: str, result: dict) -> None:
+    try:
+        LAND_USE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        _land_use_cache_path(pnu).write_text(
+            json.dumps(
+                {
+                    "fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "result": result,
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    except OSError as error:
+        logger.warning("Could not cache land use for PNU %s: %s", pnu, error)
+
+
+def _load_land_use_cache(pnu: str) -> dict | None:
+    path = _land_use_cache_path(pnu)
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        logger.warning("Unreadable land use cache for PNU %s: %s", pnu, error)
+        return None
+    cached = payload.get("result")
+    if not isinstance(cached, dict) or not cached.get("zones"):
+        return None
+    logger.warning(
+        "Vworld unavailable; using the cached real land use for PNU %s "
+        "fetched at %s",
+        pnu,
+        payload.get("fetched_at"),
+    )
+    return dict(cached)
 
 
 def _fetch_land_use_attr(pnu: str) -> dict:

@@ -251,23 +251,72 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
     return tuple(records)
 
 
+def stratified_form_supply_order(
+    programs: tuple[GeometryProgram, ...] | list[GeometryProgram],
+) -> tuple[GeometryProgram, ...]:
+    """Reorder a supply so that any prefix of it still spans the bank.
+
+    A caller downstream of this bank never evaluates the whole supply: the
+    exact-compile cap truncates it to a head of a few dozen. In construction
+    order that head is not representative. Measured on page 0 (86 programs,
+    44 families): the first 20 hold only 18 distinct families because the
+    five-strong families repeat inside it, the four ``rare_unitbox_capability``
+    programs sit at indices 82-85, and the composition moves this project
+    actually needs - lift, terrace, setback, bridge, attached and overlapping
+    volumes - are scattered from 14 to 68. None of them were reachable.
+
+    Round-robining the family groups makes the head proportional instead:
+    every family contributes its first program before any family contributes
+    a second. Nothing is added, dropped or edited, and a caller that consumes
+    the whole supply sees the same set.
+    """
+
+    supply = tuple(programs)
+    groups: dict[str, list[GeometryProgram]] = {}
+    for program in supply:
+        # Grouping on the program's own declared family keeps this bank-driven:
+        # a new family joins the rotation without naming it here.
+        family = str(program.metadata.get("family") or "")
+        groups.setdefault(family, []).append(program)
+    ordered: list[GeometryProgram] = []
+    while groups:
+        for family in tuple(groups):
+            ordered.append(groups[family].pop(0))
+            if not groups[family]:
+                del groups[family]
+    return tuple(ordered)
+
+
 def universal_form_program_pages(
     variation_pages: tuple[int, ...] | list[int],
+    *,
+    envelope_conditioning: dict[str, Any] | None = None,
 ) -> tuple[GeometryProgram, ...]:
-    """Resolve a bounded ordered set of form-bank pages once for a caller."""
+    """Resolve a bounded ordered set of form-bank pages once for a caller.
+
+    The pages themselves stay exactly as generated and cached; supplying the
+    lawful field's proportion guidance only reorders them, so a caller with no
+    lawful context gets byte-identical supply.
+    """
 
     pages = tuple(sorted({
         max(0, min(7, int(page))) for page in variation_pages
     })) or (0,)
-    return tuple(
+    supply = tuple(
         program
         for page in pages
         for program in universal_form_programs(page)
     )
+    if not envelope_conditioning:
+        return supply
+    from .legal_envelope.supply_ranking import rank_programs_by_lawful_fit
+
+    return rank_programs_by_lawful_fit(supply, envelope_conditioning)
 
 
 __all__ = [
     "UNIVERSAL_FORM_BANK_SCHEMA",
+    "stratified_form_supply_order",
     "universal_form_bank_contract",
     "universal_form_program_pages",
     "universal_form_programs",

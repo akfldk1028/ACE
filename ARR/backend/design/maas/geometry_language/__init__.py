@@ -4,6 +4,7 @@ from .ast import GEOMETRY_PROGRAM_JSON_SCHEMA, GeometryIssue, GeometryNode, Geom
 from .base_seeds import BASE_SEED_SPECS, BaseSeedSpec, base_seed_catalog, base_seed_program, base_seed_programs, box_derived_base_seed_programs
 from .universal_form_bank import (
     UNIVERSAL_FORM_BANK_SCHEMA,
+    stratified_form_supply_order,
     universal_form_bank_contract,
     universal_form_program_pages,
     universal_form_programs,
@@ -40,7 +41,7 @@ from .floorwise_legal_program import (
 )
 from .gate import GeometryGatePolicy, compilation_gate
 from .loop import GeometryLoopCandidate, GeometryLoopResult, run_geometry_program_a2a_loop
-from .llm_adapter import GeometryAuthorError, author_geometry_programs_with_openai, geometry_programs_from_author_payload
+from .llm_adapter import GeometryAuthorError, author_geometry_programs_with_openai, geometry_author_validation_context, geometry_programs_from_author_payload
 from .mutation import (
     CompilerSafeMutationResult,
     GeometryEdit,
@@ -109,6 +110,7 @@ __all__ = [
     "base_seed_programs",
     "box_derived_base_seed_programs",
     "UNIVERSAL_FORM_BANK_SCHEMA",
+    "stratified_form_supply_order",
     "universal_form_bank_contract",
     "universal_form_program_pages",
     "universal_form_programs",
@@ -127,6 +129,7 @@ __all__ = [
     "floorwise_source_to_geometry_program",
     "geometry_equivalent",
     "geometry_programs_from_author_payload",
+    "geometry_author_validation_context",
     "l_mass_difference_program",
     "openai_vlm_geometry_critic",
     "normalize_unitbox_program",

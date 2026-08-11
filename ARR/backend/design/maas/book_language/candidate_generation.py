@@ -25,6 +25,7 @@ from design.maas.geometry_language import (
     GeometryProgram,
     apply_book_projection_to_geometry_program,
     apply_capacity_composition_to_geometry_program,
+    stratified_form_supply_order,
     universal_form_program_pages,
     apply_geometry_edits_compiler_safe,
     architectural_shape_programs,
@@ -1229,9 +1230,27 @@ def _agent_mutated_seeds(
     requested_universal_pages = tuple(sorted({
         max(0, min(7, int(page))) for page in universal_variation_pages
     })) or (0,)
-    universal_programs = universal_form_program_pages(requested_universal_pages)
-    for source_index, source in enumerate(tuple(originals.values())[:2]):
+    # Supply ordering was measured twice and is not a quality lever: nearest-
+    # proportion order lifted program-gate throughput by a third while narrowing
+    # the selected portfolio's aspect spread, and dispersed order cut throughput
+    # without recovering it.  The conditioning modules remain available; the
+    # pipeline stays on unordered supply until something proves otherwise.
+    # The cross product below is truncated downstream by the exact-compile cap,
+    # so its *order* is the portfolio's whole diversity budget. Built source-
+    # major over the bank's construction order it delivered a head of one
+    # program seed crossed with the first ~20 forms: the third cultural seed
+    # never appeared, the four rare (elliptical/triangular) forms sat at 82-85,
+    # and lift/terrace/setback/bridge were scattered past the cut. Form-major
+    # over a family-stratified supply, with the program seed rotating, makes
+    # any head span both axes. Every pairing that existed still exists.
+    universal_programs = stratified_form_supply_order(
+        universal_form_program_pages(requested_universal_pages)
+    )
+    source_seeds = tuple(originals.values())
+    for rotation in range(len(source_seeds)):
         for program_index, program in enumerate(universal_programs):
+            source_index = (program_index + rotation) % len(source_seeds)
+            source = source_seeds[source_index]
             payload = json.dumps(
                 program.to_dict(),
                 ensure_ascii=False,

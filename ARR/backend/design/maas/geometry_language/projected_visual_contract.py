@@ -930,7 +930,24 @@ def _validate_projected_visual_artifact_payload(
             actual_final_geometry_hash
             != str(certificate.get("final_geometry_hash") or "")
         ):
-            certificate_failures.append("final_geometry_hash")
+            # Both hashes run the identical canonical procedure (sort points,
+            # round to 5, sort faces, sha256), so a mismatch means the two
+            # sides hashed different meshes - not that they disagree on how to
+            # hash one. Carry both, and the Z extent of what was hashed, so the
+            # next run says which mesh drifted instead of costing another 24
+            # minutes to reach this line again.
+            hashed_z = [
+                float(vertex[2])
+                for triangle in authority_triangles
+                for vertex in triangle["vertices_m"]
+            ]
+            certificate_failures.append(
+                "final_geometry_hash"
+                f"[recomputed={actual_final_geometry_hash[:12]}"
+                f" certificate={str(certificate.get('final_geometry_hash') or '')[:12]}"
+                f" hashed_z=[{min(hashed_z):.4f},{max(hashed_z):.4f}]"
+                f" height_m={certificate.get('physical_height_m')}]"
+            )
         if (
             actual_surface_hash
             != str(certificate.get("final_surface_payload_hash") or "")

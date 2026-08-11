@@ -617,6 +617,7 @@ def materialize_floorwise_legal_source(
     *,
     legal_sections: tuple[Polygon, ...],
     target_plan_coverage: float,
+    coverage_capacity_m2: float | None = None,
     site_access_side: str = "closed",
     floor_capacity_plan_hash: str = "",
     legal_floor_field_hash: str = "",
@@ -795,11 +796,27 @@ def materialize_floorwise_legal_source(
         for _source_plan, _legal, _profile_ratio, planned_area
         in prepared_floors
     )
+    # 건축면적 is the building's horizontal projection (건축법 시행령 제119조
+    # 제1항 제2호), so the coverage limit bounds every plate. Without it here
+    # the plate cap is the legal section - the sunlight envelope, 1922 m2 on
+    # PNU 4115011300106840001 against a 499.938 m2 coverage capacity - and the
+    # ground design cap below could reach `legal.area * coverage`, i.e. 1826.
+    # The affine placement path was bounded in 289084c; this is the repair path
+    # that serves every candidate whose placement fails.
+    plate_capacity = (
+        float(coverage_capacity_m2)
+        if coverage_capacity_m2 is not None
+        and isfinite(float(coverage_capacity_m2))
+        and float(coverage_capacity_m2) > 1e-9
+        else None
+    )
     legal_floor_caps = tuple(
             # The caller's planned target already carries its utilization
             # band. Retry targets may use the remaining legal plate; exact
             # polygon containment below remains the geometric authority.
             float(legal.area)
+            if plate_capacity is None
+            else min(float(legal.area), plate_capacity)
             for _source_plan, legal, _profile_ratio, _planned_area
             in prepared_floors
     )

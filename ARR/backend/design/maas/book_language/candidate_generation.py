@@ -4415,6 +4415,9 @@ def _materialize_directed_geometry(
             authored_source,
             legal_sections=legal_sections,
             target_plan_coverage=minimum_host_plan_coverage,
+            coverage_capacity_m2=(
+                coverage_capacity_m2 if coverage_capacity_m2 > 1e-9 else None
+            ),
             site_access_side=site_access_side,
             floor_capacity_plan_hash=floor_capacity_plan_hash,
             legal_floor_field_hash=legal_floor_field_hash,

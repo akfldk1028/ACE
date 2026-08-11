@@ -10,6 +10,7 @@ from .creative_family_contract import (
     CreativeRecipeContext,
     CreativeRecipeResult,
 )
+from .creative_book_supply import creative_book_schedule
 
 
 CAPACITY_BANDS = (
@@ -141,22 +142,45 @@ def balanced_family_schedule(
         for family_index in range(len(specs))
     )
     schedule: list[CreativeFamilyScheduleItem] = []
+    book_schedule = creative_book_schedule(requested_count)
     for variation_index in range(max(quotas, default=0)):
         for family_index, spec in enumerate(specs):
             if variation_index >= quotas[family_index]:
                 continue
             schedule_index = len(schedule)
+            book_assignment = book_schedule[schedule_index]
+            # The BOOK schedule labels its assignments by position, and this
+            # loop walks families in registry order, so taking the scope from
+            # position pins family i to scope i mod 6 - permanently. With 15
+            # families against 6 scopes that left every family seeing only two
+            # scopes and every scope seeing five of fifteen families: two
+            # thirds of the family x scope grid was never generated at all.
+            # Offsetting by the variation index walks the whole grid instead,
+            # and stays fully deterministic.
+            scope_label = BOOK_SCOPE_LABELS[
+                (family_index + variation_index) % len(BOOK_SCOPE_LABELS)
+            ]
             schedule.append(
                 CreativeFamilyScheduleItem(
                     spec=spec,
                     context=CreativeRecipeContext(
                         variation_index=variation_index,
-                        book_scope_label=BOOK_SCOPE_LABELS[
-                            schedule_index % len(BOOK_SCOPE_LABELS)
-                        ],
+                        book_scope_label=scope_label,
                         capacity_band=CAPACITY_BANDS[
                             schedule_index % len(CAPACITY_BANDS)
                         ],
+                        book_principle_id=(
+                            book_assignment.principle_id
+                        ),
+                        book_principle_kind=(
+                            book_assignment.principle_kind
+                        ),
+                        book_execution_verbs=(
+                            book_assignment.execution_verbs
+                        ),
+                        book_aggregation_methods=(
+                            book_assignment.aggregation_methods
+                        ),
                     ),
                 )
             )

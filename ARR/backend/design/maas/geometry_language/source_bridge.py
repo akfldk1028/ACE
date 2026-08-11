@@ -883,6 +883,32 @@ def materialize_floorwise_legal_source(
             for source_plan, _legal, _profile, _planned in prepared_floors
         ),
     )
+    if plate_capacity is not None:
+        # 건축면적 is the projection of the whole building - the union of the
+        # plates, not any one of them. Capping each plate does not cap their
+        # union: this path places floors that are laterally shifted relative
+        # to one another, so three 400 m2 plates project to well over 800, and
+        # capping plates alone left 17 of 30 masses over the limit with the
+        # numbers byte-identical.
+        #
+        # One global plan-linear transform serves the whole body here, so the
+        # projected union is exactly linear in this area scale product and the
+        # bound is closed form, the same way it is in the affine placement
+        # path.
+        source_projection_area = float(
+            unary_union(viable_source_sections).area
+        )
+        if source_projection_area <= 1e-9:
+            _record_terminal_failure(
+                terminal_failure_sink,
+                "floor_affine_fit",
+                failure_reason="empty_source_plan_projection",
+            )
+            return None
+        global_area_scale_product = min(
+            global_area_scale_product,
+            plate_capacity / source_projection_area,
+        )
     if global_area_scale_product <= 0.0:
         _record_terminal_failure(
             terminal_failure_sink,

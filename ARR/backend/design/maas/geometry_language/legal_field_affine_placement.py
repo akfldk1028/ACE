@@ -10,9 +10,11 @@ is a hard placement constraint.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 import hashlib
 import json
+import os
 from math import atan2, degrees, isfinite, sqrt
 from typing import Any
 
@@ -50,6 +52,12 @@ from .source_bridge import (
 )
 
 
+# Pose screening is GEOS/NumPy bound and releases the GIL, so threads help
+# without process overhead. Held below the core count so a benchmark run
+# does not starve the rest of the pipeline.
+_POSE_WORKERS = max(1, min(8, (os.cpu_count() or 2) - 1))
+
+
 @dataclass(frozen=True)
 class LegalFieldAffineSelection:
     fit: HostFitTransform
@@ -83,6 +91,7 @@ def select_legal_field_affine_projection(
     target_floor_areas_m2: tuple[float, ...],
     floor_capacity_plan_hash: str,
     aggregate_target_area_m2: float | None = None,
+    coverage_capacity_m2: float | None = None,
     maximum_exact_candidates: int = 4,
     minimum_aggregate_target_ratio: float = 0.995,
 ) -> LegalFieldAffineSelection | None:
@@ -141,6 +150,13 @@ def select_legal_field_affine_projection(
         legal_sections=legal_sections,
         aggregate_target=aggregate_target,
         minimum_aggregate_target_ratio=minimum_target_ratio,
+        coverage_capacity=(
+            float(coverage_capacity_m2)
+            if coverage_capacity_m2 is not None
+            and isfinite(float(coverage_capacity_m2))
+            and float(coverage_capacity_m2) > 1e-9
+            else None
+        ),
     )
     if not alternatives:
         return None
@@ -405,6 +421,7 @@ def _screen_affine_alternatives(
     legal_sections: tuple[Polygon, ...],
     aggregate_target: float,
     minimum_aggregate_target_ratio: float,
+    coverage_capacity: float | None = None,
 ) -> tuple[_ScreenedAlternative, ...]:
     bounds = (compilation.metrics or {}).get("bounds") or ()
     min_z = float(bounds[0][2])
@@ -460,10 +477,25 @@ def _screen_affine_alternatives(
     alternatives: list[_ScreenedAlternative] = []
     seen_hashes: set[str] = set()
 
-    for orientation_degrees in (0, 90, 180, 270):
+    # Each pose is independent and touches nothing shared, and the work inside
+    # it is GEOS and NumPy, which drop the GIL. Evaluating the poses on a thread
+    # pool therefore costs nothing in correctness: results are consumed in the
+    # original iteration order below, so the deduplication and the returned set
+    # are identical to the sequential version.
+    pose_grid = tuple(
+        (orientation_degrees, anisotropy, shear_factor)
+        for orientation_degrees in (0, 90, 180, 270)
+        for anisotropy in anisotropies
+        for shear_factor in shear_factors
+    )
+
+    def _evaluate_pose(
+        pose: tuple[int, float, float],
+    ) -> tuple[str, Any] | None:
+        orientation_degrees, anisotropy, shear_factor = pose
         target_angle = legal_angle + float(orientation_degrees)
-        for anisotropy in anisotropies:
-            for shear_factor in shear_factors:
+        if True:
+            if True:
                 def matrix_at(scale_multiplier: float) -> Matrix4:
                     return _pose_matrix(
                         source_sections=source_sections,
@@ -486,17 +518,37 @@ def _screen_affine_alternatives(
                     source_z_span=z_span,
                 )
                 if seed_sections is None:
-                    continue
+                    return None
+                seed_union = unary_union(seed_sections)
                 _seed_angle, seed_long, seed_short = _principal_frame(
-                    unary_union(seed_sections).convex_hull
+                    seed_union.convex_hull
                 )
                 if min(seed_long, seed_short) <= 1e-9:
-                    continue
+                    return None
                 scale_upper = max(
                     1.0,
                     legal_long / seed_long,
                     legal_short / seed_short,
                 )
+                # 건축면적 is the building's horizontal projection (건축법 시행령
+                # 제119조 제1항 제2호) and the coverage limit bounds it. The pose
+                # scales the body in plan and only translates it otherwise, so
+                # that projection is exactly quadratic in the multiplier and the
+                # bound is closed form. Without it the search aims only at the
+                # sunlight envelope - measured on PNU 4115011300106840001, 23 of
+                # 28 archived masses covered more than the 499.938 m2 limit, up
+                # to 1.94x, and the downstream `bcr_limit_exceeded` gate threw
+                # them away after a full legal materialization each.
+                if coverage_capacity is not None:
+                    seed_coverage = float(seed_union.area)
+                    if seed_coverage <= 1e-9:
+                        return None
+                    scale_upper = min(
+                        scale_upper,
+                        sqrt(coverage_capacity / seed_coverage),
+                    )
+                    if scale_upper <= 1e-9:
+                        return None
                 maximum_contained = _maximum_contained_scale_multiplier(
                     matrix_at,
                     source_band_meshes=source_band_meshes,
@@ -504,7 +556,7 @@ def _screen_affine_alternatives(
                     scale_upper=scale_upper,
                 )
                 if maximum_contained is None:
-                    continue
+                    return None
                 if minimum_aggregate_target_ratio >= 0.985:
                     minimum_required = _minimum_scale_multiplier(
                         matrix_at,
@@ -519,18 +571,15 @@ def _screen_affine_alternatives(
                         minimum_required is None
                         or minimum_required > maximum_contained + 1e-7
                     ):
-                        continue
+                        return None
                     scale_multiplier = minimum_required
                 else:
                     scale_multiplier = maximum_contained
                 if scale_multiplier <= 1e-9:
-                    continue
+                    return None
                 matrix = matrix_at(scale_multiplier)
                 area_factor = scale_multiplier * scale_multiplier
                 matrix_hash = _matrix_hash(matrix)
-                if matrix_hash in seen_hashes:
-                    continue
-                seen_hashes.add(matrix_hash)
                 screened = _screen_matrix(
                     matrix,
                     source_sections=source_sections,
@@ -548,8 +597,25 @@ def _screen_affine_alternatives(
                     shear_factor=shear_factor,
                     matrix_hash=matrix_hash,
                 )
-                if screened is not None:
-                    alternatives.append(screened)
+                return (matrix_hash, screened)
+
+    if len(pose_grid) > 1:
+        with ThreadPoolExecutor(
+            max_workers=min(len(pose_grid), _POSE_WORKERS)
+        ) as pool:
+            pose_results = list(pool.map(_evaluate_pose, pose_grid))
+    else:
+        pose_results = [_evaluate_pose(pose) for pose in pose_grid]
+
+    for result in pose_results:
+        if result is None:
+            continue
+        matrix_hash, screened = result
+        if matrix_hash in seen_hashes:
+            continue
+        seen_hashes.add(matrix_hash)
+        if screened is not None:
+            alternatives.append(screened)
     alternatives.sort(key=lambda item: (
         item.profile_distortion,
         -item.minimum_floor_retention,
@@ -846,10 +912,11 @@ def _general_bands_contained(
         projected = source[:, :3] @ projection_matrix + translation
         triangle_coordinates = projected[triangle_indices]
         triangle_polygons = shapely.polygons(triangle_coordinates)
-        usable = np.logical_and(
-            shapely.is_valid(triangle_polygons),
-            shapely.area(triangle_polygons) > 1e-12,
-        )
+        # A ring of three finite points cannot self-intersect, so the only way
+        # such a polygon is invalid is degeneracy, which the area floor already
+        # removes. Dropping the validity pass removes one whole GEOS traversal
+        # from the innermost containment bisection.
+        usable = shapely.area(triangle_polygons) > 1e-12
         if not bool(np.any(usable)):
             return False
         if not bool(np.all(shapely.covers(
@@ -877,7 +944,10 @@ def _minimum_scale_multiplier(
         aggregate_target / 0.985,
     )
 
+    placement_valid = True
+
     def achieved(scale_multiplier: float) -> float:
+        nonlocal placement_valid
         placed = _placed_sections(
             matrix_at(scale_multiplier),
             source_sections=source_sections,
@@ -885,11 +955,23 @@ def _minimum_scale_multiplier(
             source_z_span=source_z_span,
         )
         if placed is None:
+            placement_valid = False
             return 0.0
+        placement_valid = True
         return sum(
             float(source.intersection(legal).area)
             for source, legal in zip(placed, legal_sections)
         )
+
+    # The intersected area only grows with scale, so if the largest pose in the
+    # search range still falls short, nothing smaller can reach the target. The
+    # sweep below would spend twelve evaluations discovering that, and on this
+    # parcel 85% of poses take exactly that path. Check the top once instead.
+    # `achieved` reports 0.0 for a failed placement rather than a small area, so
+    # only conclude from a pose that actually placed; the rest fall through to
+    # the unchanged sweep.
+    if achieved(scale_upper) + 1e-7 < required and placement_valid:
+        return None
 
     sample_count = 12
     lower = 0.0

@@ -4036,6 +4036,7 @@ def _materialize_directed_geometry(
     capacity_composition_utilizations: tuple[float, float] | None = None,
     floor_capacity_plan_hash: str = "",
     target_floor_areas_m2: tuple[float, ...] = (),
+    coverage_capacity_m2: float = 0.0,
     building_type: str = "",
     site_access_side: str = "closed",
     pnu: str = "",
@@ -4328,6 +4329,15 @@ def _materialize_directed_geometry(
         target_floor_areas_m2=target_floor_areas_m2,
         floor_capacity_plan_hash=floor_capacity_plan_hash,
         aggregate_target_area_m2=sum(target_areas),
+        # 건축면적 - the building's horizontal projection - is what the coverage
+        # limit bounds (건축법 시행령 제119조 제1항 제2호). Without it here the
+        # pose search aims only at the sunlight envelope and overshoots: 23 of
+        # 28 archived masses on PNU 4115011300106840001 covered more than the
+        # 499.938 m2 limit, up to 1.94x, each costing a full legal
+        # materialization before `bcr_limit_exceeded` discarded it downstream.
+        coverage_capacity_m2=(
+            coverage_capacity_m2 if coverage_capacity_m2 > 1e-9 else None
+        ),
         maximum_exact_candidates=4,
         # This selector is an acceptance path, not a loose morphology probe.
         # Returning a 35%-of-target affine body suppresses the capacity-aware
@@ -6390,6 +6400,12 @@ def _program_pool_single_phase(
                         legal_fit_failure_sink=legal_fit_deficits,
                         terminal_failure_sink=candidate_terminal_failures,
                         target_floor_areas_m2=floor_targets,
+                        coverage_capacity_m2=float(
+                            (trusted_legal_floor_field or {}).get(
+                                "bcr_footprint_capacity_m2"
+                            )
+                            or 0.0
+                        ),
                         pnu=pnu,
                         capacity_alternative_id=str(
                             capacity_alternative.get(

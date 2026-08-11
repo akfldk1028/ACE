@@ -19,6 +19,7 @@ from .programs import (
     architectural_shape_programs,
     rare_unitbox_capability_programs,
 )
+from .stacked_volume_bank import stacked_volume_programs
 from .synthesis import synthesize_architectural_programs
 from .typology_priors import TYPOLOGY_PRIORS
 
@@ -87,6 +88,12 @@ def universal_form_bank_contract() -> dict[str, Any]:
         "executable_core_lane_program_count": len(architectural_shape_programs()),
         "rare_unitbox_capability_parent_count": len(
             rare_unitbox_capability_programs()
+        ),
+        "multi_volume_lane_program_count": len(stacked_volume_programs(0)),
+        "multi_volume_lane": (
+            "stacked_offset_volumes", "stacked_alternating_volumes",
+            "lifted_stack_volumes", "plinth_and_upper_volumes",
+            "twin_volume_bridge", "pinwheel_volumes",
         ),
         "executable_core_lane": (
             "bent_linear", "radial_fan", "l_mass", "u_mass", "courtyard",
@@ -207,6 +214,15 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
             (program, "rare_unitbox_capability")
             for program in rare_unitbox_capability_programs()
         )
+        # The other three lanes are a one-body language: 80 of the 86 page-zero
+        # programs are a single box with one modifier, so every selected mass
+        # could only ever read as one solid carved by the legal envelope. This
+        # lane supplies the relations between repeated volumes that the rest
+        # of the bank cannot express.
+        multi_volume_lane = tuple(
+            (program, "multi_volume_composition")
+            for program in stacked_volume_programs(page)
+        )
         interleaved: list[tuple[GeometryProgram, str]] = []
         synthesis_tail = synthesis_lane[3:]
         for index in range(max(len(synthesis_tail), len(core_lane))):
@@ -218,9 +234,16 @@ def universal_form_programs(variation_page: int = 0) -> tuple[GeometryProgram, .
             *synthesis_lane[:3],
             *interleaved,
             *rare_capability_lane,
+            *multi_volume_lane,
         )
     else:
-        lanes = synthesis_lane
+        lanes = (
+            *synthesis_lane,
+            *tuple(
+                (program, "multi_volume_composition")
+                for program in stacked_volume_programs(page)
+            ),
+        )
     records: list[GeometryProgram] = []
     seen_hashes: set[str] = set()
     for program, lane in lanes:
@@ -267,8 +290,11 @@ def stratified_form_supply_order(
 
     Round-robining the family groups makes the head proportional instead:
     every family contributes its first program before any family contributes
-    a second. Nothing is added, dropped or edited, and a caller that consumes
-    the whole supply sees the same set.
+    a second. Within a round the lanes are then spread by fair share, because
+    family order alone still stacked a whole lane at the back - the
+    multi-volume families are declared last, so they landed at 44-49 of a
+    supply that is only read ~21 deep. Nothing is added, dropped or edited,
+    and a caller that consumes the whole supply sees the same set.
     """
 
     supply = tuple(programs)
@@ -278,13 +304,45 @@ def stratified_form_supply_order(
         # a new family joins the rotation without naming it here.
         family = str(program.metadata.get("family") or "")
         groups.setdefault(family, []).append(program)
+    lane_rank: dict[str, int] = {}
+    for program in supply:
+        lane_rank.setdefault(str(program.metadata.get("form_bank_lane") or ""),
+                             len(lane_rank))
+
     ordered: list[GeometryProgram] = []
     while groups:
+        round_programs = [groups[family].pop(0) for family in tuple(groups)]
         for family in tuple(groups):
-            ordered.append(groups[family].pop(0))
             if not groups[family]:
                 del groups[family]
+        ordered.extend(_lane_fair_share(round_programs, lane_rank))
     return tuple(ordered)
+
+
+def _lane_fair_share(
+    round_programs: list[GeometryProgram],
+    lane_rank: dict[str, int],
+) -> list[GeometryProgram]:
+    """Spread one round's programs so each lane is even across its length.
+
+    A lane holding 6 of 50 families should appear about every eighth program,
+    not as a block. Each entry is placed at its own fractional midpoint within
+    its lane, which is what makes any prefix proportional in lane too.
+    """
+
+    lane_totals: dict[str, int] = {}
+    for program in round_programs:
+        lane = str(program.metadata.get("form_bank_lane") or "")
+        lane_totals[lane] = lane_totals.get(lane, 0) + 1
+    seen: dict[str, int] = {}
+    keyed = []
+    for position, program in enumerate(round_programs):
+        lane = str(program.metadata.get("form_bank_lane") or "")
+        index = seen.get(lane, 0)
+        seen[lane] = index + 1
+        share = (index + 0.5) / lane_totals[lane]
+        keyed.append((share, lane_rank.get(lane, 0), position, program))
+    return [program for _share, _rank, _position, program in sorted(keyed)]
 
 
 def universal_form_program_pages(

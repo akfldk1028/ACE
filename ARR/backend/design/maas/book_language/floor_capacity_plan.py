@@ -22,6 +22,12 @@ from design.maas.floor_viability import (
 )
 from design.maas.program_massing.profiles import resolve_program_profile
 
+from design.maas.design_space import (
+    CoverageBand,
+    coverage_band as resolve_coverage_band,
+    plan_area_for_band,
+)
+
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
 from .legal_floor_field import materialize_legal_floor_field
 
@@ -38,10 +44,24 @@ def derive_program_floor_capacity_plan(
     brief_height_cap_m: float | None = None,
     dimensional_context: Mapping[str, Any] | None = None,
     legacy_floor_hint: int | None = None,
+    coverage_band: CoverageBand | str | None = None,
     pnu: str = "",
 ) -> dict[str, Any]:
-    """Derive occupiable floors and per-floor GFA targets from the live law field."""
+    """Derive occupiable floors and per-floor GFA targets from the live law field.
 
+    `coverage_band` decides how much ground the proposal takes, and the stack
+    follows it: a plate bounded below the 건폐율 ceiling needs more floors to
+    carry the same area. Without a band each floor may take the whole ceiling,
+    the shortest stack that reaches capacity wins, and every proposal comes out
+    at maximum coverage - 86 of 128 within one percent of it on PNU
+    4115011300106840001, which is one axis where the portfolio needs two.
+    """
+
+    resolved_coverage_band = (
+        None if coverage_band is None
+        else coverage_band if isinstance(coverage_band, CoverageBand)
+        else resolve_coverage_band(coverage_band)
+    )
     profile = resolve_program_profile(building_type)
     program_id = str(profile.get("id") or "generic")
     raw_range = profile.get("target_floor_range") or (1, 40)
@@ -169,7 +189,18 @@ def derive_program_floor_capacity_plan(
     # 4115011300106840001: caps [499.938, 1922.226, 1922.226] against a 1374.83
     # target produced [158.211, 608.310, 608.310] - a 4x cantilever whose 608
     # exceeds the 499.938 coverage cap - and every mass came out a plate.
-    floor_caps = [min(area, bcr_cap) for area in section_areas]
+    #
+    # The 건폐율 cap is a ceiling, not a target. Taking all of it on every floor
+    # is one proposal; holding the ground and going up is another, and the two
+    # differ in the plate a floor may take. Bounding the plate here is what
+    # makes the stack follow: the selection below picks the shortest stack that
+    # carries the capacity, so a smaller plate simply needs more floors.
+    plate_ceiling = (
+        bcr_cap
+        if resolved_coverage_band is None
+        else plan_area_for_band(bcr_cap, resolved_coverage_band)
+    )
+    floor_caps = [min(area, plate_ceiling) for area in section_areas]
     feasible_maximum = min(sum(floor_caps), far_cap)
     utilization = max(0.0, min(1.0, float(target_utilization)))
     target_gfa = feasible_maximum * utilization

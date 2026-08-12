@@ -446,3 +446,61 @@ class CoverageBoundsEveryPlateTests(SimpleTestCase):
                 plan["selected_stack_target_utilization"],
                 places=6,
             )
+
+
+class CoverageBandDrivesTheStackTests(SimpleTestCase):
+    """건폐율 is a ceiling to choose under, and the stack follows the choice.
+
+    Without a band each floor may take the whole ceiling, the shortest stack
+    that carries capacity wins, and every proposal comes out at maximum
+    coverage - 86 of 128 delivered masses within one percent of it on PNU
+    4115011300106840001. Bounding the plate is what lets a proposal hold the
+    ground and go up instead.
+    """
+
+    def _plan(self, band):
+        # The generation site must exceed the 건폐율 capacity, or the plate
+        # ceiling never binds and the test proves nothing: at 400 m2 of parcel
+        # and 60 percent the capacity is 240, so a section of 100 stays under
+        # every band. Sections of 400 put the ceiling in play.
+        context, site = _context(generation_site=box(0.0, 0.0, 20.0, 20.0))
+        return derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.6,
+            coverage_band=band,
+        )
+
+    def test_a_smaller_plate_is_carried_by_more_floors(self):
+        full = self._plan("full_ground")
+        dispersed = self._plan("dispersed_ground")
+
+        self.assertGreater(
+            int(dispersed["selected_floor_count"]),
+            int(full["selected_floor_count"]),
+        )
+
+    def test_a_smaller_plate_lowers_every_floor_target(self):
+        full = self._plan("full_ground")
+        dispersed = self._plan("dispersed_ground")
+
+        self.assertLess(
+            max(dispersed["target_floor_areas_m2"]),
+            max(full["target_floor_areas_m2"]),
+        )
+
+    def test_no_band_leaves_the_plan_as_it_was(self):
+        context, site = _context(generation_site=box(0.0, 0.0, 20.0, 20.0))
+        without = derive_program_floor_capacity_plan(
+            context,
+            site_local_utm=site,
+            building_type="cultural",
+            target_utilization=0.6,
+        )
+        full = self._plan("full_ground")
+
+        self.assertEqual(
+            without["selected_floor_count"],
+            full["selected_floor_count"],
+        )

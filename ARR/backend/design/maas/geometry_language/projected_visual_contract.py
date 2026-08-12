@@ -1936,8 +1936,13 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
                     f"surface_type={str(triangle.get('surface_type') or '')} "
                     f"role={str(triangle.get('role') or '')}"
                 )
-            clamped = min(1.0, max(0.0, float(z)))
-            vertices.append([float(x), float(y), clamped * height_m])
+            # Passed through unchanged, deliberately. Clamping the accepted
+            # epsilon to 0.0 rewrote the bytes this payload is hashed from, so
+            # the recomputed final_geometry_hash stopped matching the
+            # certificate that sealed the unclamped value and the publishable
+            # run died on identity instead. In a hash-identity pipeline,
+            # tidying a value is changing it.
+            vertices.append([float(x), float(y), float(z) * height_m])
         record["vertices_m"] = vertices
         metric.append(record)
     return {

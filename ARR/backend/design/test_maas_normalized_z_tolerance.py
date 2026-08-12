@@ -56,18 +56,24 @@ class NormalizedZToleranceTests(SimpleTestCase):
 
         self.assertTrue(payload)
 
-    def test_the_epsilon_never_reaches_the_metric_payload(self):
-        """Downstream sees a clean range, not the round-off that got in."""
+    def test_the_accepted_value_is_passed_through_untouched(self):
+        """Tidying it is changing it, and this payload is hashed.
 
-        payload = self._payload((-1e-17, 0.5, 1.0 + 1e-17))
+        Clamping the accepted epsilon to 0.0 rewrote the bytes the payload is
+        hashed from, so the recomputed final_geometry_hash stopped matching the
+        certificate that sealed the unclamped value, and the publishable run
+        died on identity instead of on Z.
+        """
+
+        epsilon = -1e-17
+        payload = self._payload((epsilon, 0.5, 1.0))
         zs = [
             vertex[2]
             for triangle in payload["triangles"]
             for vertex in triangle["vertices_m"]
         ]
 
-        self.assertGreaterEqual(min(zs), 0.0)
-        self.assertLessEqual(max(zs), HEIGHT_M)
+        self.assertAlmostEqual(epsilon * HEIGHT_M, min(zs), places=20)
 
     def test_a_source_in_metres_is_still_refused(self):
         """This is what the check exists to catch and it must keep catching it."""

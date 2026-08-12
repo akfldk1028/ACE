@@ -9,11 +9,16 @@ same projected footprint.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections import Counter
+import logging
 from time import perf_counter
 from dataclasses import dataclass, replace
 from math import isfinite
 from typing import Any, Iterable
+
+
+logger = logging.getLogger(__name__)
 
 from shapely.affinity import scale, translate
 from shapely.geometry import Point, Polygon
@@ -78,6 +83,26 @@ class CandidateDownstreamFloorContextError(ValueError):
             "failure_code": code,
             "publishable": False,
         }
+
+
+def _parking_layout_evidence(layout: dict[str, Any]) -> dict[str, Any]:
+    """Keep bounded solver evidence needed to diagnose a parking rejection."""
+
+    stalls = layout.get("stalls") if isinstance(layout.get("stalls"), list) else []
+    return {
+        "placement_mode": layout.get("placement_mode"),
+        "reason": layout.get("reason"),
+        "adjacency": deepcopy(layout.get("adjacency") or {}),
+        "drive_aisle_clearance": deepcopy(
+            layout.get("drive_aisle_clearance") or {}
+        ),
+        "turning_clearance": deepcopy(
+            layout.get("turning_clearance") or {}
+        ),
+        "grid_solver": deepcopy(layout.get("grid_solver") or {}),
+        "stall_count": len(stalls),
+        "stalls": deepcopy(stalls),
+    }
 
 
 def generation_site_at_height(
@@ -390,6 +415,14 @@ def evaluate_accepted_sources_downstream(
             or ()
         )
     )
+    capacity_failures = Counter(
+        reason
+        for row in rows
+        for reason in (
+            row.get("capacity_hard_gate", {}).get("failure_reasons")
+            or ()
+        )
+    )
     retentions = [float(row["legal_projection"]["volume_retention"]) for row in rows]
     return {
         "schema_version": "arr.maas.book_downstream_hard_gate.v1",
@@ -400,12 +433,19 @@ def evaluate_accepted_sources_downstream(
         "legal_hard_pass_count": sum(row["legal_projection"]["hard_pass"] for row in rows),
         "geometry_retention_pass_count": sum(row["legal_projection"]["geometry_retention_pass"] for row in rows),
         "parking_hard_pass_count": sum(row["parking_hard_gate"]["hard_pass"] for row in rows),
+        "capacity_hard_pass_count": sum(
+            row.get("capacity_hard_gate", {}).get("hard_pass", False)
+            for row in rows
+        ),
         "combined_hard_pass_count": sum(row["combined_hard_pass"] for row in rows),
         "mean_volume_retention": round(sum(retentions) / len(retentions), 4) if retentions else 0.0,
         "minimum_volume_retention": round(min(retentions), 4) if retentions else 0.0,
         "legal_failure_reason_counts": dict(sorted(legal_failures.items())),
         "geometry_failure_reason_counts": dict(sorted(geometry_failures.items())),
         "parking_failure_reason_counts": dict(sorted(parking_failures.items())),
+        "capacity_failure_reason_counts": dict(
+            sorted(capacity_failures.items())
+        ),
         "semantic_failure_reason_counts": dict(
             sorted(semantic_failures.items())
         ),
@@ -427,6 +467,54 @@ def evaluate_accepted_sources_downstream(
         },
         "rows": rows,
     }
+
+
+# The layout engine's own review vocabulary, mirrored from
+# legal_mesh_optimizer's ranking of the same statuses. Anything outside this set
+# is refused rather than reviewed, so a new or misspelled status fails closed.
+PARKING_DESIGN_REVIEW_STATUSES = frozenset({
+    "needs_drive_connectivity_review",
+    "needs_aisle_review",
+    "needs_swept_path_review",
+    "needs_mechanical_parking_review",
+})
+
+
+def parking_layout_verdict(
+    *,
+    layout_status: Any,
+    required_spaces: int,
+    provided_spaces: int,
+) -> tuple[list[str], list[str]]:
+    """Split a non-passing parking layout into violations and design reviews.
+
+    The layout engine already makes this distinction and this gate was
+    collapsing it. `fail` is what `parking_layout.py` returns when the required
+    count cannot be met. The `needs_*_review` statuses are returned only when
+    the count *is* met by a strategy whose detail it does not draw - mechanical
+    parking says so in its own evidence: "mechanical equipment bay, pit, and
+    structural grid are not modeled". Mechanical parking is a lawful means under
+    주차장법, so reading "we did not model this" as "this is illegal" rejected
+    complying schemes: 5 of 12 selectable candidates on PNU 4115011300106840001,
+    every one of them with its required count satisfied.
+
+    The count stays a hard gate. A review status that has not met the count is
+    still a violation, and the review reason travels with the candidate instead
+    of being dropped.
+    """
+
+    status = str(layout_status or "missing")
+    failures: list[str] = []
+    reviews: list[str] = []
+    count_met = int(provided_spaces) >= int(required_spaces)
+    if status != "pass":
+        if status in PARKING_DESIGN_REVIEW_STATUSES and count_met:
+            reviews.append(f"parking_layout_{status}")
+        else:
+            failures.append(f"parking_layout_{status}")
+    if not count_met:
+        failures.append("parking_spaces_below_required")
+    return failures, reviews
 
 
 def _candidate_downstream_dimensions(
@@ -502,8 +590,10 @@ def _evaluate_candidate(
     ) = _final_source_geometry_identity(source)
     authored_visual_failures: list[str] = list(final_authority_failures)
     if (
-        source.metadata.get("geometry_authority")
-        != "final_floorwise_legal_geometry_program"
+        source.metadata.get("geometry_authority") not in {
+            "authored_projected_surface_payload",
+            "authored_compiled_surface_payload",
+        }
         and any(
             str(getattr(surface, "surface_type", "") or "").startswith(
                 "profiled_"
@@ -714,14 +804,18 @@ def _evaluate_candidate(
     required = requirement.get("required_spaces")
     provided = int(layout.get("provided_spaces") or 0)
     parking_failures = []
+    parking_reviews: list[str] = []
     parking_failures.extend(final_authority_failures)
     if str(requirement.get("status") or "") not in {"computed", "computed_estimate"} or not isinstance(required, int):
         parking_failures.append("parking_requirement_unresolved")
     if isinstance(required, int) and required > 0:
-        if layout.get("status") != "pass":
-            parking_failures.append(f"parking_layout_{layout.get('status') or 'missing'}")
-        if provided < required:
-            parking_failures.append("parking_spaces_below_required")
+        layout_failures, layout_reviews = parking_layout_verdict(
+            layout_status=layout.get("status"),
+            required_spaces=required,
+            provided_spaces=provided,
+        )
+        parking_failures.extend(layout_failures)
+        parking_reviews.extend(layout_reviews)
     parking_duration = perf_counter() - parking_phase_started
     legal_post_parking_started = perf_counter()
 
@@ -737,10 +831,24 @@ def _evaluate_candidate(
         capacity_projection,
         capacity_measurement=capacity_measurement,
     )
+    capacity_hard_pass = bool(
+        capacity_resolution.get("resolved_capacity_hard_pass")
+    )
+    capacity_hard_gate = {
+        **capacity_projection,
+        "measurement": capacity_measurement,
+        **capacity_resolution,
+        "evaluated": bool(capacity_projection or capacity_measurement),
+        "hard_pass": capacity_hard_pass,
+        "failure_reasons": (
+            []
+            if capacity_hard_pass
+            else ["resolved_capacity_hard_pass_failed"]
+        ),
+    }
     shared_floor_gate = resolve_shared_floor_contract_hard_gate(
         shared_floor_contract
     )
-    legal_failures.extend(shared_floor_gate["failure_reasons"])
     legal_hard_pass = not legal_failures
     semantic_projection_hard_gate = audit_source_semantic_projection(
         source,
@@ -785,6 +893,65 @@ def _evaluate_candidate(
     semantic_hard_pass = bool(
         semantic_projection_hard_gate.get("hard_pass")
     )
+    containment_reasons = [
+        reason for reason in legal_failures
+        if reason in {
+            "empty_after_legal_projection",
+            "authored_mass_outside_legal_envelope",
+        }
+    ]
+    structural_reasons = list(dict.fromkeys(
+        list(final_authority_failures)
+        + [
+            reason for reason in legal_failures
+            if reason.startswith("authored_visual_")
+        ]
+    ))
+    height_reasons = [
+        reason for reason in legal_failures
+        if reason == "height_limit_exceeded"
+    ]
+    bcr_reasons = [
+        reason for reason in legal_failures
+        if reason == "bcr_limit_exceeded"
+    ]
+    far_reasons = [
+        reason for reason in legal_failures
+        if reason == "far_limit_exceeded"
+    ]
+    statutory_component_evidence = {
+        "schema_version": "arr.maas.statutory_legal_components.v1",
+        "containment": {
+            "hard_pass": not containment_reasons,
+            "failure_reasons": containment_reasons,
+        },
+        "structural_surface_validity": {
+            "hard_pass": not structural_reasons,
+            "failure_reasons": structural_reasons,
+        },
+        "height": {
+            "hard_pass": not height_reasons,
+            "failure_reasons": height_reasons,
+            "measured_m": original_metrics["height_m"],
+            "limit_m": envelope.height_limit,
+        },
+        "bcr": {
+            "hard_pass": not bcr_reasons,
+            "failure_reasons": bcr_reasons,
+            "measured_pct": original_metrics["bcr_pct"],
+            "limit_pct": envelope.bcr_limit,
+        },
+        "far": {
+            "hard_pass": not far_reasons,
+            "failure_reasons": far_reasons,
+            "measured_pct": original_metrics["far_pct"],
+            "limit_pct": envelope.far_limit,
+        },
+        "statutory_law_graph": {
+            "hard_pass": legal_hard_pass,
+            "failure_reasons": list(legal_failures),
+        },
+    }
     legal_duration = (
         legal_pre_parking_duration
         + perf_counter() - legal_post_parking_started
@@ -810,16 +977,61 @@ def _evaluate_candidate(
             shared_floor_gate["failure_reasons"]
         ),
         "geometry_hash": final_geometry_hash,
+        "component_evidence": statutory_component_evidence,
+        "diagnostic_evidence": {
+            "geometry_retention": {
+                "hard_pass": geometry_retention_pass,
+                "failure_reasons": list(geometry_failures),
+            },
+            "shared_floor": {
+                "hard_pass": bool(shared_floor_gate.get("hard_pass")),
+                "failure_reasons": list(
+                    shared_floor_gate.get("failure_reasons") or ()
+                ),
+                "hard_gate": False,
+            },
+            "capacity": {
+                "hard_pass": capacity_hard_pass,
+                "failure_reasons": list(
+                    capacity_hard_gate.get("failure_reasons") or ()
+                ),
+                "hard_gate": False,
+            },
+            "semantic_program": {
+                "hard_pass": semantic_hard_pass,
+                "failure_reasons": list(
+                    semantic_projection_hard_gate.get("failures") or ()
+                ),
+                "hard_gate": False,
+            },
+        },
     }
     parking_hard_gate = {
         "evaluated": True,
         "hard_pass": parking_hard_pass,
         "failure_reasons": parking_failures,
+        "review_reasons": parking_reviews,
+        "requires_parking_design_review": bool(parking_reviews),
         "requirement": requirement,
         "selected_strategy": strategy.get("selected_strategy"),
         "layout_status": layout.get("status"),
         "required_spaces": required,
         "provided_spaces": provided,
+        "strategy_candidates": list(
+            strategy.get("strategy_candidates") or ()
+        ),
+        "strategy_basis": deepcopy(strategy.get("basis") or {}),
+        "site_access_side_in_program_frame": str(
+            (
+                source.metadata.get("program_context")
+                if isinstance(
+                    source.metadata.get("program_context"), dict
+                )
+                else {}
+            ).get("site_access_side_in_program_frame")
+            or "closed"
+        ),
+        "layout_evidence": _parking_layout_evidence(layout),
         "mass_stage_parking": dict(
             layout.get("mass_stage_parking") or {}
         ),
@@ -859,17 +1071,11 @@ def _evaluate_candidate(
                     "pnu": pnu,
                 },
                 "capacity": {
-                    **dict(source.metadata.get("capacity_alternative_projection") or {}),
-                    "measurement": dict(source.metadata.get("source_capacity_measurement") or {}),
+                    **capacity_hard_gate,
                     "shared_floor_contract": dict(shared_floor_contract or {}),
                     "floor_contract_hash": str(
                         (shared_floor_contract or {}).get("floor_contract_hash") or ""
                     ),
-                    "evaluated": bool(
-                        source.metadata.get("capacity_alternative_projection")
-                        or source.metadata.get("source_capacity_measurement")
-                    ),
-                    "hard_pass": (source.metadata.get("source_capacity_measurement") or {}).get("hard_pass"),
                 },
                 "law": legal_projection,
                 "parking": parking_hard_gate,
@@ -892,15 +1098,24 @@ def _evaluate_candidate(
         "projected_metrics": projected_metrics,
         "legal_projection": legal_projection,
         "parking_hard_gate": parking_hard_gate,
+        "capacity_hard_gate": capacity_hard_gate,
         "semantic_projection_hard_gate": semantic_projection_hard_gate,
         "render_evidence": render_evidence,
         "mass_execution_passport": mass_execution_passport,
         "combined_hard_pass": bool(
             legal_hard_pass
-            and geometry_retention_pass
             and parking_hard_pass
-            and semantic_hard_pass
         ),
+        "release_component_evidence": {
+            "statutory_legal": statutory_component_evidence,
+            "parking": deepcopy(parking_hard_gate),
+            "capacity_diagnostic": deepcopy(capacity_hard_gate),
+            "shared_floor_diagnostic": deepcopy(shared_floor_gate),
+            "semantic_program_diagnostic": deepcopy(
+                semantic_projection_hard_gate
+            ),
+            "program_and_capacity_are_not_release_hard_gates": True,
+        },
         "phase_durations_seconds": {
             "law": max(legal_duration, 1e-9),
             "parking": max(parking_duration, 1e-9),
@@ -962,10 +1177,21 @@ def _final_source_geometry_identity(
     source: SourceMass,
 ) -> tuple[str, list[str], str, str, bool]:
     metadata = source.metadata if isinstance(source.metadata, dict) else {}
-    if (
-        metadata.get("geometry_authority")
-        != "final_floorwise_legal_geometry_program"
-    ):
+    if metadata.get("geometry_authority") in {
+        "final_floorwise_legal_geometry_program",
+        "final_floorwise_legal_geometry_authority",
+    }:
+        return (
+            "",
+            ["obsolete_geometry_authority_unmarked"],
+            "",
+            "",
+            False,
+        )
+    if metadata.get("geometry_authority") not in {
+        "authored_projected_surface_payload",
+        "authored_compiled_surface_payload",
+    }:
         return "", [], "", "", True
     bridge = (
         metadata.get("geometry_program_bridge_evidence")
@@ -984,34 +1210,26 @@ def _final_source_geometry_identity(
     )
     final_geometry_hash = str(metadata.get("final_geometry_hash") or "")
     final_program_hash = str(metadata.get("final_program_hash") or "")
-    render_geometry_hash = str(compilation.get("geometry_hash") or "")
+    authored_compilation_geometry_hash = str(
+        compilation.get("geometry_hash") or ""
+    )
+    certificate = metadata.get("authored_legal_projection_certificate")
+    certificate = certificate if isinstance(certificate, dict) else {}
+    bridge_certificate = bridge.get("authored_legal_projection_certificate")
+    bridge_certificate = (
+        bridge_certificate if isinstance(bridge_certificate, dict) else {}
+    )
+    render_geometry_hash = final_geometry_hash
     geometry_hashes = (
         final_geometry_hash,
         str(bridge.get("geometry_hash") or ""),
         str(projection.get("final_geometry_hash") or ""),
-        render_geometry_hash,
     )
     program_hashes = (
         final_program_hash,
         str(bridge.get("program_hash") or ""),
         str(projection.get("final_program_hash") or ""),
     )
-    shared_floor_contract = (
-        metadata.get("shared_floor_contract")
-        if isinstance(metadata.get("shared_floor_contract"), dict)
-        else {}
-    )
-    floor_identity = (
-        shared_floor_contract.get("identity")
-        if isinstance(shared_floor_contract.get("identity"), dict)
-        else {}
-    )
-    measured_geometry_hash = str(floor_identity.get("geometry_hash") or "")
-    if (
-        measured_geometry_hash
-        and measured_geometry_hash != "GEOMETRY_HASH_UNRESOLVED"
-    ):
-        geometry_hashes = (*geometry_hashes, measured_geometry_hash)
     failures: list[str] = []
     if (
         projection.get("hard_pass") is not True
@@ -1021,6 +1239,71 @@ def _final_source_geometry_identity(
         or any(value != final_program_hash for value in program_hashes)
     ):
         failures.append("final_source_hash_mismatch")
+    capacity_measurement = metadata.get("capacity_projection_measurement")
+    capacity_measurement = (
+        capacity_measurement
+        if isinstance(capacity_measurement, dict)
+        else {}
+    )
+    legal_floor_field_hash = str(
+        capacity_measurement.get("legal_floor_field_hash") or ""
+    )
+    projection_chain_ok = bool(
+        certificate.get("schema_version")
+        == "arr.maas.authored_legal_projection_certificate.v1"
+        and certificate.get("status") == "verified"
+        and certificate.get("hard_pass") is True
+        and certificate == bridge_certificate
+        and str(certificate.get("input_authored_program_hash") or "")
+        == str(bridge.get("post_book_authored_program_hash") or "")
+        == final_program_hash
+        and str(certificate.get("input_authored_geometry_hash") or "")
+        == str(bridge.get("post_book_authored_geometry_hash") or "")
+        == authored_compilation_geometry_hash
+        and str(certificate.get("legal_floor_field_hash") or "")
+        == legal_floor_field_hash
+        and len(legal_floor_field_hash) == 64
+        and str(certificate.get("projected_surface_hash") or "")
+        == final_geometry_hash
+        and str(certificate.get("projected_surface_payload_hash") or "")
+        == str(metadata.get("final_surface_payload_hash") or "")
+    )
+    if not projection_chain_ok:
+        logger.info(
+            "Authored legal projection chain mismatch: %s",
+            {
+                "certificate_equals_bridge": certificate == bridge_certificate,
+                "certificate_input_program_hash": str(
+                    certificate.get("input_authored_program_hash") or ""
+                ),
+                "bridge_post_book_authored_program_hash": str(
+                    bridge.get("post_book_authored_program_hash") or ""
+                ),
+                "final_program_hash": final_program_hash,
+                "certificate_input_geometry_hash": str(
+                    certificate.get("input_authored_geometry_hash") or ""
+                ),
+                "bridge_post_book_authored_geometry_hash": str(
+                    bridge.get("post_book_authored_geometry_hash") or ""
+                ),
+                "compilation_geometry_hash": authored_compilation_geometry_hash,
+                "certificate_legal_floor_field_hash": str(
+                    certificate.get("legal_floor_field_hash") or ""
+                ),
+                "measurement_legal_floor_field_hash": legal_floor_field_hash,
+                "certificate_projected_surface_hash": str(
+                    certificate.get("projected_surface_hash") or ""
+                ),
+                "final_geometry_hash": final_geometry_hash,
+                "certificate_projected_surface_payload_hash": str(
+                    certificate.get("projected_surface_payload_hash") or ""
+                ),
+                "final_surface_payload_hash": str(
+                    metadata.get("final_surface_payload_hash") or ""
+                ),
+            },
+        )
+        failures.append("authored_legal_projection_chain_mismatch")
     surfaces = tuple(source.surfaces or ())
     try:
         actual_surface_payload_hash = source_surface_payload_hash(surfaces)

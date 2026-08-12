@@ -456,6 +456,11 @@ def _apply_candidate_floor_prefix(
             ground_capacity_m2=ground_capacity,
             band=coverage_band,
         )
+        # Declared, not implied. The candidate floor authority re-derives this
+        # prefix from the trusted field and will only agree if it is told the
+        # same ground take; leaving it implicit is what made every banded
+        # candidate look like an invented prefix.
+        contract["coverage_band_id"] = coverage_band.band_id
     sections = list(legal_field.get("legal_floor_sections") or ())
     areas = [
         max(0.0, float(value))

@@ -21,6 +21,9 @@ from design.maas.book_language.capacity_alternatives import (
     build_capacity_alternative,
     capacity_contract_for_alternative,
 )
+from design.maas.book_language.candidate_floor_authority import (
+    _candidate_floor_context,
+)
 from design.maas.book_language.capacity_contract import (
     build_feasible_capacity_contract,
 )
@@ -172,6 +175,58 @@ class GroundTakeMovesTheStackTests(SimpleTestCase):
                     projected["candidate_target_reachable"],
                     f"{band.band_id}/{spec.alternative_id}",
                 )
+
+    def test_the_second_authority_agrees_with_the_banded_prefix(self):
+        """The prefix is re-derived, not believed - and must still agree.
+
+        `_candidate_floor_context` recomputes the minimum lawful prefix from the
+        trusted field so a candidate cannot invent its own stack. On the live
+        parcel this rejected every banded candidate: 24 of 30 masses died before
+        compiling and only full_ground survived, because full_ground is the one
+        band that leaves the plates untouched. The band has to reach both
+        authorities or it reaches neither.
+        """
+
+        field = self.contract["legal_floor_field"]
+        for band in COVERAGE_BANDS:
+            for spec in CAPACITY_ALTERNATIVE_SPECS:
+                projected = _projected(
+                    self.contract,
+                    band=band,
+                    alternative=spec.alternative_id,
+                )
+                context = _candidate_floor_context(
+                    projected,
+                    fallback_height=0.0,
+                    fallback_floors=0,
+                    trusted_legal_floor_field=field,
+                    expected_legal_floor_field_hash=str(
+                        field["legal_floor_field_hash"]
+                    ),
+                )
+                self.assertTrue(
+                    context.get("hard_pass"),
+                    f"{band.band_id}/{spec.alternative_id}: "
+                    f"{context.get('failure_reasons')}",
+                )
+
+    def test_a_forged_ground_take_is_refused(self):
+        """A band is a declaration, so the closed set is what keeps it honest."""
+
+        projected = _projected(self.contract, band=self.bands["dispersed_ground"])
+        field = self.contract["legal_floor_field"]
+        for forged in ("as_much_as_possible", "", 0.45):
+            projected["coverage_band_id"] = forged
+            context = _candidate_floor_context(
+                projected,
+                fallback_height=0.0,
+                fallback_floors=0,
+                trusted_legal_floor_field=field,
+                expected_legal_floor_field_hash=str(
+                    field["legal_floor_field_hash"]
+                ),
+            )
+            self.assertFalse(context.get("hard_pass"), forged)
 
     def test_a_tight_height_field_makes_the_scheme_smaller_not_impossible(self):
         """Four lawful floors cannot answer a 45% ground take by going up.

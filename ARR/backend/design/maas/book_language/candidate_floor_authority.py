@@ -13,6 +13,10 @@ from typing import Any, Callable
 
 from shapely.geometry import Polygon, shape
 
+from design.maas.design_space import (
+    capacities_under_band,
+    coverage_band as resolve_coverage_band,
+)
 from design.maas.shared_floor_contract import materialize_shared_floor_contract
 
 from .capacity_contract import measure_source_capacity
@@ -407,6 +411,38 @@ def _candidate_floor_context(
             trusted_capacities = trusted_field.get(
                 "bcr_adjusted_floor_capacities_m2"
             )
+            # A candidate may declare how much ground it takes, and the prefix
+            # it is then held to is the minimum one *under that ground take*.
+            # This stays fail-closed: the band is one of a fixed set of legal
+            # fractions, the capacity it scales is the trusted field's own
+            # 건폐율 capacity, and the prefix is still recomputed here rather
+            # than believed. Without this, holding the ground made every
+            # candidate's honest prefix disagree with the one authority that
+            # re-derives it, and 24 of 30 masses died before compiling with
+            # candidate_floor_count_not_minimum_legal_prefix.
+            declared_band_id = contract.get("coverage_band_id")
+            if declared_band_id is not None:
+                if type(declared_band_id) is not str:
+                    return reject("invalid_candidate_coverage_band_schema")
+                try:
+                    declared_band = resolve_coverage_band(declared_band_id)
+                except KeyError:
+                    return reject("unknown_candidate_coverage_band")
+                raw_ground_capacity = trusted_field.get(
+                    "bcr_footprint_capacity_m2"
+                )
+                if (
+                    not is_plain_number(raw_ground_capacity)
+                    or float(raw_ground_capacity) <= 0.0
+                ):
+                    return reject("invalid_trusted_coverage_capacity")
+                if type(trusted_capacities) not in {list, tuple}:
+                    return reject("invalid_trusted_floor_capacity_vector")
+                trusted_capacities = capacities_under_band(
+                    trusted_capacities,
+                    ground_capacity_m2=float(raw_ground_capacity),
+                    band=declared_band,
+                )
             reserve_stack_authority = bool(
                 contract.get("candidate_floor_count_authority")
                 == "full_lawful_design_reserve_stack_for_spatial_reserve"

@@ -1250,17 +1250,32 @@ def materialize_floorwise_legal_source(
             return None
         bottom = floor_index / floor_count
         top = (floor_index + 1) / floor_count
-        for part_index, part in enumerate(occupied_parts, start=1):
-            volumes.append(SourceVolume(
-                # Height bands of one authored AST are one typed component.
-                # A unique role per floor makes program hierarchy misread one
-                # building as five unrelated siblings.
-                role=primary_role,
-                footprint=part,
-                bottom_fraction=bottom,
-                top_fraction=top,
-                verb="floorwise_legal_matrix4",
-            ))
+        # Height bands of one authored AST are one typed component: a unique
+        # role per floor makes program hierarchy misread one building as five
+        # unrelated siblings. Lateral lobes are the opposite case and were
+        # swept up by the same rule - the authored program is a composition of
+        # named components, and stamping one role on everything discarded it.
+        # Measured: all 128 delivered masses carried one role at share 1.000,
+        # while the sources they came from carried three or four at 0.43-0.67.
+        component_regions = _authored_component_regions(
+            source,
+            matrix=matrix,
+            bottom_fraction=bottom,
+            top_fraction=top,
+        )
+        for part in occupied_parts:
+            for role, piece in _articulated_component_parts(
+                part,
+                component_regions,
+                fallback_role=primary_role,
+            ):
+                volumes.append(SourceVolume(
+                    role=role,
+                    footprint=piece,
+                    bottom_fraction=bottom,
+                    top_fraction=top,
+                    verb="floorwise_legal_matrix4",
+                ))
         floor_union = unary_union(occupied_parts)
         floor_unions.append(floor_union)
         matrix_plan_determinant = abs(
@@ -3751,6 +3766,167 @@ def _short_axis_widening_matrix(
         scale_matrix4((1.0, growth, 1.0)),
         rotation_matrix4((0.0, 0.0, target_angle)),
         translation_matrix4((center.x, center.y, 0.0)),
+    )
+
+
+# A waist is narrow against the lobes it joins. Both quantities below are
+# isotropic erosion radii, so the ratio is scale-free and rotation-invariant -
+# the same rigid body scores the same at any angle on the parcel.
+_NECK_TO_LOBE_RATIO = 0.35
+_EROSION_STEP_FRACTION = 0.01
+_EROSION_STEP_LIMIT = 60
+_CORE_MINIMUM_SHARE = 0.02
+
+
+def _articulation_cores(part: Any) -> tuple[tuple[Any, ...], float]:
+    """Return the lobes a plan actually has, found by eroding it.
+
+    Splitting a delivered plan where an author drew a boundary is relabelling:
+    any polygon can be cut anywhere. The only honest question is whether the
+    *form* comes apart, so erode it and see. A convex plate never separates at
+    any radius; neither does a bar, however long. A body with a waist does, and
+    the radius at which it does is half that waist.
+
+    The waist alone is not enough - two 20 m halls joined by a 0.2 m saw kerf
+    6 m deep separate too, having lost a quarter of one percent of their plan.
+    So the waist is compared with the radius at which the lobes themselves
+    disappear, their inscribed radius. A real neck scores about a quarter; the
+    kerf scores two thirds; a 10 m opening between 20 m halls scores one.
+    """
+
+    if part.is_empty or part.area <= 1e-9:
+        return (), 0.0
+    scale = float(part.area) ** 0.5
+    for step in range(1, _EROSION_STEP_LIMIT + 1):
+        radius = scale * _EROSION_STEP_FRACTION * step
+        eroded = part.buffer(-radius)
+        if eroded.is_empty:
+            return (), 0.0
+        cores = tuple(
+            piece
+            for piece in _polygon_parts(eroded)
+            if piece.area > part.area * _CORE_MINIMUM_SHARE
+        )
+        if len(cores) < 2:
+            continue
+        inscribed = min(
+            _vanishing_radius(core, scale=scale)
+            for core in cores
+        )
+        if inscribed <= 1e-9:
+            return (), 0.0
+        return cores, radius / inscribed
+    return (), 0.0
+
+
+def _vanishing_radius(core: Any, *, scale: float) -> float:
+    """Return how far a lobe can be eroded before it disappears."""
+
+    step = scale * _EROSION_STEP_FRACTION
+    for index in range(1, _EROSION_STEP_LIMIT * 2 + 1):
+        if core.buffer(-step * index).is_empty:
+            return step * index
+    return step * _EROSION_STEP_LIMIT * 2
+
+
+def _authored_component_regions(
+    source: SourceMass,
+    *,
+    matrix: Any,
+    bottom_fraction: float,
+    top_fraction: float,
+) -> tuple[tuple[str, Any], ...]:
+    """Return each authored component's footprint in the delivered frame.
+
+    Only components alive through this height band are returned, transformed by
+    the same fit matrix the delivered plan rode, so a region and the plan it is
+    matched against are the same geometry in the same frame.
+    """
+
+    flat = [
+        matrix[0][0], matrix[0][1],
+        matrix[1][0], matrix[1][1],
+        matrix[0][3], matrix[1][3],
+    ]
+    regions = []
+    for volume in source.volumes:
+        if volume.footprint is None or volume.footprint.is_empty:
+            continue
+        if (
+            float(volume.top_fraction) <= bottom_fraction + 1e-6
+            or float(volume.bottom_fraction) >= top_fraction - 1e-6
+        ):
+            continue
+        moved = affine_transform(volume.footprint, flat)
+        moved = moved if moved.is_valid else make_valid(moved)
+        for piece in _polygon_parts(moved):
+            if piece.area > 1e-9:
+                regions.append((str(volume.role), piece))
+    return tuple(regions)
+
+
+def _articulated_component_parts(
+    part: Any,
+    regions: tuple[tuple[str, Any], ...],
+    *,
+    fallback_role: str,
+) -> tuple[tuple[str, Any], ...]:
+    """Label the lobes a delivered plan has with the components they carry.
+
+    The lobes come from the form (`_articulation_cores`); the authored regions
+    only supply their names. A plan with no lobes keeps one role and goes on
+    failing the hierarchy gate, which is the honest reading of a box.
+    """
+
+    single = ((fallback_role, part),)
+    if len(regions) < 2:
+        return single
+    cores, neck_ratio = _articulation_cores(part)
+    if len(cores) < 2 or neck_ratio > _NECK_TO_LOBE_RATIO:
+        return single
+    named: list[list[Any]] = []
+    for core in cores:
+        overlaps = sorted(
+            (
+                (float(core.intersection(region).area), role)
+                for role, region in regions
+            ),
+            key=lambda item: (-item[0], item[1]),
+        )
+        if not overlaps or overlaps[0][0] <= 0.0:
+            return single
+        named.append([overlaps[0][1], core])
+    if len({role for role, _core in named}) < 2:
+        return single
+    # Every lobe is named; the rest of the plan is the waist and the skin the
+    # erosion took off. Give each leftover to the lobe it touches most, with
+    # ties broken by role name so one parcel orientation cannot decide it.
+    remainder = part.difference(unary_union([core for _role, core in named]))
+    for fragment in _polygon_parts(remainder):
+        if fragment.area <= 1e-9:
+            continue
+        nearest = min(
+            named,
+            key=lambda item: (
+                -float(
+                    item[1].buffer(1e-6).intersection(
+                        fragment.buffer(1e-6)
+                    ).area
+                ),
+                item[0],
+            ),
+        )
+        nearest[1] = unary_union([nearest[1], fragment])
+    merged: dict[str, Any] = {}
+    for role, piece in named:
+        merged[role] = (
+            piece if role not in merged
+            else unary_union([merged[role], piece])
+        )
+    return tuple(
+        (role, merged[role])
+        for role in sorted(merged)
+        if not merged[role].is_empty and merged[role].area > 1e-9
     )
 
 

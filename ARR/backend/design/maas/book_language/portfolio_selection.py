@@ -683,6 +683,11 @@ def _select(
     for winner in anchors:
         register(winner)
     trace["joint_anchor_count"] = len(selected)
+    # Where a ground take is lost is not guessable from counts alone: a trim
+    # of one candidate cannot explain a drop of two positions.
+    trace["joint_anchor_ground_takes"] = sorted(
+        {_portfolio_diversity_key(candidate) for candidate in selected}
+    )
     trace["joint_anchor_principle_kind_counts"] = dict(Counter(
         candidate.principle_kind for candidate in selected
     ))
@@ -980,6 +985,9 @@ def _select(
         greedy_iterations += 1
     trace["greedy_iteration_count"] = greedy_iterations
     trace["pre_rebalance_count"] = len(selected)
+    trace["pre_rebalance_ground_takes"] = sorted(
+        {_portfolio_diversity_key(candidate) for candidate in selected}
+    )
     # Greedy novelty is useful for ordering but can paint itself into a
     # corner.  Solve the final <=20 candidate compatibility graph globally,
     # with the exact same caps, and only replace the greedy set when the
@@ -1199,6 +1207,24 @@ def _select(
             requested_geometry & available_joint_geometry
         )
     )
+    # The final authority over what ships is this joint solver, and the ground
+    # take was not among the positions it had to cover - only chassis and
+    # geometry family were. So the anchors covered four ground takes, the solver
+    # re-picked three under other constraints, and two shipped
+    # (held + worked on PNU 4115011300106840001, from a pool holding all four).
+    #
+    # Ask for as many distinct positions as the portfolio requires and the pool
+    # can actually supply; requiring more than exists is what made the earlier
+    # anchor solver give up before it started.
+    available_joint_ground_takes = sorted(
+        {_portfolio_diversity_key(candidate) for candidate in candidate_universe}
+    )
+    required_joint_tags.extend(
+        f"required_ground_take:{value}"
+        for value in available_joint_ground_takes[
+            : max(0, min(int(target), len(available_joint_ground_takes)))
+        ]
+    )
     def build_joint_payload(
         active_contract: object,
         *,
@@ -1301,6 +1327,7 @@ def _select(
                 coverage_tags=(
                     f"required_chassis:{chassis_family}",
                     f"required_geometry:{geometry_family}",
+                    f"required_ground_take:{_portfolio_diversity_key(candidate)}",
                 ),
                 visible_stepped=(
                     bool(morphology["visible_stepped"])
@@ -1314,7 +1341,7 @@ def _select(
                 roof_archetype=roof_archetype,
                 chassis_family=chassis_family,
                 plan_family=_plan_family(candidate),
-                base_scope=_scope_key(candidate),
+                base_scope=_portfolio_diversity_key(candidate),
                 capacity_band=_capacity_alternative_key(candidate),
                 body_roof_signature=(
                     f"{body_phenotype}|{roof_archetype}"
@@ -1688,6 +1715,9 @@ def _select(
         candidate_universe[index] for index in joint_indices
     ]
     trace["post_rebalance_count"] = len(joint_selected)
+    trace["post_rebalance_ground_takes"] = sorted(
+        {_portfolio_diversity_key(candidate) for candidate in joint_selected}
+    )
     trace["post_rebalance_principle_kind_counts"] = dict(Counter(
         candidate.principle_kind for candidate in joint_selected
     ))

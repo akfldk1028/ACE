@@ -4561,6 +4561,16 @@ def run_book_program_portfolios(
                 selected=selected,
             )
         counts["final_hard_pass_selection_pool_count"] = len(selection_pool)
+        # The quota can only cover positions the pool actually holds. Reporting
+        # the pool's ground takes separates "selection did not spread" from
+        # "there was nothing to spread over" - two different repairs.
+        pool_ground_takes: dict[str, int] = {}
+        for candidate in selection_pool:
+            key = _portfolio_diversity_key(candidate)
+            pool_ground_takes[key] = pool_ground_takes.get(key, 0) + 1
+        counts["selection_pool_ground_takes"] = dict(
+            sorted(pool_ground_takes.items())
+        )
         counts["partial_portfolio_preview"] = bool(
             progressive_target_int is not None
             and 0 < len(selected) < selection_target

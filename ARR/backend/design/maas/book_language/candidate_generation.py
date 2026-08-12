@@ -63,6 +63,7 @@ from .authorship_policy import bounded_llm_author_batch_count
 from design.maas.design_space import (
     COVERAGE_BANDS,
     delivered_ground_take_band,
+    plan_area_for_band,
 )
 from design.maas.geometry_language.source_bridge import (
     compile_normalized_geometry_program_to_source_mass,
@@ -138,6 +139,7 @@ from .mass_passport_bridge import resolve_capacity_band_evidence
 from .capacity_alternatives import (
     CAPACITY_ALTERNATIVE_SPECS,
     build_capacity_alternative,
+    coverage_band_of_alternative,
     capacity_fit_score,
     capacity_retry_floor_targets,
     capacity_retry_plan_coverage,
@@ -4031,6 +4033,37 @@ class _MaterializationAttemptDiagnostics:
         }
 
 
+def _ground_take_bounded_coverage_capacity(
+    trusted_legal_floor_field: Any,
+    capacity_alternative: Any,
+) -> float:
+    """The 건축면적 the fit may take: the law's ceiling, lowered by the choice.
+
+    The band lowered the plate *targets* while the geometry stayed bounded by
+    the full 건폐율 capacity, so the fit was free to grow back up to it and did.
+    Measured on PNU 4115011300106840001: a dispersed_ground candidate asked for
+    225.0 m2 and delivered 499.9 - exactly the legal cap - and the median
+    delivered/asked across the archive was 1.162. A ground take that only moves
+    the target is a suggestion; bounding the projection is what makes it a
+    choice.
+
+    Legal by construction: every band is a fraction of the certified capacity,
+    so this can only lower the bound, never raise it. With no declared band the
+    law's ceiling is returned unchanged.
+    """
+
+    capacity = float(
+        (trusted_legal_floor_field or {}).get("bcr_footprint_capacity_m2")
+        or 0.0
+    )
+    if capacity <= 1e-9:
+        return capacity
+    band = coverage_band_of_alternative(capacity_alternative)
+    if band is None:
+        return capacity
+    return plan_area_for_band(capacity, band)
+
+
 def _materialize_directed_geometry(
     source: Any,
     sequence: VerbSequence,
@@ -6464,11 +6497,9 @@ def _program_pool_single_phase(
                         legal_fit_failure_sink=legal_fit_deficits,
                         terminal_failure_sink=candidate_terminal_failures,
                         target_floor_areas_m2=floor_targets,
-                        coverage_capacity_m2=float(
-                            (trusted_legal_floor_field or {}).get(
-                                "bcr_footprint_capacity_m2"
-                            )
-                            or 0.0
+                        coverage_capacity_m2=_ground_take_bounded_coverage_capacity(
+                            trusted_legal_floor_field,
+                            capacity_alternative,
                         ),
                         pnu=pnu,
                         capacity_alternative_id=str(
@@ -7382,15 +7413,36 @@ def _program_pool_single_phase(
                             "schema_version": (
                                 "arr.maas.delivered_ground_take.v1"
                             ),
+                            # 건축면적 is the horizontal projection of the
+                            # whole building (건축법 시행령 제119조 제1항
+                            # 제2호), which is the union over every height -
+                            # not the ground plate. A mass whose ground floor
+                            # takes 45% while its upper floors overhang to the
+                            # cap covers the full ground, and keying the axis
+                            # on the plate would file it under "dispersed".
+                            # This is the same quantity the coverage hard gate
+                            # enforces.
                             "ratio": round(
+                                float(
+                                    spatial.get(
+                                        "all_height_projected_plan_union_ratio"
+                                    )
+                                    or 0.0
+                                ),
+                                4,
+                            ),
+                            "band_id": delivered_ground_take_band(
+                                spatial.get(
+                                    "all_height_projected_plan_union_ratio"
+                                )
+                                or 0.0
+                            ).band_id,
+                            "ground_plate_ratio": round(
                                 float(
                                     spatial.get("site_coverage_ratio") or 0.0
                                 ),
                                 4,
                             ),
-                            "band_id": delivered_ground_take_band(
-                                spatial.get("site_coverage_ratio") or 0.0
-                            ).band_id,
                             "measured_against": str(
                                 spatial.get("coverage_measurement_mode") or ""
                             ),

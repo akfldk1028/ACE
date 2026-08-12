@@ -63,6 +63,7 @@ from .authorship_policy import bounded_llm_author_batch_count
 from design.maas.design_space import (
     COVERAGE_BANDS,
     delivered_ground_take_band,
+    delivered_void_band,
     plan_area_for_band,
 )
 from design.maas.geometry_language.source_bridge import (
@@ -7449,6 +7450,31 @@ def _program_pool_single_phase(
                             "lawful_ground_capacity_m2": float(
                                 spatial.get("lawful_ground_capacity_m2") or 0.0
                             ),
+                        },
+                        # Solid or void is the other axis an architect chooses
+                        # along, and it was pure loss here: a court cost floor
+                        # area and nothing scored it, so a scheme with one always
+                        # lost to the same scheme without. Read as a position it
+                        # stops competing with its own absence.
+                        "delivered_void": {
+                            "schema_version": "arr.maas.delivered_void.v1",
+                            "ratio": round(
+                                float(
+                                    (
+                                        spatial.get("spatial_role_projection")
+                                        or {}
+                                    ).get("envelope_void_ratio")
+                                    or 0.0
+                                ),
+                                4,
+                            ),
+                            "band_id": delivered_void_band(
+                                (
+                                    spatial.get("spatial_role_projection") or {}
+                                ).get("envelope_void_ratio")
+                                or 0.0
+                            ).band_id,
+                            "measured_as": "open_share_of_own_plan_envelope",
                         },
                     },
                 )

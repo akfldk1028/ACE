@@ -162,3 +162,90 @@ def capacities_under_band(
             continue
         bounded.append(min(capacity, ceiling) if ceiling > 0.0 else capacity)
     return bounded
+
+
+@dataclass(frozen=True)
+class VoidBand:
+    """One position on the solid/void axis."""
+
+    band_id: str
+    label: str
+    intent: str
+    void_ceiling: float
+
+    def evidence(self) -> dict[str, object]:
+        return {
+            "band_id": self.band_id,
+            "label": self.label,
+            "intent": self.intent,
+            "void_ceiling": self.void_ceiling,
+        }
+
+
+# Solid or void is the architect's other primary axis. Measured as the share of
+# the building's own plan envelope it leaves open - a court, a canyon, an arm
+# withdrawn - which is what separates a block from a courtyard scheme at the
+# same 건폐율. Voids used to be pure loss here: they cost floor area and nothing
+# scored them, so a scheme with a court always lost to the same scheme without
+# one. A position cannot lose to another position.
+VOID_BANDS: tuple[VoidBand, ...] = (
+    VoidBand(
+        "solid_body",
+        "Solid body",
+        "one closed figure; the room is inside, not cut out of it",
+        0.12,
+    ),
+    VoidBand(
+        "carved_body",
+        "Carved body",
+        "a body still read as one mass, with a court or notch taken out",
+        0.30,
+    ),
+    VoidBand(
+        "open_figure",
+        "Open figure",
+        "arms and courts as much as mass; the plan reads as a figure, not a block",
+        0.50,
+    ),
+    VoidBand(
+        "porous_field",
+        "Porous field",
+        "more open than built within its own envelope; a field of parts",
+        1.00,
+    ),
+)
+
+_VOID_BAND_BY_ID = {band.band_id: band for band in VOID_BANDS}
+
+
+def void_band_ids() -> tuple[str, ...]:
+    return tuple(band.band_id for band in VOID_BANDS)
+
+
+def void_band(band_id: str) -> VoidBand:
+    band = _VOID_BAND_BY_ID.get(str(band_id))
+    if band is None:
+        raise KeyError(f"unknown void band: {band_id}")
+    return band
+
+
+def delivered_void_band(ratio: float) -> VoidBand:
+    """Which solid/void position a delivered mass holds.
+
+    Read from the measured envelope void ratio, so it says what was built rather
+    than what was asked for. A ratio lands in the lowest band that can contain
+    it, and anything unmeasured reads as the most solid position rather than
+    being credited with a void it never had.
+    """
+
+    try:
+        measured = float(ratio)
+    except (TypeError, ValueError):
+        measured = 0.0
+    if not isfinite(measured) or measured < 0.0:
+        measured = 0.0
+    ordered = sorted(VOID_BANDS, key=lambda band: band.void_ceiling)
+    for band in ordered:
+        if measured <= band.void_ceiling + 1e-9:
+            return band
+    return ordered[-1]

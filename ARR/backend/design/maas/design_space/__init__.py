@@ -26,8 +26,13 @@ from .axes import (
     capacities_under_band,
     coverage_band,
     delivered_ground_take_band,
+    delivered_void_band,
     coverage_band_ids,
     plan_area_for_band,
+    VOID_BANDS,
+    VoidBand,
+    void_band,
+    void_band_ids,
 )
 
 __all__ = [
@@ -36,6 +41,11 @@ __all__ = [
     "capacities_under_band",
     "coverage_band",
     "delivered_ground_take_band",
+    "delivered_void_band",
+    "VOID_BANDS",
+    "VoidBand",
+    "void_band",
+    "void_band_ids",
     "coverage_band_ids",
     "plan_area_for_band",
 ]

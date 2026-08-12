@@ -14,6 +14,10 @@ from design.maas.design_space import (
     coverage_band,
     coverage_band_ids,
     delivered_ground_take_band,
+    delivered_void_band,
+    VOID_BANDS,
+    void_band,
+    void_band_ids,
     plan_area_for_band,
 )
 
@@ -120,3 +124,46 @@ class DeliveredGroundTakeBandTests(SimpleTestCase):
                 delivered_ground_take_band(value).band_id,
                 value,
             )
+
+
+class VoidBandTests(SimpleTestCase):
+    """Solid or void is the other axis, and it used to be pure loss.
+
+    A court costs floor area and nothing scored it, so a scheme with one always
+    lost to the same scheme without. A position cannot lose to another position.
+    """
+
+    def test_the_bands_are_distinct_positions(self):
+        ceilings = sorted(band.void_ceiling for band in VOID_BANDS)
+        self.assertGreaterEqual(len(ceilings), 3)
+        for lower, upper in zip(ceilings, ceilings[1:]):
+            self.assertGreaterEqual(upper - lower, 0.15)
+
+    def test_a_ratio_lands_in_the_lowest_band_that_can_hold_it(self):
+        self.assertEqual("solid_body", delivered_void_band(0.05).band_id)
+        self.assertEqual("carved_body", delivered_void_band(0.20).band_id)
+        self.assertEqual("open_figure", delivered_void_band(0.42).band_id)
+        self.assertEqual("porous_field", delivered_void_band(0.70).band_id)
+
+    def test_a_band_edge_belongs_to_its_own_band(self):
+        for band in VOID_BANDS:
+            self.assertEqual(
+                band.band_id,
+                delivered_void_band(band.void_ceiling).band_id,
+                band.band_id,
+            )
+
+    def test_an_unmeasured_void_is_not_credited_with_one(self):
+        """Fail closed toward solid: never award a court that was not measured."""
+
+        for value in (None, "wide", float("nan"), -0.4, 0.0):
+            self.assertEqual(
+                "solid_body",
+                delivered_void_band(value).band_id,
+                value,
+            )
+
+    def test_band_ids_are_unique(self):
+        self.assertEqual(len(VOID_BANDS), len(set(void_band_ids())))
+        with self.assertRaises(KeyError):
+            void_band("mostly_air")

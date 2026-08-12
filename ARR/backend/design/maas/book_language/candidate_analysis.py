@@ -100,7 +100,20 @@ def _portfolio_diversity_key(candidate: _Candidate) -> str:
     if isinstance(evidence, dict):
         band_id = str(evidence.get("band_id") or "")
         if band_id:
-            return f"ground_take:{band_id}"
+            void = metadata.get("delivered_void")
+            void_id = (
+                str(void.get("band_id") or "")
+                if isinstance(void, dict)
+                else ""
+            )
+            # Two axes, one cell. A courtyard scheme and a solid block on the
+            # same ground take are different propositions, and a portfolio that
+            # spreads only over ground would count them as the same position.
+            return (
+                f"ground_take:{band_id}|void:{void_id}"
+                if void_id
+                else f"ground_take:{band_id}"
+            )
     return f"book_scope:{_scope_key(candidate)}"
 
 

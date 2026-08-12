@@ -75,6 +75,23 @@ class NormalizedZToleranceTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             self._payload((0.0, 7.5, HEIGHT_M))
 
+    def test_the_tolerance_is_a_physical_length_not_a_float_guess(self):
+        """10 micrometres, converted through the building's own height.
+
+        Stating it as a bare float meant guessing an order of magnitude, and the
+        first guess (1e-9) was still too tight for the value the live run
+        carried. A length can be argued about: 10 um is below anything a drawing
+        represents and above what a mesh operation accumulates.
+        """
+
+        # 1e-5 m over 15 m of height.
+        inside = 6.0e-7
+        outside = 1.0e-5
+
+        self.assertTrue(self._payload((-inside, 0.5, 1.0 + inside)))
+        with self.assertRaises(ValueError):
+            self._payload((0.0, 0.5, 1.0 + outside))
+
     def test_a_real_excursion_is_still_refused(self):
         """A centimetre below ground on a 15 m building is a geometry error."""
 

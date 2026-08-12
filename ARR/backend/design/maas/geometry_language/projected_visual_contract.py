@@ -1881,7 +1881,13 @@ def _physical_height_m(source: Any) -> float:
     raise ValueError("certified final visual mesh has no physical height")
 
 
-_NORMALIZED_Z_TOLERANCE = 1e-9
+# Z here is a fraction of the building's own height, so the tolerance is stated
+# as a physical length and converted: 10 micrometres. On a 15 m building that is
+# 6.7e-7 in normalized units - far below any geometry a drawing can carry, and
+# far above the round-off a mesh operation accumulates while placing a vertex on
+# the ground plane. A source exported in metres, which is what this check exists
+# to catch, is off by the height itself.
+_NORMALIZED_Z_TOLERANCE_M = 1e-5
 
 
 def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
@@ -1910,18 +1916,23 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
             # normalized value, so a source exported in metres - the failure this
             # check exists to catch - is still refused, and the value handed on is
             # clamped so nothing downstream sees the epsilon.
-            if z < -_NORMALIZED_Z_TOLERANCE or z > 1.0 + _NORMALIZED_Z_TOLERANCE:
+            tolerance = (
+                _NORMALIZED_Z_TOLERANCE_M / height_m
+                if height_m > 0.0
+                else 0.0
+            )
+            if z < -tolerance or z > 1.0 + tolerance:
                 # Fail closed as before, but say which source and which value.
                 # "not normalized" alone cannot be acted on: it does not
                 # distinguish a source exported in metres from one vertex that
                 # drifted, and both have different repairs.
                 raise ValueError(
                     "certified final visual source Z is not normalized: "
-                    f"z={float(z):.6f} "
+                    f"z={float(z)!r} "
                     f"height_m={float(height_m):.3f} "
                     f"triangle_count={len(normalized)} "
-                    f"z_range=[{min(v[2] for tri in normalized for v in tri['vertices_m']):.4f},"
-                    f"{max(v[2] for tri in normalized for v in tri['vertices_m']):.4f}] "
+                    f"z_range=[{min(v[2] for tri in normalized for v in tri['vertices_m'])!r},"
+                    f"{max(v[2] for tri in normalized for v in tri['vertices_m'])!r}] "
                     f"surface_type={str(triangle.get('surface_type') or '')} "
                     f"role={str(triangle.get('role') or '')}"
                 )

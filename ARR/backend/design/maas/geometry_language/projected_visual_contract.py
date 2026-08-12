@@ -1881,6 +1881,9 @@ def _physical_height_m(source: Any) -> float:
     raise ValueError("certified final visual mesh has no physical height")
 
 
+_NORMALIZED_Z_TOLERANCE = 1e-9
+
+
 def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
     """Return final render/VLM triangles in one local physical-meter frame."""
 
@@ -1899,11 +1902,31 @@ def canonical_metric_surface_payload(source: Any) -> dict[str, Any]:
         record = deepcopy(triangle)
         vertices = []
         for x, y, z in triangle["vertices_m"]:
-            if z < 0.0 or z > 1.0:
+            # A vertex sitting exactly on the ground or the roof lands on 0.0 or
+            # 1.0 through a subtraction, and float64 puts it a few 1e-17 outside.
+            # Rejecting that failed a correctly normalized source: measured on a
+            # publishable run, z=-0.000000 over a payload whose full range was
+            # [-0.0000, 1.0000]. The tolerance is seven orders below any real
+            # normalized value, so a source exported in metres - the failure this
+            # check exists to catch - is still refused, and the value handed on is
+            # clamped so nothing downstream sees the epsilon.
+            if z < -_NORMALIZED_Z_TOLERANCE or z > 1.0 + _NORMALIZED_Z_TOLERANCE:
+                # Fail closed as before, but say which source and which value.
+                # "not normalized" alone cannot be acted on: it does not
+                # distinguish a source exported in metres from one vertex that
+                # drifted, and both have different repairs.
                 raise ValueError(
-                    "certified final visual source Z is not normalized"
+                    "certified final visual source Z is not normalized: "
+                    f"z={float(z):.6f} "
+                    f"height_m={float(height_m):.3f} "
+                    f"triangle_count={len(normalized)} "
+                    f"z_range=[{min(v[2] for tri in normalized for v in tri['vertices_m']):.4f},"
+                    f"{max(v[2] for tri in normalized for v in tri['vertices_m']):.4f}] "
+                    f"surface_type={str(triangle.get('surface_type') or '')} "
+                    f"role={str(triangle.get('role') or '')}"
                 )
-            vertices.append([float(x), float(y), float(z) * height_m])
+            clamped = min(1.0, max(0.0, float(z)))
+            vertices.append([float(x), float(y), clamped * height_m])
         record["vertices_m"] = vertices
         metric.append(record)
     return {

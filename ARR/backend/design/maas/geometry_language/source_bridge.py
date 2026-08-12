@@ -3965,10 +3965,15 @@ def _articulated_component_parts(
             piece if role not in merged
             else unary_union([merged[role], piece])
         )
+    # One role can end up holding two disjoint pieces - a hall on both sides of
+    # a court, say - and `SourceVolume.footprint` is a Polygon everywhere
+    # downstream, so emit one volume per piece and let the role group them
+    # again. Handing a MultiPolygon on killed a run in `_coherence_quality_polygon`.
     return tuple(
-        (role, merged[role])
+        (role, piece)
         for role in sorted(merged)
-        if not merged[role].is_empty and merged[role].area > 1e-9
+        for piece in _polygon_parts(merged[role])
+        if not piece.is_empty and piece.area > 1e-9
     )
 
 

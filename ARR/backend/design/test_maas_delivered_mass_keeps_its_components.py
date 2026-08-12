@@ -324,3 +324,53 @@ class ProportionalComponentLayoutTests(SimpleTestCase):
 
     def test_a_seed_with_no_components_yields_no_layout(self):
         self.assertEqual((), normalized_component_layout(_source([])))
+
+
+class DeliveredPiecesAreAlwaysSimplePolygonsTests(SimpleTestCase):
+    """`SourceVolume.footprint` is a Polygon everywhere downstream.
+
+    A run died in `_coherence_quality_polygon` reading `.exterior` off a
+    MultiPolygon, because one role had picked up two disjoint pieces. Roles are
+    re-unioned downstream anyway, so emit a volume per piece.
+    """
+
+    def _assign(self, form, source, fallback):
+        return _articulated_component_parts(
+            form,
+            _component_regions_for_plan(
+                normalized_component_layout(source),
+                source.footprint,
+                bottom_fraction=0.0,
+                top_fraction=0.5,
+            ),
+            fallback_role=fallback,
+        )
+
+    def test_two_halls_hand_on_simple_polygons(self):
+        assigned = self._assign(DUMBBELL, _two_halls(), "west_gallery_hall")
+
+        self.assertTrue(assigned)
+        for role, piece in assigned:
+            self.assertEqual("Polygon", piece.geom_type, role)
+
+    def test_one_role_on_both_ends_hands_on_two_polygons(self):
+        form = unary_union([
+            box(0.0, 0.0, 20.0, 20.0),
+            box(20.0, 8.0, 30.0, 12.0),
+            box(30.0, 0.0, 50.0, 20.0),
+            box(50.0, 8.0, 60.0, 12.0),
+            box(60.0, 0.0, 80.0, 20.0),
+        ])
+        source = _source([
+            _component("gallery_hall", box(0.0, 0.0, 20.0, 20.0)),
+            _component("public_court", box(30.0, 0.0, 50.0, 20.0)),
+            _component("gallery_hall", box(60.0, 0.0, 80.0, 20.0)),
+        ])
+
+        assigned = self._assign(form, source, "gallery_hall")
+
+        self.assertEqual({"Polygon"}, {piece.geom_type for _role, piece in assigned})
+        self.assertEqual(
+            2,
+            sum(1 for role, _piece in assigned if role == "gallery_hall"),
+        )

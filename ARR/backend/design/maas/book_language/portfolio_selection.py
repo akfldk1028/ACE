@@ -1341,7 +1341,14 @@ def _select(
                 roof_archetype=roof_archetype,
                 chassis_family=chassis_family,
                 plan_family=_plan_family(candidate),
-                base_scope=_portfolio_diversity_key(candidate),
+                # The BOOK scope, deliberately. The publishable contract
+                # counts base_scope from the archive descriptor and requires its
+                # six labels, so pointing this fact at the ground take made the
+                # solver optimise one axis while the contract checked another -
+                # quota.base_scope_outside_range on the first target-20 that
+                # reached the contract at all. The ground take reaches this
+                # solver as its own coverage tag instead, so it serves both.
+                base_scope=_scope_key(candidate),
                 capacity_band=_capacity_alternative_key(candidate),
                 body_roof_signature=(
                     f"{body_phenotype}|{roof_archetype}"

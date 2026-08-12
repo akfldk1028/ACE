@@ -18,6 +18,7 @@ from .candidate_analysis import (
     _geometry_program_family,
     _plan_family,
     _roof_archetype,
+    _portfolio_diversity_key,
     _scope_key,
     _section_family,
     _seed_family,
@@ -34,7 +35,33 @@ from .portfolio_constraint_solver import (
     solve_maximum_compatible_subset,
 )
 from .quality_diversity_archive import map_elites_archive, qd_archive_policy
+from .diversity_contract import certified_mesh_cluster_key
+from .run_budget import progressive_mass_run_budget
 from design.maas.program_massing.morphology import DEFAULT_NOVELTY_POLICY
+
+
+def _solve_cardinality_fallback(
+    facts: list[ConstraintCandidateFacts],
+    compatibility: list[list[bool]],
+    *,
+    target_count: int,
+    maximum_key_counts: dict[str, int],
+    required_coverage_tags: tuple[str, ...] = (),
+) -> tuple[int, ...]:
+    """Keep diagnostic cardinality recovery bounded for large pools."""
+
+    solver = (
+        solve_maximum_compatible_subset
+        if len(facts) <= 24
+        else solve_bounded_compatible_subset
+    )
+    return solver(
+        facts,
+        compatibility,
+        target_count=target_count,
+        maximum_key_counts=maximum_key_counts,
+        required_coverage_tags=required_coverage_tags,
+    )
 
 
 PORTFOLIO_SILHOUETTE_DISTANCE = (
@@ -192,15 +219,34 @@ def _scope_coverage_anchors(
     the same bounded joint coverage problem instead of adding a post-hoc
     counter or weakening any geometry threshold.
     """
+    # The coverage dimension is the delivered ground take, not the BOOK base
+    # volume scope. The scope is an authoring abstraction that does not survive
+    # into the form - all six scopes delivered the same silhouette envelope - so
+    # anchoring it spent the portfolio's diversity budget on something invisible
+    # in the result.
+    #
+    # Requiring all six scopes also made this solver give up before it started:
+    # a run that reaches three of them returned [] on the first line and every
+    # joint anchor was lost (joint_anchor_count 0 on PNU 4115011300106840001).
+    # The ground take is built from the positions actually present, the same way
+    # phenotypes, principle kinds and capacity alternatives already are, so the
+    # solver covers what exists instead of demanding what does not.
+    available_ground_takes = tuple(
+        dict.fromkeys(_portfolio_diversity_key(candidate) for candidate in candidates)
+    )
     by_scope = {
         label: sorted(
-            (candidate for candidate in candidates if _scope_key(candidate) == label),
+            (
+                candidate
+                for candidate in candidates
+                if _portfolio_diversity_key(candidate) == label
+            ),
             key=lambda candidate: candidate.score,
             reverse=True,
         )
-        for label, _fraction in BASE_VOLUME_FRACTIONS
+        for label in available_ground_takes
     }
-    if any(not options for options in by_scope.values()):
+    if not by_scope:
         return []
     available_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in candidates}
     required_phenotypes = tuple(
@@ -231,7 +277,7 @@ def _scope_coverage_anchors(
     ) -> list[_Candidate] | None:
         search_state_count = 0
         requirements = tuple(
-            [("scope", label) for label, _fraction in BASE_VOLUME_FRACTIONS]
+            [("scope", label) for label in available_ground_takes]
             + [("phenotype", value) for value in phenotype_requirements]
             + [("principle_kind", value) for value in principle_kind_requirements]
             + [("capacity", value) for value in required_capacity_alternatives]
@@ -254,7 +300,9 @@ def _scope_coverage_anchors(
             search_state_count += 1
             if search_state_count > ANCHOR_SEARCH_STATE_LIMIT:
                 return None
-            covered_scopes = {_scope_key(candidate) for candidate in picked}
+            covered_scopes = {
+                _portfolio_diversity_key(candidate) for candidate in picked
+            }
             covered_phenotypes = {_solid_morphology_metrics(candidate)["phenotype"] for candidate in picked}
             covered_principle_kinds = {candidate.principle_kind for candidate in picked}
             covered_capacity_alternatives = {
@@ -276,7 +324,7 @@ def _scope_coverage_anchors(
                 for candidate in candidates:
                     if any(candidate is item for item in picked):
                         continue
-                    if requirement[0] == "scope" and _scope_key(candidate) != requirement[1]:
+                    if requirement[0] == "scope" and _portfolio_diversity_key(candidate) != requirement[1]:
                         continue
                     if requirement[0] == "phenotype" and _solid_morphology_metrics(candidate)["phenotype"] != requirement[1]:
                         continue
@@ -319,7 +367,7 @@ def _scope_coverage_anchors(
                 def coverage_gain(candidate: _Candidate) -> int:
                     morphology = _solid_morphology_metrics(candidate)
                     values = {
-                        ("scope", _scope_key(candidate)),
+                        ("scope", _portfolio_diversity_key(candidate)),
                         ("phenotype", str(morphology["phenotype"])),
                         ("principle_kind", candidate.principle_kind),
                         ("capacity", _capacity_alternative_key(candidate)),
@@ -441,6 +489,21 @@ def _select(
     )
     trace["capacity_target_gate_rejected_count"] = 0
     trace["capacity_target_gate_authority"] = "diagnostic_only"
+    diagnostic_capacity_pass_candidates = [
+        candidate for candidate in candidates
+        if _capacity_target_gate(candidate) is True
+    ]
+    diagnostic_capacity_filter_applied = bool(
+        allow_diagnostic_fallback
+        and target >= 20
+        and len(diagnostic_capacity_pass_candidates) >= target
+    )
+    if diagnostic_capacity_filter_applied:
+        candidates = diagnostic_capacity_pass_candidates
+    trace["diagnostic_capacity_hard_pass_filter_applied"] = (
+        diagnostic_capacity_filter_applied
+    )
+    trace["diagnostic_capacity_hard_pass_filter_count"] = len(candidates)
     uncapped_candidates = list(candidates)
     diagnostic_preview_threshold = 0.0 if (
         allow_diagnostic_fallback and target >= 20
@@ -514,7 +577,11 @@ def _select(
     concept_usage: dict[str, int] = {}
     principle_kind_usage: dict[str, int] = {}
     capacity_alternative_usage: dict[str, int] = {}
-    available_scopes = {_scope_key(candidate) for candidate in candidates}
+    # The delivered ground take is the axis the portfolio spreads over; the
+    # BOOK scope it used to steer by is invisible in the finished mass.
+    available_scopes = {
+        _portfolio_diversity_key(candidate) for candidate in candidates
+    }
     seed_families = {_seed_family(candidate) for candidate in candidates}
     roof_archetypes = {_roof_archetype(candidate) for candidate in candidates}
     chassis_families = {_chassis_family(candidate) for candidate in candidates}
@@ -571,7 +638,9 @@ def _select(
     def register(winner: _Candidate) -> None:
         selected.append(winner)
         operation_usage[winner.operation] = operation_usage.get(winner.operation, 0) + 1
-        scope_usage[_scope_key(winner)] = scope_usage.get(_scope_key(winner), 0) + 1
+        scope_usage[_portfolio_diversity_key(winner)] = (
+            scope_usage.get(_portfolio_diversity_key(winner), 0) + 1
+        )
         seed_usage[_seed_family(winner)] = seed_usage.get(_seed_family(winner), 0) + 1
         section_usage[_section_family(winner)] = section_usage.get(_section_family(winner), 0) + 1
         roof_usage[_roof_archetype(winner)] = roof_usage.get(_roof_archetype(winner), 0) + 1
@@ -854,11 +923,18 @@ def _select(
             target_scope = min(
                 uncovered_scopes,
                 key=lambda scope: (
-                    sum(_scope_key(candidate) == scope for candidate in eligible),
+                    sum(
+                        _portfolio_diversity_key(candidate) == scope
+                        for candidate in eligible
+                    ),
                     scope,
                 ),
             )
-            scoped = [candidate for candidate in eligible if _scope_key(candidate) == target_scope]
+            scoped = [
+                candidate
+                for candidate in eligible
+                if _portfolio_diversity_key(candidate) == target_scope
+            ]
             if scoped:
                 eligible = scoped
 
@@ -868,7 +944,11 @@ def _select(
                 for other in selected
             )
             new_language_bonus = 0.08 if operation_usage.get(candidate.operation, 0) == 0 else 0.0
-            new_scope_bonus = 0.05 if scope_usage.get(_scope_key(candidate), 0) == 0 else 0.0
+            new_scope_bonus = (
+                0.05
+                if scope_usage.get(_portfolio_diversity_key(candidate), 0) == 0
+                else 0.0
+            )
             new_seed_bonus = 0.06 if seed_usage.get(_seed_family(candidate), 0) == 0 else 0.0
             new_section_bonus = 0.05 if section_usage.get(_section_family(candidate), 0) == 0 else 0.0
             new_roof_bonus = 0.09 if roof_usage.get(_roof_archetype(candidate), 0) == 0 else 0.0
@@ -948,15 +1028,13 @@ def _select(
                 score=float(candidate.score),
                 cap_keys=tuple(keys),
                 coverage_tags=(
-                    f"scope:{_scope_key(candidate)}",
+                    f"scope:{_portfolio_diversity_key(candidate)}",
                     f"capacity_alt:{_capacity_alternative_key(candidate)}",
                 ),
             ))
         compatibility = compatibility_analysis.compatibility_matrix(candidate_universe)
         required_scope_tags = tuple(
-            f"scope:{label}"
-            for label, _fraction in BASE_VOLUME_FRACTIONS
-            if label in available_scopes
+            f"scope:{label}" for label in sorted(available_scopes)
         )
         required_capacity_tags = tuple(
             f"capacity_alt:{alternative_id}"
@@ -1030,7 +1108,7 @@ def _select(
                 "pyramidal_like": pyramidal_like_cap,
             })
             coverage_tags = [
-                f"scope:{_scope_key(candidate)}",
+                f"scope:{_portfolio_diversity_key(candidate)}",
                 f"capacity_alt:{capacity_key}",
                 f"principle_kind:{candidate.principle_kind}",
                 f"ground:{concept['ground_strategy']}",
@@ -1049,7 +1127,7 @@ def _select(
             ))
         beam_compatibility = compatibility_analysis.compatibility_matrix(beam_universe)
         beam_required_tags = (
-            *(f"scope:{scope}" for scope in sorted({_scope_key(item) for item in beam_universe})),
+            *(f"scope:{scope}" for scope in sorted({_portfolio_diversity_key(item) for item in beam_universe})),
             *(f"capacity_alt:{alternative}" for alternative in capacity_priority if alternative in available_capacity_alternatives),
             *(f"principle_kind:{kind}" for kind in available_principle_kinds),
             *(f"ground:{ground}" for ground in required_ground_strategies),
@@ -1123,9 +1201,17 @@ def _select(
     )
     def build_joint_payload(
         active_contract: object,
+        *,
+        enforce_typed_caps: bool = True,
     ) -> tuple[list[ConstraintCandidateFacts], dict[str, int]]:
         facts: list[ConstraintCandidateFacts] = []
         maximum_key_counts: dict[str, int] = {}
+        try:
+            certified_cluster_maximum = (
+                progressive_mass_run_budget(target).cluster_maximum
+            )
+        except ValueError:
+            certified_cluster_maximum = max(1, int(target))
         active_body_phenotype_cap = (
             max(1, min(
                 target,
@@ -1156,42 +1242,59 @@ def _select(
             concept_key = str(
                 _design_concept_descriptor(candidate)["concept_key"]
             )
-            cap_keys = [
-                f"operation:{candidate.operation}",
-                f"seed:{seed_family}",
-                f"section:{section_family}",
-                f"roof:{roof_archetype}",
-                f"chassis:{chassis_family}",
-                f"concept:{concept_key}",
-                f"phenotype:{body_phenotype}",
-            ]
-            maximum_key_counts.update({
-                f"operation:{candidate.operation}": 3,
-                f"seed:{seed_family}": seed_family_cap,
-                f"section:{section_family}": section_family_cap,
-                f"roof:{roof_archetype}": roof_archetype_caps.get(
-                    roof_archetype, target
-                ),
-                f"chassis:{chassis_family}": chassis_family_caps.get(
-                    chassis_family, target
-                ),
-                f"concept:{concept_key}": 2,
-                f"phenotype:{body_phenotype}": int(active_body_phenotype_cap),
-            })
-            if bool(morphology.get("wedge_like")):
-                cap_keys.append("wedge_like")
-                maximum_key_counts["wedge_like"] = wedge_like_cap
-            if bool(morphology.get("pyramidal_like")):
-                cap_keys.append("pyramidal_like")
-                maximum_key_counts["pyramidal_like"] = (
-                    pyramidal_like_cap
+            cap_keys: list[str] = []
+            if enforce_typed_caps:
+                try:
+                    certified_cluster = certified_mesh_cluster_key(
+                        candidate.source
+                    )
+                except (AttributeError, TypeError, ValueError, RuntimeError):
+                    program_hash_resolver = getattr(candidate, "program_hash", None)
+                    program_hash = (
+                        program_hash_resolver()
+                        if callable(program_hash_resolver)
+                        else str(getattr(candidate, "key", id(candidate)))
+                    )
+                    certified_cluster = f"uncertified:{program_hash}"
+                certified_cluster_cap_key = (
+                    f"certified_mesh_cluster:{certified_cluster}"
                 )
-            if geometry_family in geometry_family_caps:
-                cap_key = f"memory_geometry_family:{geometry_family}"
-                cap_keys.append(cap_key)
-                maximum_key_counts[cap_key] = (
-                    geometry_family_caps[geometry_family]
-                )
+                cap_keys = [
+                    certified_cluster_cap_key,
+                    f"operation:{candidate.operation}",
+                    f"seed:{seed_family}",
+                    f"section:{section_family}",
+                    f"roof:{roof_archetype}",
+                    f"chassis:{chassis_family}",
+                    f"concept:{concept_key}",
+                    f"phenotype:{body_phenotype}",
+                ]
+                maximum_key_counts.update({
+                    certified_cluster_cap_key: certified_cluster_maximum,
+                    f"operation:{candidate.operation}": 3,
+                    f"seed:{seed_family}": seed_family_cap,
+                    f"section:{section_family}": section_family_cap,
+                    f"roof:{roof_archetype}": roof_archetype_caps.get(
+                        roof_archetype, target
+                    ),
+                    f"chassis:{chassis_family}": chassis_family_caps.get(
+                        chassis_family, target
+                    ),
+                    f"concept:{concept_key}": 2,
+                    f"phenotype:{body_phenotype}": int(active_body_phenotype_cap),
+                })
+                if bool(morphology.get("wedge_like")):
+                    cap_keys.append("wedge_like")
+                    maximum_key_counts["wedge_like"] = wedge_like_cap
+                if bool(morphology.get("pyramidal_like")):
+                    cap_keys.append("pyramidal_like")
+                    maximum_key_counts["pyramidal_like"] = pyramidal_like_cap
+                if geometry_family in geometry_family_caps:
+                    cap_key = f"memory_geometry_family:{geometry_family}"
+                    cap_keys.append(cap_key)
+                    maximum_key_counts[cap_key] = (
+                        geometry_family_caps[geometry_family]
+                    )
             facts.append(ConstraintCandidateFacts(
                 score=float(candidate.score),
                 cap_keys=tuple(cap_keys),
@@ -1363,10 +1466,14 @@ def _select(
             body_roof_signature_maximum_each=target if target >= 20 else (
                 contract.body_roof_signature_maximum_each
             ),
-            minimum_pair_distance=0.0 if target >= 20 else 0.0,
-            shared_language_minimum_composite_distance=0.0
-            if target >= 20
-            else contract.shared_language_minimum_composite_distance,
+            minimum_pair_distance=(
+                contract.minimum_pair_distance if target == 5 else 0.0
+            ),
+            shared_language_minimum_composite_distance=(
+                contract.shared_language_minimum_composite_distance
+                if target == 5
+                else 0.0
+            ),
         )
         relaxed_joint_facts, relaxed_joint_maximum_key_counts = build_joint_payload(
             relaxed_contract,
@@ -1426,14 +1533,14 @@ def _select(
                 minimum_pair_distance=0.0,
                 shared_language_minimum_composite_distance=0.0,
             )
-            preview_joint_facts, preview_joint_maximum_key_counts = build_joint_payload(
-                preview_contract,
+            preview_joint_facts, preview_joint_maximum_key_counts = (
+                build_joint_payload(preview_contract)
             )
             preview_joint_compatibility = build_joint_compatibility(
                 preview_contract,
                 preview_joint_facts,
             )
-            preview_joint_indices = solve_maximum_compatible_subset(
+            preview_joint_indices = _solve_cardinality_fallback(
                 preview_joint_facts,
                 preview_joint_compatibility,
                 target_count=target,
@@ -1459,7 +1566,7 @@ def _select(
                     ),
                 }
         else:
-            maximum_cardinality_indices = solve_maximum_compatible_subset(
+            maximum_cardinality_indices = _solve_cardinality_fallback(
                 joint_facts,
                 joint_compatibility,
                 target_count=target,
@@ -1516,14 +1623,14 @@ def _select(
             minimum_pair_distance=0.0,
             shared_language_minimum_composite_distance=0.0,
         )
-        preview_joint_facts, preview_joint_maximum_key_counts = build_joint_payload(
-            preview_contract,
+        preview_joint_facts, preview_joint_maximum_key_counts = (
+            build_joint_payload(preview_contract)
         )
         preview_joint_compatibility = build_joint_compatibility(
             preview_contract,
             preview_joint_facts,
         )
-        preview_joint_indices = solve_maximum_compatible_subset(
+        preview_joint_indices = _solve_cardinality_fallback(
             preview_joint_facts,
             preview_joint_compatibility,
             target_count=target,
@@ -1892,7 +1999,7 @@ def _rebalance_measured_morphologies(
     def counts(items: list[_Candidate]) -> tuple[Counter[str], Counter[str], int]:
         return (
             Counter(_solid_morphology_metrics(item)["phenotype"] for item in items),
-            Counter(_scope_key(item) for item in items),
+            Counter(_portfolio_diversity_key(item) for item in items),
             sum(bool(_solid_morphology_metrics(item)["wedge_like"]) for item in items),
         )
 
@@ -1910,7 +2017,7 @@ def _rebalance_measured_morphologies(
             for item in remaining
         )
         used = {id(item) for item in remaining}
-        removed_scope = _scope_key(removed)
+        removed_scope = _portfolio_diversity_key(removed)
         must_restore_scope = scope_counts.get(removed_scope, 0) == 0
         options = []
         for candidate in universe:
@@ -1924,7 +2031,7 @@ def _rebalance_measured_morphologies(
                 continue
             if require_non_pyramidal and metrics["pyramidal_like"]:
                 continue
-            if must_restore_scope and _scope_key(candidate) != removed_scope:
+            if must_restore_scope and _portfolio_diversity_key(candidate) != removed_scope:
                 continue
             if phenotype_counts[phenotype] >= phenotype_cap:
                 continue
@@ -1980,10 +2087,10 @@ def _rebalance_measured_morphologies(
                     ):
                         continue
                     remaining = [item for item in result if item is not removed]
-                    remaining_scopes = Counter(_scope_key(item) for item in remaining)
+                    remaining_scopes = Counter(_portfolio_diversity_key(item) for item in remaining)
                     if (
-                        remaining_scopes.get(_scope_key(removed), 0) == 0
-                        and _scope_key(candidate) != _scope_key(removed)
+                        remaining_scopes.get(_portfolio_diversity_key(removed), 0) == 0
+                        and _portfolio_diversity_key(candidate) != _portfolio_diversity_key(removed)
                     ):
                         continue
                     candidate_metrics = _solid_morphology_metrics(candidate)
@@ -2071,7 +2178,7 @@ def _rebalance_measured_morphologies(
         for candidate in aligned_candidates:
             for removed in sorted(result, key=lambda item: item.score):
                 remaining = [item for item in result if item is not removed]
-                if Counter(_scope_key(item) for item in remaining).get(_scope_key(removed), 0) == 0 and _scope_key(candidate) != _scope_key(removed):
+                if Counter(_portfolio_diversity_key(item) for item in remaining).get(_portfolio_diversity_key(removed), 0) == 0 and _portfolio_diversity_key(candidate) != _portfolio_diversity_key(removed):
                     continue
                 metrics = _solid_morphology_metrics(candidate)
                 phenotype_counts, _scope_counts, wedge_count = counts(remaining)
@@ -2120,10 +2227,10 @@ def _rebalance_measured_morphologies(
     # two later topology families.  Do one bounded one-for-two augmentation
     # under the *same* caps. This is portfolio set search, not a threshold
     # relaxation and it never admits a candidate that missed a hard gate.
-    protected_scopes = {_scope_key(item) for item in result}
+    protected_scopes = {_portfolio_diversity_key(item) for item in result}
 
     def portfolio_constraints_hold(items: list[_Candidate]) -> bool:
-        if not protected_scopes.issubset({_scope_key(item) for item in items}):
+        if not protected_scopes.issubset({_portfolio_diversity_key(item) for item in items}):
             return False
         if not protected_principle_kinds.issubset({item.principle_kind for item in items}):
             return False

@@ -25,7 +25,8 @@ from shapely.ops import unary_union
 from design.maas.geometry_language.source_bridge import (
     _articulated_component_parts,
     _articulation_cores,
-    _authored_component_regions,
+    _component_regions_for_plan,
+    normalized_component_layout,
 )
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
 
@@ -69,9 +70,12 @@ def _two_halls(west=WEST, east=EAST):
 
 class ArticulationIsMeasuredOnTheFormTests(SimpleTestCase):
     def _regions(self, source, *, bottom=0.0, top=0.5):
-        return _authored_component_regions(
-            source,
-            matrix=IDENTITY,
+        # Placed back onto the seed's own plan, the proportional layout
+        # reproduces the footprints it was read from, so these cases stay about
+        # articulation rather than about the frame change.
+        return _component_regions_for_plan(
+            normalized_component_layout(source),
+            source.footprint,
             bottom_fraction=bottom,
             top_fraction=top,
         )
@@ -250,3 +254,73 @@ class ArticulationCoreMeasurementTests(SimpleTestCase):
 
         self.assertEqual((), cores)
         self.assertEqual(0.0, ratio)
+
+
+class ProportionalComponentLayoutTests(SimpleTestCase):
+    """A composition has to survive the AST round trip to be delivered at all.
+
+    The authored program carries one body and one role by contract, so the
+    component layout cannot be read off it. It is read off the seed, where the
+    program template's components were materialized, and carried as proportions
+    of that seed's own plan - which is how the templates author them in the
+    first place, and what makes them independent of the frame.
+    """
+
+    def _seed(self):
+        return _source([
+            _component("west_gallery_hall", box(0.0, 0.0, 20.0, 20.0)),
+            _component("east_public_hall", box(30.0, 0.0, 50.0, 20.0)),
+            _component("entry_ramp", box(0.0, 0.0, 50.0, 4.0), top=0.2),
+        ])
+
+    def test_the_layout_is_the_same_wherever_the_seed_sits(self):
+        from shapely.affinity import scale as scale_geometry, translate
+
+        near = self._seed()
+        far = _source([
+            _component(
+                volume.role,
+                translate(
+                    scale_geometry(volume.footprint, xfact=3.0, yfact=3.0, origin=(0, 0)),
+                    xoff=900.0,
+                    yoff=-400.0,
+                ),
+                volume.bottom_fraction,
+                volume.top_fraction,
+            )
+            for volume in near.volumes
+        ])
+
+        for (role_a, unit_a, _b, _t), (role_b, unit_b, _b2, _t2) in zip(
+            normalized_component_layout(near),
+            normalized_component_layout(far),
+        ):
+            self.assertEqual(role_a, role_b)
+            self.assertAlmostEqual(unit_a.area, unit_b.area, places=6)
+
+    def test_the_layout_places_onto_any_delivered_plan(self):
+        layout = normalized_component_layout(self._seed())
+        plan = box(100.0, 200.0, 130.0, 220.0)
+
+        regions = _component_regions_for_plan(
+            layout, plan, bottom_fraction=0.0, top_fraction=0.5
+        )
+
+        self.assertEqual(3, len(regions))
+        for _role, placed in regions:
+            self.assertTrue(plan.buffer(1e-6).covers(placed))
+
+    def test_a_component_that_stops_low_is_not_placed_upstairs(self):
+        layout = normalized_component_layout(self._seed())
+
+        upstairs = _component_regions_for_plan(
+            layout, box(0.0, 0.0, 50.0, 20.0), bottom_fraction=0.5, top_fraction=1.0
+        )
+
+        self.assertEqual(
+            {"west_gallery_hall", "east_public_hall"},
+            {role for role, _placed in upstairs},
+        )
+
+    def test_a_seed_with_no_components_yields_no_layout(self):
+        self.assertEqual((), normalized_component_layout(_source([])))

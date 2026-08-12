@@ -64,6 +64,7 @@ from design.maas.geometry_language.source_bridge import (
     compile_normalized_geometry_program_to_source_mass,
     compile_site_bound_geometry_program_to_source_mass,
     materialize_floorwise_legal_source,
+    normalized_component_layout,
     source_surface_payload_hash,
     source_volume_payload_hash,
 )
@@ -4437,6 +4438,13 @@ def _materialize_directed_geometry(
             floor_capacity_plan_hash=floor_capacity_plan_hash,
             legal_floor_field_hash=legal_floor_field_hash,
             target_floor_areas_m2=target_areas,
+            # `authored_source` is rebuilt from the AST, which carries one body
+            # and one role by contract, so its own volumes cannot describe the
+            # program's composition. The seed still can - it is where the
+            # program template's components were materialized - so the layout
+            # is read there and carried as proportions, which survive the
+            # normalized/site frame change the AST round trip imposes.
+            component_layout=normalized_component_layout(source),
             terminal_failure_sink=terminal_failure_sink,
         )
         if materialized is None:

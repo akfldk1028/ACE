@@ -622,6 +622,7 @@ def materialize_floorwise_legal_source(
     floor_capacity_plan_hash: str = "",
     legal_floor_field_hash: str = "",
     target_floor_areas_m2: tuple[float, ...] = (),
+    component_layout: tuple[tuple[str, Any, float, float], ...] = (),
     terminal_failure_sink: list[dict[str, Any]] | None = None,
 ) -> SourceMass | None:
     """Refit one authored AST body into one affine legal plate per floor.
@@ -1257,9 +1258,9 @@ def materialize_floorwise_legal_source(
         # named components, and stamping one role on everything discarded it.
         # Measured: all 128 delivered masses carried one role at share 1.000,
         # while the sources they came from carried three or four at 0.43-0.67.
-        component_regions = _authored_component_regions(
-            source,
-            matrix=matrix,
+        component_regions = _component_regions_for_plan(
+            component_layout,
+            occupied,
             bottom_fraction=bottom,
             top_fraction=top,
         )
@@ -3829,39 +3830,80 @@ def _vanishing_radius(core: Any, *, scale: float) -> float:
     return step * _EROSION_STEP_LIMIT * 2
 
 
-def _authored_component_regions(
+def normalized_component_layout(
     source: SourceMass,
+) -> tuple[tuple[str, Any, float, float], ...]:
+    """Describe a program's components as proportions of its own plan.
+
+    A component's place in a building is proportional, not metric: the west
+    gallery occupies the western part of the plan whatever the parcel does to
+    the plan's size, angle or aspect. The program templates are authored that
+    way already - normalized polygons in [0,1] squared with a height band - and
+    normalizing here recovers the same description from a compiled seed.
+
+    That is what lets the composition survive the AST round trip. The authored
+    program carries one body and one role by contract, so a component layout
+    read off the compiled body would be one component; read off the seed it is
+    the three or four the program actually has.
+    """
+
+    plan = getattr(source, "footprint", None)
+    if plan is None or plan.is_empty or plan.area <= 1e-9:
+        return ()
+    min_x, min_y, max_x, max_y = plan.bounds
+    span_x = max(max_x - min_x, 1e-9)
+    span_y = max(max_y - min_y, 1e-9)
+    layout = []
+    for volume in source.volumes:
+        footprint = volume.footprint
+        if footprint is None or footprint.is_empty or footprint.area <= 1e-9:
+            continue
+        unit = affine_transform(
+            footprint,
+            [1.0 / span_x, 0.0, 0.0, 1.0 / span_y,
+             -min_x / span_x, -min_y / span_y],
+        )
+        unit = unit if unit.is_valid else make_valid(unit)
+        for piece in _polygon_parts(unit):
+            if piece.area > 1e-9:
+                layout.append((
+                    str(volume.role),
+                    piece,
+                    float(volume.bottom_fraction),
+                    float(volume.top_fraction),
+                ))
+    return tuple(layout)
+
+
+def _component_regions_for_plan(
+    layout: tuple[tuple[str, Any, float, float], ...],
+    plan: Any,
     *,
-    matrix: Any,
     bottom_fraction: float,
     top_fraction: float,
 ) -> tuple[tuple[str, Any], ...]:
-    """Return each authored component's footprint in the delivered frame.
+    """Place a proportional layout onto one delivered floor plan."""
 
-    Only components alive through this height band are returned, transformed by
-    the same fit matrix the delivered plan rode, so a region and the plan it is
-    matched against are the same geometry in the same frame.
-    """
-
-    flat = [
-        matrix[0][0], matrix[0][1],
-        matrix[1][0], matrix[1][1],
-        matrix[0][3], matrix[1][3],
-    ]
+    if not layout or plan is None or plan.is_empty or plan.area <= 1e-9:
+        return ()
+    min_x, min_y, max_x, max_y = plan.bounds
+    span_x = max(max_x - min_x, 1e-9)
+    span_y = max(max_y - min_y, 1e-9)
     regions = []
-    for volume in source.volumes:
-        if volume.footprint is None or volume.footprint.is_empty:
-            continue
+    for role, unit, bottom, top in layout:
         if (
-            float(volume.top_fraction) <= bottom_fraction + 1e-6
-            or float(volume.bottom_fraction) >= top_fraction - 1e-6
+            top <= bottom_fraction + 1e-6
+            or bottom >= top_fraction - 1e-6
         ):
             continue
-        moved = affine_transform(volume.footprint, flat)
-        moved = moved if moved.is_valid else make_valid(moved)
-        for piece in _polygon_parts(moved):
+        placed = affine_transform(
+            unit,
+            [span_x, 0.0, 0.0, span_y, min_x, min_y],
+        )
+        placed = placed if placed.is_valid else make_valid(placed)
+        for piece in _polygon_parts(placed):
             if piece.area > 1e-9:
-                regions.append((str(volume.role), piece))
+                regions.append((role, piece))
     return tuple(regions)
 
 

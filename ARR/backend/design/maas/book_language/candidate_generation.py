@@ -60,6 +60,7 @@ from .legal_fit_deficit import build_legal_fit_deficit
 from .legal_mass_archive import LegalMassArchive
 from .stage_outcome import StageOutcome, record_stage_outcome
 from .authorship_policy import bounded_llm_author_batch_count
+from design.maas.design_space import COVERAGE_BANDS
 from design.maas.geometry_language.source_bridge import (
     compile_normalized_geometry_program_to_source_mass,
     compile_site_bound_geometry_program_to_source_mass,
@@ -132,6 +133,7 @@ from .capacity_contract import (
 )
 from .mass_passport_bridge import resolve_capacity_band_evidence
 from .capacity_alternatives import (
+    CAPACITY_ALTERNATIVE_SPECS,
     build_capacity_alternative,
     capacity_fit_score,
     capacity_retry_floor_targets,
@@ -6216,6 +6218,13 @@ def _program_pool_single_phase(
                         ),
                     )
                 )
+                # Two axes, two cursors. Sharing one would pin a ground-take to
+                # a floor-area band for the whole run and leave the portfolio
+                # with a single diagonal instead of a grid - the same aliasing
+                # that pinned every seed to one BOOK scope (38b2756). Dividing
+                # by the alternative count advances the ground-take once the
+                # floor-area bands have been walked, so the pair covers all
+                # sixteen combinations.
                 capacity_alternative = build_capacity_alternative(
                     base_capacity_contract,
                     capacity_alternative_for_host(
@@ -6224,6 +6233,13 @@ def _program_pool_single_phase(
                         host_area_m2=float(compile_site.area),
                         floor_count=floors,
                     ),
+                    coverage_band=COVERAGE_BANDS[
+                        (
+                            capacity_schedule_index
+                            // len(CAPACITY_ALTERNATIVE_SPECS)
+                        )
+                        % len(COVERAGE_BANDS)
+                    ],
                 )
                 if diagnostic_evaluation_trace_callback is not None:
                     diagnostic_evaluation_trace_callback({

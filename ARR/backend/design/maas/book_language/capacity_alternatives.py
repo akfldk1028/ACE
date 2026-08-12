@@ -13,6 +13,12 @@ from dataclasses import dataclass
 from math import isfinite
 from typing import Any
 
+from design.maas.design_space import (
+    CoverageBand,
+    coverage_band as resolve_coverage_band,
+    plan_area_for_band,
+)
+
 from .floor_capacity_plan import allocate_floor_targets
 from .legal_floor_field import validate_legal_floor_field
 
@@ -119,8 +125,16 @@ def capacity_alternative_for_host(
 def build_capacity_alternative(
     base_contract: dict[str, Any] | None,
     alternative: CapacityAlternativeSpec | str,
+    *,
+    coverage_band: CoverageBand | str | None = None,
 ) -> dict[str, Any]:
-    """Derive one target from measured site capacity, never a freehand ratio."""
+    """Derive one target from measured site capacity, never a freehand ratio.
+
+    `coverage_band` chooses how much ground the proposal takes. Without one the
+    plan stays a consequence of the floor-area target, which is what made every
+    delivered mass fill the plan to the legal ceiling - 86 of 128 within one
+    percent of it - and gave the portfolio one axis where it needs two.
+    """
 
     spec = _SPEC_BY_ID[str(alternative)] if isinstance(alternative, str) else alternative
     contract = base_contract or {}
@@ -176,7 +190,21 @@ def build_capacity_alternative(
         if isinstance(bcr_floor_areas, list) and bcr_floor_areas
         else generation_area
     )
-    target_plan_area = ground_capacity * legal_field_yield_ratio
+    # Without a band the plan follows the floor-area target and lands on the
+    # 건폐율 ceiling whenever that target is demanding. With one it is chosen,
+    # and the band is a fraction of the same certified capacity, so a smaller
+    # plate is legal by the same evidence as a full one.
+    derived_plan_area = ground_capacity * legal_field_yield_ratio
+    resolved_band = (
+        None if coverage_band is None
+        else coverage_band if isinstance(coverage_band, CoverageBand)
+        else resolve_coverage_band(coverage_band)
+    )
+    target_plan_area = (
+        derived_plan_area
+        if resolved_band is None
+        else plan_area_for_band(ground_capacity, resolved_band)
+    )
     target_plan_coverage = (
         min(0.95, target_plan_area / generation_area)
         if generation_area > 1e-9
@@ -197,6 +225,10 @@ def build_capacity_alternative(
         "legal_field_target_yield_ratio": round(legal_field_yield_ratio, 4),
         "target_base_plan_area_m2": round(target_plan_area, 3),
         "target_base_plan_coverage": round(target_plan_coverage, 4),
+        "coverage_band": (
+            resolved_band.evidence() if resolved_band is not None else None
+        ),
+        "floor_area_derived_plan_area_m2": round(derived_plan_area, 3),
         "projection_mode": "typed_form_plan_fit",
         "hard_gates_remain_downstream": True,
         "legal_floor_field_hash": str(

@@ -71,6 +71,26 @@ def find_first(node, key):
     return None
 
 
+def void_of(record):
+    """The solid/void position the delivered mass holds, from its own record."""
+
+    band = find_first(record, "delivered_void")
+    if isinstance(band, dict) and band.get("band_id"):
+        return str(band["band_id"])
+    ratio = find_first(record, "envelope_void_ratio")
+    if ratio is None:
+        return "(none)"
+    try:
+        measured = float(ratio)
+    except (TypeError, ValueError):
+        return "(none)"
+    for ceiling, name in ((0.12, "solid_body"), (0.30, "carved_body"),
+                          (0.50, "open_figure"), (1e9, "porous_field")):
+        if measured <= ceiling:
+            return name
+    return "porous_field"
+
+
 def band_of(record):
     band = find_first(record, "coverage_band")
     if isinstance(band, dict) and band.get("band_id"):
@@ -94,6 +114,14 @@ def floors_of(record):
     except (TypeError, ValueError):
         pass
     return 0.0
+
+
+def delivered_band(ratio):
+    for ceiling, name in ((0.45, "dispersed_ground"), (0.65, "held_ground"),
+                          (0.85, "worked_ground"), (1e9, "full_ground")):
+        if ratio <= ceiling + 1e-9:
+            return name
+    return "full_ground"
 
 
 def main(run_dir):
@@ -127,6 +155,24 @@ def main(run_dir):
         count = sum(1 for r in ratios if low <= r < high)
         label = f"  {low:.2f}-{high:.2f}" if high < 9 else "  >=0.99   "
         print(f"  {label:<14} {count:>3}  {'#' * count}")
+
+    grid = defaultdict(int)
+    for record in archived_records(run_dir):
+        area = projected_area(record)
+        if area is None:
+            continue
+        grid[(delivered_band(area / cap), void_of(record))] += 1
+    print("  delivered grid  ground take x void")
+    voids = ["solid_body", "carved_body", "open_figure", "porous_field", "(none)"]
+    grounds = ["dispersed_ground", "held_ground", "worked_ground", "full_ground"]
+    used_voids = [v for v in voids if any(grid.get((g, v)) for g in grounds)]
+    header = "  " + " " * 18 + "".join(f"{v[:12]:>13}" for v in used_voids)
+    print(header)
+    for g in grounds:
+        row = "".join(f"{grid.get((g, v), 0):>13}" for v in used_voids)
+        print(f"  {g:<18}{row}")
+    occupied = sum(1 for key, n in grid.items() if n)
+    print(f"  occupied cells: {occupied}")
 
     by_band = defaultdict(list)
     for ratio, _area, band, floors in rows:

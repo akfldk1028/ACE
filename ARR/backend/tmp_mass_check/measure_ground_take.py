@@ -79,11 +79,21 @@ def band_of(record):
 
 
 def floors_of(record):
-    value = find_first(record, "requested_floors")
+    """Plates the delivered mass actually stacks, from its own measurements.
+
+    The archive records GFA, not floor count, so the count is GFA divided by the
+    measured horizontal projection. That is the number the ground-take axis is
+    trading against: holding the ground means carrying the same area higher.
+    """
+
+    gfa = find_first(record, "floor_area_m2")
+    plan = projected_area(record)
     try:
-        return int(value)
+        if plan and float(gfa) > 0.0:
+            return float(gfa) / plan
     except (TypeError, ValueError):
-        return 0
+        pass
+    return 0.0
 
 
 def main(run_dir):
@@ -121,15 +131,18 @@ def main(run_dir):
     by_band = defaultdict(list)
     for ratio, _area, band, floors in rows:
         by_band[band].append((ratio, floors))
-    print(f"  {'band':<18} {'n':>3} {'min':>7} {'median':>7} {'max':>7}  floors")
+    print(
+        f"  {'band':<18} {'n':>3} {'min':>7} {'median':>7} {'max':>7}"
+        f"  {'median plates':>13}"
+    )
     for band, values in sorted(by_band.items()):
         values.sort()
         got = [value[0] for value in values]
-        floors = sorted({value[1] for value in values if value[1]})
+        plates = sorted(value[1] for value in values)
         print(
             f"  {band:<18} {len(got):>3} {got[0]:>7.3f}"
             f" {got[len(got) // 2]:>7.3f} {got[-1]:>7.3f}"
-            f"  {floors}"
+            f"  {plates[len(plates) // 2]:>13.2f}"
         )
 
 

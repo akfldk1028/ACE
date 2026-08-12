@@ -1748,6 +1748,29 @@ def _clean_mass_gate(source: Any) -> tuple[bool, dict[str, Any]]:
         else {}
     )
     floor_band_count = max(0, int(floorwise_stack.get("floor_count") or 0))
+    if not floor_band_count:
+        # The stack record is not always attached where this gate runs, and
+        # falling back to the flat complexity limit judges a floor-band
+        # serialization by a rule the comment below says does not apply to it.
+        # The bands are readable from the geometry itself: one band is one
+        # distinct (bottom, top) pair, which is exactly what the stack would
+        # have reported. A mass that is not banded measures one band and keeps
+        # the old limit unchanged.
+        #
+        # Measured on PNU 4115011300106840001 once ground-take bands made
+        # stacks taller: masses with mesh_component_count 1 - one connected
+        # building - were rejected at 9 volumes against a limit of 5 because
+        # floor_band_count read 0, and program_passed halved.
+        try:
+            floor_band_count = len({
+                (round(float(volume.bottom_fraction), 6),
+                 round(float(volume.top_fraction), 6))
+                for volume in source.volumes
+            })
+        except (AttributeError, TypeError, ValueError):
+            # A volume that does not state its height band cannot be counted as
+            # one; keep the flat limit rather than assume a band.
+            floor_band_count = 0
     raw_surfaces = int(signature.get("surface_count") or 0)
     effective_surfaces = int(signature.get("effective_surface_count") or raw_surfaces)
     profiled = bool(continuous_surface_evidence.get("hard_pass"))

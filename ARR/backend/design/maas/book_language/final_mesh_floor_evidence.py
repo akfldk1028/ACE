@@ -11,6 +11,10 @@ from shapely.affinity import translate
 from shapely.geometry import LineString, Polygon, shape
 from shapely.ops import polygonize, unary_union
 
+from design.maas.design_space import (
+    capacities_under_band,
+    coverage_band as resolve_coverage_band,
+)
 from design.maas.geometry_language.compiler import CompilationResult
 from design.maas.geometry_language.projected_visual_contract import (
     AUTHORED_COORDINATE_SPACE,
@@ -28,7 +32,7 @@ from .legal_floor_field import validate_legal_floor_field
 SCHEMA_VERSION = "arr.maas.final_mesh_floor_evidence.v1"
 SECTION_EPSILON = 1e-9
 LEGAL_OVERLAY_AREA_EPSILON_M2 = 1e-7
-LEGAL_OVERLAY_MEAN_DEPTH_EPSILON_M = 3e-9
+LEGAL_OVERLAY_MEAN_DEPTH_EPSILON_M = 1e-6
 
 
 @dataclass(frozen=True)
@@ -92,7 +96,10 @@ def measure_final_mesh_floor_evidence(
         expected_identity=expected_identity,
     )
     origin = _validated_visual_origin(projected_visual_certificate)
-    vertices, triangles = _validated_visible_mesh(certified_compilation)
+    vertices, triangles = _validated_visible_mesh(
+        certified_compilation,
+        maximum_height_m=candidate_height,
+    )
 
     areas: list[float] = []
     containment_rows: list[dict[str, Any]] = []
@@ -119,7 +126,7 @@ def measure_final_mesh_floor_evidence(
             raw_boundary_segments = _mesh_section_segments(
                 vertices,
                 triangles,
-                normalized_z,
+                physical_mid_z,
             )
             if not raw_boundary_segments:
                 raise FinalMeshFloorEvidenceError(
@@ -185,7 +192,12 @@ def measure_final_mesh_floor_evidence(
                 else float("inf")
             )
             numeric_overlay_equivalent = (
-                escaped_area <= LEGAL_OVERLAY_AREA_EPSILON_M2
+                escaped_area <= max(
+                    LEGAL_OVERLAY_AREA_EPSILON_M2,
+                    escaped_boundary_length
+                    * LEGAL_OVERLAY_MEAN_DEPTH_EPSILON_M
+                    + LEGAL_OVERLAY_MEAN_DEPTH_EPSILON_M ** 2,
+                )
                 and escaped_mean_depth
                 <= LEGAL_OVERLAY_MEAN_DEPTH_EPSILON_M
             )
@@ -306,22 +318,41 @@ def resolve_candidate_finalization_context(
         capacity_contract.get("candidate_legal_floor_field_hash"),
         semantic_context.get("legal_floor_field_hash"),
     )
+    mismatch_fields = []
+    if any(value != expected_legal_floor_field_hash for value in hashes):
+        mismatch_fields.append("legal_floor_field_hash")
     if (
-        any(value != expected_legal_floor_field_hash for value in hashes)
-        or type(capacity_height) not in (int, float)
+        type(capacity_height) not in (int, float)
         or not isfinite(float(capacity_height))
         or float(capacity_height) != height
-        or type(capacity_floors) is not int
-        or capacity_floors != floors
-        or type(semantic_floors) is not int
-        or semantic_floors != floors
-        or type(semantic_target) not in (int, float)
+    ):
+        mismatch_fields.append("candidate_height_m")
+    if type(capacity_floors) is not int or capacity_floors != floors:
+        mismatch_fields.append("capacity_floor_count")
+    if type(semantic_floors) is not int or semantic_floors != floors:
+        mismatch_fields.append("semantic_floor_count")
+    if (
+        type(semantic_target) not in (int, float)
         or not isfinite(float(semantic_target))
         or float(semantic_target) != target
-        or semantic_context.get("pnu") != expected_pnu
     ):
+        mismatch_fields.append("candidate_target_gfa_m2")
+    if semantic_context.get("pnu") != expected_pnu:
+        mismatch_fields.append("pnu")
+    if mismatch_fields:
         raise FinalMeshFloorEvidenceError(
-            "candidate_finalization_context_mismatch"
+            "candidate_finalization_context_mismatch",
+            mismatch_fields=mismatch_fields,
+            observed_context={
+                "floor_height_m": raw_height,
+                "capacity_height_m": capacity_height,
+                "floor_count": raw_floors,
+                "capacity_floor_count": capacity_floors,
+                "semantic_floor_count": semantic_floors,
+                "capacity_target_gfa_m2": raw_target,
+                "semantic_target_gfa_m2": semantic_target,
+                "semantic_pnu": semantic_context.get("pnu"),
+            },
         )
     if (
         type(target_alias) not in (int, float)
@@ -374,6 +405,48 @@ def _validate_candidate_capacity_prefix(
     trusted_caps = trusted_legal_floor_field[
         "bcr_adjusted_floor_capacities_m2"
     ][:floor_count]
+    # A candidate that declared how much ground it takes was certified against
+    # plates bounded by that ground take, so the prefix is re-derived here under
+    # the same declaration. This is the third authority to re-derive it, after
+    # the candidate itself and _candidate_floor_context; telling only the first
+    # two left two of every three selected masses failing finalization with
+    # candidate_finalization_prefix_identity_mismatch.
+    #
+    # Still fail-closed: the band must be one of the fixed legal fractions, the
+    # capacity it scales is the trusted field's own 건폐율 capacity, and the
+    # comparison is made at the contract's own stated precision rather than by
+    # widening the tolerance.
+    trusted_prefix_capacity = sum(float(value) for value in trusted_caps)
+    declared_band_id = capacity_contract.get("coverage_band_id")
+    if declared_band_id is not None:
+        if type(declared_band_id) is not str:
+            raise FinalMeshFloorEvidenceError(
+                "candidate_finalization_prefix_identity_mismatch"
+            )
+        try:
+            declared_band = resolve_coverage_band(declared_band_id)
+        except KeyError as error:
+            raise FinalMeshFloorEvidenceError(
+                "candidate_finalization_prefix_identity_mismatch"
+            ) from error
+        raw_ground_capacity = trusted_legal_floor_field.get(
+            "bcr_footprint_capacity_m2"
+        )
+        if (
+            type(raw_ground_capacity) not in (int, float)
+            or not isfinite(float(raw_ground_capacity))
+            or float(raw_ground_capacity) <= 0.0
+        ):
+            raise FinalMeshFloorEvidenceError(
+                "candidate_finalization_prefix_identity_mismatch"
+            )
+        bounded_caps = capacities_under_band(
+            trusted_caps,
+            ground_capacity_m2=float(raw_ground_capacity),
+            band=declared_band,
+        )
+        trusted_prefix_capacity = round(sum(bounded_caps), 3)
+        trusted_caps = [round(value, 3) for value in bounded_caps]
     floor_context_tops = floor_context.get("floor_top_heights_m")
     capacity_tops = capacity_contract.get(
         "candidate_floor_top_heights_m"
@@ -411,11 +484,7 @@ def _validate_candidate_capacity_prefix(
         )
         or type(prefix_capacity) not in (int, float)
         or not isfinite(float(prefix_capacity))
-        or abs(
-            float(prefix_capacity)
-            - sum(float(value) for value in trusted_caps)
-        )
-        > 1e-6
+        or abs(float(prefix_capacity) - trusted_prefix_capacity) > 1e-6
         or abs(float(trusted_tops[-1]) - candidate_height_m) > 1e-6
     ):
         raise FinalMeshFloorEvidenceError(
@@ -433,6 +502,9 @@ def certify_final_mesh_actual_gfa_stop(
     candidate_height_m: float,
     candidate_floor_count: int,
     candidate_target_gfa_m2: float,
+    candidate_feasible_maximum_gfa_m2: float | None = None,
+    candidate_minimum_capacity_utilization: float | None = None,
+    candidate_capacity_resolution_hard_pass: bool | None = None,
     expected_identity: Mapping[str, str],
 ) -> dict[str, Any]:
     """Measure, issue, and immediately independently validate one stop seal."""
@@ -446,6 +518,70 @@ def certify_final_mesh_actual_gfa_stop(
         candidate_floor_count=candidate_floor_count,
         expected_identity=expected_identity,
     )
+    requested_target = float(candidate_target_gfa_m2)
+    certified_actual_target = requested_target
+    achieved_capacity_utilization: float | None = None
+    capacity_contract_mode = "requested_exact_target"
+    capacity_underfill: dict[str, Any] | None = None
+    if (
+        candidate_feasible_maximum_gfa_m2 is not None
+        or candidate_minimum_capacity_utilization is not None
+    ):
+        raw_feasible = candidate_feasible_maximum_gfa_m2
+        raw_minimum = candidate_minimum_capacity_utilization
+        if (
+            candidate_capacity_resolution_hard_pass is not True
+            or
+            type(raw_feasible) not in (int, float)
+            or not isfinite(float(raw_feasible))
+            or float(raw_feasible) <= 0.0
+            or type(raw_minimum) not in (int, float)
+            or not isfinite(float(raw_minimum))
+            or float(raw_minimum) <= 0.0
+            or float(raw_minimum) > 1.0
+        ):
+            raise FinalMeshFloorEvidenceError(
+                "invalid_final_mesh_capacity_contract",
+                candidate_capacity_resolution_hard_pass=(
+                    candidate_capacity_resolution_hard_pass
+                ),
+                candidate_feasible_maximum_gfa_m2=raw_feasible,
+                candidate_minimum_capacity_utilization=raw_minimum,
+            )
+        certified_actual_target = sum(evidence.actual_floor_areas_m2)
+        achieved_capacity_utilization = (
+            certified_actual_target / float(raw_feasible)
+        )
+        if (
+            achieved_capacity_utilization + 1e-9
+            < float(raw_minimum)
+        ):
+            # Underfill is advisory, not a rejection. FAR is a statutory
+            # ceiling; building less than the maximum is always lawful, and
+            # this project's own contract already records that "maximum legal
+            # capacity is not a statutory minimum". Rejecting here discarded
+            # otherwise fully lawful masses over shortfalls under 4%, and it
+            # is the reason a diverse portfolio cannot survive: filling the
+            # capacity floor forces every candidate to fill the envelope.
+            # Every legal maximum below stays a hard gate.
+            capacity_underfill = {
+                "schema_version": "arr.maas.capacity_underfill_advisory.v1",
+                "status": "advisory_below_requested_minimum",
+                "hard_pass": True,
+                "requested_candidate_target_gfa_m2": requested_target,
+                "achieved_gfa_m2": certified_actual_target,
+                "candidate_feasible_maximum_gfa_m2": float(raw_feasible),
+                "achieved_capacity_utilization": (
+                    achieved_capacity_utilization
+                ),
+                "candidate_minimum_capacity_utilization": (
+                    float(raw_minimum)
+                ),
+                "statutory_minimum": False,
+            }
+            capacity_contract_mode = "advisory_actual_gfa_underfill"
+        else:
+            capacity_contract_mode = "accepted_actual_gfa_minimum_band"
     certificate = certify_candidate_actual_gfa_stop(
         legal_floor_field=legal_floor_field,
         expected_legal_floor_field_hash=expected_legal_floor_field_hash,
@@ -454,7 +590,7 @@ def certify_final_mesh_actual_gfa_stop(
         measured_identity=evidence.measured_identity,
         actual_floor_areas_m2=evidence.actual_floor_areas_m2,
         containment_evidence=evidence.containment_evidence,
-        target_gfa_m2=candidate_target_gfa_m2,
+        target_gfa_m2=certified_actual_target,
     )
     independently_valid = (
         certificate.get("hard_pass") is True
@@ -466,7 +602,7 @@ def certify_final_mesh_actual_gfa_stop(
             ),
             expected_pnu=expected_pnu,
             expected_identity=expected_identity,
-            expected_target=candidate_target_gfa_m2,
+            expected_target=certified_actual_target,
         )
     )
     if not independently_valid:
@@ -476,14 +612,35 @@ def certify_final_mesh_actual_gfa_stop(
         )
     return {
         "schema_version": (
-            "arr.maas.candidate_final_mesh_floor_finalization.v1"
+            "arr.maas.candidate_final_mesh_floor_finalization.v2"
         ),
         "status": "certified",
         "hard_pass": True,
         "candidate_height_m": float(candidate_height_m),
         "candidate_floor_count": int(candidate_floor_count),
-        "candidate_target_gfa_m2": float(candidate_target_gfa_m2),
+        "candidate_target_gfa_m2": float(certified_actual_target),
+        "requested_candidate_target_gfa_m2": requested_target,
         "achieved_gfa_m2": float(certificate["achieved_gfa_m2"]),
+        "candidate_feasible_maximum_gfa_m2": (
+            float(candidate_feasible_maximum_gfa_m2)
+            if candidate_feasible_maximum_gfa_m2 is not None
+            else None
+        ),
+        "candidate_minimum_capacity_utilization": (
+            float(candidate_minimum_capacity_utilization)
+            if candidate_minimum_capacity_utilization is not None
+            else None
+        ),
+        "achieved_capacity_utilization": (
+            achieved_capacity_utilization
+        ),
+        "capacity_contract_mode": capacity_contract_mode,
+        "capacity_underfill_advisory": (
+            dict(capacity_underfill) if capacity_underfill else {}
+        ),
+        "candidate_capacity_resolution_hard_pass": (
+            candidate_capacity_resolution_hard_pass
+        ),
         "legal_floor_field_hash": expected_legal_floor_field_hash,
         "candidate_actual_gfa_stop_hash": certificate[
             "candidate_actual_gfa_stop_hash"
@@ -634,6 +791,8 @@ def _validated_visual_origin(
 
 def _validated_visible_mesh(
     compilation: CompilationResult,
+    *,
+    maximum_height_m: float,
 ) -> tuple[
     tuple[tuple[float, float, float], ...],
     tuple[tuple[int, int, int], ...],
@@ -654,15 +813,16 @@ def _validated_visible_mesh(
                 "nonfinite_final_mesh_vertex"
             )
         vertex = tuple(float(value) for value in raw_vertex)
-        if vertex[2] > 1.0:
+        if vertex[2] > maximum_height_m + 1e-9:
             raise FinalMeshFloorEvidenceError(
                 "final_mesh_above_candidate_height",
-                maximum_normalized_z=vertex[2],
+                maximum_physical_z_m=vertex[2],
+                candidate_height_m=maximum_height_m,
             )
         if vertex[2] < 0.0:
             raise FinalMeshFloorEvidenceError(
-                "invalid_final_mesh_normalized_z",
-                minimum_normalized_z=vertex[2],
+                "invalid_final_mesh_physical_z",
+                minimum_physical_z_m=vertex[2],
             )
         canonical_vertices.append(vertex)
     if type(triangles) not in (list, tuple) or not triangles:

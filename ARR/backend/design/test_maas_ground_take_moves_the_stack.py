@@ -24,6 +24,10 @@ from design.maas.book_language.capacity_alternatives import (
 from design.maas.book_language.candidate_floor_authority import (
     _candidate_floor_context,
 )
+from design.maas.book_language.final_mesh_floor_evidence import (
+    FinalMeshFloorEvidenceError,
+    _validate_candidate_capacity_prefix,
+)
 from design.maas.book_language.capacity_contract import (
     build_feasible_capacity_contract,
 )
@@ -283,4 +287,64 @@ class GroundTakeMovesTheStackTests(SimpleTestCase):
                 self.contract,
                 CAPACITY_ALTERNATIVE_SPECS[2],
             )["coverage_band"]
+        )
+
+
+class GroundTakeSurvivesFinalizationTests(SimpleTestCase):
+    """The prefix is re-derived a third time, at finalization.
+
+    Teaching only the candidate and `_candidate_floor_context` about the ground
+    take left the selection solver picking three masses and finalization keeping
+    one: two of three died with candidate_finalization_prefix_identity_mismatch
+    on the live target-3 run, because the finalizer compared the candidate's
+    banded plates against the unbounded lawful ones.
+    """
+
+    def setUp(self):
+        self.contract = _base_contract()
+        self.field = self.contract["legal_floor_field"]
+
+    def _validate(self, band, alternative="brief_target"):
+        projected = _projected(self.contract, band=band, alternative=alternative)
+        _validate_candidate_capacity_prefix(
+            floor_context={
+                "floor_top_heights_m": projected["candidate_floor_top_heights_m"],
+            },
+            capacity_contract=projected,
+            trusted_legal_floor_field=self.field,
+            floor_count=int(projected["requested_floors"]),
+            candidate_height_m=float(projected["requested_height_m"]),
+        )
+
+    def test_every_band_and_alternative_finalizes(self):
+        for band in COVERAGE_BANDS:
+            for spec in CAPACITY_ALTERNATIVE_SPECS:
+                try:
+                    self._validate(band, spec.alternative_id)
+                except FinalMeshFloorEvidenceError as error:
+                    self.fail(f"{band.band_id}/{spec.alternative_id}: {error}")
+
+    def test_an_unbanded_candidate_still_finalizes(self):
+        self._validate(None)
+
+    def test_a_forged_ground_take_is_refused_at_finalization(self):
+        projected = _projected(self.contract, band=self.bands_dispersed())
+        for forged in ("as_much_as_possible", "", 0.45):
+            projected["coverage_band_id"] = forged
+            with self.assertRaises(FinalMeshFloorEvidenceError):
+                _validate_candidate_capacity_prefix(
+                    floor_context={
+                        "floor_top_heights_m": projected[
+                            "candidate_floor_top_heights_m"
+                        ],
+                    },
+                    capacity_contract=projected,
+                    trusted_legal_floor_field=self.field,
+                    floor_count=int(projected["requested_floors"]),
+                    candidate_height_m=float(projected["requested_height_m"]),
+                )
+
+    def bands_dispersed(self):
+        return next(
+            band for band in COVERAGE_BANDS if band.band_id == "dispersed_ground"
         )

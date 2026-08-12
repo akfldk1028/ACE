@@ -110,6 +110,31 @@ def plan_area_for_band(
     return capacity * resolved.plan_fraction
 
 
+def delivered_ground_take_band(ratio: float) -> CoverageBand:
+    """Which position on the axis a *delivered* mass actually holds.
+
+    The band a candidate asked for is a label; this reads the measured ground
+    take back onto the same axis, so a portfolio quota counts what was built
+    rather than what was requested. A mass that asked to disperse and came out
+    filling the ground counts as full ground, because that is what it is.
+
+    A ratio lands in the lowest band that can contain it, so the band names the
+    ground the building takes up to.
+    """
+
+    try:
+        measured = float(ratio)
+    except (TypeError, ValueError):
+        measured = 0.0
+    if not isfinite(measured):
+        measured = 0.0
+    ordered = sorted(COVERAGE_BANDS, key=lambda band: band.plan_fraction)
+    for band in ordered:
+        if measured <= band.plan_fraction + 1e-9:
+            return band
+    return ordered[-1]
+
+
 def capacities_under_band(
     floor_capacities: Sequence[float],
     *,

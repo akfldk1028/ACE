@@ -60,7 +60,10 @@ from .legal_fit_deficit import build_legal_fit_deficit
 from .legal_mass_archive import LegalMassArchive
 from .stage_outcome import StageOutcome, record_stage_outcome
 from .authorship_policy import bounded_llm_author_batch_count
-from design.maas.design_space import COVERAGE_BANDS
+from design.maas.design_space import (
+    COVERAGE_BANDS,
+    delivered_ground_take_band,
+)
 from design.maas.geometry_language.source_bridge import (
     compile_normalized_geometry_program_to_source_mass,
     compile_site_bound_geometry_program_to_source_mass,
@@ -7369,6 +7372,32 @@ def _program_pool_single_phase(
                         "program_review_authority": deepcopy(
                             program_review_authority
                         ),
+                        # The portfolio quota needs an axis that is visible in
+                        # the delivered building. This is the measured ground
+                        # take - 건축면적 over the lawful capacity - read back
+                        # onto the same axis the candidate was authored along,
+                        # so a mass that asked to disperse and came out filling
+                        # the ground counts as full ground.
+                        "delivered_ground_take": {
+                            "schema_version": (
+                                "arr.maas.delivered_ground_take.v1"
+                            ),
+                            "ratio": round(
+                                float(
+                                    spatial.get("site_coverage_ratio") or 0.0
+                                ),
+                                4,
+                            ),
+                            "band_id": delivered_ground_take_band(
+                                spatial.get("site_coverage_ratio") or 0.0
+                            ).band_id,
+                            "measured_against": str(
+                                spatial.get("coverage_measurement_mode") or ""
+                            ),
+                            "lawful_ground_capacity_m2": float(
+                                spatial.get("lawful_ground_capacity_m2") or 0.0
+                            ),
+                        },
                     },
                 )
                 _record_gate_diagnostic(

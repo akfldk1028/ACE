@@ -13,6 +13,7 @@ from design.maas.design_space import (
     CoverageBand,
     coverage_band,
     coverage_band_ids,
+    delivered_ground_take_band,
     plan_area_for_band,
 )
 
@@ -69,3 +70,53 @@ class CoverageBandTests(SimpleTestCase):
 
     def test_band_ids_are_unique(self):
         self.assertEqual(len(COVERAGE_BANDS), len(set(coverage_band_ids())))
+
+
+class DeliveredGroundTakeBandTests(SimpleTestCase):
+    """A quota must count what was built, not what was asked for.
+
+    The portfolio quota used to count BOOK base volume scopes - an authoring
+    abstraction that does not survive into the form. Reading the delivered
+    ground take back onto the same axis makes the quota spread over something
+    an architect can see: a mass that asked to disperse and came out filling
+    the ground counts as full ground, because that is what it is.
+    """
+
+    def test_a_ratio_lands_in_the_lowest_band_that_can_hold_it(self):
+        self.assertEqual(
+            "dispersed_ground",
+            delivered_ground_take_band(0.40).band_id,
+        )
+        self.assertEqual("held_ground", delivered_ground_take_band(0.58).band_id)
+        self.assertEqual("worked_ground", delivered_ground_take_band(0.80).band_id)
+        self.assertEqual("full_ground", delivered_ground_take_band(0.95).band_id)
+
+    def test_a_band_edge_belongs_to_its_own_band(self):
+        for band in COVERAGE_BANDS:
+            self.assertEqual(
+                band.band_id,
+                delivered_ground_take_band(band.plan_fraction).band_id,
+                band.band_id,
+            )
+
+    def test_the_bands_actually_separate_the_delivered_spread(self):
+        """The live medians must not collapse into one bucket."""
+
+        measured = {"dispersed": 0.582, "held": 0.794, "worked": 0.804, "full": 1.000}
+        landed = {
+            name: delivered_ground_take_band(value).band_id
+            for name, value in measured.items()
+        }
+
+        self.assertGreaterEqual(len(set(landed.values())), 3, landed)
+
+    def test_filling_past_the_cap_is_still_full_ground(self):
+        self.assertEqual("full_ground", delivered_ground_take_band(1.09).band_id)
+
+    def test_an_unmeasured_take_does_not_crash_the_quota(self):
+        for value in (None, "wide", float("nan"), -1.0):
+            self.assertEqual(
+                "dispersed_ground",
+                delivered_ground_take_band(value).band_id,
+                value,
+            )

@@ -16,10 +16,11 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from dataclasses import dataclass, replace
+from email.utils import parsedate_to_datetime
 from math import atan2, cos, degrees, hypot, pi, sin, sqrt
 from pathlib import Path
-from time import perf_counter
-from typing import Any
+from time import perf_counter, time
+from typing import Any, Callable
 
 from PIL import Image
 from shapely.errors import GEOSException
@@ -160,6 +161,7 @@ from .candidate_analysis import (
     _Candidate,
     _distance,
     _silhouette_distance,
+    _portfolio_diversity_key,
     _scope_key,
     _capacity_alternative_key,
     _seed_family,
@@ -186,6 +188,100 @@ from .candidate_analysis import (
     _clean_mass_gate,
     _site_access_side_in_principal_frame,
 )
+from .agent_authored_supply import (
+    AgentAuthoredAdmission,
+    AgentAuthoredSupplyError,
+    CODEX_OAUTH_AUTHOR_PROVIDER,
+    build_agent_authored_program_seeds,
+    filter_agent_authored_replay_programs,
+    is_validated_codex_oauth_candidate,
+    load_agent_authored_geometry_programs,
+)
+
+
+def _bind_trusted_codex_completion(
+    completion: dict[str, Any],
+    *,
+    manifest_required: bool,
+    selected_count: int,
+    trusted_codex_selected_count: int,
+) -> dict[str, Any]:
+    """Make trusted Codex lineage part of the persisted completion contract."""
+
+    bound = deepcopy(completion)
+    bound["trusted_codex_selected_count"] = int(
+        trusted_codex_selected_count
+    )
+    bound["trusted_codex_lineage_required"] = bool(manifest_required)
+    if (
+        manifest_required
+        and int(trusted_codex_selected_count) != int(selected_count)
+    ):
+        failures = [
+            str(value)
+            for value in bound.get("failures") or ()
+        ]
+        if "selected_codex_oauth_lineage_incomplete" not in failures:
+            failures.append("selected_codex_oauth_lineage_incomplete")
+        bound["failures"] = failures
+        bound["hard_pass"] = False
+    return bound
+
+
+def _trusted_codex_selection_pool(
+    candidates: list[_Candidate],
+    *,
+    admission: AgentAuthoredAdmission | None,
+) -> tuple[list[_Candidate], int]:
+    """Exclude every non-admitted candidate before manifest-mode selection."""
+
+    trusted = [
+        candidate
+        for candidate in candidates
+        if is_validated_codex_oauth_candidate(
+            candidate,
+            admission=admission,
+        )
+    ]
+    return trusted, len(candidates) - len(trusted)
+
+
+def _capacity_hard_pass_selection_pool(
+    candidates: list[_Candidate],
+    *,
+    required: bool,
+) -> tuple[list[_Candidate], list[dict[str, Any]]]:
+    """Keep underfilled geometry available for repair, not final selection."""
+
+    if not required:
+        return list(candidates), []
+    retained: list[_Candidate] = []
+    exclusions: list[dict[str, Any]] = []
+    for candidate in candidates:
+        metadata = candidate.source.metadata
+        resolution = resolve_capacity_band_evidence(
+            metadata.get("capacity_alternative_projection") or {},
+            capacity_measurement=(
+                metadata.get("source_capacity_measurement") or {}
+            ),
+        )
+        if resolution.get("resolved_capacity_hard_pass") is True:
+            retained.append(candidate)
+            continue
+        exclusions.append({
+            "reason": "capacity_hard_pass_required",
+            "resolved_capacity_alternative_id": str(
+                resolution.get("resolved_capacity_alternative_id") or ""
+            ),
+            "achieved_capacity_utilization": float(
+                resolution.get("achieved_capacity_utilization") or 0.0
+            ),
+            "minimum_capacity_utilization": float(
+                resolution.get("resolved_capacity_minimum_utilization")
+                or 0.0
+            ),
+        })
+    return retained, exclusions
 
 
 def _certified_mesh_source(
@@ -420,7 +516,10 @@ from .portfolio_selection import (
     _bounded_visual_selection_pool,
     _target_hard_pass_universe,
 )
-from .competition_portfolio_contract import competition_portfolio_contract
+from .competition_portfolio_contract import (
+    competition_pair_required_distance,
+    competition_portfolio_contract,
+)
 from .quality_diversity_archive import qd_archive_evidence
 from .legal_mass_archive_board import render_legal_mass_archive_board
 
@@ -434,8 +533,18 @@ from .gate_diagnostics import (
 
 from .program_catalog import PROGRAMS
 from .portfolio_feedback import enrich_portfolio_vlm_feedback
-from .authorship_policy import bounded_live_llm_synthesis_requests
+from .authorship_policy import (
+    REQUIRED_ARCHITECTURAL_STRATEGIES,
+    bounded_live_llm_synthesis_requests,
+)
 from .portfolio_witness import persist_portfolio_witness
+from .portfolio_evaluation_bridge import (
+    book_candidate_evaluation_input,
+    build_portfolio_evaluation_ledger,
+)
+from .portfolio_candidate_previews import (
+    render_candidate_preview_assets,
+)
 from .run_budget import (
     progressive_mass_run_budget,
     replenishment_allowed_by_deadline,
@@ -448,6 +557,10 @@ from .portfolio_contract import (
 )
 from .final_vlm_cycle import run_final_vlm_cycle
 from .portfolio_replenishment import (
+    _synthesis_requests_with_author_rate_limit_cooldown,
+    bounded_replenishment_work_dispositions,
+    _merge_live_qd_reserve,
+    _repair_final_vlm_submission_fingerprints,
     competition_exact_hard_pass_reserve,
     competition_exact_hard_pass_deficits,
     competition_exact_reserve_transition,
@@ -455,6 +568,7 @@ from .portfolio_replenishment import (
     replenishment_cycle_budget_for_run,
     replenishment_stop_reason,
     run_replenishment_cycle,
+    certified_reviewed_base_parent_snapshot,
 )
 
 
@@ -643,11 +757,349 @@ def _bounded_replenishment_causal_feedback(
             )
             if prior.get("feedback_source"):
                 sources.add(str(prior["feedback_source"]))
-            prior["feedback_sources"] = sorted(sources)
+            candidate["feedback_sources"] = sorted(sources)
+            del deduplicated[identity]
+            deduplicated[identity] = candidate
             continue
         candidate["feedback_sources"] = sorted(sources)
         deduplicated[identity] = candidate
     return list(deduplicated.values())[-bounded_limit:]
+
+
+def _selector_replenishment_stage_outcomes(
+    *,
+    selection_trace: dict[str, Any] | None,
+    selection_capacity_diagnostics: dict[str, Any] | None,
+    family_supply_deficits: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Describe selector exclusions for the existing causal-feedback channel."""
+
+    trace = selection_trace if isinstance(selection_trace, dict) else {}
+    diagnostics = (
+        selection_capacity_diagnostics
+        if isinstance(selection_capacity_diagnostics, dict)
+        else {}
+    )
+    family = (
+        family_supply_deficits
+        if isinstance(family_supply_deficits, dict)
+        else {}
+    )
+    reason_counts = diagnostics.get("reason_counts") or {}
+    exclusive_counts = diagnostics.get("exclusive_reason_counts") or {}
+    distance_summary = diagnostics.get(
+        "minimum_silhouette_distance_summary"
+    ) or {}
+    caps = diagnostics.get("caps") or {}
+    cap_keys = {
+        "book_operation_cap": "book_operation",
+        "genotype_cap": "genotype",
+        "section_family_cap": "section_family",
+        "roof_archetype_cap": "roof_archetype_default",
+        "chassis_family_cap": "chassis_family",
+        "design_concept_cap": "design_concept_key",
+        "solid_phenotype_cap": "solid_phenotype",
+        "wedge_like_cap": "wedge_like",
+        "pyramidal_like_cap": "pyramidal_like",
+    }
+    outcomes: list[dict[str, Any]] = []
+    for reason, count in sorted(reason_counts.items()):
+        if not str(reason) or int(count or 0) <= 0:
+            continue
+        evidence: dict[str, Any] = {
+            "excluded_candidate_count": int(count),
+            "exclusive_candidate_count": int(
+                exclusive_counts.get(reason) or 0
+            ),
+        }
+        if reason == "silhouette_near_duplicate":
+            evidence.update({
+                "measured_distance": float(
+                    distance_summary.get("minimum") or 0.0
+                ),
+                "measured_distance_summary": deepcopy(distance_summary),
+                "required_threshold": float(
+                    caps.get("silhouette_distance_minimum") or 0.0
+                ),
+            })
+        elif reason in cap_keys:
+            evidence["cap"] = int(caps.get(cap_keys[reason]) or 0)
+        outcomes.append({
+            "kind": "failed",
+            "stage": "portfolio_selection",
+            "reason": str(reason),
+            **evidence,
+            "evidence": evidence,
+        })
+
+    target_count = max(0, int(diagnostics.get("target_count") or 0))
+    selected_count = max(0, int(diagnostics.get("selected_count") or 0))
+    selection_universe_count = max(
+        0,
+        int(diagnostics.get("selection_universe_count") or 0),
+    )
+    remaining_candidate_count = max(
+        0,
+        int(diagnostics.get("remaining_candidate_count") or 0),
+    )
+    if (
+        target_count > 0
+        and selected_count < target_count
+        and remaining_candidate_count == 0
+    ):
+        evidence = {
+            "target_count": target_count,
+            "selected_count": selected_count,
+            "selection_universe_count": selection_universe_count,
+            "remaining_candidate_count": remaining_candidate_count,
+            "candidate_supply_shortfall": target_count - selected_count,
+            "portfolio_contract_deficits": [
+                str(item)[:200]
+                for item in (trace.get("portfolio_contract_deficits") or [])[:12]
+                if str(item).strip()
+            ],
+        }
+        outcomes.append({
+            "kind": "failed",
+            "stage": "portfolio_selection",
+            "reason": "candidate_supply_exhausted",
+            **evidence,
+            "evidence": evidence,
+        })
+
+    missing_descriptor_cells: list[str] = []
+    for source in (trace, family):
+        for key, value in source.items():
+            normalized_key = str(key).lower()
+            if not (
+                "missing" in normalized_key
+                and ("descriptor" in normalized_key or "cell" in normalized_key)
+            ):
+                continue
+            values = value if isinstance(value, (list, tuple)) else [value]
+            missing_descriptor_cells.extend(
+                str(item)[:200]
+                for item in values[:12]
+                if str(item)
+            )
+    trace_deficits = trace.get("portfolio_contract_deficits") or []
+    missing_descriptor_cells.extend(
+        str(item)[:200]
+        for item in trace_deficits[:12]
+        if "missing" in str(item).lower()
+        and not (
+            missing_descriptor_cells
+            and str(item).lower() == "missing_descriptor_cells"
+        )
+    )
+    missing_descriptor_cells = list(dict.fromkeys(missing_descriptor_cells))[:12]
+    if missing_descriptor_cells:
+        outcomes.append({
+            "kind": "failed",
+            "stage": "portfolio_selection",
+            "reason": "missing_descriptor_cells",
+            "missing_descriptor_cells": missing_descriptor_cells,
+            "evidence": {
+                "missing_descriptor_cells": missing_descriptor_cells,
+            },
+        })
+    return outcomes
+
+
+def _post_selection_family_supply_deficits(
+    selection_pool: list[_Candidate],
+    selected: list[_Candidate],
+    *,
+    target_count: int,
+    compatibility_analysis: Any,
+    selection_trace: dict[str, Any] | None,
+    selection_capacity_diagnostics: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Recompute supply from selected witnesses plus every selector exclusion."""
+
+    selected_ids = {id(candidate) for candidate in selected}
+    selected_and_excluded = [
+        *selected,
+        *(
+            candidate
+            for candidate in selection_pool
+            if id(candidate) not in selected_ids
+        ),
+    ]
+    deficits = family_supply_deficits_for_candidates(
+        selected_and_excluded,
+        target_count=target_count,
+        compatibility_analysis=compatibility_analysis,
+    )
+    diagnostics = (
+        selection_capacity_diagnostics
+        if isinstance(selection_capacity_diagnostics, dict)
+        else {}
+    )
+    trace = selection_trace if isinstance(selection_trace, dict) else {}
+    return {
+        **deficits,
+        "candidate_supply_count": len(selected_and_excluded),
+        "candidate_supply_shortfall": max(
+            0,
+            int(target_count) - len(selected_and_excluded),
+        ),
+        "selection_exclusion_evidence": {
+            "reason_counts": deepcopy(diagnostics.get("reason_counts") or {}),
+            "portfolio_contract_deficits": deepcopy(
+                trace.get("portfolio_contract_deficits") or []
+            ),
+        },
+    }
+
+
+@dataclass(frozen=True)
+class SelectorReplenishmentState:
+    phase: str
+    selection_capacity_diagnostics: dict[str, Any]
+    family_supply_deficits: dict[str, Any]
+    selector_stage_outcomes: tuple[dict[str, Any], ...]
+    prior_cycle_causal_evidence: dict[str, Any]
+
+
+def _selector_replenishment_state_boundary(
+    *,
+    phase: str,
+    selection_pool: list[_Candidate],
+    selected: list[_Candidate],
+    target_count: int,
+    visual_directive: dict[str, Any] | None,
+    compatibility_analysis: Any,
+    selection_trace: dict[str, Any] | None,
+    exact_repair_evidence: dict[str, Any] | None,
+    stage_outcomes: list[dict[str, Any]] | None,
+    final_vlm_gate: dict[str, Any] | None,
+) -> SelectorReplenishmentState:
+    """Commit post-selector evidence for the next author cycle."""
+
+    diagnostics = _selection_capacity_diagnostics(
+        selection_pool,
+        selected,
+        target=target_count,
+        visual_directive=visual_directive,
+        compatibility_analysis=compatibility_analysis,
+    )
+    family_deficits = _post_selection_family_supply_deficits(
+        selection_pool,
+        selected,
+        target_count=target_count,
+        compatibility_analysis=compatibility_analysis,
+        selection_trace=selection_trace,
+        selection_capacity_diagnostics=diagnostics,
+    )
+    selector_outcomes = _selector_replenishment_stage_outcomes(
+        selection_trace=selection_trace,
+        selection_capacity_diagnostics=diagnostics,
+        family_supply_deficits=family_deficits,
+    )
+    return SelectorReplenishmentState(
+        phase=str(phase),
+        selection_capacity_diagnostics=diagnostics,
+        family_supply_deficits=family_deficits,
+        selector_stage_outcomes=tuple(selector_outcomes),
+        prior_cycle_causal_evidence={
+            "exact_post_book_typed_repair": deepcopy(
+                exact_repair_evidence or {}
+            ),
+            "stage_outcomes": [
+                *deepcopy(stage_outcomes or []),
+                *deepcopy(selector_outcomes),
+            ],
+            "final_book_vlm_gate": deepcopy(final_vlm_gate or {}),
+        },
+    )
+
+
+def _select_with_replenishment_state(
+    *,
+    phase: str,
+    selection_pool: list[_Candidate],
+    target_count: int,
+    visual_directive: dict[str, Any] | None,
+    compatibility_analysis: Any,
+    allow_diagnostic_fallback: bool,
+    exact_repair_evidence: dict[str, Any] | None,
+    stage_outcomes: list[dict[str, Any]] | None,
+    final_vlm_gate: dict[str, Any] | None,
+) -> tuple[list[_Candidate], dict[str, Any], SelectorReplenishmentState]:
+    """Run selection before freezing the evidence consumed next cycle."""
+
+    selection_trace: dict[str, Any] = {}
+    selected = _select(
+        selection_pool,
+        target_count,
+        visual_directive=visual_directive,
+        selection_trace=selection_trace,
+        compatibility_analysis=compatibility_analysis,
+        allow_diagnostic_fallback=allow_diagnostic_fallback,
+    )
+    state = _selector_replenishment_state_boundary(
+        phase=phase,
+        selection_pool=selection_pool,
+        selected=selected,
+        target_count=target_count,
+        visual_directive=visual_directive,
+        compatibility_analysis=compatibility_analysis,
+        selection_trace=selection_trace,
+        exact_repair_evidence=exact_repair_evidence,
+        stage_outcomes=stage_outcomes,
+        final_vlm_gate=final_vlm_gate,
+    )
+    return selected, selection_trace, state
+
+
+def _next_synthesis_inputs_from_selector_state(
+    state: SelectorReplenishmentState,
+    *,
+    synthesis_requests: list[dict[str, Any]],
+    authored_visual_authority_replenishment_feedback: list[dict[str, Any]],
+    legal_fit_repair_feedback: list[dict[str, Any]],
+    capacity_authoring_deficits: list[dict[str, Any]],
+    progressive_target: int | None,
+    base_book_vlm_replenishment_feedback: list[dict[str, Any]],
+    selected_count: int,
+    selected_scope_count: int,
+    target_count: int,
+    required_scope_count: int,
+    exact_compile_remaining: int | None,
+    cycle_index: int,
+    cycle_budget: int,
+    author_replenishment_remaining: int | None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Consume one frozen selector state through the existing author channel."""
+
+    causal = state.prior_cycle_causal_evidence
+    feedback = _bounded_replenishment_causal_feedback(
+        authored_visual_authority_replenishment_feedback,
+        exact_repair_evidence=causal.get("exact_post_book_typed_repair"),
+        stage_outcomes=causal.get("stage_outcomes"),
+        final_vlm_gate=causal.get("final_book_vlm_gate"),
+    )
+    inputs = _deficit_directed_replenishment_inputs(
+        synthesis_requests,
+        legal_fit_repair_feedback=legal_fit_repair_feedback,
+        capacity_authoring_deficits=capacity_authoring_deficits,
+        family_supply_deficits=state.family_supply_deficits,
+        progressive_target=progressive_target,
+        base_book_vlm_replenishment_feedback=(
+            base_book_vlm_replenishment_feedback
+        ),
+        authored_visual_authority_replenishment_feedback=feedback,
+        selected_count=selected_count,
+        selected_scope_count=selected_scope_count,
+        target_count=target_count,
+        required_scope_count=required_scope_count,
+        exact_compile_remaining=exact_compile_remaining,
+        cycle_index=cycle_index,
+        cycle_budget=cycle_budget,
+        author_replenishment_remaining=author_replenishment_remaining,
+    )
+    return inputs, feedback
 
 
 def _deficit_directed_replenishment_inputs(
@@ -801,6 +1253,9 @@ def _replenishment_cycle_preflight_stop_reason(
     exact_compile_remaining: int | None,
     author_replenishment_remaining: int | None,
     runtime_reserve_available: bool,
+    successful_author_count: int | None = None,
+    successful_author_limit: int | None = None,
+    provider_attempts_remaining: int | None = None,
 ) -> str:
     """Stop before a cycle only for completion or an exhausted real budget."""
 
@@ -811,7 +1266,16 @@ def _replenishment_cycle_preflight_stop_reason(
         return "target_and_scope_coverage_reached"
     if exact_compile_remaining is not None and exact_compile_remaining <= 0:
         return "cumulative_exact_compile_budget_exhausted"
-    if (
+    successful_author_quota_active = (
+        successful_author_count is not None
+        and successful_author_limit is not None
+    )
+    if successful_author_quota_active:
+        if int(successful_author_count) >= max(0, int(successful_author_limit)):
+            return "replenishment_author_quota_exhausted"
+        if provider_attempts_remaining is not None and provider_attempts_remaining <= 0:
+            return "replenishment_provider_attempt_budget_exhausted"
+    elif (
         author_replenishment_remaining is not None
         and author_replenishment_remaining <= 0
     ):
@@ -819,6 +1283,46 @@ def _replenishment_cycle_preflight_stop_reason(
     if not runtime_reserve_available:
         return "runtime_reserve_exhausted"
     return ""
+
+
+def _materialized_authored_supply_success(cycle_evidence: dict[str, Any]) -> int:
+    if not bool(cycle_evidence.get("llm_author_request_executed")):
+        return 0
+    stage_counts = cycle_evidence.get(
+        "geometry_program_llm_author_stage_counts"
+    ) or {}
+    return int(int(stage_counts.get("directed_geometry_materialized") or 0) > 0)
+
+
+def _replenishment_author_budget_state(
+    provider_snapshot: dict[str, Any],
+    *,
+    successful_author_count: int,
+) -> dict[str, int | None]:
+    quota_limits = provider_snapshot.get("quota_limits") or {}
+    quota_remaining = provider_snapshot.get("quota_remaining_counts") or {}
+    author_remaining_raw = quota_remaining.get("author_replenishment")
+    author_limit_raw = quota_limits.get("author_replenishment")
+    total_remaining_raw = provider_snapshot.get("remaining_count")
+    author_remaining = (
+        max(0, int(author_remaining_raw))
+        if author_remaining_raw is not None
+        else None
+    )
+    return {
+        "author_replenishment_remaining": author_remaining,
+        "successful_author_count": max(0, int(successful_author_count)),
+        "successful_author_limit": (
+            max(0, int(author_limit_raw))
+            if author_limit_raw is not None
+            else None
+        ),
+        "provider_attempts_remaining": (
+            max(0, int(total_remaining_raw))
+            if total_remaining_raw is not None
+            else None
+        ),
+    }
 
 
 def _run_replenishment_cycle_with_compile_authority(
@@ -848,6 +1352,364 @@ def _run_replenishment_cycle_with_compile_authority(
             else int(exact_compile_remaining),
         )
     return run_cycle(cycle_index=cycle_index, **cycle_kwargs)
+
+
+@dataclass(frozen=True)
+class _AuthorRateLimitCooldownState:
+    attempt_count: int = 0
+    deadline_epoch_seconds: float | None = None
+    backoff_seconds: float = 0.0
+    source: str = ""
+    http_status: int | None = None
+    retry_after_seconds: float | None = None
+    retry_after_http_date: str = ""
+    scope: str = ""
+    circuit_open: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema_version": "arr.maas.author_rate_limit_cooldown.v1",
+            "attempt_count": int(self.attempt_count),
+            "deadline_epoch_seconds": self.deadline_epoch_seconds,
+            "backoff_seconds": float(self.backoff_seconds),
+            "source": self.source,
+            "http_status": self.http_status,
+            "retry_after_seconds": self.retry_after_seconds,
+            "retry_after_http_date": self.retry_after_http_date,
+            "scope": self.scope,
+            "circuit_open": bool(self.circuit_open),
+        }
+
+
+def _author_rate_limit_cooldown_before_cycle(
+    state: _AuthorRateLimitCooldownState,
+    *,
+    now: float,
+) -> tuple[_AuthorRateLimitCooldownState, dict[str, Any] | None]:
+    if state.circuit_open and state.scope == "benchmark_run":
+        return state, {
+            **state.to_dict(),
+            "active": True,
+        }
+    deadline = state.deadline_epoch_seconds
+    if deadline is None:
+        return state, None
+    remaining = max(0.0, float(deadline) - float(now))
+    if remaining <= 0.0:
+        return _AuthorRateLimitCooldownState(
+            attempt_count=state.attempt_count,
+            backoff_seconds=state.backoff_seconds,
+            source=state.source,
+            http_status=state.http_status,
+            retry_after_seconds=state.retry_after_seconds,
+            retry_after_http_date=state.retry_after_http_date,
+            scope=state.scope,
+        ), None
+    return state, {
+        **state.to_dict(),
+        "active": True,
+        "remaining_seconds": remaining,
+    }
+
+
+def _author_rate_limit_cooldown_after_cycle(
+    state: _AuthorRateLimitCooldownState,
+    outcomes: list[Any] | tuple[Any, ...],
+    *,
+    now: float,
+) -> _AuthorRateLimitCooldownState:
+    def nested_rate_limits(value: Any) -> list[dict[str, Any]]:
+        found: list[dict[str, Any]] = []
+        if isinstance(value, dict):
+            if (
+                value.get("category") == "rate_limited"
+                and int(value.get("http_status") or 0) == 429
+            ):
+                found.append(value)
+            for nested in value.values():
+                found.extend(nested_rate_limits(nested))
+        elif isinstance(value, (list, tuple)):
+            for nested in value:
+                found.extend(nested_rate_limits(nested))
+        return found
+
+    updated = state
+    for raw_outcome in outcomes:
+        if not isinstance(raw_outcome, dict):
+            continue
+        executed = bool(raw_outcome.get("provider_request_executed"))
+        valid_count = max(0, int(
+            raw_outcome.get("valid_authored_program_count") or 0
+        ))
+        diagnostics = raw_outcome.get("failure_diagnostics") or {}
+        rate_limits = nested_rate_limits(diagnostics)
+        if executed and valid_count > 0 and not rate_limits:
+            updated = _AuthorRateLimitCooldownState()
+            continue
+        if not executed or not rate_limits:
+            continue
+        provider_error = rate_limits[0]
+        attempt_count = int(updated.attempt_count) + 1
+        retry_after_raw = provider_error.get("retry_after_seconds")
+        retry_after = (
+            max(0.0, float(retry_after_raw))
+            if isinstance(retry_after_raw, (int, float))
+            else None
+        )
+        retry_after_http_date = str(
+            provider_error.get("retry_after_http_date") or ""
+        )
+        http_date_backoff: float | None = None
+        if retry_after is None and retry_after_http_date:
+            try:
+                parsed_retry_after = parsedate_to_datetime(
+                    retry_after_http_date
+                )
+                if parsed_retry_after.tzinfo is not None:
+                    http_date_backoff = max(
+                        0.0,
+                        parsed_retry_after.timestamp() - float(now),
+                    )
+            except (TypeError, ValueError, OverflowError):
+                http_date_backoff = None
+        if retry_after is not None:
+            backoff = retry_after
+            source = "retry_after"
+            scope = "deadline"
+            circuit_open = False
+            deadline = float(now) + backoff
+        elif http_date_backoff is not None:
+            backoff = http_date_backoff
+            source = "retry_after_http_date"
+            scope = "deadline"
+            circuit_open = False
+            deadline = float(now) + backoff
+        else:
+            backoff = 0.0
+            source = "benchmark_run_circuit"
+            scope = "benchmark_run"
+            circuit_open = True
+            deadline = None
+        updated = _AuthorRateLimitCooldownState(
+            attempt_count=attempt_count,
+            deadline_epoch_seconds=deadline,
+            backoff_seconds=backoff,
+            source=source,
+            http_status=429,
+            retry_after_seconds=retry_after,
+            retry_after_http_date=(
+                retry_after_http_date
+                if http_date_backoff is not None
+                else ""
+            ),
+            scope=scope,
+            circuit_open=circuit_open,
+        )
+    return updated
+
+
+def _run_initial_generation_with_author_cooldown(
+    generation_function: Callable[..., tuple[list[Any], dict[str, Any]]],
+    *generation_args: Any,
+    cooldown_state: _AuthorRateLimitCooldownState,
+    synthesis_requests: list[Any] | tuple[Any, ...],
+    clock: Callable[[], float] = time,
+    **generation_kwargs: Any,
+) -> tuple[list[Any], dict[str, Any], _AuthorRateLimitCooldownState]:
+    active_state, cooldown_payload = (
+        _author_rate_limit_cooldown_before_cycle(
+            cooldown_state,
+            now=float(clock()),
+        )
+    )
+    pool, counts = generation_function(
+        *generation_args,
+        synthesis_requests=(
+            _synthesis_requests_with_author_rate_limit_cooldown(
+                synthesis_requests,
+                cooldown_payload,
+            )
+        ),
+        **generation_kwargs,
+    )
+    return pool, counts, _author_rate_limit_cooldown_after_cycle(
+        active_state,
+        list(counts.get("llm_author_request_outcomes") or ()),
+        now=float(clock()),
+    )
+
+
+def optional_book_base_review_callback(
+    enabled: bool,
+    callback: Callable[[list[Any]], tuple[list[Any], dict[str, Any]]],
+) -> Callable[[list[Any]], tuple[list[Any], dict[str, Any]]] | None:
+    """Keep the disabled path as ``None`` at the generation boundary."""
+
+    return callback if enabled else None
+
+
+def partition_finalizable_candidates(
+    candidates: list[Any],
+    *,
+    resolver: Callable[[Any], Any],
+) -> tuple[list[Any], list[tuple[Any, dict[str, Any]]]]:
+    """Fail one incoherent finalization identity without losing its evidence."""
+
+    accepted = []
+    rejected = []
+    for candidate in candidates:
+        try:
+            resolver(candidate)
+        except FinalMeshFloorEvidenceError as error:
+            rejected.append((candidate, deepcopy(error.evidence)))
+        else:
+            accepted.append(candidate)
+    return accepted, rejected
+
+
+def portfolio_candidate_id(
+    book_principle_id: str,
+    program_hash: str,
+) -> str:
+    """Bind a reusable BOOK principle to one executable candidate identity."""
+
+    return f"{str(book_principle_id)}:{str(program_hash)[:12]}"
+
+
+def downstream_rows_indexed_by_program_hash(
+    rows: list[dict[str, Any]],
+    *,
+    fallback_program_hashes: tuple[str, ...] = (),
+) -> dict[str, dict[str, Any]]:
+    """Index gate rows by persisted or same-order candidate identity."""
+
+    return {
+        resolved_hash: row
+        for index, row in enumerate(rows)
+        if isinstance(row, dict)
+        and (
+            resolved_hash := str(
+                row.get("final_legal_program_hash")
+                or (
+                    fallback_program_hashes[index]
+                    if index < len(fallback_program_hashes)
+                    else ""
+                )
+                or ""
+            )
+        )
+    }
+
+
+@dataclass(frozen=True)
+class _ReplenishmentLiveState:
+    live_qd_reserve: tuple[Any, ...]
+    reviewed_final_vlm_fingerprints: frozenset[tuple[Any, ...]]
+    certified_reviewed_base_parents: tuple[Any, ...] = ()
+    replenishment_work_dispositions: tuple[Any, ...] = ()
+    author_rate_limit_cooldown: _AuthorRateLimitCooldownState = (
+        _AuthorRateLimitCooldownState()
+    )
+
+
+def _initial_replenishment_live_state(
+    candidates: list[Any],
+    *,
+    reviewed_final_vlm_fingerprints: set[tuple[Any, ...]],
+    certified_reviewed_base_parents: tuple[Any, ...] = (),
+    replenishment_work_dispositions: tuple[Any, ...] = (),
+    author_rate_limit_cooldown: _AuthorRateLimitCooldownState = (
+        _AuthorRateLimitCooldownState()
+    ),
+) -> _ReplenishmentLiveState:
+    return _ReplenishmentLiveState(
+        live_qd_reserve=tuple(_merge_live_qd_reserve([], candidates)),
+        reviewed_final_vlm_fingerprints=frozenset(
+            reviewed_final_vlm_fingerprints
+        ),
+        certified_reviewed_base_parents=(
+            certified_reviewed_base_parent_snapshot(
+                carried=certified_reviewed_base_parents
+            )
+        ),
+        replenishment_work_dispositions=(
+            bounded_replenishment_work_dispositions(
+                replenishment_work_dispositions
+            )
+        ),
+        author_rate_limit_cooldown=author_rate_limit_cooldown,
+    )
+
+
+def _run_replenishment_cycle_with_live_state(
+    cycle_boundary: Callable[..., Any],
+    cycle_function: Callable[..., Any],
+    *,
+    state: _ReplenishmentLiveState,
+    clock: Callable[[], float] = time,
+    **cycle_kwargs: Any,
+) -> tuple[Any, _ReplenishmentLiveState]:
+    cooldown_state, cooldown_payload = (
+        _author_rate_limit_cooldown_before_cycle(
+            state.author_rate_limit_cooldown,
+            now=float(clock()),
+        )
+    )
+    active_state = _ReplenishmentLiveState(
+        live_qd_reserve=state.live_qd_reserve,
+        reviewed_final_vlm_fingerprints=state.reviewed_final_vlm_fingerprints,
+        certified_reviewed_base_parents=state.certified_reviewed_base_parents,
+        replenishment_work_dispositions=state.replenishment_work_dispositions,
+        author_rate_limit_cooldown=cooldown_state,
+    )
+    cycle = cycle_boundary(
+        cycle_function,
+        retained_live_qd_reserve=list(state.live_qd_reserve),
+        reviewed_final_vlm_fingerprints=set(
+            state.reviewed_final_vlm_fingerprints
+        ),
+        certified_reviewed_base_parents=deepcopy(
+            state.certified_reviewed_base_parents
+        ),
+        replenishment_work_dispositions=deepcopy(
+            state.replenishment_work_dispositions
+        ),
+        author_rate_limit_cooldown=deepcopy(cooldown_payload),
+        **cycle_kwargs,
+    )
+    if cycle is None:
+        return cycle, active_state
+    evidence = getattr(cycle, "evidence", {}) or {}
+    next_cooldown_state = _author_rate_limit_cooldown_after_cycle(
+        cooldown_state,
+        list(evidence.get("llm_author_request_outcomes") or ()),
+        now=float(clock()),
+    )
+    return cycle, _ReplenishmentLiveState(
+        live_qd_reserve=tuple(cycle.live_qd_reserve),
+        reviewed_final_vlm_fingerprints=frozenset(
+            cycle.reviewed_final_vlm_fingerprints
+        ),
+        certified_reviewed_base_parents=(
+                certified_reviewed_base_parent_snapshot(
+                    carried=getattr(
+                        cycle,
+                        "certified_reviewed_base_parents",
+                        state.certified_reviewed_base_parents,
+                    )
+                )
+        ),
+        replenishment_work_dispositions=(
+                bounded_replenishment_work_dispositions(
+                    getattr(
+                        cycle,
+                        "replenishment_work_dispositions",
+                        state.replenishment_work_dispositions,
+                    )
+                )
+        ),
+        author_rate_limit_cooldown=next_cooldown_state,
+    )
 from .reference_context import (
     _audited_final_book_references,
     _reference_language_author_context,
@@ -2006,13 +2868,76 @@ def run_book_program_portfolios(
     site_access_geometry: dict[str, Any] | None = None,
     live_geometry_vlm_revision: bool = False,
     live_llm_author: bool = False,
+    agent_authored_manifest_path: Path | None = None,
+    agent_authored_admission: AgentAuthoredAdmission | None = None,
+    agent_authored_replay_program_hashes: tuple[str, ...] = (),
     smoke_mode: bool = False,
     diagnostic_target: int | None = None,
     progressive_target: int | None = None,
 ) -> dict[str, Any]:
     portfolio_started_at = perf_counter()
+    if (
+        agent_authored_manifest_path is not None
+        and not isinstance(agent_authored_admission, AgentAuthoredAdmission)
+    ):
+        raise AgentAuthoredSupplyError(
+            "trusted admission contract is required for agent-authored manifest"
+        )
+    validated_agent_authored_programs = (
+        load_agent_authored_geometry_programs(
+            agent_authored_manifest_path,
+            admission=agent_authored_admission,
+        )
+        if agent_authored_manifest_path is not None
+        else ()
+    )
+    agent_authored_programs = filter_agent_authored_replay_programs(
+        validated_agent_authored_programs,
+        agent_authored_replay_program_hashes,
+    )
+    agent_authored_manifest_active = bool(agent_authored_programs)
+    llm_authorship_required = bool(
+        live_llm_author or agent_authored_manifest_active
+    )
+    agent_authored_manifest_evidence = (
+        {
+            "schema_version": (
+                "arr.maas.codex_oauth_geometry_supply_evidence.v1"
+            ),
+            "provider": CODEX_OAUTH_AUTHOR_PROVIDER,
+            "authoring_session_id": str(
+                agent_authored_programs[0].metadata.get(
+                    "authoring_session_id"
+                )
+                or ""
+            ),
+            "request_id": str(
+                agent_authored_programs[0].metadata.get("author_request_id")
+                or ""
+            ),
+            "manifest_sha256": str(
+                agent_authored_programs[0].metadata.get(
+                    "author_manifest_sha256"
+                )
+                or ""
+            ),
+            "validated_program_count": len(agent_authored_programs),
+            "validated_manifest_program_count": len(
+                validated_agent_authored_programs
+            ),
+            "replay_subset_active": bool(agent_authored_replay_program_hashes),
+            "program_hashes": [
+                program.program_hash()
+                for program in agent_authored_programs
+            ],
+            "paid_author_fallback_allowed": False,
+            "deterministic_author_fallback_allowed": False,
+        }
+        if agent_authored_manifest_active
+        else {}
+    )
     if diagnostic_target is not None and int(diagnostic_target) not in DIAGNOSTIC_TARGET_OPTIONS:
-        raise ValueError("diagnostic_target must be one of 1, 2, 3, or 20")
+        raise ValueError("diagnostic_target must be one of 1, 2, 3, 5, or 20")
     diagnostic_target_int = int(diagnostic_target) if diagnostic_target is not None else None
     if progressive_target is not None and int(progressive_target) not in (3, 5, 10, 20):
         raise ValueError("progressive_target must be one of 3, 5, 10, or 20")
@@ -2086,6 +3011,9 @@ def run_book_program_portfolios(
         else portfolio_requirement.required_scope_count
     )
     requested_slugs = set(program_slugs or ())
+    invocation_author_rate_limit_cooldown = (
+        _AuthorRateLimitCooldownState()
+    )
     for slug, building_type, catalog_height, catalog_floors in PROGRAMS:
         if requested_slugs and slug not in requested_slugs:
             continue
@@ -2155,7 +3083,7 @@ def run_book_program_portfolios(
         typed_graph_mutations = program_visual_directive.get("typed_graph_mutations") or []
         geometry_program_mutations = program_visual_directive.get("geometry_program_mutations") or []
         synthesis_requests = program_visual_directive.get("geometry_synthesis_requests") or []
-        if live_llm_author:
+        if live_llm_author and not agent_authored_manifest_active:
             synthesis_requests = list(bounded_live_llm_synthesis_requests(
                 building_type,
                 source_seed_names=(
@@ -2165,6 +3093,23 @@ def run_book_program_portfolios(
                 target_count=selection_target,
                 prior_requests=synthesis_requests,
             ))
+            program_visual_directive[
+                "required_architectural_strategies"
+            ] = list(REQUIRED_ARCHITECTURAL_STRATEGIES)
+            program_visual_directive[
+                "authorship_completion_policy"
+            ] = "all_selected_llm_authored"
+        elif agent_authored_manifest_active:
+            synthesis_requests = []
+            program_visual_directive.update({
+                "authorship_completion_policy": (
+                    "all_selected_codex_oauth_llm_authored"
+                ),
+                "author_provider": CODEX_OAUTH_AUTHOR_PROVIDER,
+                "agent_authored_manifest": deepcopy(
+                    agent_authored_manifest_evidence
+                ),
+            })
         if synthesis_requests:
             live_requested = runtime_live_vlm
             reference_matches = [
@@ -2312,6 +3257,37 @@ def run_book_program_portfolios(
                 else "legacy_no_legal_context"
             ),
         }
+        program_agent_authored_programs = (
+            filter_agent_authored_replay_programs(
+                load_agent_authored_geometry_programs(
+                    agent_authored_manifest_path,
+                    admission=agent_authored_admission,
+                    author_context={
+                        "program_context": {
+                            **program_reference_contract(building_type),
+                            "program_dimensional_context": dict(
+                                dimensional_context
+                            ),
+                            "site_boundary_source": site_boundary_source,
+                            "site_access_context": dict(
+                                site_access_context or {}
+                            ),
+                            "site_access_side_in_program_frame": (
+                                _site_access_side_in_principal_frame(
+                                    generation_site,
+                                    site_access_geometry,
+                                )
+                            ),
+                        },
+                        "maximum_operator_depth": 2,
+                        "downstream_body_rule_reserve": 0,
+                    },
+                ),
+                agent_authored_replay_program_hashes,
+            )
+            if agent_authored_manifest_active
+            else ()
+        )
         if dimensional_context["status"] == "infeasible":
             empty_metrics = _portfolio_language_metrics([])
             board = output_dir / (
@@ -2341,9 +3317,15 @@ def run_book_program_portfolios(
                 selected_scope_count=0,
                 runtime_live_vlm=runtime_live_vlm,
                 exact_vlm_hard_pass_count=0,
-                require_llm_authored_ast=live_llm_author,
+                require_llm_authored_ast=llm_authorship_required,
                 llm_authored_selected_count=0,
                 portfolio_vlm_audit=portfolio_vlm_audit,
+            )
+            portfolio_completion = _bind_trusted_codex_completion(
+                portfolio_completion,
+                manifest_required=agent_authored_manifest_active,
+                selected_count=0,
+                trusted_codex_selected_count=0,
             )
             early_stop_evidence = {
                 "schema_version": "arr.maas.program_site_early_stop.v1",
@@ -2542,11 +3524,27 @@ def run_book_program_portfolios(
                     "program_passed_count": 0,
                 },
             )
-        pool, counts = _program_pool(
+        agent_authored_seed_kwargs = (
+            {
+                "_directed_seeds_override": (
+                    build_agent_authored_program_seeds(
+                        program_agent_authored_programs,
+                        building_type=building_type,
+                        admission=agent_authored_admission,
+                    )
+                )
+            }
+            if agent_authored_manifest_active
+            else {}
+        )
+        pool, counts, invocation_author_rate_limit_cooldown = (
+            _run_initial_generation_with_author_cooldown(
+            _program_pool,
             generation_site,
             building_type,
             height,
             floors,
+            cooldown_state=invocation_author_rate_limit_cooldown,
             generation_context=generation_context,
             typed_graph_mutations=typed_graph_mutations,
             geometry_program_mutations=geometry_program_mutations,
@@ -2621,7 +3619,10 @@ def run_book_program_portfolios(
                 if smoke_mode or progressive_target_int is not None
                 else None
             ),
-            base_review_callback=(
+            base_review_callback=optional_book_base_review_callback(
+                runtime_live_vlm
+                and not smoke_mode
+                and not agent_authored_manifest_active,
                 lambda base_pool: audit_book_base_stage_with_vlm(
                     base_pool,
                     building_type=building_type,
@@ -2630,10 +3631,16 @@ def run_book_program_portfolios(
                     outcome_graph=outcome_graph,
                     program_slug=slug,
                     target_count=selection_target,
-                )
-                if runtime_live_vlm and not smoke_mode
-                else None
+                ),
             ),
+            **agent_authored_seed_kwargs,
+            )
+        )
+        initial_certified_reviewed_base_parents = tuple(
+            counts.pop(
+                "_runtime_certified_reviewed_base_parents",
+                (),
+            ) or ()
         )
         generation_timings = (
             counts.get("phase_durations_seconds")
@@ -2652,6 +3659,10 @@ def run_book_program_portfolios(
         counts["floor_capacity_plan"] = deepcopy(floor_capacity_plan)
         counts["capacity_policy"] = deepcopy(capacity_policy)
         counts["base_capacity_contract"] = deepcopy(base_capacity_contract or {})
+        if agent_authored_manifest_active:
+            counts["agent_authored_manifest_supply"] = deepcopy(
+                agent_authored_manifest_evidence
+            )
         pre_floor_contract_count = len(pool)
         pool = _shared_floor_hard_pass_candidates(pool)
         shared_floor_hard_pass_count = sum(
@@ -2830,9 +3841,21 @@ def run_book_program_portfolios(
             ).items())),
         }
         pre_final_book_vlm_pool = list(selection_pool)
+        reviewed_final_vlm_fingerprints: set[tuple[Any, ...]] = set()
         if runtime_live_vlm:
+            initial_final_review_pool = (
+                list(pre_final_book_vlm_pool)
+                if len(pre_final_book_vlm_pool) <= 5
+                else _bounded_visual_selection_pool(
+                    pre_final_book_vlm_pool
+                )
+            )
+            reviewed_final_vlm_fingerprints.update(
+                _fingerprint(candidate)
+                for candidate in initial_final_review_pool
+            )
             initial_cycle = run_final_vlm_cycle(
-                pre_final_book_vlm_pool,
+                initial_final_review_pool,
                 retained_hard_passes=[],
                 building_type=building_type,
                 output_dir=output_dir / slug,
@@ -2865,6 +3888,9 @@ def run_book_program_portfolios(
                 completion_status="exact_typed_repair_cycle_complete",
                 no_repair_status="no_downstream_hard_pass_repair_candidates",
             )
+            reviewed_final_vlm_fingerprints.update(
+                _repair_final_vlm_submission_fingerprints(initial_cycle)
+            )
             selection_pool = initial_cycle.selection_pool
             counts["initial_final_book_vlm_gate"] = initial_cycle.initial_vlm_gate
             counts["exact_post_book_typed_repair"] = initial_cycle.repair_evidence
@@ -2878,26 +3904,72 @@ def run_book_program_portfolios(
                 "post_book_geometry_reviewed": False,
             }
         counts["final_book_vlm_gate"] = final_book_vlm_gate
+        if agent_authored_manifest_active:
+            selection_pool, rejected_count = _trusted_codex_selection_pool(
+                selection_pool,
+                admission=agent_authored_admission,
+            )
+            counts["agent_authored_manifest_selection_gate"] = {
+                "schema_version": "arr.maas.codex_oauth_selection_gate.v1",
+                "status": "pass",
+                "input_count": len(selection_pool) + rejected_count,
+                "trusted_retained_count": len(selection_pool),
+                "nontrusted_rejected_count": rejected_count,
+                "rejection_reason": "selected_candidate_not_in_trusted_codex_admission",
+            }
+        selection_pool, capacity_selection_exclusions = (
+            _capacity_hard_pass_selection_pool(
+                selection_pool,
+                required=bool(base_capacity_contract),
+            )
+        )
+        counts["capacity_selection_admission"] = {
+            "schema_version": "arr.maas.capacity_selection_admission.v1",
+            "status": "pass",
+            "hard_pass_required": bool(base_capacity_contract),
+            "retained_count": len(selection_pool),
+            "excluded_count": len(capacity_selection_exclusions),
+            "exclusions": capacity_selection_exclusions,
+        }
         selection_compatibility_analysis = build_gestalt_compatibility_analysis(
             selection_pool,
             target_count=selection_target,
         )
-        selection_trace: dict[str, Any] = {}
+        initial_final_vlm_feedback = {
+            "audit_records": [
+                *list((counts.get("initial_final_book_vlm_gate") or {}).get(
+                    "audit_records"
+                ) or ()),
+                *list((final_book_vlm_gate or {}).get("audit_records") or ()),
+            ]
+        }
         solver_started = perf_counter()
-        selected = _select(
-            selection_pool,
-            selection_target,
+        selected, selection_trace, selector_state = (
+            _select_with_replenishment_state(
+            phase="initial_selection",
+            selection_pool=selection_pool,
+            target_count=selection_target,
             visual_directive=program_visual_directive,
-            selection_trace=selection_trace,
             compatibility_analysis=selection_compatibility_analysis,
             allow_diagnostic_fallback=_allow_partial_portfolio_preview(
                 diagnostic_target=diagnostic_target_int,
                 progressive_target=progressive_target_int,
             ),
+            exact_repair_evidence=(
+                counts.get("exact_post_book_typed_repair") or {}
+            ),
+            stage_outcomes=counts.get("stage_outcomes") or [],
+            final_vlm_gate=initial_final_vlm_feedback,
+            )
         )
         phase_durations_seconds["solver"] += (
             perf_counter() - solver_started
         )
+        selection_capacity_diagnostics = (
+            selector_state.selection_capacity_diagnostics
+        )
+        family_supply_deficits = selector_state.family_supply_deficits
+        selector_stage_outcomes = selector_state.selector_stage_outcomes
         update_run_progress(
             output_dir,
             phase="initial_selection",
@@ -2905,7 +3977,7 @@ def run_book_program_portfolios(
             selection_pool_count=len(selection_pool),
             selected_mass_count=len(selected),
             required_scope_count=required_scope_target,
-            selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+            selected_scope_count=len({_portfolio_diversity_key(candidate) for candidate in selected}),
         )
         outcome_graph.observe_candidates(
             program_slug=slug,
@@ -2918,7 +3990,7 @@ def run_book_program_portfolios(
             _fingerprint(candidate) for candidate in initial_selected_snapshot
         }
         missing_scope = (
-            len({_scope_key(candidate) for candidate in selected})
+            len({_portfolio_diversity_key(candidate) for candidate in selected})
             < required_scope_target
         )
         initial_feasible_portfolio = bool(
@@ -2979,11 +4051,26 @@ def run_book_program_portfolios(
             "initial_actual_usage": exact_compile_used,
             "remaining_after_initial": exact_compile_remaining,
         }
-        replenishment_required = (
+        replenishment_deficit_present = (
             not initial_reserve_state["stop"]
             if initial_reserve_state is not None
             else len(selected) < selection_target or missing_scope
         )
+        replenishment_required = bool(
+            replenishment_deficit_present
+            and not agent_authored_manifest_active
+        )
+        if replenishment_deficit_present and agent_authored_manifest_active:
+            counts["agent_authored_manifest_supply_exhausted"] = {
+                "schema_version": (
+                    "arr.maas.agent_authored_supply_exhausted.v1"
+                ),
+                "status": "incomplete_no_authorship_fallback",
+                "selected_count": len(selected),
+                "target_count": selection_target,
+                "deterministic_author_fallback_used": False,
+                "paid_author_fallback_used": False,
+            }
         if replenishment_required:
             excluded_parent_keys = set(base_stage_vlm_gate.get("reviewed_parent_keys") or ())
             excluded_parent_fingerprints = set(
@@ -3027,6 +4114,18 @@ def run_book_program_portfolios(
             # kept hundreds of heavyweight meshes alive across all later
             # cycles. Only the bounded QD archive and the at-most-20 initial
             # selected candidates are needed to refresh final selection flags.
+            replenishment_live_state = _initial_replenishment_live_state(
+                pool,
+                reviewed_final_vlm_fingerprints=(
+                    reviewed_final_vlm_fingerprints
+                ),
+                certified_reviewed_base_parents=tuple(
+                    initial_certified_reviewed_base_parents
+                ),
+                author_rate_limit_cooldown=(
+                    invocation_author_rate_limit_cooldown
+                ),
+            )
             pool = []
             downstream_evaluation_pool = []
             legal_fit_repair_feedback = list(
@@ -3035,11 +4134,6 @@ def run_book_program_portfolios(
             capacity_authoring_deficits = list(
                 counts.get("capacity_authoring_deficits") or ()
             )[-12:]
-            family_supply_deficits = family_supply_deficits_for_candidates(
-                selection_pool,
-                target_count=selection_target,
-                compatibility_analysis=selection_compatibility_analysis,
-            )
             base_book_vlm_replenishment_feedback = (
                 outcome_graph.base_book_vlm_replenishment_feedback(
                     program_slug=slug,
@@ -3058,26 +4152,12 @@ def run_book_program_portfolios(
                 )
                 else []
             )
-            initial_final_vlm_feedback = {
-                "audit_records": [
-                    *list((counts.get("initial_final_book_vlm_gate") or {}).get(
-                        "audit_records"
-                    ) or ()),
-                    *list((final_book_vlm_gate or {}).get("audit_records") or ()),
-                ]
-            }
-            prior_cycle_causal_evidence = {
-                "exact_post_book_typed_repair": deepcopy(
-                    counts.get("exact_post_book_typed_repair") or {}
-                ),
-                "stage_outcomes": deepcopy(counts.get("stage_outcomes") or []),
-                "final_book_vlm_gate": initial_final_vlm_feedback,
-            }
             excluded_program_hashes = {
                 str(deficit.get("rejected_parent_program_hash") or "")
                 for deficit in capacity_authoring_deficits
                 if str(deficit.get("rejected_parent_program_hash") or "")
             }
+            successful_author_count = 0
             for cycle_index in range(1, cycle_budget + 1):
                 runtime_reserve_available = True
                 if progressive_budget is not None:
@@ -3087,12 +4167,17 @@ def run_book_program_portfolios(
                         now=perf_counter(),
                     )
                 provider_snapshot = paid_provider_budget_snapshot()
-                author_replenishment_remaining = (
-                    provider_snapshot.get("quota_remaining_counts") or {}
-                ).get("author_replenishment")
+                author_budget_state = _replenishment_author_budget_state(
+                    provider_snapshot,
+                    successful_author_count=successful_author_count,
+                )
+                author_replenishment_remaining = author_budget_state[
+                    "author_replenishment_remaining"
+                ]
                 selected_count = len(selected)
                 selected_scope_count = len({
-                    _scope_key(candidate) for candidate in selected
+                    _portfolio_diversity_key(candidate)
+                    for candidate in selected
                 })
                 preflight_stop_reason = (
                     _replenishment_cycle_preflight_stop_reason(
@@ -3107,6 +4192,15 @@ def run_book_program_portfolios(
                             else None
                         ),
                         runtime_reserve_available=runtime_reserve_available,
+                        successful_author_count=author_budget_state[
+                            "successful_author_count"
+                        ],
+                        successful_author_limit=author_budget_state[
+                            "successful_author_limit"
+                        ],
+                        provider_attempts_remaining=author_budget_state[
+                            "provider_attempts_remaining"
+                        ],
                     )
                 )
                 if preflight_stop_reason:
@@ -3136,53 +4230,44 @@ def run_book_program_portfolios(
                         }
                     break
                 previous_pool_count = len(selection_pool)
-                authored_visual_authority_replenishment_feedback = (
-                    _bounded_replenishment_causal_feedback(
-                        authored_visual_authority_replenishment_feedback,
-                        exact_repair_evidence=prior_cycle_causal_evidence.get(
-                            "exact_post_book_typed_repair"
+                replenishment_inputs, authored_visual_authority_replenishment_feedback = (
+                    _next_synthesis_inputs_from_selector_state(
+                        selector_state,
+                        synthesis_requests=synthesis_requests,
+                        authored_visual_authority_replenishment_feedback=(
+                            authored_visual_authority_replenishment_feedback
                         ),
-                        stage_outcomes=prior_cycle_causal_evidence.get(
-                            "stage_outcomes"
+                        legal_fit_repair_feedback=legal_fit_repair_feedback,
+                        capacity_authoring_deficits=capacity_authoring_deficits,
+                        progressive_target=progressive_target_int,
+                        base_book_vlm_replenishment_feedback=(
+                            base_book_vlm_replenishment_feedback
                         ),
-                        final_vlm_gate=prior_cycle_causal_evidence.get(
-                            "final_book_vlm_gate"
+                        selected_count=selected_count,
+                        selected_scope_count=selected_scope_count,
+                        target_count=selection_target,
+                        required_scope_count=required_scope_target,
+                        exact_compile_remaining=exact_compile_remaining,
+                        cycle_index=cycle_index,
+                        cycle_budget=cycle_budget,
+                        author_replenishment_remaining=(
+                            int(author_replenishment_remaining)
+                            if author_replenishment_remaining is not None
+                            else None
                         ),
                     )
                 )
                 counts["authored_visual_authority_replenishment_feedback"] = deepcopy(
                     authored_visual_authority_replenishment_feedback
                 )
-                replenishment_inputs = _deficit_directed_replenishment_inputs(
-                    synthesis_requests,
-                    legal_fit_repair_feedback=legal_fit_repair_feedback,
-                    capacity_authoring_deficits=capacity_authoring_deficits,
-                    family_supply_deficits=family_supply_deficits,
-                    progressive_target=progressive_target_int,
-                    base_book_vlm_replenishment_feedback=(
-                        base_book_vlm_replenishment_feedback
-                    ),
-                    authored_visual_authority_replenishment_feedback=(
-                        authored_visual_authority_replenishment_feedback
-                    ),
-                    selected_count=selected_count,
-                    selected_scope_count=selected_scope_count,
-                    target_count=selection_target,
-                    required_scope_count=required_scope_target,
-                    exact_compile_remaining=exact_compile_remaining,
-                    cycle_index=cycle_index,
-                    cycle_budget=cycle_budget,
-                    author_replenishment_remaining=(
-                        int(author_replenishment_remaining)
-                        if author_replenishment_remaining is not None
-                        else None
-                    ),
-                )
                 cycle_synthesis_requests = replenishment_inputs[
                     "synthesis_requests"
                 ]
-                cycle = _run_replenishment_cycle_with_compile_authority(
+                cycle, replenishment_live_state = (
+                    _run_replenishment_cycle_with_live_state(
+                    _run_replenishment_cycle_with_compile_authority,
                     run_replenishment_cycle,
+                    state=replenishment_live_state,
                     exact_compile_remaining=exact_compile_remaining,
                     compile_stop_sink=counts,
                     cycle_index=cycle_index,
@@ -3247,21 +4332,17 @@ def run_book_program_portfolios(
                         if diagnostic_budget is not None
                         else None
                     ),
+                    )
+                )
+                invocation_author_rate_limit_cooldown = (
+                    replenishment_live_state.author_rate_limit_cooldown
+                )
+                successful_author_count += _materialized_authored_supply_success(
+                    cycle.evidence
                 )
                 legal_fit_repair_feedback = list(
                     cycle.evidence.get("legal_fit_deficits") or ()
                 )[-12:]
-                prior_cycle_causal_evidence = {
-                    "exact_post_book_typed_repair": deepcopy(
-                        cycle.evidence.get("exact_post_book_typed_repair") or {}
-                    ),
-                    "stage_outcomes": deepcopy(
-                        cycle.evidence.get("stage_outcomes") or []
-                    ),
-                    "final_book_vlm_gate": deepcopy(
-                        cycle.evidence.get("final_book_vlm_gate") or {}
-                    ),
-                }
                 cycle_exact_compile_usage = int(
                     cycle.evidence.get("exact_compile_invocation_count") or 0
                 )
@@ -3284,36 +4365,95 @@ def run_book_program_portfolios(
                     if str(deficit.get("rejected_parent_program_hash") or "")
                 )
                 selection_pool = cycle.selection_pool
+                if agent_authored_manifest_active:
+                    selection_pool, rejected_count = (
+                        _trusted_codex_selection_pool(
+                            selection_pool,
+                            admission=agent_authored_admission,
+                        )
+                    )
+                    gate = counts.setdefault(
+                        "agent_authored_manifest_selection_gate",
+                        {
+                            "schema_version": "arr.maas.codex_oauth_selection_gate.v1",
+                            "status": "pass",
+                            "input_count": 0,
+                            "trusted_retained_count": 0,
+                            "nontrusted_rejected_count": 0,
+                            "rejection_reason": "selected_candidate_not_in_trusted_codex_admission",
+                        },
+                    )
+                    gate["input_count"] += len(selection_pool) + rejected_count
+                    gate["trusted_retained_count"] += len(selection_pool)
+                    gate["nontrusted_rejected_count"] += rejected_count
+                selection_pool, cycle_capacity_exclusions = (
+                    _capacity_hard_pass_selection_pool(
+                        selection_pool,
+                        required=bool(base_capacity_contract),
+                    )
+                )
+                capacity_gate = counts.setdefault(
+                    "capacity_selection_admission",
+                    {
+                        "schema_version": (
+                            "arr.maas.capacity_selection_admission.v1"
+                        ),
+                        "status": "pass",
+                        "hard_pass_required": bool(base_capacity_contract),
+                        "retained_count": 0,
+                        "excluded_count": 0,
+                        "exclusions": [],
+                    },
+                )
+                capacity_gate["retained_count"] = len(selection_pool)
+                capacity_gate["excluded_count"] += len(
+                    cycle_capacity_exclusions
+                )
+                capacity_gate["exclusions"].extend(
+                    cycle_capacity_exclusions
+                )
                 excluded_parent_keys.update(cycle.reviewed_parent_keys)
                 excluded_parent_fingerprints.update(cycle.reviewed_parent_fingerprints)
                 selection_compatibility_analysis = build_gestalt_compatibility_analysis(
                     selection_pool,
                     target_count=selection_target,
                 )
-                family_supply_deficits = family_supply_deficits_for_candidates(
-                    selection_pool,
-                    target_count=selection_target,
-                    compatibility_analysis=selection_compatibility_analysis,
-                )
-                selection_trace = {}
                 solver_started = perf_counter()
-                selected = _select(
-                    selection_pool,
-                    selection_target,
-                    visual_directive=program_visual_directive,
-                    selection_trace=selection_trace,
-                    compatibility_analysis=selection_compatibility_analysis,
-                    allow_diagnostic_fallback=_allow_partial_portfolio_preview(
+                selected, selection_trace, selector_state = (
+                    _select_with_replenishment_state(
+                        phase="post_cycle_selection",
+                        selection_pool=selection_pool,
+                        target_count=selection_target,
+                        visual_directive=program_visual_directive,
+                        compatibility_analysis=selection_compatibility_analysis,
+                        allow_diagnostic_fallback=_allow_partial_portfolio_preview(
                         diagnostic_target=diagnostic_target_int,
                         progressive_target=progressive_target_int,
-                    ),
+                        ),
+                        exact_repair_evidence=(
+                            cycle.evidence.get(
+                                "exact_post_book_typed_repair"
+                            ) or {}
+                        ),
+                        stage_outcomes=(
+                            cycle.evidence.get("stage_outcomes") or []
+                        ),
+                        final_vlm_gate=(
+                            cycle.evidence.get("final_book_vlm_gate") or {}
+                        ),
+                    )
                 )
                 phase_durations_seconds["solver"] += (
                     perf_counter() - solver_started
                 )
+                selection_capacity_diagnostics = (
+                    selector_state.selection_capacity_diagnostics
+                )
+                family_supply_deficits = selector_state.family_supply_deficits
+                selector_stage_outcomes = selector_state.selector_stage_outcomes
                 pool_growth = len(selection_pool) - previous_pool_count
                 missing_scope = (
-                    len({_scope_key(candidate) for candidate in selected})
+                    len({_portfolio_diversity_key(candidate) for candidate in selected})
                     < required_scope_target
                 )
                 feasible_portfolio = bool(
@@ -3348,12 +4488,8 @@ def run_book_program_portfolios(
                     "selection_pool_growth": pool_growth,
                     "selected_count_after": len(selected),
                     "competition_breadth_replenishment": reserve_state,
-                    "selection_capacity_diagnostics": _selection_capacity_diagnostics(
-                        selection_pool,
-                        selected,
-                        target=selection_target,
-                        visual_directive=program_visual_directive,
-                        compatibility_analysis=selection_compatibility_analysis,
+                    "selection_capacity_diagnostics": deepcopy(
+                        selection_capacity_diagnostics
                     ),
                 }
                 replenishment_cycles.append(cycle_evidence)
@@ -3366,7 +4502,7 @@ def run_book_program_portfolios(
                     selection_pool_count=len(selection_pool),
                     selected_mass_count=len(selected),
                     required_scope_count=required_scope_target,
-                    selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+                    selected_scope_count=len({_portfolio_diversity_key(candidate) for candidate in selected}),
                 )
                 if runtime_live_vlm and cycle.evidence.get("final_book_vlm_gate"):
                     counts["final_book_vlm_gate"] = cycle.evidence["final_book_vlm_gate"]
@@ -3376,9 +4512,13 @@ def run_book_program_portfolios(
                     downstream_report=cycle.downstream_report,
                     selected=selected,
                 )
+                terminal_author_budget_state = _replenishment_author_budget_state(
+                    paid_provider_budget_snapshot(),
+                    successful_author_count=successful_author_count,
+                )
                 terminal_reason = replenishment_stop_reason(
                     selected_count=len(selected),
-                    selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+                    selected_scope_count=len({_portfolio_diversity_key(candidate) for candidate in selected}),
                     target_count=selection_target,
                     required_scope_count=required_scope_target,
                     cycles_run=cycle_index,
@@ -3391,13 +4531,7 @@ def run_book_program_portfolios(
                         ) or ()
                     ), None),
                     exact_compile_remaining=exact_compile_remaining,
-                    author_replenishment_remaining=(
-                        (
-                            paid_provider_budget_snapshot().get(
-                                "quota_remaining_counts"
-                            ) or {}
-                        ).get("author_replenishment")
-                    ),
+                    **terminal_author_budget_state,
                 )
                 del cycle
                 if terminal_reason:
@@ -3439,6 +4573,28 @@ def run_book_program_portfolios(
             visual_directive=program_visual_directive,
             compatibility_analysis=selection_compatibility_analysis,
         )
+        selected, finalization_rejections = partition_finalizable_candidates(
+            selected,
+            resolver=lambda candidate: resolve_candidate_finalization_context(
+                candidate.source.metadata,
+                trusted_legal_floor_field=trusted_run_legal_floor_field,
+                expected_legal_floor_field_hash=(
+                    trusted_run_legal_floor_field_hash
+                ),
+                expected_pnu=pnu,
+            ),
+        )
+        finalization_rejections_by_program_hash = {
+            _candidate_program_hash(candidate): evidence
+            for candidate, evidence in finalization_rejections
+        }
+        counts["candidate_finalization_rejections"] = [
+            {
+                "program_hash": _candidate_program_hash(candidate),
+                "evidence": evidence,
+            }
+            for candidate, evidence in finalization_rejections
+        ]
         selected = _order_portfolio_for_capacity_review(selected)
         update_run_progress(
             output_dir,
@@ -3447,7 +4603,7 @@ def run_book_program_portfolios(
             selection_pool_count=len(selection_pool),
             selected_mass_count=len(selected),
             required_scope_count=required_scope_target,
-            selected_scope_count=len({_scope_key(candidate) for candidate in selected}),
+            selected_scope_count=len({_portfolio_diversity_key(candidate) for candidate in selected}),
         )
         selected_by_program[slug] = selected
         language_metrics = _portfolio_language_metrics(selected)
@@ -3917,6 +5073,33 @@ def run_book_program_portfolios(
                     else ""
                 ),
             }
+            final_capacity_measurement = (
+                candidate.source.metadata.get(
+                    "source_capacity_measurement"
+                )
+                or {}
+            )
+            final_capacity_resolution = resolve_capacity_band_evidence(
+                candidate.source.metadata.get(
+                    "capacity_alternative_projection"
+                )
+                or {},
+                capacity_measurement=final_capacity_measurement,
+            )
+            final_required_capacity_utilization = max(
+                float(
+                    final_capacity_resolution.get(
+                        "resolved_capacity_target_utilization"
+                    )
+                    or 0.0
+                ),
+                float(
+                    final_capacity_resolution.get(
+                        "resolved_capacity_minimum_utilization"
+                    )
+                    or 0.0
+                ),
+            )
             try:
                 finalization_evidence = (
                     certify_final_mesh_actual_gfa_stop(
@@ -3936,6 +5119,19 @@ def run_book_program_portfolios(
                         candidate_target_gfa_m2=(
                             candidate_finalization_context
                             .candidate_target_gfa_m2
+                        ),
+                        candidate_feasible_maximum_gfa_m2=(
+                            final_capacity_measurement.get(
+                                "feasible_maximum_floor_area_m2"
+                            )
+                        ),
+                        candidate_minimum_capacity_utilization=(
+                            final_required_capacity_utilization
+                        ),
+                        candidate_capacity_resolution_hard_pass=(
+                            final_capacity_resolution.get(
+                                "resolved_capacity_hard_pass"
+                            )
                         ),
                         expected_identity=expected_final_mesh_identity,
                     )
@@ -4006,12 +5202,15 @@ def run_book_program_portfolios(
                 "candidate_height_m": float(candidate_height),
                 "candidate_floor_count": int(candidate_floors),
                 "candidate_target_gfa_m2": (
-                    candidate_finalization_context
-                    .candidate_target_gfa_m2
+                    finalization_evidence.get(
+                        "candidate_target_gfa_m2",
+                        candidate_finalization_context
+                        .candidate_target_gfa_m2,
+                    )
                 ),
                 "achieved_gfa_m2": finalization_evidence.get(
-                    "candidate_target_gfa_m2",
-                    candidate_finalization_context.candidate_target_gfa_m2,
+                    "achieved_gfa_m2",
+                    0.0,
                 ),
                 "legal_floor_field_hash": finalization_evidence.get(
                     "legal_floor_field_hash",
@@ -4051,7 +5250,12 @@ def run_book_program_portfolios(
         )
         witness_candidates: list[_Candidate] = []
         witness_program_hashes: set[str] = set()
-        for candidate in [*selection_pool, *downstream_evaluation_pool]:
+        for candidate in [
+            *selected,
+            *selection_pool,
+            *downstream_evaluation_pool,
+            *pool,
+        ]:
             candidate_program_hash = _candidate_program_hash(candidate)
             if candidate_program_hash in witness_program_hashes:
                 continue
@@ -4065,13 +5269,63 @@ def run_book_program_portfolios(
         selected_program_hashes = {
             _candidate_program_hash(candidate) for candidate in selected
         }
+        candidate_preview_exclusions: list[dict[str, str]] = []
+        candidate_preview_paths = render_candidate_preview_assets(
+            (
+                (_candidate_program_hash(candidate), candidate.feature)
+                for candidate in witness_candidates
+            ),
+            output_dir=output_dir,
+            program_slug=slug,
+            exclusion_sink=candidate_preview_exclusions,
+        )
+        candidate_preview_exclusions_by_hash = {
+            str(exclusion.get("program_hash") or ""): str(
+                exclusion.get("reason") or ""
+            )
+            for exclusion in candidate_preview_exclusions
+        }
         witness_records: list[dict[str, Any]] = []
         witness_failure_histogram: Counter[str] = Counter()
+        # The final downstream gate is evaluated after the preselection pass and
+        # carries the authoritative law, parking, and capacity evidence for the
+        # selected candidates.  Using the earlier report here silently left the
+        # portfolio ledger unevaluated even though the final rows existed.
+        preselection_rows = list(
+            (downstream_hard_gate or {}).get("rows") or ()
+        )
+        downstream_rows_by_program_hash = (
+            downstream_rows_indexed_by_program_hash(
+                preselection_rows,
+                fallback_program_hashes=tuple(
+                    _candidate_program_hash(candidate)
+                    for candidate in selected
+                ),
+            )
+        )
+        portfolio_evaluation_inputs = []
         for candidate in witness_candidates:
             metadata = candidate.source.metadata
             final_audit = metadata.get("final_book_vlm_audit") or {}
             failure_reasons = list(final_audit.get("failures") or ())
             candidate_program_hash = _candidate_program_hash(candidate)
+            finalization_rejection = (
+                finalization_rejections_by_program_hash.get(
+                    candidate_program_hash
+                )
+            )
+            if finalization_rejection:
+                failure_reasons = [
+                    str(finalization_rejection.get("failure_code") or (
+                        "candidate_finalization_rejected"
+                    )),
+                    *failure_reasons,
+                ]
+            preview_exclusion = candidate_preview_exclusions_by_hash.get(
+                candidate_program_hash
+            )
+            if preview_exclusion and preview_exclusion not in failure_reasons:
+                failure_reasons.append(preview_exclusion)
             status = _portfolio_witness_candidate_status(
                 candidate_program_hash,
                 selected_program_hashes=selected_program_hashes,
@@ -4088,7 +5342,10 @@ def run_book_program_portfolios(
             compilation = metadata.get("geometry_program_compilation") or {}
             visual = metadata.get("floorwise_visual_projection") or {}
             witness_records.append({
-                "candidate_id": str(candidate.principle_id),
+                "candidate_id": portfolio_candidate_id(
+                    candidate.principle_id,
+                    candidate_program_hash,
+                ),
                 "program_hash": candidate_program_hash,
                 "geometry_hash": str(
                     metadata.get("final_legal_geometry_hash")
@@ -4100,6 +5357,47 @@ def run_book_program_portfolios(
                 "status": status,
                 "failure_reasons": failure_reasons,
             })
+            portfolio_evaluation_inputs.append(
+                book_candidate_evaluation_input(
+                    candidate_id=portfolio_candidate_id(
+                        candidate.principle_id,
+                        candidate_program_hash,
+                    ),
+                    program_hash=candidate_program_hash,
+                    geometry_hash=str(
+                        metadata.get("final_legal_geometry_hash")
+                        or metadata.get(
+                            "final_floorwise_visual_geometry_hash"
+                        )
+                        or compilation.get("geometry_hash")
+                        or ""
+                    ),
+                    metadata=metadata,
+                    downstream_row=downstream_rows_by_program_hash.get(
+                        candidate_program_hash
+                    ),
+                    selected=status == "selected",
+                    selection_reasons=tuple(failure_reasons),
+                    preview_path=candidate_preview_paths.get(
+                        candidate_program_hash,
+                        "",
+                    ),
+                    lineage={
+                        "book_principle_id": str(candidate.principle_id),
+                        "book_scope": _scope_key(candidate),
+                        "geometry_family": _geometry_program_family(
+                            candidate
+                        ),
+                    },
+                )
+            )
+        portfolio_evaluation = build_portfolio_evaluation_ledger(
+            run_id=output_dir.name,
+            pnu=pnu,
+            target_count=selection_target,
+            candidates=portfolio_evaluation_inputs,
+        ).evidence()
+        portfolio_evaluation["program_slug"] = slug
         counts["portfolio_witness"] = persist_portfolio_witness(
             output_dir,
             program_slug=slug,
@@ -4593,7 +5891,7 @@ def run_book_program_portfolios(
                 visual_languages.append(candidate)
         if len(visual_languages) < count_requirements["visual_language_count"]:
             failures.append("visual_language_count_below_required_target")
-        scope_count = len({_scope_key(candidate) for candidate in selected})
+        scope_count = len({_portfolio_diversity_key(candidate) for candidate in selected})
         if scope_count < count_requirements["base_volume_scope_count"]:
             failures.append("book_base_volume_scope_count_below_required_target")
         available_capacity_alternatives = {
@@ -4757,18 +6055,45 @@ def run_book_program_portfolios(
             for candidate in selected
         )
         llm_authored_selected_count = sum(
-            _llm_authored_candidate(candidate)
+            _llm_authored_candidate(
+                candidate,
+                codex_admission=(
+                    agent_authored_admission
+                    if agent_authored_manifest_active
+                    else None
+                ),
+            )
             for candidate in selected
         )
+        codex_oauth_selected_count = sum(
+            is_validated_codex_oauth_candidate(
+                candidate,
+                admission=agent_authored_admission,
+            )
+            for candidate in selected
+        )
+        counts["llm_authored_selected_count"] = (
+            llm_authored_selected_count
+        )
+        if agent_authored_manifest_active:
+            counts["codex_oauth_llm_authored_selected_count"] = (
+                codex_oauth_selected_count
+            )
         portfolio_completion = evaluate_portfolio_completion(
             portfolio_requirement,
             selected_count=len(selected),
             selected_scope_count=scope_count,
             runtime_live_vlm=runtime_live_vlm,
             exact_vlm_hard_pass_count=exact_vlm_hard_pass_count,
-            require_llm_authored_ast=live_llm_author,
+            require_llm_authored_ast=llm_authorship_required,
             llm_authored_selected_count=llm_authored_selected_count,
             portfolio_vlm_audit=portfolio_vlm_audit,
+        )
+        portfolio_completion = _bind_trusted_codex_completion(
+            portfolio_completion,
+            manifest_required=agent_authored_manifest_active,
+            selected_count=len(selected),
+            trusted_codex_selected_count=codex_oauth_selected_count,
         )
         failures.extend(
             failure
@@ -4914,8 +6239,10 @@ def run_book_program_portfolios(
                         "roof_archetype"
                     ]
                 )
-                required_distance = (
-                    0.22 if same_body or same_roof else 0.14
+                required_distance = competition_pair_required_distance(
+                    target_count=selection_target,
+                    same_body_phenotype=same_body,
+                    same_roof_archetype=same_roof,
                 )
                 measured_distance = competition_gestalt_distance(
                     left_key,
@@ -4952,6 +6279,9 @@ def run_book_program_portfolios(
             "selected_count": len(selected),
             "portfolio_requirement": portfolio_requirement.to_evidence(),
             "portfolio_completion": portfolio_completion,
+            "agent_authored_manifest_supply": deepcopy(
+                agent_authored_manifest_evidence
+            ),
             "book_operation_count": operation_count,
             "book_principle_kind_counts": {
                 kind: sum(candidate.principle_kind == kind for candidate in selected)
@@ -4959,7 +6289,7 @@ def run_book_program_portfolios(
             },
             "visual_language_count": len(visual_languages),
             "book_base_volume_scope_count": scope_count,
-            "book_base_volume_scopes": sorted({_scope_key(candidate) for candidate in selected}),
+            "book_base_volume_scopes": sorted({_portfolio_diversity_key(candidate) for candidate in selected}),
             "capacity_alternative_count": len(selected_capacity_alternatives),
             "capacity_alternatives": sorted(selected_capacity_alternatives),
             "near_duplicate_pair_count": near_duplicates,
@@ -5015,6 +6345,7 @@ def run_book_program_portfolios(
                 "max_pyramidal_like_count": pyramidal_cap,
             },
             "downstream_hard_gate": downstream_hard_gate,
+            "portfolio_evaluation": portfolio_evaluation,
             "selected_pair_certificate": selected_pair_certificate,
             "counts": counts,
             "failures": failures,
@@ -5061,6 +6392,9 @@ def run_book_program_portfolios(
             for phase, duration in phase_durations_seconds.items()
         },
         "paid_provider_budget": paid_provider_budget_snapshot(),
+        "agent_authored_manifest_supply": deepcopy(
+            agent_authored_manifest_evidence
+        ),
     }
     result["legal_mass_archive"] = _legal_mass_archive_portfolio_summary(
         program_results
@@ -5199,6 +6533,33 @@ def persist_book_program_summary(
     with path.open("w", encoding="utf-8", newline="\n") as handle:
         json.dump(result, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
+    evaluations = []
+    for program in result.get("programs") or ():
+        if not isinstance(program, dict) or not isinstance(
+            program.get("portfolio_evaluation"), dict
+        ):
+            continue
+        evaluation = deepcopy(program["portfolio_evaluation"])
+        evaluation["program_slug"] = str(
+            evaluation.get("program_slug")
+            or program.get("slug")
+            or program.get("program")
+            or ""
+        )
+        evaluations.append(evaluation)
+    if evaluations:
+        evaluation_path = directory / "maas-portfolio-evaluation.json"
+        temporary = evaluation_path.with_suffix(".json.tmp")
+        with temporary.open("w", encoding="utf-8", newline="\n") as handle:
+            json.dump({
+                "schema_version": (
+                    "arr.maas.portfolio_evaluation_manifest.v1"
+                ),
+                "pnu": str(result.get("pnu") or ""),
+                "programs": evaluations,
+            }, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        temporary.replace(evaluation_path)
     return path
 
 
@@ -5211,7 +6572,7 @@ def diagnostic_generation_budget(
         return None
     resolved = int(target)
     if resolved not in DIAGNOSTIC_TARGET_OPTIONS:
-        raise ValueError("diagnostic target must be one of 1, 2, 3, or 20")
+        raise ValueError("diagnostic target must be one of 1, 2, 3, 5, or 20")
     budget_scale_raw = os.getenv("MAAS_DIAGNOSTIC_BUDGET_SCALE", "1")
     try:
         budget_scale = max(1, int(budget_scale_raw))
@@ -5226,10 +6587,13 @@ def diagnostic_generation_budget(
             "candidate_cap": resolved * 4 * budget_scale,
             "replenishment_cycle_cap": 2,
         }
+    diagnostic_scope_labels = tuple(
+        label for label, _fraction in BASE_VOLUME_FRACTIONS
+    ) if resolved == 5 else tuple(
+        label for label, _fraction in BASE_VOLUME_FRACTIONS[:resolved]
+    )
     return {
-        "scope_labels": tuple(
-            label for label, _fraction in BASE_VOLUME_FRACTIONS[:resolved]
-        ),
+        "scope_labels": diagnostic_scope_labels,
         "parent_variant_indices": (0,),
         "book_probe_count": 1,
         "evaluation_cap": resolved * 12,
@@ -5269,7 +6633,7 @@ def apply_diagnostic_summary_policy(
 
     resolved_target = int(target)
     if resolved_target not in DIAGNOSTIC_TARGET_OPTIONS:
-        raise ValueError("diagnostic target must be one of 1, 2, 3, or 20")
+        raise ValueError("diagnostic target must be one of 1, 2, 3, 5, or 20")
     summary.update({
         "diagnostic_only": True,
         "diagnostic_target": resolved_target,

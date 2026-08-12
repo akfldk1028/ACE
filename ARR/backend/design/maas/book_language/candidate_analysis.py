@@ -79,6 +79,31 @@ def _scope_key(candidate: _Candidate) -> str:
     return str(scope.get("base_volume_label") or "1/1") if isinstance(scope, dict) else "1/1"
 
 
+def _portfolio_diversity_key(candidate: _Candidate) -> str:
+    """The axis a portfolio quota should spread over: delivered ground take.
+
+    The quota used to count BOOK base volume scopes, an authoring abstraction
+    that does not survive into the form - all six scopes delivered masses with
+    the same hierarchy and, more tellingly, the same silhouette envelope. It was
+    forcing diversity along an axis nobody can see in the result.
+
+    The ground take is measured on the delivered mass, against the capacity the
+    law certifies, so two candidates in different positions here are two
+    different propositions to an architect. Candidates measured before this
+    evidence exists fall back to the scope so the quota never silently collapses
+    to one bucket.
+    """
+
+    source = getattr(candidate, "source", None)
+    metadata = getattr(source, "metadata", {}) if source is not None else {}
+    evidence = metadata.get("delivered_ground_take") if isinstance(metadata, dict) else None
+    if isinstance(evidence, dict):
+        band_id = str(evidence.get("band_id") or "")
+        if band_id:
+            return f"ground_take:{band_id}"
+    return f"book_scope:{_scope_key(candidate)}"
+
+
 def _capacity_alternative_key(candidate: _Candidate) -> str:
     """Return only the highest achieved selectable capacity band.
 

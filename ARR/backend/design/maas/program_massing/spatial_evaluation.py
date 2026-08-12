@@ -23,6 +23,21 @@ ROLE_GROUPS = {
 
 DOMINANT_RANGES = {"housing": (0.28, 0.58), "cafe": (0.38, 0.74), "neighborhood_living": (0.38, 0.82), "gymnasium": (0.62, 0.90), "cultural": (0.32, 0.75)}
 COVERAGE_RANGES = {"housing": (0.28, 0.72), "cafe": (0.22, 0.62), "neighborhood_living": (0.38, 0.92), "gymnasium": (0.48, 0.84), "cultural": (0.24, 0.76)}
+# How much of the ground a proposal takes is judged against the ground it is
+# *allowed* to take. Measured against the setback host section instead, the
+# ratio cannot reach these ranges wherever 건폐율 binds hard: on PNU
+# 4115011300106840001 the host section is 1922.226 m2 while 건폐율 (20%) caps the
+# footprint at 499.938 m2, so the highest ratio any lawful building can reach is
+# 0.26 - below the low end of every range here. The gate then required roughly
+# 87% of the legal footprint before a mass could score 0.55, which is why
+# filling the coverage was not one proposal among several but a pass condition.
+#
+# Against the lawful capacity the upper end belongs to the law, not to this
+# gate: taking all the 건폐율 allows is lawful, and the coverage hard gate
+# already enforces the ceiling. Re-judging it here punished a legal building
+# twice. Only the lower end stays a program judgement - how little ground a
+# program can take and still read as that building.
+LAWFUL_COVERAGE_CEILING = 1.0
 
 
 def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: str, site_area_m2: float | None = None) -> dict[str, Any]:
@@ -223,6 +238,13 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
             coverage_measurement_mode = (
                 "certified_projected_ground_floor_area"
             )
+    lawful_ground_capacity = _lawful_ground_capacity(props)
+    if lawful_ground_capacity > 1e-9:
+        denominator = min(denominator, lawful_ground_capacity)
+        coverage_measurement_mode = f"{coverage_measurement_mode}_over_lawful_ground"
+        coverage_range_ceiling = LAWFUL_COVERAGE_CEILING
+    else:
+        coverage_range_ceiling = None
     coverage = coverage_numerator / max(denominator, 1e-9)
     all_height_projected_plan_union_ratio = (
         union_area / max(denominator, 1e-9)
@@ -353,7 +375,13 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         # object. Judge its hierarchy by the expected 1/n share rather than a
         # monolithic-building range; all other spatial hard gates still bind.
         dominant_score = max(dominant_score, _range_score(dominant, (0.20, 0.42)))
-    coverage_score = _range_score(coverage, COVERAGE_RANGES.get(profile_id, (0.2, 0.85)))
+    coverage_range = COVERAGE_RANGES.get(profile_id, (0.2, 0.85))
+    if coverage_range_ceiling is not None:
+        coverage_range = (
+            min(coverage_range[0], coverage_range_ceiling),
+            coverage_range_ceiling,
+        )
+    coverage_score = _range_score(coverage, coverage_range)
     coherence_score = float(coherence.get("score") or 0.0)
     score = role_score * 0.34 + dominant_score * 0.20 + coverage_score * 0.18 + hierarchy_score * 0.14 + coherence_score * 0.14
     evidence = {
@@ -381,6 +409,8 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
         "coverage_numerator_m2": round(coverage_numerator, 3),
         "coverage_denominator_m2": round(denominator, 3),
         "coverage_measurement_mode": coverage_measurement_mode,
+        "lawful_ground_capacity_m2": round(lawful_ground_capacity, 3),
+        "coverage_range": [round(value, 3) for value in coverage_range],
         "height_level_count": semantic_top_level_count,
         "section_level_count": semantic_bottom_level_count,
         "hierarchy_score": round(hierarchy_score, 3),
@@ -392,6 +422,30 @@ def attach_program_spatial_evidence(feature: dict[str, Any], *, building_type: s
     }
     props["program_spatial_evidence"] = evidence
     return evidence
+
+
+def _lawful_ground_capacity(props: dict[str, Any]) -> float:
+    """The 건폐율 capacity this candidate was certified against, or zero.
+
+    Read from the run's own capacity contract, never derived here. Zero means
+    the contract is absent - a legacy or synthetic feature - and the coverage
+    judgement stays exactly as it was rather than inventing a ceiling.
+    """
+
+    for key in ("base_capacity_contract", "candidate_capacity_contract"):
+        contract = props.get(key)
+        if not isinstance(contract, dict):
+            continue
+        for holder in (contract.get("legal_floor_field"), contract):
+            if not isinstance(holder, dict):
+                continue
+            raw = holder.get("bcr_footprint_capacity_m2")
+            if type(raw) not in (int, float):
+                continue
+            capacity = float(raw)
+            if capacity > 0.0:
+                return capacity
+    return 0.0
 
 
 def _range_score(value: float, target: tuple[float, float]) -> float:

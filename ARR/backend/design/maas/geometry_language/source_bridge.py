@@ -1250,34 +1250,17 @@ def materialize_floorwise_legal_source(
             return None
         bottom = floor_index / floor_count
         top = (floor_index + 1) / floor_count
-        # Height bands of one authored AST are one typed component: a unique
-        # role per floor makes program hierarchy misread one building as five
-        # unrelated siblings. Lateral parts are the opposite case and were
-        # swept up by the same rule - the authored program is a composition of
-        # named components (a gallery hall, a public hall, an entry ramp, each
-        # with its own footprint and height band), and stamping one role on
-        # everything discarded that composition. Measured: every one of 128
-        # delivered masses carried exactly one role at share 1.000, while the
-        # authored sources they came from carried three or four at 0.43-0.67.
-        component_regions = _authored_component_regions(
-            source,
-            matrix=matrix,
-            bottom_fraction=bottom,
-            top_fraction=top,
-        )
-        for part in occupied_parts:
-            for role, piece in _articulated_component_parts(
-                part,
-                component_regions,
-                fallback_role=primary_role,
-            ):
-                volumes.append(SourceVolume(
-                    role=role,
-                    footprint=piece,
-                    bottom_fraction=bottom,
-                    top_fraction=top,
-                    verb="floorwise_legal_matrix4",
-                ))
+        for part_index, part in enumerate(occupied_parts, start=1):
+            volumes.append(SourceVolume(
+                # Height bands of one authored AST are one typed component.
+                # A unique role per floor makes program hierarchy misread one
+                # building as five unrelated siblings.
+                role=primary_role,
+                footprint=part,
+                bottom_fraction=bottom,
+                top_fraction=top,
+                verb="floorwise_legal_matrix4",
+            ))
         floor_union = unary_union(occupied_parts)
         floor_unions.append(floor_union)
         matrix_plan_determinant = abs(
@@ -3768,108 +3751,6 @@ def _short_axis_widening_matrix(
         scale_matrix4((1.0, growth, 1.0)),
         rotation_matrix4((0.0, 0.0, target_angle)),
         translation_matrix4((center.x, center.y, 0.0)),
-    )
-
-
-_NECK_BOUNDARY_RATIO = 0.35
-_COMPONENT_MINIMUM_SHARE = 0.12
-
-
-def _authored_component_regions(
-    source: SourceMass,
-    *,
-    matrix: Any,
-    bottom_fraction: float,
-    top_fraction: float,
-) -> tuple[tuple[str, Any], ...]:
-    """Return each authored component's footprint in the delivered frame.
-
-    Only components alive through this height band are returned, transformed by
-    the same fit matrix the delivered plan rode, so a region and the plan it is
-    matched against are the same geometry in the same frame.
-    """
-
-    flat = [
-        matrix[0][0], matrix[0][1],
-        matrix[1][0], matrix[1][1],
-        matrix[0][3], matrix[1][3],
-    ]
-    regions = []
-    for volume in source.volumes:
-        if volume.footprint is None or volume.footprint.is_empty:
-            continue
-        if (
-            float(volume.top_fraction) <= bottom_fraction + 1e-9
-            or float(volume.bottom_fraction) >= top_fraction - 1e-9
-        ):
-            continue
-        moved = affine_transform(volume.footprint, flat)
-        if moved.is_valid and not moved.is_empty and moved.area > 1e-9:
-            regions.append((str(volume.role), moved))
-    return tuple(regions)
-
-
-def _articulated_component_parts(
-    part: Any,
-    regions: tuple[tuple[str, Any], ...],
-    *,
-    fallback_role: str,
-) -> tuple[tuple[str, Any], ...]:
-    """Split one delivered plan part where the form is actually articulated.
-
-    A part that covers two authored components is only cut when the two pieces
-    meet at a neck - a shared boundary short against their own perimeters. That
-    is the whole discriminator. A convex plate covers the same components and
-    can be cut by any ratio, but it has no neck, so it stays one component and
-    keeps failing the hierarchy gate, which is the honest outcome for a box.
-    """
-
-    single = ((fallback_role, part),)
-    if len(regions) < 2:
-        return single
-    pieces = []
-    for role, region in regions:
-        piece = part.intersection(region)
-        if piece.is_empty or piece.area <= 1e-9:
-            continue
-        for fragment in _polygon_parts(piece):
-            if fragment.area >= part.area * _COMPONENT_MINIMUM_SHARE:
-                pieces.append([role, fragment])
-    if len(pieces) < 2:
-        return single
-    # Material the authored components do not claim still belongs to the
-    # building. Give each leftover fragment to whichever piece it shares the
-    # most edge with, so the pieces tile the part exactly and the neck test
-    # below sees the boundary the delivered form actually has.
-    remainder = part.difference(unary_union([piece for _role, piece in pieces]))
-    for fragment in _polygon_parts(remainder):
-        if fragment.area <= part.area * 1e-6:
-            continue
-        nearest = max(
-            pieces,
-            key=lambda item: float(
-                item[1].buffer(1e-6).intersection(fragment.buffer(1e-6)).length
-            ),
-        )
-        nearest[1] = unary_union([nearest[1], fragment])
-    # A neck is narrow *against the lobes it joins*, not against their
-    # perimeter: a 50x20 plate cut down the middle shares a 20 m edge between
-    # two 20 m lobes and is no more articulated than the box it is. Comparing
-    # the shared edge with sqrt(area) separates the two - a 4 m waist between
-    # 20x20 halls scores 0.2, the plate's full-width cut scores 1.0.
-    for index, (_role, left) in enumerate(pieces):
-        for _other_role, right in pieces[index + 1:]:
-            shared = left.buffer(1e-6).intersection(right.buffer(1e-6))
-            if shared.is_empty:
-                continue
-            waist = float(shared.length) / 2.0
-            lobe = min(float(left.area), float(right.area)) ** 0.5
-            if lobe <= 1e-9 or waist / lobe > _NECK_BOUNDARY_RATIO:
-                return single
-    return tuple(
-        (role, piece)
-        for role, piece in pieces
-        if not piece.is_empty and piece.area > 1e-9
     )
 
 

@@ -133,17 +133,25 @@ class VoidBandTests(SimpleTestCase):
     lost to the same scheme without. A position cannot lose to another position.
     """
 
-    def test_the_bands_are_distinct_positions(self):
-        ceilings = sorted(band.void_ceiling for band in VOID_BANDS)
-        self.assertGreaterEqual(len(ceilings), 3)
-        for lower, upper in zip(ceilings, ceilings[1:]):
-            self.assertGreaterEqual(upper - lower, 0.15)
+    def test_every_edge_is_a_figure_this_axis_can_name(self):
+        """Pin the derivation, not the numbers.
+
+        An arbitrary minimum gap was the earlier test and it asserted nothing
+        about architecture - it only re-stated thresholds picked before any
+        distribution was measured. Each edge is now the void ratio a named
+        figure actually produces, computed from its geometry.
+        """
+
+        self.assertEqual(
+            [0.09, 0.20, 0.333, 1.00],
+            [band.void_ceiling for band in VOID_BANDS],
+        )
 
     def test_a_ratio_lands_in_the_lowest_band_that_can_hold_it(self):
         self.assertEqual("solid_body", delivered_void_band(0.05).band_id)
-        self.assertEqual("carved_body", delivered_void_band(0.20).band_id)
-        self.assertEqual("open_figure", delivered_void_band(0.42).band_id)
-        self.assertEqual("porous_field", delivered_void_band(0.70).band_id)
+        self.assertEqual("carved_body", delivered_void_band(0.19).band_id)
+        self.assertEqual("open_figure", delivered_void_band(0.30).band_id)
+        self.assertEqual("porous_field", delivered_void_band(0.42).band_id)
 
     def test_a_band_edge_belongs_to_its_own_band(self):
         for band in VOID_BANDS:
@@ -167,3 +175,59 @@ class VoidBandTests(SimpleTestCase):
         self.assertEqual(len(VOID_BANDS), len(set(void_band_ids())))
         with self.assertRaises(KeyError):
             void_band("mostly_air")
+
+
+class VoidBandsAreAnchoredOnFiguresTests(SimpleTestCase):
+    """The edges are figures, computed - not thresholds picked before looking.
+
+    Fitting them to one run's distribution was the alternative and is worse: a
+    building would change position depending on what was generated beside it,
+    and an axis an architect chooses along has to mean the same thing every run.
+    """
+
+    FIGURES = {
+        "plain block": (0.000, "solid_body"),
+        "court 30% of side": (0.090, "solid_body"),
+        "notched block": (0.120, "carved_body"),
+        "U slot": (0.167, "carved_body"),
+        "two bars with a gap": (0.200, "carved_body"),
+        "L with a quarter out": (0.250, "open_figure"),
+        "H with two slots": (0.333, "open_figure"),
+        "cross": (0.375, "porous_field"),
+    }
+
+    def test_each_figure_lands_in_the_band_named_after_it(self):
+        for figure, (ratio, expected) in self.FIGURES.items():
+            self.assertEqual(
+                expected,
+                delivered_void_band(ratio).band_id,
+                f"{figure} at {ratio}",
+            )
+
+    def test_a_solid_block_is_solid_at_every_angle(self):
+        """The measure this axis reads must not be moved by rotation alone.
+
+        The axis-aligned ratio it replaced read a solid box as 0.351 void at 15
+        degrees, 0.484 at 30 and 0.520 at 45 - it was measuring orientation.
+        """
+
+        from shapely import affinity
+        from shapely.geometry import box
+
+        solid = box(0.0, 0.0, 30.0, 20.0)
+        for angle in (0, 15, 30, 37, 45):
+            rotated = affinity.rotate(solid, angle)
+            tightest = rotated.minimum_rotated_rectangle
+            measured = max(0.0, 1.0 - rotated.area / tightest.area)
+
+            self.assertAlmostEqual(0.0, measured, places=6, msg=f"{angle} deg")
+            self.assertEqual("solid_body", delivered_void_band(measured).band_id)
+
+    def test_a_courtyard_is_not_solid(self):
+        from shapely.geometry import box
+
+        block = box(0.0, 0.0, 30.0, 30.0)
+        court = block.difference(box(7.5, 7.5, 22.5, 22.5))
+        measured = 1.0 - court.area / court.minimum_rotated_rectangle.area
+
+        self.assertNotEqual("solid_body", delivered_void_band(measured).band_id)

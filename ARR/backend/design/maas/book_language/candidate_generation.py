@@ -7463,7 +7463,7 @@ def _program_pool_single_phase(
                                     (
                                         spatial.get("spatial_role_projection")
                                         or {}
-                                    ).get("envelope_void_ratio")
+                                    ).get("plan_void_ratio")
                                     or 0.0
                                 ),
                                 4,
@@ -7471,10 +7471,10 @@ def _program_pool_single_phase(
                             "band_id": delivered_void_band(
                                 (
                                     spatial.get("spatial_role_projection") or {}
-                                ).get("envelope_void_ratio")
+                                ).get("plan_void_ratio")
                                 or 0.0
                             ).band_id,
-                            "measured_as": "open_share_of_own_plan_envelope",
+                            "measured_as": "open_share_of_minimum_rotated_rectangle",
                         },
                     },
                 )

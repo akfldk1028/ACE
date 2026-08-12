@@ -31,8 +31,28 @@ def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
     bottom_levels = {round(float(item.get("bottom_height") or 0.0), 2) for item in records}
     union = safe_unary_union(geometries)
     envelope_void_ratio = 0.0
+    plan_void_ratio = 0.0
     if union is not None and not union.is_empty and union.envelope.area > 0:
         envelope_void_ratio = max(0.0, 1.0 - float(union.area) / float(union.envelope.area))
+    # `envelope` is the axis-aligned bounding box, so the ratio above rises with
+    # rotation alone: a solid box with no void at all reads 0.351 at 15 degrees,
+    # 0.484 at 30 and 0.520 at 45. Measured across one archive the values sat
+    # between 0.377 and 0.674 with a median of 0.487 - which is what a rotated
+    # rectangle gives, not what a courtyard gives. It was measuring orientation.
+    #
+    # The tightest rectangle around the mass removes that: a rotated solid reads
+    # 0.000 at every angle, and what remains is the share of its own figure the
+    # building leaves open. Kept as a separate field because the two thresholds
+    # that already consume envelope_void_ratio were calibrated against the
+    # contaminated number, and silently re-pointing them would change gate
+    # behaviour that has not been measured.
+    if union is not None and not union.is_empty:
+        tightest = union.minimum_rotated_rectangle
+        if tightest is not None and float(tightest.area) > 0.0:
+            plan_void_ratio = max(
+                0.0,
+                1.0 - float(union.area) / float(tightest.area),
+            )
     non_rectilinear = sum(
         1 for geometry in geometries
         if hasattr(geometry, "exterior") and len(list(geometry.exterior.coords)) - 1 > 5
@@ -67,6 +87,8 @@ def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
         "secondary_mass_present": len(records) >= 2,
         "public_spatial_gesture_present": public_gesture,
         "envelope_void_ratio": round(envelope_void_ratio, 3),
+        "plan_void_ratio": round(plan_void_ratio, 3),
+        "plan_void_ratio_basis": "open_share_of_minimum_rotated_rectangle",
         "height_level_count": len(top_levels),
         "section_level_count": len(bottom_levels),
         "non_rectilinear_component_count": non_rectilinear,

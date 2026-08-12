@@ -182,35 +182,51 @@ class VoidBand:
         }
 
 
-# Solid or void is the architect's other primary axis. Measured as the share of
-# the building's own plan envelope it leaves open - a court, a canyon, an arm
-# withdrawn - which is what separates a block from a courtyard scheme at the
-# same 건폐율. Voids used to be pure loss here: they cost floor area and nothing
-# scored them, so a scheme with a court always lost to the same scheme without
-# one. A position cannot lose to another position.
+# Solid or void is the architect's other primary axis: what separates a block
+# from a courtyard scheme at the same 건폐율. Voids used to be pure loss here -
+# they cost floor area and nothing scored them, so a scheme with a court always
+# lost to the same scheme without one. A position cannot lose to another
+# position.
+#
+# The edges are named after the figures that produce them, computed rather than
+# picked, and every one is rotation-invariant (identical at 0 and 37 degrees):
+#
+#     plain block                          0.000
+#     court 30% of the side                0.090   <- solid_body ceiling
+#     notched block                        0.120
+#     court 40% / U slot                   0.160 / 0.167
+#     two bars with a gap                  0.200   <- carved_body ceiling
+#     L with a quarter out / court 50%     0.250
+#     H with two slots                     0.333   <- open_figure ceiling
+#     cross                                0.375
+#
+# Fitting these to one run's distribution was the alternative and is worse: the
+# same building would change position depending on what else was generated
+# beside it, and an axis an architect chooses along has to mean the same thing
+# every time.
 VOID_BANDS: tuple[VoidBand, ...] = (
     VoidBand(
         "solid_body",
         "Solid body",
         "one closed figure; the room is inside, not cut out of it",
-        0.12,
+        0.09,
     ),
     VoidBand(
         "carved_body",
         "Carved body",
         "a body still read as one mass, with a court or notch taken out",
-        0.30,
+        0.20,
     ),
     VoidBand(
         "open_figure",
         "Open figure",
         "arms and courts as much as mass; the plan reads as a figure, not a block",
-        0.50,
+        0.333,
     ),
     VoidBand(
         "porous_field",
         "Porous field",
-        "more open than built within its own envelope; a field of parts",
+        "more open than built than its own figure holds; a field of parts",
         1.00,
     ),
 )

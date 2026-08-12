@@ -21,6 +21,7 @@ so they are legal by construction and say nothing about which is better.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from math import isfinite
 
@@ -107,3 +108,32 @@ def plan_area_for_band(
     if not isfinite(capacity) or capacity <= 0.0:
         return 0.0
     return capacity * resolved.plan_fraction
+
+
+def capacities_under_band(
+    floor_capacities: Sequence[float],
+    *,
+    ground_capacity_m2: float,
+    band: CoverageBand | str,
+) -> list[float]:
+    """Bound every floor's plate by the ground this band takes.
+
+    건축면적 is the horizontal projection of the whole building, so a band that
+    holds the ground holds every plate, not only the lowest one. Bounding the
+    whole vector is also what lets the stack answer: the floor-prefix selection
+    downstream picks the shortest prefix carrying the target, so a smaller plate
+    simply asks for more floors.
+    """
+
+    ceiling = plan_area_for_band(ground_capacity_m2, band)
+    bounded: list[float] = []
+    for value in floor_capacities:
+        try:
+            capacity = float(value)
+        except (TypeError, ValueError):
+            capacity = 0.0
+        if not isfinite(capacity) or capacity <= 0.0:
+            bounded.append(0.0)
+            continue
+        bounded.append(min(capacity, ceiling) if ceiling > 0.0 else capacity)
+    return bounded

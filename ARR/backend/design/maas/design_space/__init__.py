@@ -23,6 +23,7 @@ This package names the axes explicitly so they can be spread over.
 from .axes import (
     COVERAGE_BANDS,
     CoverageBand,
+    capacities_under_band,
     coverage_band,
     coverage_band_ids,
     plan_area_for_band,
@@ -31,6 +32,7 @@ from .axes import (
 __all__ = [
     "COVERAGE_BANDS",
     "CoverageBand",
+    "capacities_under_band",
     "coverage_band",
     "coverage_band_ids",
     "plan_area_for_band",

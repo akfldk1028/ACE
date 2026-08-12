@@ -15,6 +15,7 @@ from typing import Any
 
 from design.maas.design_space import (
     CoverageBand,
+    capacities_under_band,
     coverage_band as resolve_coverage_band,
     plan_area_for_band,
 )
@@ -71,6 +72,73 @@ CAPACITY_ALTERNATIVE_SPECS = (
 )
 
 _SPEC_BY_ID = {spec.alternative_id: spec for spec in CAPACITY_ALTERNATIVE_SPECS}
+
+
+def _resolve_band(
+    coverage_band: CoverageBand | str | None,
+) -> CoverageBand | None:
+    if coverage_band is None:
+        return None
+    if isinstance(coverage_band, CoverageBand):
+        return coverage_band
+    return resolve_coverage_band(coverage_band)
+
+
+def coverage_band_of_alternative(
+    alternative: dict[str, Any] | None,
+) -> CoverageBand | None:
+    """Recover the ground take an alternative was built with.
+
+    The band travels inside the alternative it produced, so every consumer of
+    that alternative reads the same ground take without a second cursor and
+    without a wider signature.
+    """
+
+    evidence = (alternative or {}).get("coverage_band")
+    if not isinstance(evidence, dict):
+        return None
+    band_id = str(evidence.get("band_id") or "")
+    if not band_id:
+        return None
+    try:
+        return resolve_coverage_band(band_id)
+    except KeyError:
+        return None
+
+
+def _lawful_stack_under_band(
+    contract: dict[str, Any],
+    band: CoverageBand,
+) -> tuple[list[float], float] | None:
+    """Return the plates and total GFA the lawful stack carries under one band.
+
+    The whole lawful stack is read here, not the prefix the run happened to
+    select: holding the ground is answered by going up, and that answer only
+    exists if the floors above the run's own selection are still on the table.
+    """
+
+    field = contract.get("legal_floor_field")
+    if not isinstance(field, dict):
+        return None
+    capacities = field.get("bcr_adjusted_floor_capacities_m2")
+    if not isinstance(capacities, (list, tuple)) or not capacities:
+        return None
+    ground_capacity = max(
+        0.0,
+        float(field.get("bcr_footprint_capacity_m2") or 0.0),
+    )
+    if ground_capacity <= 1e-9:
+        return None
+    bounded = capacities_under_band(
+        capacities,
+        ground_capacity_m2=ground_capacity,
+        band=band,
+    )
+    total = sum(bounded)
+    far_capacity = max(0.0, float(field.get("statutory_far_capacity_m2") or 0.0))
+    if far_capacity > 1e-9:
+        total = min(total, far_capacity)
+    return bounded, total
 
 
 def capacity_alternative_catalog() -> list[dict[str, Any]]:
@@ -165,9 +233,27 @@ def build_capacity_alternative(
         "maximum_feasible": maximum_design_yield,
     }
     target = max(minimum, min(0.98, targets[spec.alternative_id]))
-    feasible_maximum = max(
+    unbounded_feasible_maximum = max(
         0.0,
         float(contract.get("feasible_maximum_floor_area_m2") or 0.0),
+    )
+    resolved_band = _resolve_band(coverage_band)
+    # A band that holds the ground lowers what the lawful stack can carry, and
+    # the height field is finite: on a low-rise parcel, 45% of the ground simply
+    # cannot reach the same GFA however many lawful floors are used. Holding the
+    # utilization against the *maximal* capacity would therefore make every
+    # dispersed proposal unreachable and quietly delete that corner of the grid.
+    # Holding it against this band's own capacity keeps the corner and states the
+    # honest consequence instead: a scheme that takes less ground is a smaller
+    # building, which is exactly the trade an architect is choosing between.
+    bounded_stack = (
+        None if resolved_band is None
+        else _lawful_stack_under_band(contract, resolved_band)
+    )
+    feasible_maximum = (
+        unbounded_feasible_maximum
+        if bounded_stack is None
+        else min(unbounded_feasible_maximum, bounded_stack[1])
     )
     floor_count = max(1, int(contract.get("requested_floors") or 1))
     generation_area = max(
@@ -195,11 +281,6 @@ def build_capacity_alternative(
     # and the band is a fraction of the same certified capacity, so a smaller
     # plate is legal by the same evidence as a full one.
     derived_plan_area = ground_capacity * legal_field_yield_ratio
-    resolved_band = (
-        None if coverage_band is None
-        else coverage_band if isinstance(coverage_band, CoverageBand)
-        else resolve_coverage_band(coverage_band)
-    )
     target_plan_area = (
         derived_plan_area
         if resolved_band is None
@@ -228,6 +309,11 @@ def build_capacity_alternative(
         "coverage_band": (
             resolved_band.evidence() if resolved_band is not None else None
         ),
+        "ground_take_bounds_the_stack": bounded_stack is not None,
+        "unbounded_feasible_maximum_floor_area_m2": round(
+            unbounded_feasible_maximum,
+            3,
+        ),
         "floor_area_derived_plan_area_m2": round(derived_plan_area, 3),
         "projection_mode": "typed_form_plan_fit",
         "hard_gates_remain_downstream": True,
@@ -247,6 +333,7 @@ def capacity_contract_for_alternative(
     _apply_candidate_floor_prefix(
         projected,
         target=float(alternative.get("target_floor_area_m2") or 0.0),
+        coverage_band=coverage_band_of_alternative(alternative),
         # Spatial reserve intentionally distributes the minimum total GFA over
         # the complete lawful design stack. Packing the same 60% aggregate
         # into the minimum two-floor prefix demanded roughly 97% of each live
@@ -285,8 +372,16 @@ def _apply_candidate_floor_prefix(
     *,
     target: float,
     preserve_full_lawful_stack: bool = False,
+    coverage_band: CoverageBand | None = None,
 ) -> None:
-    """Select the minimum lawful prefix that can carry one candidate target."""
+    """Select the minimum lawful prefix that can carry one candidate target.
+
+    `coverage_band` bounds every plate before the prefix is chosen, so a scheme
+    that holds the ground asks the stack for the difference. The plates written
+    back are what the candidate is certified against and what the geometry fit
+    reads as its floor targets, which is why bounding them here - rather than
+    only recording the intended plan area - is what moves the delivered form.
+    """
 
     requested = float(target)
     original_requested_floors = contract.get("requested_floors")
@@ -298,6 +393,10 @@ def _apply_candidate_floor_prefix(
         contract["candidate_target_gfa_m2"] = requested
         return
 
+    # A clear-span program fixes its floor count as a dimensional invariant, so
+    # the stack cannot answer a ground take by growing and bounding the plates
+    # would only shrink the building against a count it may not change. The
+    # ground-take axis therefore applies to ordinary occupiable floors only.
     if contract.get("floor_planning_mode") == "clear_span":
         capacities = [
             max(0.0, float(value))
@@ -347,6 +446,16 @@ def _apply_candidate_floor_prefix(
             legal_field.get("bcr_adjusted_floor_capacities_m2") or ()
         )
     ]
+    ground_capacity = max(
+        0.0,
+        float(legal_field.get("bcr_footprint_capacity_m2") or 0.0),
+    )
+    if coverage_band is not None and ground_capacity > 1e-9:
+        capacities = capacities_under_band(
+            capacities,
+            ground_capacity_m2=ground_capacity,
+            band=coverage_band,
+        )
     sections = list(legal_field.get("legal_floor_sections") or ())
     areas = [
         max(0.0, float(value))

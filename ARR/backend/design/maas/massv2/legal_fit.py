@@ -250,13 +250,26 @@ def seat_on_site(form: MatrixForm, site: LegalSite) -> MatrixForm:
     what it is.
     """
 
-    allowed = site.plan_at(0.0)
-    if allowed is None or allowed.is_empty:
-        return form
     plans = [_plan(item) for item in form.additive()]
     plans = [item for item in plans if not item.is_empty]
     if not plans:
         return form
+
+    # Seat by the plan at the mass's own top, not at the ground. The sunlight
+    # envelope is what binds, and it binds hardest up there: measured on this
+    # parcel the buildable plan loses 450 m2 between the ground and 30 m, and
+    # its centre moves 3.6 m southwest, because the envelope eats the northern
+    # and eastern sides. Centring on the ground plan puts every mass in the
+    # middle of the plot with an even margin all round - which is why they read
+    # as objects set down on a site rather than buildings on a parcel - and
+    # spends the one corner where height is actually available.
+    top = max(item.z_span()[1] for item in form.additive())
+    allowed = site.plan_at(top)
+    if allowed is None or allowed.is_empty:
+        allowed = site.plan_at(0.0)
+    if allowed is None or allowed.is_empty:
+        return form
+
     here = unary_union(plans).centroid
     there = allowed.centroid
     shift = translation_matrix4((float(there.x - here.x), float(there.y - here.y), 0.0))

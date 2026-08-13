@@ -189,3 +189,63 @@ def place(
             translation_matrix4(centre),
         )
     return Placement(role=str(role), matrix=validate_matrix4(matrix), kind=kind)
+
+
+def stack(
+    role: str,
+    *,
+    size: Iterable[float],
+    at: Iterable[float] = (0.0, 0.0, 0.0),
+    storeys: int = 8,
+    twist_degrees: float = 0.0,
+    taper: float = 1.0,
+    drift: Iterable[float] = (0.0, 0.0),
+    kind: PlacementKind = "additive",
+) -> tuple[Placement, ...]:
+    """A volume whose section changes as it rises, cut into storeys.
+
+    One affine matrix can translate, scale, rotate, shear and mirror, and any
+    composition of those - but it cannot twist, taper or bend, because those are
+    transforms that *vary* with height and a single matrix is linear. The
+    graphics answer is to subdivide: a twisted tower is a stack of thin slabs,
+    each with its own matrix, turned a little further than the one below.
+
+    That is what this returns. `twist_degrees` is the total turn from base to
+    top, `taper` the ratio of the top plan to the base plan, and `drift` how far
+    the top slides in plan - the three moves behind a twisted tower, a tapering
+    one, and a leaning one respectively.
+
+    `storeys` is the resolution, and a storey is the right one: the building is
+    made of floors, so a slab per floor is exactly as fine as the thing being
+    described.
+    """
+
+    width, depth, height = (float(value) for value in size)
+    x, y, z = (float(value) for value in at)
+    drift_x, drift_y = (float(value) for value in drift)
+    count = max(1, int(storeys))
+    slab = height / count
+
+    out: list[Placement] = []
+    for index in range(count):
+        # Sampled at the middle of each slab rather than its base, so the stack
+        # approximates the continuous form symmetrically instead of lagging it.
+        t = (index + 0.5) / count
+        scale = 1.0 + (float(taper) - 1.0) * t
+        slab_w, slab_d = width * scale, depth * scale
+        out.append(
+            place(
+                role,
+                # Slabs overlap slightly; a shared face is a degenerate boolean
+                # input and reads as two bodies that happen to touch.
+                size=(slab_w, slab_d, slab * 1.02),
+                at=(
+                    x + (width - slab_w) / 2.0 + drift_x * t,
+                    y + (depth - slab_d) / 2.0 + drift_y * t,
+                    z + index * slab,
+                ),
+                rotation_degrees=float(twist_degrees) * t,
+                kind=kind,
+            )
+        )
+    return tuple(out)

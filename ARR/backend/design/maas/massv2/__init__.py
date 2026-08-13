@@ -18,7 +18,7 @@ while the form language is being proven.
 """
 
 from .compile import compile_matrix_form
-from .form import MatrixForm, Placement, PlacementKind, UNIT_BOX_CORNERS, place
+from .form import MatrixForm, Placement, PlacementKind, UNIT_BOX_CORNERS, place, stack
 from .measure import FormMeasurement, measure_form
 
 __all__ = [
@@ -30,4 +30,5 @@ __all__ = [
     "compile_matrix_form",
     "measure_form",
     "place",
+    "stack",
 ]

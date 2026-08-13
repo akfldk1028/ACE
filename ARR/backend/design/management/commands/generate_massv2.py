@@ -26,6 +26,7 @@ from design.maas.massv2.author import _to_form
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.render import render_masses
+from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
 from design.maas.massv2.variations import spread_across_coverage
 
@@ -50,6 +51,12 @@ class Command(BaseCommand):
             "--authored-only",
             action="store_true",
             help="Skip the deterministic seed families and use only authored schemes.",
+        )
+        parser.add_argument(
+            "--per-cell",
+            type=int,
+            default=0,
+            help="Keep only the best N per grid cell after deduping compositions.",
         )
         parser.add_argument(
             "--spread-coverage",
@@ -115,6 +122,7 @@ class Command(BaseCommand):
 
         records = []
         renderable = []
+        pool: list[Candidate] = []
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
         implausible = 0
@@ -156,6 +164,11 @@ class Command(BaseCommand):
                     "formal_principle": form.formal_principle,
                 },
             })
+            pool.append(Candidate(
+                form=fit.form, source=source, measurement=measurement,
+                plausibility=standing, cell=cell, ground_take=take,
+                far_utilization=far_use,
+            ))
             renderable.append((
                 form.name,
                 source,
@@ -166,6 +179,28 @@ class Command(BaseCommand):
                     "cell": cell.replace("_ground", "").replace("_body", "").replace("_figure", ""),
                 },
             ))
+
+        selection = None
+        if options["per_cell"] > 0:
+            chosen = choose(pool, per_cell=options["per_cell"])
+            selection = selection_summary(chosen, considered=len(pool))
+            renderable = [
+                (
+                    item.form.name,
+                    item.source,
+                    {
+                        "artic": f"{item.measurement.articulation():.2f}",
+                        "take": f"{item.ground_take:.2f}",
+                        "far": f"{item.far_utilization:.2f}",
+                        "cell": item.cell.replace("_ground", "").replace("_body", "").replace("_figure", ""),
+                    },
+                )
+                for item in chosen
+            ]
+            self.stdout.write(
+                f"selected {len(chosen)} from {len(pool)} "
+                f"({selection['distinct_compositions']} distinct compositions)"
+            )
 
         site_ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]
         sheet = render_masses(renderable, output / "massv2-sheet.png", site_ring=site_ring)
@@ -179,6 +214,7 @@ class Command(BaseCommand):
             "implausible": implausible,
             "occupied_cells": len(cells),
             "cells": dict(sorted(cells.items())),
+            "selection": selection,
             "records": records,
         }
         (output / "massv2-summary.json").write_text(

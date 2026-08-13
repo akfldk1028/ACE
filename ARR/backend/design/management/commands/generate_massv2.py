@@ -24,7 +24,7 @@ from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
-from design.maas.massv2.legal_fit import fit_to_site
+from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
@@ -52,6 +52,11 @@ class Command(BaseCommand):
             "--authored-only",
             action="store_true",
             help="Skip the deterministic seed families and use only authored schemes.",
+        )
+        parser.add_argument(
+            "--no-fill",
+            action="store_true",
+            help="Skip the growth loop and report schemes at the size they were authored.",
         )
         parser.add_argument(
             "--per-cell",
@@ -133,7 +138,8 @@ class Command(BaseCommand):
         implausible = 0
 
         for form in forms:
-            fit = fit_to_site(form, site)
+            filled = fill_to_site(form, site, allow_plan_growth=not options["no_fill"])
+            fit = filled.fit
             source = compile_matrix_form(fit.form, storey_height_m=site.floor_height_m)
             if source is None:
                 records.append({"name": form.name, "status": "compile_failed"})
@@ -158,6 +164,7 @@ class Command(BaseCommand):
                 "status": "compiled",
                 "cell": cell,
                 "legal_fit": fit.evidence(),
+                "fill": filled.evidence(),
                 "gfa_m2": round(gfa, 1),
                 "floor_height_m": storey_h,
                 "far_utilization": round(far_use, 4),

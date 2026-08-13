@@ -14,6 +14,51 @@ from typing import Any
 from .geometry_safety import repaired_volume_records, safe_unary_union
 
 
+def _sectioned_plan_void_ratio(records, geometries) -> float:
+    """Open share of the plan, averaged over the building's own level bands.
+
+    At each band the section is the union of the volumes that span it, and the
+    open share is measured against that section's own minimum rotated rectangle
+    - the tightest rectangle rather than the axis-aligned one, so a rotated
+    solid reads 0.000 at every angle instead of rising with orientation alone.
+    """
+
+    levels = sorted(
+        {
+            round(float(item.get(key) or 0.0), 2)
+            for item in records
+            for key in ("bottom_height", "top_height")
+        }
+    )
+    if len(levels) < 2:
+        return 0.0
+
+    weighted = 0.0
+    thickness_total = 0.0
+    for lower, upper in zip(levels, levels[1:]):
+        thickness = upper - lower
+        if thickness <= 1e-9:
+            continue
+        middle = (lower + upper) / 2.0
+        section = safe_unary_union([
+            geometry
+            for item, geometry in zip(records, geometries)
+            if float(item.get("bottom_height") or 0.0) - 1e-9 <= middle
+            <= float(item.get("top_height") or 0.0) + 1e-9
+        ])
+        if section is None or section.is_empty:
+            continue
+        tightest = section.minimum_rotated_rectangle
+        if tightest is None or float(tightest.area) <= 0.0:
+            continue
+        weighted += thickness * max(
+            0.0, 1.0 - float(section.area) / float(tightest.area)
+        )
+        thickness_total += thickness
+
+    return weighted / thickness_total if thickness_total > 0.0 else 0.0
+
+
 def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
     props = feature.get("properties") if isinstance(feature.get("properties"), dict) else {}
     repaired = repaired_volume_records(feature)
@@ -46,13 +91,16 @@ def project_spatial_roles(feature: dict[str, Any]) -> dict[str, Any]:
     # that already consume envelope_void_ratio were calibrated against the
     # contaminated number, and silently re-pointing them would change gate
     # behaviour that has not been measured.
-    if union is not None and not union.is_empty:
-        tightest = union.minimum_rotated_rectangle
-        if tightest is not None and float(tightest.area) > 0.0:
-            plan_void_ratio = max(
-                0.0,
-                1.0 - float(union.area) / float(tightest.area),
-            )
+    # Measured section by section rather than as one flattened union. Unioning
+    # every volume regardless of height is the same mistake as unioning every
+    # triangle of a mesh: whatever sits above an opening closes it again. On a
+    # 40x24x18 reference solid at their strongest settings, carve, grade, notch,
+    # fracture and extract all read 0.000 flattened - the axis could not see
+    # five of the ten operatives - while their sections read 0.322, 0.555,
+    # 0.245, 0.144 and 0.314. The bands come from the volumes' own level
+    # boundaries, so nothing is sampled at a guessed height, and each band's
+    # share is weighted by its thickness so a thin one cannot dominate.
+    plan_void_ratio = _sectioned_plan_void_ratio(records, geometries)
     non_rectilinear = sum(
         1 for geometry in geometries
         if hasattr(geometry, "exterior") and len(list(geometry.exterior.coords)) - 1 > 5

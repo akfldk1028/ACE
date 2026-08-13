@@ -1,0 +1,165 @@
+"""Measure a form the way the earlier mistakes proved it has to be measured.
+
+Two measurements were wrong today and both were wrong the same way. Unioning
+every triangle of a mesh into an orthographic silhouette hid concave cuts,
+because the cut face projects into the pocket it opened. Unioning every volume
+regardless of height hid courts, because whatever sits above an opening closes
+it again. Five of ten operatives read exactly 0.000 open under the second one.
+
+So nothing here flattens. Convexity is measured per band against that band's own
+convex hull, and openness against that band's own tightest rectangle - tightest
+rather than axis-aligned, because an axis-aligned box makes a plain rotated
+solid read as 0.52 open at 45 degrees, which is orientation, not void.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from shapely.geometry import Polygon
+from shapely.ops import unary_union
+
+from design.maas.design_space import delivered_void_band
+from design.maas.source_geometry.ir import SourceMass
+
+
+@dataclass(frozen=True)
+class FormMeasurement:
+    """What a form is, in numbers that survive rotation and concavity."""
+
+    convexity_drop: float
+    plan_void_ratio: float
+    section_change: float
+    void_band_id: str
+    band_count: int
+    footprint_area_m2: float
+    height_m: float
+    band_profile: tuple[tuple[float, float], ...]
+
+    def articulation(self) -> float:
+        """One number for "is this shaped at all", covering both directions.
+
+        A stepped tower is articulate in section and perfectly convex in every
+        plan; a courtyard block is the reverse. Reporting only the plan measure
+        called the first one 0.000, which is how a whole family of massing
+        would get filed as a plain box.
+        """
+
+        return max(self.convexity_drop, self.plan_void_ratio, self.section_change)
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "schema_version": "arr.maas.matrix_form_measurement.v1",
+            "convexity_drop": round(self.convexity_drop, 4),
+            "plan_void_ratio": round(self.plan_void_ratio, 4),
+            "section_change": round(self.section_change, 4),
+            "articulation": round(self.articulation(), 4),
+            "void_band_id": self.void_band_id,
+            "band_count": self.band_count,
+            "footprint_area_m2": round(self.footprint_area_m2, 2),
+            "height_m": round(self.height_m, 3),
+            "band_profile": [
+                [round(convexity, 4), round(void, 4)] for convexity, void in self.band_profile
+            ],
+        }
+
+
+def _convexity_drop(shape: Polygon) -> float:
+    hull = shape.convex_hull
+    area = float(hull.area)
+    return 0.0 if area <= 1e-9 else max(0.0, 1.0 - float(shape.area) / area)
+
+
+def _void_ratio(shape: Polygon) -> float:
+    tightest = shape.minimum_rotated_rectangle
+    area = float(tightest.area) if tightest is not None else 0.0
+    return 0.0 if area <= 1e-9 else max(0.0, 1.0 - float(shape.area) / area)
+
+
+def _section_change(grouped: dict[tuple[float, float], list[Polygon]]) -> float:
+    """How much the plan changes from one band to the next.
+
+    Plan convexity and plan void are both blind to a setback: every storey of a
+    stepped tower is a convex closed rectangle, so a shifted stack measured that
+    way reads 0.000 - as articulate as a plain box, which it plainly is not.
+
+    Between consecutive bands, the share of the pair that is not shared says how
+    much the building moved. Symmetric difference over union, so it is scale
+    free and a pure extrusion reads exactly 0.
+    """
+
+    if len(grouped) < 2:
+        return 0.0
+    ordered = [
+        parts[0] if len(parts) == 1 else unary_union(parts)
+        for _key, parts in sorted(grouped.items())
+    ]
+    changes: list[float] = []
+    for lower, upper in zip(ordered, ordered[1:]):
+        union = lower.union(upper)
+        if union.is_empty or float(union.area) <= 1e-9:
+            continue
+        changes.append(float(lower.symmetric_difference(upper).area) / float(union.area))
+    return sum(changes) / len(changes) if changes else 0.0
+
+
+def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMeasurement:
+    """Thickness-weighted band measurement of a compiled mass.
+
+    Weighting by band thickness stops a hairline band - two volumes meeting at
+    almost the same level - from counting as much as a whole storey.
+    """
+
+    bands = tuple(source.volumes)
+    if not bands:
+        return FormMeasurement(0.0, 0.0, 0.0, delivered_void_band(0.0).band_id, 0, 0.0, 0.0, ())
+
+    total_height = float(
+        height_m
+        if height_m is not None
+        else source.metadata.get("authored_height_m") or 0.0
+    )
+
+    # One band can arrive as several volume records - two bars with a gap are
+    # two pieces of the same storey. Measuring the pieces separately would say
+    # a single bar is perfectly convex and perfectly closed, which is true of
+    # the bar and false of the building. Regroup by the band's own fractions.
+    grouped: dict[tuple[float, float], list[Polygon]] = {}
+    for volume in bands:
+        key = (round(float(volume.bottom_fraction), 4), round(float(volume.top_fraction), 4))
+        grouped.setdefault(key, []).append(volume.footprint)
+
+    weighted_convexity = 0.0
+    weighted_void = 0.0
+    weight_total = 0.0
+    profile: list[tuple[float, float]] = []
+    for (bottom, top), parts in sorted(grouped.items()):
+        shape = parts[0] if len(parts) == 1 else unary_union(parts)
+        thickness = max(0.0, top - bottom)
+        convexity = _convexity_drop(shape)
+        void = _void_ratio(shape)
+        profile.append((convexity, void))
+        if thickness <= 1e-9:
+            continue
+        weighted_convexity += thickness * convexity
+        weighted_void += thickness * void
+        weight_total += thickness
+
+    if weight_total <= 1e-9:
+        convexity_drop = 0.0
+        plan_void = 0.0
+    else:
+        convexity_drop = weighted_convexity / weight_total
+        plan_void = weighted_void / weight_total
+
+    return FormMeasurement(
+        convexity_drop=convexity_drop,
+        plan_void_ratio=plan_void,
+        section_change=_section_change(grouped),
+        void_band_id=delivered_void_band(plan_void).band_id,
+        band_count=len(bands),
+        footprint_area_m2=float(source.footprint.area),
+        height_m=total_height,
+        band_profile=tuple(profile),
+    )

@@ -951,12 +951,27 @@ def _validate_projected_visual_artifact_payload(
                 for triangle in authority_triangles
                 for vertex in triangle["vertices_m"]
             ]
+            # Same procedure and same Z space on both sides was already proven,
+            # so the open question is only *which* mesh drifted and how far.
+            # Equal triangle counts with different digests means coordinates
+            # moved; different counts means the mesh was replaced outright. The
+            # identity block names the writer that recorded it, so the next run
+            # points at one path instead of costing another 35 minutes.
+            identity = artifact.get("identity")
+            identity = identity if isinstance(identity, dict) else {}
             certificate_failures.append(
                 "final_geometry_hash"
                 f"[recomputed={actual_final_geometry_hash[:12]}"
                 f" certificate={str(certificate.get('final_geometry_hash') or '')[:12]}"
                 f" hashed_z=[{min(hashed_z):.4f},{max(hashed_z):.4f}]"
-                f" height_m={certificate.get('physical_height_m')}]"
+                f" height_m={certificate.get('physical_height_m')}"
+                f" hashed_triangles={len(authority_triangles)}"
+                f" certificate_surfaces={certificate.get('surface_count')}"
+                f" identity.geometryHash={str(identity.get('geometryHash') or '')[:12]}"
+                f" identity.finalLegalGeometryHash="
+                f"{str(identity.get('finalLegalGeometryHash') or '')[:12]}"
+                f" geometry_authority={certificate.get('geometry_authority')}"
+                f" projection_mode={certificate.get('projection_mode')}]"
             )
         if (
             actual_surface_hash

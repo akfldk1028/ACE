@@ -33,15 +33,20 @@ from design.maas.geometry_language.affine_matrix import (
     validate_matrix4,
 )
 
-from .compile import _plan
+from .compile import _plan, compile_matrix_form
 from .form import MatrixForm, Placement
 from .legal import LegalSite
+from .measure import gross_floor_area_m2
 
 
 # Below this the shrink is not worth another pass; further passes chase float
 # noise rather than area.
 _CONVERGED = 0.995
 _MAX_PASSES = 6
+# Floor area is trimmed one storey at a time, so the bound is a storey count
+# rather than a ratio. A building with more storeys than this over its capacity
+# was authored for a different parcel.
+_STOREY_TRIMS = 40
 
 
 @dataclass(frozen=True)
@@ -49,6 +54,8 @@ class LegalFitResult:
     form: MatrixForm
     ground_area_m2: float
     ground_capacity_m2: float
+    gross_floor_area_m2: float
+    far_capacity_m2: float
     passes: int
     plan_scale_applied: float
     volumes_pulled_in: int
@@ -61,6 +68,11 @@ class LegalFitResult:
             "ground_capacity_m2": round(self.ground_capacity_m2, 3),
             "ground_take": round(
                 self.ground_area_m2 / max(self.ground_capacity_m2, 1e-9), 4
+            ),
+            "gross_floor_area_m2": round(self.gross_floor_area_m2, 3),
+            "far_capacity_m2": round(self.far_capacity_m2, 3),
+            "far_utilization": round(
+                self.gross_floor_area_m2 / max(self.far_capacity_m2, 1e-9), 4
             ),
             "passes": self.passes,
             "plan_scale_applied": round(self.plan_scale_applied, 5),
@@ -85,6 +97,25 @@ def projected_ground_area(form: MatrixForm) -> float:
     return float(unary_union(plans).area)
 
 
+def _gross_floor_area(form: MatrixForm, *, floor_height_m: float) -> float:
+    """연면적 of a form, measured exactly the way it will be reported.
+
+    Sharing the storey rule was not enough. The fit measured each placement over
+    its own full height while the report measured the compiled bands, and a
+    volume ten metres tall counts as three storeys whole but four once it is cut
+    at five - so four schemes the fit had made lawful came back over the ceiling.
+
+    Compiling here is affordable precisely because this language has no 3D CSG:
+    a compile is band cuts and 2D shapely, not booleans and mesh traversals. One
+    measure, one answer.
+    """
+
+    source = compile_matrix_form(form)
+    if source is None:
+        return 0.0
+    return gross_floor_area_m2(source, floor_height_m=floor_height_m)
+
+
 def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, float]) -> Placement:
     """Shrink a volume in plan about a shared anchor, leaving its height alone.
 
@@ -103,29 +134,70 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
     return replace(placement, matrix=validate_matrix4(matrix))
 
 
-def _pulled_inside(placement: Placement, allowed: Polygon) -> Placement | None:
-    """Shrink one volume about its own centre until its plan is inside `allowed`.
+def _shortened(placement: Placement, factor: float) -> Placement:
+    """Lower the top, keeping the base where the author put it."""
 
-    Only this volume moves. The alternative in the existing path is to clip the
-    whole solid, which changes a mass the author did not design and forfeits its
-    right to be rendered.
+    low, _high = placement.z_span()
+    matrix = compose_matrix4(
+        placement.matrix,
+        translation_matrix4((0.0, 0.0, -low)),
+        scale_matrix4((1.0, 1.0, max(1e-3, factor))),
+        translation_matrix4((0.0, 0.0, low)),
+    )
+    return replace(placement, matrix=validate_matrix4(matrix))
+
+
+def _pulled_inside(
+    placement: Placement, allowed_at, *, minimum_plan_share: float = 0.45
+) -> Placement | None:
+    """Bring one volume inside the sunlight envelope, in plan or in height.
+
+    정북일조 says step back as you rise, and a building may answer that two ways:
+    move away from the boundary, or stop short of the height where the envelope
+    bites. Paying only in plan - which is what this did first - pinches a tall
+    volume into a sliver or drops it, when lowering its top would have kept the
+    author's proportions intact. So plan is tried first, and if it would cost
+    more than `minimum_plan_share` of the volume's footprint, height pays
+    instead.
+
+    Only this volume moves. The alternative in the existing pipeline is to clip
+    the whole solid, which changes a mass the author did not design and forfeits
+    its right to be rendered or scored.
     """
 
+    low, high = placement.z_span()
+    allowed = allowed_at(high)
+    if allowed is None or allowed.is_empty:
+        return placement
     plan = _plan(placement)
-    if plan.is_empty or allowed.is_empty:
+    if plan.is_empty:
         return None
     if allowed.contains(plan):
         return placement
+
     inside = plan.intersection(allowed)
-    if inside.is_empty or float(inside.area) <= 1e-9:
+    share = float(inside.area) / float(plan.area) if float(plan.area) > 0.0 else 0.0
+    if share >= minimum_plan_share:
+        centre = plan.centroid
+        factor = share ** 0.5
+        for _attempt in range(_MAX_PASSES):
+            candidate = _scaled_in_plan(placement, factor, (float(centre.x), float(centre.y)))
+            if allowed.contains(_plan(candidate)):
+                return candidate
+            factor *= 0.94
+
+    # Plan alone is too expensive here. Find the highest level whose envelope
+    # still holds this footprint, and stop the volume there.
+    span = high - low
+    if span <= 1e-6:
         return None
-    centre = plan.centroid
-    factor = (float(inside.area) / float(plan.area)) ** 0.5
-    for _attempt in range(_MAX_PASSES):
-        candidate = _scaled_in_plan(placement, factor, (float(centre.x), float(centre.y)))
-        if allowed.contains(_plan(candidate)):
+    for step in range(1, _MAX_PASSES + 1):
+        factor = 1.0 - step / (_MAX_PASSES + 1.0)
+        candidate = _shortened(placement, factor)
+        _clow, chigh = candidate.z_span()
+        ceiling = allowed_at(chigh)
+        if ceiling is not None and not ceiling.is_empty and ceiling.contains(_plan(candidate)):
             return candidate
-        factor *= 0.94
     return None
 
 
@@ -194,12 +266,7 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
         if placement.kind == "subtractive":
             kept.append(placement)
             continue
-        _low, high = placement.z_span()
-        allowed = site.plan_at(high)
-        if allowed is None or allowed.is_empty:
-            kept.append(placement)
-            continue
-        adjusted = _pulled_inside(placement, allowed)
+        adjusted = _pulled_inside(placement, site.plan_at)
         if adjusted is None:
             # Nothing of this volume is legal at its own height. Dropping it is
             # honest; keeping a sliver would report a form the author never made.
@@ -210,13 +277,61 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
         kept.append(adjusted)
 
     fitted = replace(current, placements=tuple(kept))
+
+    # 용적률 last, and paid in height. Floor area is plan times storeys, and plan
+    # has already been spent on 건축면적; taking it again would drive the ground
+    # take away from the position the scheme was authored at. Height is the free
+    # term here, and lowering a volume is the move an architect would make.
+    far_capacity = site.far_capacity_m2
+    floor_height = float(fitted.floor_height_m or site.floor_height_m)
+    if far_capacity > 0.0 and floor_height > 1e-6:
+        # Floor area moves in whole storeys, because storeys are counted with
+        # `round`. Scaling height by a continuous ratio can shave 1% off a
+        # volume without removing a floor, so the loop converges on nothing and
+        # leaves the scheme over the ceiling - which is what left two schemes
+        # unlawful. Take a storey off the tallest volume instead, and take it
+        # from the tallest because that is the one the envelope is tightest on.
+        for _pass in range(_STOREY_TRIMS):
+            gfa = _gross_floor_area(fitted, floor_height_m=floor_height)
+            if gfa <= far_capacity:
+                break
+            passes += 1
+            # Only volumes with a storey to spare are candidates. Picking the
+            # tallest outright and stopping when *it* ran out left every other
+            # volume untouched, which made this worse rather than better.
+            trimmable = [
+                item
+                for item in fitted.placements
+                if item.kind == "additive"
+                and (item.z_span()[1] - item.z_span()[0]) > floor_height * 1.5
+            ]
+            if not trimmable:
+                break
+            tallest = max(trimmable, key=lambda item: item.z_span()[1] - item.z_span()[0])
+            low, high = tallest.z_span()
+            span = high - low
+            trimmed = _shortened(tallest, (span - floor_height) / span)
+            fitted = replace(
+                fitted,
+                placements=tuple(
+                    trimmed if item is tallest else item for item in fitted.placements
+                ),
+            )
+
     final_area = projected_ground_area(fitted)
+    final_gfa = _gross_floor_area(fitted, floor_height_m=floor_height)
     return LegalFitResult(
         form=fitted,
         ground_area_m2=final_area,
         ground_capacity_m2=capacity,
+        gross_floor_area_m2=final_gfa,
+        far_capacity_m2=far_capacity,
         passes=passes,
         plan_scale_applied=total_scale,
         volumes_pulled_in=pulled,
-        satisfied=bool(fitted.additive()) and (capacity <= 0.0 or final_area <= capacity + 1e-6),
+        satisfied=(
+            bool(fitted.additive())
+            and (capacity <= 0.0 or final_area <= capacity + 1e-6)
+            and (far_capacity <= 0.0 or final_gfa <= far_capacity + 1e-6)
+        ),
     )

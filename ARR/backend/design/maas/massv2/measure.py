@@ -77,6 +77,50 @@ def _void_ratio(shape: Polygon) -> float:
     return 0.0 if area <= 1e-9 else max(0.0, 1.0 - float(shape.area) / area)
 
 
+def storeys_in(band_height_m: float, *, floor_height_m: float) -> int:
+    """How many floors fit in a vertical band. One rule, used everywhere.
+
+    Nearest whole storey, which is what `round` already means - a band two and a
+    half storeys tall builds two, and the hand's-width overlap where one volume
+    sits on another builds none. No threshold is written here because there is
+    nothing to choose: the storey height comes from the parcel's own zoning, and
+    the rounding is arithmetic.
+
+    This exists as one function because it was briefly two. The legal fit
+    measured floor area from the placements and the report measured it from the
+    compiled bands, the two disagreed on slivers, and two schemes the fit had
+    made lawful were reported 1% over the 용적률 ceiling.
+    """
+
+    if floor_height_m <= 1e-6 or band_height_m <= 0.0:
+        return 0
+    return max(0, int(round(band_height_m / floor_height_m)))
+
+
+def gross_floor_area_m2(source: SourceMass, *, floor_height_m: float) -> float:
+    """연면적: every band's plan area times the storeys it holds.
+
+    A scheme that claims a third of the allowed footprint and a fifth of the
+    allowed floor area is not a proposal an architect would put forward, it is
+    an under-built site. Measuring 용적률 is what lets that be seen and screened
+    rather than silently shipped as diversity.
+
+    Uses the same storey rule as the legal fit - see `storeys_in`. Two different
+    floor-area measures is how two lawful schemes came to be reported 1% over
+    the 용적률 ceiling: the fit measured one way and the report another.
+    """
+
+    height = float(source.metadata.get("authored_height_m") or 0.0)
+    return sum(
+        float(volume.footprint.area)
+        * storeys_in(
+            (float(volume.top_fraction) - float(volume.bottom_fraction)) * height,
+            floor_height_m=floor_height_m,
+        )
+        for volume in source.volumes
+    )
+
+
 def _section_change(grouped: dict[tuple[float, float], list[Polygon]]) -> float:
     """How much the plan changes from one band to the next.
 

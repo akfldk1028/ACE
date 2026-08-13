@@ -90,6 +90,12 @@ class MatrixForm:
     formal_principle: str = ""
     dominant_gesture: str = ""
     reference_basis: str = ""
+    # A gallery is not a shop and neither is a gym. Fixing every scheme at the
+    # zoning storey height makes floor count a function of the parcel alone,
+    # when it is a decision about the programme - and it is the decision that
+    # moves 용적률, because floor area is plan times storeys. Left unset the
+    # parcel's own value is used.
+    floor_height_m: float | None = None
     notes: tuple[str, ...] = ()
     extra: dict[str, Any] = field(default_factory=dict)
 
@@ -120,6 +126,7 @@ class MatrixForm:
             "additive_count": len(self.additive()),
             "subtractive_count": len(self.subtractive()),
             "height_m": round(self.height_m(), 3),
+            "floor_height_m": self.floor_height_m,
             "primary_language": self.primary_language,
             "secondary_language": self.secondary_language,
             "formal_principle": self.formal_principle,

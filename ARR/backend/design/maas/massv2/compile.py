@@ -204,6 +204,7 @@ def _metadata(form: MatrixForm, *, height_m: float, band_count: int) -> dict[str
         "dominant_gesture": form.dominant_gesture,
         "reference_basis": form.reference_basis,
         "authored_height_m": round(height_m, 3),
+        "authored_floor_height_m": form.floor_height_m,
         "matrix_form": form.evidence(),
         "massing_genome": {
             "schema_version": "arr.maas.matrix_form_genome.v1",

@@ -20,6 +20,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.design_space import delivered_ground_take_band
 from design.maas.massv2 import compile_matrix_form, measure_form
+from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.legal_fit import fit_to_site
@@ -102,7 +103,10 @@ class Command(BaseCommand):
                 for form in list(forms)
                 if form.name.startswith("llm_")
                 for variant in spread_across_coverage(
-                    form, ground_capacity_m2=site.ground_capacity_m2
+                    form,
+                    ground_capacity_m2=site.ground_capacity_m2,
+                    far_capacity_m2=site.far_capacity_m2,
+                    floor_height_m=site.floor_height_m,
                 )
             ]
             forms.extend(spread)
@@ -120,6 +124,11 @@ class Command(BaseCommand):
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue
             measurement = measure_form(source)
+            storey_h = float(
+                source.metadata.get("authored_floor_height_m") or site.floor_height_m
+            )
+            gfa = gross_floor_area_m2(source, floor_height_m=storey_h)
+            far_use = gfa / max(site.far_capacity_m2, 1e-9)
             take = fit.ground_area_m2 / max(site.ground_capacity_m2, 1e-9)
             ground_band = delivered_ground_take_band(take).band_id
             cell = f"{ground_band}|{measurement.void_band_id}"
@@ -131,6 +140,9 @@ class Command(BaseCommand):
                 "status": "compiled",
                 "cell": cell,
                 "legal_fit": fit.evidence(),
+                "gfa_m2": round(gfa, 1),
+                "floor_height_m": storey_h,
+                "far_utilization": round(far_use, 4),
                 "measurement": measurement.evidence(),
                 "language": {
                     "primary": form.primary_language,
@@ -144,6 +156,7 @@ class Command(BaseCommand):
                 {
                     "artic": f"{measurement.articulation():.2f}",
                     "take": f"{take:.2f}",
+                    "far": f"{far_use:.2f}",
                     "cell": cell.replace("_ground", "").replace("_body", "").replace("_figure", ""),
                 },
             ))

@@ -164,6 +164,48 @@ class SunlightMayBePaidEitherWayTests(SimpleTestCase):
         self.assertLess(fit.form.height_m(), 40.0)
 
 
+class NoEnvelopeMeansNothingIsAllowedTests(SimpleTestCase):
+    """`plan_at` returning nothing is a refusal, not a missing opinion.
+
+    On the live parcel the sunlight envelope runs out around 80 m and `plan_at`
+    returns None above that. Reading that as "no envelope to check here" waved
+    the volume straight through - a fail-open on a legal check, on a run that was
+    already producing 64 m towers. After the fix the tallest scheme on that
+    parcel is 50.0 m, which is where the envelope actually stops.
+    """
+
+    def _capped_site(self, ceiling_m: float):
+        site = _site()
+
+        def plan_at(height_m: float):
+            return None if float(height_m) > ceiling_m else SITE
+
+        site.plan_at = plan_at
+        return site
+
+    def test_a_volume_above_the_envelope_is_brought_under_it(self):
+        site = self._capped_site(20.0)
+        fit = fit_to_site(_form(place("tower", size=(18, 18, 45))), site)
+
+        self.assertTrue(fit.form.additive(), "the volume was dropped rather than lowered")
+        self.assertLessEqual(fit.form.height_m(), 20.0 + 1e-3)
+
+    def test_it_is_not_lowered_further_than_it_has_to_be(self):
+        """Bisection, not a coarse ladder: the height the envelope stops at is a
+        fact about the parcel, not a step size to guess."""
+
+        site = self._capped_site(20.0)
+        fit = fit_to_site(_form(place("tower", size=(18, 18, 45))), site)
+
+        self.assertGreater(fit.form.height_m(), 19.0)
+
+    def test_a_volume_already_under_the_envelope_is_untouched(self):
+        site = self._capped_site(40.0)
+        fit = fit_to_site(_form(place("block", size=(20, 20, 12))), site)
+
+        self.assertAlmostEqual(12.0, fit.form.height_m(), places=3)
+
+
 class CoverageCopiesHoldOnlyALawfulProgrammeTests(SimpleTestCase):
     def test_a_copy_at_lower_ground_take_is_not_simply_a_smaller_picture(self):
         """A 45% copy at the same height delivers 45% of the floor area and

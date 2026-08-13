@@ -23,7 +23,6 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
-from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.geometry_language.affine_matrix import (
@@ -36,7 +35,7 @@ from design.maas.geometry_language.affine_matrix import (
 from .compile import _plan, compile_matrix_form
 from .form import MatrixForm, Placement
 from .legal import LegalSite
-from .measure import gross_floor_area_m2
+from .measure import gross_floor_area_m2, storeys_in
 
 
 # Below this the shrink is not worth another pass; further passes chase float
@@ -47,6 +46,10 @@ _MAX_PASSES = 6
 # rather than a ratio. A building with more storeys than this over its capacity
 # was authored for a different parcel.
 _STOREY_TRIMS = 40
+# Halvings used to find the height at which the sunlight envelope runs out. Ten
+# brings a sixty-metre span inside six centimetres, which is finer than any
+# dimension this language works in.
+_BISECTIONS = 10
 
 
 @dataclass(frozen=True)
@@ -147,6 +150,34 @@ def _shortened(placement: Placement, factor: float) -> Placement:
     return replace(placement, matrix=validate_matrix4(matrix))
 
 
+def _lowered_under_envelope(placement: Placement, allowed_at) -> Placement | None:
+    """Bring a volume down to the tallest height that still has an envelope.
+
+    Bisection rather than fixed steps: the height where the envelope runs out is
+    a property of the parcel, not a number to guess at, and halving finds it to
+    within a few centimetres in the same handful of evaluations a coarse ladder
+    would spend missing it.
+    """
+
+    low, high = placement.z_span()
+    span = high - low
+    if span <= 1e-6:
+        return None
+    lower, upper = 0.0, 1.0
+    best: Placement | None = None
+    for _step in range(_BISECTIONS):
+        middle = (lower + upper) / 2.0
+        candidate = _shortened(placement, middle)
+        _clow, chigh = candidate.z_span()
+        ceiling = allowed_at(chigh)
+        if ceiling is not None and not ceiling.is_empty:
+            best = candidate
+            lower = middle
+        else:
+            upper = middle
+    return best
+
+
 def _pulled_inside(
     placement: Placement, allowed_at, *, minimum_plan_share: float = 0.45
 ) -> Placement | None:
@@ -166,12 +197,19 @@ def _pulled_inside(
     """
 
     low, high = placement.z_span()
-    allowed = allowed_at(high)
-    if allowed is None or allowed.is_empty:
-        return placement
     plan = _plan(placement)
     if plan.is_empty:
         return None
+
+    allowed = allowed_at(high)
+    if allowed is None or allowed.is_empty:
+        # Nothing at all is buildable at this height - measured on the live
+        # parcel, `plan_at` returns None from about 80 m up. Reading that as
+        # "no envelope to check" and waving the volume through is a fail-open on
+        # a legal check, and heights of 64 m were already being produced. The
+        # volume has to come down to a height that does have an envelope.
+        return _lowered_under_envelope(placement, allowed_at)
+
     if allowed.contains(plan):
         return placement
 
@@ -303,7 +341,12 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
                 item
                 for item in fitted.placements
                 if item.kind == "additive"
-                and (item.z_span()[1] - item.z_span()[0]) > floor_height * 1.5
+                # A storey can only be taken from something that has two. The
+                # rule is the same `storeys_in` the area is measured with, so
+                # the loop cannot trim a volume the measure calls one floor.
+                and storeys_in(
+                    item.z_span()[1] - item.z_span()[0], floor_height_m=floor_height
+                ) >= 2
             ]
             if not trimmable:
                 break

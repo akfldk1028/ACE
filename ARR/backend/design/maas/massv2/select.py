@@ -6,16 +6,21 @@ cell is a label; the architect chooses between buildings.
 
 Three rules, in order:
 
-  A composition seen twice is one composition. Two copies of a scheme at
-  different ground takes are the same building at different sizes, so the
-  signature is deliberately scale-free.
-
   A mass that is lawful but not occupiable is not an option. That judgement is
   `plausibility`, which uses the project's own floor-viability rule.
 
-  One per grid cell, and the one kept is the most articulate - the point of the
-  grid was that its cells are different kinds of building, so a cell needs one
-  good example, not five.
+  A composition seen twice *in one cell* is one composition, and the signature
+  is scale-free so that two drawings of the same idea collapse. It is not
+  applied across cells: ground take is one of the grid's two axes, so a scheme
+  carried along that axis has moved, not repeated. Deduping globally deleted
+  the move before the cells were ever looked at - measured on the Uijeongbu
+  parcel, raked_bar stood lawful and occupiable in four different cells at an
+  articulation of 0.309 and only one copy survived, which handed
+  dispersed|solid_body to a scheme scoring 0.280.
+
+  One per grid cell, and the one kept is the most articulate. Cells are filled
+  scarcest-first, and a cell prefers a composition no other cell has taken, so
+  an abundant cell cannot spend the only occupant a thin cell had.
 """
 
 from __future__ import annotations
@@ -88,36 +93,43 @@ def choose(
     require_occupiable: bool = True,
     per_cell: int = 1,
 ) -> list[Candidate]:
-    """Dedupe by composition, drop what cannot be occupied, keep the best per cell."""
+    """Drop what cannot be occupied, then fill each cell with its best occupant."""
 
-    seen: set[tuple] = set()
-    unique: list[Candidate] = []
+    by_cell: dict[str, dict[tuple, Candidate]] = {}
     for candidate in candidates:
         if require_occupiable and not candidate.plausibility.occupiable:
             continue
         signature = composition_signature(candidate.form)
-        if signature in seen:
-            continue
-        seen.add(signature)
-        unique.append(candidate)
+        cell = by_cell.setdefault(candidate.cell, {})
+        held = cell.get(signature)
+        if held is None or _rank(candidate) > _rank(held):
+            cell[signature] = candidate
 
-    by_cell: dict[str, list[Candidate]] = {}
-    for candidate in unique:
-        by_cell.setdefault(candidate.cell, []).append(candidate)
+    # Scarcest cell first. A cell with one lawful occupant has no second choice,
+    # so it picks before a cell holding a dozen - otherwise the abundant cell
+    # takes the composition and the thin one is left empty or with junk.
+    order = sorted(by_cell, key=lambda cell: (len(by_cell[cell]), cell))
 
+    taken: set[tuple] = set()
     chosen: list[Candidate] = []
-    for cell in sorted(by_cell):
+    for cell in order:
         ranked = sorted(
-            by_cell[cell],
-            key=lambda item: (
-                item.measurement.articulation(),
-                # A tie on articulation goes to the scheme that uses the site.
-                item.far_utilization,
-            ),
+            by_cell[cell].items(),
+            # An unseen composition first: the sheet is a set of options, and an
+            # option the architect has already been shown is worth less than one
+            # they have not, even when it measures a little better.
+            key=lambda entry: (entry[0] not in taken, _rank(entry[1])),
             reverse=True,
         )
-        chosen.extend(ranked[:max(1, per_cell)])
+        for signature, candidate in ranked[:max(1, per_cell)]:
+            taken.add(signature)
+            chosen.append(candidate)
     return chosen
+
+
+def _rank(candidate: Candidate) -> tuple[float, float]:
+    # A tie on articulation goes to the scheme that uses the site.
+    return (candidate.measurement.articulation(), candidate.far_utilization)
 
 
 def summary(chosen: list[Candidate], *, considered: int) -> dict[str, Any]:

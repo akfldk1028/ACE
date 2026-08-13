@@ -20,6 +20,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.design_space import delivered_ground_take_band
 from design.maas.massv2 import compile_matrix_form, measure_form
+from design.maas.massv2.author import _to_form
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.render import render_masses
@@ -33,6 +34,20 @@ class Command(BaseCommand):
         parser.add_argument("--pnu", required=True)
         parser.add_argument("--output-dir", required=True)
         parser.add_argument("--building-type", default="제1종근린생활시설")
+        parser.add_argument(
+            "--authored-json",
+            help=(
+                "Path to a model-authored schemes file matching the authoring "
+                "schema. Lets an assistant author the programs directly when no "
+                "API credential is usable, which is the same contract - the "
+                "model writes a program, the executor owns the metres."
+            ),
+        )
+        parser.add_argument(
+            "--authored-only",
+            action="store_true",
+            help="Skip the deterministic seed families and use only authored schemes.",
+        )
 
     def handle(self, *args, **options):
         output = Path(options["output_dir"])
@@ -45,11 +60,32 @@ class Command(BaseCommand):
 
         self.stdout.write(json.dumps(site.evidence(), ensure_ascii=False))
 
-        forms = seed_forms(
-            ground_capacity_m2=site.ground_capacity_m2,
-            far_capacity_m2=site.far_capacity_m2,
-            floor_height_m=site.floor_height_m,
-        )
+        forms = []
+        if not options["authored_only"]:
+            forms.extend(seed_forms(
+                ground_capacity_m2=site.ground_capacity_m2,
+                far_capacity_m2=site.far_capacity_m2,
+                floor_height_m=site.floor_height_m,
+            ))
+
+        if options["authored_json"]:
+            buildable = site.plan_at(0.0)
+            min_x, min_y, max_x, max_y = buildable.bounds
+            payload = json.loads(Path(options["authored_json"]).read_text(encoding="utf-8"))
+            authored = [
+                _to_form(
+                    record,
+                    width_m=max_x - min_x,
+                    depth_m=max_y - min_y,
+                    # Legal height is what the FAR capacity affords over a full
+                    # footprint; the fit will pull anything taller back in.
+                    height_m=site.floor_height_m
+                    * max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
+                )
+                for record in payload.get("schemes") or ()
+            ]
+            forms.extend(item for item in authored if item is not None)
+            self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
 
         records = []
         renderable = []

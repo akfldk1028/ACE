@@ -1,0 +1,132 @@
+{
+  "_note": "open_figure character: eight massing schemes whose plans are legible figures with real gaps (L, C, pinwheel, comb, portal frame, scissor, upward-opening U, twin-court theta), each held to one connected body, proportionate verticals and no crown-on-plinth inversion.",
+  "schemes": [
+    {
+      "name": "held_court_ell",
+      "primary_language": "open_frame",
+      "secondary_language": "held_court",
+      "formal_principle": "hold_two_edges_open_the_third",
+      "dominant_gesture": "A deep L holds the north and west edges and opens the whole south-east quadrant as a court, with a rotated hinge block turning the elbow.",
+      "reference_basis": "Alvar Aalto, Saynatsalo Town Hall - an L holding two edges of the site around a raised court",
+      "far_target": 0.88,
+      "placements": [
+        {"role": "north_bar", "kind": "additive", "width": 0.90, "depth": 0.43, "height": 0.52, "x": 0.05, "y": 0.52, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "west_wing", "kind": "additive", "width": 0.33, "depth": 0.51, "height": 0.80, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "elbow_hinge", "kind": "additive", "width": 0.24, "depth": 0.24, "height": 0.66, "x": 0.29, "y": 0.43, "z": 0.0, "rotation_degrees": 45, "lean_degrees": 0, "lean_axis": "x", "plan": "hexagon"},
+        {"role": "north_setback", "kind": "additive", "width": 0.45, "depth": 0.37, "height": 0.46, "x": 0.05, "y": 0.55, "z": 0.48, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "trapezoidal"}
+      ]
+    },
+    {
+      "name": "river_horseshoe",
+      "primary_language": "held_court",
+      "secondary_language": "open_frame",
+      "formal_principle": "figure_and_gap",
+      "dominant_gesture": "A horseshoe wraps three sides and opens its mouth to the south, the two arm-heads rising as rounded end pieces that frame the opening.",
+      "reference_basis": "BIG, 8 House - a perimeter figure broken open on one side so the court drains toward the view",
+      "far_target": 0.86,
+      "placements": [
+        {"role": "north_slab", "kind": "additive", "width": 0.90, "depth": 0.43, "height": 0.72, "x": 0.05, "y": 0.52, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "west_arm", "kind": "additive", "width": 0.22, "depth": 0.51, "height": 0.58, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "east_arm", "kind": "additive", "width": 0.22, "depth": 0.51, "height": 0.58, "x": 0.73, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "west_head", "kind": "additive", "width": 0.24, "depth": 0.21, "height": 0.84, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "stadium"},
+        {"role": "east_head", "kind": "additive", "width": 0.24, "depth": 0.21, "height": 0.84, "x": 0.71, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "stadium"}
+      ]
+    },
+    {
+      "name": "pinwheel_four_bars",
+      "primary_language": "rotated_arms",
+      "secondary_language": "held_court",
+      "formal_principle": "rotation_about_a_centre",
+      "dominant_gesture": "Four bars of one thickness overrun each other at the corners so the whole figure appears to turn, each bar a step taller than the last around the court.",
+      "reference_basis": "Rietveld and van Doesburg's pinwheel plan, restated at building scale",
+      "far_target": 0.90,
+      "placements": [
+        {"role": "bar_north", "kind": "additive", "width": 0.71, "depth": 0.23, "height": 0.50, "x": 0.05, "y": 0.72, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "bar_east", "kind": "additive", "width": 0.23, "depth": 0.71, "height": 0.62, "x": 0.72, "y": 0.24, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "trapezoidal"},
+        {"role": "bar_south", "kind": "additive", "width": 0.71, "depth": 0.23, "height": 0.74, "x": 0.24, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "bar_west", "kind": "additive", "width": 0.23, "depth": 0.71, "height": 0.86, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "faceted"}
+      ]
+    },
+    {
+      "name": "comb_on_spine",
+      "primary_language": "comb_spine",
+      "secondary_language": "stepped_figure",
+      "formal_principle": "spine_and_fingers",
+      "dominant_gesture": "One long spine on the north carries three fingers south, each finger a different height and the middle one swung off the grid so the gaps between them widen toward the street.",
+      "reference_basis": "Le Corbusier and Gardella, Venice Hospital - a served spine with occupiable fingers",
+      "far_target": 0.82,
+      "placements": [
+        {"role": "north_spine", "kind": "additive", "width": 0.90, "depth": 0.25, "height": 0.60, "x": 0.05, "y": 0.70, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "finger_west", "kind": "additive", "width": 0.20, "depth": 0.58, "height": 0.78, "x": 0.08, "y": 0.15, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "stadium"},
+        {"role": "finger_mid", "kind": "additive", "width": 0.20, "depth": 0.58, "height": 0.66, "x": 0.40, "y": 0.15, "z": 0.0, "rotation_degrees": 10, "lean_degrees": 0, "lean_axis": "y", "plan": "stadium"},
+        {"role": "finger_east", "kind": "additive", "width": 0.20, "depth": 0.58, "height": 0.54, "x": 0.72, "y": 0.15, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "kite"},
+        {"role": "spine_crown", "kind": "additive", "width": 0.40, "depth": 0.23, "height": 0.42, "x": 0.28, "y": 0.71, "z": 0.56, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "trapezoidal"}
+      ]
+    },
+    {
+      "name": "portal_frame_ring",
+      "primary_language": "ring_figure",
+      "secondary_language": "carved_void",
+      "formal_principle": "loop_with_portal",
+      "dominant_gesture": "A closed ring with an open court is cut through at ground on the south, so the void reads all the way from street to court under an inhabited bridge.",
+      "reference_basis": "OMA, CCTV - a continuous loop entered under its own body",
+      "far_target": 0.92,
+      "placements": [
+        {"role": "side_south", "kind": "additive", "width": 0.90, "depth": 0.22, "height": 0.58, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "side_north", "kind": "additive", "width": 0.90, "depth": 0.22, "height": 0.58, "x": 0.05, "y": 0.73, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "side_west", "kind": "additive", "width": 0.22, "depth": 0.54, "height": 0.64, "x": 0.05, "y": 0.23, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"},
+        {"role": "side_east", "kind": "additive", "width": 0.22, "depth": 0.54, "height": 0.64, "x": 0.73, "y": 0.23, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"},
+        {"role": "north_crown", "kind": "additive", "width": 0.64, "depth": 0.22, "height": 0.40, "x": 0.18, "y": 0.73, "z": 0.54, "rotation_degrees": 0, "lean_degrees": 6, "lean_axis": "y", "plan": "trapezoidal"},
+        {"role": "south_portal", "kind": "subtractive", "width": 0.18, "depth": 0.26, "height": 0.30, "x": 0.41, "y": 0.03, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"}
+      ]
+    },
+    {
+      "name": "worked_open_scissor_ii",
+      "primary_language": "crossed_bars",
+      "secondary_language": "rotated_arms",
+      "formal_principle": "crossing_at_two_levels",
+      "dominant_gesture": "Two equal bars cross at twenty degrees off the grid, the upper one lifted onto the lower, and the joint is a broad hall - not a shaft - sitting on a low south plinth.",
+      "reference_basis": "OMA / Ole Scheeren, The Interlace - bars of one family crossing at shifted levels; replaces worked_open_scissor, whose 4.9 m shaft rose 22 m beside 11 m plates",
+      "far_target": 0.84,
+      "placements": [
+        {"role": "lower_bar", "kind": "additive", "width": 0.82, "depth": 0.34, "height": 0.50, "x": 0.09, "y": 0.29, "z": 0.0, "rotation_degrees": 20, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "upper_bar", "kind": "additive", "width": 0.82, "depth": 0.34, "height": 0.46, "x": 0.09, "y": 0.41, "z": 0.44, "rotation_degrees": -20, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "crossing_hall", "kind": "additive", "width": 0.28, "depth": 0.28, "height": 0.62, "x": 0.36, "y": 0.38, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "hexagon"},
+        {"role": "south_plinth", "kind": "additive", "width": 0.76, "depth": 0.20, "height": 0.40, "x": 0.12, "y": 0.06, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "stadium"}
+      ]
+    },
+    {
+      "name": "opening_terraced_ell",
+      "primary_language": "leaning_section",
+      "secondary_language": "held_court",
+      "formal_principle": "opening_upward_without_inversion",
+      "dominant_gesture": "A U opens upward by leaning its north body outward in three near-equal bands, each band only a sixth larger than the one it sits on, so nothing overhangs as a crown.",
+      "reference_basis": "Marcel Breuer, Whitney Museum - a section that widens as it rises, band by band rather than by a single cantilevered cap; replaces widening_stack and its five-to-one crown",
+      "far_target": 0.86,
+      "placements": [
+        {"role": "north_base", "kind": "additive", "width": 0.80, "depth": 0.34, "height": 0.34, "x": 0.10, "y": 0.56, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"},
+        {"role": "north_middle", "kind": "additive", "width": 0.84, "depth": 0.38, "height": 0.34, "x": 0.08, "y": 0.54, "z": 0.30, "rotation_degrees": 0, "lean_degrees": 8, "lean_axis": "y", "plan": "square"},
+        {"role": "north_top", "kind": "additive", "width": 0.88, "depth": 0.42, "height": 0.32, "x": 0.06, "y": 0.52, "z": 0.60, "rotation_degrees": 0, "lean_degrees": 8, "lean_axis": "y", "plan": "chamfered"},
+        {"role": "arm_west", "kind": "additive", "width": 0.20, "depth": 0.50, "height": 0.50, "x": 0.10, "y": 0.10, "z": 0.0, "rotation_degrees": 0, "lean_degrees": -6, "lean_axis": "x", "plan": "square"},
+        {"role": "arm_east", "kind": "additive", "width": 0.20, "depth": 0.50, "height": 0.50, "x": 0.70, "y": 0.10, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 6, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "twin_court_theta",
+      "primary_language": "ring_figure",
+      "secondary_language": "comb_spine",
+      "formal_principle": "two_courts_one_body",
+      "dominant_gesture": "A perimeter block is crossed by a single spine so one ring becomes two courts of the same size, and one corner rises as the head of the figure.",
+      "reference_basis": "Amsterdam School perimeter block (Het Schip), doubled about a shared cross-wing",
+      "far_target": 0.94,
+      "placements": [
+        {"role": "perim_south", "kind": "additive", "width": 0.90, "depth": 0.18, "height": 0.52, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "perim_north", "kind": "additive", "width": 0.90, "depth": 0.18, "height": 0.60, "x": 0.05, "y": 0.77, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "perim_west", "kind": "additive", "width": 0.18, "depth": 0.60, "height": 0.68, "x": 0.05, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"},
+        {"role": "perim_east", "kind": "additive", "width": 0.18, "depth": 0.60, "height": 0.64, "x": 0.77, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "square"},
+        {"role": "cross_spine", "kind": "additive", "width": 0.60, "depth": 0.18, "height": 0.44, "x": 0.20, "y": 0.41, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "corner_head", "kind": "additive", "width": 0.25, "depth": 0.25, "height": 0.80, "x": 0.05, "y": 0.70, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"}
+      ]
+    }
+  ]
+}

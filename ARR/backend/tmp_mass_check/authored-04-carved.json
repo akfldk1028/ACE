@@ -1,0 +1,131 @@
+{
+  "_note": "Authored carved_body vocabulary: 7 schemes, each one block with material removed - notches, through-slots, undercuts and diagonal slices - tuned for high convexity drop with modest plan void.",
+  "schemes": [
+    {
+      "name": "quarried_corner",
+      "primary_language": "carved_block",
+      "secondary_language": "eroded_base",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "A single block loses one corner for its full height and is bored through at mid level, so the solid reads as quarried rather than assembled.",
+      "reference_basis": "Steven Holl, Knut Hamsun Center - a solid body with pockets torn out of it",
+      "far_target": 0.86,
+      "placements": [
+        {"role": "block_lower", "kind": "additive", "width": 0.88, "depth": 0.84, "height": 0.50, "x": 0.06, "y": 0.08, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "block_upper", "kind": "additive", "width": 0.82, "depth": 0.80, "height": 0.50, "x": 0.09, "y": 0.10, "z": 0.49, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "corner_notch", "kind": "subtractive", "width": 0.30, "depth": 0.32, "height": 1.10, "x": 0.66, "y": 0.70, "z": -0.05, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mid_through_slot", "kind": "subtractive", "width": 1.14, "depth": 0.44, "height": 0.30, "x": -0.07, "y": 0.20, "z": 0.42, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "entrance_undercut", "kind": "subtractive", "width": 0.40, "depth": 0.30, "height": 0.20, "x": 0.02, "y": 0.03, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "roof_scoop", "kind": "subtractive", "width": 0.36, "depth": 0.36, "height": 0.30, "x": 0.28, "y": 0.52, "z": 0.80, "rotation_degrees": 30, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "west_pocket", "kind": "subtractive", "width": 0.22, "depth": 0.26, "height": 0.26, "x": 0.02, "y": 0.62, "z": 0.16, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "stepped_erosion",
+      "primary_language": "carved_block",
+      "secondary_language": "eroded_crown",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "The block gives up more of itself the higher it goes, each step sliding off-axis so the erosion never settles into a symmetrical wedding cake.",
+      "reference_basis": "Herzog & de Meuron, 56 Leonard Street - a stack eroded in shifting increments",
+      "far_target": 0.88,
+      "placements": [
+        {"role": "base_plate", "kind": "additive", "width": 0.90, "depth": 0.86, "height": 0.34, "x": 0.05, "y": 0.07, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mid_block", "kind": "additive", "width": 0.78, "depth": 0.80, "height": 0.34, "x": 0.16, "y": 0.10, "z": 0.33, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "upper_block", "kind": "additive", "width": 0.66, "depth": 0.74, "height": 0.34, "x": 0.05, "y": 0.14, "z": 0.66, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "corner_notch", "kind": "subtractive", "width": 0.26, "depth": 0.28, "height": 0.72, "x": 0.70, "y": 0.68, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mid_through_slot", "kind": "subtractive", "width": 1.14, "depth": 0.32, "height": 0.24, "x": -0.07, "y": 0.28, "z": 0.36, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "base_recess", "kind": "subtractive", "width": 0.36, "depth": 0.34, "height": 0.20, "x": 0.03, "y": 0.03, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "crown_bite", "kind": "subtractive", "width": 0.32, "depth": 0.32, "height": 0.28, "x": 0.44, "y": 0.54, "z": 0.78, "rotation_degrees": 20, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "bored_solid",
+      "primary_language": "carved_block",
+      "secondary_language": "faceted_shell",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "A faceted solid is bored through twice at different levels and in opposite directions, the roof and the ground left intact so nothing reads as a courtyard.",
+      "reference_basis": "OMA, Casa da Musica - a monolith with rooms tunnelled out of it",
+      "far_target": 0.82,
+      "placements": [
+        {"role": "body_lower", "kind": "additive", "width": 0.90, "depth": 0.86, "height": 0.56, "x": 0.05, "y": 0.07, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"},
+        {"role": "body_upper", "kind": "additive", "width": 0.84, "depth": 0.80, "height": 0.44, "x": 0.08, "y": 0.10, "z": 0.55, "rotation_degrees": 10, "lean_degrees": 0, "lean_axis": "y", "plan": "faceted"},
+        {"role": "great_bore_east_west", "kind": "subtractive", "width": 1.18, "depth": 0.38, "height": 0.32, "x": -0.09, "y": 0.24, "z": 0.34, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "upper_bore_north_south", "kind": "subtractive", "width": 0.32, "depth": 1.18, "height": 0.22, "x": 0.20, "y": -0.09, "z": 0.68, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "diagonal_slice", "kind": "subtractive", "width": 0.42, "depth": 0.60, "height": 1.16, "x": 0.62, "y": 0.58, "z": -0.06, "rotation_degrees": 38, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "base_undercut", "kind": "subtractive", "width": 0.36, "depth": 0.28, "height": 0.18, "x": 0.02, "y": 0.30, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "sponge_pockets",
+      "primary_language": "carved_block",
+      "secondary_language": "pocketed_bar",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "A thick bar has deep pockets chewed into both long elevations at staggered heights, each reaching past the centreline without ever meeting its opposite.",
+      "reference_basis": "Steven Holl, Simmons Hall MIT - a porous block with lungs cut out of it",
+      "far_target": 0.84,
+      "placements": [
+        {"role": "bar_lower", "kind": "additive", "width": 0.92, "depth": 0.46, "height": 0.52, "x": 0.04, "y": 0.27, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "bar_upper", "kind": "additive", "width": 0.88, "depth": 0.44, "height": 0.48, "x": 0.06, "y": 0.28, "z": 0.51, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "south_thickening", "kind": "additive", "width": 0.32, "depth": 0.26, "height": 0.50, "x": 0.30, "y": 0.09, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "pocket_south_low", "kind": "subtractive", "width": 0.26, "depth": 0.26, "height": 0.34, "x": 0.09, "y": 0.19, "z": 0.10, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "pocket_north_mid", "kind": "subtractive", "width": 0.24, "depth": 0.28, "height": 0.34, "x": 0.46, "y": 0.52, "z": 0.40, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "pocket_south_high", "kind": "subtractive", "width": 0.28, "depth": 0.26, "height": 0.30, "x": 0.62, "y": 0.20, "z": 0.62, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "sky_erosion", "kind": "subtractive", "width": 0.34, "depth": 0.50, "height": 0.30, "x": 0.14, "y": 0.26, "z": 0.76, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "end_undercut", "kind": "subtractive", "width": 0.24, "depth": 0.52, "height": 0.20, "x": 0.02, "y": 0.25, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "sheared_quarry",
+      "primary_language": "carved_block",
+      "secondary_language": "leaning_solid",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "The body leans as it rises and a plane cut at forty degrees shaves the whole east edge away, so the block is read against the diagonal it lost.",
+      "reference_basis": "OMA, Seattle Central Library - a stacked solid sliced along non-orthogonal planes",
+      "far_target": 0.80,
+      "placements": [
+        {"role": "plinth", "kind": "additive", "width": 0.90, "depth": 0.84, "height": 0.36, "x": 0.05, "y": 0.08, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "leaning_body", "kind": "additive", "width": 0.80, "depth": 0.76, "height": 0.36, "x": 0.09, "y": 0.12, "z": 0.35, "rotation_degrees": 0, "lean_degrees": 14, "lean_axis": "x", "plan": "faceted"},
+        {"role": "crown", "kind": "additive", "width": 0.68, "depth": 0.70, "height": 0.30, "x": 0.18, "y": 0.15, "z": 0.70, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "diagonal_shave", "kind": "subtractive", "width": 0.50, "depth": 0.70, "height": 1.20, "x": 0.62, "y": 0.50, "z": -0.06, "rotation_degrees": 42, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mid_through_cut", "kind": "subtractive", "width": 1.16, "depth": 0.30, "height": 0.24, "x": -0.08, "y": 0.16, "z": 0.40, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "base_carve", "kind": "subtractive", "width": 0.38, "depth": 0.30, "height": 0.22, "x": 0.06, "y": 0.02, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "crown_notch", "kind": "subtractive", "width": 0.28, "depth": 0.28, "height": 0.34, "x": 0.16, "y": 0.60, "z": 0.72, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "lifted_undercut",
+      "primary_language": "carved_block",
+      "secondary_language": "hollowed_base",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "Almost the whole ground floor is taken away, leaving the block resting on a shrunken core so the mass overhangs its own footprint on every side.",
+      "reference_basis": "Herzog & de Meuron, CaixaForum Madrid - a solid whose base is removed and whose top is eroded",
+      "far_target": 0.78,
+      "placements": [
+        {"role": "core_plinth", "kind": "additive", "width": 0.54, "depth": 0.52, "height": 0.26, "x": 0.23, "y": 0.24, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mass_lower", "kind": "additive", "width": 0.88, "depth": 0.84, "height": 0.38, "x": 0.05, "y": 0.08, "z": 0.24, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mass_upper", "kind": "additive", "width": 0.82, "depth": 0.78, "height": 0.38, "x": 0.08, "y": 0.11, "z": 0.61, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "upper_bore", "kind": "subtractive", "width": 0.36, "depth": 1.18, "height": 0.24, "x": 0.16, "y": -0.09, "z": 0.66, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "corner_notch", "kind": "subtractive", "width": 0.26, "depth": 0.28, "height": 0.82, "x": 0.68, "y": 0.66, "z": 0.22, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "roof_erosion", "kind": "subtractive", "width": 0.34, "depth": 0.34, "height": 0.26, "x": 0.28, "y": 0.18, "z": 0.82, "rotation_degrees": 25, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "flank_slot", "kind": "subtractive", "width": 0.22, "depth": 0.34, "height": 0.26, "x": 0.02, "y": 0.20, "z": 0.30, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "interlocked_cuts",
+      "primary_language": "carved_block",
+      "secondary_language": "passaged_block",
+      "formal_principle": "subtraction",
+      "dominant_gesture": "Two deep cuts enter from opposite faces at different levels and pass each other without touching, while a slot at grade lets the ground run under the body.",
+      "reference_basis": "Peter Zumthor, Kolumba Museum, read through Sou Fujimoto's habit of cutting a solid rather than composing parts",
+      "far_target": 0.83,
+      "placements": [
+        {"role": "block_lower", "kind": "additive", "width": 0.90, "depth": 0.86, "height": 0.50, "x": 0.05, "y": 0.07, "z": 0.00, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "concave_l"},
+        {"role": "block_upper", "kind": "additive", "width": 0.86, "depth": 0.82, "height": 0.48, "x": 0.07, "y": 0.09, "z": 0.49, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "concave_l"},
+        {"role": "cut_from_west_low", "kind": "subtractive", "width": 0.52, "depth": 0.28, "height": 0.30, "x": -0.02, "y": 0.16, "z": 0.14, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cut_from_east_high", "kind": "subtractive", "width": 0.52, "depth": 0.28, "height": 0.30, "x": 0.50, "y": 0.50, "z": 0.52, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cut_from_west_high", "kind": "subtractive", "width": 0.40, "depth": 0.24, "height": 0.26, "x": -0.02, "y": 0.58, "z": 0.60, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "ground_slot", "kind": "subtractive", "width": 0.30, "depth": 1.18, "height": 0.18, "x": 0.30, "y": -0.09, "z": -0.02, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "roof_notch", "kind": "subtractive", "width": 0.30, "depth": 0.30, "height": 0.24, "x": 0.60, "y": 0.14, "z": 0.80, "rotation_degrees": 30, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    }
+  ]
+}

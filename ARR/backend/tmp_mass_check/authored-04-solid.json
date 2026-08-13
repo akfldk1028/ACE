@@ -1,0 +1,107 @@
+{
+  "_note": "Seven schemes in the solid_body character: one continuous mass, no court, no hole through the plan. Because a solid body forfeits plan void, every scheme takes its articulation from SECTION - the plan is made to change as the body rises (terracing, stagger, shear, axis swap, prow, twist, counterpoise). Fractions of the buildable plan and the legal height. Stacked volumes overlap ~0.02 in z and share generous plan overlap so the result is one boolean body, never a shared exact face and never a gap. Volume heights are held within 2x inside each scheme and no volume carries more plan area than the one under it.",
+  "schemes": [
+    {
+      "name": "terraced_solid",
+      "primary_language": "stepped_section",
+      "secondary_language": "single_body",
+      "formal_principle": "monotone_setback",
+      "dominant_gesture": "one deep body that gives back its depth level by level, so the south face becomes a stair of terraces while the north face stays sheer",
+      "reference_basis": "Terrassenhaus section; Safdie Habitat 67 stepped dwellings",
+      "far_target": 0.86,
+      "placements": [
+        {"role": "terrace_base", "kind": "additive", "width": 0.88, "depth": 0.76, "height": 0.26, "x": 0.06, "y": 0.10, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "terrace_2", "kind": "additive", "width": 0.88, "depth": 0.58, "height": 0.26, "x": 0.06, "y": 0.28, "z": 0.24, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "terrace_3", "kind": "additive", "width": 0.84, "depth": 0.40, "height": 0.26, "x": 0.08, "y": 0.46, "z": 0.48, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "terrace_crown", "kind": "additive", "width": 0.80, "depth": 0.24, "height": 0.26, "x": 0.10, "y": 0.62, "z": 0.72, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"}
+      ]
+    },
+    {
+      "name": "staggered_solid",
+      "primary_language": "shifted_stack",
+      "secondary_language": "single_body",
+      "formal_principle": "lateral_drift",
+      "dominant_gesture": "three deep slabs of equal thickness walk sideways across the parcel as they rise, each cantilevering off the shoulder of the one below",
+      "reference_basis": "Herzog & de Meuron, 56 Leonard Street; OMA, De Rotterdam shifted stacks",
+      "far_target": 0.90,
+      "placements": [
+        {"role": "stack_low", "kind": "additive", "width": 0.58, "depth": 0.68, "height": 0.32, "x": 0.04, "y": 0.12, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "stack_mid", "kind": "additive", "width": 0.58, "depth": 0.68, "height": 0.32, "x": 0.24, "y": 0.06, "z": 0.30, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "stack_high", "kind": "additive", "width": 0.54, "depth": 0.62, "height": 0.32, "x": 0.42, "y": 0.16, "z": 0.60, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"}
+      ]
+    },
+    {
+      "name": "leaning_prism",
+      "primary_language": "sheared_section",
+      "secondary_language": "single_body",
+      "formal_principle": "parallelogram",
+      "dominant_gesture": "a heavy plinth carries a single prism that leans steadily off vertical, so the whole section reads as a parallelogram rather than a rectangle",
+      "reference_basis": "Johnson & Burgee, Puerta de Europa (KIO Towers), Madrid",
+      "far_target": 0.80,
+      "placements": [
+        {"role": "plinth", "kind": "additive", "width": 0.88, "depth": 0.70, "height": 0.34, "x": 0.06, "y": 0.14, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "shoulder", "kind": "additive", "width": 0.44, "depth": 0.52, "height": 0.34, "x": 0.10, "y": 0.22, "z": 0.32, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "leaning_prism", "kind": "additive", "width": 0.60, "depth": 0.56, "height": 0.62, "x": 0.26, "y": 0.20, "z": 0.32, "rotation_degrees": 0, "lean_degrees": 24, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "axis_swap_body",
+      "primary_language": "crossed_section",
+      "secondary_language": "single_body",
+      "formal_principle": "orthogonal_exchange",
+      "dominant_gesture": "the body starts as a wide east-west bar and ends as a narrow north-south one, trading its long axis for its short axis on the way up",
+      "reference_basis": "Kenzo Tange, Yamanashi Broadcasting; crossed-bar massing",
+      "far_target": 0.84,
+      "placements": [
+        {"role": "cross_low", "kind": "additive", "width": 0.88, "depth": 0.30, "height": 0.30, "x": 0.06, "y": 0.35, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "stadium"},
+        {"role": "cross_hinge", "kind": "additive", "width": 0.60, "depth": 0.48, "height": 0.30, "x": 0.20, "y": 0.26, "z": 0.28, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "cross_high", "kind": "additive", "width": 0.30, "depth": 0.84, "height": 0.30, "x": 0.35, "y": 0.08, "z": 0.56, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "y", "plan": "stadium"}
+      ]
+    },
+    {
+      "name": "prow_solid",
+      "primary_language": "wedge_plan",
+      "secondary_language": "single_body",
+      "formal_principle": "sharpening_rise",
+      "dominant_gesture": "a blunt trapezoidal base is progressively whittled into a prow, the plan sharpening toward the street corner with every level",
+      "reference_basis": "Flatiron Building wedge; Gehry, IAC Building prow",
+      "far_target": 0.78,
+      "placements": [
+        {"role": "prow_base", "kind": "additive", "width": 0.90, "depth": 0.70, "height": 0.30, "x": 0.05, "y": 0.14, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "prow_mid", "kind": "additive", "width": 0.72, "depth": 0.58, "height": 0.30, "x": 0.16, "y": 0.20, "z": 0.28, "rotation_degrees": 10, "lean_degrees": 0, "lean_axis": "x", "plan": "kite"},
+        {"role": "prow_tip", "kind": "additive", "width": 0.52, "depth": 0.44, "height": 0.30, "x": 0.30, "y": 0.28, "z": 0.56, "rotation_degrees": 18, "lean_degrees": 0, "lean_axis": "x", "plan": "triangular"}
+      ]
+    },
+    {
+      "name": "twisted_solid",
+      "primary_language": "rotating_stack",
+      "secondary_language": "single_body",
+      "formal_principle": "incremental_twist",
+      "dominant_gesture": "five faceted slabs about a common centre, each turned a little further than the one beneath, so the body screws upward while staying one mass",
+      "reference_basis": "Calatrava, Turning Torso; Nikken Sekkei, Mode Gakuen Spiral Towers",
+      "far_target": 0.88,
+      "placements": [
+        {"role": "twist_1", "kind": "additive", "width": 0.60, "depth": 0.56, "height": 0.21, "x": 0.20, "y": 0.22, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"},
+        {"role": "twist_2", "kind": "additive", "width": 0.57, "depth": 0.53, "height": 0.21, "x": 0.215, "y": 0.235, "z": 0.19, "rotation_degrees": 12, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"},
+        {"role": "twist_3", "kind": "additive", "width": 0.54, "depth": 0.50, "height": 0.21, "x": 0.23, "y": 0.25, "z": 0.38, "rotation_degrees": 24, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"},
+        {"role": "twist_4", "kind": "additive", "width": 0.51, "depth": 0.47, "height": 0.21, "x": 0.245, "y": 0.265, "z": 0.57, "rotation_degrees": 36, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"},
+        {"role": "twist_5", "kind": "additive", "width": 0.48, "depth": 0.44, "height": 0.21, "x": 0.26, "y": 0.28, "z": 0.76, "rotation_degrees": 48, "lean_degrees": 0, "lean_axis": "x", "plan": "faceted"}
+      ]
+    },
+    {
+      "name": "counterpoise_solid",
+      "primary_language": "reversed_stagger",
+      "secondary_language": "single_body",
+      "formal_principle": "S_inflection",
+      "dominant_gesture": "the lower half walks east and leans with it, then the upper half turns around and walks back west, so the silhouette makes one S instead of a single overhang",
+      "reference_basis": "counterpoised stacking, cf. Steven Holl Simmons Hall shifts and OMA Seattle Central Library inflected stack",
+      "far_target": 0.92,
+      "placements": [
+        {"role": "counter_1", "kind": "additive", "width": 0.66, "depth": 0.70, "height": 0.24, "x": 0.06, "y": 0.14, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 12, "lean_axis": "x", "plan": "concave_l"},
+        {"role": "counter_2", "kind": "additive", "width": 0.66, "depth": 0.70, "height": 0.24, "x": 0.24, "y": 0.14, "z": 0.22, "rotation_degrees": 0, "lean_degrees": 12, "lean_axis": "x", "plan": "square"},
+        {"role": "counter_3", "kind": "additive", "width": 0.64, "depth": 0.66, "height": 0.24, "x": 0.14, "y": 0.16, "z": 0.44, "rotation_degrees": 0, "lean_degrees": -12, "lean_axis": "x", "plan": "square"},
+        {"role": "counter_4", "kind": "additive", "width": 0.60, "depth": 0.62, "height": 0.24, "x": 0.04, "y": 0.18, "z": 0.66, "rotation_degrees": 0, "lean_degrees": -12, "lean_axis": "x", "plan": "chamfered"}
+      ]
+    }
+  ]
+}

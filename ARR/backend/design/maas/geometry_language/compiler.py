@@ -566,6 +566,14 @@ def _evaluate_node(
     if node.kind == "transform":
         return _transform(node, inputs[0]), []
     if node.kind == "modifier":
+        if node.operator == "ellipsoidize":
+            return _ellipsoidize(inputs[0], node.parameters, node.id), [
+                "live_bounds", "bounded_ellipsoid", "unitbox_consumed",
+            ]
+        if node.operator == "tetrahedralize":
+            return _tetrahedralize(inputs[0], node.id), [
+                "live_bounds", "regular_tetrahedral_hull", "unitbox_consumed",
+            ]
         if node.operator == "circularize":
             return _circularize(inputs[0], node.parameters, node.id), [
                 "live_bounds",
@@ -779,6 +787,51 @@ def _circularize(solid, params: dict[str, Any], node_id: str):
         .scale((radius_x, radius_y, 1.0))
         .translate((center_x, center_y, minz))
     )
+
+
+def _ellipsoidize(solid, params: dict[str, Any], node_id: str):
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    width, depth, height = maxx - minx, maxy - miny, maxz - minz
+    if min(width, depth, height) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_ellipsoidize_bounds",
+            "ellipsoidize requires positive live input bounds",
+            node_id,
+        )
+    try:
+        segments = max(8, min(96, int(params.get("segments", 24))))
+    except (TypeError, ValueError) as exc:
+        raise GeometryCompileError(
+            "invalid_ellipsoidize_segments",
+            "ellipsoidize segments must be an integer",
+            node_id,
+        ) from exc
+    center = (
+        (minx + maxx) / 2.0,
+        (miny + maxy) / 2.0,
+        (minz + maxz) / 2.0,
+    )
+    return (
+        m3d.Manifold.sphere(0.5, circular_segments=segments)
+        .scale((width, depth, height))
+        .translate(center)
+    )
+
+
+def _tetrahedralize(solid, node_id: str):
+    minx, miny, minz, maxx, maxy, maxz = _bounds(solid)
+    if min(maxx - minx, maxy - miny, maxz - minz) <= 1e-9:
+        raise GeometryCompileError(
+            "degenerate_tetrahedralize_bounds",
+            "tetrahedralize requires positive live input bounds",
+            node_id,
+        )
+    return m3d.Manifold.hull_points((
+        (minx, miny, minz),
+        (maxx, maxy, minz),
+        (maxx, miny, maxz),
+        (minx, maxy, maxz),
+    ))
 
 
 def _boolean(
@@ -1359,6 +1412,16 @@ def _warp_taper(solid, params: dict[str, Any], node_id: str):
     def warp(points):
         result = np.asarray(points, dtype=float).copy()
         t = np.clip((result[:, axis_index] - low) / length, 0.0, 1.0)
+        lower_floor_fraction = max(
+            0.0,
+            min(0.8, float(params.get("lower_floor_fraction", 0.0))),
+        )
+        if lower_floor_fraction > 0.0:
+            t = np.clip(
+                (t - lower_floor_fraction) / (1.0 - lower_floor_fraction),
+                0.0,
+                1.0,
+            )
         for pair_index, coordinate_index in enumerate(other):
             scale = start2[pair_index] + (end2[pair_index] - start2[pair_index]) * t
             result[:, coordinate_index] = pivot[coordinate_index] + (result[:, coordinate_index] - pivot[coordinate_index]) * scale
@@ -1566,8 +1629,9 @@ def _book_branch_macro(base, params: dict[str, Any], node_id: str):
 
     A radial array rotates the complete body about its centre and therefore
     produces a bow-tie.  BOOK branch instead selects only the terminal part of
-    the actual input solid, keeps the input as the trunk, and rotates paired
-    descendants about a shared shoulder.  All dimensions come from live
+    the actual input solid, cuts the trunk at the shoulder, and rotates paired
+    descendants about it, so the volume above the shoulder exists only as the
+    two arms and the junction between them is a neck.  All dimensions come from live
     bounds, so the relation transfers across seeds and parcels.
     """
 
@@ -1609,7 +1673,28 @@ def _book_branch_macro(base, params: dict[str, Any], node_id: str):
         )
         for signed in (-angle, angle)
     ]
-    result = m3d.Manifold.batch_boolean([base, *arms], m3d.OpType.Add)
+    # The trunk is cut at the shoulder before the arms are added. Keeping the
+    # whole input and unioning arms beside it left the original terminal mass
+    # sitting between them, so the result read as a fan: the arms were there but
+    # nothing separated them and no neck existed to separate at. Measured across
+    # the operatives, only `puncture` articulated at all; branch, notch, carve
+    # and fracture produced no lobes.
+    #
+    # Cutting at the same shoulder the arms pivot about is what makes it a
+    # branch - the volume above the shoulder exists only as the two rotated
+    # arms, so the junction narrows and the space between them is void.
+    trunk = (
+        base.trim_by_plane((-1.0, 0.0, 0.0), -(shoulder + overlap))
+        if along_x
+        else base.trim_by_plane((0.0, -1.0, 0.0), -(shoulder + overlap))
+    )
+    if trunk.is_empty():
+        raise GeometryCompileError(
+            "empty_book_branch_trunk",
+            "trunk scope below the shoulder is empty",
+            node_id,
+        )
+    result = m3d.Manifold.batch_boolean([trunk, *arms], m3d.OpType.Add)
     if result.is_empty():
         raise GeometryCompileError("empty_book_branch", "branch union is empty", node_id)
     return result

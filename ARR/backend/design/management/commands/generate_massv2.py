@@ -40,6 +40,7 @@ class Command(BaseCommand):
         parser.add_argument("--building-type", default="제1종근린생활시설")
         parser.add_argument(
             "--authored-json",
+            action="append",
             help=(
                 "Path to a model-authored schemes file matching the authoring "
                 "schema. Lets an assistant author the programs directly when no "
@@ -86,7 +87,11 @@ class Command(BaseCommand):
         if options["authored_json"]:
             buildable = site.plan_at(0.0)
             min_x, min_y, max_x, max_y = buildable.bounds
-            payload = json.loads(Path(options["authored_json"]).read_text(encoding="utf-8"))
+            records = []
+            for path in options["authored_json"]:
+                records.extend(
+                    json.loads(Path(path).read_text(encoding="utf-8")).get("schemes") or ()
+                )
             authored = [
                 _to_form(
                     record,
@@ -97,7 +102,7 @@ class Command(BaseCommand):
                     height_m=site.floor_height_m
                     * max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
                 )
-                for record in payload.get("schemes") or ()
+                for record in records
             ]
             forms.extend(item for item in authored if item is not None)
             self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
@@ -129,7 +134,7 @@ class Command(BaseCommand):
 
         for form in forms:
             fit = fit_to_site(form, site)
-            source = compile_matrix_form(fit.form)
+            source = compile_matrix_form(fit.form, storey_height_m=site.floor_height_m)
             if source is None:
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue

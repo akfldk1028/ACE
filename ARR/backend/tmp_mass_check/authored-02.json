@@ -1,0 +1,224 @@
+{
+  "_note": "Massing moves taken from built work, written in the massv2 vocabulary. Every number is a fraction of the parcel's buildable plan and legal height; the executor owns the metres. Each scheme is one decisive move, which is what these offices actually do - the variety is between schemes, not inside them. Precedents are named so the recipe can be checked against the building.",
+  "schemes": [
+    {
+      "name": "loop_bridge",
+      "primary_language": "bridged_loop",
+      "secondary_language": "two_towers",
+      "formal_principle": "closed_circuit",
+      "dominant_gesture": "two towers joined high by a horizontal that returns the circulation to itself",
+      "reference_basis": "OMA CCTV Headquarters, Beijing 2012",
+      "placements": [
+        {"role": "leg_west", "kind": "additive", "width": 0.20, "depth": 0.30, "height": 1.0, "x": 0.05, "y": 0.12, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 7, "lean_axis": "x", "plan": "square"},
+        {"role": "leg_east", "kind": "additive", "width": 0.20, "depth": 0.30, "height": 1.0, "x": 0.70, "y": 0.55, "z": 0.0, "rotation_degrees": 0, "lean_degrees": -7, "lean_axis": "x", "plan": "square"},
+        {"role": "overhang", "kind": "additive", "width": 0.72, "depth": 0.22, "height": 0.20, "x": 0.13, "y": 0.16, "z": 0.78, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "return", "kind": "additive", "width": 0.18, "depth": 0.50, "height": 0.20, "x": 0.68, "y": 0.20, "z": 0.78, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "stacked_programme_shift",
+      "primary_language": "shifted_platforms",
+      "secondary_language": "programme_stack",
+      "formal_principle": "each_use_its_own_box",
+      "dominant_gesture": "four programme boxes stacked and slid past one another so the gaps become public",
+      "reference_basis": "OMA Seattle Central Library, 2004",
+      "placements": [
+        {"role": "base", "kind": "additive", "width": 0.90, "depth": 0.86, "height": 0.24, "x": 0.05, "y": 0.07, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "mixing", "kind": "additive", "width": 0.62, "depth": 0.74, "height": 0.22, "x": 0.30, "y": 0.16, "z": 0.23, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "spiral", "kind": "additive", "width": 0.78, "depth": 0.60, "height": 0.30, "x": 0.04, "y": 0.30, "z": 0.44, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "headquarters", "kind": "additive", "width": 0.48, "depth": 0.52, "height": 0.26, "x": 0.40, "y": 0.10, "z": 0.73, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "wedge_with_a_cut",
+      "primary_language": "wedge_body",
+      "secondary_language": "public_ramp",
+      "formal_principle": "route_through_the_solid",
+      "dominant_gesture": "a wedge cut through by a public passage that keeps rising",
+      "reference_basis": "OMA Kunsthal, Rotterdam 1992",
+      "placements": [
+        {"role": "body", "kind": "additive", "width": 0.88, "depth": 0.80, "height": 0.70, "x": 0.06, "y": 0.10, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "passage", "kind": "subtractive", "width": 0.18, "depth": 1.20, "height": 0.42, "x": 0.36, "y": -0.10, "z": -0.05, "rotation_degrees": 12, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cap", "kind": "additive", "width": 0.42, "depth": 0.34, "height": 0.28, "x": 0.10, "y": 0.34, "z": 0.68, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "mountain_terraces",
+      "primary_language": "stepped_terraces",
+      "secondary_language": "parking_plinth",
+      "formal_principle": "every_floor_a_roof",
+      "dominant_gesture": "a slope of dwellings where each level's roof is the terrace of the one below",
+      "reference_basis": "BIG Mountain Dwellings, Copenhagen 2008",
+      "placements": [
+        {"role": "plinth", "kind": "additive", "width": 0.92, "depth": 0.30, "height": 0.22, "x": 0.04, "y": 0.62, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "slope", "kind": "additive", "width": 0.92, "depth": 0.62, "height": 0.78, "x": 0.04, "y": 0.06, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 34, "lean_axis": "y", "plan": "square"},
+        {"role": "sky_cut", "kind": "subtractive", "width": 1.10, "depth": 0.46, "height": 0.60, "x": -0.05, "y": 0.02, "z": 0.44, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "corner_lifted_court",
+      "primary_language": "courtyard_block",
+      "secondary_language": "lifted_corner",
+      "formal_principle": "one_corner_to_the_sky",
+      "dominant_gesture": "a courtyard block with one corner pulled up and the opposite one pressed down",
+      "reference_basis": "BIG 8 House, Copenhagen 2010",
+      "placements": [
+        {"role": "ring", "kind": "additive", "width": 0.92, "depth": 0.88, "height": 0.46, "x": 0.04, "y": 0.06, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "court", "kind": "subtractive", "width": 0.52, "depth": 0.48, "height": 1.40, "x": 0.24, "y": 0.26, "z": -0.20, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "raised_corner", "kind": "additive", "width": 0.34, "depth": 0.30, "height": 0.54, "x": 0.62, "y": 0.06, "z": 0.44, "rotation_degrees": 0, "lean_degrees": -14, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "tapered_prow",
+      "primary_language": "tapered_tower",
+      "secondary_language": "triangular_prow",
+      "formal_principle": "plan_that_changes_as_it_rises",
+      "dominant_gesture": "a tower whose triangular base opens into a full slab at the top",
+      "reference_basis": "BIG Vancouver House, 2020",
+      "placements": [
+        {"role": "prow", "kind": "additive", "width": 0.60, "depth": 0.64, "height": 1.0, "x": 0.20, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 16, "lean_axis": "y", "plan": "triangular"},
+        {"role": "podium", "kind": "additive", "width": 0.86, "depth": 0.34, "height": 0.20, "x": 0.07, "y": 0.60, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "scattered_rooms",
+      "primary_language": "porous_field",
+      "secondary_language": "dispersed_rooms",
+      "formal_principle": "a_house_as_a_settlement",
+      "dominant_gesture": "small volumes set apart at different heights, the space between them the building",
+      "reference_basis": "SANAA Moriyama House, Tokyo 2005",
+      "placements": [
+        {"role": "room_a", "kind": "additive", "width": 0.20, "depth": 0.22, "height": 0.60, "x": 0.06, "y": 0.08, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "room_b", "kind": "additive", "width": 0.16, "depth": 0.18, "height": 1.0, "x": 0.42, "y": 0.06, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "room_c", "kind": "additive", "width": 0.22, "depth": 0.20, "height": 0.42, "x": 0.72, "y": 0.34, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "room_d", "kind": "additive", "width": 0.18, "depth": 0.24, "height": 0.78, "x": 0.20, "y": 0.62, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "room_e", "kind": "additive", "width": 0.24, "depth": 0.20, "height": 0.34, "x": 0.60, "y": 0.72, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "one_storey_spread",
+      "primary_language": "single_plate",
+      "secondary_language": "undulating_ground",
+      "formal_principle": "everything_on_one_level",
+      "dominant_gesture": "one low plate covering the site, its openings the only rooms",
+      "reference_basis": "SANAA Rolex Learning Center, Lausanne 2010",
+      "placements": [
+        {"role": "plate", "kind": "additive", "width": 0.94, "depth": 0.92, "height": 0.26, "x": 0.03, "y": 0.04, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "oval"},
+        {"role": "patio_a", "kind": "subtractive", "width": 0.26, "depth": 0.28, "height": 1.20, "x": 0.14, "y": 0.16, "z": -0.10, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "oval"},
+        {"role": "patio_b", "kind": "subtractive", "width": 0.22, "depth": 0.24, "height": 1.20, "x": 0.56, "y": 0.52, "z": -0.10, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "oval"},
+        {"role": "patio_c", "kind": "subtractive", "width": 0.18, "depth": 0.20, "height": 1.20, "x": 0.68, "y": 0.12, "z": -0.10, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "oval"}
+      ]
+    },
+    {
+      "name": "round_field_of_courts",
+      "primary_language": "perforated_plate",
+      "secondary_language": "circular_field",
+      "formal_principle": "no_front_no_back",
+      "dominant_gesture": "a round plate punched with courts so every room reaches daylight from two sides",
+      "reference_basis": "SANAA 21st Century Museum of Contemporary Art, Kanazawa 2004",
+      "placements": [
+        {"role": "disc", "kind": "additive", "width": 0.92, "depth": 0.92, "height": 0.34, "x": 0.04, "y": 0.04, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "oval"},
+        {"role": "court_n", "kind": "subtractive", "width": 0.24, "depth": 0.24, "height": 1.30, "x": 0.20, "y": 0.58, "z": -0.15, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "court_e", "kind": "subtractive", "width": 0.20, "depth": 0.22, "height": 1.30, "x": 0.60, "y": 0.56, "z": -0.15, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "court_s", "kind": "subtractive", "width": 0.22, "depth": 0.20, "height": 1.30, "x": 0.38, "y": 0.18, "z": -0.15, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "shifted_white_boxes",
+      "primary_language": "stacked_boxes",
+      "secondary_language": "offset_stack",
+      "formal_principle": "same_box_slid_each_floor",
+      "dominant_gesture": "identical boxes stacked and slid, the offsets giving every level its own roof light",
+      "reference_basis": "SANAA New Museum, New York 2007",
+      "placements": [
+        {"role": "box_1", "kind": "additive", "width": 0.66, "depth": 0.72, "height": 0.26, "x": 0.16, "y": 0.14, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "box_2", "kind": "additive", "width": 0.62, "depth": 0.68, "height": 0.24, "x": 0.04, "y": 0.22, "z": 0.25, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "box_3", "kind": "additive", "width": 0.60, "depth": 0.66, "height": 0.24, "x": 0.30, "y": 0.06, "z": 0.48, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "box_4", "kind": "additive", "width": 0.56, "depth": 0.62, "height": 0.26, "x": 0.12, "y": 0.30, "z": 0.71, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "hollow_market_arch",
+      "primary_language": "inhabited_arch",
+      "secondary_language": "hollowed_block",
+      "formal_principle": "the_void_is_the_room",
+      "dominant_gesture": "a block hollowed into an arch, the housing wrapping a public hall",
+      "reference_basis": "MVRDV Markthal, Rotterdam 2014",
+      "placements": [
+        {"role": "block", "kind": "additive", "width": 0.86, "depth": 0.74, "height": 0.86, "x": 0.07, "y": 0.13, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "hall", "kind": "subtractive", "width": 0.54, "depth": 1.10, "height": 0.62, "x": 0.23, "y": -0.05, "z": -0.05, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "stadium"}
+      ]
+    },
+    {
+      "name": "rotated_house_stack",
+      "primary_language": "rotated_stack",
+      "secondary_language": "gabled_units",
+      "formal_principle": "each_unit_turned_to_its_own_view",
+      "dominant_gesture": "house-sized volumes stacked and each turned off the one below",
+      "reference_basis": "Herzog & de Meuron VitraHaus, Weil am Rhein 2010",
+      "placements": [
+        {"role": "unit_1", "kind": "additive", "width": 0.74, "depth": 0.26, "height": 0.26, "x": 0.10, "y": 0.36, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "unit_2", "kind": "additive", "width": 0.70, "depth": 0.24, "height": 0.26, "x": 0.14, "y": 0.20, "z": 0.25, "rotation_degrees": 32, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "unit_3", "kind": "additive", "width": 0.66, "depth": 0.24, "height": 0.26, "x": 0.16, "y": 0.44, "z": 0.50, "rotation_degrees": -26, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "unit_4", "kind": "additive", "width": 0.58, "depth": 0.22, "height": 0.26, "x": 0.22, "y": 0.32, "z": 0.75, "rotation_degrees": 14, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "cloud_of_cubes",
+      "primary_language": "porous_field",
+      "secondary_language": "cube_cloud",
+      "formal_principle": "structure_as_a_field",
+      "dominant_gesture": "small cubes at many levels, none of them aligned, the whole reading as weather",
+      "reference_basis": "Sou Fujimoto House NA, Tokyo 2011",
+      "placements": [
+        {"role": "cube_a", "kind": "additive", "width": 0.22, "depth": 0.24, "height": 0.20, "x": 0.10, "y": 0.12, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cube_b", "kind": "additive", "width": 0.20, "depth": 0.22, "height": 0.20, "x": 0.44, "y": 0.06, "z": 0.18, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cube_c", "kind": "additive", "width": 0.24, "depth": 0.20, "height": 0.22, "x": 0.16, "y": 0.44, "z": 0.36, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cube_d", "kind": "additive", "width": 0.18, "depth": 0.24, "height": 0.20, "x": 0.58, "y": 0.40, "z": 0.54, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "cube_e", "kind": "additive", "width": 0.22, "depth": 0.18, "height": 0.22, "x": 0.30, "y": 0.70, "z": 0.72, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "spine", "kind": "additive", "width": 0.14, "depth": 0.14, "height": 0.94, "x": 0.36, "y": 0.34, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "folded_plate",
+      "primary_language": "folded_plate",
+      "secondary_language": "lifted_corners",
+      "formal_principle": "one_surface_lifted_at_its_edges",
+      "dominant_gesture": "a single plate whose edges lift, the section widening toward the perimeter",
+      "reference_basis": "OMA Qatar National Library, Doha 2017",
+      "placements": [
+        {"role": "plate", "kind": "additive", "width": 0.92, "depth": 0.86, "height": 0.30, "x": 0.04, "y": 0.07, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "lift_west", "kind": "additive", "width": 0.30, "depth": 0.86, "height": 0.52, "x": 0.04, "y": 0.07, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 26, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "lift_east", "kind": "additive", "width": 0.30, "depth": 0.86, "height": 0.52, "x": 0.66, "y": 0.07, "z": 0.0, "rotation_degrees": 180, "lean_degrees": 26, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "sunken_centre", "kind": "subtractive", "width": 0.34, "depth": 0.52, "height": 0.26, "x": 0.33, "y": 0.24, "z": 0.16, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "hex_pinwheel",
+      "primary_language": "rotational_wings",
+      "secondary_language": "non_orthogonal_plan",
+      "formal_principle": "plan_that_refuses_the_grid",
+      "dominant_gesture": "three wings on a hexagonal core, none of them parallel to a boundary",
+      "reference_basis": "Steven Holl Simmons Hall lineage / non-orthogonal infill",
+      "placements": [
+        {"role": "core", "kind": "additive", "width": 0.34, "depth": 0.34, "height": 0.86, "x": 0.33, "y": 0.33, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "hexagon"},
+        {"role": "wing_a", "kind": "additive", "width": 0.44, "depth": 0.18, "height": 0.54, "x": 0.04, "y": 0.20, "z": 0.0, "rotation_degrees": 24, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "wing_b", "kind": "additive", "width": 0.44, "depth": 0.18, "height": 0.54, "x": 0.52, "y": 0.60, "z": 0.0, "rotation_degrees": 24, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "wing_c", "kind": "additive", "width": 0.18, "depth": 0.42, "height": 0.70, "x": 0.60, "y": 0.10, "z": 0.0, "rotation_degrees": -32, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"}
+      ]
+    },
+    {
+      "name": "kite_prow_infill",
+      "primary_language": "faceted_infill",
+      "secondary_language": "corner_prow",
+      "formal_principle": "a_plan_shaped_by_its_corner",
+      "dominant_gesture": "a faceted body pulled to a prow where two streets meet",
+      "reference_basis": "small-parcel corner infill, faceted-plan lineage",
+      "placements": [
+        {"role": "body", "kind": "additive", "width": 0.80, "depth": 0.76, "height": 0.92, "x": 0.08, "y": 0.12, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "kite"},
+        {"role": "shoulder", "kind": "subtractive", "width": 0.34, "depth": 0.34, "height": 0.44, "x": 0.60, "y": 0.58, "z": 0.54, "rotation_degrees": 18, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "base_room", "kind": "additive", "width": 0.90, "depth": 0.24, "height": 0.20, "x": 0.05, "y": 0.68, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    }
+  ]
+}

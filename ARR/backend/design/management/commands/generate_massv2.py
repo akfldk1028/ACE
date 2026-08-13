@@ -21,6 +21,7 @@ from django.core.management.base import BaseCommand, CommandError
 from design.maas.design_space import delivered_ground_take_band
 from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
+from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.legal_fit import fit_to_site
@@ -116,6 +117,7 @@ class Command(BaseCommand):
         renderable = []
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
+        implausible = 0
 
         for form in forms:
             fit = fit_to_site(form, site)
@@ -124,6 +126,7 @@ class Command(BaseCommand):
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue
             measurement = measure_form(source)
+            standing = plaus.assess(source, parcel_area_m2=site.parcel_area_m2)
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m
             )
@@ -135,6 +138,8 @@ class Command(BaseCommand):
             cells[cell] += 1
             if not fit.satisfied:
                 unlawful += 1
+            if not standing.occupiable:
+                implausible += 1
             records.append({
                 "name": form.name,
                 "status": "compiled",
@@ -143,6 +148,7 @@ class Command(BaseCommand):
                 "gfa_m2": round(gfa, 1),
                 "floor_height_m": storey_h,
                 "far_utilization": round(far_use, 4),
+                "plausibility": standing.evidence(),
                 "measurement": measurement.evidence(),
                 "language": {
                     "primary": form.primary_language,
@@ -170,6 +176,7 @@ class Command(BaseCommand):
             "form_count": len(forms),
             "compiled": len(renderable),
             "unlawful": unlawful,
+            "implausible": implausible,
             "occupied_cells": len(cells),
             "cells": dict(sorted(cells.items())),
             "records": records,
@@ -180,6 +187,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"compiled {len(renderable)}/{len(forms)}  "
-            f"unlawful {unlawful}  cells {len(cells)}/16"
+            f"unlawful {unlawful}  implausible {implausible}  cells {len(cells)}/16"
         )
         self.stdout.write(str(sheet))

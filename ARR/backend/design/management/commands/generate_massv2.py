@@ -25,6 +25,7 @@ from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.seeds import seed_forms
+from design.maas.massv2.variations import spread_across_coverage
 
 
 class Command(BaseCommand):
@@ -47,6 +48,11 @@ class Command(BaseCommand):
             "--authored-only",
             action="store_true",
             help="Skip the deterministic seed families and use only authored schemes.",
+        )
+        parser.add_argument(
+            "--spread-coverage",
+            action="store_true",
+            help="Carry each authored composition across all four coverage bands.",
         )
 
     def handle(self, *args, **options):
@@ -86,6 +92,21 @@ class Command(BaseCommand):
             ]
             forms.extend(item for item in authored if item is not None)
             self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
+
+        if options["spread_coverage"]:
+            # A composition is one thing; the ground it claims is another. Carry
+            # each authored composition across the coverage axis so the grid
+            # fills from the vocabulary rather than from more hand authoring.
+            spread = [
+                variant
+                for form in list(forms)
+                if form.name.startswith("llm_")
+                for variant in spread_across_coverage(
+                    form, ground_capacity_m2=site.ground_capacity_m2
+                )
+            ]
+            forms.extend(spread)
+            self.stdout.write(f"coverage variants: {len(spread)}")
 
         records = []
         renderable = []

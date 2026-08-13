@@ -950,3 +950,39 @@ __all__ = [
     "write_reference_manifest",
     "write_reference_items",
 ]
+
+
+# The lead image of an ArchDaily entry is the photograph the article opens with
+# - an interior, a street corner, a pond. Sampled by hand across four
+# collections, roughly one in three showed a whole building and none showed a
+# massing diagram, which is why enlarging the corpus by collection did not
+# enlarge the massing signal.
+#
+# The diagrams are on the project page, in the gallery: axonometrics, massing
+# sequences, sections. `og:image` never points at them. This reaches them.
+_ARCHDAILY_MEDIA = re.compile(
+    r"https://images\.adsttc\.com/media/images/[A-Za-z0-9/_%-]+\.(?:jpg|jpeg|png)",
+    re.IGNORECASE,
+)
+
+
+def collect_archdaily_gallery(
+    page_url: str,
+    *,
+    limit: int = 12,
+    timeout: float = 20.0,
+) -> list[str]:
+    """Every gallery image URL on one ArchDaily project page, in page order.
+
+    Page order matters: ArchDaily puts photographs first and drawings last, so
+    the diagrams a massing corpus wants are at the end of the list, not the
+    start. Take from the tail when sampling.
+    """
+
+    html = _fetch_text(page_url, timeout=timeout)
+    seen: list[str] = []
+    for match in _ARCHDAILY_MEDIA.finditer(html):
+        url = match.group(0)
+        if url not in seen:
+            seen.append(url)
+    return seen[: max(1, int(limit))] if limit > 0 else seen

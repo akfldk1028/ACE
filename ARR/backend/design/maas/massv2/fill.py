@@ -47,6 +47,14 @@ _MAX_STEPS = 24
 # whole capacity should have to say so, because the schemes that do not want it
 # are the ones with something to say about form.
 _DEFAULT_TARGET = 0.85
+# How little a scheme is allowed to ask for. A brief may want less than the cap
+# - a gallery is not a shop block - but a 근린생활시설 that uses 41% of its
+# allowed floor area has left half the parcel's value unbuilt, and on the
+# Uijeongbu sheet three of sixteen sat at 0.41, 0.50 and 0.63. The form is still
+# protected: `worth_taking` refuses any step that costs the composition, so a
+# scheme that genuinely cannot grow without ceasing to be itself stops early and
+# keeps its own number.
+_TARGET_FLOOR = 0.75
 # How much of its articulation a scheme may lose in exchange for floor area.
 # Not zero: growth legitimately rounds a composition off a little. But a step
 # that costs a fifth of the move is buying area with the design.
@@ -148,7 +156,8 @@ def fill_to_site(
         else target_utilization if target_utilization is not None
         else _DEFAULT_TARGET
     )
-    capacity = capacity * max(0.05, min(1.0, share))
+    share = max(_TARGET_FLOOR, min(1.0, share))
+    capacity = capacity * share
 
     current = best.form
     storey = float(form.floor_height_m or site.floor_height_m)

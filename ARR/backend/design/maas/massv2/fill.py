@@ -25,8 +25,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
+from .compile import compile_matrix_form
 from .form import MatrixForm
 from .legal import LegalSite
+from .measure import measure_form
 from .legal_fit import (
     LegalFitResult,
     _gross_floor_area,
@@ -41,6 +43,14 @@ from .variations import _stretched
 # costs a storey and buys a rounding error.
 _FULL_ENOUGH = 0.97
 _MAX_STEPS = 24
+# What a scheme asks for when it says nothing. Not 1.0: a brief that wants the
+# whole capacity should have to say so, because the schemes that do not want it
+# are the ones with something to say about form.
+_DEFAULT_TARGET = 0.85
+# How much of its articulation a scheme may lose in exchange for floor area.
+# Not zero: growth legitimately rounds a composition off a little. But a step
+# that costs a fifth of the move is buying area with the design.
+_ARTICULATION_KEPT = 0.80
 
 
 @dataclass(frozen=True)
@@ -50,6 +60,7 @@ class FillResult:
     grew_height: int
     grew_plan: int
     reason: str
+    target_utilization: float = 1.0
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -58,7 +69,13 @@ class FillResult:
             "grew_height": self.grew_height,
             "grew_plan": self.grew_plan,
             "stopped_because": self.reason,
+            "target_utilization": round(self.target_utilization, 3),
         }
+
+
+def _articulation(form: MatrixForm, *, storey_height_m: float) -> float:
+    source = compile_matrix_form(form, storey_height_m=storey_height_m)
+    return measure_form(source).articulation() if source is not None else 0.0
 
 
 def _taller(form: MatrixForm, factor: float) -> MatrixForm:
@@ -91,24 +108,63 @@ def fill_to_site(
     site: LegalSite,
     *,
     allow_plan_growth: bool = True,
+    target_utilization: float | None = None,
 ) -> FillResult:
-    """Grow, refit, keep whatever the fit certifies, and stop at the first ceiling.
+    """Grow toward the scheme's own target, refit each step, stop at a ceiling.
+
+    `target_utilization` is a share of the 용적률 capacity, not a maximum to be
+    chased. Filling the capacity is one brief among several: a shop block fills
+    it, a gallery does not, and a scheme of small dispersed rooms cannot without
+    ceasing to be one. Growing everything to the cap produced exactly the
+    monoculture that follows from a single objective - Moriyama's scattered
+    rooms came back as two sticks, because the only way to add area to a
+    dispersed composition is to pull it upward.
+
+    So the target comes from the scheme (`MatrixForm.extra["far_target"]`), then
+    from the caller, and only then from a default. Growth still stops at the
+    first legal ceiling; the target only says when to stop wanting more.
 
     Each step is proposed and then judged: the grown form goes back through
-    `fit_to_site`, and a step is only kept if the fit still certifies it and the
-    floor area actually rose. A step that the sunlight envelope claws straight
-    back is not progress, and taking it on trust is how a growth loop turns into
-    an oscillation.
+    `fit_to_site`, and a step is kept only if the fit still certifies it and the
+    floor area actually rose. A step the sunlight envelope claws straight back
+    is not progress, and taking it on trust is how a growth loop becomes an
+    oscillation.
     """
 
     best = fit_to_site(form, site)
     capacity = site.far_capacity_m2
     if capacity <= 0.0:
-        return FillResult(best, 0, 0, 0, "no_far_capacity")
+        return FillResult(best, 0, 0, 0, "no_far_capacity", 0.0)
+
+    authored = form.extra.get("far_target")
+    share = float(
+        authored if authored is not None
+        else target_utilization if target_utilization is not None
+        else _DEFAULT_TARGET
+    )
+    capacity = capacity * max(0.05, min(1.0, share))
 
     current = best.form
+    storey = float(form.floor_height_m or site.floor_height_m)
+    started_at = _articulation(current, storey_height_m=storey)
+    floor = started_at * _ARTICULATION_KEPT
     taller = wider = 0
     reason = "reached_step_limit"
+
+    def worth_taking(candidate: LegalFitResult) -> bool:
+        """Lawful, larger, and still the same building.
+
+        Floor area is not the only thing a step can spend. Grown without this,
+        CCTV's two legs and high return came back as a slab - lawful, fuller,
+        and no longer the move. A step that costs a fifth of the scheme's
+        articulation is buying area with the design.
+        """
+
+        if not candidate.satisfied:
+            return False
+        if candidate.gross_floor_area_m2 <= best.gross_floor_area_m2 + 1.0:
+            return False
+        return _articulation(candidate.form, storey_height_m=storey) >= floor
 
     for step in range(_MAX_STEPS):
         if best.gross_floor_area_m2 >= capacity * _FULL_ENOUGH:
@@ -120,7 +176,7 @@ def fill_to_site(
         want = capacity / max(best.gross_floor_area_m2, 1.0)
         grown = _taller(current, min(1.35, max(1.02, want)))
         candidate = fit_to_site(grown, site)
-        if candidate.satisfied and candidate.gross_floor_area_m2 > best.gross_floor_area_m2 + 1.0:
+        if worth_taking(candidate):
             best, current, taller = candidate, candidate.form, taller + 1
             continue
 
@@ -135,11 +191,11 @@ def fill_to_site(
             break
         grown = _wider(current, min(1.20, headroom ** 0.5))
         candidate = fit_to_site(grown, site)
-        if candidate.satisfied and candidate.gross_floor_area_m2 > best.gross_floor_area_m2 + 1.0:
+        if worth_taking(candidate):
             best, current, wider = candidate, candidate.form, wider + 1
             continue
 
-        reason = "no_lawful_growth_left"
+        reason = "growth_would_cost_the_form"
         break
 
-    return FillResult(best, taller + wider, taller, wider, reason)
+    return FillResult(best, taller + wider, taller, wider, reason, share)

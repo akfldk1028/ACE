@@ -87,7 +87,7 @@ _SCHEMA: dict[str, Any] = {
                 "required": [
                     "name", "primary_language", "secondary_language",
                     "formal_principle", "dominant_gesture", "reference_basis",
-                    "placements",
+                    "far_target", "placements",
                 ],
                 "properties": {
                     "name": {"type": "string"},
@@ -97,6 +97,14 @@ _SCHEMA: dict[str, Any] = {
                     "dominant_gesture": {
                         "type": "string",
                         "description": "one sentence: the single move this scheme makes",
+                    },
+                    "far_target": {
+                        "type": "number",
+                        "description": (
+                            "0.3..1.0 - how much of the allowed floor area this brief wants. "
+                            "A shop block fills it; a gallery, a library or a scheme of "
+                            "dispersed rooms does not, and forcing it to would destroy the move."
+                        ),
                     },
                     "reference_basis": {
                         "type": "string",
@@ -185,6 +193,11 @@ def _to_form(record: dict[str, Any], *, width_m: float, depth_m: float, height_m
         dominant_gesture=str(record.get("dominant_gesture") or ""),
         reference_basis=str(record.get("reference_basis") or ""),
         notes=("authored_by=massv2_llm",),
+        extra=(
+            {"far_target": float(record["far_target"])}
+            if isinstance(record.get("far_target"), (int, float))
+            else {}
+        ),
     )
 
 

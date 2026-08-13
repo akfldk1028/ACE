@@ -491,6 +491,11 @@ def _classify_final_authored_surface_identity(
         "actual_surface_hash": actual_surface_hash,
         "final_program_hash": final_program_hash,
         "final_geometry_hash": final_geometry_hash,
+        # Which of the three routes recorded the identity above. Carried so a
+        # refusal downstream can name the writer instead of only the digest.
+        "bridge_identity_writer": str(
+            bridge.get("bridge_identity_writer") or "unrecorded"
+        ),
         "authority_semantic_hash": external_semantic_hash or semantic_hash,
         "capacity_drift": capacity_drift,
         "audited_capacity_hash": audited_capacity_hash,
@@ -592,6 +597,9 @@ def _serialize_final_authored_surface_authority(
     # This certificate replaces the upstream one wholesale.  Carry the visible
     # skin's producer through so a legal-section loft can never be read as an
     # authored body downstream.
+    certificate["bridge_identity_writer"] = str(
+        identity.get("bridge_identity_writer") or "unrecorded"
+    )
     certificate["visible_surface_producer"] = str(
         upstream.get("visible_surface_producer") or "unknown"
     )
@@ -966,12 +974,11 @@ def _validate_projected_visual_artifact_payload(
                 f" hashed_z=[{min(hashed_z):.4f},{max(hashed_z):.4f}]"
                 f" height_m={certificate.get('physical_height_m')}"
                 f" hashed_triangles={len(authority_triangles)}"
-                f" certificate_surfaces={certificate.get('surface_count')}"
                 f" identity.geometryHash={str(identity.get('geometryHash') or '')[:12]}"
                 f" identity.finalLegalGeometryHash="
                 f"{str(identity.get('finalLegalGeometryHash') or '')[:12]}"
-                f" geometry_authority={certificate.get('geometry_authority')}"
-                f" projection_mode={certificate.get('projection_mode')}]"
+                f" bridge_identity_writer={certificate.get('bridge_identity_writer')}"
+                f" visible_surface_producer={certificate.get('visible_surface_producer')}]"
             )
         if (
             actual_surface_hash

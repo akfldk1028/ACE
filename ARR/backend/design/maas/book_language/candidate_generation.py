@@ -3815,6 +3815,13 @@ def _issue_authored_legal_projection_authority(
     bridge.update({
         "program_hash": program_hash,
         "geometry_hash": final_geometry_hash,
+        # Three routes write this identity, and when the final visual authority
+        # certificate refuses it, the digest alone cannot say which one put the
+        # value there. A guard at the write itself cannot help: the hash is
+        # taken from the very object being written, so it always agrees here
+        # and the drift happens further downstream. Naming the writer is what
+        # turns that refusal into an address.
+        "bridge_identity_writer": "floorwise_matrix_field",
         "surface_payload_hash": surface_payload_hash,
         "raw_mesh_triangle_count": len(projected_source.surfaces),
         "exported_surface_count": len(projected_source.surfaces),
@@ -4640,6 +4647,7 @@ def _materialize_directed_geometry(
         fallback_bridge.update({
             "program_hash": final_program_hash,
             "geometry_hash": final_geometry_hash,
+            "bridge_identity_writer": "typed_repair",
             "surface_payload_hash": final_surface_payload_hash,
             "raw_mesh_triangle_count": len(materialized.surfaces),
             "exported_surface_count": len(materialized.surfaces),
@@ -4812,6 +4820,7 @@ def _materialize_directed_geometry(
     authoritative_bridge.update({
         "program_hash": final_program_hash,
         "geometry_hash": final_geometry_hash,
+        "bridge_identity_writer": "legal_field_affine",
         "surface_payload_hash": final_surface_payload_hash,
         "proxy_volume_payload_hash": final_proxy_volume_payload_hash,
         "requested_proxy_band_count": len(proxy_band_counts),

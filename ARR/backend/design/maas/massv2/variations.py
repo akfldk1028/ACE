@@ -153,5 +153,13 @@ def spread_across_coverage(
             floor_height_m=floor_height_m,
         )
         if moved is not None:
-            out.append(replace(moved, name=f"{form.name}~{band.band_id}"))
+            out.append(replace(
+                moved,
+                name=f"{form.name}~{band.band_id}",
+                # The copy exists to occupy this position on the coverage axis.
+                # Without saying so, the growth loop widens it back off the band
+                # it was made for and the grid collapses to whatever the fill
+                # happens to reach - measured, 16 cells fell to 5.
+                extra={**dict(moved.extra), "coverage_band": band.band_id},
+            ))
     return out

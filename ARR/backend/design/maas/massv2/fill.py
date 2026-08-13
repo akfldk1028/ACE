@@ -136,6 +136,12 @@ def fill_to_site(
     if capacity <= 0.0:
         return FillResult(best, 0, 0, 0, "no_far_capacity", 0.0)
 
+    # A scheme placed on the coverage axis is there on purpose. Growing its plan
+    # would move it off the band it was made to occupy, so those grow upward
+    # only; the position is the point of the copy.
+    if form.extra.get("coverage_band"):
+        allow_plan_growth = False
+
     authored = form.extra.get("far_target")
     share = float(
         authored if authored is not None

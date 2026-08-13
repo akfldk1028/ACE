@@ -12,6 +12,7 @@ from typing import Any, Callable, Iterable
 
 from shapely.geometry import Polygon
 
+from design.maas.grammar.parameter_schema import PARAMETER_BOUNDS, PARAMETERS_BY_VERB
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.morphology_operators import MorphologyVariant
 
@@ -110,16 +111,55 @@ def _mutate_param(call: VerbCall, *, scale: float, turn: int) -> VerbCall:
     return VerbCall(call.verb, params=params)
 
 
+def _seeded_for_mutation(call: VerbCall) -> VerbCall:
+    """Give a call whose author left the numbers out something to mutate.
+
+    ``_mutate_param`` scales the values it finds, so a call carrying no numeric
+    parameter came through every variant unchanged and compiled at the one
+    magnitude the adapter falls back to. Measured on the live run, every
+    ``carve`` in the pool was the same carve, and the operative's own range runs
+    from a convex-hull departure of 0.004 to 0.200 - the latter being what
+    ``branch`` reaches. Names varied and shapes did not.
+
+    The values seeded here are the midpoints of the bounds the grammar already
+    declares for that verb, so nothing is invented and nothing is tuned to a
+    parcel: a verb is asked for the middle of its own declared range and the
+    two scale samples then place it either side. Only the variants are seeded -
+    the parent sequence still compiles exactly as it did.
+    """
+
+    if call.params:
+        return call
+    seeded = {}
+    for name in PARAMETERS_BY_VERB.get(call.verb, ()):
+        bounds = PARAMETER_BOUNDS.get(name)
+        if bounds is None:
+            continue
+        low, high = bounds
+        # A range that straddles zero is a direction, not a magnitude, and its
+        # midpoint is "no displacement" - seeding an angle to 0.0 would make the
+        # variant flatter than the default it replaced. Leave those to the
+        # author and to the adapter's own value.
+        if low < 0.0 < high:
+            continue
+        seeded[name] = round((low + high) / 2.0, 3)
+    return VerbCall(call.verb, params=seeded) if seeded else call
+
+
 def _parameter_mutations(sequence: VerbSequence) -> list[VerbSequence]:
     out: list[VerbSequence] = []
-    mutable_indexes = [i for i, call in enumerate(sequence.calls) if i > 0 and call.params]
+    seeded_calls = [
+        _seeded_for_mutation(call) if index > 0 else call
+        for index, call in enumerate(sequence.calls)
+    ]
+    mutable_indexes = [i for i, call in enumerate(seeded_calls) if i > 0 and call.params]
     # Use visibly separated, symmetric samples. The old 0.88/1.12 samples and
     # one-direction angle turns collapsed to the same geometry after legal
     # projection, producing many names but too few distinct silhouettes.
     for variant_index, (scale, turn) in enumerate(((0.72, -1), (1.28, 1)), start=1):
         calls = [
             _mutate_param(call, scale=scale, turn=turn) if index in mutable_indexes else call
-            for index, call in enumerate(sequence.calls)
+            for index, call in enumerate(seeded_calls)
         ]
         out.append(VerbSequence(
             name=f"{sequence.name}__evo_param_{variant_index}",

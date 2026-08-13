@@ -17,6 +17,9 @@ These tests hold three things about the replacement:
 from django.test import SimpleTestCase
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, measure_form, place
+from design.maas.massv2.measure import FormMeasurement
+from design.maas.massv2.plausibility import Plausibility
+from design.maas.massv2.select import Candidate, choose
 
 
 def _form(name, placements, **kwargs):
@@ -183,3 +186,75 @@ class SubtractionIsPerBandTests(SimpleTestCase):
         )
 
         self.assertAlmostEqual(12.0, form.height_m(), places=6)
+
+
+class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
+    """A cell must not be ranked on the thing that put every occupant in it.
+
+    The void band is one of the grid's two coordinates, so plan void is close
+    to constant among a cell's occupants - and it returns much larger numbers
+    than convexity or section, so `max()` reported it and hid the rest. On the
+    Uijeongbu parcel the porous column all sat at 0.70-0.79 while the solid
+    column topped out at 0.32, which is a difference in ceilings rather than in
+    quality.
+    """
+
+    def _measurement(self, *, void, convexity=0.0, section=0.0):
+        return FormMeasurement(
+            convexity_drop=convexity,
+            plan_void_ratio=void,
+            section_change=section,
+            void_band_id="porous_field",
+            band_count=3,
+            footprint_area_m2=400.0,
+            height_m=15.0,
+            band_profile=((0.0, 1.0),),
+        )
+
+    def _candidate(self, name, measurement):
+        form = _form(name, [place("body", size=(20.0, 20.0, 12.0))])
+        source = compile_matrix_form(form)
+        assert source is not None
+        return Candidate(
+            form=form,
+            source=source,
+            measurement=measurement,
+            plausibility=Plausibility(2.0, 20.0, 1.0, True, ()),
+            cell="full_ground|porous_field",
+            ground_take=0.9,
+            far_utilization=0.9,
+        )
+
+    def test_plan_void_does_not_enter_the_earned_score(self):
+        plain_ring = self._measurement(void=0.75)
+        self.assertAlmostEqual(plain_ring.articulation(), 0.75)
+        self.assertAlmostEqual(plain_ring.earned_articulation(), 0.0)
+
+    def test_a_solid_scheme_is_scored_exactly_as_before(self):
+        stepped = self._measurement(void=0.0, section=0.31)
+        self.assertAlmostEqual(
+            stepped.earned_articulation(), stepped.articulation()
+        )
+
+    def test_the_ring_that_also_steps_wins_its_cell(self):
+        # Both are the same kind of building by the grid's own reckoning. Under
+        # max() they tie at 0.75 and the cell is decided by floor area; the one
+        # that also works in section has to win.
+        plain = self._candidate("plain_ring", self._measurement(void=0.75))
+        worked = self._candidate(
+            "stepped_ring", self._measurement(void=0.75, section=0.30)
+        )
+
+        chosen = choose([plain, worked], per_cell=1)
+
+        self.assertEqual([item.form.name for item in chosen], ["stepped_ring"])
+
+    def test_the_carved_ring_beats_the_plain_one_too(self):
+        plain = self._candidate("plain_ring", self._measurement(void=0.75))
+        carved = self._candidate(
+            "quarried_ring", self._measurement(void=0.75, convexity=0.24)
+        )
+
+        chosen = choose([plain, carved], per_cell=1)
+
+        self.assertEqual([item.form.name for item in chosen], ["quarried_ring"])

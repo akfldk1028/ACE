@@ -127,9 +127,16 @@ def choose(
     return chosen
 
 
-def _rank(candidate: Candidate) -> tuple[float, float]:
-    # A tie on articulation goes to the scheme that uses the site.
-    return (candidate.measurement.articulation(), candidate.far_utilization)
+def _rank(candidate: Candidate) -> tuple[float, float, float]:
+    # What the scheme earned beyond its cell's own coordinate comes first: the
+    # void band is half of what put it here, so ranking a porous cell on plan
+    # void ranks it on the one thing all its occupants share. Overall shape
+    # breaks the tie, and the site's use breaks that.
+    return (
+        candidate.measurement.earned_articulation(),
+        candidate.measurement.articulation(),
+        candidate.far_utilization,
+    )
 
 
 def summary(chosen: list[Candidate], *, considered: int) -> dict[str, Any]:

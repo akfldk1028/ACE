@@ -106,6 +106,21 @@ class ParamlessCallsReachSeveralMagnitudesTests(SimpleTestCase):
 
                 self.assertNotEqual(params[0], params[1])
 
+    def test_the_floor_window_is_not_seeded_as_if_it_were_a_magnitude(self):
+        """`lower_floor_fraction` chooses where the operation applies, not how much.
+
+        Seeding it sat the operation above mid-height instead of enlarging it,
+        and the measured pool fell from 12 candidates over 8 grid cells to 10
+        over 5. Only the parameters the projection table bridges into the kernel
+        macro are the operative's own.
+        """
+
+        seeded = _seeded_for_mutation(VerbCall("carve", {})).params
+
+        self.assertNotIn("lower_floor_fraction", seeded)
+        self.assertNotIn("upper_ratio", seeded)
+        self.assertEqual({"width_ratio", "depth_ratio"}, set(seeded))
+
     def test_the_seeds_are_the_grammar_and_not_a_table_here(self):
         """If the grammar's bounds move, the seed moves with them."""
 

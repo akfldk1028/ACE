@@ -12,6 +12,9 @@ from typing import Any, Callable, Iterable
 
 from shapely.geometry import Polygon
 
+from design.maas.geometry_language.book_parameter_projection import (
+    BOOK_KERNEL_PARAMETER_PROJECTIONS,
+)
 from design.maas.grammar.parameter_schema import PARAMETER_BOUNDS, PARAMETERS_BY_VERB
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.morphology_operators import MorphologyVariant
@@ -132,6 +135,15 @@ def _seeded_for_mutation(call: VerbCall) -> VerbCall:
         return call
     seeded = {}
     for name in PARAMETERS_BY_VERB.get(call.verb, ()):
+        # Only the verb's own shape parameters. `upper_ratio` and
+        # `lower_floor_fraction` sit on nearly every verb and choose which floor
+        # band the operation applies to, not how strongly it applies; seeding
+        # those moved the operation up the building instead of enlarging it, and
+        # the measured pool fell from 12 candidates over 8 grid cells to 10 over
+        # 5. The parameter-projection table already declares, per verb, which
+        # source parameters bridge into the kernel macro - that is the list.
+        if (call.verb, name) not in BOOK_KERNEL_PARAMETER_PROJECTIONS:
+            continue
         bounds = PARAMETER_BOUNDS.get(name)
         if bounds is None:
             continue

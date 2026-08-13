@@ -40,7 +40,7 @@ _PLACEMENT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "required": [
         "role", "kind", "width", "depth", "height", "x", "y", "z",
-        "rotation_degrees", "lean_degrees", "lean_axis",
+        "rotation_degrees", "lean_degrees", "lean_axis", "plan",
     ],
     "properties": {
         "role": {
@@ -63,6 +63,14 @@ _PLACEMENT_SCHEMA: dict[str, Any] = {
             "description": "-45..45 off vertical about its own base; a leaning tower or raking bar",
         },
         "lean_axis": {"type": "string", "enum": ["x", "y"]},
+        "plan": {
+            "type": "string",
+            "enum": [
+                "square", "triangular", "trapezoidal", "chamfered", "kite",
+                "oval", "stadium", "concave_l", "hexagon", "faceted",
+            ],
+            "description": "the volume's base plan; a wedge or a folded plate is a base shape, not a transform",
+        },
     },
 }
 
@@ -161,7 +169,8 @@ def _to_form(record: dict[str, Any], *, width_m: float, depth_m: float, height_m
         placements.append(
             place(str(item.get("role") or "volume"), size=(w, d, h), at=(x, y, z),
                   rotation_degrees=rotation, lean_degrees=lean,
-                  lean_axis=str(item.get("lean_axis") or "x"), kind=kind)
+                  lean_axis=str(item.get("lean_axis") or "x"),
+                  plan=str(item.get("plan") or "square"), kind=kind)
         )
     if not any(item.kind == "additive" for item in placements):
         return None

@@ -24,6 +24,8 @@ from dataclasses import dataclass, field
 from math import radians, tan
 from typing import Any, Iterable, Literal
 
+from .profiles import unit_plan
+
 from design.maas.geometry_language.affine_matrix import (
     Matrix4,
     compose_matrix4,
@@ -56,9 +58,21 @@ class Placement:
     role: str
     matrix: Matrix4
     kind: PlacementKind = "additive"
+    # The unit plan this matrix carries. A square is a tower, a bar and a slab;
+    # a wedge, a folded plate and a circle are different base shapes, not
+    # different transforms, and no matrix can turn one into another.
+    plan: str = "square"
+
+    def unit_corners(self) -> tuple[tuple[float, float, float], ...]:
+        """The unit solid before posing: this placement's plan, at z 0 and 1."""
+
+        ring = unit_plan(self.plan)
+        return tuple(
+            (x, y, level) for level in (0.0, 1.0) for x, y in ring
+        )
 
     def corners(self) -> tuple[tuple[float, float, float], ...]:
-        return tuple(transform_point3(self.matrix, corner) for corner in UNIT_BOX_CORNERS)
+        return tuple(transform_point3(self.matrix, corner) for corner in self.unit_corners())
 
     def z_span(self) -> tuple[float, float]:
         zs = [corner[2] for corner in self.corners()]
@@ -69,6 +83,7 @@ class Placement:
         return {
             "role": self.role,
             "kind": self.kind,
+            "plan": self.plan,
             "z_low": round(low, 4),
             "z_high": round(high, 4),
             "matrix4": [list(row) for row in self.matrix],
@@ -145,6 +160,7 @@ def place(
     rotation_degrees: float = 0.0,
     lean_degrees: float = 0.0,
     lean_axis: str = "x",
+    plan: str = "square",
     kind: PlacementKind = "additive",
 ) -> Placement:
     """Build a placement from the terms an architect actually says.
@@ -188,7 +204,7 @@ def place(
             rotation_matrix4((0.0, 0.0, float(rotation_degrees))),
             translation_matrix4(centre),
         )
-    return Placement(role=str(role), matrix=validate_matrix4(matrix), kind=kind)
+    return Placement(role=str(role), matrix=validate_matrix4(matrix), kind=kind, plan=str(plan))
 
 
 def stack(
@@ -200,6 +216,7 @@ def stack(
     twist_degrees: float = 0.0,
     taper: float = 1.0,
     drift: Iterable[float] = (0.0, 0.0),
+    plan: str = "square",
     kind: PlacementKind = "additive",
 ) -> tuple[Placement, ...]:
     """A volume whose section changes as it rises, cut into storeys.
@@ -245,6 +262,7 @@ def stack(
                     z + index * slab,
                 ),
                 rotation_degrees=float(twist_degrees) * t,
+                plan=plan,
                 kind=kind,
             )
         )

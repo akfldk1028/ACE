@@ -20,6 +20,7 @@ while the form language is being proven.
 from .compile import compile_matrix_form
 from .form import MatrixForm, Placement, PlacementKind, UNIT_BOX_CORNERS, place, stack
 from .measure import FormMeasurement, measure_form
+from .profiles import UNIT_PLANS, plan_names, unit_plan
 
 __all__ = [
     "FormMeasurement",
@@ -31,4 +32,7 @@ __all__ = [
     "measure_form",
     "place",
     "stack",
+    "UNIT_PLANS",
+    "plan_names",
+    "unit_plan",
 ]

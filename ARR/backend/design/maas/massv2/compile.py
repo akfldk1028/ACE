@@ -24,7 +24,8 @@ from design.maas.source_geometry.ir import SourceMass, SourceVolume
 
 from design.maas.geometry_language.affine_matrix import transform_point3
 
-from .form import UNIT_BOX_CORNERS, MatrixForm, Placement
+from .form import MatrixForm, Placement
+from .profiles import unit_plan
 
 
 # Bands thinner than this are float noise from two volumes meeting at a shared
@@ -69,12 +70,13 @@ def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
         return _plan(placement)
     lower = max(0.0, min(1.0, (low - low_z) / span))
     upper = max(0.0, min(1.0, (high - low_z) / span))
+    ring = unit_plan(placement.plan)
     points = [
         (x, y)
         for level in (lower, upper)
         for x, y, _z in (
             transform_point3(placement.matrix, (corner[0], corner[1], level))
-            for corner in UNIT_BOX_CORNERS[:4]
+            for corner in ring
         )
     ]
     hull = Polygon(points).convex_hull

@@ -181,9 +181,49 @@ def fill_to_site(
             return False
         return _articulation(candidate.form, storey_height_m=storey) >= floor
 
+    # How many storeys this parcel's own law implies: the floor area it allows
+    # over the ground it allows. On the Uijeongbu parcel that is 2499.7 / 499.9
+    # = 5. It is not a number anyone chose - it is 용적률 divided by 건폐율.
+    #
+    # Without it, the coverage axis manufactures towers. A scheme on the 45%
+    # band that is told to fill its 용적률 needs 2499.7 / (0.45 * 499.9) = 11.1
+    # storeys, so every low-coverage cell came out as a tower and no amount of
+    # new vocabulary changed it. Above this line a scheme has stopped being a
+    # building that takes less ground and started being a building that goes up
+    # instead, which is a different decision and not the one the axis is about.
+    #
+    # Plan growth is not capped by it: widening buys storeys honestly, by taking
+    # more ground, and that moves the scheme along the coverage axis where the
+    # architect can see it.
+    storeys_allowed = site.far_capacity_m2 / max(site.ground_capacity_m2, 1e-9)
+
+    # Settle an over-tall scheme onto the parcel before growing it. Stopping
+    # growth at the ceiling was not enough: a scheme authored tall arrives above
+    # it, and nothing else pulls it down - eleven storeys on 45% of the ground
+    # is entirely lawful here, so the legal fit has no reason to object. This is
+    # the only place that says a tower is the wrong answer to a small footprint.
+    standing = best.gross_floor_area_m2 / max(projected_ground_area(current), 1.0)
+    if standing > storeys_allowed:
+        settled = fit_to_site(_taller(current, storeys_allowed / standing), site)
+        if settled.satisfied and settled.gross_floor_area_m2 > 0.0:
+            best, current = settled, settled.form
+
     for step in range(_MAX_STEPS):
         if best.gross_floor_area_m2 >= capacity * _FULL_ENOUGH:
             reason = "far_capacity_reached"
+            break
+
+        standing = best.gross_floor_area_m2 / max(projected_ground_area(current), 1.0)
+        if standing >= storeys_allowed:
+            if not allow_plan_growth:
+                reason = "parcel_storey_ceiling_reached"
+                break
+            grown = _wider(current, 1.12)
+            candidate = fit_to_site(grown, site)
+            if worth_taking(candidate):
+                best, current, wider = candidate, candidate.form, wider + 1
+                continue
+            reason = "parcel_storey_ceiling_reached"
             break
 
         # Ask for exactly the shortfall rather than a fixed increment: the step

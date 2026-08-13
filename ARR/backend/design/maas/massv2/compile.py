@@ -22,7 +22,9 @@ from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
 
-from .form import MatrixForm, Placement
+from design.maas.geometry_language.affine_matrix import transform_point3
+
+from .form import UNIT_BOX_CORNERS, MatrixForm, Placement
 
 
 # Bands thinner than this are float noise from two volumes meeting at a shared
@@ -33,22 +35,63 @@ _MINIMUM_BAND_AREA_M2 = 1.0
 
 
 def _plan(placement: Placement) -> Polygon:
-    """Plan outline of a posed box.
+    """Plan outline of a posed box, over its whole height.
 
     The convex hull of the eight projected corners is exact for any affine image
     of a cube - the projection of a convex solid is convex - so this stays right
-    under rotation and shear without needing a mesh.
+    under rotation and shear without needing a mesh. This is the right measure
+    for 건축면적, which is the projection of the whole building.
     """
 
     hull = Polygon([(x, y) for x, y, _z in placement.corners()]).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()
 
 
-def _band_edges(form: MatrixForm) -> list[float]:
+def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
+    """Plan outline of the part of a volume that lies between two heights.
+
+    For an upright box this is the same rectangle at every height, so it agrees
+    with `_plan`. For a leaning one it does not, and the difference is the whole
+    point: shearing a tower moves its plan sideways as it rises, and taking the
+    hull over its full height instead reports one big parallelogram that no
+    storey actually has. A leaning tower measured that way came out with a single
+    band and zero articulation - the move was in the geometry and invisible to
+    every measure downstream.
+
+    The cross-section of an affine cube at a given height is the image of the
+    unit square at the corresponding local level, so the two bounding levels are
+    enough; anything between them is inside their hull.
+    """
+
+    low_z, high_z = placement.z_span()
+    span = high_z - low_z
+    if span <= 1e-9:
+        return _plan(placement)
+    lower = max(0.0, min(1.0, (low - low_z) / span))
+    upper = max(0.0, min(1.0, (high - low_z) / span))
+    points = [
+        (x, y)
+        for level in (lower, upper)
+        for x, y, _z in (
+            transform_point3(placement.matrix, (corner[0], corner[1], level))
+            for corner in UNIT_BOX_CORNERS[:4]
+        )
+    ]
+    hull = Polygon(points).convex_hull
+    return hull if isinstance(hull, Polygon) else Polygon()
+
+
+def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> list[float]:
     """Cut heights, taken from the volumes' own tops and bottoms.
 
     Sampling at a fixed count would put band edges where no volume changes, and
     would miss a setback that happens between two samples.
+
+    A volume that leans is the exception: its plan moves continuously, so its own
+    top and bottom are the only edges it declares and the whole tilt collapses
+    into one band. Measured that way a tower leaning 35 degrees reported a single
+    band and zero articulation. Those are cut at storeys instead, which is the
+    interval the building is actually made of.
     """
 
     additive = form.additive()
@@ -59,6 +102,11 @@ def _band_edges(form: MatrixForm) -> list[float]:
         low, high = placement.z_span()
         edges.add(round(low, 4))
         edges.add(round(high, 4))
+        if storey_height_m and storey_height_m > 1e-6 and _leans(placement):
+            level = low + storey_height_m
+            while level < high - 1e-6:
+                edges.add(round(level, 4))
+                level += storey_height_m
     ground = min(low for low, _high in (item.z_span() for item in additive))
     roof = max(high for _low, high in (item.z_span() for item in additive))
     ordered = sorted(value for value in edges if ground - 1e-9 <= value <= roof + 1e-9)
@@ -93,12 +141,20 @@ def _band_parts(form: MatrixForm, low: float, high: float) -> list[Polygon]:
     buildings.
     """
 
-    built = [_plan(item) for item in form.additive() if _spans(item, low, high)]
+    built = [
+        _plan_between(item, low, high)
+        for item in form.additive()
+        if _spans(item, low, high)
+    ]
     built = [item for item in built if not item.is_empty and item.area > 0.0]
     if not built:
         return []
     shape = unary_union(built)
-    cutters = [_plan(item) for item in form.subtractive() if _spans(item, low, high)]
+    cutters = [
+        _plan_between(item, low, high)
+        for item in form.subtractive()
+        if _spans(item, low, high)
+    ]
     cutters = [item for item in cutters if not item.is_empty and item.area > 0.0]
     if cutters:
         shape = shape.difference(unary_union(cutters))
@@ -112,10 +168,28 @@ def _band_parts(form: MatrixForm, low: float, high: float) -> list[Polygon]:
     ]
 
 
-def compile_matrix_form(form: MatrixForm, *, verb: str = "matrix_place") -> SourceMass | None:
+def _leans(placement: Placement) -> bool:
+    """Does this volume's plan move as it rises."""
+
+    low, high = placement.z_span()
+    if high - low <= 1e-9:
+        return False
+    bottom = _plan_between(placement, low, low + (high - low) * 0.02)
+    top = _plan_between(placement, high - (high - low) * 0.02, high)
+    if bottom.is_empty or top.is_empty:
+        return False
+    union = bottom.union(top)
+    if union.is_empty or float(union.area) <= 1e-9:
+        return False
+    return float(bottom.symmetric_difference(top).area) / float(union.area) > 0.02
+
+
+def compile_matrix_form(
+    form: MatrixForm, *, verb: str = "matrix_place", storey_height_m: float | None = None
+) -> SourceMass | None:
     """Compile placements into a `SourceMass`, or `None` if nothing survives."""
 
-    edges = _band_edges(form)
+    edges = _band_edges(form, storey_height_m=storey_height_m)
     if len(edges) < 2:
         return None
     ground = edges[0]

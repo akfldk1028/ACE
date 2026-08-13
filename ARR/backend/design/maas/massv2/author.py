@@ -38,7 +38,10 @@ _SYSTEM = (
 _PLACEMENT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
-    "required": ["role", "kind", "width", "depth", "height", "x", "y", "z", "rotation_degrees"],
+    "required": [
+        "role", "kind", "width", "depth", "height", "x", "y", "z",
+        "rotation_degrees", "lean_degrees", "lean_axis",
+    ],
     "properties": {
         "role": {
             "type": "string",
@@ -55,6 +58,11 @@ _PLACEMENT_SCHEMA: dict[str, Any] = {
         "y": {"type": "number", "description": "-0.2..1.0 lower corner, fraction of depth"},
         "z": {"type": "number", "description": "-0.2..1.0 base, fraction of legal height"},
         "rotation_degrees": {"type": "number", "description": "-45..45 about its own centre"},
+        "lean_degrees": {
+            "type": "number",
+            "description": "-45..45 off vertical about its own base; a leaning tower or raking bar",
+        },
+        "lean_axis": {"type": "string", "enum": ["x", "y"]},
     },
 }
 
@@ -146,12 +154,14 @@ def _to_form(record: dict[str, Any], *, width_m: float, depth_m: float, height_m
             y = max(-0.5, min(1.4, float(item["y"]))) * depth_m
             z = max(-0.5, min(1.4, float(item["z"]))) * height_m
             rotation = max(-60.0, min(60.0, float(item.get("rotation_degrees") or 0.0)))
+            lean = max(-60.0, min(60.0, float(item.get("lean_degrees") or 0.0)))
         except (KeyError, TypeError, ValueError):
             continue
         kind = "subtractive" if str(item.get("kind")) == "subtractive" else "additive"
         placements.append(
             place(str(item.get("role") or "volume"), size=(w, d, h), at=(x, y, z),
-                  rotation_degrees=rotation, kind=kind)
+                  rotation_degrees=rotation, lean_degrees=lean,
+                  lean_axis=str(item.get("lean_axis") or "x"), kind=kind)
         )
     if not any(item.kind == "additive" for item in placements):
         return None

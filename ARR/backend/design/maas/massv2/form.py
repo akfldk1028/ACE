@@ -21,6 +21,7 @@ scale). Neither uses CSG at massing scale.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from math import radians, tan
 from typing import Any, Iterable, Literal
 
 from design.maas.geometry_language.affine_matrix import (
@@ -28,6 +29,7 @@ from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
     rotation_matrix4,
     scale_matrix4,
+    shear_matrix4,
     transform_point3,
     translation_matrix4,
     validate_matrix4,
@@ -141,6 +143,8 @@ def place(
     size: Iterable[float],
     at: Iterable[float] = (0.0, 0.0, 0.0),
     rotation_degrees: float = 0.0,
+    lean_degrees: float = 0.0,
+    lean_axis: str = "x",
     kind: PlacementKind = "additive",
 ) -> Placement:
     """Build a placement from the terms an architect actually says.
@@ -152,11 +156,30 @@ def place(
     Rotation is applied about the volume's own centre in plan. Rotating about
     the origin instead would couple orientation to position, so nudging a
     volume sideways would also swing it.
+
+    `lean_degrees` shears the volume off vertical about its own base, which is
+    the move that separates a stack of boxes from the massing those offices are
+    known for - a leaning tower, a bar that rakes as it rises. It costs nothing
+    that an upright volume does not: shear is one more term in the same matrix,
+    and `affine_matrix.shear_matrix4` was already here, unused.
+
+    Leaning about the base rather than the centre keeps the volume standing on
+    the ground it was placed on; shearing about the centre would push its
+    footprint half a lean off the plan the author drew.
     """
 
     width, depth, height = (float(value) for value in size)
     x, y, z = (float(value) for value in at)
     matrix = compose_matrix4(scale_matrix4((width, depth, height)), translation_matrix4((x, y, z)))
+    if abs(lean_degrees) > 1e-9:
+        axis = "y" if str(lean_axis).lower() == "y" else "x"
+        amount = tan(radians(max(-60.0, min(60.0, float(lean_degrees)))))
+        matrix = compose_matrix4(
+            matrix,
+            translation_matrix4((0.0, 0.0, -z)),
+            shear_matrix4(axis, "z", amount),
+            translation_matrix4((0.0, 0.0, z)),
+        )
     if abs(rotation_degrees) > 1e-9:
         centre = (x + width / 2.0, y + depth / 2.0, 0.0)
         matrix = compose_matrix4(

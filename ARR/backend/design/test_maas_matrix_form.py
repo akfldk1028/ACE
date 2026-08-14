@@ -460,8 +460,42 @@ class StandingUpIsAGateNotAScoreTests(SimpleTestCase):
             place("south", size=(30, 8, 18), at=(0, 0, 0)),
         ])
 
-        self.assertTrue(standing.stands, standing.reasons)
         self.assertGreater(standing.overturning_margin_m, 0.0)
+        # It does not stand as *one* building, and that is a different check:
+        # two bars that never meet are two buildings on one parcel. Joined by a
+        # podium they are one, and then this passes outright.
+        self.assertEqual(standing.body_count, 2)
+
+    def test_two_bars_joined_by_a_podium_are_one_building(self):
+        standing = self._standing("paired_on_podium", [
+            place("podium", size=(30, 30, 5), at=(0, 0, 0)),
+            place("north", size=(30, 8, 18), at=(0, 22, 4)),
+            place("south", size=(30, 8, 18), at=(0, 0, 4)),
+        ])
+
+        self.assertTrue(standing.stands, standing.reasons)
+        self.assertEqual(standing.body_count, 1)
+
+    def test_a_block_hovering_over_another_has_no_load_path(self):
+        """Overlapping in plan is not resting on it.
+
+        Two of the delivered alternatives read as a cloud of blocks at different
+        heights with nothing between them. The overturning check passed them,
+        correctly - it measures the convex hull of the ground contacts, which is
+        why a table stands between its legs - and that is exactly why it cannot
+        be the check that catches this.
+        """
+
+        standing = self._standing("hovering", [
+            place("base", size=(14, 14, 6), at=(0, 0, 0)),
+            place("floater", size=(10, 10, 6), at=(2, 2, 14)),
+        ])
+
+        self.assertFalse(standing.stands)
+        self.assertTrue(
+            any("reaches_the_ground" in r or "separate_bodies" in r for r in standing.reasons),
+            standing.reasons,
+        )
 
     def test_the_gate_speaks_through_plausibility(self):
         """A mass that cannot stand is not occupiable, whatever else it is.

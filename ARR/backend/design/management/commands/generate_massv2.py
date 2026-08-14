@@ -66,6 +66,11 @@ class Command(BaseCommand):
             help="Keep only the best N per grid cell after deduping compositions.",
         )
         parser.add_argument(
+            "--alt-png",
+            action="store_true",
+            help="Also write one large PNG per delivered alternative, alt-NN.png.",
+        )
+        parser.add_argument(
             "--spread-siting",
             action="store_true",
             help="Carry each authored composition to each position it can take on the parcel.",
@@ -258,6 +263,34 @@ class Command(BaseCommand):
 
         site_ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]
         sheet = render_masses(renderable, output / "massv2-sheet.png", site_ring=site_ring)
+
+        if options["alt_png"]:
+            # A contact sheet is for comparing; one drawing per alternative is
+            # for looking at. Same renderer, one tile, four times the size.
+            for index, item in enumerate(renderable, start=1):
+                render_masses(
+                    [item],
+                    output / f"alt-{index:02d}.png",
+                    site_ring=site_ring,
+                    columns=1,
+                    tile=(900, 760),
+                )
+            (output / "alts.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": "arr.maas.massv2_alternatives.v1",
+                        "site": site.evidence(),
+                        "alternatives": [
+                            {"index": i, "png": f"alt-{i:02d}.png", "name": n, **cap}
+                            for i, (n, _src, cap) in enumerate(renderable, start=1)
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            self.stdout.write(f"wrote {len(renderable)} alternative drawings")
 
         summary = {
             "schema_version": "arr.maas.massv2_run.v1",

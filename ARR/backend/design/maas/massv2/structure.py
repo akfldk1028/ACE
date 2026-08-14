@@ -53,6 +53,8 @@ _MEANINGFUL_OVERHANG_M2 = 1.0
 class Standing:
     """What holds this mass up, and by how much."""
 
+    grounded_share: float
+    body_count: int
     cantilever_ratio: float
     cantilever_reach_m: float
     span_to_depth: float
@@ -68,6 +70,8 @@ class Standing:
     def evidence(self) -> dict[str, Any]:
         return {
             "schema_version": "arr.maas.massv2_structure.v1",
+            "grounded_share": round(self.grounded_share, 3),
+            "body_count": self.body_count,
             "cantilever_ratio": round(self.cantilever_ratio, 3),
             "cantilever_reach_m": round(self.cantilever_reach_m, 3),
             "cantilever_limit_ratio": round(CANTILEVER_BACKSPAN_RATIO, 3),
@@ -263,10 +267,110 @@ def support_polygon(source: SourceMass) -> Polygon | None:
     return hull if isinstance(hull, Polygon) and not hull.is_empty else None
 
 
+
+def band_parts(source: SourceMass) -> list[tuple[float, float, Polygon]]:
+    """Every plan piece with its own band, kept separate.
+
+    `bands_of` unions a band's pieces because the questions it answers are about
+    the storey. Connectivity is about the pieces: two bars with a gap between
+    them are one band and two things, and unioning them first is what let a
+    composition of separated fragments read as a single connected body.
+    """
+
+    out: list[tuple[float, float, Polygon]] = []
+    for volume in source.volumes:
+        piece = volume.footprint
+        if piece is None or piece.is_empty:
+            continue
+        out.append(
+            (round(float(volume.bottom_fraction), 4), round(float(volume.top_fraction), 4), piece)
+        )
+    return sorted(out, key=lambda item: (item[0], item[1]))
+
+
+def _touching(a: tuple[float, float, Polygon], b: tuple[float, float, Polygon]) -> bool:
+    """Do these two pieces share material - overlapping in plan and in height."""
+
+    a_low, a_high, a_plan = a
+    b_low, b_high, b_plan = b
+    if min(a_high, b_high) < max(a_low, b_low) - 1e-9:
+        return False
+    if a_plan.is_empty or b_plan.is_empty:
+        return False
+    contact = a_plan.buffer(_CONTACT_TOLERANCE_M).intersection(b_plan)
+    return not contact.is_empty and float(contact.area) > _MEANINGFUL_OVERHANG_M2
+
+
+def connectivity(source: SourceMass) -> tuple[float, int]:
+    """Share of the mass with a load path to the ground, and how many bodies.
+
+    Neither question was being asked, and both are the difference between a
+    building and a picture of blocks. The overturning check uses the convex hull
+    of the ground contacts - which is right, a table stands between its legs -
+    and that is exactly why a cloud of separated fragments passed it: their hull
+    is generous and none of them is holding another up.
+
+    A piece is grounded when it sits on the ground or touches a grounded piece.
+    Touching means overlapping in plan *and* in height, so a block hovering
+    above another block is not resting on it.
+
+    Returns (share of floor area with a path down, number of separate bodies).
+    """
+
+    pieces = band_parts(source)
+    if not pieces:
+        return 0.0, 0
+
+    ground = min(low for low, _high, _plan in pieces)
+    reached = {
+        index for index, (low, _high, _plan) in enumerate(pieces) if low <= ground + 1e-6
+    }
+    frontier = list(reached)
+    while frontier:
+        current = frontier.pop()
+        for index, piece in enumerate(pieces):
+            if index in reached:
+                continue
+            if _touching(pieces[current], piece):
+                reached.add(index)
+                frontier.append(index)
+
+    total = sum(float(plan.area) for _low, _high, plan in pieces)
+    held = sum(float(pieces[i][2].area) for i in reached)
+
+    # Separate bodies: the same touching relation, without starting from the
+    # ground. Two wings that never meet are two buildings on one parcel.
+    seen: set[int] = set()
+    bodies = 0
+    for start in range(len(pieces)):
+        if start in seen:
+            continue
+        bodies += 1
+        stack = [start]
+        seen.add(start)
+        while stack:
+            current = stack.pop()
+            for index, piece in enumerate(pieces):
+                if index in seen:
+                    continue
+                if _touching(pieces[current], piece):
+                    seen.add(index)
+                    stack.append(index)
+
+    return (held / total if total > 1e-9 else 0.0), bodies
+
+
 def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
     """Two physical questions, asked of the compiled bands."""
 
     reasons: list[str] = []
+
+    # Asked first, because the other three assume there is one body to ask about.
+    grounded, bodies = connectivity(source)
+    if grounded < 1.0 - 1e-6:
+        reasons.append(f"only_{grounded:.0%}_of_the_mass_reaches_the_ground")
+    if bodies > 1:
+        reasons.append(f"{bodies}_separate_bodies_not_one_building")
 
     ratio, reach, slenderness = worst_members(source, height_m=height_m)
     if ratio > CANTILEVER_BACKSPAN_RATIO:
@@ -288,6 +392,8 @@ def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
             reasons.append(f"centre_of_mass_{-margin:.1f}m_outside_support")
 
     return Standing(
+        grounded_share=grounded,
+        body_count=bodies,
         cantilever_ratio=ratio,
         cantilever_reach_m=reach,
         span_to_depth=slenderness,
@@ -302,6 +408,8 @@ def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
 
 __all__ = [
     "CANTILEVER_BACKSPAN_RATIO",
+    "band_parts",
+    "connectivity",
     "SPAN_TO_DEPTH_RATIO",
     "Standing",
     "assess_standing",

@@ -112,11 +112,19 @@ def _stack(frame: _Frame, op: Operation) -> None:
     contrast = max(MIN_TIER_CONTRAST, float(op.params.get("contrast", 1.35)))
     share = _clamp(float(op.params.get("height", 1.0)), 0.1, 1.0)
     tier_h = frame.height * share / count
+    # Which face stays flush as the tiers shrink. Centred is a wedding cake -
+    # every tier steps back on all four sides at once, which is what a setback
+    # regulation produces and not what an architect draws. Holding one face
+    # gives the mass a front: the corpus's volumes share faces and edges, they
+    # do not float concentrically inside one another.
+    ux, uy = _direction(frame, op.params.get("align")) if op.params.get("align") else (0.0, 0.0)
     w, d = frame.width, frame.depth
     z = 0.0
     for index in range(count):
         frame.placements.append(
-            frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h * 1.02)
+            frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h * 1.02,
+                      dx=ux * (frame.width - w) / 2.0,
+                      dy=uy * (frame.depth - d) / 2.0)
         )
         z += tier_h
         w, d = w / contrast, d / contrast

@@ -28,6 +28,7 @@ from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
+from design.maas.massv2.siting import spread_across_siting
 from design.maas.massv2.variations import spread_across_coverage
 
 
@@ -63,6 +64,11 @@ class Command(BaseCommand):
             type=int,
             default=0,
             help="Keep only the best N per grid cell after deduping compositions.",
+        )
+        parser.add_argument(
+            "--spread-siting",
+            action="store_true",
+            help="Carry each authored composition to each position it can take on the parcel.",
         )
         parser.add_argument(
             "--spread-coverage",
@@ -129,6 +135,20 @@ class Command(BaseCommand):
             ]
             forms.extend(spread)
             self.stdout.write(f"coverage variants: {len(spread)}")
+
+        if options["spread_siting"]:
+            # Where a scheme stands is a decision the archive was making once,
+            # for everything, by centring it. A low-coverage scheme has room to
+            # hold one end and leave a yard, and that is a different proposal.
+            buildable = site.plan_at(0.0)
+            placed = [
+                variant
+                for form in list(forms)
+                if form.name.startswith("llm_")
+                for variant in spread_across_siting(form, buildable=buildable)
+            ]
+            forms.extend(placed)
+            self.stdout.write(f"siting variants: {len(placed)}")
 
         records = []
         renderable = []

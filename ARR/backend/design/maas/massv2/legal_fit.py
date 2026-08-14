@@ -355,7 +355,10 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
 
     capacity = site.ground_capacity_m2
     allowed_at = site.plan_at
-    current = seat_on_site(form, site)
+    # A scheme that was given a position on the parcel keeps it. Seating
+    # centres on the buildable centroid, which is the right default and the
+    # wrong answer for a copy whose whole point is standing somewhere else.
+    current = form if form.extra.get("siting") else seat_on_site(form, site)
     total_scale = 1.0
     passes = 0
 

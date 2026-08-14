@@ -338,7 +338,16 @@ def execute(
         dominant_gesture=parti.dominant_gesture,
         reference_basis=parti.reference_basis,
         floor_height_m=parti.floor_height_m,
-        extra={"parti": parti.evidence(), "plot_mode": parti.plot_mode()},
+        extra={
+            "parti": parti.evidence(),
+            "plot_mode": parti.plot_mode(),
+            # A field spreads; it does not stack. Kanazawa is one storey, and
+            # the objects in a field are small - let the growth loop buy floor
+            # area with height and they come back as a bundle of sticks on a
+            # plinth, which is what they did. If a field cannot fill its 용적률
+            # lying down, the honest answer is that it does not fill it.
+            "growth": "plan" if any(op.verb == "aggregate" for op in parti.ops) else "both",
+        },
     )
 
 

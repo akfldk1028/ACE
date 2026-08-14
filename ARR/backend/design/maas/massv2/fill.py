@@ -228,12 +228,18 @@ def fill_to_site(
 
         # Ask for exactly the shortfall rather than a fixed increment: the step
         # size is a property of how far this scheme is from its ceiling.
-        want = capacity / max(best.gross_floor_area_m2, 1.0)
-        grown = _taller(current, min(1.35, max(1.02, want)))
-        candidate = fit_to_site(grown, site)
-        if worth_taking(candidate):
-            best, current, taller = candidate, candidate.form, taller + 1
-            continue
+        #
+        # Unless the scheme is a field, which buys area by spreading and never
+        # by rising. Left to grow upward, a field's small objects came back as
+        # a bundle of sticks on a plinth at 용적률 0.99 - lawful, slender enough
+        # to pass, and not the building that was authored.
+        if form.extra.get("growth") != "plan":
+            want = capacity / max(best.gross_floor_area_m2, 1.0)
+            grown = _taller(current, min(1.35, max(1.02, want)))
+            candidate = fit_to_site(grown, site)
+            if worth_taking(candidate):
+                best, current, taller = candidate, candidate.form, taller + 1
+                continue
 
         if not allow_plan_growth:
             reason = "height_exhausted"

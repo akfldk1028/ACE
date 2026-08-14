@@ -84,6 +84,7 @@ class Operation:
 
 # The operations, with the plot relationship each one carries.
 PLOT_MODES: dict[str, PlotMode] = {
+    "split": "inherit",
     "extrude": "inherit",
     "stack": "inherit",
     "shear": "inherit",

@@ -92,6 +92,88 @@ def _direction(frame: _Frame, toward: Any) -> tuple[float, float]:
     return (1.0, 0.0)
 
 
+def _scope(frame: _Frame, op: Operation) -> tuple[list[Placement], list[Placement]]:
+    """Split what is standing into what this operation acts on, and the rest.
+
+    Without this every verb reached everything, and a grammar whose verbs all
+    have the same scope is barely a grammar - stack then shear then carve gives
+    one family however the words are ordered, because each word sees the whole
+    building. The combinations collapse into their union.
+
+    `on` is matched as a prefix of the volume's role, so `on: "west"` catches
+    `west`, `west_tier_0` and anything split out of them. Naming a part that is
+    not there does nothing rather than falling back to everything: an operation
+    aimed at a wing the scheme never grew should be silent, not global.
+    """
+
+    prefix = str(op.params.get("on") or "").strip()
+    if not prefix:
+        return list(frame.placements), []
+    picked = [item for item in frame.placements if item.role.startswith(prefix)]
+    rest = [item for item in frame.placements if not item.role.startswith(prefix)]
+    return picked, rest
+
+
+def _bounds_of(items: list[Placement]) -> tuple[float, float, float, float]:
+    """Centre and span in plan of a set of volumes, in the site frame."""
+
+    corners = [corner for item in items for corner in item.corners()]
+    xs = [x for x, _y, _z in corners]
+    ys = [y for _x, y, _z in corners]
+    return (
+        (min(xs) + max(xs)) / 2.0,
+        (min(ys) + max(ys)) / 2.0,
+        max(xs) - min(xs),
+        max(ys) - min(ys),
+    )
+
+
+def _split(frame: _Frame, op: Operation) -> None:
+    """Divide what it is aimed at into two named parts.
+
+    This is the verb that makes the rest of the grammar productive. Once a mass
+    has a `west` and an `east`, every other verb can be aimed at one of them,
+    and the same four words describe a different building depending on where
+    they land. It is also how the corpus works: OMA's patents transform a known
+    type, and half of them begin by cutting it in two.
+
+    The parts are unequal by default, because two equal masses do not occur in
+    built work.
+    """
+
+    picked, rest = _scope(frame, op)
+    if not picked:
+        return
+    ratio = _clamp(float(op.params.get("ratio", 0.62)), 0.3, 0.75)
+    ux, uy = _direction(frame, op.params.get("along"))
+    names = (str(op.params.get("first") or "part_a"), str(op.params.get("second") or "part_b"))
+    gap = float(op.params.get("gap", 0.0)) * JOINT_CLEARANCE_M
+
+    made: list[Placement] = []
+    for item in picked:
+        low, high = item.z_span()
+        cx, cy, span_x, span_y = _bounds_of([item])
+        along = span_x if abs(ux) >= abs(uy) else span_y
+        first = along * ratio - gap / 2.0
+        second = along * (1.0 - ratio) - gap / 2.0
+        for name, size, side in ((names[0], first, -1.0), (names[1], second, 1.0)):
+            if size <= 0.5:
+                continue
+            shift = side * (along - size) / 2.0
+            made.append(
+                frame.box(
+                    name,
+                    w=size if abs(ux) >= abs(uy) else span_x,
+                    d=span_y if abs(ux) >= abs(uy) else size,
+                    z=low, h=high - low,
+                    dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
+                    dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
+                    kind=item.kind,
+                )
+            )
+    frame.placements = rest + made
+
+
 def _extrude(frame: _Frame, op: Operation) -> None:
     share = _clamp(float(op.params.get("height", 1.0)), 0.1, 1.0)
     frame.placements.append(
@@ -134,19 +216,23 @@ def _taper(frame: _Frame, op: Operation) -> None:
     """Pull the top in. Applies to whatever is standing, not to a new volume."""
 
     ratio = _clamp(float(op.params.get("ratio", 0.7)), 0.3, 0.95)
-    if not frame.placements:
+    picked, rest = _scope(frame, op)
+    if not picked:
         return
-    tops = sorted(frame.placements, key=lambda item: item.z_span()[0])
+    tops = sorted(picked, key=lambda item: item.z_span()[0])
     keep = tops[:-1]
     highest = tops[-1]
     low, high = highest.z_span()
-    frame.placements = keep + [
+    cx, cy, span_x, span_y = _bounds_of([highest])
+    frame.placements = rest + keep + [
         frame.box(
             highest.role,
-            w=frame.width * ratio,
-            d=frame.depth * ratio,
+            w=span_x * ratio,
+            d=span_y * ratio,
             z=low,
             h=high - low,
+            dx=cx - frame.cx,
+            dy=cy - frame.cy,
         )
     ]
 
@@ -162,9 +248,10 @@ def _shear(frame: _Frame, op: Operation) -> None:
 
     ratio = _clamp(float(op.params.get("ratio", 0.26)), MIN_OFFSET_RATIO, MAX_OFFSET_RATIO)
     ux, uy = _direction(frame, op.params.get("toward"))
-    if not frame.placements:
+    picked, rest = _scope(frame, op)
+    if not picked:
         return
-    ordered = sorted(frame.placements, key=lambda item: item.z_span()[0])
+    ordered = sorted(picked, key=lambda item: item.z_span()[0])
     moved: list[Placement] = []
     for index, item in enumerate(ordered):
         if index == 0:
@@ -179,7 +266,7 @@ def _shear(frame: _Frame, op: Operation) -> None:
             frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
                       dx=ux * reach, dy=uy * reach)
         )
-    frame.placements = moved
+    frame.placements = rest + moved
 
 
 def _carve(frame: _Frame, op: Operation) -> None:
@@ -203,11 +290,12 @@ def _carve(frame: _Frame, op: Operation) -> None:
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it."""
 
-    if not frame.placements:
+    picked, rest = _scope(frame, op)
+    if not picked:
         return
     clearance = _clamp(float(op.params.get("clearance", 0.22)), 0.1, 0.4) * frame.height
     raised: list[Placement] = []
-    for item in frame.placements:
+    for item in picked:
         low, high = item.z_span()
         corners = item.corners()
         span_x = max(x for x, _y, _z in corners) - min(x for x, _y, _z in corners)
@@ -223,7 +311,8 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
     leg = 0.32
-    frame.placements = raised + [
+    base_x, base_y, base_w, base_d = _bounds_of(picked)
+    frame.placements = rest + raised + [
         frame.box("support", w=frame.width * leg, d=frame.depth * leg,
                   # Exactly the clearance, not a hair over. Overlapping into
                   # the slab cut a sliver band whose depth was 5% of the leg,
@@ -302,6 +391,7 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
 
 
 _VERBS = {
+    "split": _split,
     "extrude": _extrude,
     "stack": _stack,
     "taper": _taper,

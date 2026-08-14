@@ -111,9 +111,17 @@ def _gross_floor_area(form: MatrixForm, *, floor_height_m: float) -> float:
     Compiling here is affordable precisely because this language has no 3D CSG:
     a compile is band cuts and 2D shapely, not booleans and mesh traversals. One
     measure, one answer.
+
+    "One measure" includes the storey height, which this dropped. A leaning
+    volume is cut at storeys and an upright one is not, so compiling without it
+    collapsed a raking bar into a single band - and the fit then certified a
+    용적률 the report measured 26% higher. `opening_terraced_ell` was passed as
+    lawful at 2268 m2 against a 2499.7 m2 ceiling while actually standing at
+    3149.4. Same form, same rule, two answers, and the gate believed the
+    forgiving one.
     """
 
-    source = compile_matrix_form(form)
+    source = compile_matrix_form(form, storey_height_m=floor_height_m)
     if source is None:
         return 0.0
     return gross_floor_area_m2(source, floor_height_m=floor_height_m)

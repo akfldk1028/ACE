@@ -87,15 +87,35 @@ def composition_signature(form: MatrixForm) -> tuple:
     return tuple(sorted(entries))
 
 
+def _shape_work(item: Candidate) -> float:
+    """How much shaping this scheme did, by whichever means it chose.
+
+    Carving in plan and changing in section are not two things a building owes;
+    they are two ways of doing the same one. A courtyard block is carved and
+    never steps. A stepped tower steps and is convex in every plan. Listing
+    them as separate objectives asks each to be both, and balance then punishes
+    whichever it is not - measured on the live parcel, that handed
+    full_ground|solid_body to a scheme at 0.05 articulation over `stacked_45`
+    at 0.55, purely because the stepped one was flat in plan.
+
+    So they are one objective, taken by the larger. Balance belongs between
+    things a scheme genuinely owes at the same time - floor area and form -
+    and a maximum belongs between substitutes. Using the same rule for both is
+    what went wrong, in each direction: a maximum over everything let a scheme
+    win on plan void alone, and a leximin over everything let a scheme win by
+    being mediocre evenly.
+    """
+
+    return max(item.measurement.convexity_drop, item.measurement.section_change)
+
+
 # What a scheme is asked to be good at, once its cell has already said where it
 # sits. Neither grid coordinate is here and that is deliberate: ground take and
 # plan void are the axes, so scoring them scores the thing every occupant of a
-# cell has in common. What is left is the work - does it fill the floor area the
-# parcel allows, is it carved in plan, does it change in section.
+# cell has in common.
 OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("far_utilization", lambda item: item.far_utilization),
-    ("convexity_drop", lambda item: item.measurement.convexity_drop),
-    ("section_change", lambda item: item.measurement.section_change),
+    ("shape_work", _shape_work),
 )
 
 

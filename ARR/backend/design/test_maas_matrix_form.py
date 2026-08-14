@@ -257,12 +257,50 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
         scheme has to be worth something on each count it is asked about.
         """
 
+        # Three, because normalising two candidates makes each of them the best
+        # on one objective and the worst on the other, which is a tie by
+        # construction and tests nothing.
         spike = self._candidate_at("card_deck", far=1.0, convexity=0.0, section=0.0)
-        balanced = self._candidate_at("worked_block", far=0.6, convexity=0.5, section=0.5)
+        balanced = self._candidate_at("worked_block", far=0.7, convexity=0.7, section=0.0,
+                                      placements=[
+                                          place("a", size=(24.0, 14.0, 9.0)),
+                                          place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
+                                      ])
+        thin = self._candidate_at("all_shape_no_area", far=0.0, convexity=1.0, section=0.0,
+                                  placements=[
+                                      place("a", size=(20.0, 6.0, 12.0)),
+                                      place("b", size=(6.0, 20.0, 12.0), at=(14.0, 0.0, 0.0)),
+                                  ])
 
-        chosen = choose([spike, balanced], per_cell=1)
+        chosen = choose([spike, balanced, thin], per_cell=1)
 
         self.assertEqual([item.form.name for item in chosen], ["worked_block"])
+
+    def test_carving_and_stepping_are_two_ways_to_do_one_thing(self):
+        """A courtyard block never steps and a stepped tower is convex in plan.
+
+        Scored as separate objectives, balance punishes each for not being the
+        other - on the live parcel that handed full_ground|solid_body to a
+        scheme at 0.05 articulation over `stacked_45` at 0.55, purely because
+        the stepped one was flat in plan. Substitutes take a maximum; only
+        things a scheme owes at the same time take a balance.
+        """
+
+        carved = self._candidate_at("courtyard", far=0.8, convexity=0.6, section=0.0)
+        stepped = self._candidate_at("setbacks", far=0.8, convexity=0.0, section=0.6,
+                                     placements=[
+                                         place("a", size=(24.0, 14.0, 9.0)),
+                                         place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
+                                     ])
+        mediocre = self._candidate_at("even_pile", far=0.8, convexity=0.05, section=0.05,
+                                      placements=[
+                                          place("a", size=(20.0, 6.0, 12.0)),
+                                          place("b", size=(6.0, 20.0, 12.0), at=(14.0, 0.0, 0.0)),
+                                      ])
+
+        chosen = choose([carved, stepped, mediocre], per_cell=1)
+
+        self.assertNotEqual([item.form.name for item in chosen], ["even_pile"])
 
     def test_the_same_scheme_does_not_print_three_times(self):
         """Across cells the composition is remembered by name, not by shape.

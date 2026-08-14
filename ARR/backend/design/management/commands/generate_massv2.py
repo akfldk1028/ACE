@@ -28,7 +28,7 @@ from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
-from design.maas.massv2.siting import spread_across_siting
+from design.maas.massv2.siting import open_side_direction, spread_across_siting
 from design.maas.massv2.variations import spread_across_coverage
 
 
@@ -141,11 +141,19 @@ class Command(BaseCommand):
             # for everything, by centring it. A low-coverage scheme has room to
             # hold one end and leave a yard, and that is a different proposal.
             buildable = site.plan_at(0.0)
+            open_side = open_side_direction(buildable, site.shared_edges)
+            self.stdout.write(
+                f"open side: {open_side}"
+                if open_side
+                else "open side: unknown, siting on the parcel's own axes"
+            )
             placed = [
                 variant
                 for form in list(forms)
                 if form.name.startswith("llm_")
-                for variant in spread_across_siting(form, buildable=buildable)
+                for variant in spread_across_siting(
+                    form, buildable=buildable, open_side=open_side
+                )
             ]
             forms.extend(placed)
             self.stdout.write(f"siting variants: {len(placed)}")

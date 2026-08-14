@@ -58,6 +58,81 @@ SITINGS: tuple[Siting, ...] = (
     Siting("cross_side", "Held to one side of the short axis", 0.85, 1, 1.0),
 )
 
+# The two an architect actually argues about, once the parcel's open side is
+# known: build to it and put the yard behind, or hold back and let the yard be
+# the address. They replace the principal-axis pair whenever the open side can
+# be worked out, because "one end of the long axis" is a direction with no
+# meaning on the ground and "the side you arrive from" is.
+OPEN_SIDE_SITINGS: tuple[Siting, ...] = (
+    Siting("centred", "Centred on the parcel", 0.0, 0, 0.0),
+    Siting("to_open", "Built up to the open side", 0.85, 0, 1.0),
+    Siting("off_open", "Held back from the open side", 0.85, 0, -1.0),
+    Siting("cross_open", "Held to one side across the open frontage", 0.85, 1, 1.0),
+)
+
+
+def open_side_direction(buildable, shared_edges) -> tuple[float, float] | None:
+    """Which way the parcel is open, from the edges no neighbour shares.
+
+    A parcel's frontage is not in the zoning data. What is available is the
+    neighbours, each carrying the edge it shares with this parcel, and the
+    boundary that is left over is the side nothing is built against - the street
+    in almost every case, and in any case the side the building faces.
+
+    Measured on 4115011300106840001 the road layer returns nothing at all, so
+    reading frontage off the roads would have left this parcel with no context
+    to site against. Its five neighbours are there, and what they do not touch
+    is the answer.
+
+    Returned as a unit vector from the parcel's centre toward the middle of the
+    open boundary, weighted by how much of it there is - a parcel open on two
+    sides points at the corner between them, which is where its entrance goes.
+    """
+
+    if buildable is None or buildable.is_empty:
+        return None
+    ring = list(buildable.exterior.coords)
+    centre = buildable.centroid
+    total = 0.0
+    sum_x = sum_y = 0.0
+    for start, end in zip(ring, ring[1:]):
+        middle = ((start[0] + end[0]) / 2.0, (start[1] + end[1]) / 2.0)
+        length = hypot(end[0] - start[0], end[1] - start[1])
+        if length <= 1e-9 or _touches_any(middle, shared_edges):
+            continue
+        total += length
+        sum_x += length * (middle[0] - centre.x)
+        sum_y += length * (middle[1] - centre.y)
+    if total <= 1e-9:
+        return None
+    return _unit((sum_x / total, sum_y / total))
+
+
+# A boundary point is "shared" when a neighbour's shared edge runs through it.
+# Half a metre: the two polygons come from the same cadastral layer, so they
+# agree to well inside that, and nothing in a parcel is decided at that scale.
+_SHARED_TOLERANCE_M = 0.5
+
+
+def _touches_any(point, shared_edges) -> bool:
+    for edge in shared_edges or ():
+        for start, end in zip(edge, edge[1:]):
+            if _distance_to_segment(point, start, end) <= _SHARED_TOLERANCE_M:
+                return True
+    return False
+
+
+def _distance_to_segment(point, start, end) -> float:
+    px, py = point
+    ax, ay = start
+    bx, by = end
+    dx, dy = bx - ax, by - ay
+    length = dx * dx + dy * dy
+    if length <= 1e-12:
+        return hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / length))
+    return hypot(px - (ax + t * dx), py - (ay + t * dy))
+
 
 def principal_axes(buildable: Polygon) -> tuple[tuple[float, float], tuple[float, float]]:
     """The parcel's own long and short directions.
@@ -101,7 +176,13 @@ def _moved(form: MatrixForm, dx: float, dy: float) -> MatrixForm:
     )
 
 
-def place_on_site(form: MatrixForm, buildable: Polygon, siting: Siting) -> MatrixForm | None:
+def place_on_site(
+    form: MatrixForm,
+    buildable: Polygon,
+    siting: Siting,
+    *,
+    open_side: tuple[float, float] | None = None,
+) -> MatrixForm | None:
     """Move the scheme to this position, or `None` if it has no room to move.
 
     The travel is bounded by what the scheme can spend without leaving the
@@ -120,7 +201,11 @@ def place_on_site(form: MatrixForm, buildable: Polygon, siting: Siting) -> Matri
     if siting.reach <= 0.0:
         return _moved(form, centred_dx, centred_dy)
 
-    axes = principal_axes(buildable)
+    if open_side is not None:
+        # Front is the way the parcel opens; cross is square to it.
+        axes = (open_side, (-open_side[1], open_side[0]))
+    else:
+        axes = principal_axes(buildable)
     axis = axes[siting.axis]
     if axis == (0.0, 0.0):
         return None
@@ -155,13 +240,22 @@ def spread_across_siting(
     form: MatrixForm,
     *,
     buildable: Polygon,
-    sitings: tuple[Siting, ...] = SITINGS,
+    open_side: tuple[float, float] | None = None,
+    sitings: tuple[Siting, ...] | None = None,
 ) -> list[MatrixForm]:
-    """One copy of this composition per position it can actually take."""
+    """One copy of this composition per position it can actually take.
+
+    With `open_side` the axes are the parcel's own front and cross directions,
+    so the copies are "built up to the street", "held back from it" and "to one
+    side of it" rather than three directions named after a bounding box.
+    """
+
+    if sitings is None:
+        sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
 
     out: list[MatrixForm] = []
     for siting in sitings:
-        moved = place_on_site(form, buildable, siting)
+        moved = place_on_site(form, buildable, siting, open_side=open_side)
         if moved is None:
             continue
         out.append(replace(

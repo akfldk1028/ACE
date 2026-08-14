@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from shapely.affinity import translate
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Polygon
 
 from design.maas.book_language.downstream_hard_gate import (
     LegalGenerationContext,
@@ -50,6 +50,10 @@ class LegalSite:
     site_origin_utm: tuple[float, float]
     context: LegalGenerationContext
     floor_field: dict[str, Any]
+    # Boundary segments a neighbouring parcel is built against, in the same
+    # site-local frame as everything else. What is left of the boundary is the
+    # side the parcel is open on - see `siting.open_side_direction`.
+    shared_edges: tuple[tuple[tuple[float, float], ...], ...] = ()
 
     @property
     def parcel_area_m2(self) -> float:
@@ -164,10 +168,22 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
     floor_field = materialize_legal_floor_field(
         context, site_local_utm=local_site, pnu=pnu
     )
+    shared = tuple(
+        tuple(
+            (point[0] - min_x, point[1] - min_y)
+            for point in wgs84_to_utm(LineString(edge)).coords
+        )
+        for edge in (
+            item.get("sharedEdge")
+            for item in ((neighbors.get("neighbors") or []) if isinstance(neighbors, dict) else [])
+        )
+        if edge and len(edge) >= 2
+    )
     return LegalSite(
         pnu=pnu,
         site_local_utm=local_site,
         site_origin_utm=(min_x, min_y),
         context=context,
         floor_field=floor_field,
+        shared_edges=shared,
     )

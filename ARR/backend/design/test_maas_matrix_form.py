@@ -20,7 +20,11 @@ from django.test import SimpleTestCase
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, measure_form, place
 from design.maas.massv2.measure import FormMeasurement
-from design.maas.massv2.plausibility import Plausibility, assess as plausibility_of
+from design.maas.massv2.plausibility import (
+    Plausibility,
+    assess as plausibility_of,
+    slenderness_limit,
+)
 from design.maas.massv2.select import OBJECTIVES, Candidate, choose
 from design.maas.massv2.structure import CANTILEVER_BACKSPAN_RATIO, assess_standing
 
@@ -436,8 +440,58 @@ class StandingUpIsAGateNotAScoreTests(SimpleTestCase):
         ])
         source = compile_matrix_form(form)
 
-        standing = plausibility_of(source, parcel_area_m2=2499.69)
+        standing = plausibility_of(
+            source, parcel_area_m2=2499.69, max_slenderness=5.0
+        )
 
         self.assertFalse(standing.occupiable)
         self.assertIsNotNone(standing.standing)
         self.assertTrue(any("cantilever" in reason for reason in standing.reasons))
+
+
+class TheParcelSaysHowSlenderTests(SimpleTestCase):
+    """The limit that admitted its own counterexample.
+
+    This module opens by naming a chimney at a slenderness of 10.4 as "not a
+    근린생활시설 anyone would propose", and then carried a constant of 12 quoted
+    from the other pipeline's review gate, which passed it. The bound now comes
+    from the parcel, and from the number that already stops growth in `fill`:
+    용적률 over 건폐율, the storeys the site affords over the ground it allows.
+    """
+
+    def test_the_chimney_this_module_was_written_against_is_refused(self):
+        uijeongbu = slenderness_limit(
+            far_capacity_m2=2499.691, ground_capacity_m2=499.938
+        )
+
+        self.assertAlmostEqual(uijeongbu, 5.0, places=2)
+        self.assertLess(uijeongbu, 10.4)
+
+    def test_zoning_that_is_for_towers_allows_slender_ones(self):
+        """A constant cannot say this and a ratio can.
+
+        60% 건폐율 with 800% 용적률 is a parcel whose own law is about going up,
+        and refusing a slender building there would be the same mistake in the
+        other direction.
+        """
+
+        downtown = slenderness_limit(
+            far_capacity_m2=8.0 * 1000.0, ground_capacity_m2=0.6 * 1000.0
+        )
+
+        self.assertGreater(downtown, 13.0)
+
+    def test_a_stick_on_the_live_parcel_is_not_occupiable(self):
+        form = _form("chimney", [place("shaft", size=(4.0, 4.0, 40.0))])
+        source = compile_matrix_form(form)
+
+        verdict = plausibility_of(
+            source,
+            parcel_area_m2=2499.69,
+            max_slenderness=slenderness_limit(
+                far_capacity_m2=2499.691, ground_capacity_m2=499.938
+            ),
+        )
+
+        self.assertFalse(verdict.occupiable)
+        self.assertTrue(any("slenderness" in reason for reason in verdict.reasons))

@@ -9,8 +9,8 @@ out past a slenderness of 4.
 Nothing here invents a threshold. Floor viability comes from the project's own
 shared rule in `design/maas/floor_viability.py`, which derives a minimum
 occupied area from the parcel and holds a room to a 2.4 m clear depth, and the
-slenderness bound is the one the existing review gate already applies to
-authored candidates in `legal_mesh_optimizer._is_reviewable_architectural_mass`.
+slenderness bound comes from the parcel too - see `slenderness_limit`, which
+reuses the 용적률-over-건폐율 storey count that already stops growth in `fill`.
 Using the rules the project already lives by is the point: a second set of
 numbers would be a second opinion about the same question.
 
@@ -35,11 +35,32 @@ from design.maas.source_geometry.ir import SourceMass
 from .structure import Standing, assess_standing
 
 
-# `_is_reviewable_architectural_mass` allows height/min-plan-dimension up to 12
-# for an authored candidate carrying real source geometry, which every mass here
-# does. Quoted rather than re-decided.
-AUTHORED_SLENDERNESS_LIMIT = 12.0
 AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
+
+
+def slenderness_limit(*, far_capacity_m2: float, ground_capacity_m2: float) -> float:
+    """How slender this parcel's own two limits say a building may be.
+
+    The number used to be 12, quoted from `_is_reviewable_architectural_mass`
+    in the other pipeline. Quoting was the right instinct and the wrong source:
+    that gate judges authored masses on any site, and here it let through the
+    exact case this module was written to refuse - the docstring above names a
+    chimney at 10.4 as "not a 근린생활시설 anyone would propose" and then passed
+    it. A limit that admits its own counterexample is not a limit.
+
+    So it comes from the parcel, and from the number that already governs the
+    other half of the same question: 용적률 divided by 건폐율 is how many storeys
+    the parcel affords over the ground it allows, and `fill` already stops
+    growth there. A building slenderer than the storeys its own site affords
+    has stopped taking less ground and started going up instead.
+
+    It travels correctly, which the constant did not. Uijeongbu at 20% and 100%
+    affords 5, so a stick is refused. A commercial parcel at 60% and 800%
+    affords 13.3, and there a slender tower is what the zoning is for. The same
+    sentence gives the right answer on both because it is the site talking.
+    """
+
+    return max(1.0, float(far_capacity_m2) / max(float(ground_capacity_m2), 1e-9))
 
 
 @dataclass(frozen=True)
@@ -50,6 +71,7 @@ class Plausibility:
     occupiable: bool
     reasons: tuple[str, ...]
     standing: Standing | None = None
+    max_slenderness: float = 0.0
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -60,7 +82,8 @@ class Plausibility:
             "occupiable": self.occupiable,
             "reasons": list(self.reasons),
             "structure": self.standing.evidence() if self.standing is not None else None,
-            "basis": "design.maas.floor_viability + authored review gate limits + structure",
+            "max_slenderness": round(self.max_slenderness, 2),
+            "basis": "design.maas.floor_viability + parcel slenderness + structure",
         }
 
 
@@ -69,8 +92,18 @@ def _min_dimension(polygon) -> float:
     return float(min(max_x - min_x, max_y - min_y))
 
 
-def assess(source: SourceMass, *, parcel_area_m2: float) -> Plausibility:
-    """Judge a compiled mass as a building rather than as a solid."""
+def assess(
+    source: SourceMass,
+    *,
+    parcel_area_m2: float,
+    max_slenderness: float,
+) -> Plausibility:
+    """Judge a compiled mass as a building rather than as a solid.
+
+    `max_slenderness` is the parcel's own, from `slenderness_limit`. It has no
+    default on purpose: the version with one was a constant that travelled to
+    every site unchanged and let a chimney through on this one.
+    """
 
     bands = tuple(source.volumes)
     if not bands:
@@ -91,8 +124,8 @@ def assess(source: SourceMass, *, parcel_area_m2: float) -> Plausibility:
     share = viable / len(bands)
 
     reasons: list[str] = []
-    if slenderness > AUTHORED_SLENDERNESS_LIMIT:
-        reasons.append(f"slenderness_{slenderness:.1f}_over_{AUTHORED_SLENDERNESS_LIMIT}")
+    if slenderness > max_slenderness:
+        reasons.append(f"slenderness_{slenderness:.1f}_over_{max_slenderness:.1f}")
     if min_dimension < AUTHORED_MINIMUM_PLAN_DIMENSION_M:
         reasons.append(f"plan_dimension_{min_dimension:.1f}m_under_minimum")
     if float(ground.area) < minimum_usable_floor_area_m2(parcel_area_m2):
@@ -110,4 +143,5 @@ def assess(source: SourceMass, *, parcel_area_m2: float) -> Plausibility:
         occupiable=not reasons,
         reasons=tuple(reasons),
         standing=standing,
+        max_slenderness=max_slenderness,
     )

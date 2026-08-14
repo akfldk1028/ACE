@@ -145,7 +145,14 @@ class Command(BaseCommand):
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue
             measurement = measure_form(source)
-            standing = plaus.assess(source, parcel_area_m2=site.parcel_area_m2)
+            standing = plaus.assess(
+                source,
+                parcel_area_m2=site.parcel_area_m2,
+                max_slenderness=plaus.slenderness_limit(
+                    far_capacity_m2=site.far_capacity_m2,
+                    ground_capacity_m2=site.ground_capacity_m2,
+                ),
+            )
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m
             )

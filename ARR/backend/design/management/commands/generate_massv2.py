@@ -23,6 +23,8 @@ from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2.author import _to_form
+from design.maas.massv2.execute import execute as execute_parti
+from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.render import render_masses
@@ -47,6 +49,16 @@ class Command(BaseCommand):
                 "schema. Lets an assistant author the programs directly when no "
                 "API credential is usable, which is the same contract - the "
                 "model writes a program, the executor owns the metres."
+            ),
+        )
+        parser.add_argument(
+            "--parti-json",
+            action="append",
+            help=(
+                "Path to a file of authored parti sentences - ordered "
+                "operation lists rather than volume coordinates. The seed "
+                "comes from the parcel, so the site is present from the first "
+                "move instead of arriving at the end as a cutter."
             ),
         )
         parser.add_argument(
@@ -122,6 +134,31 @@ class Command(BaseCommand):
             ]
             forms.extend(item for item in authored if item is not None)
             self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
+
+        if options["parti_json"]:
+            buildable = site.plan_at(0.0)
+            axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+            sentences = []
+            for path in options["parti_json"]:
+                sentences.extend(
+                    json.loads(Path(path).read_text(encoding="utf-8")).get("schemes") or ()
+                )
+            written = []
+            for record in sentences:
+                parti = parti_from_record(record)
+                if parti is None:
+                    continue
+                built = execute_parti(
+                    parti,
+                    buildable=buildable,
+                    axis=axis,
+                    height_m=site.floor_height_m
+                    * max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
+                )
+                if built is not None:
+                    written.append(built)
+            forms.extend(written)
+            self.stdout.write(f"parti sentences: {len(written)}")
 
         if options["spread_coverage"]:
             # A composition is one thing; the ground it claims is another. Carry

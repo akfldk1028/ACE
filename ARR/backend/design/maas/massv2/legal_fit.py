@@ -287,6 +287,41 @@ def _scaled_about_own_centre(form: MatrixForm, factor: float) -> MatrixForm:
     )
 
 
+# How much of an imposing scheme has to be legal before the clip is a trim
+# rather than a redesign. Left at the corpus's own coverage for this mode -
+# carve, loop and aggregate schemes sit at 30-56% of the plot - so a figure
+# that cannot reach it here is simply too big for this parcel.
+_IMPOSED_RETENTION = 0.92
+_IMPOSE_STEPS = 14
+
+
+def _drawn_inside(form: MatrixForm, allowed_at) -> MatrixForm:
+    """Shrink an imposing figure until the legal line only trims it.
+
+    Scanned rather than bisected. The share of a figure that lands inside a
+    polygon is not monotone in its scale - grow a courtyard scheme and the void
+    covers the parcel while the built parts leave it, which sent an earlier
+    bisection to a factor of 4 returning nothing inside at all.
+    """
+
+    best = form
+    for step in range(_IMPOSE_STEPS):
+        factor = 1.0 - step * 0.06
+        candidate = _scaled_about_own_centre(form, factor) if step else form
+        raw = compile_matrix_form(candidate)
+        cut = compile_matrix_form(candidate, allowed_at=allowed_at)
+        if raw is None or cut is None:
+            continue
+        whole = sum(float(v.footprint.area) for v in raw.volumes)
+        kept = sum(float(v.footprint.area) for v in cut.volumes)
+        if whole <= 1e-9:
+            continue
+        best = candidate
+        if kept / whole >= _IMPOSED_RETENTION:
+            break
+    return best
+
+
 def _seated_under_envelope(placement: Placement, allowed_at):
     """Keep a volume that has any legal plan at its own height; lower it if not.
 
@@ -355,6 +390,16 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
 
     capacity = site.ground_capacity_m2
     allowed_at = site.plan_at
+    # A scheme that imposes its own shape is fitted *into* the parcel rather
+    # than cut *by* it. Clipping is right for a mass that takes the plot's
+    # outline - a stack, a shear - and wrong for one whose figure is the point:
+    # Kanazawa is a pure 112.5 m circle on an irregular park, and cutting it to
+    # the park would leave a faceted cast of the park. So an imposing scheme is
+    # brought down until almost all of it is legal, and the clip then removes
+    # a trim rather than the design. Doing this to everything is not the
+    # answer either - before the clip existed, ground take sat at 0.38.
+    if str(form.extra.get("plot_mode") or "") == "impose":
+        form = _drawn_inside(form, allowed_at)
     # A scheme that was given a position on the parcel keeps it. Seating
     # centres on the buildable centroid, which is the right default and the
     # wrong answer for a copy whose whole point is standing somewhere else.

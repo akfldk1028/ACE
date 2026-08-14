@@ -87,6 +87,55 @@ def composition_signature(form: MatrixForm) -> tuple:
     return tuple(sorted(entries))
 
 
+# What a scheme is asked to be good at, once its cell has already said where it
+# sits. Neither grid coordinate is here and that is deliberate: ground take and
+# plan void are the axes, so scoring them scores the thing every occupant of a
+# cell has in common. What is left is the work - does it fill the floor area the
+# parcel allows, is it carved in plan, does it change in section.
+OBJECTIVES: tuple[tuple[str, Any], ...] = (
+    ("far_utilization", lambda item: item.far_utilization),
+    ("convexity_drop", lambda item: item.measurement.convexity_drop),
+    ("section_change", lambda item: item.measurement.section_change),
+)
+
+
+def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
+    """Score every candidate on how balanced it is, with no weights.
+
+    A single number decided cells until now and it picked the worse building.
+    `splayed_fan` topped its cell at an articulation of 0.79 while measuring
+    almost nothing in section or in carving, because a maximum only has to be
+    large once - and all five schemes rewritten against the critic's notes lost
+    to the versions they were meant to replace.
+
+    So: normalise each objective across the pool, then compare candidates by
+    their objectives sorted worst-first. A scheme wins by having no weak side,
+    not by having one strong one. This is the criterion behind T-DominO (Gaier,
+    Stoddart, Villaggi, Bentley, PPSN 2022), which reports that a quarter of
+    NSGA-II's solutions clear the lower quartile on all five of its objectives
+    against 99% of its own - the same "nothing passes on every count" symptom
+    this sheet has had all along. Sorting is monotone in Pareto dominance, so a
+    scheme better on every objective still wins outright; balance only decides
+    the cases dominance leaves open, which is most of them.
+    """
+
+    spans: list[tuple[float, float]] = []
+    for _name, read in OBJECTIVES:
+        values = [float(read(item)) for item in pool]
+        low, high = (min(values), max(values)) if values else (0.0, 0.0)
+        spans.append((low, high))
+
+    keys: dict[int, tuple[float, ...]] = {}
+    for item in pool:
+        scaled = []
+        for (_name, read), (low, high) in zip(OBJECTIVES, spans):
+            width = high - low
+            scaled.append((float(read(item)) - low) / width if width > 1e-9 else 1.0)
+        # Worst-first, so comparing two keys compares their weakest sides first.
+        keys[id(item)] = tuple(sorted(scaled))
+    return keys
+
+
 def choose(
     candidates: Iterable[Candidate],
     *,
@@ -95,14 +144,22 @@ def choose(
 ) -> list[Candidate]:
     """Drop what cannot be occupied, then fill each cell with its best occupant."""
 
+    pool = [
+        candidate
+        for candidate in candidates
+        if not (require_occupiable and not candidate.plausibility.occupiable)
+    ]
+    keys = _balance_keys(pool)
+
+    def rank(item: Candidate) -> tuple:
+        return (keys[id(item)], item.far_utilization)
+
     by_cell: dict[str, dict[tuple, Candidate]] = {}
-    for candidate in candidates:
-        if require_occupiable and not candidate.plausibility.occupiable:
-            continue
+    for candidate in pool:
         signature = composition_signature(candidate.form)
         cell = by_cell.setdefault(candidate.cell, {})
         held = cell.get(signature)
-        if held is None or _rank(candidate) > _rank(held):
+        if held is None or rank(candidate) > rank(held):
             cell[signature] = candidate
 
     # Scarcest cell first. A cell with one lawful occupant has no second choice,
@@ -110,33 +167,41 @@ def choose(
     # takes the composition and the thin one is left empty or with junk.
     order = sorted(by_cell, key=lambda cell: (len(by_cell[cell]), cell))
 
-    taken: set[tuple] = set()
+    taken: set[str] = set()
     chosen: list[Candidate] = []
     for cell in order:
         ranked = sorted(
-            by_cell[cell].items(),
+            by_cell[cell].values(),
             # An unseen composition first: the sheet is a set of options, and an
             # option the architect has already been shown is worth less than one
             # they have not, even when it measures a little better.
-            key=lambda entry: (entry[0] not in taken, _rank(entry[1])),
+            key=lambda item: (family_of(item) not in taken, rank(item)),
             reverse=True,
         )
-        for signature, candidate in ranked[:max(1, per_cell)]:
-            taken.add(signature)
+        for candidate in ranked[:max(1, per_cell)]:
+            taken.add(family_of(candidate))
             chosen.append(candidate)
     return chosen
 
 
-def _rank(candidate: Candidate) -> tuple[float, float, float]:
-    # What the scheme earned beyond its cell's own coordinate comes first: the
-    # void band is half of what put it here, so ranking a porous cell on plan
-    # void ranks it on the one thing all its occupants share. Overall shape
-    # breaks the tie, and the site's use breaks that.
-    return (
-        candidate.measurement.earned_articulation(),
-        candidate.measurement.articulation(),
-        candidate.far_utilization,
-    )
+def family_of(candidate: Candidate) -> str:
+    """Which composition this is, before the coverage axis restated it.
+
+    Two cells apart, the same scheme is a move along an axis and belongs on the
+    sheet twice - that is what deduping globally got wrong. Three cells apart it
+    is the same drawing printed three times, which is what happened the moment
+    the ranking changed: `hollow_market_arch` took the arch cell, then took two
+    more, and the sixteen tiles read as nine buildings.
+
+    The geometry signature cannot police that, because it is what the coverage
+    variants legitimately differ in - growing a scheme wider and growing it
+    taller both change its proportions, so its own copies stop matching it. The
+    name the variants were derived from does not move, so that is what is
+    remembered across cells. Within a cell the signature still rules, since
+    there the question really is whether two drawings are one design.
+    """
+
+    return candidate.form.name.split("~", 1)[0]
 
 
 def summary(chosen: list[Candidate], *, considered: int) -> dict[str, Any]:

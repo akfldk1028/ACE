@@ -14,12 +14,14 @@ These tests hold three things about the replacement:
     old language never produced once.
 """
 
+from dataclasses import replace
+
 from django.test import SimpleTestCase
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, measure_form, place
 from design.maas.massv2.measure import FormMeasurement
 from design.maas.massv2.plausibility import Plausibility, assess as plausibility_of
-from design.maas.massv2.select import Candidate, choose
+from design.maas.massv2.select import OBJECTIVES, Candidate, choose
 from design.maas.massv2.structure import CANTILEVER_BACKSPAN_RATIO, assess_standing
 
 
@@ -212,8 +214,8 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
             band_profile=((0.0, 1.0),),
         )
 
-    def _candidate(self, name, measurement):
-        form = _form(name, [place("body", size=(20.0, 20.0, 12.0))])
+    def _candidate(self, name, measurement, placements=None):
+        form = _form(name, placements or [place("body", size=(20.0, 20.0, 12.0))])
         source = compile_matrix_form(form)
         assert source is not None
         return Candidate(
@@ -226,15 +228,77 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
             far_utilization=0.9,
         )
 
-    def test_plan_void_does_not_enter_the_earned_score(self):
-        plain_ring = self._measurement(void=0.75)
-        self.assertAlmostEqual(plain_ring.articulation(), 0.75)
-        self.assertAlmostEqual(plain_ring.earned_articulation(), 0.0)
+    def _candidate_at(self, name, *, far, convexity=0.0, section=0.0, void=0.75,
+                      placements=None):
+        item = self._candidate(name, self._measurement(
+            void=void, convexity=convexity, section=section
+        ), placements=placements)
+        return replace(item, far_utilization=far)
 
-    def test_a_solid_scheme_is_scored_exactly_as_before(self):
-        stepped = self._measurement(void=0.0, section=0.31)
-        self.assertAlmostEqual(
-            stepped.earned_articulation(), stepped.articulation()
+    def test_no_objective_reads_either_grid_coordinate(self):
+        """Ground take and plan void say where a scheme sits, not how good it is."""
+
+        reads = [read(self._candidate_at("probe", far=0.5, void=0.99))
+                 for _name, read in OBJECTIVES]
+
+        self.assertNotIn(0.99, reads)
+        self.assertNotIn(0.9, reads)  # ground_take on the fixture
+
+    def test_one_towering_strength_loses_to_no_weak_side(self):
+        """The card deck, in miniature.
+
+        `splayed_fan` won its cell on a single maximum while measuring nothing
+        in section and nothing in carving, and every scheme rewritten against
+        the critic lost to the one it replaced. Balance is the whole fix: a
+        scheme has to be worth something on each count it is asked about.
+        """
+
+        spike = self._candidate_at("card_deck", far=1.0, convexity=0.0, section=0.0)
+        balanced = self._candidate_at("worked_block", far=0.6, convexity=0.5, section=0.5)
+
+        chosen = choose([spike, balanced], per_cell=1)
+
+        self.assertEqual([item.form.name for item in chosen], ["worked_block"])
+
+    def test_the_same_scheme_does_not_print_three_times(self):
+        """Across cells the composition is remembered by name, not by shape.
+
+        The coverage variants of one scheme legitimately differ in proportion,
+        so the geometry signature stops matching between them - and the moment
+        the ranking changed, `hollow_market_arch` took its own cell and then two
+        more, and sixteen tiles read as nine buildings.
+        """
+
+        # The two variants are the same scheme carried along the coverage axis,
+        # and growing it does not scale it evenly - so their signatures differ,
+        # which is exactly why the signature could not remember them.
+        arch_a = replace(self._candidate_at("llm_arch~held_ground", far=0.9, placements=[
+            place("west", size=(6.0, 18.0, 14.0), at=(0.0, 0.0, 0.0)),
+            place("east", size=(6.0, 18.0, 14.0), at=(10.0, 0.0, 0.0)),
+            place("lintel", size=(16.0, 18.0, 4.0), at=(0.0, 0.0, 14.0)),
+        ]), cell="held_ground|porous_field")
+        arch_b = replace(self._candidate_at("llm_arch~full_ground", far=0.9, placements=[
+            place("west", size=(9.0, 18.0, 9.0), at=(0.0, 0.0, 0.0)),
+            place("east", size=(9.0, 18.0, 9.0), at=(17.0, 0.0, 0.0)),
+            place("lintel", size=(26.0, 18.0, 6.0), at=(0.0, 0.0, 9.0)),
+        ]), cell="full_ground|porous_field")
+        # Genuinely a different composition. The signature is scale free, so a
+        # single box is the same signature at any size, and the within-cell
+        # dedupe would fold this into the arch before the cross-cell rule was
+        # ever consulted.
+        other = replace(
+            self._candidate_at("llm_comb~full_ground", far=0.5, placements=[
+                place("west", size=(8.0, 20.0, 12.0), at=(0.0, 0.0, 0.0)),
+                place("east", size=(8.0, 20.0, 12.0), at=(12.0, 0.0, 0.0)),
+            ]),
+            cell="full_ground|porous_field",
+        )
+
+        chosen = choose([arch_a, arch_b, other], per_cell=1)
+
+        self.assertEqual(
+            sorted(item.form.name for item in chosen),
+            ["llm_arch~held_ground", "llm_comb~full_ground"],
         )
 
     def test_the_ring_that_also_steps_wins_its_cell(self):

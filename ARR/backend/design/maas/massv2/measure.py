@@ -50,26 +50,6 @@ class FormMeasurement:
 
         return max(self.convexity_drop, self.plan_void_ratio, self.section_change)
 
-    def earned_articulation(self) -> float:
-        """Articulation that is not already the grid cell's own coordinate.
-
-        `articulation` answers "is this shaped at all", and for ranking inside a
-        cell that is the wrong question: the void band is one of the cell's two
-        coordinates, so plan void is near-constant among a cell's occupants and
-        returns much larger numbers than the other two - measured on the
-        Uijeongbu parcel the porous column sits at 0.70-0.79 while the solid
-        column tops out at 0.32. Ranking a porous cell by the maximum therefore
-        ranks it by the thing every occupant already has in common, and the
-        section and carving work is invisible.
-
-        So rank on what the scheme earned beyond its own cell. In a solid cell
-        plan void is ~0 and this is identical to `articulation`; in a porous
-        cell it is the difference between a plain ring and a ring that also
-        steps, leans or is cut.
-        """
-
-        return max(self.convexity_drop, self.section_change)
-
     def evidence(self) -> dict[str, Any]:
         return {
             "schema_version": "arr.maas.matrix_form_measurement.v1",

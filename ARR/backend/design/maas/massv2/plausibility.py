@@ -13,6 +13,12 @@ slenderness bound is the one the existing review gate already applies to
 authored candidates in `legal_mesh_optimizer._is_reviewable_architectural_mass`.
 Using the rules the project already lives by is the point: a second set of
 numbers would be a second opinion about the same question.
+
+Standing up is asked here too, by `structure`. It belongs at this gate rather
+than in the fitness score for the reason the score itself demonstrated: the
+scheme the critic called a collapsed deck of cards came *first* on every number
+the sheet carries. A mass that cannot be held up is not a low-scoring option,
+it is not an option, and a gate is the only place that distinction exists.
 """
 
 from __future__ import annotations
@@ -25,6 +31,8 @@ from design.maas.floor_viability import (
     minimum_usable_floor_area_m2,
 )
 from design.maas.source_geometry.ir import SourceMass
+
+from .structure import Standing, assess_standing
 
 
 # `_is_reviewable_architectural_mass` allows height/min-plan-dimension up to 12
@@ -41,6 +49,7 @@ class Plausibility:
     viable_band_share: float
     occupiable: bool
     reasons: tuple[str, ...]
+    standing: Standing | None = None
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -50,7 +59,8 @@ class Plausibility:
             "viable_band_share": round(self.viable_band_share, 3),
             "occupiable": self.occupiable,
             "reasons": list(self.reasons),
-            "basis": "design.maas.floor_viability + authored review gate limits",
+            "structure": self.standing.evidence() if self.standing is not None else None,
+            "basis": "design.maas.floor_viability + authored review gate limits + structure",
         }
 
 
@@ -90,10 +100,14 @@ def assess(source: SourceMass, *, parcel_area_m2: float) -> Plausibility:
     if share <= 0.5:
         reasons.append(f"only_{share:.0%}_of_bands_occupiable")
 
+    standing = assess_standing(source, height_m=height)
+    reasons.extend(standing.reasons)
+
     return Plausibility(
         slenderness=slenderness,
         minimum_plan_dimension_m=min_dimension,
         viable_band_share=share,
         occupiable=not reasons,
         reasons=tuple(reasons),
+        standing=standing,
     )

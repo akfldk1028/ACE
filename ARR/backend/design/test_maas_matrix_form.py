@@ -18,8 +18,9 @@ from django.test import SimpleTestCase
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, measure_form, place
 from design.maas.massv2.measure import FormMeasurement
-from design.maas.massv2.plausibility import Plausibility
+from design.maas.massv2.plausibility import Plausibility, assess as plausibility_of
 from design.maas.massv2.select import Candidate, choose
+from design.maas.massv2.structure import CANTILEVER_BACKSPAN_RATIO, assess_standing
 
 
 def _form(name, placements, **kwargs):
@@ -258,3 +259,121 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
         chosen = choose([plain, carved], per_cell=1)
 
         self.assertEqual([item.form.name for item in chosen], ["quarried_ring"])
+
+
+class StandingUpIsAGateNotAScoreTests(SimpleTestCase):
+    """The physics the sheet's numbers could not see.
+
+    `splayed_fan` came first in its cell on every measure the sheet carries -
+    articulation 0.79, ground take 0.94, 용적률 0.98 - and the critic called it a
+    collapsed deck of cards. A metric cannot be patched into noticing that,
+    because plausibility of shape and stability of body are not correlated:
+    Mezghanni et al. (CVPR 2021) measured a learned discriminator and a
+    geometric-plausibility function against real stability and both failed,
+    while explicit support-polygon computation succeeded. So it is computed,
+    at the gate, and an unbuildable mass stops being an option at all.
+    """
+
+    def _standing(self, name, placements):
+        form = _form(name, placements)
+        source = compile_matrix_form(form)
+        self.assertIsNotNone(source, f"{name} failed to compile")
+        return assess_standing(source, height_m=form.height_m())
+
+    def test_a_slab_reaching_past_a_third_of_its_backspan_is_refused(self):
+        # 24 m of overhang carried on an 8 m backspan: three times the AISC
+        # rule of thumb, and not a building anyone frames.
+        standing = self._standing("overreach", [
+            place("base", size=(8, 20, 4), at=(0, 0, 0)),
+            place("arm", size=(32, 20, 4), at=(0, 0, 4)),
+        ])
+
+        self.assertFalse(standing.stands)
+        self.assertTrue(any("cantilever" in reason for reason in standing.reasons))
+
+    def test_the_same_slab_within_the_rule_is_allowed(self):
+        standing = self._standing("held", [
+            place("base", size=(24, 20, 4), at=(0, 0, 0)),
+            place("arm", size=(30, 20, 4), at=(0, 0, 4)),
+        ])
+
+        self.assertTrue(standing.stands, standing.reasons)
+        self.assertLess(standing.cantilever_ratio, CANTILEVER_BACKSPAN_RATIO)
+
+    def test_a_bar_bridging_two_towers_is_a_span_and_not_a_cantilever(self):
+        """CCTV is not a cantilever and must not be graded as one.
+
+        Held at both ends, the first cut of this gate called this bar 3.4 times
+        its own backspan and threw every bridge in the vocabulary off the sheet.
+        A piece touching its support in two separated places is a span.
+        """
+
+        standing = self._standing("bridge", [
+            place("west", size=(10, 12, 24), at=(0, 0, 0)),
+            place("east", size=(10, 12, 24), at=(28, 0, 0)),
+            place("deck", size=(38, 12, 4), at=(0, 0, 24)),
+        ])
+
+        self.assertTrue(standing.stands, standing.reasons)
+        self.assertEqual(0.0, standing.cantilever_ratio)
+        self.assertGreater(standing.span_to_depth, 0.0)
+
+    def test_a_span_far_longer_than_its_depth_is_still_refused(self):
+        standing = self._standing("wire", [
+            place("west", size=(3, 12, 24), at=(0, 0, 0)),
+            place("east", size=(3, 12, 24), at=(97, 0, 0)),
+            place("deck", size=(100, 12, 1.5), at=(0, 0, 24)),
+        ])
+
+        self.assertFalse(standing.stands)
+        self.assertTrue(any("span" in reason for reason in standing.reasons))
+
+    def test_a_top_heavy_mass_leaning_off_its_own_ground_falls_over(self):
+        standing = self._standing("topple", [
+            place("foot", size=(6, 6, 3), at=(0, 0, 0)),
+            place("crown", size=(20, 20, 24), at=(14, 0, 3)),
+        ])
+
+        self.assertFalse(standing.stands)
+        self.assertTrue(
+            any("centre_of_mass" in reason for reason in standing.reasons),
+            standing.reasons,
+        )
+
+    def test_two_grounded_bars_with_a_courtyard_between_them_still_stand(self):
+        """A table stands between its legs, not on one of them.
+
+        Measured against the union of the ground contacts rather than their
+        convex hull, a pair of splayed bars reported its own centre of mass
+        2.6 m outside its support and 188 of 333 candidates were thrown out.
+        The support polygon is the hull of what touches the ground.
+        """
+
+        standing = self._standing("paired", [
+            place("north", size=(30, 8, 18), at=(0, 22, 0)),
+            place("south", size=(30, 8, 18), at=(0, 0, 0)),
+        ])
+
+        self.assertTrue(standing.stands, standing.reasons)
+        self.assertGreater(standing.overturning_margin_m, 0.0)
+
+    def test_the_gate_speaks_through_plausibility(self):
+        """A mass that cannot stand is not occupiable, whatever else it is.
+
+        This is the wiring that matters: `choose` drops what is not occupiable,
+        so an unbuildable scheme never reaches the archive, the contact sheet or
+        the critic - rather than arriving with a good score and being argued
+        about.
+        """
+
+        form = _form("overreach", [
+            place("base", size=(8, 20, 4), at=(0, 0, 0)),
+            place("arm", size=(32, 20, 4), at=(0, 0, 4)),
+        ])
+        source = compile_matrix_form(form)
+
+        standing = plausibility_of(source, parcel_area_m2=2499.69)
+
+        self.assertFalse(standing.occupiable)
+        self.assertIsNotNone(standing.standing)
+        self.assertTrue(any("cantilever" in reason for reason in standing.reasons))

@@ -140,7 +140,14 @@ class Command(BaseCommand):
         for form in forms:
             filled = fill_to_site(form, site, allow_plan_growth=not options["no_fill"])
             fit = filled.fit
-            source = compile_matrix_form(fit.form, storey_height_m=site.floor_height_m)
+            # The same clip the legal fit measured through. Compiling without
+            # it is how the sheet came to print 용적률 of 1.52 on a run the fit
+            # certified lawful - two measures of one building again.
+            source = compile_matrix_form(
+                fit.form,
+                storey_height_m=site.floor_height_m,
+                allowed_at=site.plan_at,
+            )
             if source is None:
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue

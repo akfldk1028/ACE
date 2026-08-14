@@ -131,7 +131,9 @@ def _spans(placement: Placement, low: float, high: float) -> bool:
     return z_low - 1e-9 <= middle <= z_high + 1e-9
 
 
-def _band_parts(form: MatrixForm, low: float, high: float) -> list[Polygon]:
+def _band_parts(
+    form: MatrixForm, low: float, high: float, allowed_at=None
+) -> list[Polygon]:
     """Every plan piece this band occupies, not just the biggest one.
 
     Two bars with a gap are two pieces at their own storeys, and keeping only
@@ -152,6 +154,21 @@ def _band_parts(form: MatrixForm, low: float, high: float) -> list[Polygon]:
     if not built:
         return []
     shape = unary_union(built)
+    if allowed_at is not None:
+        # The legal line cuts the building; it does not shrink it. A volume that
+        # runs past the setback is built up to it and stops, which is what an
+        # architect draws and what the compiler can represent - a band is an
+        # arbitrary polygon here, not a rectangle. Shrinking it instead put the
+        # ceiling on ground take at the largest rectangle *inscribed* in the
+        # buildable polygon, and on 의정부 4115011300106840001 that polygon is
+        # 1922 m2 inside a 3707 m2 bounding box, so the median scheme claimed
+        # 0.38 of a 건폐율 it was allowed to fill.
+        allowed = allowed_at((low + high) / 2.0)
+        if allowed is None or allowed.is_empty:
+            return []
+        shape = shape.intersection(allowed)
+        if shape.is_empty:
+            return []
     cutters = [
         _plan_between(item, low, high)
         for item in form.subtractive()
@@ -187,9 +204,19 @@ def _leans(placement: Placement) -> bool:
 
 
 def compile_matrix_form(
-    form: MatrixForm, *, verb: str = "matrix_place", storey_height_m: float | None = None
+    form: MatrixForm,
+    *,
+    verb: str = "matrix_place",
+    storey_height_m: float | None = None,
+    allowed_at=None,
 ) -> SourceMass | None:
-    """Compile placements into a `SourceMass`, or `None` if nothing survives."""
+    """Compile placements into a `SourceMass`, or `None` if nothing survives.
+
+    `allowed_at(height) -> Polygon | None` is the parcel's legal plan at a
+    height, already setback- and sunlight-clipped. Given it, every band is cut
+    to the shape of the law rather than the law being used to shrink the
+    building until it fits inside a rectangle.
+    """
 
     edges = _band_edges(form, storey_height_m=storey_height_m)
     if len(edges) < 2:
@@ -202,7 +229,7 @@ def compile_matrix_form(
     volumes: list[SourceVolume] = []
     dropped_bands = 0
     for low, high in zip(edges, edges[1:]):
-        parts = _band_parts(form, low, high)
+        parts = _band_parts(form, low, high, allowed_at)
         if not parts:
             dropped_bands += 1
             continue

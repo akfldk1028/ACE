@@ -42,6 +42,13 @@ from .measure import gross_floor_area_m2, storeys_in
 # noise rather than area.
 _CONVERGED = 0.995
 _MAX_PASSES = 6
+# Plan-scale passes against a clipped measure. Clipping makes the measured area
+# approach the ceiling from above rather than scale with the factor, so six
+# passes stopped 0.03% over and reported fourteen schemes unlawful for 0.4 m2 on
+# 1498. More passes, and aimed just inside the line rather than at it, because a
+# limit converged onto from above is a limit crossed.
+_CEILING_PASSES = 24
+_CEILING_AIM = 0.999
 # Floor area is trimmed one storey at a time, so the bound is a storey count
 # rather than a ratio. A building with more storeys than this over its capacity
 # was authored for a different parcel.
@@ -85,22 +92,33 @@ class LegalFitResult:
         }
 
 
-def projected_ground_area(form: MatrixForm) -> float:
+def projected_ground_area(form: MatrixForm, *, allowed_at=None) -> float:
     """건축면적: the plan union over every height, not the ground floor.
 
     A mass whose ground floor is modest while its upper floors overhang to the
     cap still covers that much ground, and measuring the lowest band would file
     it as dispersed.
+
+    With `allowed_at` the union is taken over the compiled bands, which are cut
+    to the legal plan - the same thing the report will see. Measuring the raw
+    placements while the compiler clips them is how the fit and the report came
+    to disagree before.
     """
 
-    plans = [_plan(item) for item in form.additive()]
+    if allowed_at is not None:
+        source = compile_matrix_form(form, allowed_at=allowed_at)
+        if source is None:
+            return 0.0
+        plans = [volume.footprint for volume in source.volumes]
+    else:
+        plans = [_plan(item) for item in form.additive()]
     plans = [item for item in plans if not item.is_empty and item.area > 0.0]
     if not plans:
         return 0.0
     return float(unary_union(plans).area)
 
 
-def _gross_floor_area(form: MatrixForm, *, floor_height_m: float) -> float:
+def _gross_floor_area(form: MatrixForm, *, floor_height_m: float, allowed_at=None) -> float:
     """연면적 of a form, measured exactly the way it will be reported.
 
     Sharing the storey rule was not enough. The fit measured each placement over
@@ -121,7 +139,9 @@ def _gross_floor_area(form: MatrixForm, *, floor_height_m: float) -> float:
     forgiving one.
     """
 
-    source = compile_matrix_form(form, storey_height_m=floor_height_m)
+    source = compile_matrix_form(
+        form, storey_height_m=floor_height_m, allowed_at=allowed_at
+    )
     if source is None:
         return 0.0
     return gross_floor_area_m2(source, floor_height_m=floor_height_m)
@@ -247,6 +267,46 @@ def _pulled_inside(
     return None
 
 
+def _scaled_about_own_centre(form: MatrixForm, factor: float) -> MatrixForm:
+    """Scale the whole composition in plan about its own centre.
+
+    One anchor for every volume, so the relationships survive: a shifted stack
+    stays shifted rather than collapsing into a concentric wedding cake.
+    """
+
+    additive = form.additive()
+    if not additive or abs(factor - 1.0) < 1e-9:
+        return form
+    bounds = unary_union([_plan(item) for item in additive]).bounds
+    anchor = ((bounds[0] + bounds[2]) / 2.0, (bounds[1] + bounds[3]) / 2.0)
+    return replace(
+        form,
+        placements=tuple(
+            _scaled_in_plan(item, factor, anchor) for item in form.placements
+        ),
+    )
+
+
+def _seated_under_envelope(placement: Placement, allowed_at):
+    """Keep a volume that has any legal plan at its own height; lower it if not.
+
+    This is what is left of `_pulled_inside` once the compiler clips. That
+    function shrank a volume about its own centre until the buildable polygon
+    *contained* it, which made the ceiling on 건폐율 the largest rectangle
+    inscribed in the parcel rather than the parcel - and every scheme on a
+    skewed site paid for the shape of the boundary twice, once by being cut and
+    once by being shrunk.
+    """
+
+    _low, high = placement.z_span()
+    allowed = allowed_at(high)
+    if allowed is None or allowed.is_empty:
+        return _lowered_under_envelope(placement, allowed_at)
+    if _plan(placement).intersection(allowed).is_empty:
+        return None
+    return placement
+
+
 def seat_on_site(form: MatrixForm, site: LegalSite) -> MatrixForm:
     """Move the whole form onto the buildable area before anything is checked.
 
@@ -294,38 +354,45 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
     """Bring a form inside the parcel's limits by adjusting its volumes."""
 
     capacity = site.ground_capacity_m2
+    allowed_at = site.plan_at
     current = seat_on_site(form, site)
     total_scale = 1.0
     passes = 0
 
     # 건축면적 first: it is a whole-building projection, so fixing it volume by
     # volume would just move the overshoot around.
-    for _pass in range(_MAX_PASSES):
-        area = projected_ground_area(current)
+    #
+    # Since the compiler clips to the legal plan, shrinking no longer reduces the
+    # projection in proportion - a scheme hanging over the boundary loses the
+    # overhang to the clip, not to the scale, so a 1% correction can move the
+    # measured area by nothing at all. Stopping when the correction got small
+    # therefore stopped while still over the ceiling, and 23 schemes came back
+    # unlawful. Stop when the *area* stops moving instead, which is the thing
+    # actually being converged.
+    for _pass in range(_CEILING_PASSES):
+        area = projected_ground_area(current, allowed_at=allowed_at)
         if capacity <= 0.0 or area <= capacity:
             break
         passes += 1
-        factor = (capacity / area) ** 0.5
-        bounds = unary_union([_plan(item) for item in current.additive()]).bounds
-        anchor = ((bounds[0] + bounds[2]) / 2.0, (bounds[1] + bounds[3]) / 2.0)
-        current = replace(
-            current,
-            placements=tuple(
-                _scaled_in_plan(item, factor, anchor) for item in current.placements
-            ),
-        )
+        factor = (capacity * _CEILING_AIM / area) ** 0.5
+        current = _scaled_about_own_centre(current, factor)
         total_scale *= factor
-        if factor >= _CONVERGED:
+        if projected_ground_area(current, allowed_at=allowed_at) >= area - 1e-6:
             break
 
-    # 정북일조 next, per volume, at the top of each volume's own span.
+    # 정북일조 next. The compiler now cuts each band to the legal plan, so a
+    # volume that leans out is trimmed rather than shrunk, and the only thing
+    # left to decide per volume is whether any of it is legal at its own height
+    # at all. One that is entirely above the envelope still has to come down -
+    # `plan_at` returns None from about 80 m, and a volume up there is not
+    # clipped to anything, it is simply not there.
     pulled = 0
     kept: list[Placement] = []
     for placement in current.placements:
         if placement.kind == "subtractive":
             kept.append(placement)
             continue
-        adjusted = _pulled_inside(placement, site.plan_at)
+        adjusted = _seated_under_envelope(placement, allowed_at)
         if adjusted is None:
             # Nothing of this volume is legal at its own height. Dropping it is
             # honest; keeping a sliver would report a form the author never made.
@@ -351,7 +418,9 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
         # unlawful. Take a storey off the tallest volume instead, and take it
         # from the tallest because that is the one the envelope is tightest on.
         for _pass in range(_STOREY_TRIMS):
-            gfa = _gross_floor_area(fitted, floor_height_m=floor_height)
+            gfa = _gross_floor_area(
+                fitted, floor_height_m=floor_height, allowed_at=allowed_at
+            )
             if gfa <= far_capacity:
                 break
             passes += 1
@@ -382,8 +451,34 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
                 ),
             )
 
-    final_area = projected_ground_area(fitted)
-    final_gfa = _gross_floor_area(fitted, floor_height_m=floor_height)
+    # Height is exhausted when every volume is down to one storey, and a scheme
+    # can still be over 용적률 there - clipped to a wide parcel, plan alone can
+    # carry more floor area than the ceiling allows. Plan buys both, so it pays
+    # last, and each round is re-checked against both ceilings.
+    for _pass in range(_CEILING_PASSES):
+        gfa = _gross_floor_area(
+            fitted, floor_height_m=floor_height, allowed_at=allowed_at
+        )
+        area = projected_ground_area(fitted, allowed_at=allowed_at)
+        over_far = far_capacity > 0.0 and gfa > far_capacity
+        over_ground = capacity > 0.0 and area > capacity
+        if not over_far and not over_ground:
+            break
+        passes += 1
+        wanted = min(
+            (far_capacity * _CEILING_AIM / gfa) if over_far and gfa > 0.0 else 1.0,
+            (capacity * _CEILING_AIM / area) if over_ground and area > 0.0 else 1.0,
+        )
+        shrunk = _scaled_about_own_centre(fitted, max(0.5, wanted ** 0.5))
+        if projected_ground_area(shrunk, allowed_at=allowed_at) >= area - 1e-6:
+            break
+        fitted = shrunk
+        total_scale *= max(0.5, wanted ** 0.5)
+
+    final_area = projected_ground_area(fitted, allowed_at=allowed_at)
+    final_gfa = _gross_floor_area(
+        fitted, floor_height_m=floor_height, allowed_at=allowed_at
+    )
     return LegalFitResult(
         form=fitted,
         ground_area_m2=final_area,

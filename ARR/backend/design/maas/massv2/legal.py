@@ -13,6 +13,7 @@ meaningless.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,6 +32,9 @@ from design.services.site_geometry import (
     geojson_to_polygon,
     wgs84_to_utm,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class LegalSiteUnavailable(RuntimeError):
@@ -98,7 +102,23 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
 
     land_info = land_api.get_land_use_info(pnu)
     zones = land_info.get("zones") or []
-    limits = zoning_mapper.resolve_limits(zones) if zones else {}
+    # 국토계획법 제84조: a parcel across two 용도지역 is governed by how much of it
+    # is in each, so the split is measured before the limits are asked for. It is
+    # only fetched when there is more than one zone to split between, and a
+    # failure to measure is not fatal here - `resolve_limits` answers with
+    # `needs_zone_areas` and the site refuses itself below, rather than this
+    # quietly substituting a guess.
+    areas: dict[str, float] = {}
+    if len(zones) > 1:
+        from land.services import zone_geometry
+
+        try:
+            areas = zone_geometry.parcel_zone_split(
+                geojson_to_polygon(boundary), to_utm=wgs84_to_utm
+            )
+        except zone_geometry.ZoneGeometryUnavailable as error:
+            logger.warning("zone split unavailable for %s: %s", pnu, error)
+    limits = zoning_mapper.resolve_limits(zones, areas) if zones else {}
     zone_names = [
         item["zone_name"] if isinstance(item, dict) else str(item)
         for item in ((limits or {}).get("zones") or zones)
@@ -110,6 +130,7 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
         zone_names,
         land_info=land_info,
         sigungu_code=pnu[:5],
+        zone_areas=areas,
         use_llm_extraction=False,
     )
     constraints = regulations_to_constraints(regulation)

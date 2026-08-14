@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_all(zone_names: list[str], land_info: dict | None = None,
-                   sigungu_code: str = "", use_llm_extraction: bool | None = None) -> dict:
+                   sigungu_code: str = "", use_llm_extraction: bool | None = None,
+                   zone_areas: dict[str, float] | None = None) -> dict:
     """
     Compute all 11 regulations from zone names.
 
@@ -28,6 +29,15 @@ def calculate_all(zone_names: list[str], land_info: dict | None = None,
         zone_names: list of zone names including overlays (e.g. ["제1종일반주거지역", "지구단위계획구역"])
         land_info: optional dict with land_area_m2, etc.
         sigungu_code: 5-digit sigungu code for ordinance override (e.g. "11680" = 강남구)
+        zone_areas: m2 of the parcel in each 용도지역, from
+            land.services.zone_geometry.parcel_zone_split. Required to be
+            meaningful when the parcel spans more than one zone - 국토계획법
+            제84조 makes BCR/FAR a function of the split. Without it a
+            multi-zone parcel returns bcr_pct/far_pct of None rather than a
+            guess; the guess it used to return (the strictest zone) understated
+            의정부 4115011300106840001 by a factor of 2.5, because a 4.9 m2
+            sliver of 자연녹지 on a 2499.7 m2 제2종일반주거지역 parcel was read as
+            if the whole parcel were green.
 
     Returns dict with keys matching LandAnalysisResult fields.
     """
@@ -44,7 +54,7 @@ def calculate_all(zone_names: list[str], land_info: dict | None = None,
         zones_data = _apply_ordinance_overrides(zones_data, sigungu_code)
 
     result = {}
-    result.update(_resolve_bcr_far(zones_data))
+    result.update(_resolve_bcr_far(zones_data, zone_areas))
     result.update(_resolve_height(zones_data))
     result.update(_resolve_sunlight(zones_data, use_llm_extraction=use_llm_extraction))
     result.update(_resolve_corner_cutoff(zones_data))
@@ -89,19 +99,34 @@ def _empty_result() -> dict:
     }
 
 
-def _resolve_bcr_far(zones_data: list[dict]) -> dict:
-    """BCR/FAR: use strictest (lowest) across zones."""
-    bcr = min(z["bcr_default"] for z in zones_data)
-    far = min(z["far_default"] for z in zones_data)
+def _resolve_bcr_far(zones_data: list[dict], zone_areas: dict[str, float] | None = None) -> dict:
+    """BCR/FAR per 국토계획법 제84조. One implementation, in zoning_mapper.
+
+    This used to take the strictest limit across zones independently of
+    `zoning_mapper`, so the same wrong rule existed twice and fixing either one
+    alone changed nothing for callers of the other.
+    """
+
+    combined = zoning_mapper.combine_limits(zones_data, zone_areas)
+    bcr = combined["bcr_limit"]
+    far = combined["far_limit"]
 
     bcr_articles = list(dict.fromkeys(z["bcr_article"] for z in zones_data))
     far_articles = list(dict.fromkeys(z["far_article"] for z in zones_data))
 
+    overlap = combined.get("overlap")
+    if overlap:
+        # The article that actually decided the number, not only the ones that
+        # set each zone's own default.
+        bcr_articles.append(overlap["article"])
+        far_articles.append(overlap["article"])
+
     return {
         "bcr_pct": bcr,
-        "bcr_article": "; ".join(bcr_articles),
+        "bcr_article": "; ".join(dict.fromkeys(bcr_articles)),
         "far_pct": far,
-        "far_article": "; ".join(far_articles),
+        "far_article": "; ".join(dict.fromkeys(far_articles)),
+        "zone_overlap": overlap,
     }
 
 

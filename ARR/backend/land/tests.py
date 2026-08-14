@@ -40,12 +40,61 @@ class ZoningMapperTest(TestCase):
         self.assertEqual(result["far_limit"], 200)
         self.assertEqual(result["matched"], 1)
 
-    def test_resolve_limits_multiple_strictest(self):
+    def test_two_zones_without_areas_refuse_to_guess(self):
+        """국토계획법 제84조 makes the limits a function of the split.
+
+        This used to answer with the strictest zone, which is not a rule the
+        statute contains. On 의정부 4115011300106840001 it read a 2499.7 m2
+        제2종일반주거지역 parcel clipped by a 4.9 m2 sliver of 자연녹지지역 as green
+        throughout - 20% and 100% where the parcel allows 60% and 250%.
+        """
+
         from land.services import zoning_mapper
         result = zoning_mapper.resolve_limits(["제1종일반주거지역", "보전녹지지역"])
-        self.assertEqual(result["bcr_limit"], 20)
-        self.assertEqual(result["far_limit"], 80)
+
+        self.assertIsNone(result["bcr_limit"])
+        self.assertIsNone(result["far_limit"])
+        self.assertTrue(result["overlap"]["needs_zone_areas"])
+
+    def test_two_zones_with_areas_are_weighted_by_area(self):
+        from land.services import zoning_mapper
+        # 제1종일반주거 60/200, 보전녹지 20/80, split 900/100 of 1000 m2.
+        result = zoning_mapper.resolve_limits(
+            ["제1종일반주거지역", "보전녹지지역"],
+            {"제1종일반주거지역": 900.0, "보전녹지지역": 100.0},
+        )
+        first = zoning_mapper.lookup("제1종일반주거지역")
+        green = zoning_mapper.lookup("보전녹지지역")
+        expected_bcr = (first["bcr_default"] * 900 + green["bcr_default"] * 100) / 1000
+
+        self.assertAlmostEqual(result["bcr_limit"], expected_bcr, places=3)
+        self.assertGreater(result["bcr_limit"], green["bcr_default"])
+        self.assertLess(result["bcr_limit"], first["bcr_default"])
         self.assertEqual(result["matched"], 2)
+
+    def test_a_dominant_green_part_splits_the_parcel_instead(self):
+        """제84조제3항: a real 녹지 part is applied on its own, not averaged away.
+
+        The carve-out is only for a green part that is both the smallest and
+        under the 시행령 size; 700 m2 of 보전녹지 is neither.
+        """
+
+        from land.services import zoning_mapper
+        result = zoning_mapper.resolve_limits(
+            ["제1종일반주거지역", "보전녹지지역"],
+            {"제1종일반주거지역": 300.0, "보전녹지지역": 700.0},
+        )
+
+        self.assertEqual(result["overlap"]["branch"], "제84조제3항")
+        self.assertIsNone(result["overlap"]["other_restrictions"]["source_zone"])
+
+    def test_one_zone_needs_no_split(self):
+        from land.services import zoning_mapper
+        only = zoning_mapper.lookup("제1종일반주거지역")
+        result = zoning_mapper.resolve_limits(["제1종일반주거지역"])
+
+        self.assertEqual(result["bcr_limit"], only["bcr_default"])
+        self.assertNotIn("overlap", result)
 
     def test_resolve_limits_unmatched(self):
         from land.services import zoning_mapper
@@ -129,11 +178,33 @@ class RegulationCalculatorTest(TestCase):
         self.assertFalse(reg["sunlight_applies"])
         self.assertEqual(reg["landscaping_min_pct"], 20)
 
-    def test_multiple_zones_strictest_bcr_far(self):
-        from land.services import regulation_calculator
-        reg = regulation_calculator.calculate_all(["제1종일반주거지역", "보전녹지지역"])
-        self.assertEqual(reg["bcr_pct"], 20)
-        self.assertEqual(reg["far_pct"], 80)
+    def test_multiple_zones_bcr_far_follow_article_84(self):
+        """One implementation of 제84조, shared with zoning_mapper.
+
+        This resolver had its own copy of the strictest-limit rule, so fixing
+        the mapper alone left every caller that came through here - which is
+        most of them, including the mass pipeline - still getting the old
+        answer.
+        """
+
+        from land.services import regulation_calculator, zoning_mapper
+
+        without_areas = regulation_calculator.calculate_all(
+            ["제1종일반주거지역", "보전녹지지역"]
+        )
+        self.assertIsNone(without_areas["bcr_pct"])
+        self.assertTrue(without_areas["zone_overlap"]["needs_zone_areas"])
+
+        with_areas = regulation_calculator.calculate_all(
+            ["제1종일반주거지역", "보전녹지지역"],
+            zone_areas={"제1종일반주거지역": 900.0, "보전녹지지역": 100.0},
+        )
+        shared = zoning_mapper.resolve_limits(
+            ["제1종일반주거지역", "보전녹지지역"],
+            {"제1종일반주거지역": 900.0, "보전녹지지역": 100.0},
+        )
+        self.assertAlmostEqual(with_areas["bcr_pct"], shared["bcr_limit"], places=4)
+        self.assertIn("제84조", with_areas["bcr_article"])
 
     def test_multiple_zones_sunlight_applies_if_any(self):
         """Sunlight applies if any zone requires it."""

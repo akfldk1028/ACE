@@ -17,10 +17,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from shapely.errors import GEOSException
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.design_space import delivered_void_band
+from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.source_geometry.ir import SourceMass
 
 
@@ -92,9 +94,42 @@ def _convexity_drop(shape: Polygon) -> float:
 
 
 def _void_ratio(shape: Polygon) -> float:
+    """Open ground this plan holds - counting only openings that are rooms.
+
+    A void is a place, and the same rule that decides whether a plate is a floor
+    decides whether a gap is a court: it has to hold a room. The project already
+    owns that rule at 2.4 m of clear depth, and it is applied here to the void
+    for the same reason it is applied to the mass - so that one measure of
+    habitable size answers both halves of the same question, rather than the
+    solid being held to a standard the void is not.
+
+    Without it the axis pays for fragmentation. A fan of thin leaves has a large
+    open area between the leaves and none of it is a room, and it collected the
+    grid's highest void reading on the live parcel while a courtyard block sat
+    below it. The archetypes the band edges are named after are untouched: a
+    court 30% of the side, two bars with a gap, an H, a cross - every opening in
+    them is many metres across, so their computed edges still mean what they
+    say.
+    """
+
     tightest = shape.minimum_rotated_rectangle
     area = float(tightest.area) if tightest is not None else 0.0
-    return 0.0 if area <= 1e-9 else max(0.0, 1.0 - float(shape.area) / area)
+    if area <= 1e-9:
+        return 0.0
+    gap = tightest.difference(shape)
+    if gap.is_empty:
+        return 0.0
+    radius = DEFAULT_MINIMUM_CLEAR_DEPTH_M / 2.0
+    try:
+        # Morphological opening: erode the gap by half a room's depth and grow
+        # it back. What survives is the part of the opening a room fits into;
+        # what disappears was a joint between two pieces, not a place.
+        rooms = gap.buffer(-radius, join_style=2).buffer(radius, join_style=2)
+    except GEOSException:
+        return 0.0
+    if rooms.is_empty:
+        return 0.0
+    return max(0.0, min(1.0, float(rooms.area) / area))
 
 
 def storeys_in(band_height_m: float, *, floor_height_m: float) -> int:

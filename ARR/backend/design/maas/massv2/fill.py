@@ -59,6 +59,10 @@ _TARGET_FLOOR = 0.75
 # Not zero: growth legitimately rounds a composition off a little. But a step
 # that costs a fifth of the move is buying area with the design.
 _ARTICULATION_KEPT = 0.80
+# A volume may run a little past the parcel's own storey count - a double-height
+# hall, a parapet - without becoming a stick. Past this it is not a tall room,
+# it is a different decision about where the building goes.
+_VOLUME_HEIGHT_SLACK = 1.25
 
 
 @dataclass(frozen=True)
@@ -166,6 +170,30 @@ def fill_to_site(
     taller = wider = 0
     reason = "reached_step_limit"
 
+    def _settled_to_parcel_height(form: MatrixForm) -> MatrixForm:
+        """No single volume taller than the storeys this parcel affords.
+
+        The whole-building ceiling is an average - floor area over projection -
+        so a scheme can sit under it while one thin piece of it shoots up, and
+        that is what a bundle of sticks on a plinth is. Refusing it by verb was
+        a patch: fields were stopped from growing upward, and the next sheet
+        came back with sticks made by `stack` on a split instead. The rule is
+        about the piece's height, not about which word produced it.
+
+        용적률 divided by 건폐율 again - the same number that bounds slenderness
+        and stops the growth loop. Uijeongbu affords 4.2 storeys, so a volume
+        past 12.5 m is going up where the parcel asked it to go out.
+        """
+
+        ceiling = storeys_allowed * storey * _VOLUME_HEIGHT_SLACK
+        tallest = max(
+            (item.z_span()[1] - item.z_span()[0] for item in form.additive()),
+            default=0.0,
+        )
+        if tallest <= ceiling or tallest <= 1e-6:
+            return form
+        return _taller(form, ceiling / tallest)
+
     def worth_taking(candidate: LegalFitResult) -> bool:
         """Lawful, larger, and still the same building.
 
@@ -202,6 +230,18 @@ def fill_to_site(
     # it, and nothing else pulls it down - eleven storeys on 45% of the ground
     # is entirely lawful here, so the legal fit has no reason to object. This is
     # the only place that says a tower is the wrong answer to a small footprint.
+    # No single volume taller than the storeys this parcel affords. The ceiling
+    # below is an average - floor area over projection - so a scheme can sit
+    # under it while one thin piece shoots up, and that is what a bundle of
+    # sticks on a plinth is. Refusing it by verb was a patch: fields were
+    # stopped from rising and the next sheet came back with sticks made by
+    # `stack` on a split instead. The rule is about a piece's height, not about
+    # which word produced it. Settled once here rather than refused inside the
+    # growth loop, where it made every scheme run all twenty-four steps.
+    settled_height = fit_to_site(_settled_to_parcel_height(current), site)
+    if settled_height.satisfied and settled_height.gross_floor_area_m2 > 0.0:
+        best, current = settled_height, settled_height.form
+
     standing = best.gross_floor_area_m2 / max(projected_ground_area(current), 1.0)
     if standing > storeys_allowed:
         settled = fit_to_site(_taller(current, storeys_allowed / standing), site)

@@ -213,15 +213,23 @@ def family_of(candidate: Candidate) -> str:
     the ranking changed: `hollow_market_arch` took the arch cell, then took two
     more, and the sixteen tiles read as nine buildings.
 
-    The geometry signature cannot police that, because it is what the coverage
-    variants legitimately differ in - growing a scheme wider and growing it
+    Both suffixes have to be cut, not just the coverage one. A siting copy is
+    the same composition standing somewhere else, and keeping `^off_open` in
+    the key made it a new family - so `plate_on_four_supports` printed twice on
+    one sheet, and `lifted_back_court` twice more.
+
+    The geometry signature cannot police that either, because it is what the
+    coverage variants legitimately differ in - growing a scheme wider and growing it
     taller both change its proportions, so its own copies stop matching it. The
     name the variants were derived from does not move, so that is what is
     remembered across cells. Within a cell the signature still rules, since
     there the question really is whether two drawings are one design.
     """
 
-    return candidate.form.name.split("~", 1)[0]
+    name = candidate.form.name
+    for mark in ("~", "^"):
+        name = name.split(mark, 1)[0]
+    return name
 
 
 def summary(chosen: list[Candidate], *, considered: int) -> dict[str, Any]:

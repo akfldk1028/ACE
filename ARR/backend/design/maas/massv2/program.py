@@ -233,6 +233,136 @@ def blended(
     return tuple(value / total for value in mixed)
 
 
+# 「청사 등의 표준 설계면적 기준」. Korean public procurement does not hand an
+# architect a room schedule someone invented - it computes one, and the
+# 설계공모지침서 for 파주 법원읍 prints the formulae in a column beside the
+# areas. Reproducing them here means a brief can be generated from a staff
+# count rather than transcribed.
+#
+# Checked against a document that was not used to write them: 효돈동's issued
+# schedule gives its 민원실 as 150.0 m², and the formula returns 150.1.
+DESK_M2_PER_STAFF = 7.2
+DESK_M2_PER_TEAM_LEADER = 7.65
+HEAD_OFFICE_M2 = 23.0
+COUNTER_M2_PER_STAFF = 6.55
+COUNTER_CIRCULATION = 1.1
+COUNTER_M2_PER_VISITOR = 0.15
+CANTEEN_M2_PER_HEAD = 1.63
+CANTEEN_SITTINGS = 0.3
+LOUNGE_M2_PER_HEAD = 2.0
+LOUNGE_SHARE = 0.15
+ARCHIVE_M2_PER_HEAD = 0.4
+STORE_M2_PER_HEAD = 0.85
+SERVER_M2_PER_KEEPER = 9.79
+SERVER_CIRCULATION = 1.2
+PLANT_SHARE_UNDER_3000 = 0.045
+# 공용면적 = (직무 + 부속 + 설비) × 30~40%. Note this is a share of the NET,
+# not of the gross - the same "30%" written against 연면적 in 효돈동's brief
+# means a different building, and mixing the two is the difference between a
+# 76.9% and a 70.0% net-to-gross.
+SHARED_SHARE_OF_NET = 0.30
+
+
+def _meeting_room_m2_per_head(people: int) -> float:
+    """회의실 원단위. Larger rooms need less floor a head, as the table says."""
+
+    if people < 25:
+        return 2.4
+    if people < 50:
+        return 1.5
+    if people < 100:
+        return 1.2
+    if people < 150:
+        return 1.0
+    return 0.9
+
+
+def _lavatory_m2_per_head(people: int) -> float:
+    if people < 100:
+        return 0.43
+    if people < 200:
+        return 0.40
+    return 0.33
+
+
+def civic_centre_schedule(
+    *,
+    name: str = "행정복지센터",
+    staff: int = 25,
+    team_leaders: int = 5,
+    counter_staff: int = 20,
+    daily_visitors: int = 200,
+    meeting_seats: int = 31,
+    hall_m2: float = 180.0,
+    programme_rooms_m2: float = 180.0,
+) -> Schedule:
+    """Compute a 행정복지센터 brief the way a Korean procurement office does.
+
+    Everything except the two community rooms comes off a head count. The hall
+    and the programme rooms do not, because nothing in the standard sizes them
+    - 파주 gave its 다목적강당 180 m² and its 문화교실 100+80, and the reason
+    written beside them is simply "3개 청사 사례".
+    """
+
+    people = staff + team_leaders + 1
+    rooms = [
+        Room("동장실", HEAD_OFFICE_M2, zone="private"),
+        Room("직원실(팀장)", DESK_M2_PER_TEAM_LEADER * team_leaders, zone="private"),
+        Room("직원실", DESK_M2_PER_STAFF * staff, zone="private"),
+        Room(
+            "종합민원실",
+            COUNTER_M2_PER_STAFF * counter_staff * COUNTER_CIRCULATION
+            + COUNTER_M2_PER_VISITOR * daily_visitors * 0.5,
+            zone="public",
+            needs_ground=True,
+            note=f"{{6.55×{counter_staff}×1.1}}+{{0.15×{daily_visitors}×0.5}}",
+        ),
+        Room(
+            "회의실",
+            _meeting_room_m2_per_head(meeting_seats) * meeting_seats,
+            zone="shared",
+        ),
+        Room("식당", CANTEEN_M2_PER_HEAD * people * CANTEEN_SITTINGS, zone="private"),
+        Room("휴게실", LOUNGE_M2_PER_HEAD * people * LOUNGE_SHARE, zone="private"),
+        Room("자료실", ARCHIVE_M2_PER_HEAD * people, kind="service", zone="service"),
+        Room("창고", STORE_M2_PER_HEAD * people, kind="service", zone="service"),
+        Room(
+            "전산실",
+            SERVER_M2_PER_KEEPER * SERVER_CIRCULATION,
+            kind="service",
+            zone="service",
+        ),
+        Room("다목적강당", hall_m2, kind="large_span", zone="public"),
+        Room("문화교실", programme_rooms_m2 / 2.0, count=2, zone="public"),
+    ]
+    net = sum(room.total_m2 for room in rooms)
+    rooms.append(Room(
+        "화장실",
+        _lavatory_m2_per_head(daily_visitors) * daily_visitors,
+        kind="service",
+        zone="service",
+        note=f"{_lavatory_m2_per_head(daily_visitors)}㎡×{daily_visitors}명",
+    ))
+    rooms.append(Room(
+        "공조기계실",
+        net * PLANT_SHARE_UNDER_3000,
+        kind="service",
+        zone="service",
+        note="연면적 3,000㎡ 이하 구간 4.5%",
+    ))
+
+    return Schedule(
+        name=name,
+        rooms=tuple(rooms),
+        building_type="업무시설",
+        notes=(
+            "「청사 등의 표준 설계면적 기준」 산식으로 생성",
+            f"공용면적은 순면적의 {SHARED_SHARE_OF_NET:.0%} (연면적 대비가 아님)",
+            "화장실 귀속: 부속공간이 아니라 서비스로 계상 — 자료마다 다르므로 고정함",
+        ),
+    )
+
+
 def resized_to(form, schedule: Schedule, *, weight: float):
     """Give the sentence's volumes the sizes the brief asks for.
 

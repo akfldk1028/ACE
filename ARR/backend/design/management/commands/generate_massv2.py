@@ -22,6 +22,7 @@ from design.maas.design_space import delivered_ground_take_band
 from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
+from design.maas.massv2 import postcondition
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.execute import execute as execute_parti
 from design.maas.massv2.grammar import parti_from_record
@@ -236,6 +237,7 @@ class Command(BaseCommand):
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
         implausible = 0
+        silent = 0
 
         for form in forms:
             filled = fill_to_site(form, site, allow_plan_growth=not options["no_fill"])
@@ -261,6 +263,24 @@ class Command(BaseCommand):
                 ),
                 floor_height_m=site.floor_height_m,
             )
+            # Did the sentence happen. A mass whose declared moves cannot be
+            # found in it is not a low-scoring option, it is a different
+            # building wearing the name of the one that was asked for.
+            spoken = postcondition.check(
+                fit.form,
+                source,
+                floor_height_m=site.floor_height_m,
+                parcel_area_m2=site.parcel_area_m2,
+            )
+            if not spoken.honest:
+                silent += 1
+                records.append({
+                    "name": form.name,
+                    "status": "silent_moves",
+                    "postcondition": spoken.evidence(),
+                })
+                continue
+
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m
             )
@@ -378,6 +398,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"compiled {len(renderable)}/{len(forms)}  "
-            f"unlawful {unlawful}  implausible {implausible}  cells {len(cells)}/16"
+            f"unlawful {unlawful}  implausible {implausible}  silent {silent}  "
+            f"cells {len(cells)}/16"
         )
         self.stdout.write(str(sheet))

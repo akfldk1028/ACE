@@ -138,7 +138,12 @@ def _split(frame: _Frame, op: Operation) -> None:
     type, and half of them begin by cutting it in two.
 
     The parts are unequal by default, because two equal masses do not occur in
-    built work.
+    built work - and unequal in height as well as in plan. Cutting a box into
+    a 62/38 pair of the same height and standing them flush produces a drawing
+    identical to the box: the division is in the data and not in the building,
+    and every later verb aimed at one half then acts on something nobody can
+    see. `stack` has refused equal tiers since it was written, quoting the same
+    corpus reading; the rule belongs to both verbs or to neither.
     """
 
     picked, rest = _scope(frame, op)
@@ -148,6 +153,9 @@ def _split(frame: _Frame, op: Operation) -> None:
     ux, uy = _direction(frame, op.params.get("along"))
     names = (str(op.params.get("first") or "part_a"), str(op.params.get("second") or "part_b"))
     gap = float(op.params.get("gap", 0.0)) * JOINT_CLEARANCE_M
+    # The lesser part is the lower one. Held at the tier contrast, so the two
+    # halves read as two volumes from any side rather than only in plan.
+    contrast = max(MIN_TIER_CONTRAST, float(op.params.get("contrast", MIN_TIER_CONTRAST)))
 
     made: list[Placement] = []
     for item in picked:
@@ -160,12 +168,13 @@ def _split(frame: _Frame, op: Operation) -> None:
             if size <= 0.5:
                 continue
             shift = side * (along - size) / 2.0
+            tall = (high - low) if size >= along / 2.0 else (high - low) / contrast
             made.append(
                 frame.box(
                     name,
                     w=size if abs(ux) >= abs(uy) else span_x,
                     d=span_y if abs(ux) >= abs(uy) else size,
-                    z=low, h=high - low,
+                    z=low, h=tall,
                     dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
                     dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
                     kind=item.kind,

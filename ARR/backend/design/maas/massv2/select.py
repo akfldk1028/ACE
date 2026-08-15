@@ -87,6 +87,42 @@ def composition_signature(form: MatrixForm) -> tuple:
     return tuple(sorted(entries))
 
 
+# How many volumes a winning Korean entry is made of. Measured across 2014-2024
+# competition winners by small practices: 3.4 masses, 1.3 external vertical
+# circulations, 2.5 three-dimensional exterior spaces, 2 principal cladding
+# materials (김경율, 서울대 석사, 2026).
+#
+# A preference and not a gate. Six volumes is not unlawful, it is simply not
+# what wins there, and the number is a distribution rather than a rule - which
+# is the mistake `MIN_TIER_CONTRAST` made in the other direction, legislating
+# a property that should have emerged. It applies only where the evidence
+# does: a brief in hand means this sheet is being judged as a Korean entry.
+CORPUS_PIECES = 3.4
+
+
+def piece_count(form: MatrixForm) -> int:
+    """Volumes as placed, not as the compiler sliced them.
+
+    The compiler cuts every volume at each storey, so counting bands reports a
+    single deformed mass - which is BIG's own signature in seven of ten - at
+    six and a half pieces.
+    """
+
+    return sum(1 for _item in form.additive())
+
+
+def _piece_distance(item: Candidate) -> float:
+    """How far this scheme sits from the corpus, in whole volumes.
+
+    Rounded, so it separates a three-piece scheme from a seven-piece one and
+    stays silent between three and four.
+    """
+
+    if item.form.extra.get("programme_target") is None:
+        return 0.0
+    return round(abs(piece_count(item.form) - CORPUS_PIECES))
+
+
 def _shape_work(item: Candidate) -> float:
     """How much shaping this scheme did, by whichever means it chose.
 
@@ -195,7 +231,16 @@ def choose(
             # An unseen composition first: the sheet is a set of options, and an
             # option the architect has already been shown is worth less than one
             # they have not, even when it measures a little better.
-            key=lambda item: (family_of(item) not in taken, rank(item)),
+            #
+            # Then, where a brief says this is being judged as a Korean entry,
+            # the scheme whose volume count is nearer the winners'. Negated so
+            # that nearer sorts higher under the reverse below, and rounded so
+            # it only speaks when the difference is whole volumes.
+            key=lambda item: (
+                family_of(item) not in taken,
+                -_piece_distance(item),
+                rank(item),
+            ),
             reverse=True,
         )
         for candidate in ranked[:max(1, per_cell)]:

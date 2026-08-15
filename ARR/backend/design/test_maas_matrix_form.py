@@ -29,7 +29,14 @@ from design.maas.massv2.plausibility import (
     slenderness_limit,
     unlit_share,
 )
-from design.maas.massv2.select import OBJECTIVES, Candidate, choose
+from design.maas.massv2.select import (
+    CORPUS_PIECES,
+    OBJECTIVES,
+    Candidate,
+    _piece_distance,
+    choose,
+    piece_count,
+)
 from design.maas.massv2.structure import CANTILEVER_BACKSPAN_RATIO, assess_standing
 
 
@@ -641,3 +648,77 @@ class DaylightSaysHowDeepTests(SimpleTestCase):
         )
 
         self.assertFalse(any("daylight" in reason for reason in verdict.reasons))
+
+
+class TheCorpusSaysHowManyVolumesTests(SimpleTestCase):
+    """Measured across 2014-2024 Korean competition winners: 3.4 masses.
+
+    A preference and not a gate. Six volumes is not unlawful, it is simply not
+    what wins there, and 3.4 is a distribution rather than a rule - which is the
+    mistake `MIN_TIER_CONTRAST` made in the other direction, legislating a
+    property that should have emerged. So it only speaks where the evidence
+    does: with a brief in hand, meaning the sheet is judged as a Korean entry.
+    """
+
+    def _candidate(self, name, count, *, briefed):
+        placements = [
+            place(f"v{i}", size=(10.0, 10.0, 6.0), at=(i * 14.0, 0.0, 0.0))
+            for i in range(count)
+        ]
+        form = MatrixForm(
+            name=name,
+            placements=tuple(placements),
+            primary_language="test",
+            extra={"programme_target": 1000.0} if briefed else {},
+        )
+        source = compile_matrix_form(form, storey_height_m=3.0)
+        return Candidate(
+            form=form, source=source, measurement=measure_form(source),
+            plausibility=plausibility_of(
+                source, parcel_area_m2=2499.69, max_slenderness=5.0
+            ),
+            cell="base|solid_body", ground_take=0.4, far_utilization=0.5,
+        )
+
+    def test_pieces_are_counted_as_placed_not_as_sliced(self):
+        """One deformed volume is one piece however many bands it compiles to.
+
+        Under the legal clip the compiler cuts a volume at each storey, because
+        the 정북일조 envelope gives every storey a different plan - which is how
+        counting bands reported BIG's own signature, a single deformed volume in
+        seven of ten projects, at six and a half pieces.
+        """
+
+        one = MatrixForm(
+            name="one deformed volume",
+            placements=(place("body", size=(30.0, 20.0, 15.0)),),
+            primary_language="test",
+        )
+        three = MatrixForm(
+            name="three",
+            placements=tuple(
+                place(f"v{i}", size=(10.0, 10.0, 6.0), at=(i * 12.0, 0.0, 0.0))
+                for i in range(3)
+            ),
+            primary_language="test",
+        )
+
+        self.assertEqual(piece_count(one), 1)
+        self.assertEqual(piece_count(three), 3)
+
+    def test_a_brief_prefers_the_scheme_nearer_the_winners(self):
+        near = self._candidate("near", 3, briefed=True)
+        far = self._candidate("far", 9, briefed=True)
+
+        # The gate is not what is under test here - these are synthetic
+        # volumes standing apart, which connectivity refuses and should.
+        chosen = choose([far, near], per_cell=1, require_occupiable=False)
+
+        self.assertEqual([item.form.name for item in chosen], ["near"])
+
+    def test_without_a_brief_the_count_says_nothing(self):
+        near = self._candidate("near", 3, briefed=False)
+        far = self._candidate("far", 9, briefed=False)
+
+        self.assertEqual(_piece_distance(near), 0.0)
+        self.assertEqual(_piece_distance(far), 0.0)

@@ -363,7 +363,7 @@ def civic_centre_schedule(
     )
 
 
-def resized_to(form, schedule: Schedule, *, weight: float):
+def resized_to(form, schedule: Schedule, *, weight: float, storey_height_m: float = 3.0):
     """Give the sentence's volumes the sizes the brief asks for.
 
     The composition is untouched: every volume keeps its place, its height and
@@ -428,7 +428,13 @@ def resized_to(form, schedule: Schedule, *, weight: float):
         centre = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
         placements[index] = _scaled_in_plan(item, factor, centre)
 
-    return _replace(form, placements=tuple(placements))
+    # Tell the growth loop a brief exists and how large it asks the building to
+    # be. Without this it grows toward the statutory ceiling, which is a
+    # ceiling and not a target - and overshooting the 면적표 by more than five
+    # percent costs marks before a juror has looked at the drawing.
+    extra = {**dict(form.extra), "programme_target": schedule.gross_m2}
+    return _replace(form, placements=tuple(placements), extra=extra)
+
 
 
 __all__ = [

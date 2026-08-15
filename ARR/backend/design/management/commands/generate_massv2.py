@@ -245,7 +245,9 @@ class Command(BaseCommand):
                 if built is not None:
                     if schedule is not None:
                         built = programme.resized_to(
-                            built, schedule, weight=options["program_weight"]
+                            built, schedule,
+                            weight=options["program_weight"],
+                            storey_height_m=site.floor_height_m,
                         )
                     written.append(built)
             forms.extend(written)
@@ -306,7 +308,18 @@ class Command(BaseCommand):
         implausible = 0
 
         for form in forms:
-            filled = fill_to_site(form, site, allow_plan_growth=not options["no_fill"])
+            # A brief asks for a size; the law only forbids one. Growth aims at
+            # whichever of the two the scheme actually has.
+            wanted = form.extra.get("programme_target")
+            filled = fill_to_site(
+                form,
+                site,
+                allow_plan_growth=not options["no_fill"],
+                target_utilization=(
+                    float(wanted) / max(site.far_capacity_m2, 1e-9)
+                    if wanted else None
+                ),
+            )
             fit = filled.fit
             # The same clip the legal fit measured through. Compiling without
             # it is how the sheet came to print 용적률 of 1.52 on a run the fit

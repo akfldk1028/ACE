@@ -173,7 +173,15 @@ def fill_to_site(
         else target_utilization if target_utilization is not None
         else _DEFAULT_TARGET
     )
-    share = max(_TARGET_FLOOR, min(1.0, share))
+    # The floor exists for the case where nothing says how large the building
+    # should be, and it is the wrong assumption the moment something does. A
+    # brief does: Korean competition winners include a 청년문화센터 at 7.88%
+    # 건폐율 and a 커뮤니티센터 at 6.94%, and the schedule those buildings were
+    # asked for is the reason. A statutory ceiling is a ceiling, not a target -
+    # and 면적표 is judged the other way, with 연면적 over the brief by more
+    # than 5% costing marks and enough of it disqualifying the entry.
+    briefed = form.extra.get("programme_target") is not None
+    share = min(1.0, share) if briefed else max(_TARGET_FLOOR, min(1.0, share))
     capacity = capacity * share
 
     current = best.form

@@ -389,7 +389,17 @@ def large_span_strategy(source, *, storey_height_m: float) -> str:
     if height <= 0.0:
         return "base"
 
-    hall = max(volumes, key=lambda v: float(v.footprint.area))
+    # By volume, not by plan area. `stack` overlaps its tiers by 2% to avoid a
+    # degenerate boolean, and the compiler cuts that overlap out as a band a
+    # tenth of a metre thick - which has almost the full plan area of the tier
+    # it came from. Picking on area alone chose those slivers as the hall, and
+    # a sliver sits at a tier boundary, so every stacked scheme classified as
+    # `middle` and no sentence in 888 could reach `crown`.
+    hall = max(
+        volumes,
+        key=lambda v: float(v.footprint.area)
+        * max(0.0, v.top_fraction - v.bottom_fraction),
+    )
 
     # 별동 means a volume standing apart at its own level, not a fragment
     # floating free. SMR's workshop and studies are separate blocks with a yard

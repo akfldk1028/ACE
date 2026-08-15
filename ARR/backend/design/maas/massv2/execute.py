@@ -245,8 +245,16 @@ def _stack(frame: _Frame, op: Operation) -> None:
     w, d = frame.width, frame.depth
     z = 0.0
     for index in range(count):
+        # Tiers meet on a shared face, they do not overlap. Overlapping them by
+        # 2% is what you do to keep a boolean kernel out of a degenerate case,
+        # and this pipeline has no kernel: `compile` cuts bands at the z values
+        # the volumes declare, so a 2% overlap declared one extra band per joint
+        # carrying the lower tier's plan - a 0.16 m slice of a 8 m tier. The
+        # renderer drew each as a false eaves line, so every stacked scheme read
+        # as a pancake, and `large_span_strategy` read those slices as candidate
+        # halls until it was taught to weigh volume instead of plan.
         frame.placements.append(
-            frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h * 1.02,
+            frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h,
                       dx=ux * (frame.width - w) / 2.0,
                       dy=uy * (frame.depth - d) / 2.0)
         )

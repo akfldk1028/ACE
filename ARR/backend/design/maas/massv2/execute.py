@@ -223,6 +223,17 @@ def _stack(frame: _Frame, op: Operation) -> None:
 
     count = int(_clamp(float(op.params.get("n", 3)), 2, 6))
     contrast = max(MIN_TIER_CONTRAST, float(op.params.get("contrast", 1.35)))
+    # Which way the tiers change size. The corpus rule is that tiers are never
+    # equal, not that they always get smaller: Vancouver House grows floor by
+    # floor once it clears the bridge, and Korean briefs put the assembly hall
+    # on the top storey - 만수6동's says so in as many words - where a long-span
+    # roof costs least because nothing has to be carried over it.
+    #
+    # Shrinking upward was hard-coded, so the largest volume was always the
+    # bottom one and "hall on top" was unbuildable. The strategy axis reported
+    # zero `crown` schemes out of 888 candidates for that reason alone.
+    if bool(op.params.get("grow")):
+        contrast = 1.0 / contrast
     share = _clamp(float(op.params.get("height", 1.0)), 0.1, 1.0)
     tier_h = frame.height * share / count
     # Which face stays flush as the tiers shrink. Centred is a wedding cake -

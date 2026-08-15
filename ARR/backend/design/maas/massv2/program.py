@@ -233,12 +233,81 @@ def blended(
     return tuple(value / total for value in mixed)
 
 
+def resized_to(form, schedule: Schedule, *, weight: float):
+    """Give the sentence's volumes the sizes the brief asks for.
+
+    The composition is untouched: every volume keeps its place, its height and
+    its neighbours, and only its plan is scaled about its own centre until the
+    volumes stand in the proportions the schedule implies. That is the division
+    the two tracks were meant to have - the parti still says which operations
+    and where they aim, and the brief says how much of the building each one
+    holds.
+
+    Ordered largest-first before matching, because the schedule's own order is
+    largest-first: a 400 m² hall is the biggest thing in the brief and should
+    land on the biggest thing in the sentence rather than on whichever volume
+    happens to be written first.
+    """
+
+    from .legal_fit import _scaled_in_plan
+
+    placements = list(form.placements)
+    additive = [
+        (index, item) for index, item in enumerate(placements)
+        if item.kind == "additive"
+    ]
+    if not additive or weight <= 0.0:
+        return form
+
+    def size_of(item):
+        corners = item.corners()
+        xs = [x for x, _y, _z in corners]
+        ys = [y for _x, y, _z in corners]
+        low, high = item.z_span()
+        return (max(xs) - min(xs)) * (max(ys) - min(ys)) * max(0.0, high - low)
+
+    sizes = [size_of(item) for _index, item in additive]
+    total = sum(sizes) or 1.0
+    current = tuple(value / total for value in sizes)
+
+    order = sorted(range(len(additive)), key=lambda i: sizes[i], reverse=True)
+    wanted = volume_shares(schedule, pieces=len(additive))
+    if not wanted:
+        return form
+    # Match the brief's largest to the sentence's largest.
+    aligned = [0.0] * len(additive)
+    for rank, position in enumerate(order):
+        aligned[position] = wanted[rank] if rank < len(wanted) else 0.0
+    if sum(aligned) <= 0.0:
+        return form
+
+    target = blended(current, tuple(aligned), weight=weight)
+
+    from dataclasses import replace as _replace
+
+    for slot, (index, item) in enumerate(additive):
+        share = target[slot] if slot < len(target) else current[slot]
+        if current[slot] <= 1e-9 or share <= 1e-9:
+            continue
+        # Plan only: the schedule says how much floor a room needs, and height
+        # is the storey count, which the legal fit and the growth loop own.
+        factor = (share / current[slot]) ** 0.5
+        corners = item.corners()
+        xs = [x for x, _y, _z in corners]
+        ys = [y for _x, y, _z in corners]
+        centre = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+        placements[index] = _scaled_in_plan(item, factor, centre)
+
+    return _replace(form, placements=tuple(placements))
+
+
 __all__ = [
     "CLEAR_HEIGHT_M",
     "GROSS_UP",
     "Room",
     "Schedule",
     "blended",
+    "resized_to",
     "schedule_from_record",
     "volume_shares",
 ]

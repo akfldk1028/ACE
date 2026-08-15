@@ -1,0 +1,124 @@
+{
+  "note": "실제 설계공모지침서에서 옮긴 소요실 면적표. 지어낸 숫자 없음. 출처는 각 항목의 source.",
+  "unit_area_m2_per_person": {
+    "static_wait": 1.2,
+    "lecture_multipurpose": 1.8,
+    "active": 3.3,
+    "source": "부산 우암동·용당동 복합청사 설계공모지침서 산출근거 열"
+  },
+  "shared_area_share_of_gross": {
+    "min": 0.30,
+    "max": 0.35,
+    "source": "효돈동/만수6동/용당동/고전면 지침서 — '공용부는 최소 30% 이상', '연면적의 35% 내외'"
+  },
+  "schedules": [
+    {
+      "name": "효돈동 주민센터",
+      "building_type": "제1종근린생활시설",
+      "source": "제주 서귀포시 효돈동 주민청사 설계지침서 (나라장터 R26BK01488425) — 층별 ㎡까지 배분된 완전한 표",
+      "site": {"parcel_m2": 1774, "zone": "준주거+제2종일반주거", "storeys": "지하1/지상3", "gross_m2": 1600},
+      "notes": [
+        "대회의실 천정고 최소 4m 이상 (지침 원문)",
+        "공용부는 최소 30% 이상 설계",
+        "일시에 다중이 모이는 공간은 피난층과 인접 배치"
+      ],
+      "rooms": [
+        {"name": "민원실", "area_m2": 150.0, "zone": "public", "needs_ground": true, "note": "상주 20명"},
+        {"name": "동장실", "area_m2": 28.5, "zone": "private"},
+        {"name": "복지상담실", "area_m2": 13.5, "zone": "public"},
+        {"name": "소회의실", "area_m2": 35.0, "zone": "shared"},
+        {"name": "창고·전산실", "area_m2": 22.0, "kind": "service", "zone": "service"},
+        {"name": "주민등록창고", "area_m2": 17.0, "kind": "service", "zone": "service"},
+        {"name": "민방위장비실", "area_m2": 12.0, "kind": "service", "zone": "service"},
+        {"name": "탕비실", "area_m2": 12.0, "zone": "private"},
+        {"name": "동민대화의방", "area_m2": 25.0, "zone": "public"},
+        {"name": "모유수유실", "area_m2": 12.0, "zone": "public"},
+        {"name": "환경미화휴게실", "area_m2": 35.0, "zone": "private"},
+        {"name": "다목적실(중회의실)", "area_m2": 105.0, "zone": "public"},
+        {"name": "프로그램실", "area_m2": 40.0, "count": 2, "zone": "public", "note": "가변형 2개소"},
+        {"name": "휴게실", "area_m2": 20.0, "zone": "shared"},
+        {"name": "문서고", "area_m2": 45.0, "kind": "service", "zone": "service"},
+        {"name": "대회의실", "area_m2": 210.0, "kind": "large_span", "zone": "public", "note": "천정고 최소 4m, 집회·문화공연 다목적"},
+        {"name": "예비군동대", "area_m2": 45.0, "zone": "private"},
+        {"name": "주민자치위원실", "area_m2": 25.0, "zone": "shared"},
+        {"name": "일반·재난·환경장비창고", "area_m2": 95.0, "kind": "service", "zone": "service", "note": "지하1층"},
+        {"name": "기계실·펌프실", "area_m2": 95.0, "kind": "service", "zone": "service", "note": "지하1층"}
+      ]
+    },
+    {
+      "name": "정관산단 청년문화센터",
+      "building_type": "제2종근린생활시설",
+      "source": "부산 기장군 정관산단 청년문화센터 설계공모 (making.busan.go.kr no.104) — 층고를 수치로 못박은 드문 사례",
+      "site": {"parcel_m2": 2000, "zone": "자연녹지", "storeys": "지상4", "gross_m2": 1287, "bcr_limit": 20, "far_limit": 80},
+      "notes": [
+        "다목적문화강당(실내체육관) 층고 5.5m 이상 (지침 원문)",
+        "실내체육시설 층고 3.5m 이상",
+        "연면적 1,287㎡ ±3%",
+        "대공간 하나가 연면적의 23~31%이고 건폐율 상한 400㎡와 거의 같아, 이 실이 바닥판 전체를 정의함"
+      ],
+      "rooms": [
+        {"name": "다목적문화강당(실내체육관)", "area_m2": 350.0, "kind": "large_span", "zone": "public", "note": "지침 300~400㎡, 층고 5.5m 이상"},
+        {"name": "실내체육시설(헬스장)", "area_m2": 122.4, "kind": "large_span", "zone": "public", "note": "층고 3.5m 이상"},
+        {"name": "문화라운지", "area_m2": 120.0, "zone": "public", "needs_ground": true},
+        {"name": "근린생활(카페·편의점)", "area_m2": 90.0, "zone": "public", "needs_ground": true},
+        {"name": "비즈니스센터(업무)", "area_m2": 180.0, "zone": "private"},
+        {"name": "동아리·프로그램실", "area_m2": 45.0, "count": 3, "zone": "public"},
+        {"name": "기계·전기실", "area_m2": 60.0, "kind": "service", "zone": "service"}
+      ]
+    },
+    {
+      "name": "우암동 복합청사",
+      "building_type": "제1종근린생활시설",
+      "source": "부산 남구 우암동 복합청사 설계공모지침서 (making.busan.go.kr no.21) — 면적 산출 공식이 노출된 사례",
+      "site": {"parcel_m2": 837, "zone": "제2종일반주거", "storeys": "지하1/지상6", "gross_m2": 1799},
+      "notes": [
+        "행정복지센터는 지역주민 진입이 용이하도록 저층에 배치",
+        "건강생활지원센터는 노인 이용 편의를 고려해 높은 층에 배치하지 않도록",
+        "지하층은 가능하나 제시된 공사비 이내에서",
+        "실제 당선작에서는 1층을 주차장에 내주면서 위 지침이 관철되지 못하고 건강생활지원센터가 4~6층으로 갔음"
+      ],
+      "rooms": [
+        {"name": "행정복지센터", "area_m2": 280.0, "zone": "public", "needs_ground": true, "note": "상담실 15↑, 동장실 25↑, 민원실 개방형"},
+        {"name": "다목적홀", "area_m2": 105.0, "kind": "large_span", "zone": "public", "note": "이동식 무대, 빔프로젝트"},
+        {"name": "주민자율공간(방음)", "area_m2": 150.0, "kind": "large_span", "zone": "public", "note": "방음·음향·거울·무빙월"},
+        {"name": "공동체부엌", "area_m2": 50.0, "zone": "public"},
+        {"name": "마주침공간", "area_m2": 50.0, "zone": "public"},
+        {"name": "동아리방", "area_m2": 30.0, "zone": "shared"},
+        {"name": "프로그램실", "area_m2": 90.0, "zone": "public", "note": "50인 × 1.8㎡/인"},
+        {"name": "건강관리실", "area_m2": 36.0, "zone": "public", "note": "30인 × 1.2㎡/인"},
+        {"name": "건강체험실", "area_m2": 54.0, "zone": "public", "note": "30인 × 1.8㎡/인"},
+        {"name": "운동프로그램실", "area_m2": 66.0, "kind": "large_span", "zone": "public", "note": "20인 × 3.3㎡/인"},
+        {"name": "치매환자쉼터", "area_m2": 66.0, "zone": "public"},
+        {"name": "재활실", "area_m2": 35.0, "zone": "public", "note": "10인 × 3.3㎡/인"},
+        {"name": "기계·전기실", "area_m2": 70.0, "kind": "service", "zone": "service"}
+      ]
+    },
+    {
+      "name": "영도구 가족생활지원시설",
+      "building_type": "제1종근린생활시설",
+      "source": "부산 영도구 가족생활지원시설 과업지시서 (making.busan.go.kr no.67)",
+      "site": {"parcel_m2": 912, "zone": "제2종일반주거", "storeys": "지하1/지상4", "gross_m2": 2475, "height_m": 17.5},
+      "notes": [
+        "공용면적은 바닥면적의 30~35%를 최대한 확보",
+        "작은도서관과 육아종합지원센터는 1,2층 등 저층에 배치",
+        "1층을 조경시설을 포함한 놀이공간으로 조성",
+        "주차 22대 — 공영주차장 폐지 보상. 최우수작 10대·우수작 14대였고 당선작만 22대"
+      ],
+      "rooms": [
+        {"name": "다목적 가족소통공간", "area_m2": 250.0, "kind": "large_span", "zone": "public", "note": "필수면적, 최대 단일실"},
+        {"name": "놀이체험실", "area_m2": 220.0, "kind": "large_span", "zone": "public", "note": "2개층 오픈"},
+        {"name": "가족센터 사무실", "area_m2": 110.0, "zone": "private"},
+        {"name": "육아종합지원센터 사무실", "area_m2": 90.0, "zone": "private", "needs_ground": true},
+        {"name": "프로그램실1", "area_m2": 90.0, "zone": "public"},
+        {"name": "프로그램실2", "area_m2": 60.0, "zone": "public"},
+        {"name": "프로그램실3", "area_m2": 60.0, "zone": "public"},
+        {"name": "언어실", "area_m2": 50.0, "zone": "public"},
+        {"name": "상담실", "area_m2": 100.0, "zone": "public"},
+        {"name": "공동육아나눔터", "area_m2": 99.0, "zone": "public"},
+        {"name": "수유실", "area_m2": 30.0, "zone": "public"},
+        {"name": "작은도서관", "area_m2": 100.0, "zone": "public", "needs_ground": true},
+        {"name": "창고", "area_m2": 30.0, "kind": "service", "zone": "service"}
+      ]
+    }
+  ]
+}

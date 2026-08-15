@@ -23,6 +23,7 @@ from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2 import postcondition
+from design.maas.massv2 import program as programme
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.execute import execute as execute_parti
 from design.maas.massv2.grammar import parti_from_record
@@ -89,6 +90,27 @@ class Command(BaseCommand):
                 "Draw N sentences from the parcel itself rather than from a file. "
                 "Magnitudes and reasons are read off this site's own limits, so "
                 "the vocabulary is not inherited from the parcel it was written on."
+            ),
+        )
+        parser.add_argument(
+            "--program-json",
+            help=(
+                "A 실별 소요면적표 file. The sentence still says which operations "
+                "and where they aim; the schedule says how much of the building "
+                "each volume holds."
+            ),
+        )
+        parser.add_argument(
+            "--program-name",
+            help="Which schedule in the file to use. Defaults to the first.",
+        )
+        parser.add_argument(
+            "--program-weight",
+            type=float,
+            default=1.0,
+            help=(
+                "0 leaves the sentence's own proportions, 1 hands the volume "
+                "sizes to the schedule, between the two mixes them."
             ),
         )
         parser.add_argument(
@@ -160,6 +182,25 @@ class Command(BaseCommand):
             forms.extend(item for item in authored if item is not None)
             self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
 
+        schedule = None
+        if options["program_json"]:
+            book = json.loads(Path(options["program_json"]).read_text(encoding="utf-8"))
+            wanted = options["program_name"]
+            for record in book.get("schedules") or ():
+                if wanted is None or record.get("name") == wanted:
+                    schedule = programme.schedule_from_record(record)
+                    break
+            if schedule is None:
+                raise CommandError("no schedule matched")
+            self.stdout.write(json.dumps(
+                {k: v for k, v in schedule.evidence().items() if k != "rooms"},
+                ensure_ascii=False,
+            ))
+            self.stdout.write(
+                f"programme weight {options['program_weight']}  "
+                f"fits FAR: {schedule.fits(far_capacity_m2=site.far_capacity_m2)}"
+            )
+
         if options["parti_json"] or options["sample"]:
             buildable = site.plan_at(0.0)
             axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
@@ -202,6 +243,10 @@ class Command(BaseCommand):
                     storey_height_m=site.floor_height_m,
                 )
                 if built is not None:
+                    if schedule is not None:
+                        built = programme.resized_to(
+                            built, schedule, weight=options["program_weight"]
+                        )
                     written.append(built)
             forms.extend(written)
             self.stdout.write(

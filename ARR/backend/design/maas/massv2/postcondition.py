@@ -141,7 +141,10 @@ def changed_share(before: SourceMass | None, after: SourceMass | None) -> float:
 def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_height_m=None) -> Verdict:
     """Run the sentence one word at a time and find the words that did nothing."""
 
-    steps = execute_steps(parti, buildable=buildable, axis=axis, height_m=height_m)
+    steps = execute_steps(
+        parti, buildable=buildable, axis=axis, height_m=height_m,
+        storey_height_m=storey_height_m or 0.0,
+    )
     declared = tuple(op.verb for op in parti.ops)
     if not steps:
         return Verdict(declared, declared, ())

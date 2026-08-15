@@ -92,7 +92,8 @@ class Command(BaseCommand):
             if parti is None:
                 continue
             steps = execute_steps(
-                parti, buildable=buildable, axis=axis, height_m=height
+                parti, buildable=buildable, axis=axis, height_m=height,
+                storey_height_m=site.floor_height_m,
             )
             if not steps:
                 continue

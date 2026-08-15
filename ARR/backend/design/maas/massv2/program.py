@@ -1,0 +1,244 @@
+"""The rooms the building is asked to hold, and what they do to its mass.
+
+Two things make a mass, and this package has only ever had one of them. The
+form language says which operations and where they aim; nothing said what is
+inside. So every volume was the same kind of thing and the only reason one
+could be larger than another was a ratio the corpus fixed - which is why the
+hierarchy had to be legislated (`MIN_TIER_CONTRAST`) instead of arriving on its
+own, and why thirty-six sentences from three offices whose work looks nothing
+alike came out at four to six comparable pieces each.
+
+A room schedule gives it for free. A 주민센터 with a 400 m² 다목적실 and a
+60 m² 사무실 has a dominant volume because the brief has one, and the large room
+needs six metres of clear height where the others need three, which decides
+what can sit above what. In Korean competition practice that schedule is not a
+designer's choice at all: the 공모지침서 issues 실별 소요면적표 and the entry is
+judged partly on matching it.
+
+This module is the second track. It does not replace the form language - a
+parti still says stack, shear, carve and where - it supplies the metres those
+verbs act on, so the same sentence can be run form-first or programme-first or
+anywhere between.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any, Literal
+
+
+RoomKind = Literal["large_span", "normal", "service"]
+Zone = Literal["public", "shared", "private", "service"]
+
+
+# Clear height a room of each kind needs, before structure. A 다목적실 or
+# 체육실 is not a tall normal room, it is a different decision about where it
+# can go: nothing sits above it cheaply, and it cannot sit on a normal grid.
+CLEAR_HEIGHT_M: dict[str, float] = {
+    "large_span": 6.0,
+    "normal": 2.7,
+    "service": 2.4,
+}
+
+# What a floor costs on top of its rooms: circulation, walls, cores, plant.
+# Korean 공모지침서 usually issue 소요면적 as net, and the 연면적 in the
+# 건축개요 is gross, so a proposal that stacks net areas is short by this much.
+GROSS_UP = 1.35
+
+
+@dataclass(frozen=True)
+class Room:
+    """One line of the 실별 소요면적표."""
+
+    name: str
+    area_m2: float
+    count: int = 1
+    kind: RoomKind = "normal"
+    zone: Zone = "shared"
+    # A room the brief says must be reachable without passing through the rest
+    # of the building - a 주민센터's 민원실, a library's 어린이실 - which is a
+    # reason for it to be on the ground floor rather than a preference.
+    needs_ground: bool = False
+    note: str = ""
+
+    @property
+    def total_m2(self) -> float:
+        return self.area_m2 * max(1, self.count)
+
+    @property
+    def clear_height_m(self) -> float:
+        return CLEAR_HEIGHT_M[self.kind]
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "area_m2": round(self.area_m2, 1),
+            "count": self.count,
+            "total_m2": round(self.total_m2, 1),
+            "kind": self.kind,
+            "zone": self.zone,
+            "needs_ground": self.needs_ground,
+        }
+
+
+@dataclass(frozen=True)
+class Schedule:
+    """A 실별 소요면적표, and what it implies about the building."""
+
+    name: str
+    rooms: tuple[Room, ...]
+    building_type: str = "제1종근린생활시설"
+    notes: tuple[str, ...] = field(default_factory=tuple)
+
+    @property
+    def net_m2(self) -> float:
+        return sum(room.total_m2 for room in self.rooms)
+
+    @property
+    def gross_m2(self) -> float:
+        """연면적 the schedule implies once circulation and structure are in."""
+
+        return self.net_m2 * GROSS_UP
+
+    def of_kind(self, kind: RoomKind) -> tuple[Room, ...]:
+        return tuple(room for room in self.rooms if room.kind == kind)
+
+    @property
+    def large_span_m2(self) -> float:
+        return sum(room.total_m2 for room in self.of_kind("large_span"))
+
+    def dominance(self) -> float:
+        """What share of the building its largest single room is.
+
+        This is the number the form language had to invent. A brief with a
+        400 m² hall among 60 m² offices has a dominant volume before anybody
+        draws anything; a brief of twenty equal classrooms does not, and no
+        amount of tier contrast should manufacture one.
+        """
+
+        if not self.rooms:
+            return 1.0
+        largest = max(room.area_m2 for room in self.rooms)
+        return largest / max(self.net_m2, 1e-9)
+
+    def storeys_needed(self, *, ground_capacity_m2: float) -> float:
+        """How many floors this schedule needs on the ground the law allows."""
+
+        return self.gross_m2 / max(ground_capacity_m2, 1e-9)
+
+    def fits(self, *, far_capacity_m2: float) -> bool:
+        return self.gross_m2 <= far_capacity_m2 + 1e-6
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "schema_version": "arr.maas.massv2_program.v1",
+            "name": self.name,
+            "building_type": self.building_type,
+            "room_count": len(self.rooms),
+            "net_m2": round(self.net_m2, 1),
+            "gross_m2": round(self.gross_m2, 1),
+            "large_span_m2": round(self.large_span_m2, 1),
+            "dominance": round(self.dominance(), 3),
+            "rooms": [room.evidence() for room in self.rooms],
+        }
+
+
+def schedule_from_record(record: dict[str, Any]) -> Schedule | None:
+    """Read a 소요면적표 as issued. Unknown room kinds are normal rooms."""
+
+    rooms: list[Room] = []
+    for item in record.get("rooms") or ():
+        try:
+            area = float(item.get("area_m2"))
+        except (TypeError, ValueError):
+            continue
+        if area <= 0.0:
+            continue
+        kind = str(item.get("kind") or "normal")
+        rooms.append(Room(
+            name=str(item.get("name") or "실"),
+            area_m2=area,
+            count=int(item.get("count") or 1),
+            kind=kind if kind in CLEAR_HEIGHT_M else "normal",
+            zone=str(item.get("zone") or "shared"),  # type: ignore[arg-type]
+            needs_ground=bool(item.get("needs_ground")),
+            note=str(item.get("note") or ""),
+        ))
+    if not rooms:
+        return None
+    return Schedule(
+        name=str(record.get("name") or "unnamed"),
+        rooms=tuple(rooms),
+        building_type=str(record.get("building_type") or "제1종근린생활시설"),
+        notes=tuple(str(n) for n in (record.get("notes") or ())),
+    )
+
+
+def volume_shares(schedule: Schedule, *, pieces: int) -> tuple[float, ...]:
+    """Split the schedule into as many volumes as the sentence has, by area.
+
+    The large-span rooms come first and stay whole - a hall cannot be divided
+    between two volumes and still be a hall - and what is left is grouped by
+    zone so the remainder splits along a line the brief already draws rather
+    than an arbitrary one. Returned as shares of the whole so the executor can
+    keep owning the metres.
+    """
+
+    if pieces <= 0 or not schedule.rooms:
+        return ()
+
+    large = sorted(
+        (room.total_m2 for room in schedule.of_kind("large_span")), reverse=True
+    )
+    rest = schedule.net_m2 - sum(large)
+
+    groups = list(large[:pieces])
+    remaining = pieces - len(groups)
+    if remaining > 0 and rest > 0.0:
+        # The rest of the brief, split evenly among the volumes left. Evenly
+        # here is honest: nothing in the schedule says how the small rooms
+        # divide, so the sentence decides, and the caller may still modulate.
+        groups.extend([rest / remaining] * remaining)
+    if not groups:
+        return ()
+    total = sum(groups)
+    return tuple(value / total for value in groups)
+
+
+def blended(
+    authored: tuple[float, ...],
+    programme: tuple[float, ...],
+    *,
+    weight: float,
+) -> tuple[float, ...]:
+    """Mix what the sentence asked for with what the brief requires.
+
+    `weight` 0 leaves the form language alone, 1 hands the sizes to the room
+    schedule, and between the two the brief pulls the authored proportions
+    toward itself. The two tracks are meant to run separately and to be mixed,
+    so this is a dial rather than a mode.
+    """
+
+    if not authored:
+        return programme
+    if not programme:
+        return authored
+    share = max(0.0, min(1.0, weight))
+    paired = list(zip(authored, programme))
+    mixed = [one * (1.0 - share) + two * share for one, two in paired]
+    # Anything the sentence has beyond what the brief describes keeps its own
+    # size, scaled down by whatever the mix already spent.
+    mixed.extend(value * (1.0 - share) for value in authored[len(paired):])
+    total = sum(mixed) or 1.0
+    return tuple(value / total for value in mixed)
+
+
+__all__ = [
+    "CLEAR_HEIGHT_M",
+    "GROSS_UP",
+    "Room",
+    "Schedule",
+    "blended",
+    "schedule_from_record",
+    "volume_shares",
+]

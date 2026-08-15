@@ -198,7 +198,8 @@ class Command(BaseCommand):
                     mute.append((parti.name, spoken))
                     continue
                 built = execute_parti(
-                    parti, buildable=buildable, axis=axis, height_m=authored_height
+                    parti, buildable=buildable, axis=axis, height_m=authored_height,
+                    storey_height_m=site.floor_height_m,
                 )
                 if built is not None:
                     written.append(built)

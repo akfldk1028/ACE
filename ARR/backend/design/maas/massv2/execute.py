@@ -44,12 +44,25 @@ def _clamp(value: float, low: float, high: float) -> float:
 class _Frame:
     """The site's own box, and the volumes standing in it so far."""
 
-    def __init__(self, buildable: Polygon, axis: tuple[float, float], height_m: float):
+    def __init__(
+        self,
+        buildable: Polygon,
+        axis: tuple[float, float],
+        height_m: float,
+        storey_m: float = 0.0,
+    ):
         cx, cy, width, depth, rotation = seed_rectangle(buildable, axis)
         self.cx, self.cy = cx, cy
         self.width, self.depth = width, depth
         self.rotation = rotation
         self.height = height_m
+        # A room is at least a storey. Heights in a sentence are ratios of the
+        # whole, and an author writing about a single-storey building writes a
+        # small one - Louvre-Lens at 0.15 - which on a parcel affording four
+        # storeys is 1.9 m, and after `aggregate` thins its later objects, 0.86.
+        # That is a kerb, not a room: the diff check reported a `taper` aimed at
+        # one of them as changing the mass by exactly 0.000.
+        self.storey = max(0.0, storey_m)
         self.placements: list[Placement] = []
 
     def box(
@@ -64,12 +77,19 @@ class _Frame:
         dy: float = 0.0,
         kind: str = "additive",
         plan: str = "square",
+        occupiable: bool = True,
     ) -> Placement:
-        """A volume centred on the site frame, offset in the frame's own axes."""
+        """A volume centred on the site frame, offset in the frame's own axes.
 
+        `occupiable` is what separates a room from a piece of structure. A
+        support under a lifted plate is allowed to be shorter than a storey
+        because nobody stands in it; anything else is not.
+        """
+
+        least = self.storey if occupiable and kind == "additive" else 0.5
         return place(
             role,
-            size=(max(w, 0.5), max(d, 0.5), max(h, 0.5)),
+            size=(max(w, 0.5), max(d, 0.5), max(h, least, 0.5)),
             at=(self.cx + dx - w / 2.0, self.cy + dy - d / 2.0, z),
             rotation_degrees=self.rotation,
             kind=kind,
@@ -355,6 +375,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
     base_x, base_y, base_w, base_d = _bounds_of(picked)
     frame.placements = rest + raised + [
         frame.box("support", w=frame.width * leg, d=frame.depth * leg,
+                  occupiable=False,
                   # Exactly the clearance, not a hair over. Overlapping into
                   # the slab cut a sliver band whose depth was 5% of the leg,
                   # and the raised plate then measured 540 times its own depth
@@ -414,8 +435,13 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
     # objects are what the gate said they were, five buildings on one parcel.
     tie = _clamp(float(op.params.get("tie", 0.18)), 0.08, 0.4)
     frame.placements.append(
+        # The tie is a boundary, not a room - Kanazawa's roof, Grace Farms'
+        # ribbon - so it is exempt from the one-storey floor for the same
+        # reason a support is. Held to a storey it grew as thick as the
+        # objects it binds and swallowed them, and a `taper` aimed at one of
+        # them then changed the compiled mass by exactly nothing.
         frame.box("field_plate", w=frame.width, d=frame.depth, z=0.0,
-                  h=frame.height * tie)
+                  h=frame.height * tie, occupiable=False)
     )
     for index, (sx, sy) in enumerate(positions):
         scale = size / (spread ** (index / max(count - 1, 1)))
@@ -450,10 +476,11 @@ def execute(
     buildable: Polygon,
     axis: tuple[float, float],
     height_m: float,
+    storey_height_m: float = 0.0,
 ) -> MatrixForm | None:
     """Turn a sentence into placed volumes on this parcel."""
 
-    frame = _Frame(buildable, axis, height_m)
+    frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m)
     for op in parti.ops:
         handler = _VERBS.get(op.verb)
         if handler is not None:
@@ -467,6 +494,7 @@ def execute_steps(
     buildable: Polygon,
     axis: tuple[float, float],
     height_m: float,
+    storey_height_m: float = 0.0,
 ) -> list[tuple[Operation, MatrixForm]]:
     """The same sentence, stopped after each word.
 
@@ -481,7 +509,7 @@ def execute_steps(
     frame and taking a copy after each one costs one extra compile per word.
     """
 
-    frame = _Frame(buildable, axis, height_m)
+    frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m)
     steps: list[tuple[Operation, MatrixForm]] = []
     for op in parti.ops:
         handler = _VERBS.get(op.verb)

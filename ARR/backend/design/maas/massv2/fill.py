@@ -41,6 +41,10 @@ from .variations import _stretched
 # A scheme within this much of its floor-area ceiling is full; chasing the rest
 # costs a storey and buys a rounding error.
 _FULL_ENOUGH = 0.97
+# How far past the brief a scheme may sit before it has to come down. The
+# tolerance Korean 설계공모지침서 give on 연면적 is almost always ±5%, and the
+# same documents make exceeding it a deduction and then a disqualification.
+_OVER_ENOUGH = 1.05
 _MAX_STEPS = 24
 # What a scheme asks for when it says nothing. Not 1.0: a brief that wants the
 # whole capacity should have to say so, because the schemes that do not want it
@@ -276,6 +280,36 @@ def fill_to_site(
         settled = fit_to_site(_taller(current, storeys_allowed / standing), site)
         if settled.satisfied and settled.gross_floor_area_m2 > 0.0:
             best, current = settled, settled.form
+
+    # Too large is as wrong as too small once a brief exists. A 설계공모지침서
+    # gives 연면적 with a tolerance - ±5% is close to universal - and going
+    # over it costs marks before a juror has looked at the drawing, with enough
+    # of it disqualifying the entry. The loop below only ever grew, so a
+    # sentence that arrives at the full height the parcel affords stayed three
+    # times the size it was asked for.
+    #
+    # Plan first, and only plan: the brief says how much floor, and the storey
+    # heights belong to the rooms. `_wider` anchors on the whole composition's
+    # own centre, so shrinking brings the volumes toward each other in the same
+    # proportion and what was touching stays touching - which is the thing two
+    # hand-written attempts at this got wrong, reporting 296 of 403 schemes as
+    # several separate buildings.
+    if briefed:
+        for _step in range(_MAX_STEPS):
+            standing = best.gross_floor_area_m2
+            if standing <= capacity * _OVER_ENOUGH:
+                break
+            smaller = _wider(current, max(0.75, (capacity / standing) ** 0.5))
+            candidate = fit_to_site(smaller, site)
+            if not candidate.satisfied or candidate.gross_floor_area_m2 <= 0.0:
+                reason = "brief_could_not_be_met"
+                break
+            if candidate.gross_floor_area_m2 >= standing - 1.0:
+                reason = "brief_could_not_be_met"
+                break
+            best, current, wider = candidate, candidate.form, wider + 1
+        else:
+            reason = "brief_reached"
 
     for step in range(_MAX_STEPS):
         if best.gross_floor_area_m2 >= capacity * _FULL_ENOUGH:

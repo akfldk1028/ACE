@@ -59,6 +59,44 @@
       "rural_reality": "농촌 마을회관 건물면적 132㎡ 미만이 60.6%, 마을회관+경로당 복합형 85.4% (KREI 농정포커스 26호, 2012)"
     }
   },
+  "daycare_statutory": {
+    "source": "영유아보육법 시행규칙 [별표1] 어린이집의 설치기준 (제9조 관련), 개정 2021.6.30. — https://www.law.go.kr/LSW/flDownload.do?flSeq=105287329&bylClsCd=110201",
+    "note": "4.29 / 2.64 / 3.5 세 원단위는 2016·2017·2019·2021 개정본 대조 결과 모두 동일하게 유지됨",
+    "gross_m2_per_child": 4.29,
+    "gross_excludes": "놀이터 면적",
+    "classroom_m2_per_child": 2.64,
+    "classroom_includes": ["보육실", "거실", "공동놀이실", "유희실", "포복실"],
+    "outdoor_playground_m2_per_child": 3.5,
+    "outdoor_playground_formula_50_to_99": "정원 × 45% × 3.5㎡",
+    "disabled": {"gross_m2_per_child": 7.83, "classroom_m2_per_child": 6.6},
+    "zero_sum_trap": {
+      "what": "유희실·거실·포복실이 법적으로 '보육실'에 산입된다",
+      "consequence": "대공간을 키우면 순수 보육실이 줄어드는 제로섬. 실측 순수보육실은 중규모 2.47㎡/인으로 국내외 권장(3.0~3.8)에 미달",
+      "source": "박정아·최목화·김영애(2011) 한국주거학회논문집 22(1) — https://doi.org/10.6107/jkha.2011.22.1.065",
+      "why_it_matters": "우리 program.py는 large_span을 통째로 유지하고 나머지를 나눈다. 어린이집에서는 large_span이 커질수록 normal 실이 법정 최소 아래로 내려갈 수 있으므로 별도 검사가 필요하다"
+    },
+    "measured_composition_51_facilities": {
+      "source": "박정아 외(2011) 전국 51개소 CAD 재작도 — 연면적 대비 %",
+      "small_under_49": {"보육": 67, "관리": 12, "서비스": 21, "avg_children": 43},
+      "medium_50_to_99": {"보육": 61, "관리": 8, "서비스": 31, "avg_children": 77,
+                          "gross_m2": 465.36, "m2_per_child": 5.93,
+                          "classrooms": 5.28, "classroom_m2_each": 39.57},
+      "large_over_100": {"보육": 50, "관리": 9, "서비스": 41, "avg_children": 148},
+      "trend": "규모가 커질수록 보육공간 비율이 줄고 서비스공간이 증가. 관리공간은 8~12%로 일정"
+    },
+    "clear_height_m": {
+      "classroom": [2.4, 2.7],
+      "playroom": null,
+      "source": "공공주택 특별법 시행규칙 [별표9] 공공주택 내 보육시설 설계기준. 유희실 층고 기준은 법령·지침 어디에도 없음",
+      "caveat": "별표9는 공공주택 단지 내 보육시설 기준이며 독립 부지 국공립어린이집에 직접 적용되지 않는다"
+    },
+    "storey_rule": {
+      "default": "1층 (건축법상 층수가 아니라 '4면의 80% 이상이 지상 노출 + 주출입구 하단이 지표면부터 1m 이내'인 층)",
+      "exceptions": "건물 전체를 하나의 어린이집으로 쓰면 1~5층, 공동주택 주민공동시설 내 국공립은 1~2층, 공공업무시설 내는 1~5층",
+      "at_4_or_5": "전건물 스프링클러+자동화재탐지, 양방향 직통계단 2개소, 보육실 주출입구→계단 보행거리 30m 이내, 조리실 내화구조 구획"
+    },
+    "no_statutory_area_for": ["조리실", "목욕실", "교사실", "화장실", "옥내놀이터"]
+  },
   "library_seat_unit_m2_per_seat": {
     "general_reading": 2.3,
     "digital": 2.6,

@@ -249,6 +249,15 @@ class Command(BaseCommand):
                             weight=options["program_weight"],
                             storey_height_m=site.floor_height_m,
                         )
+                        built = built.__class__(
+                            **{
+                                **built.__dict__,
+                                "extra": {
+                                    **dict(built.extra),
+                                    "far_capacity_m2": site.far_capacity_m2,
+                                },
+                            }
+                        )
                     written.append(built)
             forms.extend(written)
             self.stdout.write(

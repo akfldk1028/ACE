@@ -99,6 +99,21 @@ def composition_signature(form: MatrixForm) -> tuple:
 # does: a brief in hand means this sheet is being judged as a Korean entry.
 CORPUS_PIECES = 3.4
 
+# 연면적 ±5% is close to universal across the 설계공모지침서 examined; the same
+# documents make exceeding it a deduction and then a disqualification.
+BRIEF_TOLERANCE = 0.05
+
+
+def _brief_tolerance(item) -> float | None:
+    """How far off the brief this scheme is, or None if it has no brief."""
+
+    target = item.form.extra.get("programme_target")
+    capacity = float(item.form.extra.get("far_capacity_m2") or 0.0)
+    if not target or capacity <= 0.0:
+        return None
+    delivered = item.far_utilization * capacity
+    return abs(delivered - float(target)) / float(target)
+
 
 def piece_count(form: MatrixForm) -> int:
     """Volumes as placed, not as the compiler sliced them.
@@ -155,6 +170,56 @@ OBJECTIVES: tuple[tuple[str, Any], ...] = (
 )
 
 
+def _brief_fit(item: Candidate) -> float:
+    """How near the delivered floor area is to what the brief asked for.
+
+    Under a brief, 용적률 utilisation stops being an objective - every scheme
+    is supposed to arrive at the same number, and the sheet is judged on
+    hitting it. A 설계공모지침서 gives 연면적 with a ±5% tolerance and treats
+    exceeding it as a deduction and then a disqualification, so nearer is
+    simply better and there is no credit for more.
+    """
+
+    target = item.form.extra.get("programme_target")
+    if not target:
+        return item.far_utilization
+    delivered = item.far_utilization * _far_capacity(item)
+    return 1.0 - min(1.0, abs(delivered - float(target)) / float(target))
+
+
+def _far_capacity(item: Candidate) -> float:
+    """Recover the parcel's capacity from the share the candidate carries."""
+
+    return float(item.form.extra.get("far_capacity_m2") or 0.0)
+
+
+def _ground_released(item: Candidate) -> float:
+    """How much of the ground the building gave back.
+
+    The Korean reading of a good mass is the opposite of the one this module
+    started with. Its praise vocabulary is about a building imposing less -
+    "규모에 비해 가볍고 경쾌", "매스가 덜 느껴져서 좋음", "볼륨을 줄이는 효과",
+    "1층의 비워놓기 공간 계획" - and winners include a 청년문화센터 at 7.88%
+    건폐율 and a 커뮤니티센터 at 6.94%. Articulation is not what they are
+    scoring; how little ground the building takes is closer to it.
+    """
+
+    return 1.0 - min(1.0, max(0.0, item.ground_take))
+
+
+# What a scheme is asked to be good at once a brief says how large it is. The
+# pair above stops meaning anything there: every scheme targets the same floor
+# area, and the mass a Korean jury rewards is the plain one with a good yard,
+# which `shape_work` scores down by construction. Measured across the mixed
+# corpus, the Korean sentences average 0.317 articulation against 0.407 for the
+# international ones and were selected once in ten deliveries despite a 100%
+# survival rate - the selector was refusing what the research says wins.
+BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
+    ("brief_fit", _brief_fit),
+    ("ground_released", _ground_released),
+)
+
+
 def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
     """Score every candidate on how balanced it is, with no weights.
 
@@ -175,8 +240,15 @@ def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
     the cases dominance leaves open, which is most of them.
     """
 
+    # A brief changes what the sheet is being judged on, so it changes the axes.
+    objectives = (
+        BRIEFED_OBJECTIVES
+        if pool and pool[0].form.extra.get("programme_target") is not None
+        else OBJECTIVES
+    )
+
     spans: list[tuple[float, float]] = []
-    for _name, read in OBJECTIVES:
+    for _name, read in objectives:
         values = [float(read(item)) for item in pool]
         low, high = (min(values), max(values)) if values else (0.0, 0.0)
         spans.append((low, high))
@@ -184,7 +256,7 @@ def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
     keys: dict[int, tuple[float, ...]] = {}
     for item in pool:
         scaled = []
-        for (_name, read), (low, high) in zip(OBJECTIVES, spans):
+        for (_name, read), (low, high) in zip(objectives, spans):
             width = high - low
             scaled.append((float(read(item)) - low) / width if width > 1e-9 else 1.0)
         # Worst-first, so comparing two keys compares their weakest sides first.
@@ -205,6 +277,17 @@ def choose(
         for candidate in candidates
         if not (require_occupiable and not candidate.plausibility.occupiable)
     ]
+    # A brief is checked before the drawing is looked at. Korean 설계공모지침서
+    # give 연면적 with a ±5% tolerance, deduct for missing it and disqualify for
+    # missing it badly, and the check happens at 기술검토위원회 ahead of the jury.
+    # So it is a gate, not an objective: scoring it against ground released let
+    # a scheme buy its way past the brief by giving back more ground, and brief
+    # conformance fell from 8 of 10 to 5.
+    briefed = [item for item in pool if _brief_tolerance(item) is not None]
+    if briefed:
+        inside = [item for item in briefed if _brief_tolerance(item) <= BRIEF_TOLERANCE]
+        if inside:
+            pool = inside
     keys = _balance_keys(pool)
 
     def rank(item: Candidate) -> tuple:

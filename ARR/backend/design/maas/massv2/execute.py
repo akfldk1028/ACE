@@ -263,16 +263,31 @@ def _shear(frame: _Frame, op: Operation) -> None:
     if not picked:
         return
     ordered = sorted(picked, key=lambda item: item.z_span()[0])
+    # What the move is measured against. Aimed at a stack, a shear is a stack
+    # that slipped and the volume on the ground is what it slipped from, so
+    # that one holds still. Aimed at something standing at one level - a tier,
+    # an object, a leg of a ring - there is nothing above it in the picked set
+    # to slip past, and anchoring the lowest picked volume meant the move did
+    # nothing whatever: the diff check reported exactly 0.0 for eleven of the
+    # corpus sentences, Seattle and De Rotterdam and CCTV among them.
+    #
+    # An earlier attempt anchored on the rest of the building for every scoped
+    # shear, which sent a large split part a full step off the parcel and into
+    # the clip. Narrowed here to the case that is actually broken.
+    levels = {round(item.z_span()[0], 3) for item in ordered}
+    anchored = 0 if len(levels) > 1 else -1
     moved: list[Placement] = []
     for index, item in enumerate(ordered):
-        if index == 0:
+        if index == anchored:
             moved.append(item)
             continue
         low, high = item.z_span()
         corners = item.corners()
         span_x = max(x for x, _y, _z in corners) - min(x for x, _y, _z in corners)
         span_y = max(y for _x, y, _z in corners) - min(y for _x, y, _z in corners)
-        reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * index
+        # Steps counted from the anchor, so a shear at one level moves
+        # its volume by one step rather than by none.
+        reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
         moved.append(
             frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
                       dx=ux * reach, dy=uy * reach)

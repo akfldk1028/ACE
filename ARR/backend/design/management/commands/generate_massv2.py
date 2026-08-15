@@ -175,21 +175,42 @@ class Command(BaseCommand):
                 sentences.extend(drawn)
                 self.stdout.write(f"sampled sentences: {len(drawn)}")
             written = []
+            mute = []
+            authored_height = site.floor_height_m * max(
+                1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
+            )
             for record in sentences:
                 parti = parti_from_record(record)
                 if parti is None:
                     continue
-                built = execute_parti(
+                # Judge the sentence, not its variants: a word that redraws
+                # nothing at the size it was written redraws nothing at any
+                # coverage or siting derived from it.
+                spoken = postcondition.check_sentence(
                     parti,
                     buildable=buildable,
                     axis=axis,
-                    height_m=site.floor_height_m
-                    * max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
+                    height_m=authored_height,
+                    allowed_at=site.plan_at,
+                    storey_height_m=site.floor_height_m,
+                )
+                if not spoken.honest:
+                    mute.append((parti.name, spoken))
+                    continue
+                built = execute_parti(
+                    parti, buildable=buildable, axis=axis, height_m=authored_height
                 )
                 if built is not None:
                     written.append(built)
             forms.extend(written)
-            self.stdout.write(f"parti sentences: {len(written)}")
+            self.stdout.write(
+                f"parti sentences: {len(written)} spoken, {len(mute)} with a silent word"
+            )
+            for name, spoken in mute:
+                self.stdout.write(
+                    f"  silent: {name} -> {','.join(spoken.silent)} "
+                    f"{[round(v, 3) for v in spoken.changed]}"
+                )
 
         if options["spread_coverage"]:
             # A composition is one thing; the ground it claims is another. Carry
@@ -237,7 +258,6 @@ class Command(BaseCommand):
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
         implausible = 0
-        silent = 0
 
         for form in forms:
             filled = fill_to_site(form, site, allow_plan_growth=not options["no_fill"])
@@ -263,24 +283,6 @@ class Command(BaseCommand):
                 ),
                 floor_height_m=site.floor_height_m,
             )
-            # Did the sentence happen. A mass whose declared moves cannot be
-            # found in it is not a low-scoring option, it is a different
-            # building wearing the name of the one that was asked for.
-            spoken = postcondition.check(
-                fit.form,
-                source,
-                floor_height_m=site.floor_height_m,
-                parcel_area_m2=site.parcel_area_m2,
-            )
-            if not spoken.honest:
-                silent += 1
-                records.append({
-                    "name": form.name,
-                    "status": "silent_moves",
-                    "postcondition": spoken.evidence(),
-                })
-                continue
-
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m
             )
@@ -398,7 +400,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"compiled {len(renderable)}/{len(forms)}  "
-            f"unlawful {unlawful}  implausible {implausible}  silent {silent}  "
-            f"cells {len(cells)}/16"
+            f"unlawful {unlawful}  implausible {implausible}  cells {len(cells)}/16"
         )
         self.stdout.write(str(sheet))

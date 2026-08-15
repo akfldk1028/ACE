@@ -390,8 +390,26 @@ def large_span_strategy(source, *, storey_height_m: float) -> str:
         return "base"
 
     hall = max(volumes, key=lambda v: float(v.footprint.area))
-    others = [v for v in volumes if v is not hall]
-    if others and not any(v.footprint.intersects(hall.footprint) for v in others):
+
+    # 별동 means a volume standing apart at its own level, not a fragment
+    # floating free. SMR's workshop and studies are separate blocks with a yard
+    # between them; 우암동's are joined by a walking deck. Defined as "touches
+    # nothing at all", the category was unreachable by construction - every one
+    # of the twenty-four candidates that reached it was refused by the
+    # connectivity gate as "2 separate bodies not one building", and the cell
+    # stood empty with candidates in it. Two rules of my own contradicting each
+    # other.
+    #
+    # So: apart from what stands beside it, while the building as a whole is
+    # still one, which the connectivity gate has already guaranteed by the time
+    # anything is classified.
+    beside = [
+        v for v in volumes
+        if v is not hall
+        and v.bottom_fraction < hall.top_fraction - 1e-6
+        and v.top_fraction > hall.bottom_fraction + 1e-6
+    ]
+    if beside and not any(v.footprint.intersects(hall.footprint) for v in beside):
         return "detached"
 
     low = hall.bottom_fraction * height

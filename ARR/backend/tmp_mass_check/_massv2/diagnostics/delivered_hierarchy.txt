@@ -1,0 +1,25 @@
+delivered 16 of 1788
+
+ #     mode  dom vols  keep onLaw shapeIoU  take artic  name
+ 1   impose 0.57   16  0.94  0.14     0.74  0.89  0.34  llm_p_field_under_one_roof~full_ground^centred
+ 2   impose 0.91    5  0.92  0.19     0.69  0.88  0.67  llm_p_lifted_and_cut^centred
+ 3   impose 0.80    5  0.93  0.10     0.54  0.67  0.38  llm_d_twin_court_spine^centred
+ 4  inherit 0.47    4  0.93  0.25     0.71  0.88  0.26  llm_p_two_unequal_bars~full_ground^centred
+ 5   impose 0.72    6  0.92  0.13     0.30  0.50  0.41  llm_b_west_court_ring^off_open
+ 6  inherit 0.29    5  0.97  0.16     0.71  0.79  0.24  llm_p_settled_terrace~worked_ground^centred
+ 7   impose 0.56    7  0.94  0.19     0.74  0.88  0.36  llm_p_lifted_ground
+ 8   impose 0.54   10  0.99  0.04     0.70  0.63  0.33  llm_d_scatter_under_one_plate~held_ground^centred
+ 9   impose 0.91    5  0.93  0.18     0.66  0.84  0.68  llm_a_lifted_back_court^to_open
+10   impose 0.48    4  0.92  0.18     0.71  0.81  0.30  llm_d_lifted_crossing_wing~full_ground^centred
+11   impose 1.00    1  0.93  0.15     0.39  0.39  0.35  llm_d_perforated_half_tapered_half~full_ground^cross_open
+12   impose 0.70    5  0.98  0.11     0.67  0.33  0.27  llm_c_whole_ring_taper~full_ground^off_open
+13   impose 0.93    2  0.97  0.08     0.61  0.56  0.43  llm_c_sheared_court_front~held_ground
+14   impose 0.72    4  0.92  0.17     0.47  0.61  0.34  llm_p_market_loop^off_open
+15   impose 0.81    6  0.94  0.09     0.71  0.34  0.38  llm_a_plate_on_four_supports~worked_ground^off_open
+16   impose 0.67    4  0.93  0.09     0.62  0.35  0.33  llm_c_lifted_court_pair~full_ground^off_open
+
+equal-peer masses (dom<0.5 and spread<3):     0/16
+wearing the parcel's shape (IoU>=0.75):       0/16
+imposed figures:                              14/16
+  their retention: min 0.92 median 0.93 max 0.99
+  inherit retention: min 0.93 median 0.97 max 0.97

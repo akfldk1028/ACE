@@ -1,0 +1,168 @@
+{
+  "_note": "Authored by the assistant against the massv2 authoring schema. Every number is a fraction of the parcel's buildable plan and legal height; the executor owns the metres. Aimed at the six grid cells the deterministic seed families never reached.",
+  "schemes": [
+    {
+      "name": "raised_court_field",
+      "primary_language": "porous_field",
+      "secondary_language": "raised_court",
+      "formal_principle": "field_of_parts",
+      "dominant_gesture": "four small blocks stand apart under one thin plate that ties them together",
+      "reference_basis": "SANAA Zollverein School",
+      "placements": [
+        {"role": "block_sw", "kind": "additive", "width": 0.22, "depth": 0.24, "height": 0.72, "x": 0.04, "y": 0.05, "z": 0.0, "rotation_degrees": 0},
+        {"role": "block_se", "kind": "additive", "width": 0.22, "depth": 0.24, "height": 0.72, "x": 0.52, "y": 0.05, "z": 0.0, "rotation_degrees": 0},
+        {"role": "block_nw", "kind": "additive", "width": 0.22, "depth": 0.24, "height": 0.72, "x": 0.04, "y": 0.58, "z": 0.0, "rotation_degrees": 0},
+        {"role": "block_ne", "kind": "additive", "width": 0.22, "depth": 0.24, "height": 0.72, "x": 0.52, "y": 0.58, "z": 0.0, "rotation_degrees": 0},
+        {"role": "plate", "kind": "additive", "width": 0.70, "depth": 0.77, "height": 0.16, "x": 0.04, "y": 0.05, "z": 0.70, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "open_u_court",
+      "primary_language": "open_figure",
+      "secondary_language": "u_court",
+      "formal_principle": "three_sided_court",
+      "dominant_gesture": "a U opening south, the court reaching all the way to the street",
+      "reference_basis": "OMA Kunsthal",
+      "placements": [
+        {"role": "spine", "kind": "additive", "width": 0.78, "depth": 0.22, "height": 1.0, "x": 0.06, "y": 0.60, "z": 0.0, "rotation_degrees": 0},
+        {"role": "wing_west", "kind": "additive", "width": 0.20, "depth": 0.58, "height": 1.0, "x": 0.06, "y": 0.06, "z": 0.0, "rotation_degrees": 0},
+        {"role": "wing_east", "kind": "additive", "width": 0.20, "depth": 0.58, "height": 1.0, "x": 0.64, "y": 0.06, "z": 0.0, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "held_open_l",
+      "primary_language": "open_figure",
+      "secondary_language": "l_figure",
+      "formal_principle": "two_arm_l",
+      "dominant_gesture": "an L turning the corner, its inner face looking onto its own yard",
+      "reference_basis": "Aalto Saynatsalo Town Hall",
+      "placements": [
+        {"role": "arm_long", "kind": "additive", "width": 0.86, "depth": 0.26, "height": 0.86, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0},
+        {"role": "arm_short", "kind": "additive", "width": 0.26, "depth": 0.62, "height": 0.86, "x": 0.05, "y": 0.29, "z": 0.0, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "full_open_comb",
+      "primary_language": "open_figure",
+      "secondary_language": "comb",
+      "formal_principle": "teeth_off_a_spine",
+      "dominant_gesture": "three fingers reaching south off one back spine",
+      "reference_basis": "Alvar Aalto Baker House comb type",
+      "placements": [
+        {"role": "spine", "kind": "additive", "width": 0.92, "depth": 0.18, "height": 1.0, "x": 0.04, "y": 0.72, "z": 0.0, "rotation_degrees": 0},
+        {"role": "tooth_w", "kind": "additive", "width": 0.20, "depth": 0.52, "height": 0.90, "x": 0.06, "y": 0.22, "z": 0.0, "rotation_degrees": 0},
+        {"role": "tooth_c", "kind": "additive", "width": 0.20, "depth": 0.52, "height": 0.90, "x": 0.40, "y": 0.22, "z": 0.0, "rotation_degrees": 0},
+        {"role": "tooth_e", "kind": "additive", "width": 0.20, "depth": 0.52, "height": 0.90, "x": 0.74, "y": 0.22, "z": 0.0, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "dispersed_pinwheel",
+      "primary_language": "porous_field",
+      "secondary_language": "pinwheel",
+      "formal_principle": "rotational_offset",
+      "dominant_gesture": "four bars turning about an empty centre, none of them touching it",
+      "reference_basis": "Mies Barcelona Pavilion plan logic",
+      "placements": [
+        {"role": "bar_s", "kind": "additive", "width": 0.44, "depth": 0.15, "height": 0.94, "x": 0.04, "y": 0.06, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bar_e", "kind": "additive", "width": 0.15, "depth": 0.44, "height": 0.94, "x": 0.60, "y": 0.06, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bar_n", "kind": "additive", "width": 0.44, "depth": 0.15, "height": 0.94, "x": 0.42, "y": 0.72, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bar_w", "kind": "additive", "width": 0.15, "depth": 0.44, "height": 0.94, "x": 0.04, "y": 0.42, "z": 0.0, "rotation_degrees": 0},
+        {"role": "hinge", "kind": "additive", "width": 0.16, "depth": 0.16, "height": 0.40, "x": 0.40, "y": 0.40, "z": 0.54, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "held_porous_stagger",
+      "primary_language": "porous_field",
+      "secondary_language": "staggered_bars",
+      "formal_principle": "offset_repetition",
+      "dominant_gesture": "three bars sliding past one another, gaps never lining up",
+      "reference_basis": "BIG 8 House stepped bar",
+      "placements": [
+        {"role": "bar_1", "kind": "additive", "width": 0.62, "depth": 0.16, "height": 0.82, "x": 0.04, "y": 0.06, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bar_2", "kind": "additive", "width": 0.62, "depth": 0.16, "height": 0.82, "x": 0.32, "y": 0.40, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bar_3", "kind": "additive", "width": 0.62, "depth": 0.16, "height": 0.82, "x": 0.04, "y": 0.74, "z": 0.0, "rotation_degrees": 0},
+        {"role": "stitch", "kind": "additive", "width": 0.13, "depth": 0.76, "height": 0.30, "x": 0.44, "y": 0.06, "z": 0.50, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "full_porous_grid",
+      "primary_language": "porous_field",
+      "secondary_language": "perforated_slab",
+      "formal_principle": "punched_field",
+      "dominant_gesture": "one deep slab with four courts punched through it",
+      "reference_basis": "Kahn Salk courtyard logic",
+      "placements": [
+        {"role": "slab", "kind": "additive", "width": 0.94, "depth": 0.92, "height": 0.62, "x": 0.03, "y": 0.04, "z": 0.0, "rotation_degrees": 0},
+        {"role": "court_sw", "kind": "subtractive", "width": 0.30, "depth": 0.30, "height": 1.2, "x": 0.10, "y": 0.12, "z": -0.1, "rotation_degrees": 0},
+        {"role": "court_se", "kind": "subtractive", "width": 0.30, "depth": 0.30, "height": 1.2, "x": 0.58, "y": 0.12, "z": -0.1, "rotation_degrees": 0},
+        {"role": "court_nw", "kind": "subtractive", "width": 0.30, "depth": 0.30, "height": 1.2, "x": 0.10, "y": 0.56, "z": -0.1, "rotation_degrees": 0},
+        {"role": "court_ne", "kind": "subtractive", "width": 0.30, "depth": 0.30, "height": 1.2, "x": 0.58, "y": 0.56, "z": -0.1, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "worked_open_scissor",
+      "primary_language": "open_figure",
+      "secondary_language": "scissor_pair",
+      "formal_principle": "crossed_axes",
+      "dominant_gesture": "two long bars crossing at a shallow angle, opening at both ends",
+      "reference_basis": "OMA Seattle Central Library shifted plates",
+      "placements": [
+        {"role": "plate_low", "kind": "additive", "width": 0.94, "depth": 0.30, "height": 0.44, "x": 0.03, "y": 0.16, "z": 0.0, "rotation_degrees": -14},
+        {"role": "plate_high", "kind": "additive", "width": 0.94, "depth": 0.30, "height": 0.44, "x": 0.03, "y": 0.52, "z": 0.40, "rotation_degrees": 16},
+        {"role": "core", "kind": "additive", "width": 0.14, "depth": 0.32, "height": 0.88, "x": 0.44, "y": 0.34, "z": 0.0, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "dispersed_towers_bridge",
+      "primary_language": "porous_field",
+      "secondary_language": "bridged_towers",
+      "formal_principle": "two_points_one_span",
+      "dominant_gesture": "two slim towers far apart, joined only high up by a bridge",
+      "reference_basis": "OMA CCTV",
+      "placements": [
+        {"role": "tower_w", "kind": "additive", "width": 0.19, "depth": 0.26, "height": 1.0, "x": 0.05, "y": 0.36, "z": 0.0, "rotation_degrees": 0},
+        {"role": "tower_e", "kind": "additive", "width": 0.19, "depth": 0.26, "height": 1.0, "x": 0.72, "y": 0.36, "z": 0.0, "rotation_degrees": 0},
+        {"role": "bridge", "kind": "additive", "width": 0.72, "depth": 0.18, "height": 0.22, "x": 0.10, "y": 0.40, "z": 0.76, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "worked_carved_wedge",
+      "primary_language": "carved_body",
+      "secondary_language": "wedge_cut",
+      "formal_principle": "single_deep_cut",
+      "dominant_gesture": "one block with a wedge taken out of its shoulder, opening the corner",
+      "reference_basis": "Steven Holl Simmons Hall carve",
+      "placements": [
+        {"role": "block", "kind": "additive", "width": 0.80, "depth": 0.68, "height": 0.90, "x": 0.06, "y": 0.16, "z": 0.0, "rotation_degrees": 0},
+        {"role": "wedge", "kind": "subtractive", "width": 0.46, "depth": 0.40, "height": 0.60, "x": 0.52, "y": 0.52, "z": 0.42, "rotation_degrees": 22},
+        {"role": "slot", "kind": "subtractive", "width": 0.16, "depth": 0.90, "height": 0.44, "x": 0.30, "y": 0.05, "z": -0.05, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "dispersed_stepped_ribbon",
+      "primary_language": "stacked_platform",
+      "secondary_language": "terraced_ribbon",
+      "formal_principle": "descending_terraces",
+      "dominant_gesture": "a ribbon stepping down from north to south, every level a terrace",
+      "reference_basis": "Moshe Safdie Habitat terracing",
+      "placements": [
+        {"role": "terrace_1", "kind": "additive", "width": 0.74, "depth": 0.20, "height": 0.30, "x": 0.06, "y": 0.06, "z": 0.0, "rotation_degrees": 0},
+        {"role": "terrace_2", "kind": "additive", "width": 0.62, "depth": 0.20, "height": 0.30, "x": 0.12, "y": 0.28, "z": 0.28, "rotation_degrees": 0},
+        {"role": "terrace_3", "kind": "additive", "width": 0.50, "depth": 0.20, "height": 0.30, "x": 0.18, "y": 0.50, "z": 0.56, "rotation_degrees": 0},
+        {"role": "terrace_4", "kind": "additive", "width": 0.38, "depth": 0.20, "height": 0.30, "x": 0.24, "y": 0.72, "z": 0.84, "rotation_degrees": 0}
+      ]
+    },
+    {
+      "name": "full_open_ring",
+      "primary_language": "open_figure",
+      "secondary_language": "ring",
+      "formal_principle": "closed_ring_open_centre",
+      "dominant_gesture": "a ring pulled to the parcel edge, the whole centre given away",
+      "reference_basis": "Herzog de Meuron Basel courtyard block",
+      "placements": [
+        {"role": "ring", "kind": "additive", "width": 0.94, "depth": 0.92, "height": 0.66, "x": 0.03, "y": 0.04, "z": 0.0, "rotation_degrees": 0},
+        {"role": "great_court", "kind": "subtractive", "width": 0.62, "depth": 0.60, "height": 1.4, "x": 0.19, "y": 0.20, "z": -0.2, "rotation_degrees": 0}
+      ]
+    }
+  ]
+}

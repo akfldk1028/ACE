@@ -1,0 +1,186 @@
+{
+  "schema_version": "arr.maas.massv2_parti_authoring.v1",
+  "schemes": [
+    {
+      "name": "llm_b_west_court_ring",
+      "primary_language": "open_figure",
+      "secondary_language": "closed ring",
+      "formal_principle": "A single thin ring of building closes on one court and opens that court's mouth to the west-southwest.",
+      "dominant_gesture": "The building is a wall around a yard, and the yard is the address.",
+      "reference_basis": "OMA, Rotterdam Kunsthal courtyard-as-room logic transformed into a full perimeter block",
+      "ops": [
+        {"op": "loop", "bar": 0.24, "height": 0.85, "why": "다섯 필지에 접한 면은 벽으로 막고, 마당을 대지 한가운데에 두어 4.2층 저층에서 채광을 안쪽으로 끌어들인다"},
+        {"op": "carve", "size": 0.3, "at": "open", "reach": 1.0, "why": "서남서로 열린 유일한 면에서 링을 완전히 끊어 마당 입구를 만든다 — 진입은 비어 있는 쪽으로만 가능하다"}
+      ]
+    },
+    {
+      "name": "llm_b_comb_arms_west",
+      "primary_language": "open_figure",
+      "secondary_language": "comb",
+      "formal_principle": "One spine along the back property line grows unequal arms westward, so the plan is teeth and gaps rather than a block.",
+      "dominant_gesture": "A spine on the neighbours' side, fingers reaching into the open side.",
+      "reference_basis": "BIG, 8 House linear spine deformed into a comb; SANAA Zollverein discipline of equal-thickness bars broken deliberately",
+      "ops": [
+        {"op": "aggregate", "n": 4, "spread": 2.6, "tie": 0.18, "why": "1,922 m² 가용면적의 긴 축이 -30°로 기울어 있어 네 개의 서로 다른 팔이 그 축을 따라 나란히 앉을 수 있다"},
+        {"op": "carve", "size": 0.45, "at": "open", "reach": 0.75, "why": "팔 사이의 틈을 서남서 개방면까지 밀어내 빗살이 실제로 바깥과 통하게 한다"},
+        {"op": "taper", "ratio": 0.7, "why": "정북일조 사선이 상층 평면을 줄이므로 맨 위 볼륨을 미리 당겨 빗살 끝이 잘려나가지 않게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_l_bar_forecourt",
+      "primary_language": "open_figure",
+      "secondary_language": "L parti",
+      "formal_principle": "A single volume has one quadrant removed so the remaining L holds a forecourt against the open side.",
+      "dominant_gesture": "Two arms, one corner, and the whole west-southwest quarter given back as ground.",
+      "reference_basis": "OMA, Villa dall'Ava — a bar folded around outdoor room, at block scale",
+      "ops": [
+        {"op": "extrude", "height": 0.75, "why": "대지가 허용하는 4.2층 중 3층대를 채워 L의 두 팔이 이웃 필지 쪽에서 충분한 두께를 갖게 한다"},
+        {"op": "carve", "size": 0.55, "at": "open", "reach": 1.0, "why": "서남서 사분면을 통째로 도려내 유일하게 열린 방향에 앞마당을 만든다 — 나머지 다섯 면은 이웃이라 마당을 둘 이유가 없다"},
+        {"op": "shear", "ratio": 0.22, "toward": "open", "why": "상층부를 개방면 쪽으로 자기 치수의 0.22만큼 밀어 앞마당 위에 그늘진 처마를 만든다"}
+      ]
+    },
+    {
+      "name": "llm_b_lifted_yard_bar",
+      "primary_language": "open_figure",
+      "secondary_language": "ground given away",
+      "formal_principle": "The whole figure is raised on supports so the yard runs continuously under the building and out the open side.",
+      "dominant_gesture": "You walk under the building to get to the garden; nothing touches the ground but the legs.",
+      "reference_basis": "SANAA, Rolex Learning Centre — occupiable undercroft; here as a raised court-holder",
+      "ops": [
+        {"op": "lift", "clearance": 0.3, "why": "2,499.7 m² 대지에서 건축면적을 쓰고도 지상 레벨을 통째로 돌려주려면 들어올리는 수밖에 없다"},
+        {"op": "loop", "bar": 0.28, "height": 0.7, "why": "들린 몸체를 네 개의 바로 짜서 가운데를 뚫으면 저층인데도 안뜰까지 빛이 떨어진다"},
+        {"op": "carve", "size": 0.25, "at": "cross", "reach": 0.6, "why": "긴 축(-30°)을 가로지르는 방향에 틈을 하나 더 내어 들린 지면이 막다른 곳이 되지 않게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_pinwheel_three_peers",
+      "primary_language": "open_figure",
+      "secondary_language": "pinwheel",
+      "formal_principle": "Three unequal peers pinwheel around a shared centre so every gap between them is a different outdoor room.",
+      "dominant_gesture": "Three buildings turning around one empty middle, each one facing a different neighbour.",
+      "reference_basis": "OMA, Nexus World Housing — 3–5 unequal peers under one figure",
+      "ops": [
+        {"op": "aggregate", "n": 3, "spread": 3.2, "tie": 0.14, "why": "기울어진 필지(외접 3,707 m² 중 가용 1,922 m²)에서는 크기가 다른 세 덩어리가 남는 자투리를 각각 다르게 쓸 수 있다"},
+        {"op": "shear", "ratio": 0.28, "toward": "cross", "why": "상층을 가로 방향으로 어긋내 세 peer가 위에서 서로 겹치며 하나의 회전 도형으로 읽히게 한다"},
+        {"op": "carve", "size": 0.2, "at": "back", "reach": 0.5, "why": "이웃 필지에 붙는 뒷면에 홈을 내어 인접 대지 경계에서 벽이 통째로 서지 않게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_deep_notch_twin_arms",
+      "primary_language": "open_figure",
+      "secondary_language": "split slab",
+      "formal_principle": "One slab is cut through by a single deep notch, leaving two arms joined only at the far end.",
+      "dominant_gesture": "One building, one cut — and the cut goes almost all the way through.",
+      "reference_basis": "BIG, Mountain Dwellings — a single volume deformed by one decisive subtraction",
+      "ops": [
+        {"op": "extrude", "height": 0.9, "why": "용적률 6,241.9 m²를 4층대에서 소화하려면 한 몸으로 대지 프레임을 꽉 채우고 시작해야 한다"},
+        {"op": "carve", "size": 0.6, "at": "open", "reach": 0.9, "why": "서남서 개방면에서 거의 끝까지 관통하는 홈을 넣어 하나의 슬래브를 두 팔로 갈라놓는다 — 끝단은 남겨 한 몸을 유지한다"},
+        {"op": "taper", "ratio": 0.55, "why": "정북일조 포락선이 위로 갈수록 좁아지므로 최상층을 미리 당겨 두 팔의 끝이 사선에 잘리지 않게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_stepped_court_terraces",
+      "primary_language": "open_figure",
+      "secondary_language": "terraced ring",
+      "formal_principle": "A court-holding ring steps back in tiers, each tier flush on the open side so the terraces all face the one free direction.",
+      "dominant_gesture": "The court gets wider as you go up, and every terrace looks west.",
+      "reference_basis": "BIG, VM Houses stepping logic applied to a perimeter court block",
+      "ops": [
+        {"op": "loop", "bar": 0.32, "height": 0.6, "why": "저층 4.2층에서 중정을 확보하려면 바가 두꺼워야 실이 성립한다 — 링을 두껍게 잡고 위에서 깎는다"},
+        {"op": "stack", "n": 3, "contrast": 1.4, "height": 0.95, "align": "open", "why": "서남서 개방면 한 면만 플러시로 남기고 나머지를 후퇴시키면 이웃 다섯 필지 쪽 일조 부담이 줄고 테라스는 전부 열린 쪽을 본다"}
+      ]
+    },
+    {
+      "name": "llm_b_five_unequal_peers_plate",
+      "primary_language": "porous_field",
+      "secondary_language": "unequal peers",
+      "formal_principle": "Five objects of wildly different plan size sit under one thin tying plate, with more ground between them than under them.",
+      "dominant_gesture": "It is not a building, it is five buildings that agreed to share a roof.",
+      "reference_basis": "SANAA, Moriyama House — unequal cells, never a barracks",
+      "ops": [
+        {"op": "aggregate", "n": 5, "spread": 4.0, "tie": 0.1, "why": "가용 1,922 m²에 다섯 덩어리를 흩으면 건폐율 60% 한도를 절반쯤만 쓰고 나머지를 전부 사이 공간으로 돌릴 수 있다"},
+        {"op": "carve", "size": 0.18, "at": "cross", "reach": 0.4, "why": "가장 큰 덩어리에도 홈을 내어 다섯 개가 크기만 다른 게 아니라 성격도 다르게 만든다"}
+      ]
+    },
+    {
+      "name": "llm_b_lifted_scatter_undercroft",
+      "primary_language": "porous_field",
+      "secondary_language": "raised field",
+      "formal_principle": "A scattered field of unequal parts is lifted clear of the ground, so the whole site remains one continuous covered surface.",
+      "dominant_gesture": "The ground is a park with legs standing in it.",
+      "reference_basis": "SANAA, Kanazawa 21st Century Museum — a pure figure dropped on an irregular site, here dematerialised into parts",
+      "ops": [
+        {"op": "lift", "clearance": 0.38, "why": "자연녹지 4.9 m² 저촉과 다섯 필지 인접이라는 조건에서 지면을 비워두는 것이 가장 값싼 개방이다"},
+        {"op": "aggregate", "n": 4, "spread": 2.8, "tie": 0.12, "why": "들린 상부를 네 개의 다른 크기 부분으로 나눠야 그늘 아래 지면이 균질한 주차장이 아니라 여러 방으로 읽힌다"},
+        {"op": "shear", "ratio": 0.18, "toward": "open", "why": "상층을 개방면으로 조금 밀어 서남서에서 다가올 때 처마가 먼저 보이게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_four_pavilions_court",
+      "primary_language": "porous_field",
+      "secondary_language": "pavilion cluster",
+      "formal_principle": "Four freestanding pavilions of different size define an interstitial court that is bigger than any of them.",
+      "dominant_gesture": "The void between the pavilions is the main room of the project.",
+      "reference_basis": "SANAA, Naoshima / Inujima pavilion scatter",
+      "ops": [
+        {"op": "aggregate", "n": 4, "spread": 3.4, "tie": 0.08, "why": "타이 플레이트를 최대한 얇게 해야 네 채가 각각 독립된 채로 읽히면서도 물리적으로 한 몸이 된다"},
+        {"op": "carve", "size": 0.5, "at": "open", "reach": 0.85, "why": "네 채 사이 공극을 서남서 개방면 쪽으로 크게 도려내 중앙 공터가 막힌 우물이 아니라 바깥으로 새어나가게 한다"},
+        {"op": "taper", "ratio": 0.45, "why": "각 파빌리온의 최상부를 크게 당겨 저층 4.2층에서도 하늘이 넓게 남게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_thin_loop_over_field",
+      "primary_language": "porous_field",
+      "secondary_language": "hollow perimeter",
+      "formal_principle": "The bars of the ring are made so thin that the ring reads as an outline drawn on the site rather than as mass.",
+      "dominant_gesture": "A line, one room deep, tracing the whole plot — everything inside it is empty.",
+      "reference_basis": "SANAA, Zollverein School — a boundary that holds nothing but air",
+      "ops": [
+        {"op": "loop", "bar": 0.16, "height": 0.95, "why": "바를 한 실 깊이까지 얇게 하면 건폐율이 30%대로 떨어지고 1,922 m² 가용 평면의 대부분이 비어 있는 채로 남는다"},
+        {"op": "carve", "size": 0.22, "at": "back", "reach": 0.55, "why": "이웃 필지에 접한 뒷변에서도 선을 끊어 윤곽이 폐합된 담장으로 읽히지 않게 한다"},
+        {"op": "carve", "size": 0.28, "at": "open", "reach": 0.7, "why": "개방면 쪽 절개는 더 크게 — 유일하게 아무것도 안 붙은 방향이 입구가 되어야 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_perforated_carpet",
+      "primary_language": "porous_field",
+      "secondary_language": "mat building",
+      "formal_principle": "One low carpet covers the whole legal footprint and is then punched by several courts of different size.",
+      "dominant_gesture": "Flat, low, and full of holes — you find the light by finding the courtyards.",
+      "reference_basis": "OMA, Jussieu / mat-building tradition transformed into a two-storey carpet",
+      "ops": [
+        {"op": "extrude", "height": 0.35, "why": "층수 상한 4.2층을 다 쓰지 않고 2층대로 낮게 깔면 정북일조 사선에 거의 걸리지 않아 평면을 최대로 펼 수 있다"},
+        {"op": "carve", "size": 0.35, "at": "cross", "reach": 0.8, "why": "-30° 장축을 가로지르는 큰 중정 하나로 카펫의 깊은 안쪽까지 빛을 넣는다"},
+        {"op": "carve", "size": 0.2, "at": "back", "reach": 0.45, "why": "이웃 다섯 필지에 붙는 뒷부분에 작은 중정을 더 뚫어 경계에 붙은 실도 창을 갖게 한다"},
+        {"op": "carve", "size": 0.15, "at": "open", "reach": 0.35, "why": "개방면 근처에는 가장 작은 구멍만 — 여기는 이미 바깥이 있으므로 중정이 클 이유가 없다"}
+      ]
+    },
+    {
+      "name": "llm_b_six_stubs_open_ground",
+      "primary_language": "porous_field",
+      "secondary_language": "raised cluster",
+      "formal_principle": "Six short stubs of steeply graded size stand on a fully released ground plane, tied only at their tops.",
+      "dominant_gesture": "The site stays a field; the building happens above your head in six unequal lumps.",
+      "reference_basis": "OMA, De Rotterdam — unequal stacked peers, inverted into a low six-part cluster",
+      "ops": [
+        {"op": "lift", "clearance": 0.22, "why": "2,499.7 m² 전체를 지면에서 열어두고 건축면적 1,497.9 m² 한도는 공중에서만 소비한다"},
+        {"op": "aggregate", "n": 6, "spread": 5.0, "tie": 0.16, "why": "여섯 개는 평범한 덩어리 무리가 되기 쉬우므로 평면 크기를 5배까지 벌려 균질한 반복을 원천적으로 막는다"},
+        {"op": "taper", "ratio": 0.6, "why": "각 stub의 상부를 당겨 여섯 개가 하나의 판으로 뭉쳐 보이지 않게 한다"}
+      ]
+    },
+    {
+      "name": "llm_b_open_matrix_skewed",
+      "primary_language": "porous_field",
+      "secondary_language": "sheared matrix",
+      "formal_principle": "Four unequal parts are laid on the plot's -30° axis and the upper levels are sheared across it, so the field is different in plan and in section.",
+      "dominant_gesture": "Read the plan and you see a scatter; read the section and you see it slide.",
+      "reference_basis": "OMA, Timmerhuis — a field of cells stepping by exact modules",
+      "ops": [
+        {"op": "aggregate", "n": 4, "spread": 2.2, "tie": 0.11, "why": "외접 3,707 m² 대비 가용 1,922 m²라는 심한 기울기에서는 네 조각이 각자 다른 자투리를 차지하는 편이 한 덩어리보다 효율이 높다"},
+        {"op": "shear", "ratio": 0.32, "toward": "cross", "why": "장축을 가로지르는 방향으로 상층을 자기 치수의 0.32만큼 어긋내 아래층 사이 공극 위에 지붕과 그늘이 생기게 한다"},
+        {"op": "carve", "size": 0.24, "at": "open", "reach": 0.65, "why": "서남서로 열린 쪽 조각에 절개를 넣어 매트릭스가 바깥으로 풀리는 지점을 하나 만든다"},
+        {"op": "lift", "clearance": 0.14, "why": "네 조각 전체를 살짝만 들어 사이 공극이 지면 높이에서 연속되게 한다 — 크게 들면 저층 4.2층에서 상부 층수를 잃는다"}
+      ]
+    }
+  ]
+}

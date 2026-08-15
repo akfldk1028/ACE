@@ -1,0 +1,70 @@
+76 forms in 56.9s = 749 ms/form
+projected for 1788 candidates: 22.3 min
+
+         142805723 function calls (142744522 primitive calls) in 55.397 seconds
+
+   Ordered by: cumulative time
+   List reduced from 267 to 28 due to restriction <28>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       76    0.001    0.000   56.896    0.749 C:\Users\SOGANG1\AppData\Local\Temp\claude\D--Data-25-ACE\b448e6e5-f751-475d-b529-a6b833f301e6\scratchpad\profile_massv2.py:49(evaluate)
+       76    0.006    0.000   55.260    0.727 D:\Data\25_ACE\ARR\backend\design\maas\massv2\fill.py:131(fill_to_site)
+     5320    0.146    0.000   52.550    0.010 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:206(compile_matrix_form)
+      430    0.020    0.000   51.107    0.119 D:\Data\25_ACE\ARR\backend\design\maas\massv2\legal_fit.py:388(fit_to_site)
+    23906    0.278    0.000   32.881    0.001 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:134(_band_parts)
+557693/496554    0.967    0.000   31.172    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\decorators.py:99(wrapper)
+   106251    0.595    0.000   30.030    0.000 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:51(_plan_between)
+   193921    0.339    0.000   23.509    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\geometry\polygon.py:227(__new__)
+      388    0.013    0.000   20.414    0.053 D:\Data\25_ACE\ARR\backend\design\maas\massv2\legal_fit.py:298(_drawn_inside)
+   557693    0.236    0.000   17.030    0.000 C:\Python313\Lib\inspect.py:3373(signature)
+   557693    0.258    0.000   16.794    0.000 C:\Python313\Lib\inspect.py:3094(from_callable)
+   557693    1.759    0.000   16.536    0.000 C:\Python313\Lib\inspect.py:2487(_signature_from_callable)
+     1290    0.003    0.000   16.318    0.013 D:\Data\25_ACE\ARR\backend\design\maas\massv2\legal_fit.py:121(_gross_floor_area)
+   919000    2.205    0.000   15.889    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:263(transform_point3)
+  1062510    0.401    0.000   15.153    0.000 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:77(<genexpr>)
+   193921    0.832    0.000   13.615    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\geometry\polygon.py:61(__new__)
+     1582    0.008    0.000   12.972    0.008 D:\Data\25_ACE\ARR\backend\design\maas\massv2\legal_fit.py:95(projected_ground_area)
+   557693    4.067    0.000   12.764    0.000 C:\Python313\Lib\inspect.py:2383(_signature_from_function)
+    87003    0.188    0.000   10.834    0.000 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:38(_plan)
+  1201979    1.919    0.000   10.582    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\decorators.py:72(wrapped)
+    23843    0.111    0.000   10.381    0.000 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:277(_band_role)
+     5320    0.060    0.000    8.266    0.002 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:86(_band_edges)
+     8885    0.046    0.000    6.882    0.001 D:\Data\25_ACE\ARR\backend\design\maas\massv2\compile.py:190(_leans)
+   557693    0.231    0.000    5.163    0.000 C:\Python313\Lib\inspect.py:3297(bind_partial)
+   557693    3.301    0.000    4.933    0.000 C:\Python313\Lib\inspect.py:3148(_bind)
+  4595000    1.398    0.000    4.862    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:267(<genexpr>)
+  2988694    2.589    0.000    4.737    0.000 C:\Python313\Lib\inspect.py:2754(__init__)
+   955693    3.220    0.000    4.554    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:26(validate_matrix4)
+
+
+
+         142805723 function calls (142744522 primitive calls) in 55.397 seconds
+
+   Ordered by: internal time
+   List reduced from 267 to 22 due to restriction <22>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   557693    4.067    0.000   12.764    0.000 C:\Python313\Lib\inspect.py:2383(_signature_from_function)
+   557693    3.301    0.000    4.933    0.000 C:\Python313\Lib\inspect.py:3148(_bind)
+   955693    3.220    0.000    4.554    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:26(validate_matrix4)
+  2988694    2.589    0.000    4.737    0.000 C:\Python313\Lib\inspect.py:2754(__init__)
+   919000    2.205    0.000   15.889    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:263(transform_point3)
+  4134415    2.110    0.000    3.601    0.000 {built-in method builtins.sum}
+    47089    1.954    0.000    2.013    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\set_operations.py:463(union_all)
+  1201979    1.919    0.000   10.582    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\decorators.py:72(wrapped)
+   557693    1.759    0.000   16.536    0.000 C:\Python313\Lib\inspect.py:2487(_signature_from_callable)
+  4595000    1.398    0.000    4.862    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:267(<genexpr>)
+ 14118881    1.234    0.000    1.234    0.000 {built-in method builtins.isinstance}
+  2900447    1.165    0.000    1.165    0.000 {built-in method builtins.round}
+ 18103039    1.164    0.000    1.164    0.000 {built-in method math.isfinite}
+   557693    1.109    0.000    1.938    0.000 C:\Python313\Lib\inspect.py:3042(__init__)
+   937205    1.076    0.000    2.735    0.000 D:\Data\25_ACE\ARR\backend\design\maas\geometry_language\affine_matrix.py:281(_vector3)
+   193921    0.979    0.000    1.031    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\creation.py:234(linearrings)
+557693/496554    0.967    0.000   31.172    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\decorators.py:99(wrapper)
+    22873    0.925    0.000    0.925    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\set_operations.py:112(intersection)
+   557693    0.896    0.000    1.631    0.000 C:\Python313\Lib\inspect.py:764(unwrap)
+   194791    0.887    0.000    0.887    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\constructive.py:465(convex_hull)
+   193921    0.836    0.000    1.469    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\creation.py:332(polygons)
+   193921    0.832    0.000   13.615    0.000 C:\Users\SOGANG1\AppData\Roaming\Python\Python313\site-packages\shapely\geometry\polygon.py:61(__new__)
+
+

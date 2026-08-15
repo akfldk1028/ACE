@@ -1,0 +1,97 @@
+{
+  "_note": "Six moves absent from authored-01/02. Two were read off the reference corpus fetched on 2026-08-13 (a raked mono-pitch profile, and a perimeter block whose ground storey is a colonnade around a real court); the rest fill classes the vocabulary had no member of - a comb, a saw-tooth, a splayed fan, and a section that grows as it rises instead of stepping back. Fractions of the buildable plan and the legal height, as in authored-02. Adjacent volumes overlap slightly on purpose: a shared exact face is a degenerate boolean input and a gap is a second building.",
+  "schemes": [
+    {
+      "name": "raked_bar",
+      "primary_language": "raked_profile",
+      "secondary_language": "single_bar",
+      "formal_principle": "monotone_rise",
+      "dominant_gesture": "one bar whose top climbs steadily from one end of the site to the other",
+      "reference_basis": "mono-pitch shed profile, ArchDaily cultural-centre corpus 2026-08-13",
+      "far_target": 0.8,
+      "placements": [
+        {"role": "rake_1", "kind": "additive", "width": 0.20, "depth": 0.56, "height": 0.30, "x": 0.05, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "rake_2", "kind": "additive", "width": 0.20, "depth": 0.56, "height": 0.47, "x": 0.23, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "rake_3", "kind": "additive", "width": 0.20, "depth": 0.56, "height": 0.64, "x": 0.41, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "rake_4", "kind": "additive", "width": 0.20, "depth": 0.56, "height": 0.81, "x": 0.59, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "rake_5", "kind": "additive", "width": 0.20, "depth": 0.56, "height": 0.98, "x": 0.77, "y": 0.20, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "perimeter_court_block",
+      "primary_language": "perimeter_block",
+      "secondary_language": "held_court",
+      "formal_principle": "enclosure",
+      "dominant_gesture": "four bars hold the parcel edge and leave the middle open to the sky",
+      "reference_basis": "courtyard housing block, ArchDaily housing corpus 2026-08-13",
+      "far_target": 0.75,
+      "placements": [
+        {"role": "bar_south", "kind": "additive", "width": 0.90, "depth": 0.28, "height": 0.55, "x": 0.05, "y": 0.05, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "bar_north", "kind": "additive", "width": 0.90, "depth": 0.28, "height": 0.55, "x": 0.05, "y": 0.62, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "bar_west", "kind": "additive", "width": 0.22, "depth": 0.36, "height": 0.55, "x": 0.05, "y": 0.30, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "bar_east", "kind": "additive", "width": 0.22, "depth": 0.36, "height": 0.55, "x": 0.73, "y": 0.30, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "comb_off_a_spine",
+      "primary_language": "comb",
+      "secondary_language": "spine_and_fingers",
+      "formal_principle": "served_and_servant",
+      "dominant_gesture": "one long spine with four fingers reaching off it, so every room has two open sides",
+      "reference_basis": "comb plan, the hospital and school typology SANAA works from",
+      "far_target": 0.7,
+      "placements": [
+        {"role": "spine", "kind": "additive", "width": 0.92, "depth": 0.17, "height": 0.45, "x": 0.04, "y": 0.04, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "finger_1", "kind": "additive", "width": 0.15, "depth": 0.56, "height": 0.60, "x": 0.08, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "finger_2", "kind": "additive", "width": 0.15, "depth": 0.56, "height": 0.60, "x": 0.30, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "finger_3", "kind": "additive", "width": 0.15, "depth": 0.56, "height": 0.60, "x": 0.52, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "finger_4", "kind": "additive", "width": 0.15, "depth": 0.56, "height": 0.60, "x": 0.74, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "saw_tooth_sheds",
+      "primary_language": "saw_tooth",
+      "secondary_language": "repeated_bay",
+      "formal_principle": "alternation",
+      "dominant_gesture": "four bays that lean against each other, so the section zig-zags across the site",
+      "reference_basis": "north-light shed section, taken structural rather than pictorial",
+      "far_target": 0.65,
+      "placements": [
+        {"role": "tooth_1", "kind": "additive", "width": 0.25, "depth": 0.60, "height": 0.50, "x": 0.03, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 30, "lean_axis": "x", "plan": "square"},
+        {"role": "tooth_2", "kind": "additive", "width": 0.25, "depth": 0.60, "height": 0.50, "x": 0.27, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": -30, "lean_axis": "x", "plan": "square"},
+        {"role": "tooth_3", "kind": "additive", "width": 0.25, "depth": 0.60, "height": 0.50, "x": 0.51, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 30, "lean_axis": "x", "plan": "square"},
+        {"role": "tooth_4", "kind": "additive", "width": 0.25, "depth": 0.60, "height": 0.50, "x": 0.75, "y": 0.18, "z": 0.0, "rotation_degrees": 0, "lean_degrees": -30, "lean_axis": "x", "plan": "square"}
+      ]
+    },
+    {
+      "name": "splayed_fan",
+      "primary_language": "fan",
+      "secondary_language": "hinged_bars",
+      "formal_principle": "radial_opening",
+      "dominant_gesture": "four bars hinged off one edge and splayed, so the gaps between them widen outward",
+      "reference_basis": "fanned bar plan; the connecting edge is what keeps it one building",
+      "far_target": 0.7,
+      "placements": [
+        {"role": "hinge", "kind": "additive", "width": 0.15, "depth": 0.78, "height": 0.50, "x": 0.03, "y": 0.06, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "blade_1", "kind": "additive", "width": 0.55, "depth": 0.15, "height": 0.50, "x": 0.05, "y": 0.10, "z": 0.0, "rotation_degrees": -18, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "blade_2", "kind": "additive", "width": 0.55, "depth": 0.15, "height": 0.50, "x": 0.05, "y": 0.30, "z": 0.0, "rotation_degrees": -6, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "blade_3", "kind": "additive", "width": 0.55, "depth": 0.15, "height": 0.50, "x": 0.05, "y": 0.50, "z": 0.0, "rotation_degrees": 6, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"},
+        {"role": "blade_4", "kind": "additive", "width": 0.55, "depth": 0.15, "height": 0.50, "x": 0.05, "y": 0.70, "z": 0.0, "rotation_degrees": 18, "lean_degrees": 0, "lean_axis": "x", "plan": "trapezoidal"}
+      ]
+    },
+    {
+      "name": "widening_stack",
+      "primary_language": "inverted_ziggurat",
+      "secondary_language": "cantilevered_plates",
+      "formal_principle": "growth_upward",
+      "dominant_gesture": "each plate is larger than the one below, so the building opens rather than steps back",
+      "reference_basis": "the inverse of the stepback the sunlight envelope asks for; kept to see where the law bites",
+      "far_target": 0.9,
+      "placements": [
+        {"role": "plinth", "kind": "additive", "width": 0.36, "depth": 0.36, "height": 0.30, "x": 0.32, "y": 0.32, "z": 0.0, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "square"},
+        {"role": "middle", "kind": "additive", "width": 0.60, "depth": 0.60, "height": 0.28, "x": 0.20, "y": 0.20, "z": 0.28, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"},
+        {"role": "crown", "kind": "additive", "width": 0.84, "depth": 0.84, "height": 0.26, "x": 0.08, "y": 0.08, "z": 0.54, "rotation_degrees": 0, "lean_degrees": 0, "lean_axis": "x", "plan": "chamfered"}
+      ]
+    }
+  ]
+}

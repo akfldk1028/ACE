@@ -1,0 +1,199 @@
+{
+  "schema_version": "arr.maas.massv2_parti_authoring.v1",
+  "_comment": "문장이지 그림이 아니다. 치수는 실행기가 소유하고, 저작자는 어떤 동작을 어떤 순서로 대지의 무슨 이유로 하는지만 쓴다. 방향은 면을 지목하고(open/back/cross) 각도를 쓰지 않는다.",
+  "schemes": [
+    {
+      "name": "llm_p_settled_terrace",
+      "primary_language": "solid_body",
+      "secondary_language": "terraced",
+      "formal_principle": "one body, stepped back as it rises",
+      "dominant_gesture": "a single mass that gives its upper floors back to the sky",
+      "reference_basis": "BIG 79&Park (EXTRUSION to DAYLIGHT)",
+      "ops": [
+        {"op": "stack", "n": 3, "contrast": 1.30, "why": "용적률을 층으로 채우되 대등하지 않게"},
+        {"op": "taper", "ratio": 0.72, "why": "정북일조 사선에 맞춰 상부를 거둠"}
+      ]
+    },
+    {
+      "name": "llm_p_shear_to_street",
+      "primary_language": "solid_body",
+      "secondary_language": "sheared_stack",
+      "formal_principle": "one body displaced toward the open side",
+      "dominant_gesture": "the upper floors reach toward the street and shade the ground",
+      "reference_basis": "OMA De Rotterdam (0.25 of plan depth)",
+      "ops": [
+        {"op": "stack", "n": 3, "contrast": 1.28, "why": "층 위계"},
+        {"op": "shear", "ratio": 0.26, "toward": "open", "why": "열린 면 쪽 조망과 그늘"}
+      ]
+    },
+    {
+      "name": "llm_p_plinth_and_crown",
+      "primary_language": "solid_body",
+      "secondary_language": "podium_tower",
+      "formal_principle": "a broad base carrying one clear crown",
+      "dominant_gesture": "the base holds the parcel, the crown holds the address",
+      "reference_basis": "OMA Shenzhen Stock Exchange (lifted podium)",
+      "ops": [
+        {"op": "stack", "n": 2, "contrast": 1.55, "why": "저층부와 상부를 명확히 가름"},
+        {"op": "shear", "ratio": 0.18, "toward": "back", "why": "전면에 마당을 남김"}
+      ]
+    },
+    {
+      "name": "llm_p_single_worked_block",
+      "primary_language": "carved_body",
+      "secondary_language": "cut_solid",
+      "formal_principle": "one volume with one room taken out of it",
+      "dominant_gesture": "a solid block opened once, on the side the light comes from",
+      "reference_basis": "OMA Kunsthal (one volume, one cut)",
+      "ops": [
+        {"op": "extrude", "height": 0.85, "why": "대지를 한 덩어리로 점유"},
+        {"op": "carve", "size": 0.34, "at": "cross", "reach": 0.5, "why": "채광 중정"}
+      ]
+    },
+    {
+      "name": "llm_p_court_to_the_street",
+      "primary_language": "carved_body",
+      "secondary_language": "forecourt",
+      "formal_principle": "the cut faces the way in",
+      "dominant_gesture": "the court is the entrance, not a leftover",
+      "reference_basis": "SANAA Zollverein (one cube, rooms inside)",
+      "ops": [
+        {"op": "extrude", "height": 0.9, "why": "한 덩어리"},
+        {"op": "carve", "size": 0.40, "at": "open", "reach": 0.62, "why": "열린 면에서 진입하는 앞마당"}
+      ]
+    },
+    {
+      "name": "llm_p_stepped_and_cut",
+      "primary_language": "carved_body",
+      "secondary_language": "terraced_court",
+      "formal_principle": "stepped in section, opened in plan",
+      "dominant_gesture": "terraces on one side, a court on the other",
+      "reference_basis": "BIG Mountain Dwellings",
+      "ops": [
+        {"op": "stack", "n": 3, "contrast": 1.32, "why": "단면 위계"},
+        {"op": "shear", "ratio": 0.20, "toward": "cross", "why": "테라스를 한쪽으로"},
+        {"op": "carve", "size": 0.28, "at": "back", "why": "후면 채광"}
+      ]
+    },
+    {
+      "name": "llm_p_market_loop",
+      "primary_language": "open_figure",
+      "secondary_language": "ring",
+      "formal_principle": "four bars closing on a court",
+      "dominant_gesture": "the building is the wall around a room the city can enter",
+      "reference_basis": "OMA CCTV (closed loop returns thrust)",
+      "ops": [
+        {"op": "loop", "bar": 0.27, "height": 0.95, "why": "중정을 도시에 내주고 둘레만 지음"}
+      ]
+    },
+    {
+      "name": "llm_p_loop_shifted",
+      "primary_language": "open_figure",
+      "secondary_language": "ring_displaced",
+      "formal_principle": "a ring whose upper part slides across",
+      "dominant_gesture": "the ring is not symmetrical; it leans toward the open side",
+      "reference_basis": "OMA CCTV / Timmerhuis",
+      "ops": [
+        {"op": "loop", "bar": 0.30, "height": 0.9, "why": "둘레형"},
+        {"op": "shear", "ratio": 0.22, "toward": "open", "why": "열린 면으로 무게를 기울임"}
+      ]
+    },
+    {
+      "name": "llm_p_lifted_ground",
+      "primary_language": "open_figure",
+      "secondary_language": "piloti",
+      "formal_principle": "the ground is given back and the building stands over it",
+      "dominant_gesture": "one raised body on four supports, the parcel walks through",
+      "reference_basis": "SANAA Rolex / OMA Milstein Hall",
+      "ops": [
+        {"op": "stack", "n": 2, "contrast": 1.35, "why": "상부 위계"},
+        {"op": "lift", "clearance": 0.26, "why": "지상층을 대지에 돌려줌"}
+      ]
+    },
+    {
+      "name": "llm_p_lifted_and_cut",
+      "primary_language": "open_figure",
+      "secondary_language": "piloti_court",
+      "formal_principle": "raised, then opened through",
+      "dominant_gesture": "you can see the sky through it from underneath",
+      "reference_basis": "OMA Milstein Hall",
+      "ops": [
+        {"op": "extrude", "height": 0.7, "why": "한 덩어리"},
+        {"op": "lift", "clearance": 0.22, "why": "필로티"},
+        {"op": "carve", "size": 0.26, "at": "cross", "why": "관통 보이드"}
+      ]
+    },
+    {
+      "name": "llm_p_field_under_one_roof",
+      "primary_language": "porous_field",
+      "secondary_language": "objects_in_a_boundary",
+      "formal_principle": "unequal objects tied by one plate",
+      "dominant_gesture": "small rooms stand apart; one roof makes them a building",
+      "reference_basis": "SANAA Kanazawa (boxes in a circle)",
+      "ops": [
+        {"op": "aggregate", "n": 5, "spread": 1.7, "tie": 0.2, "why": "분동을 하나로 묶는 판"}
+      ]
+    },
+    {
+      "name": "llm_p_field_opened",
+      "primary_language": "porous_field",
+      "secondary_language": "field_with_a_court",
+      "formal_principle": "a field, then one named void in it",
+      "dominant_gesture": "the largest gap is a place, the rest are streets",
+      "reference_basis": "SANAA Moriyama (no two units alike)",
+      "ops": [
+        {"op": "aggregate", "n": 4, "spread": 1.9, "tie": 0.16, "why": "크기 편차가 큰 분동"},
+        {"op": "carve", "size": 0.3, "at": "back", "why": "이름 있는 마당 하나"}
+      ]
+    },
+    {
+      "name": "llm_p_porous_ring_field",
+      "primary_language": "porous_field",
+      "secondary_language": "ring_and_objects",
+      "formal_principle": "a boundary holding smaller things",
+      "dominant_gesture": "the ring makes the room; the objects fill it unevenly",
+      "reference_basis": "SANAA Kanazawa + OMA Seattle platforms",
+      "ops": [
+        {"op": "loop", "bar": 0.22, "height": 0.72, "why": "경계를 먼저 세움"},
+        {"op": "aggregate", "n": 3, "spread": 1.8, "tie": 0.1, "why": "그 안에 크기 다른 것들"}
+      ]
+    },
+    {
+      "name": "llm_p_two_unequal_bars",
+      "primary_language": "solid_body",
+      "secondary_language": "paired_unequal",
+      "formal_principle": "two bars that are never the same size",
+      "dominant_gesture": "a long low bar and a short tall one, joined at the base",
+      "reference_basis": "OMA (1 or 3-5 unequal peers, never 2 equal)",
+      "ops": [
+        {"op": "extrude", "height": 0.35, "why": "공유 저층부"},
+        {"op": "stack", "n": 2, "contrast": 1.6, "height": 0.8, "why": "위로 갈수록 확연히 작게"},
+        {"op": "shear", "ratio": 0.30, "toward": "cross", "why": "두 바를 어긋냄"}
+      ]
+    },
+    {
+      "name": "llm_p_deep_carve",
+      "primary_language": "carved_body",
+      "secondary_language": "quarried",
+      "formal_principle": "one body, quarried from the open side",
+      "dominant_gesture": "the cut goes deep enough to be a room, not a notch",
+      "reference_basis": "OMA Seattle (platforms and shifts)",
+      "ops": [
+        {"op": "stack", "n": 2, "contrast": 1.26, "why": "두 켜"},
+        {"op": "carve", "size": 0.48, "at": "open", "reach": 0.45, "why": "깊은 채광정"}
+      ]
+    },
+    {
+      "name": "llm_p_lifted_field",
+      "primary_language": "porous_field",
+      "secondary_language": "raised_objects",
+      "formal_principle": "a field of unequal things, held above the ground",
+      "dominant_gesture": "the parcel runs under the whole building",
+      "reference_basis": "SANAA Zollverein / Rolex",
+      "ops": [
+        {"op": "aggregate", "n": 4, "spread": 1.75, "tie": 0.14, "why": "분동 + 묶는 판"},
+        {"op": "lift", "clearance": 0.2, "why": "지면을 열어줌"}
+      ]
+    }
+  ]
+}

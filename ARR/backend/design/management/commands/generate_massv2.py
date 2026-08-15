@@ -27,11 +27,25 @@ from design.maas.massv2.execute import execute as execute_parti
 from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.fill import fill_to_site
+from design.maas.massv2.sampler import read_facts, sample_sentences
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
 from design.maas.massv2.siting import open_side_direction, spread_across_siting
 from design.maas.massv2.variations import spread_across_coverage
+
+
+def _is_authored(form) -> bool:
+    """A composition somebody chose, as opposed to a deterministic seed family.
+
+    Only these are carried along the coverage and siting axes: a seed family is
+    already a sweep, and spreading it again just multiplies the same box. The
+    test used to be the `llm_` name prefix, which silently excluded sentences
+    drawn from the parcel by the sampler - they carry a parti like any other
+    authored sentence, so that is what the test reads now.
+    """
+
+    return bool(form.extra.get("parti")) or form.name.startswith("llm_")
 
 
 class Command(BaseCommand):
@@ -65,6 +79,16 @@ class Command(BaseCommand):
             "--authored-only",
             action="store_true",
             help="Skip the deterministic seed families and use only authored schemes.",
+        )
+        parser.add_argument(
+            "--sample",
+            type=int,
+            default=0,
+            help=(
+                "Draw N sentences from the parcel itself rather than from a file. "
+                "Magnitudes and reasons are read off this site's own limits, so "
+                "the vocabulary is not inherited from the parcel it was written on."
+            ),
         )
         parser.add_argument(
             "--no-fill",
@@ -135,14 +159,20 @@ class Command(BaseCommand):
             forms.extend(item for item in authored if item is not None)
             self.stdout.write(f"authored schemes: {sum(1 for i in authored if i)}")
 
-        if options["parti_json"]:
+        if options["parti_json"] or options["sample"]:
             buildable = site.plan_at(0.0)
             axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
             sentences = []
-            for path in options["parti_json"]:
+            for path in options["parti_json"] or ():
                 sentences.extend(
                     json.loads(Path(path).read_text(encoding="utf-8")).get("schemes") or ()
                 )
+            if options["sample"]:
+                facts = read_facts(site)
+                self.stdout.write(json.dumps(facts.evidence(), ensure_ascii=False))
+                drawn = sample_sentences(facts, limit=options["sample"])
+                sentences.extend(drawn)
+                self.stdout.write(f"sampled sentences: {len(drawn)}")
             written = []
             for record in sentences:
                 parti = parti_from_record(record)
@@ -167,7 +197,7 @@ class Command(BaseCommand):
             spread = [
                 variant
                 for form in list(forms)
-                if form.name.startswith("llm_")
+                if _is_authored(form)
                 for variant in spread_across_coverage(
                     form,
                     ground_capacity_m2=site.ground_capacity_m2,
@@ -192,7 +222,7 @@ class Command(BaseCommand):
             placed = [
                 variant
                 for form in list(forms)
-                if form.name.startswith("llm_")
+                if _is_authored(form)
                 for variant in spread_across_siting(
                     form, buildable=buildable, open_side=open_side
                 )
@@ -229,6 +259,7 @@ class Command(BaseCommand):
                     far_capacity_m2=site.far_capacity_m2,
                     ground_capacity_m2=site.ground_capacity_m2,
                 ),
+                floor_height_m=site.floor_height_m,
             )
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m

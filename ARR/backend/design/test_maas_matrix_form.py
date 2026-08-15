@@ -17,13 +17,17 @@ These tests hold three things about the replacement:
 from dataclasses import replace
 
 from django.test import SimpleTestCase
+from shapely.geometry import Polygon
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, measure_form, place
 from design.maas.massv2.measure import FormMeasurement
 from design.maas.massv2.plausibility import (
+    MAX_UNLIT_SHARE,
     Plausibility,
     assess as plausibility_of,
+    daylit_depth_m,
     slenderness_limit,
+    unlit_share,
 )
 from design.maas.massv2.select import OBJECTIVES, Candidate, choose
 from design.maas.massv2.structure import CANTILEVER_BACKSPAN_RATIO, assess_standing
@@ -567,3 +571,73 @@ class TheParcelSaysHowSlenderTests(SimpleTestCase):
 
         self.assertFalse(verdict.occupiable)
         self.assertTrue(any("slenderness" in reason for reason in verdict.reasons))
+
+
+class DaylightSaysHowDeepTests(SimpleTestCase):
+    """The gate asked how thin a mass may be and never how deep.
+
+    A forty-metre-across slab satisfies both ceilings, stands up, and has a
+    middle no window reaches - and on a wide parcel the growth loop makes
+    exactly that, because filling 용적률 by spreading is cheaper than by
+    rising. Reinhart's rule of thumb puts the daylit zone at two to two and a
+    half times the window head, which in a storey of this height is the storey
+    itself: six metres in from a façade, twelve across when lit from both
+    sides. That is the depth every daylit bar in the corpus is built to, and
+    the reason a courtyard block, a bar and a comb exist at all.
+    """
+
+    def test_a_bar_is_lit_and_a_slab_of_the_same_area_is_not(self):
+        bar = Polygon([(0, 0), (12, 0), (12, 100), (0, 100)])
+        slab = Polygon([(0, 0), (35, 0), (35, 35), (0, 35)])
+
+        self.assertEqual(unlit_share(bar, floor_height_m=3.0), 0.0)
+        self.assertGreater(unlit_share(slab, floor_height_m=3.0), MAX_UNLIT_SHARE)
+
+    def test_a_court_rescues_the_outline_it_was_cut_from(self):
+        """Which is the whole reason a courtyard block exists."""
+
+        outline = [(0, 0), (40, 0), (40, 30), (0, 30)]
+        solid = Polygon(outline)
+        courtyard = Polygon(outline, [[(12, 9), (28, 9), (28, 21), (12, 21)]])
+
+        self.assertGreater(unlit_share(solid, floor_height_m=3.0), MAX_UNLIT_SHARE)
+        # Not quite zero: the four corners of a rectangle keep a sliver past
+        # six metres from both the outer wall and the court. A corner of a
+        # room is not the same claim as its middle.
+        self.assertLess(unlit_share(courtyard, floor_height_m=3.0), 0.01)
+
+    def test_the_depth_follows_the_storey_rather_than_a_constant(self):
+        self.assertAlmostEqual(daylit_depth_m(3.0), 6.0)
+        self.assertAlmostEqual(daylit_depth_m(4.5), 9.0)
+
+    def test_a_deep_slab_is_refused_by_the_gate(self):
+        form = _form("slab", [place("plate", size=(38.0, 34.0, 12.0))])
+        source = compile_matrix_form(form)
+
+        verdict = plausibility_of(
+            source,
+            parcel_area_m2=2499.69,
+            max_slenderness=slenderness_limit(
+                far_capacity_m2=6241.962, ground_capacity_m2=1497.877
+            ),
+            floor_height_m=3.0,
+        )
+
+        self.assertFalse(verdict.occupiable)
+        self.assertTrue(any("daylight" in reason for reason in verdict.reasons))
+
+    def test_the_gate_is_silent_when_no_storey_height_is_given(self):
+        """Callers that never knew the storey height keep their old verdict."""
+
+        form = _form("slab", [place("plate", size=(38.0, 34.0, 12.0))])
+        source = compile_matrix_form(form)
+
+        verdict = plausibility_of(
+            source,
+            parcel_area_m2=2499.69,
+            max_slenderness=slenderness_limit(
+                far_capacity_m2=6241.962, ground_capacity_m2=1497.877
+            ),
+        )
+
+        self.assertFalse(any("daylight" in reason for reason in verdict.reasons))

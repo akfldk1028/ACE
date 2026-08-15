@@ -34,7 +34,6 @@ from .legal_fit import (
     _gross_floor_area,
     _scaled_in_plan,
     fit_to_site,
-    projected_ground_area,
 )
 from .variations import _stretched
 
@@ -85,8 +84,22 @@ class FillResult:
         }
 
 
-def _articulation(form: MatrixForm, *, storey_height_m: float) -> float:
-    source = compile_matrix_form(form, storey_height_m=storey_height_m)
+def _articulation(form: MatrixForm, *, storey_height_m: float, allowed_at=None) -> float:
+    """The articulation of the building that gets delivered, not of a draft.
+
+    Compiled without `allowed_at` this measures a mass nobody receives. Every
+    area in `legal_fit` is taken through the clip, and the sheet compiles
+    through it too, so growth was the one reader left looking at the uncut
+    form - and it is the reader whose whole job is to refuse a step that costs
+    the composition. A widening step that pushes a court out to the boundary
+    closes it, because the clip takes the wall that was holding it open; uncut,
+    the court is still there and the step reads as free. That is one building
+    measured two ways, for the fourth time in this package.
+    """
+
+    source = compile_matrix_form(
+        form, storey_height_m=storey_height_m, allowed_at=allowed_at
+    )
     return measure_form(source).articulation() if source is not None else 0.0
 
 
@@ -165,7 +178,7 @@ def fill_to_site(
 
     current = best.form
     storey = float(form.floor_height_m or site.floor_height_m)
-    started_at = _articulation(current, storey_height_m=storey)
+    started_at = _articulation(current, storey_height_m=storey, allowed_at=site.plan_at)
     floor = started_at * _ARTICULATION_KEPT
     taller = wider = 0
     reason = "reached_step_limit"
@@ -207,7 +220,9 @@ def fill_to_site(
             return False
         if candidate.gross_floor_area_m2 <= best.gross_floor_area_m2 + 1.0:
             return False
-        return _articulation(candidate.form, storey_height_m=storey) >= floor
+        return _articulation(
+            candidate.form, storey_height_m=storey, allowed_at=site.plan_at
+        ) >= floor
 
     # How many storeys this parcel's own law implies: the floor area it allows
     # over the ground it allows. On the Uijeongbu parcel that is 2499.7 / 499.9
@@ -242,7 +257,13 @@ def fill_to_site(
     if settled_height.satisfied and settled_height.gross_floor_area_m2 > 0.0:
         best, current = settled_height, settled_height.form
 
-    standing = best.gross_floor_area_m2 / max(projected_ground_area(current), 1.0)
+    # Storeys standing = floor area over the ground it stands on, and both
+    # numbers have to come off the same building. The fit already carries the
+    # projection it certified through the clip, so taking it from there rather
+    # than re-projecting the uncut form is one measurement instead of two: a
+    # scheme hanging over the boundary was dividing a cut floor area by an
+    # uncut footprint, reading short, and being told it had storeys to spare.
+    standing = best.gross_floor_area_m2 / max(best.ground_area_m2, 1.0)
     if standing > storeys_allowed:
         settled = fit_to_site(_taller(current, storeys_allowed / standing), site)
         if settled.satisfied and settled.gross_floor_area_m2 > 0.0:
@@ -253,7 +274,7 @@ def fill_to_site(
             reason = "far_capacity_reached"
             break
 
-        standing = best.gross_floor_area_m2 / max(projected_ground_area(current), 1.0)
+        standing = best.gross_floor_area_m2 / max(best.ground_area_m2, 1.0)
         if standing >= storeys_allowed:
             if not allow_plan_growth:
                 reason = "parcel_storey_ceiling_reached"
@@ -285,8 +306,7 @@ def fill_to_site(
             reason = "height_exhausted"
             break
 
-        ground = projected_ground_area(current)
-        headroom = site.ground_capacity_m2 / max(ground, 1.0)
+        headroom = site.ground_capacity_m2 / max(best.ground_area_m2, 1.0)
         if headroom <= 1.01:
             reason = "both_ceilings_reached"
             break

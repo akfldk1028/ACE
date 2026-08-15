@@ -74,9 +74,23 @@ class LegalSite:
         return float(getattr(self.context.envelope, "floor_height", 0.0) or 0.0)
 
     def plan_at(self, height_m: float) -> Polygon | None:
-        """The legal footprint at a height, already sunlight-clipped."""
+        """The legal footprint at a height, already sunlight-clipped.
 
-        return generation_site_at_height(self.context, float(height_m))
+        The parcel does not change during a run, so this is a lookup rather
+        than a computation. It was being recomputed 21,537 times over the
+        seventy-six authored sentences - a quarter of the whole runtime - for
+        a few hundred distinct heights, because every fit and every compile
+        asks each band where its ceiling is.
+        """
+
+        key = float(height_m)
+        cache = self.__dict__.get("_plan_at_cache")
+        if cache is None:
+            cache = {}
+            object.__setattr__(self, "_plan_at_cache", cache)
+        if key not in cache:
+            cache[key] = generation_site_at_height(self.context, key)
+        return cache[key]
 
     def evidence(self) -> dict[str, Any]:
         return {

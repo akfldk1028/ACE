@@ -21,6 +21,7 @@ scale). Neither uses CSG at massing scale.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from math import radians, tan
 from typing import Any, Iterable, Literal
 
@@ -47,6 +48,14 @@ UNIT_BOX_CORNERS: tuple[tuple[float, float, float], ...] = (
 )
 
 
+@lru_cache(maxsize=None)
+def _unit_corners(plan: str) -> tuple[tuple[float, float, float], ...]:
+    """The unposed solid for a plan name. There are nine of these in the language."""
+
+    ring = unit_plan(plan)
+    return tuple((x, y, level) for level in (0.0, 1.0) for x, y in ring)
+
+
 @dataclass(frozen=True)
 class Placement:
     """One unit cube, posed by its own matrix.
@@ -66,17 +75,41 @@ class Placement:
     def unit_corners(self) -> tuple[tuple[float, float, float], ...]:
         """The unit solid before posing: this placement's plan, at z 0 and 1."""
 
-        ring = unit_plan(self.plan)
-        return tuple(
-            (x, y, level) for level in (0.0, 1.0) for x, y in ring
-        )
+        return _unit_corners(self.plan)
 
     def corners(self) -> tuple[tuple[float, float, float], ...]:
-        return tuple(transform_point3(self.matrix, corner) for corner in self.unit_corners())
+        """Pose the unit solid, once per placement.
+
+        A placement is frozen, so its corners are a property of it rather than
+        a question to be re-answered. They were being recomputed on every call:
+        profiled over the seventy-six authored sentences, `corners` ran 681,531
+        times and drove 6.3 million matrix transforms - 103 of 180 seconds -
+        because the growth loop refits a scheme up to twenty-four times, every
+        fit compiles it, and every compile walks the same eight points again.
+        `z_span` asked for them a second time on top of that.
+
+        The cached value is the tuple the transform produced, so the numbers
+        are bit-identical and the exactness oracle in
+        `design/test_maas_affine_matrix_exactness.py` still reads the same
+        matrices. Frozen dataclasses compare on their declared fields, so a
+        cache in the instance dict changes neither equality nor hashing.
+        """
+
+        cached = self.__dict__.get("_corners_cache")
+        if cached is None:
+            cached = tuple(
+                transform_point3(self.matrix, corner) for corner in self.unit_corners()
+            )
+            object.__setattr__(self, "_corners_cache", cached)
+        return cached
 
     def z_span(self) -> tuple[float, float]:
-        zs = [corner[2] for corner in self.corners()]
-        return min(zs), max(zs)
+        cached = self.__dict__.get("_z_span_cache")
+        if cached is None:
+            zs = [corner[2] for corner in self.corners()]
+            cached = (min(zs), max(zs))
+            object.__setattr__(self, "_z_span_cache", cached)
+        return cached
 
     def evidence(self) -> dict[str, Any]:
         low, high = self.z_span()

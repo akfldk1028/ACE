@@ -23,6 +23,8 @@ from typing import Any
 
 from shapely.geometry import Polygon
 
+from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
+
 from .form import MatrixForm, Placement, place
 from .grammar import (
     JOINT_CLEARANCE_M,
@@ -297,12 +299,27 @@ def _carve(frame: _Frame, op: Operation) -> None:
 
 
 def _lift(frame: _Frame, op: Operation) -> None:
-    """Raise what is standing and put a smaller thing under it."""
+    """Raise what is standing and put a smaller thing under it.
+
+    Clearance is the one magnitude in this grammar that is not scale-free.
+    Everything else is a ratio because everything else is set by the building's
+    own proportions - but what makes a lift a lift is that a person passes
+    underneath, and a person is the same height on every site. Kaktus, Grove
+    and Grace Farms all lift by 0.15 of their height, which is ten metres or
+    more on the buildings they were measured from; the same ratio on a 12.6 m
+    parcel is 1.89 m, a crawl space. All three came back silent on every one of
+    their variants, and they were right to: nothing was standing up.
+
+    So the ratio sets the intent and the floor-viability minimum sets the
+    dimension. A building too short to give that clearance and still be a
+    building simply does not get lifted.
+    """
 
     picked, rest = _scope(frame, op)
     if not picked:
         return
-    clearance = _clamp(float(op.params.get("clearance", 0.22)), 0.1, 0.4) * frame.height
+    asked = _clamp(float(op.params.get("clearance", 0.22)), 0.1, 0.4) * frame.height
+    clearance = max(asked, DEFAULT_MINIMUM_CLEAR_DEPTH_M)
     raised: list[Placement] = []
     for item in picked:
         low, high = item.z_span()

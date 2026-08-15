@@ -417,6 +417,43 @@ def execute(
         handler = _VERBS.get(op.verb)
         if handler is not None:
             handler(frame, op)
+    return _form_from(frame, parti)
+
+
+def execute_steps(
+    parti: Parti,
+    *,
+    buildable: Polygon,
+    axis: tuple[float, float],
+    height_m: float,
+) -> list[tuple[Operation, MatrixForm]]:
+    """The same sentence, stopped after each word.
+
+    A parti is published as an ordered list of moves with one caption each -
+    79&Park is EXTRUSION, POROSITY, DAYLIGHT, LANDMARK, one drawing per line -
+    and that sequence is what makes the offices' massing read as an argument
+    rather than a shape. We were compiling the whole sentence and drawing only
+    its last word, which throws away the reasoning the author already wrote:
+    every operation carries its own `why`.
+
+    Nothing new is generated here. Running the same handlers over the same
+    frame and taking a copy after each one costs one extra compile per word.
+    """
+
+    frame = _Frame(buildable, axis, height_m)
+    steps: list[tuple[Operation, MatrixForm]] = []
+    for op in parti.ops:
+        handler = _VERBS.get(op.verb)
+        if handler is None:
+            continue
+        handler(frame, op)
+        form = _form_from(frame, parti)
+        if form is not None:
+            steps.append((op, form))
+    return steps
+
+
+def _form_from(frame: _Frame, parti: Parti) -> MatrixForm | None:
     if not [item for item in frame.placements if item.kind == "additive"]:
         return None
     return MatrixForm(
@@ -441,4 +478,4 @@ def execute(
     )
 
 
-__all__ = ["execute"]
+__all__ = ["execute", "execute_steps"]

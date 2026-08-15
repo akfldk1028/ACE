@@ -348,8 +348,20 @@ class Command(BaseCommand):
             gfa = gross_floor_area_m2(source, floor_height_m=storey_h)
             far_use = gfa / max(site.far_capacity_m2, 1e-9)
             take = fit.ground_area_m2 / max(site.ground_capacity_m2, 1e-9)
-            ground_band = delivered_ground_take_band(take).band_id
-            cell = f"{ground_band}|{measurement.void_band_id}"
+            # With a brief, the coverage axis stops meaning anything: a
+            # 1,428 m² schedule on a 2,500 m² parcel cannot reach the full
+            # band however it is composed, and the grid emptied. What the
+            # brief does give is a decision worth an axis - where its one big
+            # room went - which Korean practice treats as a discrete choice
+            # between a detached volume, the base, a middle floor and the top.
+            if schedule is not None:
+                cell = (
+                    f"{programme.large_span_strategy(source, storey_height_m=site.floor_height_m)}"
+                    f"|{measurement.void_band_id}"
+                )
+            else:
+                ground_band = delivered_ground_take_band(take).band_id
+                cell = f"{ground_band}|{measurement.void_band_id}"
             cells[cell] += 1
             if not fit.satisfied:
                 unlawful += 1

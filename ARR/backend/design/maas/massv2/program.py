@@ -363,6 +363,47 @@ def civic_centre_schedule(
     )
 
 
+# Where the large room ended up. Korean practice treats this as a discrete
+# choice rather than a continuum - the research found the hall at the top in
+# three of the winners studied, in the base in three more, in a separate volume
+# in others, and underground in none of twelve - and it is the decision that
+# settles the massing once a brief has one big room in it.
+#
+# The fourth documented option, burying the volume in a slope, is not listed
+# here because this package has no terrain to bury it in. Saying so is better
+# than inventing a category nothing can be classified into.
+LARGE_SPAN_STRATEGIES = ("detached", "base", "middle", "crown")
+
+
+def large_span_strategy(source, *, storey_height_m: float) -> str:
+    """Which of the four the delivered mass actually chose.
+
+    Read off the biggest volume, because with a brief attached that is the one
+    the schedule gave the hall to.
+    """
+
+    volumes = list(getattr(source, "volumes", ()) or ())
+    if not volumes:
+        return "base"
+    height = float(source.metadata.get("authored_height_m") or 0.0)
+    if height <= 0.0:
+        return "base"
+
+    hall = max(volumes, key=lambda v: float(v.footprint.area))
+    others = [v for v in volumes if v is not hall]
+    if others and not any(v.footprint.intersects(hall.footprint) for v in others):
+        return "detached"
+
+    low = hall.bottom_fraction * height
+    high = hall.top_fraction * height
+    storey = max(storey_height_m, 0.5)
+    if low <= storey * 0.5:
+        return "base"
+    if high >= height - storey * 0.5:
+        return "crown"
+    return "middle"
+
+
 def resized_to(form, schedule: Schedule, *, weight: float, storey_height_m: float = 3.0):
     """Give the sentence's volumes the sizes the brief asks for.
 

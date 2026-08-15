@@ -14,12 +14,16 @@ building type and a staff count.
 
 from django.test import SimpleTestCase
 
+from design.maas.massv2 import compile_matrix_form
+from design.maas.massv2.form import MatrixForm, place
 from design.maas.massv2.program import (
     GROSS_UP,
+    LARGE_SPAN_STRATEGIES,
     Room,
     Schedule,
     blended,
     civic_centre_schedule,
+    large_span_strategy,
     volume_shares,
 )
 
@@ -107,3 +111,48 @@ class TheDialIsADialTests(SimpleTestCase):
         self.assertAlmostEqual(sum(mixed), 1.0, places=6)
         self.assertLess(mixed[0], 0.5)
         self.assertGreater(mixed[0], 0.2)
+
+
+class WhereTheBigRoomWentIsAnAxisTests(SimpleTestCase):
+    """With a brief, the coverage axis stops meaning anything.
+
+    A 1,428 m² schedule on a 2,500 m² parcel cannot reach the full coverage
+    band however it is composed, so the grid emptied. What the brief does give
+    is a decision worth an axis: where its one large room went. Korean practice
+    treats that as a discrete choice - a detached volume, the base, a middle
+    floor, or the top - and found it underground in none of twelve winners.
+    """
+
+    def _mass(self, placements):
+        form = MatrixForm(
+            name="t", placements=tuple(placements), primary_language="test"
+        )
+        return compile_matrix_form(form, storey_height_m=3.0)
+
+    def test_a_hall_on_the_ground_is_the_base(self):
+        source = self._mass([
+            place("hall", size=(30.0, 20.0, 6.0), at=(0.0, 0.0, 0.0)),
+            place("rooms", size=(20.0, 12.0, 6.0), at=(2.0, 2.0, 6.0)),
+        ])
+
+        self.assertEqual(large_span_strategy(source, storey_height_m=3.0), "base")
+
+    def test_a_hall_on_top_is_the_crown(self):
+        source = self._mass([
+            place("rooms", size=(20.0, 12.0, 9.0), at=(2.0, 2.0, 0.0)),
+            place("hall", size=(30.0, 20.0, 6.0), at=(0.0, 0.0, 9.0)),
+        ])
+
+        self.assertEqual(large_span_strategy(source, storey_height_m=3.0), "crown")
+
+    def test_a_hall_standing_clear_is_detached(self):
+        source = self._mass([
+            place("rooms", size=(14.0, 12.0, 9.0), at=(0.0, 0.0, 0.0)),
+            place("hall", size=(30.0, 20.0, 6.0), at=(60.0, 0.0, 0.0)),
+        ])
+
+        self.assertEqual(large_span_strategy(source, storey_height_m=3.0), "detached")
+
+    def test_every_named_strategy_is_reachable(self):
+        self.assertEqual(len(set(LARGE_SPAN_STRATEGIES)), 4)
+        self.assertNotIn("buried", LARGE_SPAN_STRATEGIES)

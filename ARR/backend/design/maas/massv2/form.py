@@ -71,6 +71,13 @@ class Placement:
     # a wedge, a folded plate and a circle are different base shapes, not
     # different transforms, and no matrix can turn one into another.
     plan: str = "square"
+    # Is this volume a room, or is it what holds a room up. A column is meant
+    # to be thin and a storey is not, so every rule about how wide or how deep
+    # a plate must be has to know which of the two it is looking at. The
+    # executor already made the distinction - it lets a support under a lifted
+    # plate be shorter than a storey - and then threw it away at placement, so
+    # the gates downstream had no way to tell a column from a sliver of floor.
+    occupiable: bool = True
 
     def unit_corners(self) -> tuple[tuple[float, float, float], ...]:
         """The unit solid before posing: this placement's plan, at z 0 and 1."""
@@ -195,6 +202,7 @@ def place(
     lean_axis: str = "x",
     plan: str = "square",
     kind: PlacementKind = "additive",
+    occupiable: bool = True,
 ) -> Placement:
     """Build a placement from the terms an architect actually says.
 
@@ -237,7 +245,13 @@ def place(
             rotation_matrix4((0.0, 0.0, float(rotation_degrees))),
             translation_matrix4(centre),
         )
-    return Placement(role=str(role), matrix=validate_matrix4(matrix), kind=kind, plan=str(plan))
+    return Placement(
+        role=str(role),
+        matrix=validate_matrix4(matrix),
+        kind=kind,
+        plan=str(plan),
+        occupiable=bool(occupiable) and kind == "additive",
+    )
 
 
 def stack(

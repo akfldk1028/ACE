@@ -227,6 +227,7 @@ def compile_matrix_form(
         return None
 
     volumes: list[SourceVolume] = []
+    structural: list[int] = []
     dropped_bands = 0
     for low, high in zip(edges, edges[1:]):
         parts = _band_parts(form, low, high, allowed_at)
@@ -234,7 +235,10 @@ def compile_matrix_form(
             dropped_bands += 1
             continue
         role = _band_role(form, low, high)
+        is_structure = _band_is_structure(form, low, high)
         for part in parts:
+            if is_structure:
+                structural.append(len(volumes))
             volumes.append(
                 SourceVolume(
                     role=role,
@@ -270,8 +274,25 @@ def compile_matrix_form(
         verb_trace=(),
         notes=tuple(notes),
         status="compiled",
-        metadata=_metadata(form, height_m=height, band_count=len(volumes)),
+        metadata=_metadata(
+            form, height_m=height, band_count=len(volumes),
+            structural_bands=tuple(structural),
+        ),
     )
+
+
+def _band_is_structure(form: MatrixForm, low: float, high: float) -> bool:
+    """Is everything standing in this band something that holds a room up.
+
+    A band is structure only when nothing occupiable reaches it: four columns
+    under a plate make one, the plate above does not, and a band where a column
+    passes a floor is a floor. Asked of the volumes rather than of the band's
+    outline, because a column and a storey are the same shape in plan and
+    differ only in what they are for.
+    """
+
+    occupants = [item for item in form.additive() if _spans(item, low, high)]
+    return bool(occupants) and not any(item.occupiable for item in occupants)
 
 
 def _band_role(form: MatrixForm, low: float, high: float) -> str:
@@ -291,7 +312,13 @@ def _band_role(form: MatrixForm, low: float, high: float) -> str:
     return max(occupants, key=lambda pair: pair[1])[0].role
 
 
-def _metadata(form: MatrixForm, *, height_m: float, band_count: int) -> dict[str, Any]:
+def _metadata(
+    form: MatrixForm,
+    *,
+    height_m: float,
+    band_count: int,
+    structural_bands: tuple[int, ...] = (),
+) -> dict[str, Any]:
     """The fields `SourceMass.signature()` turns into `source_signature`.
 
     Leaving these empty is not a cosmetic omission: every diversity quota in
@@ -317,5 +344,9 @@ def _metadata(form: MatrixForm, *, height_m: float, band_count: int) -> dict[str
             "subtractive_count": len(form.subtractive()),
         },
         "geometry_authority": "matrix_form_analysis",
+        # Which bands are what holds the building up rather than part of it.
+        # Read by the plausibility gate, which must not ask a column to be as
+        # wide as a storey.
+        "structural_bands": list(structural_bands),
         **dict(form.extra),
     }

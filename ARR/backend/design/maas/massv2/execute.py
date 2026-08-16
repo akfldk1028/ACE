@@ -41,6 +41,15 @@ def _clamp(value: float, low: float, high: float) -> float:
     return low if value < low else high if value > high else value
 
 
+# How tall an undercroft may be, in storeys of the building it belongs to.
+# The corpus lifts to let the ground run under a building, not to stand it on
+# towers: Rolex, Zollverein, Grace Farms and Kaktus all clear a storey or two.
+# This is the ceiling that matches the floor `_lift` already had, and both are
+# metres for the same reason - the person walking under is the same size on
+# every site.
+MAX_UNDERCROFT_STOREYS = 2.0
+
+
 class _Frame:
     """The site's own box, and the volumes standing in it so far."""
 
@@ -94,6 +103,7 @@ class _Frame:
             rotation_degrees=self.rotation,
             kind=kind,
             plan=plan,
+            occupiable=occupiable,
         )
 
 
@@ -367,13 +377,23 @@ def _lift(frame: _Frame, op: Operation) -> None:
     So the ratio sets the intent and the floor-viability minimum sets the
     dimension. A building too short to give that clearance and still be a
     building simply does not get lifted.
+
+    The same argument bounds it from above, and only the floor was there. On a
+    commercial parcel `frame.height` is 65 m, so the same 0.22 asks for a 14 m
+    undercroft standing on 4 m sticks - and the plausibility gate let it pass,
+    because a support is exempt from being as wide as a storey and nothing
+    asked how tall an exempt thing may be. Rolex and Milstein went out as four
+    towers with a block on top. A person passes under a lifted building, and
+    the height a person passes under is a storey or two whatever the building
+    is; past that the legs are the building and the room above is its hat.
     """
 
     picked, rest = _scope(frame, op)
     if not picked:
         return
     asked = _clamp(float(op.params.get("clearance", 0.22)), 0.1, 0.4) * frame.height
-    clearance = max(asked, DEFAULT_MINIMUM_CLEAR_DEPTH_M)
+    room = max(frame.storey, DEFAULT_MINIMUM_CLEAR_DEPTH_M)
+    clearance = _clamp(asked, DEFAULT_MINIMUM_CLEAR_DEPTH_M, room * MAX_UNDERCROFT_STOREYS)
     raised: list[Placement] = []
     for item in picked:
         low, high = item.z_span()

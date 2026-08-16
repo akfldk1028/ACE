@@ -158,6 +158,7 @@ class Plausibility:
     viable_band_share: float
     occupiable: bool
     reasons: tuple[str, ...]
+    occupiable_mass_share: float = 1.0
     standing: Standing | None = None
     max_slenderness: float = 0.0
 
@@ -167,6 +168,7 @@ class Plausibility:
             "slenderness": round(self.slenderness, 3),
             "minimum_plan_dimension_m": round(self.minimum_plan_dimension_m, 3),
             "viable_band_share": round(self.viable_band_share, 3),
+            "occupiable_mass_share": round(self.occupiable_mass_share, 3),
             "occupiable": self.occupiable,
             "reasons": list(self.reasons),
             "structure": self.standing.evidence() if self.standing is not None else None,
@@ -203,17 +205,32 @@ def assess(
     min_dimension = _min_dimension(ground)
     slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
 
+    structural = set(source.metadata.get("structural_bands") or ())
     viable = 0
-    narrow = 0
-    for volume in bands:
+    room = 0.0
+    occupied = 0.0
+    holding = 0.0
+    for index, volume in enumerate(bands):
         verdict = evaluate_floor_section_viability(
             volume.footprint, parcel_area_m2=parcel_area_m2
         )
         if verdict.get("hard_pass"):
             viable += 1
-        if not holds_a_storey(volume.footprint):
-            narrow += 1
+        # Weighed by how much building each band is, not counted. Counting made
+        # one thin terrace among Mountain Dwellings' thirteen bands worth as
+        # much as the forty-metre plates beside it, and refused the scheme.
+        bulk = float(volume.footprint.area) * max(
+            0.0, volume.top_fraction - volume.bottom_fraction
+        )
+        if index in structural:
+            holding += bulk
+            continue
+        occupied += bulk
+        if holds_a_storey(volume.footprint):
+            room += bulk
     share = viable / len(bands)
+    storey_share = (room / occupied) if occupied > 1e-9 else 1.0
+    held_share = holding / max(holding + occupied, 1e-9)
 
     reasons: list[str] = []
     if slenderness > max_slenderness:
@@ -228,8 +245,18 @@ def assess(
     # and taper into sticks above it, and `min_dimension` reads the ground only
     # - and reads a bounding box at that, so it cannot see a stick beside a
     # wide plate in the same band.
-    if narrow:
-        reasons.append(f"{narrow}_of_{len(bands)}_plates_too_narrow_for_a_storey")
+    if storey_share <= 0.5:
+        reasons.append(f"only_{storey_share:.0%}_of_the_mass_is_wide_enough_to_occupy")
+    # A column is exempt from being as wide as a storey because it is a column,
+    # and what makes it one is that it is small next to what it holds up. The
+    # exemption is granted by the verb - `lift` marks its supports - and nothing
+    # re-examined it afterwards, so on 강남 the growth loop drew those supports
+    # to 65 m and they carried the exemption all the way out: Rolex reported
+    # every occupiable band wide enough because the four sticks it stands on had
+    # stopped counting. Past half the mass it is not what holds the building up,
+    # it is the building.
+    if held_share > 0.5:
+        reasons.append(f"{held_share:.0%}_of_the_mass_is_structure_rather_than_room")
 
     # A plate can satisfy both ceilings and still have a middle no window
     # reaches. Nothing else in this gate was asking how deep a storey is, so a
@@ -254,6 +281,7 @@ def assess(
         slenderness=slenderness,
         minimum_plan_dimension_m=min_dimension,
         viable_band_share=share,
+        occupiable_mass_share=storey_share,
         occupiable=not reasons,
         reasons=tuple(reasons),
         standing=standing,

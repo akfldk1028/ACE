@@ -108,10 +108,24 @@ def _articulation(form: MatrixForm, *, storey_height_m: float, allowed_at=None) 
 
 
 def _taller(form: MatrixForm, factor: float) -> MatrixForm:
+    """Grow the building upward. Structure keeps the height it was given.
+
+    `_stretched` scales a volume about its own base, so a body already sitting
+    on supports stays where it is and only grows taller - which means leaving
+    the supports alone keeps the composition intact and lifts nothing.
+
+    Stretching them too was how a four-metre column became a thirty-eight metre
+    tower: the growth loop asked for floor area, and area bought on a support
+    is area nobody can enter. A column is sized by what walks under it and that
+    does not change when the parcel allows more storeys.
+    """
+
     return replace(
         form,
         placements=tuple(
-            _stretched(item, factor) if item.kind == "additive" else item
+            _stretched(item, factor)
+            if item.kind == "additive" and item.occupiable
+            else item
             for item in form.placements
         ),
     )

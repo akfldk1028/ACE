@@ -19,6 +19,7 @@ chosen and what they were aimed at, and both of those come from the parcel.
 from __future__ import annotations
 
 from dataclasses import replace
+from math import ceil, sqrt
 from typing import Any
 
 from shapely.geometry import Polygon
@@ -41,6 +42,21 @@ from .grammar import (
 def _clamp(value: float, low: float, high: float) -> float:
     return low if value < low else high if value > high else value
 
+
+# How many volumes a field may hold. Six was a hardcoded table of corner slots
+# and it was the ceiling on grade articulation for the entire grammar, because
+# `split` divides a field rather than multiplying it. Korean competition winners
+# average 3.4 separate masses, which six could reach; Moriyama's ten, Towada's
+# one-per-artwork and Nishinoyama's ten dwellings could not be said at all.
+MAX_FIELD_OBJECTS = 12
+
+# How much the objects in a field may differ in size. The floor used to be
+# MIN_TIER_CONTRAST, the same rule that stops `stack` making a barracks of equal
+# tiers - but Nishizawa rejected volumes that were *identical*, not volumes that
+# were *similar*, and at Moriyama and Towada the near-equality is the content:
+# it is what makes the result read as a neighbourhood rather than as a house
+# with outbuildings. Equal is still refused; close is now allowed.
+MIN_FIELD_SPREAD = 1.05
 
 # How tall an undercroft may be, in storeys of the building it belongs to.
 # The corpus lifts to let the ground run under a building, not to stand it on
@@ -543,34 +559,64 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
     field with no largest object has nothing to read first.
     """
 
-    count = int(_clamp(float(op.params.get("n", 4)), 2, 6))
-    spread = max(MIN_TIER_CONTRAST, float(op.params.get("spread", 1.6)))
+    count = int(_clamp(float(op.params.get("n", 4)), 2, MAX_FIELD_OBJECTS))
+    spread = max(MIN_FIELD_SPREAD, float(op.params.get("spread", 1.6)))
     share = _clamp(float(op.params.get("height", 0.8)), 0.1, 1.0)
-    positions = [(-1, -1), (1, 1), (1, -1), (-1, 1), (0, 1), (-1, 0)][:count]
-    size = 0.34
     # The boundary that makes a field one building. Kanazawa's boxes sit under
     # a single roof and Zollverein's rooms inside one cube; without it the
     # objects are what the gate said they were, five buildings on one parcel.
-    tie = _clamp(float(op.params.get("tie", 0.18)), 0.08, 0.4)
-    frame.placements.append(
-        # The tie is a boundary, not a room - Kanazawa's roof, Grace Farms'
-        # ribbon - so it is exempt from the one-storey floor for the same
-        # reason a support is. Held to a storey it grew as thick as the
-        # objects it binds and swallowed them, and a `taper` aimed at one of
-        # them then changed the compiled mass by exactly nothing.
-        frame.box("field_plate", w=frame.width, d=frame.depth, z=0.0,
-                  h=frame.height * tie, occupiable=False)
-    )
-    for index, (sx, sy) in enumerate(positions):
-        scale = size / (spread ** (index / max(count - 1, 1)))
-        w, d = frame.width * scale, frame.depth * scale
+    tie = _clamp(float(op.params.get("tie", 0.18)), 0.0, 0.4)
+    if tie > 0.0:
+        frame.placements.append(
+            # The tie is a boundary, not a room - Kanazawa's roof, Grace Farms'
+            # ribbon - so it is exempt from the one-storey floor for the same
+            # reason a support is. Held to a storey it grew as thick as the
+            # objects it binds and swallowed them, and a `taper` aimed at one of
+            # them then changed the compiled mass by exactly nothing.
+            frame.box("field_plate", w=frame.width, d=frame.depth, z=0.0,
+                      h=frame.height * tie, occupiable=False)
+        )
+    # A field may have no boundary at all, and then the objects are separate
+    # buildings sharing a plot - which is what Moriyama and the Inujima Art
+    # Houses are: ten volumes that never touch, with the village lanes between
+    # them doing the circulating. The floor of 0.08 was there because a field
+    # with no tie once read as five buildings on one parcel, but that reading
+    # is not wrong for these, and holding every field together is what kept
+    # grade articulation pinned at one however many objects were placed.
+
+    # Objects sit in the cells of a loose grid rather than in a table of corner
+    # slots. The table held six, and six was the ceiling on how many bodies this
+    # whole grammar could stand at grade - `split` divides a field, it does not
+    # multiply one, so no combination of words could get past it. Moriyama is
+    # ten volumes, Nishinoyama ten dwellings, Towada one per artwork; a field
+    # that cannot count past six cannot say any of them.
+    #
+    # A grid also guarantees what the corner table only got away with at small
+    # counts: every object has its own cell, so none of them overlap however
+    # many there are.
+    columns = max(1, int(ceil(sqrt(count))))
+    rows = max(1, int(ceil(count / columns)))
+    cell_w = frame.width / columns
+    cell_d = frame.depth / rows
+    for index in range(count):
+        column, row = index % columns, index // columns
+        # Size fans out across the whole field, and the smallest object is held
+        # to a storey: the old height divisor of 1/(1+0.3i) put the ninth object
+        # at a quarter of the first, which the storey gate refuses and rightly.
+        scale = 1.0 / (spread ** (index / max(count - 1, 1)))
+        w = (cell_w - JOINT_CLEARANCE_M) * 0.86 * scale
+        d = (cell_d - JOINT_CLEARANCE_M) * 0.86 * scale
+        # Cells alternate their offset so the result reads as a settlement
+        # rather than as a barracks - the thing the size fan exists to avoid,
+        # asked of position as well as of size.
+        drift = 0.14 * (1 if (column + row) % 2 else -1)
         frame.placements.append(
             frame.box(
                 f"object_{index}",
                 w=w, d=d, z=0.0,
-                h=frame.height * share / (1.0 + index * 0.3),
-                dx=sx * (frame.width / 2.0 - w / 2.0 - JOINT_CLEARANCE_M) * 0.82,
-                dy=sy * (frame.depth / 2.0 - d / 2.0 - JOINT_CLEARANCE_M) * 0.82,
+                h=frame.height * share * (0.55 + 0.45 * scale),
+                dx=(column + 0.5 + drift) * cell_w - frame.width / 2.0,
+                dy=(row + 0.5 - drift) * cell_d - frame.depth / 2.0,
             )
         )
 

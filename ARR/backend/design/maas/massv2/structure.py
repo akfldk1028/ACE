@@ -48,6 +48,18 @@ _CONTACT_TOLERANCE_M = 0.05
 # An overhang smaller than a floor tile is a modelling artefact of the band cut.
 _MEANINGFUL_OVERHANG_M2 = 1.0
 
+# How many bodies a scheme may stand as. One was the rule, and one is wrong: a
+# 별동 - a detached annex holding the gym or the assembly hall - is one of the
+# four ways Korean winners place a large span, and this gate refused every one
+# of them. The grid has a `detached` column that could only ever be filled by
+# schemes whose halves secretly touched.
+#
+# The bound comes from the same place the column does: Kim (2026, SNU) measures
+# 3.4 masses per winning entry, so a scheme standing as up to four bodies is
+# inside what the corpus does and a cloud of twelve is a compound rather than a
+# building. Each body still has to answer the other three questions on its own.
+MAX_SEPARATE_BODIES = 4
+
 
 @dataclass(frozen=True)
 class Standing:
@@ -369,7 +381,7 @@ def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
     grounded, bodies = connectivity(source)
     if grounded < 1.0 - 1e-6:
         reasons.append(f"only_{grounded:.0%}_of_the_mass_reaches_the_ground")
-    if bodies > 1:
+    if bodies > MAX_SEPARATE_BODIES:
         reasons.append(f"{bodies}_separate_bodies_not_one_building")
 
     ratio, reach, slenderness = worst_members(source, height_m=height_m)

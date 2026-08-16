@@ -1,62 +1,462 @@
-{"schemes": [
- {"name":"big_via57west","primary_language":"open_figure","secondary_language":"courtyard block with one corner drawn up into a peak","formal_principle":"A perimeter court is held low on three corners and pulled into a single peak on the fourth, so the roof becomes one warped slope falling toward the water.","dominant_gesture":"A warped wall lifting out of a low block like a sail, the green court visible beneath the slope.","reference_basis":"BIG - VIA 57 West New York (courtscraper: perimeter block, three corners low, north-east corner drawn to 142 m, hyperbolic-paraboloid west wall, 22,000 sq ft court)","ops":[
-  {"op":"loop","bar":0.3,"height":0.9,"why":"서측 고속도로와 발전소에 사방이 포위된 대지라 블록을 한 바퀴 둘러 안쪽에 주거를 위한 정온한 마당을 스스로 만들어야 한다."},
-  {"op":"split","ratio":0.34,"along":"cross","first":"peak","second":"skirt","gap":0,"why":"고층 볼륨을 한 모서리에만 몰아야 뒤에 이미 서 있는 이웃 주거탑의 강 조망을 가리지 않는다."},
-  {"op":"taper","ratio":0.35,"on":"skirt","why":"낮은 쪽을 계속 눌러 내려야 강에서 들어오는 서향 저각도 빛이 중정 바닥과 저층 세대까지 도달한다."},
-  {"op":"carve","size":0.45,"at":"open","reach":0.6,"why":"강변 공원 쪽 면을 크게 열어야 중정이 갇힌 우물이 아니라 강으로 이어지는 마당으로 읽힌다."}]},
- {"name":"big_8house","primary_language":"open_figure","secondary_language":"a perimeter block pinched into two unequal courts","formal_principle":"A single perimeter block is squeezed at its waist into two unequal courtyards and tipped so one corner rises and the opposite sinks to the ground.","dominant_gesture":"A ramped street runs from the pavement up ten storeys along the roofline.","reference_basis":"BIG - 8 House Copenhagen (perimeter block squeezed into a bow-tie, two courts joined by a 10 m passage, NE corner hoisted, SW pushed down, 61,000 m2)","ops":[
-  {"op":"loop","bar":0.3,"height":0.75,"why":"운하와 들판 사이 아무것도 없는 신도시 가장자리라 스스로 둘러싸는 도시블록을 만들어야 주거에 필요한 소속감 있는 외부공간이 생긴다."},
-  {"op":"split","ratio":0.42,"along":"cross","first":"north_court","second":"south_court","gap":0.18,"why":"마당 하나가 너무 커서 아무도 자기 것이라 느끼지 못하므로 크기가 다른 두 마당으로 나눠 이웃 단위의 척도를 만든다."},
-  {"op":"taper","ratio":0.4,"on":"south_court","why":"남쪽 볼륨을 낮춰야 남측 개활지에서 들어오는 태양이 두 마당 모두에 떨어지고 북쪽 세대까지 시야가 트인다."},
-  {"op":"carve","size":0.4,"at":"open","reach":0.3,"why":"지상부를 관통시켜야 서쪽 공원과 동쪽 운하가 단지에 막히지 않고 보행으로 이어진다."}]},
- {"name":"big_mountain_dwellings","primary_language":"solid_body","secondary_language":"a parking hillside with a thin layer of dwellings over it","formal_principle":"The mandatory parking is built as an inclined artificial hill and a single-storey layer of housing is draped over its sloping roof.","dominant_gesture":"A blunt perforated wall on one side; a terraced green hillside climbing eleven storeys on the other.","reference_basis":"BIG/PLOT - Mountain Dwellings Copenhagen (two-thirds garage, one-third housing; serpentine garage ramping to the 11th floor; 80 apartments with roof gardens over 480 cars)","ops":[
-  {"op":"stack","n":5,"contrast":1.35,"height":0.8,"align":"back","why":"주차 2 대 주거 1 이라는 발주 조건을 층층 테라스로 바꿔야 모든 세대가 자기 정원과 남측 채광을 동시에 갖는다."},
-  {"op":"split","ratio":0.38,"along":"cross","first":"garage","second":"homes","gap":0,"why":"차의 영역과 사람의 영역을 한 덩어리 안에서 갈라놔야 주차가 주거의 조망과 빛을 잠식하지 않는다."},
-  {"op":"shear","ratio":0.3,"on":"homes","toward":"open","why":"주거층을 햇빛 쪽으로 밀어내야 아래 주차 볼륨이 만드는 그늘 밖으로 테라스가 빠져나온다."},
-  {"op":"carve","size":0.3,"at":"back","reach":0.35,"why":"차량 진입구는 이웃과 면한 뒤쪽에 파야 남측 정원 쪽 보행 환경이 차에 잘리지 않는다."}]},
- {"name":"big_79_and_park","primary_language":"open_figure","secondary_language":"a pixelated court block sloping down toward the park","formal_principle":"A perimeter block of small modules is given a different height at every module so the roof reads as a hill, low against the park and high against the city.","dominant_gesture":"From the park a stepped wooden hillside you could climb, not a wall.","reference_basis":"BIG - 79&Park Stockholm (3.6 m module grid as a perimeter block, three public passages cut through, SW corner lowered for courtyard sun, NE raised to 35 m, 169 apartments)","ops":[
-  {"op":"loop","bar":0.28,"height":0.7,"why":"왕립 도시공원과 맞닿은 대지라 블록형으로 가장자리를 정의해야 공원에 등을 돌리지 않으면서 안쪽에 주민 마당을 확보한다."},
-  {"op":"split","ratio":0.4,"along":"open","first":"park_edge","second":"city_edge","gap":0,"why":"공원에 면한 부분과 도시에 면한 부분은 요구되는 높이의 예의가 다르므로 애초에 다른 덩어리로 다뤄야 한다."},
-  {"op":"taper","ratio":0.38,"on":"park_edge","why":"공원 쪽을 낮춰야 공원에 그림자를 드리우지 않고 저녁 남서광이 중정 안까지 들어온다."},
-  {"op":"carve","size":0.35,"at":"open","reach":0.3,"why":"블록을 관통하는 통로를 내야 중정이 주민 전용 폐쇄공간이 아니라 공원과 연속된 공용 공간이 된다."}]},
- {"name":"big_the_twist","primary_language":"solid_body","secondary_language":"an inhabited bar bridging two unequal banks","formal_principle":"One straight gallery bar is thrown across the river and warped about its own axis near midspan, so a horizontal end on the low bank becomes a vertical end on the high bank.","dominant_gesture":"A single white beam crossing the water that visibly wrings itself halfway over.","reference_basis":"BIG - The Twist Kistefos Norway (1,000 m2 gallery spanning 60 m over the Randselva; the bar rotates 90 degrees to join the low south bank to the higher north hillside)","ops":[
-  {"op":"extrude","height":0.28,"why":"전시 동선이 한 방향으로 흐르는 갤러리라 낮고 긴 수평 덩어리 하나가 프로그램과 그대로 일치한다."},
-  {"op":"lift","clearance":0.35,"on":"body","why":"강 위를 건너 조각공원의 끊긴 순환동선을 잇는 것이 이 건물의 첫 번째 임무이므로 땅에서 떨어져야 한다."},
-  {"op":"split","ratio":0.45,"along":"cross","first":"low_end","second":"high_end","gap":0,"why":"양쪽 강안의 지반 높이와 숲의 성격이 서로 달라 두 끝을 같은 것으로 취급하면 어느 한쪽 입구가 땅에 묻힌다."},
-  {"op":"shear","ratio":0.35,"on":"high_end","toward":"cross","why":"높은 쪽 끝을 비틀어 세워야 낮은 숲 바닥과 높은 언덕이라는 두 지형에 각각 제 높이로 착지한다."}]},
- {"name":"big_vancouver_house","primary_language":"carved_body","secondary_language":"a tower released from an infrastructure setback","formal_principle":"A tower is bitten away at its base by the clearance from an elevated bridge ramp, and grows back to a full plate only above the height where that clearance ends.","dominant_gesture":"A thin triangular sliver at the pavement that swells outward as it climbs.","reference_basis":"BIG - Vancouver House (155 m on a wedge site by the Granville Bridge ramps; a 30 m setback required only up to 30 m of height, above which the triangular plan grows into a rectangle)","ops":[
-  {"op":"extrude","height":1.0,"why":"고밀 다운타운 삼각 자투리 대지에서 요구 연면적을 확보하려면 우선 대지 전체를 최대 높이로 점유하는 것이 출발점이다."},
-  {"op":"carve","size":0.55,"at":"back","reach":0.35,"why":"고가 램프에서 일정 높이까지 떨어져야 한다는 이격 규정이 저층부만 잘라내므로 그 높이 위로는 다시 온전한 주거 평면을 회복시킨다."},
-  {"op":"split","ratio":0.32,"along":"back","first":"podium","second":"tower","gap":0.2,"why":"고가도로 밑의 버려진 땅은 저층 상업으로 따로 채워야 다리 아래가 죽은 공간으로 남지 않는다."},
-  {"op":"shear","ratio":0.2,"on":"tower","toward":"open","why":"타워를 수변 쪽으로 밀어야 상층 세대가 램프의 소음선에서 벗어나 폴스크릭 조망을 정면으로 받는다."}]},
- {"name":"big_lego_house","primary_language":"porous_field","secondary_language":"unequal bricks stacked over a covered square","formal_principle":"Twenty-one unequal brick volumes are interlocked around and above a covered public room, and one oversized brick locks the pile.","dominant_gesture":"A pile of white blocks whose overlaps make a roofed town square underneath and terraces above.","reference_basis":"BIG - LEGO House Billund (21 stacked white brick volumes crowned by an oversized 2x4 keystone; a 2,000 m2 covered square at grade; public roof terraces)","ops":[
-  {"op":"aggregate","n":6,"spread":1.5,"height":0.5,"tie":0.3,"why":"전시 존이 성격별로 나뉜 프로그램이라 하나의 큰 덩어리보다 크기가 다른 여러 덩어리가 마을 규모의 작은 도시에 맞는다."},
-  {"op":"carve","size":0.5,"at":"open","reach":0.3,"why":"지상층을 크게 비워야 표를 사지 않은 시민도 지나다닐 수 있는 지붕 덮인 광장이 도심에 반납된다."},
-  {"op":"taper","ratio":0.55,"on":"object_5","why":"맨 위 한 덩어리만 다르게 다뤄야 낮은 마을 스카이라인 속에서 이 집의 입구가 어디인지 멀리서 읽힌다."},
-  {"op":"shear","ratio":0.25,"on":"object_3","toward":"cross","why":"덩어리를 서로 어긋나게 밀어야 아래 덩어리의 지붕이 위 덩어리의 옥외 놀이터로 남는다."}]},
- {"name":"big_copenhill","primary_language":"solid_body","secondary_language":"an industrial block under one continuous inhabited slope","formal_principle":"The plant machinery is ordered by its own height and one continuous roof plane is laid over that order, turning the by-product of the section into a public slope.","dominant_gesture":"A metal block whose roof tilts unbroken from a 90 m summit down to the pavement.","reference_basis":"BIG - CopenHill Copenhagen (41,000 m2 waste-to-energy plant; internal volumes arranged in height order to generate the sloping roof; 9,000 m2 ski terrain, 85 m climbing wall)","ops":[
-  {"op":"extrude","height":0.95,"why":"소각 설비의 높이가 곧 건물의 높이를 정하는 산업시설이라 대지 전체를 채운 하나의 큰 덩어리가 프로그램의 정직한 크기다."},
-  {"op":"split","ratio":0.4,"along":"open","first":"furnace","second":"slope","gap":0,"why":"가장 높은 보일러부와 낮은 후처리부를 다른 덩어리로 인정해야 설비 배치를 왜곡하지 않고도 지붕에 경사가 생긴다."},
-  {"op":"taper","ratio":0.35,"on":"slope","why":"지붕을 도시 쪽 지면까지 끌어내려야 시민이 엘리베이터 없이 걸어 올라올 수 있는 진짜 공공 언덕이 된다."},
-  {"op":"carve","size":0.3,"at":"cross","reach":0.3,"why":"측면에 홈을 파야 폐기물 트럭 동선과 뒤섞이지 않는 별도의 시민 출입구가 확보된다."}]},
- {"name":"big_kaktus_towers","primary_language":"porous_field","secondary_language":"two unequal serrated towers on one raised plinth","formal_principle":"Two towers of unequal height rise from a shared plinth and every floor plate is rotated slightly so the facade becomes a field of pointed balconies.","dominant_gesture":"Two prickly shafts whose spiralling balconies make the whole surface bristle.","reference_basis":"BIG - Kaktus Towers Copenhagen (two hexagonal towers of 80 m and 60 m; each slab rotated against the one below giving 500 pointed balconies; 495 micro-apartments of 33 and 53 m2)","ops":[
-  {"op":"aggregate","n":2,"spread":1.35,"height":0.9,"tie":0.25,"why":"철도와 고가에 낀 좁은 자투리 땅이라 하나의 뚱뚱한 덩어리보다 높이가 다른 두 개의 가는 탑이 지상 보행 여지를 남긴다."},
-  {"op":"carve","size":0.3,"at":"open","reach":0.85,"why":"33 m2 소형 세대가 대부분이라 외피를 전 높이에 걸쳐 파내 모든 세대에 자기 몫의 외부공간을 돌려줘야 한다."},
-  {"op":"shear","ratio":0.18,"on":"object_1","toward":"cross","why":"낮은 탑을 옆으로 비켜 세워야 두 탑이 서로의 창을 마주 보지 않고 각자 항구와 시내 조망을 나눠 갖는다."},
-  {"op":"lift","clearance":0.15,"on":"field_plate","why":"지면이 역과 도로로 잘려 있어 공용 데크를 들어올려야 통근자가 두 탑과 역 사이를 끊기지 않고 걷는다."}]},
- {"name":"big_one_high_line","primary_language":"porous_field","secondary_language":"two unequal towers turning away from one another","formal_principle":"Two towers of unequal height share one podium and each turns out of the other's way, opening a reciprocal slot of view between them.","dominant_gesture":"Two shafts that appear to bow to each other, with a bright gap of sky between them.","reference_basis":"BIG - The XI / One High Line New York (west tower 123 m, east 92 m on a shared podium, each twisting out of the way of the other; skybridge; ground promenade extending the High Line)","ops":[
-  {"op":"aggregate","n":2,"spread":1.4,"height":0.95,"tie":0.18,"why":"고가공원과 강 사이 한 블록 전체를 한 덩어리로 채우면 하이라인 산책로가 벽에 갇히므로 크기가 다른 두 동으로 쪼갠다."},
-  {"op":"shear","ratio":0.3,"on":"object_0","toward":"open","why":"높은 동을 강 쪽으로 틀어야 상층 주거가 허드슨 정면 조망을 확보한다."},
-  {"op":"shear","ratio":0.25,"on":"object_1","toward":"back","why":"낮은 동을 반대쪽으로 틀어야 두 동 사이에 하늘이 뚫려 서로의 조망과 하이라인 채광을 빼앗지 않는다."},
-  {"op":"carve","size":0.4,"at":"cross","reach":0.2,"why":"저층부를 관통시켜야 고가공원의 보행 흐름이 지상 광장으로 내려와 블록을 통과한다."}]},
- {"name":"big_grove_at_grand_bay","primary_language":"porous_field","secondary_language":"two twisting towers that never cross paths","formal_principle":"Two towers stand in one garden and each rotates its plates as it climbs, tuned so neither moves into the other's line of sight.","dominant_gesture":"Two glass shafts that visibly wring as they rise out of a tropical garden.","reference_basis":"BIG - Grove at Grand Bay Miami (two 20-storey towers on a landscaped podium, 38 degrees total twist base to crown, 12-14 ft wraparound balconies, FEMA flood zone)","ops":[
-  {"op":"aggregate","n":2,"spread":1.28,"height":0.8,"tie":0.14,"why":"만과 다운타운 스카이라인이라는 두 방향의 조망을 나눠 가지려면 한 동보다 서로 크기가 다른 두 동이 유리하다."},
-  {"op":"shear","ratio":0.32,"on":"object_0","toward":"open","why":"앞 동을 만 쪽으로 비틀어야 모든 세대가 각기 다른 각도의 수변 조망을 갖는다."},
-  {"op":"shear","ratio":0.22,"on":"object_1","toward":"cross","why":"뒤 동을 어긋난 축으로 비틀어야 앞 동의 조망선을 정면으로 막지 않는다."},
-  {"op":"lift","clearance":0.15,"on":"field_plate","why":"침수 위험 구역이라 공용 기단을 들어올려야 주거층이 안전해지고 그 아래로 정원과 보행이 흐른다."}]},
- {"name":"big_the_spiral","primary_language":"carved_body","secondary_language":"a ziggurat whose setback walks around the tower","formal_principle":"The stepped setback is taken one floor at a time and chained so it rotates around all four faces, turning a ziggurat into one continuous green ribbon.","dominant_gesture":"An unbroken planted terrace spiralling up the whole tower.","reference_basis":"BIG - The Spiral New York (314 m, 65 storeys; a six-storey base then a one-floor-at-a-time setback chained into a continuous spiral of terraces, each paired with a double-height atrium)","ops":[
-  {"op":"stack","n":6,"contrast":1.28,"height":1.0,"align":"cross","why":"전층 임대 오피스라 층마다 뒤로 물러나는 단차를 두어야 모든 임차인이 자기 층의 옥외 테라스를 갖는다."},
-  {"op":"carve","size":0.3,"at":"open","reach":0.85,"why":"물러난 자리를 연속으로 파내야 발치의 선형 공원이 끊기지 않고 건물을 타고 하늘까지 이어지는 것으로 읽힌다."},
-  {"op":"carve","size":0.4,"at":"back","reach":0.12,"why":"저층부 한쪽을 크게 열어야 고가공원의 북쪽 끝이 건물 안으로 들어와 로비가 도시의 통로가 된다."},
-  {"op":"taper","ratio":0.7,"on":"tier_5","why":"최상부를 좁혀야 허드슨야드 스카이라인 속에서 이 탑의 끝이 뭉툭하게 잘리지 않고 마무리된다."}]}
-]}
+{
+  "schemes": [
+    {
+      "name": "big_via57west",
+      "primary_language": "open_figure",
+      "secondary_language": "courtyard block with one corner drawn up into a peak",
+      "formal_principle": "A perimeter court is held low on three corners and pulled into a single peak on the fourth, so the roof becomes one warped slope falling toward the water.",
+      "dominant_gesture": "A warped wall lifting out of a low block like a sail, the green court visible beneath the slope.",
+      "reference_basis": "BIG - VIA 57 West New York (courtscraper: perimeter block, three corners low, north-east corner drawn to 142 m, hyperbolic-paraboloid west wall, 22,000 sq ft court)",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.9,
+          "why": "서측 고속도로와 발전소에 사방이 포위된 대지라 블록을 한 바퀴 둘러 안쪽에 주거를 위한 정온한 마당을 스스로 만들어야 한다.",
+          "profile": "trapezoidal"
+        },
+        {
+          "op": "split",
+          "ratio": 0.34,
+          "along": "cross",
+          "first": "peak",
+          "second": "skirt",
+          "gap": 0,
+          "why": "고층 볼륨을 한 모서리에만 몰아야 뒤에 이미 서 있는 이웃 주거탑의 강 조망을 가리지 않는다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.35,
+          "on": "skirt",
+          "why": "낮은 쪽을 계속 눌러 내려야 강에서 들어오는 서향 저각도 빛이 중정 바닥과 저층 세대까지 도달한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.45,
+          "at": "open",
+          "reach": 0.6,
+          "why": "강변 공원 쪽 면을 크게 열어야 중정이 갇힌 우물이 아니라 강으로 이어지는 마당으로 읽힌다."
+        }
+      ]
+    },
+    {
+      "name": "big_8house",
+      "primary_language": "open_figure",
+      "secondary_language": "a perimeter block pinched into two unequal courts",
+      "formal_principle": "A single perimeter block is squeezed at its waist into two unequal courtyards and tipped so one corner rises and the opposite sinks to the ground.",
+      "dominant_gesture": "A ramped street runs from the pavement up ten storeys along the roofline.",
+      "reference_basis": "BIG - 8 House Copenhagen (perimeter block squeezed into a bow-tie, two courts joined by a 10 m passage, NE corner hoisted, SW pushed down, 61,000 m2)",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.75,
+          "why": "운하와 들판 사이 아무것도 없는 신도시 가장자리라 스스로 둘러싸는 도시블록을 만들어야 주거에 필요한 소속감 있는 외부공간이 생긴다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.42,
+          "along": "cross",
+          "first": "north_court",
+          "second": "south_court",
+          "gap": 0.18,
+          "why": "마당 하나가 너무 커서 아무도 자기 것이라 느끼지 못하므로 크기가 다른 두 마당으로 나눠 이웃 단위의 척도를 만든다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.4,
+          "on": "south_court",
+          "why": "남쪽 볼륨을 낮춰야 남측 개활지에서 들어오는 태양이 두 마당 모두에 떨어지고 북쪽 세대까지 시야가 트인다."
+        },
+        {
+          "op": "carve",
+          "size": 0.4,
+          "at": "open",
+          "reach": 0.3,
+          "why": "지상부를 관통시켜야 서쪽 공원과 동쪽 운하가 단지에 막히지 않고 보행으로 이어진다."
+        }
+      ]
+    },
+    {
+      "name": "big_mountain_dwellings",
+      "primary_language": "solid_body",
+      "secondary_language": "a parking hillside with a thin layer of dwellings over it",
+      "formal_principle": "The mandatory parking is built as an inclined artificial hill and a single-storey layer of housing is draped over its sloping roof.",
+      "dominant_gesture": "A blunt perforated wall on one side; a terraced green hillside climbing eleven storeys on the other.",
+      "reference_basis": "BIG/PLOT - Mountain Dwellings Copenhagen (two-thirds garage, one-third housing; serpentine garage ramping to the 11th floor; 80 apartments with roof gardens over 480 cars)",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 5,
+          "contrast": 1.35,
+          "height": 0.8,
+          "align": "back",
+          "why": "주차 2 대 주거 1 이라는 발주 조건을 층층 테라스로 바꿔야 모든 세대가 자기 정원과 남측 채광을 동시에 갖는다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.38,
+          "along": "cross",
+          "first": "garage",
+          "second": "homes",
+          "gap": 0,
+          "why": "차의 영역과 사람의 영역을 한 덩어리 안에서 갈라놔야 주차가 주거의 조망과 빛을 잠식하지 않는다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "on": "homes",
+          "toward": "open",
+          "why": "주거층을 햇빛 쪽으로 밀어내야 아래 주차 볼륨이 만드는 그늘 밖으로 테라스가 빠져나온다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 0.35,
+          "why": "차량 진입구는 이웃과 면한 뒤쪽에 파야 남측 정원 쪽 보행 환경이 차에 잘리지 않는다."
+        }
+      ]
+    },
+    {
+      "name": "big_79_and_park",
+      "primary_language": "open_figure",
+      "secondary_language": "a pixelated court block sloping down toward the park",
+      "formal_principle": "A perimeter block of small modules is given a different height at every module so the roof reads as a hill, low against the park and high against the city.",
+      "dominant_gesture": "From the park a stepped wooden hillside you could climb, not a wall.",
+      "reference_basis": "BIG - 79&Park Stockholm (3.6 m module grid as a perimeter block, three public passages cut through, SW corner lowered for courtyard sun, NE raised to 35 m, 169 apartments)",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.28,
+          "height": 0.7,
+          "why": "왕립 도시공원과 맞닿은 대지라 블록형으로 가장자리를 정의해야 공원에 등을 돌리지 않으면서 안쪽에 주민 마당을 확보한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.4,
+          "along": "open",
+          "first": "park_edge",
+          "second": "city_edge",
+          "gap": 0,
+          "why": "공원에 면한 부분과 도시에 면한 부분은 요구되는 높이의 예의가 다르므로 애초에 다른 덩어리로 다뤄야 한다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.38,
+          "on": "park_edge",
+          "why": "공원 쪽을 낮춰야 공원에 그림자를 드리우지 않고 저녁 남서광이 중정 안까지 들어온다."
+        },
+        {
+          "op": "carve",
+          "size": 0.35,
+          "at": "open",
+          "reach": 0.3,
+          "why": "블록을 관통하는 통로를 내야 중정이 주민 전용 폐쇄공간이 아니라 공원과 연속된 공용 공간이 된다."
+        }
+      ]
+    },
+    {
+      "name": "big_the_twist",
+      "primary_language": "solid_body",
+      "secondary_language": "an inhabited bar bridging two unequal banks",
+      "formal_principle": "One straight gallery bar is thrown across the river and warped about its own axis near midspan, so a horizontal end on the low bank becomes a vertical end on the high bank.",
+      "dominant_gesture": "A single white beam crossing the water that visibly wrings itself halfway over.",
+      "reference_basis": "BIG - The Twist Kistefos Norway (1,000 m2 gallery spanning 60 m over the Randselva; the bar rotates 90 degrees to join the low south bank to the higher north hillside)",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.28,
+          "why": "전시 동선이 한 방향으로 흐르는 갤러리라 낮고 긴 수평 덩어리 하나가 프로그램과 그대로 일치한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.35,
+          "on": "body",
+          "why": "강 위를 건너 조각공원의 끊긴 순환동선을 잇는 것이 이 건물의 첫 번째 임무이므로 땅에서 떨어져야 한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.45,
+          "along": "cross",
+          "first": "low_end",
+          "second": "high_end",
+          "gap": 0,
+          "why": "양쪽 강안의 지반 높이와 숲의 성격이 서로 달라 두 끝을 같은 것으로 취급하면 어느 한쪽 입구가 땅에 묻힌다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.35,
+          "on": "high_end",
+          "toward": "cross",
+          "why": "높은 쪽 끝을 비틀어 세워야 낮은 숲 바닥과 높은 언덕이라는 두 지형에 각각 제 높이로 착지한다."
+        }
+      ]
+    },
+    {
+      "name": "big_vancouver_house",
+      "primary_language": "carved_body",
+      "secondary_language": "a tower released from an infrastructure setback",
+      "formal_principle": "A tower is bitten away at its base by the clearance from an elevated bridge ramp, and grows back to a full plate only above the height where that clearance ends.",
+      "dominant_gesture": "A thin triangular sliver at the pavement that swells outward as it climbs.",
+      "reference_basis": "BIG - Vancouver House (155 m on a wedge site by the Granville Bridge ramps; a 30 m setback required only up to 30 m of height, above which the triangular plan grows into a rectangle)",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "고밀 다운타운 삼각 자투리 대지에서 요구 연면적을 확보하려면 우선 대지 전체를 최대 높이로 점유하는 것이 출발점이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.55,
+          "at": "back",
+          "reach": 0.35,
+          "why": "고가 램프에서 일정 높이까지 떨어져야 한다는 이격 규정이 저층부만 잘라내므로 그 높이 위로는 다시 온전한 주거 평면을 회복시킨다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.32,
+          "along": "back",
+          "first": "podium",
+          "second": "tower",
+          "gap": 0.2,
+          "why": "고가도로 밑의 버려진 땅은 저층 상업으로 따로 채워야 다리 아래가 죽은 공간으로 남지 않는다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.2,
+          "on": "tower",
+          "toward": "open",
+          "why": "타워를 수변 쪽으로 밀어야 상층 세대가 램프의 소음선에서 벗어나 폴스크릭 조망을 정면으로 받는다."
+        }
+      ]
+    },
+    {
+      "name": "big_lego_house",
+      "primary_language": "porous_field",
+      "secondary_language": "unequal bricks stacked over a covered square",
+      "formal_principle": "Twenty-one unequal brick volumes are interlocked around and above a covered public room, and one oversized brick locks the pile.",
+      "dominant_gesture": "A pile of white blocks whose overlaps make a roofed town square underneath and terraces above.",
+      "reference_basis": "BIG - LEGO House Billund (21 stacked white brick volumes crowned by an oversized 2x4 keystone; a 2,000 m2 covered square at grade; public roof terraces)",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.5,
+          "height": 0.5,
+          "tie": 0.3,
+          "why": "전시 존이 성격별로 나뉜 프로그램이라 하나의 큰 덩어리보다 크기가 다른 여러 덩어리가 마을 규모의 작은 도시에 맞는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.5,
+          "at": "open",
+          "reach": 0.3,
+          "why": "지상층을 크게 비워야 표를 사지 않은 시민도 지나다닐 수 있는 지붕 덮인 광장이 도심에 반납된다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "on": "object_5",
+          "why": "맨 위 한 덩어리만 다르게 다뤄야 낮은 마을 스카이라인 속에서 이 집의 입구가 어디인지 멀리서 읽힌다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.25,
+          "on": "object_3",
+          "toward": "cross",
+          "why": "덩어리를 서로 어긋나게 밀어야 아래 덩어리의 지붕이 위 덩어리의 옥외 놀이터로 남는다."
+        }
+      ]
+    },
+    {
+      "name": "big_copenhill",
+      "primary_language": "solid_body",
+      "secondary_language": "an industrial block under one continuous inhabited slope",
+      "formal_principle": "The plant machinery is ordered by its own height and one continuous roof plane is laid over that order, turning the by-product of the section into a public slope.",
+      "dominant_gesture": "A metal block whose roof tilts unbroken from a 90 m summit down to the pavement.",
+      "reference_basis": "BIG - CopenHill Copenhagen (41,000 m2 waste-to-energy plant; internal volumes arranged in height order to generate the sloping roof; 9,000 m2 ski terrain, 85 m climbing wall)",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "소각 설비의 높이가 곧 건물의 높이를 정하는 산업시설이라 대지 전체를 채운 하나의 큰 덩어리가 프로그램의 정직한 크기다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.4,
+          "along": "open",
+          "first": "furnace",
+          "second": "slope",
+          "gap": 0,
+          "why": "가장 높은 보일러부와 낮은 후처리부를 다른 덩어리로 인정해야 설비 배치를 왜곡하지 않고도 지붕에 경사가 생긴다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.35,
+          "why": "지붕을 도시 쪽 지면까지 끌어내려야 시민이 엘리베이터 없이 걸어 올라올 수 있는 진짜 공공 언덕이 된다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "cross",
+          "reach": 0.3,
+          "why": "측면에 홈을 파야 폐기물 트럭 동선과 뒤섞이지 않는 별도의 시민 출입구가 확보된다."
+        }
+      ]
+    },
+    {
+      "name": "big_kaktus_towers",
+      "primary_language": "porous_field",
+      "secondary_language": "two unequal serrated towers on one raised plinth",
+      "formal_principle": "Two towers of unequal height rise from a shared plinth and every floor plate is rotated slightly so the facade becomes a field of pointed balconies.",
+      "dominant_gesture": "Two prickly shafts whose spiralling balconies make the whole surface bristle.",
+      "reference_basis": "BIG - Kaktus Towers Copenhagen (two hexagonal towers of 80 m and 60 m; each slab rotated against the one below giving 500 pointed balconies; 495 micro-apartments of 33 and 53 m2)",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.35,
+          "height": 0.9,
+          "tie": 0.25,
+          "why": "철도와 고가에 낀 좁은 자투리 땅이라 하나의 뚱뚱한 덩어리보다 높이가 다른 두 개의 가는 탑이 지상 보행 여지를 남긴다.",
+          "profile": "hexagon"
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.85,
+          "why": "33 m2 소형 세대가 대부분이라 외피를 전 높이에 걸쳐 파내 모든 세대에 자기 몫의 외부공간을 돌려줘야 한다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.18,
+          "on": "object_1",
+          "toward": "cross",
+          "why": "낮은 탑을 옆으로 비켜 세워야 두 탑이 서로의 창을 마주 보지 않고 각자 항구와 시내 조망을 나눠 갖는다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.15,
+          "on": "field_plate",
+          "why": "지면이 역과 도로로 잘려 있어 공용 데크를 들어올려야 통근자가 두 탑과 역 사이를 끊기지 않고 걷는다."
+        }
+      ]
+    },
+    {
+      "name": "big_one_high_line",
+      "primary_language": "porous_field",
+      "secondary_language": "two unequal towers turning away from one another",
+      "formal_principle": "Two towers of unequal height share one podium and each turns out of the other's way, opening a reciprocal slot of view between them.",
+      "dominant_gesture": "Two shafts that appear to bow to each other, with a bright gap of sky between them.",
+      "reference_basis": "BIG - The XI / One High Line New York (west tower 123 m, east 92 m on a shared podium, each twisting out of the way of the other; skybridge; ground promenade extending the High Line)",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.4,
+          "height": 0.95,
+          "tie": 0.18,
+          "why": "고가공원과 강 사이 한 블록 전체를 한 덩어리로 채우면 하이라인 산책로가 벽에 갇히므로 크기가 다른 두 동으로 쪼갠다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "on": "object_0",
+          "toward": "open",
+          "why": "높은 동을 강 쪽으로 틀어야 상층 주거가 허드슨 정면 조망을 확보한다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.25,
+          "on": "object_1",
+          "toward": "back",
+          "why": "낮은 동을 반대쪽으로 틀어야 두 동 사이에 하늘이 뚫려 서로의 조망과 하이라인 채광을 빼앗지 않는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.4,
+          "at": "cross",
+          "reach": 0.2,
+          "why": "저층부를 관통시켜야 고가공원의 보행 흐름이 지상 광장으로 내려와 블록을 통과한다."
+        }
+      ]
+    },
+    {
+      "name": "big_grove_at_grand_bay",
+      "primary_language": "porous_field",
+      "secondary_language": "two twisting towers that never cross paths",
+      "formal_principle": "Two towers stand in one garden and each rotates its plates as it climbs, tuned so neither moves into the other's line of sight.",
+      "dominant_gesture": "Two glass shafts that visibly wring as they rise out of a tropical garden.",
+      "reference_basis": "BIG - Grove at Grand Bay Miami (two 20-storey towers on a landscaped podium, 38 degrees total twist base to crown, 12-14 ft wraparound balconies, FEMA flood zone)",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.28,
+          "height": 0.8,
+          "tie": 0.14,
+          "why": "만과 다운타운 스카이라인이라는 두 방향의 조망을 나눠 가지려면 한 동보다 서로 크기가 다른 두 동이 유리하다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.32,
+          "on": "object_0",
+          "toward": "open",
+          "why": "앞 동을 만 쪽으로 비틀어야 모든 세대가 각기 다른 각도의 수변 조망을 갖는다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.22,
+          "on": "object_1",
+          "toward": "cross",
+          "why": "뒤 동을 어긋난 축으로 비틀어야 앞 동의 조망선을 정면으로 막지 않는다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.15,
+          "on": "field_plate",
+          "why": "침수 위험 구역이라 공용 기단을 들어올려야 주거층이 안전해지고 그 아래로 정원과 보행이 흐른다."
+        }
+      ]
+    },
+    {
+      "name": "big_the_spiral",
+      "primary_language": "carved_body",
+      "secondary_language": "a ziggurat whose setback walks around the tower",
+      "formal_principle": "The stepped setback is taken one floor at a time and chained so it rotates around all four faces, turning a ziggurat into one continuous green ribbon.",
+      "dominant_gesture": "An unbroken planted terrace spiralling up the whole tower.",
+      "reference_basis": "BIG - The Spiral New York (314 m, 65 storeys; a six-storey base then a one-floor-at-a-time setback chained into a continuous spiral of terraces, each paired with a double-height atrium)",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 6,
+          "contrast": 1.28,
+          "height": 1.0,
+          "align": "cross",
+          "why": "전층 임대 오피스라 층마다 뒤로 물러나는 단차를 두어야 모든 임차인이 자기 층의 옥외 테라스를 갖는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.85,
+          "why": "물러난 자리를 연속으로 파내야 발치의 선형 공원이 끊기지 않고 건물을 타고 하늘까지 이어지는 것으로 읽힌다."
+        },
+        {
+          "op": "carve",
+          "size": 0.4,
+          "at": "back",
+          "reach": 0.12,
+          "why": "저층부 한쪽을 크게 열어야 고가공원의 북쪽 끝이 건물 안으로 들어와 로비가 도시의 통로가 된다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.7,
+          "why": "최상부를 좁혀야 허드슨야드 스카이라인 속에서 이 탑의 끝이 뭉툭하게 잘리지 않고 마무리된다."
+        }
+      ]
+    }
+  ]
+}

@@ -265,6 +265,8 @@ def stack(
     drift: Iterable[float] = (0.0, 0.0),
     plan: str = "square",
     kind: PlacementKind = "additive",
+    rotation_degrees: float = 0.0,
+    occupiable: bool = True,
 ) -> tuple[Placement, ...]:
     """A volume whose section changes as it rises, cut into storeys.
 
@@ -282,6 +284,11 @@ def stack(
     `storeys` is the resolution, and a storey is the right one: the building is
     made of floors, so a slab per floor is exactly as fine as the thing being
     described.
+
+    `rotation_degrees` is the frame's own bearing, which every volume on a site
+    carries; `twist_degrees` turns on top of it. Separating them matters because
+    a stack that inherited only the twist would come out square to the north on
+    a parcel that is not.
     """
 
     width, depth, height = (float(value) for value in size)
@@ -300,17 +307,21 @@ def stack(
         out.append(
             place(
                 role,
-                # Slabs overlap slightly; a shared face is a degenerate boolean
-                # input and reads as two bodies that happen to touch.
-                size=(slab_w, slab_d, slab * 1.02),
+                # Slabs meet on a shared face. Overlapping them is what you do
+                # to keep a boolean kernel out of a degenerate case, and this
+                # pipeline has none - `compile` cuts bands at the z values the
+                # volumes declare, so an overlap declares one extra band per
+                # joint carrying the plan of the slab below (ff22aa8).
+                size=(slab_w, slab_d, slab),
                 at=(
                     x + (width - slab_w) / 2.0 + drift_x * t,
                     y + (depth - slab_d) / 2.0 + drift_y * t,
                     z + index * slab,
                 ),
-                rotation_degrees=float(twist_degrees) * t,
+                rotation_degrees=float(rotation_degrees) + float(twist_degrees) * t,
                 plan=plan,
                 kind=kind,
+                occupiable=occupiable,
             )
         )
     return tuple(out)

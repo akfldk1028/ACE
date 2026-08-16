@@ -1,0 +1,6579 @@
+{
+ "schemes": [
+  {
+   "name": "sampled_body72_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split62cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split62cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split62cross_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split62cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split62cross_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split62open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split62open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split62open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split62cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split70cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split62cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split70cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split70cross_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split70open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split62open_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split70open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split62open_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split70open_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split62open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_whole_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_whole_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_whole_shearopen_closed",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split62open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70cross_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70cross_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split70cross_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split70cross_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split70cross · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70open_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70cross_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split70cross · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70open_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split70open_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split70open_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split70open · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_whole_shearopen_carveopen",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_whole_shearopen_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70open_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split70open · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_whole_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_whole_shearopen_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · whole · shearopen · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_whole_lift18_closed",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · whole · lift18 · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split62cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split62cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split62cross_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split62cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split62cross_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split62cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split62open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split62open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split62cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split62open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split62cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split70cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split62cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split70cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split70cross_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_split70open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split62open_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_split70open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split62open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split62open_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split62open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_split70open_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · split70open · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split62open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field4_whole_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field4 · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 4개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field5_whole_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field5 · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 5개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_field6_whole_shearopen_carveopen",
+   "primary_language": "porous_field",
+   "secondary_language": "objects under one plate",
+   "formal_principle": "field6 · whole · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.7,
+     "height": 0.8,
+     "tie": 0.18,
+     "why": "건폐 가능 면적 1922 m²에 크기가 서로 다른 6개를 놓고 한 판이 묶는다 — 같은 크기로 반복하면 막사가 된다. 필드는 누워서 면적을 번다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split62open_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3open · split62open · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 62% 대 38%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body72 · split70cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70cross_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split70cross · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "body90 · split70cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70cross_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3open · split70cross · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body72 · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring22_split70cross_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring22 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "why": "평면 깊이의 22%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body72_split70open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body72 · split70open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.72,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 72%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "body90 · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_ring30_split70cross_shearopen_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "ring",
+   "formal_principle": "ring30 · split70cross · shearopen · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.9,
+     "why": "평면 깊이의 30%짜리 바 넷이 중정을 감싼다. 구멍 뚫린 한 덩어리가 아니라 만나는 링이라 추력이 반대편 다리로 돌아간다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_body90_split70open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "body90 · split70open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "이 필지는 용적률÷건폐율로 4.2층을 허용한다 — 부피는 한 덩어리로 잡고 높이의 90%만 쓴다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2back · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2back · split70cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2back_split70open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2back · split70open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack2open · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack2open · split70cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack2open_split70open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack2open · split70open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 2단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3back · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70cross_lift18_carveopen",
+   "primary_language": "open_figure",
+   "secondary_language": "released ground",
+   "formal_principle": "stack3back · split70cross · lift18 · carveopen",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "cross",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "짧은 축 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "건폐율 한도가 60%라 지면을 비워도 층수로 되찾을 수 있다. 높이의 18%를 비워 한 면뿐인 접근을 필지 안쪽까지 들인다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "open",
+     "reach": 0.55,
+     "why": "열린 면에서 평면의 24%를 파낸다 — 판 방향과 열린 방향을 같게 해 중정이 바깥과 이어지게."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3back_split70open_shearback_closed",
+   "primary_language": "solid_body",
+   "secondary_language": "one worked mass",
+   "formal_principle": "stack3back · split70open · shearback · closed",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 이웃에 막힌 뒷면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "back",
+     "why": "위 볼륨을 이웃에 막힌 뒷면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    }
+   ]
+  },
+  {
+   "name": "sampled_stack3open_split70open_shearopen_carveback",
+   "primary_language": "carved_body",
+   "secondary_language": "court",
+   "formal_principle": "stack3open · split70open · shearopen · carveback",
+   "reference_basis": "sampled from the parcel",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "open",
+     "height": 0.95,
+     "why": "4.2층이 허용되므로 3단으로 나눈다. 각 단은 1.35배씩 작아지고 열린 면을 붙잡는다 — 네 면이 동시에 물러나면 셋백 규정이 만든 웨딩케이크지 건축가가 그린 형태가 아니다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.7,
+     "along": "open",
+     "first": "fore",
+     "second": "aft",
+     "gap": 0.0,
+     "why": "열린 면 방향으로 70% 대 30%로 가른다. 대등한 두 덩어리는 실작품에 한 번도 없으므로 불균등하게."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "open",
+     "why": "위 볼륨을 열린 면 쪽으로 자기 평면깊이의 0.26만큼 민다 — 절대치가 아니라 비율이라 대지가 바뀌면 이동량도 바뀐다."
+    },
+    {
+     "op": "carve",
+     "size": 0.24,
+     "at": "back",
+     "reach": 0.55,
+     "why": "이웃이 붙은 변이 5개다. 막힌 뒷면에 평면의 24%를 파서 그쪽 실의 채광을 만든다."
+    }
+   ]
+  }
+ ]
+}

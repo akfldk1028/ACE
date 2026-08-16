@@ -25,7 +25,8 @@ from shapely.geometry import Polygon
 
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 
-from .form import MatrixForm, Placement, place
+from .form import MatrixForm, Placement, place, stack
+from .profiles import plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
     MAX_OFFSET_RATIO,
@@ -72,6 +73,10 @@ class _Frame:
         # That is a kerb, not a room: the diff check reported a `taper` aimed at
         # one of them as changing the mass by exactly 0.000.
         self.storey = max(0.0, storey_m)
+        # The base shape this composition is made of, set once by the sentence.
+        # A profile is a property of the building, not of one operation: a
+        # circular museum is circular in every volume it is cut into.
+        self.profile = "square"
         self.placements: list[Placement] = []
 
     def box(
@@ -85,7 +90,7 @@ class _Frame:
         dx: float = 0.0,
         dy: float = 0.0,
         kind: str = "additive",
-        plan: str = "square",
+        plan: str = "",
         occupiable: bool = True,
     ) -> Placement:
         """A volume centred on the site frame, offset in the frame's own axes.
@@ -93,9 +98,19 @@ class _Frame:
         `occupiable` is what separates a room from a piece of structure. A
         support under a lifted plate is allowed to be shorter than a storey
         because nobody stands in it; anything else is not.
+
+        `plan` is the base shape, and defaults to whatever the sentence set for
+        this composition rather than to the square. Ten of them are built
+        (`profiles.plan_names`) and the grammar used one: measured across the
+        forty-eight authored sentences, 302 of 302 placements were square. A
+        matrix cannot turn a square into a circle, so a sentence with no way to
+        name the shape has no way to say Kanazawa's 112.5 m circle or Casa da
+        Música's faceted solid - and both of those came out as a `taper`, which
+        is why that verb was carrying work it could never do.
         """
 
         least = self.storey if occupiable and kind == "additive" else 0.5
+        plan = plan or self.profile
         return place(
             role,
             size=(max(w, 0.5), max(d, 0.5), max(h, least, 0.5)),
@@ -210,6 +225,8 @@ def _split(frame: _Frame, op: Operation) -> None:
                     dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
                     dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
                     kind=item.kind,
+                    plan=item.plan,
+                    occupiable=item.occupiable,
                 )
             )
     frame.placements = rest + made
@@ -273,28 +290,75 @@ def _stack(frame: _Frame, op: Operation) -> None:
 
 
 def _taper(frame: _Frame, op: Operation) -> None:
-    """Pull the top in. Applies to whatever is standing, not to a new volume."""
+    """Narrow what is standing as it rises.
+
+    A taper varies with height, and one affine matrix is linear, so no single
+    box can be one - a box can only be *smaller*, which is a setback. That is
+    what this used to build: it rebuilt the single highest volume at `ratio`
+    and left everything else alone. Measured on the corpus, that volume is 1.0%
+    of 79&Park, 1.6% of the New Museum and 1.7% of the Spiral, so the verb
+    could not redraw a twentieth of the building whatever the author asked for.
+    It was the silent word in eight of the twelve sentences the diff gate
+    refused.
+
+    An attempt to scale every picked volume by its own height fraction was
+    worse (24 spoken to 21, cells 16/16 to 15/16) and the measurement said why:
+    the volumes are not stacked. Timmerhuis' `field_plate` and its four objects
+    all start at z=0, so interpolating by a volume's midpoint handed the tallest
+    object 0.775 of the 0.55 the author wrote. Diluted, not tapered.
+
+    The answer is the one the graphics literature gives and this package
+    already had sitting unused: subdivide. `form.stack` cuts a volume into
+    slabs, each with its own matrix, and that is what makes a continuously
+    changing section representable at all - the same primitive that will carry
+    bend, twist and pinch.
+
+    The taper runs over the picked set as a whole, and each volume takes the
+    part of it that its own z-range spans, so a tall object narrows more than a
+    short one standing beside it and both belong to one silhouette.
+    """
 
     ratio = _clamp(float(op.params.get("ratio", 0.7)), 0.3, 0.95)
     picked, rest = _scope(frame, op)
     if not picked:
         return
-    tops = sorted(picked, key=lambda item: item.z_span()[0])
-    keep = tops[:-1]
-    highest = tops[-1]
-    low, high = highest.z_span()
-    cx, cy, span_x, span_y = _bounds_of([highest])
-    frame.placements = rest + keep + [
-        frame.box(
-            highest.role,
-            w=span_x * ratio,
-            d=span_y * ratio,
-            z=low,
-            h=high - low,
-            dx=cx - frame.cx,
-            dy=cy - frame.cy,
+    base = min(item.z_span()[0] for item in picked)
+    crest = max(item.z_span()[1] for item in picked)
+    span = crest - base
+
+    def scale_at(z: float) -> float:
+        if span <= 1e-6:
+            return ratio
+        return 1.0 + (ratio - 1.0) * _clamp((z - base) / span, 0.0, 1.0)
+
+    pulled: list[Placement] = []
+    for item in picked:
+        low, high = item.z_span()
+        cx, cy, item_x, item_y = _bounds_of([item])
+        low_scale, high_scale = scale_at(low), scale_at(high)
+        # A slab per storey is as fine as the thing being described, and the
+        # bands this produces are what the compiler and every measure read, so
+        # the resolution is capped: past this the section is smooth enough and
+        # the extra bands only cost.
+        storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 2, 8))
+        pulled.extend(
+            stack(
+                item.role,
+                size=(item_x * low_scale, item_y * low_scale, high - low),
+                at=(
+                    cx - item_x * low_scale / 2.0,
+                    cy - item_y * low_scale / 2.0,
+                    low,
+                ),
+                storeys=storeys,
+                taper=high_scale / low_scale,
+                plan=item.plan,
+                kind=item.kind,
+                rotation_degrees=frame.rotation,
+                occupiable=item.occupiable,
+            )
         )
-    ]
+    frame.placements = rest + pulled
 
 
 def _shear(frame: _Frame, op: Operation) -> None:
@@ -339,7 +403,8 @@ def _shear(frame: _Frame, op: Operation) -> None:
         reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
         moved.append(
             frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
-                      dx=ux * reach, dy=uy * reach)
+                      dx=ux * reach, dy=uy * reach,
+                      plan=item.plan, kind=item.kind, occupiable=item.occupiable)
         )
     frame.placements = rest + moved
 
@@ -405,7 +470,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
         raised.append(
             frame.box(item.role, w=span_x, d=span_y, z=low + clearance, h=high - low,
                       dx=centre_x - frame.cx, dy=centre_y - frame.cy,
-                      kind=item.kind)
+                      kind=item.kind, plan=item.plan, occupiable=item.occupiable)
         )
     # Four supports, a third of the plan each, so what is raised spans between
     # neighbours rather than corner to corner. Two of them left a slab spanning
@@ -517,14 +582,21 @@ def execute(
     height_m: float,
     storey_height_m: float = 0.0,
 ) -> MatrixForm | None:
-    """Turn a sentence into placed volumes on this parcel."""
+    """Turn a sentence into placed volumes on this parcel.
 
-    frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m)
-    for op in parti.ops:
-        handler = _VERBS.get(op.verb)
-        if handler is not None:
-            handler(frame, op)
-    return _form_from(frame, parti)
+    The last frame of `execute_steps`, rather than a second copy of the same
+    loop. There were two, and keeping them in step was left to whoever edited
+    one: adding the base-shape parameter to the stepped loop alone meant the
+    whole pipeline still built squares while the check that reads the steps
+    reported the shapes correctly. One loop is the only version of this that
+    cannot drift.
+    """
+
+    steps = execute_steps(
+        parti, buildable=buildable, axis=axis, height_m=height_m,
+        storey_height_m=storey_height_m,
+    )
+    return steps[-1][1] if steps else None
 
 
 def execute_steps(
@@ -554,6 +626,11 @@ def execute_steps(
         handler = _VERBS.get(op.verb)
         if handler is None:
             continue
+        # A base shape belongs to the composition, so naming one anywhere in
+        # the sentence sets it for everything the sentence goes on to build.
+        named = str(op.params.get("profile") or "").strip().lower()
+        if named in plan_names():
+            frame.profile = named
         handler(frame, op)
         form = _form_from(frame, parti)
         if form is not None:

@@ -1,54 +1,370 @@
-{"schemes": [
- {"name":"sanaa_kanazawa","primary_language":"porous_field","secondary_language":"unequal boxes inside one low boundary","formal_principle":"A single low circular boundary holds galleries of unequal size so the building has no front and no back.","dominant_gesture":"A flat glass horizon with boxes of different heights floating behind it.","reference_basis":"SANAA - 21st Century Museum Kanazawa (2004): 112.5 m circle, galleries 4-12 m, four courtyards, entry from all sides","ops":[
-  {"op":"aggregate","n":5,"spread":1.9,"height":0.5,"tie":0.3,"why":"사방에서 사람이 들어오는 공원 한가운데라 정면을 만들지 않고 크기가 다른 전시실을 흩어 놓아야 무료 구역과 유료 구역이 한 경계 안에서 섞인다."},
-  {"op":"carve","size":0.32,"at":"cross","reach":0.5,"why":"깊은 평면 한가운데 갇힌 전시실까지 자연광이 닿게 하려면 안뜰을 파내야 한다."},
-  {"op":"carve","size":0.28,"at":"open","reach":0.7,"why":"시청 쪽 보행 동선을 건물 안으로 끌어들이려면 열린 면에 마당이 하나 더 있어야 한다."},
-  {"op":"taper","ratio":0.62,"on":"object_0","why":"가장 높은 전시실만 위로 좁혀 측광 없이 천창만으로 빛을 받는 방을 만든다."}]},
- {"name":"sanaa_rolex","primary_language":"carved_body","secondary_language":"one storey with the ground released","formal_principle":"One continuous single-storey slab covers the site and is perforated and lifted so the ground never stops.","dominant_gesture":"A thin white sheet arching off the lawn.","reference_basis":"SANAA - Rolex Learning Centre EPFL (2010): 166 x 120 m single level, fourteen glazed patios, shells arching clear of the ground","ops":[
-  {"op":"extrude","height":0.18,"why":"캠퍼스 잔디밭 한복판이라 층을 올리는 대신 한 층으로 넓게 깔아야 학생들이 어느 방향에서든 걸어 들어온다."},
-  {"op":"carve","size":0.42,"at":"cross","reach":0.6,"why":"160m가 넘는 깊은 평면의 중심부까지 빛과 바람이 닿게 하려면 파티오가 반드시 있어야 한다."},
-  {"op":"carve","size":0.3,"at":"open","reach":0.8,"why":"호수와 알프스 조망 쪽을 뚫어 학습 좌석이 풍경을 향해 앉게 한다."},
-  {"op":"lift","clearance":0.25,"on":"body","why":"지면을 막지 않고 캠퍼스 양쪽 보행로가 건물 밑을 그대로 통과하게 한다."}]},
- {"name":"sanaa_zollverein","primary_language":"solid_body","secondary_language":"one uncut cube on an oversized site","formal_principle":"A single full-height cube occupies a fraction of the site and refuses to spread.","dominant_gesture":"One blank concrete block standing alone among the coal-washing machinery.","reference_basis":"SANAA - Zollverein School Essen (2006): 35 x 35 x 34 m cube on a 14,700 m2 plot, openings at opposite corners","ops":[
-  {"op":"extrude","height":1.0,"why":"탄광 유산 부지의 거대한 구조물들 사이에서 존재감을 가지려면 넓게 덮지 않고 한 덩어리로 끝까지 곧게 서야 한다."},
-  {"op":"carve","size":0.32,"at":"open","reach":0.3,"why":"상부에 외기로 열린 방을 두어 유산 경관 전체를 내려다보는 자리를 확보한다."},
-  {"op":"carve","size":0.27,"at":"cross","reach":0.28,"why":"반대편 모서리에도 큰 개구를 두어 채광과 조망이 한쪽으로만 쏠리지 않게 한다."}]},
- {"name":"sanaa_toledo_glass","primary_language":"porous_field","secondary_language":"curved cells with a walkable joint between them","formal_principle":"Rooms are separate glass enclosures inside one low square roof, never sharing a wall.","dominant_gesture":"Layer behind layer of curved glass.","reference_basis":"SANAA - Glass Pavilion Toledo (2006): curved-glass cells with a 760 mm occupiable cavity between them","ops":[
-  {"op":"aggregate","n":6,"spread":1.6,"height":0.22,"tie":0.12,"why":"유리 공방의 열과 소음이 전시실의 정숙과 한 지붕 아래 공존해야 하므로 방마다 독립된 껍질을 주고 사이를 최소로만 잇는다."},
-  {"op":"carve","size":0.3,"at":"cross","reach":0.5,"why":"깊은 평면 안쪽 방들이 서로를 통해 바깥을 보게 하려면 가운데에 중정이 있어야 한다."},
-  {"op":"carve","size":0.27,"at":"open","reach":0.6,"why":"본관에서 건너오는 진입 동선에 그늘진 외부 방을 내준다."}]},
- {"name":"sanaa_new_museum","primary_language":"solid_body","secondary_language":"displaced tiers on a party-wall lot","formal_principle":"Six tiers stack on a narrow mid-block lot and slide off each other, each shift a skylight.","dominant_gesture":"A pile of white boxes that never quite line up.","reference_basis":"SANAA - New Museum Bowery NY (2007): displaced boxes on a 71 x 112 ft lot, shifts driven by the zoning envelope","ops":[
-  {"op":"stack","n":6,"contrast":1.3,"height":0.85,"align":"back","why":"양옆이 맞벽인 좁고 깊은 보워리 필지에서는 위로 쌓는 것 외에 전시 면적을 얻을 방법이 없다."},
-  {"op":"shear","ratio":0.24,"toward":"open","on":"tier_2","why":"거리 쪽으로 한 층을 내밀어 보행자가 올려다볼 때 미술관의 입구가 무엇인지 알게 한다."},
-  {"op":"shear","ratio":0.2,"toward":"cross","on":"tier_4","why":"상층을 반대로 어긋내면 무주 전시실마다 위치가 다른 천창이 생긴다."},
-  {"op":"taper","ratio":0.72,"on":"tier_5","why":"최상층을 안으로 당겨 사선 제한을 지키면서 옥상 테라스를 얻는다."}]},
- {"name":"sanaa_louvre_lens","primary_language":"porous_field","secondary_language":"a chain of low volumes joined only at corners","formal_principle":"Five unequal single-storey volumes touch corner to corner along 300 m.","dominant_gesture":"The horizon smeared into anodised aluminium.","reference_basis":"SANAA - Louvre-Lens (2012): a square and four rectangles joined only at corners, 300 m long, on a reclaimed slag heap","ops":[
-  {"op":"aggregate","n":5,"spread":1.35,"height":0.15,"tie":0.08,"why":"폐석더미 사이 길고 완만한 부지에서는 한 덩어리보다 낮은 여러 채가 지형과 자생 식생을 덜 건드린다."},
-  {"op":"carve","size":0.32,"at":"open","reach":0.45,"why":"공원 쪽 한가운데를 비워 표를 사지 않은 사람도 그냥 들어오는 유리 홀을 만든다."},
-  {"op":"taper","ratio":0.78,"on":"object_4","why":"체인의 끝을 좁혀 300m 길이가 한 번에 압도하지 않고 풍경 속으로 사라지게 한다."}]},
- {"name":"nishizawa_moriyama","primary_language":"porous_field","secondary_language":"houses that never touch, tied only by the ground","formal_principle":"One dwelling is dispersed into unequal detached volumes so the leftover ground becomes a street.","dominant_gesture":"Not a house but a miniature neighbourhood.","reference_basis":"Nishizawa - Moriyama House Tokyo (2005): ten prismatic volumes on 290 m2, never touching; identical units rejected as barracks","ops":[
-  {"op":"aggregate","n":6,"spread":2.0,"height":0.45,"tie":0.08,"why":"290m2 대지에 주인 세대와 임대 세대를 함께 담으려면 크기가 제각각인 여러 채로 흩어야 막사처럼 보이지 않는다."},
-  {"op":"carve","size":0.3,"at":"cross","reach":0.7,"why":"동네 골목이 대지 안까지 이어지도록 사이 공간을 크게 비운다."},
-  {"op":"taper","ratio":0.55,"on":"object_0","why":"3층짜리 단위만 가늘게 세워 이웃 주택의 하늘과 채광을 덜 가린다."}]},
- {"name":"sanaa_dior_omotesando","primary_language":"solid_body","secondary_language":"a full plot extrusion behind a double skin","formal_principle":"The trapezoidal plot is extruded to the legal cap at near-full coverage, and only the top is pulled back.","dominant_gesture":"A translucent slab standing hard on the pavement.","reference_basis":"SANAA - Dior Omotesando (2003): 315 m2 site, 30 m cap, about 87% coverage","ops":[
-  {"op":"extrude","height":0.92,"why":"오모테산도의 좁은 사다리꼴 필지에서는 매장 면적이 곧 사업성이라 규제 한도까지 꽉 채워 세울 수밖에 없다."},
-  {"op":"taper","ratio":0.88,"on":"body","why":"30m 높이 한도와 사선 제한을 지키기 위해 최상부만 안쪽으로 당긴다."},
-  {"op":"carve","size":0.26,"at":"open","reach":0.25,"why":"가로변 한 칸을 물려 진입부에 처마 밑 그늘을 만들고 보행 폭을 거리에 돌려준다."}]},
- {"name":"sanaa_grace_farms","primary_language":"porous_field","secondary_language":"one roof descending a slope over separate rooms","formal_principle":"A single continuous roof is the building; unequal glazed rooms hang beneath it down the hillside.","dominant_gesture":"A silver ribbon bending down the slope.","reference_basis":"SANAA - Grace Farms River Building (2015): five glazed volumes linked by one sinuous roof over a 43 ft grade change","ops":[
-  {"op":"aggregate","n":5,"spread":1.7,"height":0.3,"tie":0.4,"why":"13m 떨어지는 초지를 깎지 않고 쓰려면 프로그램마다 다른 높이의 방을 언덕을 따라 내려놓고 지붕 하나로만 묶어야 한다."},
-  {"op":"carve","size":0.35,"at":"cross","reach":0.7,"why":"체육 코트는 땅에 반쯤 묻어 언덕 아래에서도 지붕선이 초지 위로 낮게 유지되게 한다."},
-  {"op":"lift","clearance":0.15,"on":"field_plate","why":"지붕이 땅에서 떠 있어야 초지와 배수, 야생동물의 이동이 건물 밑에서 끊기지 않는다."}]},
- {"name":"sanaa_serpentine_2009","primary_language":"open_figure","secondary_language":"a mirrored plate on scattered thin columns","formal_principle":"A single thin reflective plate is raised over the clearing and cut around the trees; no walls at all.","dominant_gesture":"The park reflected overhead, with no entrance because every side is one.","reference_basis":"SANAA - Serpentine Pavilion 2009: 26 mm roof on 50 mm columns, mirror soffit, lifting around the trees","ops":[
-  {"op":"extrude","height":0.12,"why":"석 달만 서 있는 임시 구조물이라 벽을 세우는 대신 얇은 판 하나로 공원의 그늘만 만든다."},
-  {"op":"carve","size":0.4,"at":"cross","reach":0.8,"why":"기존 수목을 한 그루도 자르지 않기 위해 판이 나무를 비껴가야 한다."},
-  {"op":"lift","clearance":0.35,"on":"body","why":"판을 들어 올려 공원 이용자가 어느 방향에서든 그냥 걸어 들어오게 한다."}]},
- {"name":"sanaa_kunstlinie_almere","primary_language":"carved_body","secondary_language":"a low square half on land, half on water","formal_principle":"A 100 m square plate is cut where the shore ends, the water half on piles, both halves punctured by courts.","dominant_gesture":"One long low glass line lying on the lake.","reference_basis":"SANAA - De Kunstlinie Almere (2007): 100 x 100 m partly on shore, partly on piles over the Weerwater","ops":[
-  {"op":"extrude","height":0.2,"why":"호수와 도심 사이 경계 부지라 높이 서기보다 넓고 낮게 깔려 물가의 수평선을 유지해야 한다."},
-  {"op":"split","ratio":0.42,"along":"cross","first":"shore","second":"water","gap":0.0,"why":"대지의 절반은 뭍이고 절반은 수면 위라 두 부분을 같은 방식으로 앉힐 수 없다."},
-  {"op":"lift","clearance":0.16,"on":"water","why":"물 위 부분은 파일로 띄워 수면이 건물 밑까지 들어오게 한다."},
-  {"op":"carve","size":0.3,"at":"open","reach":0.6,"why":"호수 쪽으로 안뜰을 열어 창 없는 극장 옆 로비까지 빛과 조망이 닿게 한다."}]},
- {"name":"sanaa_naoshima_terminal","primary_language":"open_figure","secondary_language":"one thin roof over scattered glass boxes","formal_principle":"A very thin flat roof on a forest of hairline columns covers glass boxes of different sizes.","dominant_gesture":"A flat white line held up by almost nothing.","reference_basis":"SANAA - Naoshima Ferry Terminal (2006): 70 x 52 m roof 150 mm thick on 85 mm columns","ops":[
-  {"op":"aggregate","n":4,"spread":1.8,"height":0.15,"tie":0.35,"why":"대합·매표·카페처럼 성격이 다른 기능을 벽으로 묶지 않고 각각의 유리 상자로 두어야 항구의 시야가 막히지 않는다."},
-  {"op":"carve","size":0.3,"at":"open","reach":0.45,"why":"지붕판의 일부를 비워 배를 기다리는 사람이 하늘과 날씨를 직접 읽게 한다."},
-  {"op":"lift","clearance":0.3,"on":"field_plate","why":"지붕을 가는 기둥 위로 띄워 자전거와 보행자가 어느 방향으로도 항구를 가로지르게 한다."}]}
-]}
+{
+  "schemes": [
+    {
+      "name": "sanaa_kanazawa",
+      "primary_language": "porous_field",
+      "secondary_language": "unequal boxes inside one low boundary",
+      "formal_principle": "A single low circular boundary holds galleries of unequal size so the building has no front and no back.",
+      "dominant_gesture": "A flat glass horizon with boxes of different heights floating behind it.",
+      "reference_basis": "SANAA - 21st Century Museum Kanazawa (2004): 112.5 m circle, galleries 4-12 m, four courtyards, entry from all sides",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.9,
+          "height": 0.5,
+          "tie": 0.3,
+          "why": "사방에서 사람이 들어오는 공원 한가운데라 정면을 만들지 않고 크기가 다른 전시실을 흩어 놓아야 무료 구역과 유료 구역이 한 경계 안에서 섞인다.",
+          "profile": "oval"
+        },
+        {
+          "op": "carve",
+          "size": 0.32,
+          "at": "cross",
+          "reach": 0.5,
+          "why": "깊은 평면 한가운데 갇힌 전시실까지 자연광이 닿게 하려면 안뜰을 파내야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "open",
+          "reach": 0.7,
+          "why": "시청 쪽 보행 동선을 건물 안으로 끌어들이려면 열린 면에 마당이 하나 더 있어야 한다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_rolex",
+      "primary_language": "carved_body",
+      "secondary_language": "one storey with the ground released",
+      "formal_principle": "One continuous single-storey slab covers the site and is perforated and lifted so the ground never stops.",
+      "dominant_gesture": "A thin white sheet arching off the lawn.",
+      "reference_basis": "SANAA - Rolex Learning Centre EPFL (2010): 166 x 120 m single level, fourteen glazed patios, shells arching clear of the ground",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.18,
+          "why": "캠퍼스 잔디밭 한복판이라 층을 올리는 대신 한 층으로 넓게 깔아야 학생들이 어느 방향에서든 걸어 들어온다.",
+          "profile": "stadium"
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 0.6,
+          "why": "160m가 넘는 깊은 평면의 중심부까지 빛과 바람이 닿게 하려면 파티오가 반드시 있어야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.8,
+          "why": "호수와 알프스 조망 쪽을 뚫어 학습 좌석이 풍경을 향해 앉게 한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.25,
+          "on": "body",
+          "why": "지면을 막지 않고 캠퍼스 양쪽 보행로가 건물 밑을 그대로 통과하게 한다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_zollverein",
+      "primary_language": "solid_body",
+      "secondary_language": "one uncut cube on an oversized site",
+      "formal_principle": "A single full-height cube occupies a fraction of the site and refuses to spread.",
+      "dominant_gesture": "One blank concrete block standing alone among the coal-washing machinery.",
+      "reference_basis": "SANAA - Zollverein School Essen (2006): 35 x 35 x 34 m cube on a 14,700 m2 plot, openings at opposite corners",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "탄광 유산 부지의 거대한 구조물들 사이에서 존재감을 가지려면 넓게 덮지 않고 한 덩어리로 끝까지 곧게 서야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.32,
+          "at": "open",
+          "reach": 0.3,
+          "why": "상부에 외기로 열린 방을 두어 유산 경관 전체를 내려다보는 자리를 확보한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.27,
+          "at": "cross",
+          "reach": 0.28,
+          "why": "반대편 모서리에도 큰 개구를 두어 채광과 조망이 한쪽으로만 쏠리지 않게 한다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_toledo_glass",
+      "primary_language": "porous_field",
+      "secondary_language": "curved cells with a walkable joint between them",
+      "formal_principle": "Rooms are separate glass enclosures inside one low square roof, never sharing a wall.",
+      "dominant_gesture": "Layer behind layer of curved glass.",
+      "reference_basis": "SANAA - Glass Pavilion Toledo (2006): curved-glass cells with a 760 mm occupiable cavity between them",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.6,
+          "height": 0.22,
+          "tie": 0.12,
+          "why": "유리 공방의 열과 소음이 전시실의 정숙과 한 지붕 아래 공존해야 하므로 방마다 독립된 껍질을 주고 사이를 최소로만 잇는다.",
+          "profile": "oval"
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "cross",
+          "reach": 0.5,
+          "why": "깊은 평면 안쪽 방들이 서로를 통해 바깥을 보게 하려면 가운데에 중정이 있어야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.27,
+          "at": "open",
+          "reach": 0.6,
+          "why": "본관에서 건너오는 진입 동선에 그늘진 외부 방을 내준다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_new_museum",
+      "primary_language": "solid_body",
+      "secondary_language": "displaced tiers on a party-wall lot",
+      "formal_principle": "Six tiers stack on a narrow mid-block lot and slide off each other, each shift a skylight.",
+      "dominant_gesture": "A pile of white boxes that never quite line up.",
+      "reference_basis": "SANAA - New Museum Bowery NY (2007): displaced boxes on a 71 x 112 ft lot, shifts driven by the zoning envelope",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 6,
+          "contrast": 1.3,
+          "height": 0.85,
+          "align": "back",
+          "why": "양옆이 맞벽인 좁고 깊은 보워리 필지에서는 위로 쌓는 것 외에 전시 면적을 얻을 방법이 없다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.24,
+          "toward": "open",
+          "on": "tier_2",
+          "why": "거리 쪽으로 한 층을 내밀어 보행자가 올려다볼 때 미술관의 입구가 무엇인지 알게 한다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.2,
+          "toward": "cross",
+          "on": "tier_4",
+          "why": "상층을 반대로 어긋내면 무주 전시실마다 위치가 다른 천창이 생긴다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_louvre_lens",
+      "primary_language": "porous_field",
+      "secondary_language": "a chain of low volumes joined only at corners",
+      "formal_principle": "Five unequal single-storey volumes touch corner to corner along 300 m.",
+      "dominant_gesture": "The horizon smeared into anodised aluminium.",
+      "reference_basis": "SANAA - Louvre-Lens (2012): a square and four rectangles joined only at corners, 300 m long, on a reclaimed slag heap",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.35,
+          "height": 0.15,
+          "tie": 0.08,
+          "why": "폐석더미 사이 길고 완만한 부지에서는 한 덩어리보다 낮은 여러 채가 지형과 자생 식생을 덜 건드린다.",
+          "profile": "trapezoidal"
+        },
+        {
+          "op": "carve",
+          "size": 0.32,
+          "at": "open",
+          "reach": 0.45,
+          "why": "공원 쪽 한가운데를 비워 표를 사지 않은 사람도 그냥 들어오는 유리 홀을 만든다."
+        }
+      ]
+    },
+    {
+      "name": "nishizawa_moriyama",
+      "primary_language": "porous_field",
+      "secondary_language": "houses that never touch, tied only by the ground",
+      "formal_principle": "One dwelling is dispersed into unequal detached volumes so the leftover ground becomes a street.",
+      "dominant_gesture": "Not a house but a miniature neighbourhood.",
+      "reference_basis": "Nishizawa - Moriyama House Tokyo (2005): ten prismatic volumes on 290 m2, never touching; identical units rejected as barracks",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 2.0,
+          "height": 0.45,
+          "tie": 0.08,
+          "why": "290m2 대지에 주인 세대와 임대 세대를 함께 담으려면 크기가 제각각인 여러 채로 흩어야 막사처럼 보이지 않는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "cross",
+          "reach": 0.7,
+          "why": "동네 골목이 대지 안까지 이어지도록 사이 공간을 크게 비운다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_dior_omotesando",
+      "primary_language": "solid_body",
+      "secondary_language": "a full plot extrusion behind a double skin",
+      "formal_principle": "The trapezoidal plot is extruded to the legal cap at near-full coverage, and only the top is pulled back.",
+      "dominant_gesture": "A translucent slab standing hard on the pavement.",
+      "reference_basis": "SANAA - Dior Omotesando (2003): 315 m2 site, 30 m cap, about 87% coverage",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.92,
+          "why": "오모테산도의 좁은 사다리꼴 필지에서는 매장 면적이 곧 사업성이라 규제 한도까지 꽉 채워 세울 수밖에 없다."
+        },
+        {
+          "op": "carve",
+          "size": 0.26,
+          "at": "open",
+          "reach": 0.25,
+          "why": "가로변 한 칸을 물려 진입부에 처마 밑 그늘을 만들고 보행 폭을 거리에 돌려준다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_grace_farms",
+      "primary_language": "porous_field",
+      "secondary_language": "one roof descending a slope over separate rooms",
+      "formal_principle": "A single continuous roof is the building; unequal glazed rooms hang beneath it down the hillside.",
+      "dominant_gesture": "A silver ribbon bending down the slope.",
+      "reference_basis": "SANAA - Grace Farms River Building (2015): five glazed volumes linked by one sinuous roof over a 43 ft grade change",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.7,
+          "height": 0.3,
+          "tie": 0.4,
+          "why": "13m 떨어지는 초지를 깎지 않고 쓰려면 프로그램마다 다른 높이의 방을 언덕을 따라 내려놓고 지붕 하나로만 묶어야 한다.",
+          "profile": "stadium"
+        },
+        {
+          "op": "carve",
+          "size": 0.35,
+          "at": "cross",
+          "reach": 0.7,
+          "why": "체육 코트는 땅에 반쯤 묻어 언덕 아래에서도 지붕선이 초지 위로 낮게 유지되게 한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.15,
+          "on": "field_plate",
+          "why": "지붕이 땅에서 떠 있어야 초지와 배수, 야생동물의 이동이 건물 밑에서 끊기지 않는다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_serpentine_2009",
+      "primary_language": "open_figure",
+      "secondary_language": "a mirrored plate on scattered thin columns",
+      "formal_principle": "A single thin reflective plate is raised over the clearing and cut around the trees; no walls at all.",
+      "dominant_gesture": "The park reflected overhead, with no entrance because every side is one.",
+      "reference_basis": "SANAA - Serpentine Pavilion 2009: 26 mm roof on 50 mm columns, mirror soffit, lifting around the trees",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.12,
+          "why": "석 달만 서 있는 임시 구조물이라 벽을 세우는 대신 얇은 판 하나로 공원의 그늘만 만든다.",
+          "profile": "oval"
+        },
+        {
+          "op": "carve",
+          "size": 0.4,
+          "at": "cross",
+          "reach": 0.8,
+          "why": "기존 수목을 한 그루도 자르지 않기 위해 판이 나무를 비껴가야 한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.35,
+          "on": "body",
+          "why": "판을 들어 올려 공원 이용자가 어느 방향에서든 그냥 걸어 들어오게 한다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_kunstlinie_almere",
+      "primary_language": "carved_body",
+      "secondary_language": "a low square half on land, half on water",
+      "formal_principle": "A 100 m square plate is cut where the shore ends, the water half on piles, both halves punctured by courts.",
+      "dominant_gesture": "One long low glass line lying on the lake.",
+      "reference_basis": "SANAA - De Kunstlinie Almere (2007): 100 x 100 m partly on shore, partly on piles over the Weerwater",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.2,
+          "why": "호수와 도심 사이 경계 부지라 높이 서기보다 넓고 낮게 깔려 물가의 수평선을 유지해야 한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.42,
+          "along": "cross",
+          "first": "shore",
+          "second": "water",
+          "gap": 0.0,
+          "why": "대지의 절반은 뭍이고 절반은 수면 위라 두 부분을 같은 방식으로 앉힐 수 없다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.16,
+          "on": "water",
+          "why": "물 위 부분은 파일로 띄워 수면이 건물 밑까지 들어오게 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.6,
+          "why": "호수 쪽으로 안뜰을 열어 창 없는 극장 옆 로비까지 빛과 조망이 닿게 한다."
+        }
+      ]
+    },
+    {
+      "name": "sanaa_naoshima_terminal",
+      "primary_language": "open_figure",
+      "secondary_language": "one thin roof over scattered glass boxes",
+      "formal_principle": "A very thin flat roof on a forest of hairline columns covers glass boxes of different sizes.",
+      "dominant_gesture": "A flat white line held up by almost nothing.",
+      "reference_basis": "SANAA - Naoshima Ferry Terminal (2006): 70 x 52 m roof 150 mm thick on 85 mm columns",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.8,
+          "height": 0.15,
+          "tie": 0.35,
+          "why": "대합·매표·카페처럼 성격이 다른 기능을 벽으로 묶지 않고 각각의 유리 상자로 두어야 항구의 시야가 막히지 않는다.",
+          "profile": "chamfered"
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.45,
+          "why": "지붕판의 일부를 비워 배를 기다리는 사람이 하늘과 날씨를 직접 읽게 한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "on": "field_plate",
+          "why": "지붕을 가는 기둥 위로 띄워 자전거와 보행자가 어느 방향으로도 항구를 가로지르게 한다."
+        }
+      ]
+    }
+  ]
+}

@@ -1,451 +1,451 @@
 {
- "note": "한국 공공건축 설계공모 당선작을 massv2 문법으로 옮긴 것. 설계설명·심사평 원문에서 도출. 경사지 대응이 이유인 당선작(영도구·주례·서구도서관·수봉마을·망미)은 우리에게 지형이 없어 제외했다 — 지형 없이 옮기면 그 안의 이유가 사라진다. maas-terrain-blocked-by-dem-resolution 참조.",
- "why_short": "BIG/OMA/SANAA 코퍼스를 만들 때 프롬프트가 '문장당 3~6 오퍼레이션'을 요구해 시그니처를 파괴했다. 한국 당선작은 1~3수이고 매스 분절 평균 3.4개다 (김경율 2026). 그래서 짧게 쓴다.",
- "schemes": [
-  {
-   "name": "kr_uam_dong_stacked_over_piloti",
-   "primary_language": "solid_body",
-   "secondary_language": "one stack with the ground given to parking and a passage",
-   "formal_principle": "A single stack on a tight plot gives its ground floor to parking and a public route, and the programme goes up.",
-   "dominant_gesture": "You walk under and through the building at street level; everything else is above you.",
-   "reference_basis": "우암동 복합청사 (부산 남구, 837㎡/1,799㎡, 지하1·지상6) — 심사평 '4M와 8M 도로를 관통하는 공공보행통로', '2층의 공공보행데크(골목길 연장)'",
-   "ops": [
+  "note": "한국 공공건축 설계공모 당선작을 massv2 문법으로 옮긴 것. 설계설명·심사평 원문에서 도출. 경사지 대응이 이유인 당선작(영도구·주례·서구도서관·수봉마을·망미)은 우리에게 지형이 없어 제외했다 — 지형 없이 옮기면 그 안의 이유가 사라진다. maas-terrain-blocked-by-dem-resolution 참조.",
+  "why_short": "BIG/OMA/SANAA 코퍼스를 만들 때 프롬프트가 '문장당 3~6 오퍼레이션'을 요구해 시그니처를 파괴했다. 한국 당선작은 1~3수이고 매스 분절 평균 3.4개다 (김경율 2026). 그래서 짧게 쓴다.",
+  "schemes": [
     {
-     "op": "extrude",
-     "height": 0.95,
-     "why": "837m2 대지에 1,799m2를 담아야 하므로 한 덩어리로 최대한 올리는 것 외에 방법이 없다."
+      "name": "kr_uam_dong_stacked_over_piloti",
+      "primary_language": "solid_body",
+      "secondary_language": "one stack with the ground given to parking and a passage",
+      "formal_principle": "A single stack on a tight plot gives its ground floor to parking and a public route, and the programme goes up.",
+      "dominant_gesture": "You walk under and through the building at street level; everything else is above you.",
+      "reference_basis": "우암동 복합청사 (부산 남구, 837㎡/1,799㎡, 지하1·지상6) — 심사평 '4M와 8M 도로를 관통하는 공공보행통로', '2층의 공공보행데크(골목길 연장)'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "837m2 대지에 1,799m2를 담아야 하므로 한 덩어리로 최대한 올리는 것 외에 방법이 없다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.18,
+          "on": "body",
+          "why": "1층을 주차와 공공보행통로에 내주어야 두 도로가 대지를 관통해 이어진다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.5,
+          "why": "2층에 보행데크를 파내 골목길을 건물 안으로 연장한다."
+        }
+      ]
     },
     {
-     "op": "lift",
-     "clearance": 0.18,
-     "on": "body",
-     "why": "1층을 주차와 공공보행통로에 내주어야 두 도로가 대지를 관통해 이어진다."
+      "name": "kr_yongdang_yards_stacked",
+      "primary_language": "carved_body",
+      "secondary_language": "a stack with an outdoor yard inserted at each level",
+      "formal_principle": "One stacked body with a named outdoor room cut into it at every level, the yards reading as the building's argument rather than the mass.",
+      "dominant_gesture": "From the street you see the building's floors interrupted by open yards you can look through.",
+      "reference_basis": "용당동 복합청사 '소외된 대지의 회복' (부산 남구, 832㎡/2,561㎡) — 어울림마당·햇살마당·힐링마당·마주침마당, 심사평 '상층부의 2개층으로 열린 마주침마당'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "넓은 전면도로에 면한 대지라 인지성은 좋으나 주거지와 단절돼 있어, 한 덩어리로 도시에 정면을 만든다."
+        },
+        {
+          "op": "carve",
+          "size": 0.32,
+          "at": "open",
+          "reach": 0.45,
+          "why": "남향과 북항 조망 쪽에 마당을 파내 일회성 장소가 아니라 일상의 장소가 되게 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "back",
+          "reach": 0.55,
+          "why": "주유소와 이격을 확보해야 하는 뒷면을 비워 위험시설과 거리를 두면서 그 자리를 마당으로 쓴다."
+        }
+      ]
     },
     {
-     "op": "carve",
-     "size": 0.3,
-     "at": "open",
-     "reach": 0.5,
-     "why": "2층에 보행데크를 파내 골목길을 건물 안으로 연장한다."
+      "name": "kr_jeonggwan_hall_under_slab",
+      "primary_language": "solid_body",
+      "secondary_language": "the hall in the base, offices on the slab above",
+      "formal_principle": "A 5.5 m hall occupies the base at almost the full permitted footprint, and the smaller programme sits on it as one slab.",
+      "dominant_gesture": "A tall open base you can see into, with a quiet horizontal band above it.",
+      "reference_basis": "정관산단 청년문화센터 (부산 기장, 2,000㎡/1,287㎡, 건폐 20% 상한) — 다목적문화강당 300~400㎡ 층고 5.5m 이상, 1층 체육·2층 강당·4층 업무",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "건폐율 20% 상한이 400m2라 강당 하나가 곧 바닥판 전체다. 덩어리를 나눌 여지가 없다."
+        },
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.4,
+          "height": 0.9,
+          "align": "open",
+          "why": "층고 5.5m 대공간 위에 3m 사무층을 얹으려면 두 단으로 성격을 갈라야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "open",
+          "reach": 0.35,
+          "why": "진입면 저층부를 파내 계단식 외부 스탠드를 만들어 청년들이 건물 밖에서도 머물게 한다."
+        }
+      ]
+    },
+    {
+      "name": "kr_namsan1_corner_block",
+      "primary_language": "solid_body",
+      "secondary_language": "one corner block with a small yard bitten out",
+      "formal_principle": "At 72% coverage there is nothing to sculpt, so the whole plot is taken as one body and the design happens in a single bite at the corner.",
+      "dominant_gesture": "A solid wall to the street, and one small courtyard with an external stair where people drift in.",
+      "reference_basis": "남산1동 행정복지센터 (대구 중구, 700㎡/1,595㎡, 건폐 72.1%) — '작은 마당과 외부 계단은 도심 속 공공의 마당'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "700m2 대지에 건폐율 72%면 매스를 조각할 여지가 없어 대지를 통째로 채운다."
+        },
+        {
+          "op": "carve",
+          "size": 0.26,
+          "at": "open",
+          "reach": 0.3,
+          "why": "모퉁이 한 곳만 물려 작은 마당과 외부계단을 만들면 견고한 벽이 거리의 배경이 되고 그 틈이 공공의 마당이 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_ainuri_courtyard_nursery",
+      "primary_language": "open_figure",
+      "secondary_language": "rooms and corridor enclosing a court",
+      "formal_principle": "On a plot too small for an outdoor playground, the yard is taken out of the middle and the rooms wrap it.",
+      "dominant_gesture": "Children move around a small courtyard they can see across from every room.",
+      "reference_basis": "아이누리 어린이집 (서울 동작, 281.64㎡/499.83㎡) — '보육실과 계단, 복도로 둘러싸인 중정', '옥상과 중정에 입체적 놀이 경험'",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.85,
+          "why": "281m2 대지에 옥외놀이터를 지상에 낼 땅이 없어, 방들이 마당을 둘러싸야 아이들이 자연을 경험한다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.7,
+          "on": "bar_n",
+          "why": "북쪽 한 변만 낮춰 중정 바닥까지 해가 들어오게 한다."
+        }
+      ]
+    },
+    {
+      "name": "kr_jangan_split_by_programme",
+      "primary_language": "porous_field",
+      "secondary_language": "programme volumes with inhabited gaps between them",
+      "formal_principle": "Each programme is given its own honest volume and the gaps between them become the building's public route.",
+      "dominant_gesture": "Separate blocks with a walkable seam threading between and up them.",
+      "reference_basis": "장안보건지소 (부산 기장, 491㎡/648㎡, 지상4) — '단절된 매스들', '그 사이틈을 입체적 건강 산책로', 1층 소통·2층 진료·3층 측정·4층 관리",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.5,
+          "height": 0.9,
+          "tie": 0.16,
+          "why": "보건·소통·건강증진 세 프로그램을 정직하게 각각의 덩어리로 담아야 층별 조닝이 명확해진다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.4,
+          "why": "덩어리 사이 틈을 비워 입체적 건강 산책로를 만들면 그 자체가 프로그램이 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_ilgwang_two_heights_on_podium",
+      "primary_language": "solid_body",
+      "secondary_language": "two masses of different height sharing a base",
+      "formal_principle": "Two volumes of deliberately different height sit on one low base so the bulk reads as smaller than it is.",
+      "dominant_gesture": "The building does not present one big wall; a lower piece stands in front of a taller one.",
+      "reference_basis": "일광면 행정복지센터 (부산 기장, 2,533㎡/5,131㎡) — 심사평 '높이를 달리한 두개의 매스를 통해 규모의 거부감이 적으며'. ⚠️ 같은 공모에서 '수용해야 할 공간을 너무 매스에 맞추어 넣은 느낌'이 감점 사유로 명시됨",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "5,131m2를 2,533m2 대지에 담으려면 우선 대지를 채운 한 덩어리에서 출발한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "open",
+          "first": "front",
+          "second": "rear",
+          "gap": 0.0,
+          "why": "철도 부지 소음을 받는 쪽과 그렇지 않은 쪽은 프로그램이 달라 갈라야 한다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "on": "front",
+          "why": "앞 덩어리를 낮춰야 규모의 거부감이 줄고 뒤 덩어리의 조망이 살아난다."
+        }
+      ]
+    },
+    {
+      "name": "kr_mangmi_lifted_box_over_void",
+      "primary_language": "open_figure",
+      "secondary_language": "a floating box over an emptied ground",
+      "formal_principle": "On a 410 m² plot the ground is given away entirely and the building floats above it.",
+      "dominant_gesture": "You stand under a raised box on an otherwise empty lot.",
+      "reference_basis": "망미 청소년탐구센터 (부산, 410㎡/598.77㎡) — 심사평 '1층의 비워놓기 공간 계획과 시각레벨을 고려한 떠있는 박스 계획', 설계설명 '1층의 볼륨을 최소화하고 띄워진 2층 볼륨으로 인해 야외공간을 생성'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "410m2짜리 초소형 대지라 형태를 논하기 전에 필요 면적을 한 덩어리로 확보한다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "on": "body",
+          "why": "1층 볼륨을 최소화하고 띄워야 청소년이 쓸 야외공간이 대지에 생긴다."
+        }
+      ]
+    },
+    {
+      "name": "kr_sinwol1_stacked_to_keep_the_park",
+      "primary_language": "solid_body",
+      "secondary_language": "stacked vertically so the park is not eaten",
+      "formal_principle": "The building is stacked upward specifically so that the park it stands in loses as little ground as possible.",
+      "dominant_gesture": "A compact tall block beside an intact park, connected to it at the ground.",
+      "reference_basis": "신월1동 주민센터 (서울 양천) — '건축물을 수직으로 쌓아 올려 입체화함으로써 공원 면적의 축소를 최소화'",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.3,
+          "height": 0.95,
+          "align": "back",
+          "why": "공원 안에 짓는 건물이라 지면을 적게 쓰는 것이 첫 번째 조건이고, 그러려면 위로 쌓아야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "open",
+          "reach": 0.4,
+          "why": "공원 쪽 저층을 비워 공원과 주민복합공간이 끊기지 않고 이어지게 한다."
+        }
+      ]
+    },
+    {
+      "name": "kr_smr_low_front_tall_back",
+      "primary_language": "solid_body",
+      "secondary_language": "a tall workshop behind a low approach block",
+      "formal_principle": "The tall clear-height volume is put behind and the low one at the entrance, so the approach is at a familiar scale.",
+      "dominant_gesture": "You arrive at a low friendly building and only then see the tall shed behind it.",
+      "reference_basis": "SMR 보조기기 제작지원센터 (부산 강서, 3,991㎡/2,664㎡) — 지침 '실험실1~3 유효높이 5m 이상', 심사평 '높은 층고를 가진 실험동 볼륨을 줄이는 효과', '높이가 낮은 연구동은 출입구에서 보았을때 친근한 이미지'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "장비 반입 층고 5m 이상을 요구하는 실험동이 규모를 정하므로 그 부피에서 출발한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "open",
+          "first": "workshop",
+          "second": "studies",
+          "gap": 0.3,
+          "why": "층고 5m 실험동과 3.5m 연구동은 요구 높이가 달라 한 덩어리로 묶으면 쓰지 못하는 공간이 크게 남는다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.5,
+          "on": "studies",
+          "why": "진입부의 연구동을 낮춰야 출입구에서 친근한 스케일로 읽히고 실험동 볼륨이 덜 부담스럽다."
+        }
+      ]
+    },
+    {
+      "name": "kr_hyehyuldang_loose_cluster",
+      "primary_language": "porous_field",
+      "secondary_language": "small volumes loosely set around a named yard",
+      "formal_principle": "With ground to spare the building is broken into small pieces around one named yard rather than consolidated.",
+      "dominant_gesture": "A cluster of low buildings you walk between, with the yard as the centre.",
+      "reference_basis": "혜휼당 커뮤니티센터 (경남 함안, 1,198㎡/810㎡, 건폐 42%/용적 68%) — 혜휼마당 중심의 분동 배열",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.6,
+          "height": 0.4,
+          "tie": 0.12,
+          "why": "용적률 68%만 쓰는 여유 있는 대지라 한 덩어리로 세울 이유가 없고, 낮은 여러 채가 마을 스케일에 맞는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.35,
+          "at": "open",
+          "reach": 0.5,
+          "why": "가운데를 크게 비워 혜휼마당을 만들면 그 마당이 건물이 아니라 이 시설의 중심이 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_gojeon_bar_wrapping_a_forecourt",
+      "primary_language": "carved_body",
+      "secondary_language": "a linear bar bent to hold a front yard",
+      "formal_principle": "A single linear bar is bent around a forecourt so the yard, not the building, faces the road.",
+      "dominant_gesture": "A low L of building with a green roof, holding an open yard toward the village.",
+      "reference_basis": "고전면 행정문화복합센터 (경남 하동, 2,029㎡/880㎡) — 심사평 '맥락에 따르는 1층 배치', 지침 '프로그램실 1,2 및 동아리실은 통합사용 가능한 가변형으로 계획'",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "why": "880m2짜리 저층 시설이고 마을 스케일이라 낮고 긴 한 덩어리가 맥락에 맞는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "open",
+          "reach": 0.75,
+          "why": "도로 쪽을 크게 파내 건물이 아니라 앞마당이 마을을 향하게 한다. 층고 5m 강당을 따로 지을 여력이 없으므로 프로그램실을 가변형으로 통합한다."
+        }
+      ]
+    },
+    {
+      "name": "kr_seongsan_low_single_body",
+      "primary_language": "solid_body",
+      "secondary_language": "one low body, ground kept for the yard",
+      "formal_principle": "Two storeys and no more, so the outdoor play area keeps the ground.",
+      "dominant_gesture": "A low building with the yard beside it rather than under or above it.",
+      "reference_basis": "국공립 성산어린이집 (서울 마포, 741.5㎡/992.14㎡, 지하1·지상2, 10.6m) — 건폐 59.22%/용적 87.91%",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "why": "영유아 시설은 보육실이 원칙적으로 1층이어야 하고 옥외놀이터 3.5m2/인을 지상에 확보해야 하므로 낮게 앉는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.6,
+          "why": "남쪽을 비워 옥외놀이터를 만들면 보육실에서 바로 나갈 수 있다."
+        }
+      ]
+    },
+    {
+      "name": "kr_saenae_quiet_above_loud",
+      "primary_language": "solid_body",
+      "secondary_language": "noisy programme low, quiet programme high",
+      "formal_principle": "The building is stacked by how much noise each programme makes, not by area.",
+      "dominant_gesture": "An open, active base under a closed, quiet top.",
+      "reference_basis": "사내교육커뮤니티센터 (강원 화천, 2,301㎡/2,610㎡, 지하1·지상3, 11.85m) — '초등학생의 돌봄교실은 다양한 외부공간과 함께 저층부에, 정숙한 환경이 필요한 중·고등학생의 학습공간은 상층부에'",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.3,
+          "height": 0.9,
+          "align": "open",
+          "why": "떠드는 초등 돌봄과 정숙한 중고등 학습은 같은 층에 둘 수 없어 소음 위계로 층을 나눈다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.5,
+          "why": "저층부를 파내 돌봄교실이 외부공간과 직접 만나게 한다."
+        }
+      ]
+    },
+    {
+      "name": "kr_mansu6_hall_on_top",
+      "primary_language": "solid_body",
+      "secondary_language": "the assembly hall on the top floor",
+      "formal_principle": "The programme is stacked by department and the assembly hall is put on the topmost floor, where a long-span roof costs least and nothing has to be carried over it.",
+      "dominant_gesture": "A quiet stacked body with one tall room at the very top.",
+      "reference_basis": "만수6동 행정복지센터 (인천 남동, 887.5㎡/2,600㎡, 지하1·지상5) — 지침 원문 '대강당(다목적)은 수용인원을 고려하여 규모를 확보하고 최상층에 계획하며'. 1층 홀 / 2층 민원복지 / 3층 건강체육문화 / 4층 주민자치 / 5층 다목적강당",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 4,
+          "contrast": 1.28,
+          "height": 0.95,
+          "align": "open",
+          "why": "관리 주체가 층마다 달라 프로그램이 층별로 고정되므로, 쌓는 순서가 곧 조직도다. 대공간이 최상층이므로 위로 갈수록 커진다.",
+          "grow": true
+        },
+        {
+          "op": "taper",
+          "ratio": 0.72,
+          "on": "tier_3",
+          "why": "200명 수용 대강당을 최상층에 두면 위에 얹을 층이 없어 장스팬 지붕이 가장 싸고, 상부를 좁혀 이웃 주거지의 하늘을 덜 가린다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "open",
+          "reach": 0.4,
+          "why": "주차가 매우 부족한 지역이라 1층에도 주차를 확보해야 해서 저층부를 비운다."
+        }
+      ]
+    },
+    {
+      "name": "kr_hyodon_meeting_hall_crown",
+      "primary_language": "carved_body",
+      "secondary_language": "a small civic office with its hall at the top",
+      "formal_principle": "A three-storey office with the largest room - the one used for assemblies and performances - placed on the top floor and given the height the others do not need.",
+      "dominant_gesture": "Two ordinary floors with a taller, lighter room above them.",
+      "reference_basis": "효돈동 주민센터 (제주 서귀포, 1,774㎡/1,600㎡, 지상3) — 대회의실 210㎡가 3층, 지침 '천정고는 최소 4M 정도 이상'. 1층 민원 362㎡ / 2층 다목적 250㎡ / 3층 대회의실 280㎡",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.3,
+          "height": 0.9,
+          "align": "back",
+          "why": "민원은 1층, 프로그램실은 2층, 대회의실은 3층으로 이용자 성격이 다르므로 층으로 나눈다. 대공간이 최상층이므로 위로 갈수록 커진다.",
+          "grow": true
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "open",
+          "reach": 0.45,
+          "why": "진입 방향에 전면성이 나타나도록 서측 보행로 쪽을 물려 진입광장을 만든다."
+        }
+      ]
+    },
+    {
+      "name": "kr_yongdang_hall_midway",
+      "primary_language": "carved_body",
+      "secondary_language": "the hall on a middle floor between two publics",
+      "formal_principle": "The large room sits neither on the ground nor at the top but part way up, so the floors below stay open to the street and the ones above keep their own entrance.",
+      "dominant_gesture": "A stacked body with one deeper, taller band visible partway up it.",
+      "reference_basis": "용당동 복합청사 (부산 남구) — 다목적홀이 5층 중 4층. 1층 어울림마당 / 2층 햇살마당 / 3층 힐링마당+건강생활지원센터 / 4층 다목적홀",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 4,
+          "contrast": 1.26,
+          "height": 0.92,
+          "align": "open",
+          "why": "민원·건강·문화가 각기 다른 시간대에 운영되므로 층으로 갈라야 개별 운영이 가능하다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.7,
+          "on": "tier_1",
+          "why": "다목적홀을 중간층에 두고 그 위를 좁혀, 아래 두 층은 가로에 열린 채로 두고 위층은 자기 출입을 갖게 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 0.5,
+          "why": "주유소와 이격이 필요한 뒷면을 파내 그 자리를 마당으로 쓴다."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "kr_yongdang_yards_stacked",
-   "primary_language": "carved_body",
-   "secondary_language": "a stack with an outdoor yard inserted at each level",
-   "formal_principle": "One stacked body with a named outdoor room cut into it at every level, the yards reading as the building's argument rather than the mass.",
-   "dominant_gesture": "From the street you see the building's floors interrupted by open yards you can look through.",
-   "reference_basis": "용당동 복합청사 '소외된 대지의 회복' (부산 남구, 832㎡/2,561㎡) — 어울림마당·햇살마당·힐링마당·마주침마당, 심사평 '상층부의 2개층으로 열린 마주침마당'",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "넓은 전면도로에 면한 대지라 인지성은 좋으나 주거지와 단절돼 있어, 한 덩어리로 도시에 정면을 만든다."
-    },
-    {
-     "op": "carve",
-     "size": 0.32,
-     "at": "open",
-     "reach": 0.45,
-     "why": "남향과 북항 조망 쪽에 마당을 파내 일회성 장소가 아니라 일상의 장소가 되게 한다."
-    },
-    {
-     "op": "carve",
-     "size": 0.28,
-     "at": "back",
-     "reach": 0.55,
-     "why": "주유소와 이격을 확보해야 하는 뒷면을 비워 위험시설과 거리를 두면서 그 자리를 마당으로 쓴다."
-    }
-   ]
-  },
-  {
-   "name": "kr_jeonggwan_hall_under_slab",
-   "primary_language": "solid_body",
-   "secondary_language": "the hall in the base, offices on the slab above",
-   "formal_principle": "A 5.5 m hall occupies the base at almost the full permitted footprint, and the smaller programme sits on it as one slab.",
-   "dominant_gesture": "A tall open base you can see into, with a quiet horizontal band above it.",
-   "reference_basis": "정관산단 청년문화센터 (부산 기장, 2,000㎡/1,287㎡, 건폐 20% 상한) — 다목적문화강당 300~400㎡ 층고 5.5m 이상, 1층 체육·2층 강당·4층 업무",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.85,
-     "why": "건폐율 20% 상한이 400m2라 강당 하나가 곧 바닥판 전체다. 덩어리를 나눌 여지가 없다."
-    },
-    {
-     "op": "stack",
-     "n": 2,
-     "contrast": 1.4,
-     "height": 0.9,
-     "align": "open",
-     "why": "층고 5.5m 대공간 위에 3m 사무층을 얹으려면 두 단으로 성격을 갈라야 한다."
-    },
-    {
-     "op": "carve",
-     "size": 0.28,
-     "at": "open",
-     "reach": 0.35,
-     "why": "진입면 저층부를 파내 계단식 외부 스탠드를 만들어 청년들이 건물 밖에서도 머물게 한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_namsan1_corner_block",
-   "primary_language": "solid_body",
-   "secondary_language": "one corner block with a small yard bitten out",
-   "formal_principle": "At 72% coverage there is nothing to sculpt, so the whole plot is taken as one body and the design happens in a single bite at the corner.",
-   "dominant_gesture": "A solid wall to the street, and one small courtyard with an external stair where people drift in.",
-   "reference_basis": "남산1동 행정복지센터 (대구 중구, 700㎡/1,595㎡, 건폐 72.1%) — '작은 마당과 외부 계단은 도심 속 공공의 마당'",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.95,
-     "why": "700m2 대지에 건폐율 72%면 매스를 조각할 여지가 없어 대지를 통째로 채운다."
-    },
-    {
-     "op": "carve",
-     "size": 0.26,
-     "at": "open",
-     "reach": 0.3,
-     "why": "모퉁이 한 곳만 물려 작은 마당과 외부계단을 만들면 견고한 벽이 거리의 배경이 되고 그 틈이 공공의 마당이 된다."
-    }
-   ]
-  },
-  {
-   "name": "kr_ainuri_courtyard_nursery",
-   "primary_language": "open_figure",
-   "secondary_language": "rooms and corridor enclosing a court",
-   "formal_principle": "On a plot too small for an outdoor playground, the yard is taken out of the middle and the rooms wrap it.",
-   "dominant_gesture": "Children move around a small courtyard they can see across from every room.",
-   "reference_basis": "아이누리 어린이집 (서울 동작, 281.64㎡/499.83㎡) — '보육실과 계단, 복도로 둘러싸인 중정', '옥상과 중정에 입체적 놀이 경험'",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.85,
-     "why": "281m2 대지에 옥외놀이터를 지상에 낼 땅이 없어, 방들이 마당을 둘러싸야 아이들이 자연을 경험한다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.7,
-     "on": "bar_n",
-     "why": "북쪽 한 변만 낮춰 중정 바닥까지 해가 들어오게 한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_jangan_split_by_programme",
-   "primary_language": "porous_field",
-   "secondary_language": "programme volumes with inhabited gaps between them",
-   "formal_principle": "Each programme is given its own honest volume and the gaps between them become the building's public route.",
-   "dominant_gesture": "Separate blocks with a walkable seam threading between and up them.",
-   "reference_basis": "장안보건지소 (부산 기장, 491㎡/648㎡, 지상4) — '단절된 매스들', '그 사이틈을 입체적 건강 산책로', 1층 소통·2층 진료·3층 측정·4층 관리",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 3,
-     "spread": 1.5,
-     "height": 0.9,
-     "tie": 0.16,
-     "why": "보건·소통·건강증진 세 프로그램을 정직하게 각각의 덩어리로 담아야 층별 조닝이 명확해진다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "open",
-     "reach": 0.4,
-     "why": "덩어리 사이 틈을 비워 입체적 건강 산책로를 만들면 그 자체가 프로그램이 된다."
-    }
-   ]
-  },
-  {
-   "name": "kr_ilgwang_two_heights_on_podium",
-   "primary_language": "solid_body",
-   "secondary_language": "two masses of different height sharing a base",
-   "formal_principle": "Two volumes of deliberately different height sit on one low base so the bulk reads as smaller than it is.",
-   "dominant_gesture": "The building does not present one big wall; a lower piece stands in front of a taller one.",
-   "reference_basis": "일광면 행정복지센터 (부산 기장, 2,533㎡/5,131㎡) — 심사평 '높이를 달리한 두개의 매스를 통해 규모의 거부감이 적으며'. ⚠️ 같은 공모에서 '수용해야 할 공간을 너무 매스에 맞추어 넣은 느낌'이 감점 사유로 명시됨",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "5,131m2를 2,533m2 대지에 담으려면 우선 대지를 채운 한 덩어리에서 출발한다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "open",
-     "first": "front",
-     "second": "rear",
-     "gap": 0.0,
-     "why": "철도 부지 소음을 받는 쪽과 그렇지 않은 쪽은 프로그램이 달라 갈라야 한다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.55,
-     "on": "front",
-     "why": "앞 덩어리를 낮춰야 규모의 거부감이 줄고 뒤 덩어리의 조망이 살아난다."
-    }
-   ]
-  },
-  {
-   "name": "kr_mangmi_lifted_box_over_void",
-   "primary_language": "open_figure",
-   "secondary_language": "a floating box over an emptied ground",
-   "formal_principle": "On a 410 m² plot the ground is given away entirely and the building floats above it.",
-   "dominant_gesture": "You stand under a raised box on an otherwise empty lot.",
-   "reference_basis": "망미 청소년탐구센터 (부산, 410㎡/598.77㎡) — 심사평 '1층의 비워놓기 공간 계획과 시각레벨을 고려한 떠있는 박스 계획', 설계설명 '1층의 볼륨을 최소화하고 띄워진 2층 볼륨으로 인해 야외공간을 생성'",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.8,
-     "why": "410m2짜리 초소형 대지라 형태를 논하기 전에 필요 면적을 한 덩어리로 확보한다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.3,
-     "on": "body",
-     "why": "1층 볼륨을 최소화하고 띄워야 청소년이 쓸 야외공간이 대지에 생긴다."
-    }
-   ]
-  },
-  {
-   "name": "kr_sinwol1_stacked_to_keep_the_park",
-   "primary_language": "solid_body",
-   "secondary_language": "stacked vertically so the park is not eaten",
-   "formal_principle": "The building is stacked upward specifically so that the park it stands in loses as little ground as possible.",
-   "dominant_gesture": "A compact tall block beside an intact park, connected to it at the ground.",
-   "reference_basis": "신월1동 주민센터 (서울 양천) — '건축물을 수직으로 쌓아 올려 입체화함으로써 공원 면적의 축소를 최소화'",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.3,
-     "height": 0.95,
-     "align": "back",
-     "why": "공원 안에 짓는 건물이라 지면을 적게 쓰는 것이 첫 번째 조건이고, 그러려면 위로 쌓아야 한다."
-    },
-    {
-     "op": "carve",
-     "size": 0.28,
-     "at": "open",
-     "reach": 0.4,
-     "why": "공원 쪽 저층을 비워 공원과 주민복합공간이 끊기지 않고 이어지게 한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_smr_low_front_tall_back",
-   "primary_language": "solid_body",
-   "secondary_language": "a tall workshop behind a low approach block",
-   "formal_principle": "The tall clear-height volume is put behind and the low one at the entrance, so the approach is at a familiar scale.",
-   "dominant_gesture": "You arrive at a low friendly building and only then see the tall shed behind it.",
-   "reference_basis": "SMR 보조기기 제작지원센터 (부산 강서, 3,991㎡/2,664㎡) — 지침 '실험실1~3 유효높이 5m 이상', 심사평 '높은 층고를 가진 실험동 볼륨을 줄이는 효과', '높이가 낮은 연구동은 출입구에서 보았을때 친근한 이미지'",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "장비 반입 층고 5m 이상을 요구하는 실험동이 규모를 정하므로 그 부피에서 출발한다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.6,
-     "along": "open",
-     "first": "workshop",
-     "second": "studies",
-     "gap": 0.3,
-     "why": "층고 5m 실험동과 3.5m 연구동은 요구 높이가 달라 한 덩어리로 묶으면 쓰지 못하는 공간이 크게 남는다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.5,
-     "on": "studies",
-     "why": "진입부의 연구동을 낮춰야 출입구에서 친근한 스케일로 읽히고 실험동 볼륨이 덜 부담스럽다."
-    }
-   ]
-  },
-  {
-   "name": "kr_hyehyuldang_loose_cluster",
-   "primary_language": "porous_field",
-   "secondary_language": "small volumes loosely set around a named yard",
-   "formal_principle": "With ground to spare the building is broken into small pieces around one named yard rather than consolidated.",
-   "dominant_gesture": "A cluster of low buildings you walk between, with the yard as the centre.",
-   "reference_basis": "혜휼당 커뮤니티센터 (경남 함안, 1,198㎡/810㎡, 건폐 42%/용적 68%) — 혜휼마당 중심의 분동 배열",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 4,
-     "spread": 1.6,
-     "height": 0.4,
-     "tie": 0.12,
-     "why": "용적률 68%만 쓰는 여유 있는 대지라 한 덩어리로 세울 이유가 없고, 낮은 여러 채가 마을 스케일에 맞는다."
-    },
-    {
-     "op": "carve",
-     "size": 0.35,
-     "at": "open",
-     "reach": 0.5,
-     "why": "가운데를 크게 비워 혜휼마당을 만들면 그 마당이 건물이 아니라 이 시설의 중심이 된다."
-    }
-   ]
-  },
-  {
-   "name": "kr_gojeon_bar_wrapping_a_forecourt",
-   "primary_language": "carved_body",
-   "secondary_language": "a linear bar bent to hold a front yard",
-   "formal_principle": "A single linear bar is bent around a forecourt so the yard, not the building, faces the road.",
-   "dominant_gesture": "A low L of building with a green roof, holding an open yard toward the village.",
-   "reference_basis": "고전면 행정문화복합센터 (경남 하동, 2,029㎡/880㎡) — 심사평 '맥락에 따르는 1층 배치', 지침 '프로그램실 1,2 및 동아리실은 통합사용 가능한 가변형으로 계획'",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.45,
-     "why": "880m2짜리 저층 시설이고 마을 스케일이라 낮고 긴 한 덩어리가 맥락에 맞는다."
-    },
-    {
-     "op": "carve",
-     "size": 0.42,
-     "at": "open",
-     "reach": 0.75,
-     "why": "도로 쪽을 크게 파내 건물이 아니라 앞마당이 마을을 향하게 한다. 층고 5m 강당을 따로 지을 여력이 없으므로 프로그램실을 가변형으로 통합한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_seongsan_low_single_body",
-   "primary_language": "solid_body",
-   "secondary_language": "one low body, ground kept for the yard",
-   "formal_principle": "Two storeys and no more, so the outdoor play area keeps the ground.",
-   "dominant_gesture": "A low building with the yard beside it rather than under or above it.",
-   "reference_basis": "국공립 성산어린이집 (서울 마포, 741.5㎡/992.14㎡, 지하1·지상2, 10.6m) — 건폐 59.22%/용적 87.91%",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.45,
-     "why": "영유아 시설은 보육실이 원칙적으로 1층이어야 하고 옥외놀이터 3.5m2/인을 지상에 확보해야 하므로 낮게 앉는다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "open",
-     "reach": 0.6,
-     "why": "남쪽을 비워 옥외놀이터를 만들면 보육실에서 바로 나갈 수 있다."
-    }
-   ]
-  },
-  {
-   "name": "kr_saenae_quiet_above_loud",
-   "primary_language": "solid_body",
-   "secondary_language": "noisy programme low, quiet programme high",
-   "formal_principle": "The building is stacked by how much noise each programme makes, not by area.",
-   "dominant_gesture": "An open, active base under a closed, quiet top.",
-   "reference_basis": "사내교육커뮤니티센터 (강원 화천, 2,301㎡/2,610㎡, 지하1·지상3, 11.85m) — '초등학생의 돌봄교실은 다양한 외부공간과 함께 저층부에, 정숙한 환경이 필요한 중·고등학생의 학습공간은 상층부에'",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.3,
-     "height": 0.9,
-     "align": "open",
-     "why": "떠드는 초등 돌봄과 정숙한 중고등 학습은 같은 층에 둘 수 없어 소음 위계로 층을 나눈다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "open",
-     "reach": 0.5,
-     "why": "저층부를 파내 돌봄교실이 외부공간과 직접 만나게 한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_mansu6_hall_on_top",
-   "primary_language": "solid_body",
-   "secondary_language": "the assembly hall on the top floor",
-   "formal_principle": "The programme is stacked by department and the assembly hall is put on the topmost floor, where a long-span roof costs least and nothing has to be carried over it.",
-   "dominant_gesture": "A quiet stacked body with one tall room at the very top.",
-   "reference_basis": "만수6동 행정복지센터 (인천 남동, 887.5㎡/2,600㎡, 지하1·지상5) — 지침 원문 '대강당(다목적)은 수용인원을 고려하여 규모를 확보하고 최상층에 계획하며'. 1층 홀 / 2층 민원복지 / 3층 건강체육문화 / 4층 주민자치 / 5층 다목적강당",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 4,
-     "contrast": 1.28,
-     "height": 0.95,
-     "align": "open",
-     "why": "관리 주체가 층마다 달라 프로그램이 층별로 고정되므로, 쌓는 순서가 곧 조직도다. 대공간이 최상층이므로 위로 갈수록 커진다.",
-     "grow": true
-    },
-    {
-     "op": "taper",
-     "ratio": 0.72,
-     "on": "tier_3",
-     "why": "200명 수용 대강당을 최상층에 두면 위에 얹을 층이 없어 장스팬 지붕이 가장 싸고, 상부를 좁혀 이웃 주거지의 하늘을 덜 가린다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "open",
-     "reach": 0.4,
-     "why": "주차가 매우 부족한 지역이라 1층에도 주차를 확보해야 해서 저층부를 비운다."
-    }
-   ]
-  },
-  {
-   "name": "kr_hyodon_meeting_hall_crown",
-   "primary_language": "carved_body",
-   "secondary_language": "a small civic office with its hall at the top",
-   "formal_principle": "A three-storey office with the largest room - the one used for assemblies and performances - placed on the top floor and given the height the others do not need.",
-   "dominant_gesture": "Two ordinary floors with a taller, lighter room above them.",
-   "reference_basis": "효돈동 주민센터 (제주 서귀포, 1,774㎡/1,600㎡, 지상3) — 대회의실 210㎡가 3층, 지침 '천정고는 최소 4M 정도 이상'. 1층 민원 362㎡ / 2층 다목적 250㎡ / 3층 대회의실 280㎡",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.3,
-     "height": 0.9,
-     "align": "back",
-     "why": "민원은 1층, 프로그램실은 2층, 대회의실은 3층으로 이용자 성격이 다르므로 층으로 나눈다. 대공간이 최상층이므로 위로 갈수록 커진다.",
-     "grow": true
-    },
-    {
-     "op": "carve",
-     "size": 0.28,
-     "at": "open",
-     "reach": 0.45,
-     "why": "진입 방향에 전면성이 나타나도록 서측 보행로 쪽을 물려 진입광장을 만든다."
-    }
-   ]
-  },
-  {
-   "name": "kr_yongdang_hall_midway",
-   "primary_language": "carved_body",
-   "secondary_language": "the hall on a middle floor between two publics",
-   "formal_principle": "The large room sits neither on the ground nor at the top but part way up, so the floors below stay open to the street and the ones above keep their own entrance.",
-   "dominant_gesture": "A stacked body with one deeper, taller band visible partway up it.",
-   "reference_basis": "용당동 복합청사 (부산 남구) — 다목적홀이 5층 중 4층. 1층 어울림마당 / 2층 햇살마당 / 3층 힐링마당+건강생활지원센터 / 4층 다목적홀",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 4,
-     "contrast": 1.26,
-     "height": 0.92,
-     "align": "open",
-     "why": "민원·건강·문화가 각기 다른 시간대에 운영되므로 층으로 갈라야 개별 운영이 가능하다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.7,
-     "on": "tier_1",
-     "why": "다목적홀을 중간층에 두고 그 위를 좁혀, 아래 두 층은 가로에 열린 채로 두고 위층은 자기 출입을 갖게 한다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "back",
-     "reach": 0.5,
-     "why": "주유소와 이격이 필요한 뒷면을 파내 그 자리를 마당으로 쓴다."
-    }
-   ]
-  }
- ]
+  ]
 }

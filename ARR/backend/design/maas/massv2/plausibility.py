@@ -27,6 +27,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from design.maas.floor_viability import (
+    DEFAULT_MINIMUM_CLEAR_DEPTH_M,
     evaluate_floor_section_viability,
     minimum_usable_floor_area_m2,
 )
@@ -36,6 +37,23 @@ from .structure import Standing, assess_standing
 
 
 AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
+
+# How much of a plate must survive being eroded by the project's own minimum
+# room depth before it stops being a storey somebody occupies.
+#
+# `floor_viability` erodes by half that depth, which asks whether one room fits
+# and is the right question when the subject is a room. A storey is not one
+# room: whatever is on it has to be reached, and the way up is a room too. So
+# the same number is spent twice rather than halved, and the plate has to be
+# wide enough to hold a room with something else beside it.
+#
+# This is the `lift` clearance lesson a second time. Every other magnitude in
+# this grammar is a ratio because the building's own proportions set it; these
+# are metres because a person sets them, and a person is the same size on every
+# site. The measured consequence of not having it: on 강남 역삼 the parcel's own
+# slenderness limit comes out at 16.25, so 4.2 m x 65 m sticks were lawful,
+# stood up, were fully daylit, held a 2.4 m room - and went out as alternatives.
+MINIMUM_STOREY_WIDTH_M = DEFAULT_MINIMUM_CLEAR_DEPTH_M
 
 # How far daylight reaches into a storey, as a multiple of its own height.
 # Reinhart's rule of thumb puts the daylit zone at two to two and a half times
@@ -88,6 +106,24 @@ def unlit_share(polygon, *, floor_height_m: float) -> float:
     except Exception:  # pragma: no cover - GEOS refusing a degenerate erosion
         return 0.0
     return float(core.area) / area if not core.is_empty else 0.0
+
+
+def holds_a_storey(polygon) -> bool:
+    """Could a room and the way to it stand side by side across this plate.
+
+    Eroding by the minimum room depth leaves the points that have that much
+    clearance on every side, so anything surviving has room for a second thing
+    beside the first. It is the same morphological test `unlit_share` uses,
+    asked in the other direction: that one finds the part of a plate no window
+    reaches, this one finds whether the plate is a plate at all.
+    """
+
+    if polygon is None or polygon.is_empty:
+        return False
+    try:
+        return not polygon.buffer(-MINIMUM_STOREY_WIDTH_M, join_style=2).is_empty
+    except Exception:  # pragma: no cover - GEOS refusing a degenerate erosion
+        return False
 
 
 def slenderness_limit(*, far_capacity_m2: float, ground_capacity_m2: float) -> float:
@@ -168,12 +204,15 @@ def assess(
     slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
 
     viable = 0
+    narrow = 0
     for volume in bands:
         verdict = evaluate_floor_section_viability(
             volume.footprint, parcel_area_m2=parcel_area_m2
         )
         if verdict.get("hard_pass"):
             viable += 1
+        if not holds_a_storey(volume.footprint):
+            narrow += 1
     share = viable / len(bands)
 
     reasons: list[str] = []
@@ -185,6 +224,12 @@ def assess(
         reasons.append("ground_floor_below_minimum_usable_area")
     if share <= 0.5:
         reasons.append(f"only_{share:.0%}_of_bands_occupiable")
+    # Every plate, not the ground alone. A mass may sit on a generous footprint
+    # and taper into sticks above it, and `min_dimension` reads the ground only
+    # - and reads a bounding box at that, so it cannot see a stick beside a
+    # wide plate in the same band.
+    if narrow:
+        reasons.append(f"{narrow}_of_{len(bands)}_plates_too_narrow_for_a_storey")
 
     # A plate can satisfy both ceilings and still have a middle no window
     # reaches. Nothing else in this gate was asking how deep a storey is, so a

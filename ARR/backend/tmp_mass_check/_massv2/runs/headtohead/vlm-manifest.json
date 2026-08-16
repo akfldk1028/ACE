@@ -1,0 +1,205 @@
+{
+  "run": "headtohead",
+  "cards": [
+    {
+      "id": "MINE-01",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-01.png",
+      "source": "MINE",
+      "scheme": "sanaa_dior_omotesando~held_ground^centred",
+      "cell": "held|solid",
+      "bcr_pct": 35.0,
+      "far_pct": 209.8,
+      "height_m": 17.583
+    },
+    {
+      "id": "MINE-02",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-02.png",
+      "source": "MINE",
+      "scheme": "big_copenhill^centred",
+      "cell": "full|open",
+      "bcr_pct": 57.3,
+      "far_pct": 140.5,
+      "height_m": 11.4
+    },
+    {
+      "id": "MINE-03",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-03.png",
+      "source": "MINE",
+      "scheme": "big_grove_at_grand_bay~worked_ground^to_open",
+      "cell": "dispersed|solid",
+      "bcr_pct": 21.9,
+      "far_pct": 59.3,
+      "height_m": 15.627
+    },
+    {
+      "id": "MINE-04",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-04.png",
+      "source": "MINE",
+      "scheme": "oma_milstein_hall~full_ground",
+      "cell": "held|carved",
+      "bcr_pct": 35.1,
+      "far_pct": 151.2,
+      "height_m": 17.218
+    },
+    {
+      "id": "MINE-05",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-05.png",
+      "source": "MINE",
+      "scheme": "sanaa_grace_farms~worked_ground^centred",
+      "cell": "worked|carved",
+      "bcr_pct": 43.3,
+      "far_pct": 185.9,
+      "height_m": 15.797
+    },
+    {
+      "id": "MINE-06",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-06.png",
+      "source": "MINE",
+      "scheme": "oma_de_rotterdam~worked_ground^centred",
+      "cell": "worked|open",
+      "bcr_pct": 43.7,
+      "far_pct": 120.5,
+      "height_m": 15.627
+    },
+    {
+      "id": "MINE-07",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-07.png",
+      "source": "MINE",
+      "scheme": "big_via57west~full_ground^centred",
+      "cell": "worked|porous_field",
+      "bcr_pct": 42.8,
+      "far_pct": 206.7,
+      "height_m": 28.48
+    },
+    {
+      "id": "MINE-08",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-08.png",
+      "source": "MINE",
+      "scheme": "sanaa_serpentine_2009~worked_ground",
+      "cell": "held|porous_field",
+      "bcr_pct": 36.6,
+      "far_pct": 123.7,
+      "height_m": 10.482
+    },
+    {
+      "id": "MINE-09",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-09.png",
+      "source": "MINE",
+      "scheme": "sanaa_rolex~worked_ground^centred",
+      "cell": "held|open",
+      "bcr_pct": 38.3,
+      "far_pct": 163.6,
+      "height_m": 16.835
+    },
+    {
+      "id": "MINE-10",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-10.png",
+      "source": "MINE",
+      "scheme": "oma_netherlands_embassy~dispersed_ground^cross_open",
+      "cell": "dispersed|carved",
+      "bcr_pct": 22.5,
+      "far_pct": 105.2,
+      "height_m": 13.939
+    },
+    {
+      "id": "MINE-11",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-11.png",
+      "source": "MINE",
+      "scheme": "oma_cctv~full_ground^off_open",
+      "cell": "dispersed|porous_field",
+      "bcr_pct": 25.5,
+      "far_pct": 120.6,
+      "height_m": 13.885
+    },
+    {
+      "id": "MINE-12",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-12.png",
+      "source": "MINE",
+      "scheme": "big_kaktus_towers~dispersed_ground^centred",
+      "cell": "dispersed|open",
+      "bcr_pct": 24.7,
+      "far_pct": 105.8,
+      "height_m": 14.834
+    },
+    {
+      "id": "AGENT-01",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-01.png",
+      "source": "AGENT",
+      "scheme": "kr_hoeryong_sports_hall_in_the_base",
+      "cell": "worked|porous_field",
+      "bcr_pct": 39.3,
+      "far_pct": 162.6,
+      "height_m": 16.427
+    },
+    {
+      "id": "AGENT-02",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-02.png",
+      "source": "AGENT",
+      "scheme": "nishizawa_towada~dispersed_ground^off_open",
+      "cell": "dispersed|solid",
+      "bcr_pct": 8.7,
+      "far_pct": 34.6,
+      "height_m": 15.627
+    },
+    {
+      "id": "AGENT-03",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-03.png",
+      "source": "AGENT",
+      "scheme": "sanaa_bocconi_campus~held_ground^cross_open",
+      "cell": "held|carved",
+      "bcr_pct": 27.7,
+      "far_pct": 135.6,
+      "height_m": 13.305
+    },
+    {
+      "id": "AGENT-04",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-04.png",
+      "source": "AGENT",
+      "scheme": "big_noma_refshaleoen~worked_ground^to_open",
+      "cell": "worked|open",
+      "bcr_pct": 40.0,
+      "far_pct": 171.4,
+      "height_m": 15.196
+    },
+    {
+      "id": "AGENT-05",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-05.png",
+      "source": "AGENT",
+      "scheme": "kr_gusandong_library_of_five_houses~held_ground^off_open",
+      "cell": "dispersed|porous_field",
+      "bcr_pct": 17.6,
+      "far_pct": 54.8,
+      "height_m": 15.627
+    },
+    {
+      "id": "AGENT-06",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-06.png",
+      "source": "AGENT",
+      "scheme": "big_glasir_torshavn~held_ground^off_open",
+      "cell": "held|open",
+      "bcr_pct": 33.8,
+      "far_pct": 206.6,
+      "height_m": 27.147
+    },
+    {
+      "id": "AGENT-07",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-07.png",
+      "source": "AGENT",
+      "scheme": "oma_villa_dall_ava~full_ground^to_open",
+      "cell": "dispersed|carved",
+      "bcr_pct": 22.7,
+      "far_pct": 116.5,
+      "height_m": 18.935
+    },
+    {
+      "id": "AGENT-08",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent-v2\\alt-08.png",
+      "source": "AGENT",
+      "scheme": "nishizawa_teshima~dispersed_ground",
+      "cell": "dispersed|open",
+      "bcr_pct": 23.2,
+      "far_pct": 57.5,
+      "height_m": 5.716
+    }
+  ]
+}

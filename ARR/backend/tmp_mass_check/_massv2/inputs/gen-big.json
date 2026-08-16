@@ -1,0 +1,372 @@
+{
+  "schemes": [
+    {
+      "name": "big_isbjerget_aarhus",
+      "primary_language": "porous_field",
+      "secondary_language": "two rows of low bars notched so the back row still sees water",
+      "formal_principle": "A low block is cut into two rows and the front row is notched, so the roofline becomes a sawtooth of peaks and valleys instead of one wall.",
+      "dominant_gesture": "A jagged white silhouette of peaks and troughs, with daylight passing through the notch to the row behind.",
+      "reference_basis": "BIG (with JDS, SeARCH, Louis Paillard) - Isbjerget / The Iceberg, Aarhus O Denmark 2013: 25,000 m2, 208 apartments in four blocks set in two rows; the roofline is cut into peaks and valleys so that units in the rear row keep a view of Aarhus Bay",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "profile": "faceted",
+          "why": "이스비에르게트의 네 동은 평지붕이 아니라 봉우리와 골이 번갈아 나오는 각진 실루엣이라 씨앗 도형부터 faceted 여야 한다. 0.85 는 이 필지가 감당하는 약 4 층이며, 원안의 기준층 높이도 봉우리를 뺀 나머지에서는 5 층 안팎이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.55,
+          "along": "long",
+          "first": "sea_row",
+          "second": "land_row",
+          "gap": 7,
+          "contrast": 1.3,
+          "why": "원안은 네 동을 한 줄이 아니라 두 줄로 세우고 줄 사이를 비웠다. 0.55 는 앞줄이 조금 더 길어 바다를 마주하는 원안의 배분이고, gap 7 (약 5 m) 은 뒷줄 세대가 앞줄 어깨 너머로 만을 보기 위해 실제로 필요한 최소 이격이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.58,
+          "along": "cross",
+          "on": "sea_row",
+          "first": "peak",
+          "second": "notch",
+          "gap": 6,
+          "why": "앞줄을 다시 갈라야 봉우리 하나와 골 하나가 생긴다. 208 세대를 한 덩어리로 두면 뒷줄이 전부 벽을 보게 되므로, 원안처럼 앞줄 길이의 42 % 를 낮은 골로 내려 그 폭만큼 바다가 뒤로 통과하게 한다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.5,
+          "on": "peak",
+          "why": "이스비에르게트의 봉우리는 수직 벽이 아니라 위로 갈수록 좁아지는 쐐기다. 0.5 는 9 층 봉우리 꼭대기 판이 기단 판의 절반 정도로 줄어드는 원안 단면의 비율이고, 이 낮은 대지에서는 그 쐐기가 정북 사선과도 그대로 맞는다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.22,
+          "on": "land_row",
+          "toward": "cross",
+          "why": "뒷줄을 앞줄과 정렬시키면 골이 뚫려도 시선이 앞줄 벽에 막힌다. 원안은 두 줄을 어긋나게 놓았고, 0.22 는 뒷줄 폭의 약 5 분의 1 로 골의 폭과 시선축이 겹치기에 딱 필요한 만큼이다."
+        }
+      ]
+    },
+    {
+      "name": "big_vm_houses_orestad",
+      "primary_language": "open_figure",
+      "secondary_language": "two bent bars set far enough apart to look past each other",
+      "formal_principle": "A single bar is broken into two and each part is bent off the axis, so no dwelling faces another dwelling straight on and every view leaves the site diagonally.",
+      "dominant_gesture": "Two kinked slabs standing apart, the gap between them opening as a diagonal.",
+      "reference_basis": "BIG/PLOT (Bjarke Ingels + Julien De Smedt) - VM Houses, Orestad Copenhagen 2005: about 25,000 m2 and 209 apartments in two blocks whose plans read as the letters V and M; the V block is bent off the straight line so that views pass diagonally between the two blocks, and pointed steel balconies project about 5 m",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "profile": "concave_l",
+          "why": "VM 의 V 동은 곧은 바가 아니라 평면에서 한 번 꺾인 바다. 꺾임을 뒤 동사로 흉내내는 대신 기반 도형을 concave_l 로 두어야 그 꺾임이 전 층에 걸쳐 유지된다. 0.9 는 이 필지의 4 층 남짓이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.57,
+          "along": "cross",
+          "first": "v_bar",
+          "second": "m_bar",
+          "gap": 9,
+          "contrast": 1.35,
+          "why": "VM 의 이름 자체가 두 동이라는 뜻이고, V 동이 209 세대 중 더 많은 몫을 갖는다. gap 9 (약 7 m) 는 원안에서 두 동 사이가 대각 조망을 통과시키는 통로로 읽히던 간격으로, 이보다 좁으면 두 동이 하나의 덩어리로 붙어 보인다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "on": "m_bar",
+          "first": "m_west",
+          "second": "m_east",
+          "gap": 6,
+          "why": "M 자 평면은 남쪽으로 두 날개가 벌어진 형상이고 그 사이의 틈이 안쪽 세대의 채광 정면이다. 0.62 는 원안에서 두 날개가 같은 크기가 아니라 한쪽이 더 긴 비대칭이었던 것을 그대로 옮긴 값이다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.28,
+          "on": "v_bar",
+          "toward": "long",
+          "why": "V 동을 축에서 밀어야 두 동이 서로의 창을 정면으로 마주 보지 않는다. 0.28 은 V 동 자기 길이의 4 분의 1 남짓으로, 원안에서 꺾인 팔이 직선 축에서 벗어난 정도와 같은 크기다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.62,
+          "on": "m_east",
+          "why": "원안은 12 층 높이에서 동을 꺾어 대각 조망을 벌었지만 4 층 대지에서는 평면으로 벌 각도가 없다. 대신 M 동 동쪽 날개의 상부만 0.62 로 물러나게 해서, 두 동 사이가 가장 좁은 지점에서 위층이 아래층의 대각선을 가리지 않게 한다."
+        }
+      ]
+    },
+    {
+      "name": "big_sluishuis_amsterdam",
+      "primary_language": "carved_body",
+      "secondary_language": "a courtyard block whose upper tier grows out over the water on one side",
+      "formal_principle": "The upper tier is made larger than the one below and held flush on the land side, so the whole growth becomes one prow over the water while the opposite end steps down to it.",
+      "dominant_gesture": "A bow leaning out over the water at one corner, and a walkable stair of terraces descending to the water at the other.",
+      "reference_basis": "BIG with Barcode Architects - Sluishuis, IJburg Amsterdam 2022: about 46,000 m2 and 442 apartments; a perimeter block with a marina inside the courtyard, the north-west corner cantilevering roughly 24 m out over the IJ, and the opposite side stepping down as a publicly walkable roof stair to the water",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.25,
+          "height": 0.9,
+          "align": "back",
+          "grow": true,
+          "profile": "trapezoidal",
+          "why": "슬라위스하위스는 올라가면서 좁아지는 건물이 아니라 물 쪽으로 커지는 건물이다. grow 로 위 단을 아래 단보다 1.25 배 크게 하고 align back 으로 육지 쪽 한 면만 맞추면, 커진 몫 전부가 한 방향 내밈이 되어 원안의 약 24 m 캔틸레버와 같은 동작이 된다. 단이 두 개인 이유는 4 층 필지에서 단을 셋으로 쪼개면 한 단이 한 개 층도 못 되기 때문이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "on": "tier_1",
+          "first": "prow",
+          "second": "roof_stair",
+          "gap": 7,
+          "why": "원안의 상부는 한 성격이 아니라 물 위로 나가는 뱃머리와 물가로 내려오는 계단 두 성격이 마주 본다. 0.6 은 뱃머리 쪽이 더 큰 몫을 갖는 원안의 배분이고, gap 7 은 두 성격이 하나의 매끈한 지붕으로 뭉치지 않도록 벌리는 최소 폭이다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "on": "prow",
+          "toward": "long",
+          "why": "커진 것만으로는 아직 내민 것이 아니다. 뱃머리를 자기 길이의 0.3 만큼 물 쪽으로 더 밀어야 원안처럼 아래 층 윤곽 밖으로 확실히 나가고, 0.3 을 넘기면 지지 없는 부분이 평면의 3 분의 1 을 넘어 서 있을 수 없게 된다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.5,
+          "on": "roof_stair",
+          "why": "옥상 계단은 물가로 내려가야 계단이다. 0.5 는 원안에서 이 면이 최고 높이의 절반 수준까지 낮아져 사람이 지붕에서 수면 데크까지 걸어 내려가는 단면 비율이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.35,
+          "at": "cross",
+          "reach": 0.1,
+          "why": "이 매스에서 마당은 장식이 아니라 배가 들어오는 정박지다. 0.35 는 원안의 중정이 블록 폭의 3 분의 1 남짓을 차지해 요트가 회전할 수 있는 수면이 되는 크기이고, reach 0.1 로 거의 중앙에 두어야 네 변이 모두 마당을 향한다."
+        }
+      ]
+    },
+    {
+      "name": "big_noma_refshaleoen",
+      "primary_language": "porous_field",
+      "secondary_language": "a village of four unequal houses joined by a glazed garden path",
+      "formal_principle": "One programme is refused as one building and cut three times, so each part becomes its own house with its own height and the leftover between them is the circulation.",
+      "dominant_gesture": "Four separate pitched houses of different sizes, with a glazed path bending between them.",
+      "reference_basis": "BIG - noma 2.0, Refshaleoen Copenhagen 2018: the restaurant is built as 11 separate buildings around a glass-roofed garden corridor on a former military munitions depot, with the kitchen, the fermentation labs, the lounge and the test kitchen each housed in their own volume rather than under one roof",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.75,
+          "profile": "chamfered",
+          "why": "노마의 별동들은 평지붕 상자가 아니라 모서리가 접힌 박공 창고 형태다. 0.75 는 원안의 각 동이 1 ~ 2 층 창고 척도였던 것을 이 필지의 3 층으로 옮긴 값으로, 여기서 더 올리면 마을이 아니라 아파트가 된다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "guest_house",
+          "second": "work_row",
+          "gap": 8,
+          "contrast": 1.3,
+          "why": "노마 2.0 의 첫 번째 분할은 손님의 영역과 일하는 영역이다. 0.62 는 손님 동선이 더 큰 몫을 갖는 원안의 배분이고, gap 8 (약 6 m) 은 두 영역 사이가 벽이 아니라 유리 지붕 정원 통로가 되는 폭이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.55,
+          "along": "cross",
+          "on": "work_row",
+          "first": "kitchen_house",
+          "second": "ferment_house",
+          "gap": 6,
+          "why": "발효실은 노마에서 온도와 냄새가 다른 별개의 집이라 주방과 한 지붕 아래 둘 수 없다. 0.55 는 주방동이 발효동보다 조금 큰 원안의 관계이고, 나뉜 순간 발효동이 한 단 낮아지는 것이 11 채가 모두 다른 높이였던 원안의 성질이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "cross",
+          "on": "guest_house",
+          "first": "lounge_house",
+          "second": "dining_house",
+          "gap": 6,
+          "why": "손님 영역도 한 채가 아니라 라운지와 식당이 따로였다. 세 번 잘라야 지상에서 네 채가 서고, 그것이 한국 현상설계 당선작의 매스 분절 3.4 개와 같은 자리에 놓이는 유일한 방법이다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.26,
+          "on": "lounge_house",
+          "toward": "cross",
+          "why": "네 채를 격자로 정렬하면 마을이 아니라 단지가 된다. 라운지동만 자기 폭의 0.26 만큼 밀어야 원안처럼 정원 통로가 직선이 아니라 꺾이며 흐르고, 그 꺾인 자리에 마당이 생긴다."
+        }
+      ]
+    },
+    {
+      "name": "big_bay_view_canopy",
+      "primary_language": "porous_field",
+      "secondary_language": "three unequal low buildings under one thin continuous canopy",
+      "formal_principle": "Three separate low buildings are held together not by touching but by one thin roof plane lifted clear above all of them.",
+      "dominant_gesture": "A single floating tent roof, and daylight coming in sideways under its edge.",
+      "reference_basis": "BIG with Heatherwick Studio - Google Bay View, Mountain View California 2022: three buildings (two workplaces and an event centre) totalling about 102,000 m2, only two storeys tall, each under a tent-like canopy roof carrying roughly 90,000 dragonscale solar shingles for about 7 MW",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.45,
+          "height": 0.7,
+          "tie": 0.14,
+          "profile": "stadium",
+          "why": "베이뷰는 한 채가 아니라 정확히 세 채이고, 세 채가 하나로 읽히는 이유는 붙어서가 아니라 같은 지붕을 쓰기 때문이다. tie 0.14 는 그 지붕이 방이 아니라 얇은 판이어야 한다는 뜻이고, height 0.7 은 원안이 10 만 m2 를 단 2 개 층으로 눕힌 저층 원칙을 이 필지의 3 층으로 옮긴 값이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "on": "object_0",
+          "why": "캐노피는 평평한 판이 아니라 가운데가 솟은 텐트다. 0.55 는 가장 큰 동의 지붕이 처마에서 마루로 가며 절반 남짓으로 좁아지는 원안 단면이고, 이 동이 세 동 중 가장 커야 셋 중 무엇을 먼저 볼지가 정해진다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.35,
+          "on": "object_1",
+          "toward": "long",
+          "why": "두 오피스 동을 나란히 세우면 사이가 복도가 되고 어긋나게 놓으면 마당이 된다. 0.35 는 두 번째 동을 자기 폭의 3 분의 1 만큼 밀어 원안의 두 동 사이 코트야드 폭을 만드는 값이며, 이 문법이 허용하는 최대 이동이다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.14,
+          "on": "field_plate",
+          "why": "베이뷰에서 지붕은 건물 위에 얹힌 것이 아니라 건물과 떨어져 떠 있고, 그 틈으로 측광이 들어와 2 개 층 전체가 자연광을 받는다. 0.14 는 그 틈이 사람 키를 넘는 한 개 층 높이가 되는 최소값이다."
+        }
+      ]
+    },
+    {
+      "name": "big_glasir_torshavn",
+      "primary_language": "solid_body",
+      "secondary_language": "three tiers that slip one way as they climb a hill",
+      "formal_principle": "Each tier is held flush on one side only and slipped in a single direction, so the stack reads as one spiral climbing rather than a wedding cake stepping back on all four sides.",
+      "dominant_gesture": "A stepped mass that visibly turns one way as it rises, each step leaving a terrace.",
+      "reference_basis": "BIG - Glasir, Torshavn College, Faroe Islands 2018: about 19,000 m2 for 1,200 students, built as volumes that spiral upward around a central atrium on a sloping hilltop site, each level stepping back to leave an outdoor roof terrace over the one below",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.3,
+          "height": 1.0,
+          "align": "cross",
+          "profile": "hexagon",
+          "why": "글라시르는 층이 나선으로 감아 올라가고 물러난 자리마다 옥상 테라스가 남는다. 3 단인 이유는 이 필지가 감당하는 층수가 4.17 개라 단을 넷 이상으로 쪼개면 한 단이 한 개 층도 못 되기 때문이고, align cross 로 한 면만 맞춰야 사방이 균등하게 물러나는 사선 제한 케이크가 아니라 한쪽으로 도는 나선이 된다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "toward": "long",
+          "why": "물러나기만 해서는 아직 나선이 아니다. 위 단이 아래 단에서 자기 길이의 0.3 만큼 한 방향으로 미끄러져야 원안처럼 도는 동작이 보이고, 언덕을 오르는 지형과 같은 방향이 된다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "on": "tier_0",
+          "first": "commons",
+          "second": "workshop",
+          "gap": 8,
+          "why": "글라시르의 지상층은 1,200 명이 모이는 공용부와 실습동이 성격이 다르고, 학교 프로그램에서 이 둘을 한 덩어리로 두면 실습동 소음이 공용부를 잠식한다. 0.62 는 공용부가 더 큰 몫을 갖는 원안의 배분이고, gap 8 (약 6 m) 은 그 사이가 학생이 지나는 외부 통로가 되는 폭이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.65,
+          "on": "commons",
+          "why": "각 단이 물러나 만든 옥상 테라스가 이 학교의 실제 외부공간이다. 0.65 는 원안에서 위층 판이 아래층 판의 3 분의 2 정도로 줄면서 그 차이만큼 테라스를 내주던 비율이고, 공용부에만 걸어야 실습동의 폭이 유지된다."
+        }
+      ]
+    },
+    {
+      "name": "big_tirpitz_blaavand",
+      "primary_language": "carved_body",
+      "secondary_language": "four wedges around a clearing cut into the dune",
+      "formal_principle": "A low mass is cut twice into four wedges and a clearing is taken out where they meet, so the building is read from the void between the parts and not from any elevation.",
+      "dominant_gesture": "A cross-shaped cut in the ground, with four glazed edges facing into it.",
+      "reference_basis": "BIG - Tirpitz, Blaavand Denmark 2017: about 2,800 m2 of galleries buried under the dune beside a 1945 German bunker, arranged as four wings around a sunken cross-shaped clearing; the roof is continuous dune so the museum is invisible from the beach",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.72,
+          "profile": "kite",
+          "why": "티르피츠의 네 갤러리는 직사각형이 아니라 중앙 마당을 향해 넓어지는 쐐기다. kite 가 그 벌어지는 평면이고, 0.72 는 원안이 사구 높이를 넘지 않으려고 볼륨을 낮게 눌렀던 원칙을 이 필지의 3 층으로 옮긴 값이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.55,
+          "along": "long",
+          "first": "west_wings",
+          "second": "east_wings",
+          "gap": 9,
+          "contrast": 1.3,
+          "why": "십자 절개의 첫 번째 축이다. gap 9 (약 7 m) 는 원안에서 두 갤러리 사이가 벽이 아니라 하늘이 보이는 절개면이 되던 폭이고, 이보다 좁으면 십자가 홈이 아니라 줄눈으로 읽힌다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.58,
+          "along": "cross",
+          "on": "west_wings",
+          "first": "amber_hall",
+          "second": "bunker_hall",
+          "gap": 8,
+          "why": "십자의 두 번째 축이다. 원안의 네 전시실은 호박 전시와 벙커 역사처럼 주제가 달라 크기도 다르며, 0.58 은 그 불균등을 유지해 네 조각이 같은 크기 네 개로 보이지 않게 하는 값이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "on": "east_wings",
+          "why": "지붕이 사구로 이어지려면 볼륨이 위로 갈수록 좁아져 모래가 얹힐 어깨를 내줘야 한다. 0.55 는 원안에서 지붕면이 지면에서 시작해 전시실 상부까지 완만하게 덮이던 경사에 해당하고, 바다 쪽 절반에만 걸어야 반대쪽 진입부는 열린 채로 남는다."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "cross",
+          "reach": 0,
+          "why": "이 건물에서 유일하게 지상에서 보이는 것은 파낸 자리다. 0.28 은 네 갤러리가 만나는 중앙 마당이 2,800 m2 중 관람객이 계단으로 내려서는 몫만큼만 차지하던 크기이고, reach 0 으로 정중앙에 두어야 네 갤러리가 모두 같은 마당을 향한다."
+        }
+      ]
+    },
+    {
+      "name": "big_gammel_hellerup_yard",
+      "primary_language": "solid_body",
+      "secondary_language": "an arched hall whose roof is the schoolyard, and a wing pushed off it",
+      "formal_principle": "The hall's roof is not a lid but the ground the school stands on, so the mass narrows upward into a walkable mound and the later wing is pushed clear of it.",
+      "dominant_gesture": "A curved timber mound you sit on, with a separate wing sliding away from it.",
+      "reference_basis": "BIG - Gammel Hellerup Gymnasium multi-purpose hall, Hellerup Copenhagen 2013: an 1,100 m2 hall sunk about 5 m below grade so the required clear height is found underground, its curved glulam roof rising above grade as a public courtyard and amphitheatre for the school; a separate arts building was added on the same yard in 2015",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "profile": "oval",
+          "why": "이 강당의 지붕은 평면이 아니라 활처럼 휜 집성목 아치이고, 그 곡률이 곧 학생이 앉는 마당의 단면이다. oval 이 그 휜 윤곽이고 0.8 은 원안이 필요한 천장고를 지하 5 m 로 내려 지상에서는 낮게 유지한 태도를 이 필지의 3 ~ 4 층으로 옮긴 값이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "hall_mound",
+          "second": "arts_wing",
+          "gap": 7,
+          "contrast": 1.3,
+          "why": "2013 년 강당과 2015 년 예술동은 같은 마당을 쓰지만 다른 시기에 다른 채로 지어졌다. 0.62 는 1,100 m2 강당이 더 큰 몫인 원안의 관계이고, gap 7 은 두 채 사이가 붙은 증축이 아니라 마당을 사이에 둔 별동으로 읽히는 폭이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.5,
+          "on": "hall_mound",
+          "why": "지붕이 마당이 되려면 위로 갈수록 좁아져 사람이 올라설 만한 완만한 둔덕이 되어야 한다. 0.5 는 원안의 아치가 처마에서 마루까지 절반으로 줄어드는 곡률에 해당하며, 이보다 완만하면 지붕이 아니라 그냥 낮은 상자가 된다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "on": "arts_wing",
+          "toward": "long",
+          "why": "예술동을 강당과 한 줄로 세우면 마당이 두 건물 사이에 끼인 틈이 된다. 0.3 만큼 밀어야 원안처럼 예술동이 강당 지붕 마당의 한 변을 비스듬히 감싸며 마당이 남는 자리가 아니라 둘러싸인 자리가 된다."
+        }
+      ]
+    }
+  ]
+}

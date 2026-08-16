@@ -28,7 +28,11 @@ RANGES = {
     "contrast": (1.2, 2.5), "spread": (1.2, 2.5), "bar": (0.15, 0.5),
     "tie": (0.08, 0.4),
     "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.05, 0.4),
-    "gap": (0.0, 4.0),
+    # `gap` is a multiplier of JOINT_CLEARANCE_M (0.76 m) and the executor
+    # does not clamp it. 9 is 6.8 m, which is a courtyard between two bodies
+    # rather than a construction tolerance - the void the critics said the
+    # corpus never produces. Bounded only where the parts would leave the site.
+    "gap": (0.0, 12.0),
 }
 REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle",
             "dominant_gesture", "reference_basis", "ops")

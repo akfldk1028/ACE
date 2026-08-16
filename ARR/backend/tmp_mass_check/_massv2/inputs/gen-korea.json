@@ -1,0 +1,348 @@
+{
+  "schemes": [
+    {
+      "name": "kr_hoeryong_hall_crowns_a_lifted_stack",
+      "primary_language": "solid_body",
+      "secondary_language": "a stack given away at the ground, with the assembly hall on top",
+      "formal_principle": "The ground floor is surrendered to parking and a covered forecourt, the departments stack above it, and the one long-span room goes on the topmost storey where nothing has to be carried over it.",
+      "dominant_gesture": "You walk under the building to reach it, and the widest floor is the last one.",
+      "reference_basis": "유형 기반, 특정 당선작 아님. 행정복지센터 설계지침이 다목적강당을 최상층에 두게 하는 조항은 만수6동(인천 남동, 887.5㎡/2,600㎡) 지침 원문으로 확인되어 있고, 거기에 1층 필로티 주차를 더한 것은 역세권 소규모 청사에서 반복되는 일반형이다. 회룡 규모에 정확히 대응하는 특정 당선작은 확인하지 못했다.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.32,
+          "align": "back",
+          "height": 0.96,
+          "grow": true,
+          "profile": "chamfered",
+          "why": "필지가 4.17층밖에 감당하지 못하므로 단은 3개가 최대다. 민원·주민자치·대강당이 각각 다른 주체가 운영하는 층이라 쌓는 순서가 곧 조직도이고, 대공간이 맨 위이므로 위로 갈수록 커지는 1.32를 쓴다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.24,
+          "why": "회룡역 도보권 필지라 주차 부족이 심각해 1층 전체를 주차와 진입 마당에 내줘야 한다. 0.24는 사람이 지나가는 한 개 층 남짓이고, 그 이상 들면 다리가 건물이 되고 위는 모자가 된다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.76,
+          "on": "tier_2",
+          "why": "최상층 다목적강당은 기둥 없는 한 칸이라 지붕 스팬이 곧 공사비다. 상부를 0.76까지 좁히면 트러스 춤이 한 단 낮아져 같은 높이 안에서 강당 층고가 나온다."
+        }
+      ]
+    },
+    {
+      "name": "kr_uijeongbu_art_library_three_decks_one_room",
+      "primary_language": "carved_body",
+      "secondary_language": "two bodies with a shared entry seam, and one void that makes three floors a single room",
+      "formal_principle": "Exhibition wants no windows and reading wants nothing but, so they are two bodies; the void cut through the reading body is what turns three storeys of open stacks into one room you can see across.",
+      "dominant_gesture": "From the entry seam you look up through three floors of books at once.",
+      "reference_basis": "의정부 미술도서관 (경기 의정부 민락2지구, 2019년 개관) — 벽으로 나누지 않은 개가식 열린 서가와 전시공간이 한 실내에서 겹쳐 보이는 것이 이 건물의 전제다. 실재하는 건물이나 연면적·층수·설계자 수치는 확인하지 못해 적지 않는다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "세 개 층 서가가 한 실내에서 서로 보이려면 층고를 깎으면 안 된다. 4.17층 중 3.75층까지 올리는 0.9가 층고를 지키면서 세 개 층을 확보하는 상한이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.68,
+          "along": "long",
+          "first": "stacks",
+          "second": "gallery",
+          "gap": 2.0,
+          "contrast": 1.45,
+          "why": "전시실은 자연광을 차단해야 하고 열람은 자연광이 있어야 해서 한 판에 못 넣는다. 68:32는 장서량과 전시면적의 실제 비이고, 틈 계수 2.0은 1.5m로 두 동의 구조를 끊으면서 공용 진입로가 되는 최소폭이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.34,
+          "at": "back",
+          "reach": 0.4,
+          "why": "서가동 가운데를 바닥부터 지붕까지 파낸다. 0.34보다 좁으면 3층에서 1층 서가가 시야에 안 들어와 '벽 없는 열린 서가'라는 전제 자체가 무너진다."
+        }
+      ]
+    },
+    {
+      "name": "kr_uijeongbu_music_library_two_low_bars_in_a_park",
+      "primary_language": "open_figure",
+      "secondary_language": "two low bars slid past each other, the misalignment becoming the outdoor stage",
+      "formal_principle": "Listening needs silence and performance makes noise, so the structure is cut in two; sliding one bar past the other turns the required separation into an outdoor room.",
+      "dominant_gesture": "Two low bars that do not line up, with the park running through the offset between them.",
+      "reference_basis": "의정부 음악도서관 (경기 의정부 직동공원 내, 2020년 개관) — 공원 안에 앉은 저층 건물이고 음악감상과 공연·연습이 함께 있다. 실재하는 건물이나 층수·연면적은 확인하지 못해 적지 않는다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "profile": "stadium",
+          "why": "공원 안에 앉는 건물은 나무 위로 솟는 순간 공원이 아니라 대지가 된다. 0.5는 약 2.1층으로 주변 수목 높이와 같고, 용적률 250%를 다 쓰지 않기로 한 결정이 곧 이 안의 전제다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "first": "listening",
+          "second": "hall",
+          "gap": 2.6,
+          "contrast": 1.5,
+          "why": "감상실은 차음을, 공연실은 진동 절연을 요구해 구조체를 물리적으로 끊어야 한다. 틈 계수 2.6은 2m로, 두 동의 기초를 분리하면서 공원에서 건물을 관통하는 길이 되는 폭이다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "toward": "cross",
+          "on": "hall",
+          "why": "공연동만 자기 폭의 0.3만큼 공원 안쪽으로 민다. 두 동이 어긋난 자리가 그대로 객석이 되어, 야외공연장을 따로 짓지 않아도 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_suncheon_children_story_room_apart",
+      "primary_language": "open_figure",
+      "secondary_language": "a low round reading body with the loud room taken off it",
+      "formal_principle": "A children's library is a building of two opposite acoustics, so the room that makes noise is detached and narrowed upward until its ceiling gathers the voices.",
+      "dominant_gesture": "A low round body beside a smaller cone-like room, with children passing between them.",
+      "reference_basis": "순천 기적의도서관 (전남 순천, 2003, 정기용) — 국내 첫 기적의도서관이자 어린이 전용 저층 도서관이고 둥근 이야기방이 그 특징으로 알려져 있다. 실재하는 건물이나 대지·연면적·층수의 정확한 수치는 확인하지 못했다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.48,
+          "profile": "oval",
+          "why": "아이가 보호자 없이 오르내리는 도서관은 2층을 넘길 수 없다. 0.48은 약 2층이며, 층고를 넉넉히 잡고도 두 개 층이 나오는 값이다. 나머지 용적률은 쓰지 않는다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.65,
+          "along": "cross",
+          "first": "reading",
+          "second": "story_room",
+          "gap": 2.2,
+          "contrast": 1.55,
+          "why": "이야기방은 소리를 내는 방이고 열람실은 소리를 죽이는 방이라 한 벽을 공유할 수 없다. 틈 계수 2.2는 1.7m로 아이 둘이 마주 지나가는 통로 폭이자 두 실의 차음 간격이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.48,
+          "on": "story_room",
+          "why": "이야기방만 위로 0.48까지 좁힌다. 둥근 평면 위에서 상부를 절반 가까이 모아야 원뿔에 가까운 천장이 되고, 바닥에 앉은 아이들 목소리가 가운데로 모여 마이크 없이 이야기가 들린다."
+        }
+      ]
+    },
+    {
+      "name": "kr_gusandong_library_of_five_houses",
+      "primary_language": "porous_field",
+      "secondary_language": "five house-sized bodies on one low plate, one of them pitched",
+      "formal_principle": "The library is not one building but the houses that were already there, kept as separate bodies so the alleys between them survive as the route through it.",
+      "dominant_gesture": "A cluster of house-scaled volumes you walk between, one of them narrowing to a gable.",
+      "reference_basis": "구산동도서관마을 (서울 은평구, 2015) — 철거 예정이던 다세대주택들의 골조를 남겨 여러 채를 골목으로 엮은 공공도서관이고, 주민 청원에서 출발한 사업이라는 점은 확실하다. 대지·연면적 수치는 확인하지 못해 적지 않는다.",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.5,
+          "height": 0.5,
+          "tie": 0.13,
+          "why": "남은 것이 다섯 채의 집이므로 처음부터 다섯이어야 한다. 하나로 합치는 순간 집 스케일이 사라진다. 0.5는 약 2층으로 주변 다세대 높이이고, tie 0.13은 다섯 채를 한 건물로 읽히게 하는 최소한의 낮은 판이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.48,
+          "on": "object_0",
+          "why": "가장 큰 한 채만 위로 0.48까지 좁혀 박공에 가까운 단면을 만든다. 0.7 정도로는 눈에 안 띄어 다섯 상자 중 하나로 묻히고, 절반 가까이 좁혀야 마을에서 '저것이 도서관'으로 읽힌다. 표시는 하나로 충분하다."
+        }
+      ]
+    },
+    {
+      "name": "kr_anseong_bathhouse_makes_the_mass",
+      "primary_language": "porous_field",
+      "secondary_language": "three bodies, the largest of them a room the residents actually asked for",
+      "formal_principle": "The programme the residents demanded — a bathhouse — cannot share air, drainage or entry with an office, so it is a separate body, and the mass is the consequence of that demand rather than a container for it.",
+      "dominant_gesture": "Three unequal bodies with the bathhouse set back off the road and entered on its own.",
+      "reference_basis": "안성면 주민자치센터 '목욕탕이 있는 면사무소' (전북 무주, 2001, 정기용) — 주민이 요구한 것이 사무실이 아니라 목욕탕이었고 그 프로그램이 매스를 만든 사례로 널리 인용된다. 실재하는 건물이나 면적·층수는 확인하지 못했다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.58,
+          "why": "면 단위 청사는 2~3층이면 프로그램이 다 들어간다. 0.58은 약 2.4층으로, 목욕탕 한 개 층에 일반 층고보다 한 단 높은 값을 얹은 결과다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "office",
+          "second": "bath",
+          "gap": 3.0,
+          "contrast": 1.5,
+          "why": "목욕탕의 습기와 배기는 사무동과 절대 섞이면 안 되므로 벽 하나로는 부족하고 동을 갈라야 한다. 틈 계수 3.0은 2.3m로 두 동이 각자의 외벽과 배기를 갖는 최소 간격이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.68,
+          "along": "cross",
+          "on": "office",
+          "first": "civil",
+          "second": "assembly",
+          "gap": 2.4,
+          "contrast": 1.6,
+          "why": "사무동 안에서도 주민 다목적실은 야간과 주말에 따로 열려야 해서 32%를 다시 떼어낸다. 1.6까지 낮추는 것은 그 실이 한 개 층짜리 방이라 사무층 높이를 따라갈 이유가 없기 때문이다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "toward": "back",
+          "on": "bath",
+          "why": "목욕탕동만 자기 폭의 0.3만큼 도로에서 물린다. 목욕하러 오는 주민의 출입이 민원 대기줄과 마주치면 아무도 오지 않는다."
+        }
+      ]
+    },
+    {
+      "name": "kr_hansol_gym_is_its_own_body",
+      "primary_language": "porous_field",
+      "secondary_language": "a column-free hall detached from a two-part civic body",
+      "formal_principle": "A gymnasium is one span and a civic office is a 3.3 m grid; they are two different structures, so making them two bodies is cheaper than reconciling them.",
+      "dominant_gesture": "A broad low hall pushed toward the road, with two smaller civic bodies behind it and a street running between.",
+      "reference_basis": "한솔동 복합커뮤니티센터 (세종특별자치시 첫마을) — 주민센터·도서관·체육시설·보건지소를 한 대지에 묶은 세종시 복합커뮤니티센터의 초기 사례. 실재하는 시설이나 준공연도(2012년경으로 알고 있음)와 면적은 확인하지 못했다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.72,
+          "profile": "trapezoidal",
+          "why": "체육관 층고가 9m라 상부를 사무층으로 다 채울 수 없다. 0.72는 약 3층으로, 체육관 한 개 층분 높이에 사무 두 개 층을 얹은 값이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.56,
+          "along": "cross",
+          "first": "civic",
+          "second": "gym",
+          "gap": 3.4,
+          "contrast": 1.5,
+          "why": "체육관은 기둥 없는 한 칸이고 주민센터는 3.3m 그리드다. 두 구조를 한 골조로 푸는 비용보다 떼는 편이 싸다. 틈 계수 3.4는 2.6m로 소방차가 아니라 사람이 다니는 길의 폭이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.64,
+          "along": "long",
+          "on": "civic",
+          "first": "office",
+          "second": "library",
+          "gap": 2.4,
+          "contrast": 1.55,
+          "why": "작은도서관은 주말·야간에 열고 민원실은 평일에만 열어 출입구를 따로 줘야 한다. 36%만 떼어 한 단 낮추면 야간 개방 때 나머지 동 전체를 잠글 수 있다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.26,
+          "toward": "long",
+          "on": "gym",
+          "why": "체육관동만 자기 폭의 0.26만큼 도로 쪽으로 내민다. 세 동이 둘러싸 갇힌 마당이 되는 대신, 통과해서 지나갈 수 있는 길이 남는다."
+        }
+      ]
+    },
+    {
+      "name": "kr_hoeryong_nursery_three_low_wings",
+      "primary_language": "open_figure",
+      "secondary_language": "infant, toddler and service wings held apart around a ground-level playground",
+      "formal_principle": "The playground has to be on the ground and the two age groups sleep and eat at different hours, so the building is three low wings with the yard as what is left over — the yard is not carved out of a mass, the mass is what is left beside it.",
+      "dominant_gesture": "Three low wings stepping back from the street, with the play yard in front of them.",
+      "reference_basis": "유형 기반, 특정 당선작 아님. 영유아보육법 시행규칙상 보육실을 저층에 두고 옥외놀이터를 지상에 확보해야 한다는 조건만 사용했다. 실제 당선작을 특정하지 못했으므로 아래 수치는 그 조건에서 도출한 것이다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.52,
+          "profile": "concave_l",
+          "why": "보육실은 저층에 있어야 하고 아이가 계단 두 개 층 이상을 오르내리게 하면 안 된다. 0.52는 약 2.2층이며, 남는 용적률은 쓰지 않는 것이 이 시설의 정답이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.66,
+          "along": "cross",
+          "first": "care",
+          "second": "shared",
+          "gap": 2.6,
+          "contrast": 1.5,
+          "why": "조리실·유희실 같은 공용부는 냄새와 소리가 커서 보육실과 붙이면 낮잠 시간이 무너진다. 틈 계수 2.6은 2m로 유모차 두 대가 지나가는 폭이자 두 동의 소리를 끊는 간격이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "on": "care",
+          "first": "infant",
+          "second": "toddler",
+          "gap": 2.0,
+          "contrast": 1.5,
+          "why": "영아반은 교사 1인당 3명, 유아반은 15명이라 실 크기와 화장실 배치가 다르다. 60:40은 그 정원비이고, 유아반을 한 단 낮춰 옥상을 그들의 놀이터로 준다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "toward": "back",
+          "on": "shared",
+          "why": "공용동만 자기 폭의 0.3만큼 뒤로 물린다. 앞이 비어야 법정 옥외놀이터 면적이 지상에서 한 덩어리로 나오고, 옥상으로 올려보내지 않아도 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_youth_center_four_small_rooms",
+      "primary_language": "porous_field",
+      "secondary_language": "four small workroom bodies on a low plate, all narrowing upward",
+      "formal_principle": "A youth centre is not one 200 m2 hall but a set of 20-40 m2 rooms that are booked separately, so it is authored as separate small bodies and never consolidated.",
+      "dominant_gesture": "Four small angular rooms that lean away from each other as they rise, letting light down between them.",
+      "reference_basis": "유형 기반. 서울시 청년활동공간 '무중력지대'(2015~, 대방동 등)가 큰 홀 하나가 아니라 작은 방들의 느슨한 집합으로 운영된다는 점은 실재하나, 그 건물의 형상을 옮긴 것은 아니며 특정 당선작도 아니다.",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.4,
+          "height": 0.55,
+          "tie": 0.15,
+          "profile": "hexagon",
+          "why": "청년센터의 실 단위는 20~40㎡짜리 작업실·모임방이라 큰 덩어리 하나로 담으면 예약 단위와 매스가 어긋난다. 네 채로 흩고 0.55(약 2.3층)로 낮춰 엘리베이터 없이 계단으로만 다니게 한다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.68,
+          "on": "object",
+          "why": "네 채 모두 위로 0.68까지 좁힌다. 채 사이 간격이 위로 갈수록 벌어져 지상 마당까지 해가 내려오고, 그 마당이 예약 없이 쓸 수 있는 유일한 공간이 된다."
+        }
+      ]
+    },
+    {
+      "name": "kr_hoeryong_sports_hall_in_the_base",
+      "primary_language": "carved_body",
+      "secondary_language": "a wide low base holding the hall, a smaller body set back on it, and a slot cut to the roof",
+      "formal_principle": "The large room sits in the base adjoining the escape storey so 200 people leave on one level, and everything else is a smaller body standing back on it.",
+      "dominant_gesture": "A broad base with a narrow slot cut through it to the sky, and a set-back upper body.",
+      "reference_basis": "유형 기반, 특정 당선작 아님. 대공간 배치 네 가지 중 ①저층부(피난층 인접) 유형만 사용했다. 회룡 규모에 대응하는 특정 당선작은 확인하지 못했다.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.55,
+          "align": "back",
+          "height": 0.97,
+          "profile": "faceted",
+          "why": "다목적체육실 200명이 한 층에서 빠져나오려면 대공간이 피난층에 붙어야 하므로 아래 단이 커야 한다. 4.17층을 두 단으로 끊고 1.55로 위를 줄이면 아래가 체육실 한 개 층 반, 위가 사무 두 개 층이 된다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "first": "sports_hall",
+          "second": "entry_wing",
+          "gap": 3.0,
+          "contrast": 1.4,
+          "why": "체육실은 창을 거의 두지 않고 주민 로비는 전면이 창이라 한 판에 못 넣는다. 틈 계수 3.0은 2.3m로, 두 실의 소음과 구조를 끊으면서 그대로 주 진입 통로가 되는 폭이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 0.35,
+          "why": "로비동 옆을 지상에서 지붕까지 세로로 파내 옥상 텃밭까지 외부 계단 하나로 잇는다. 0.3 이하로는 계단참과 난간이 안 들어가 계단이 아니라 환기구가 되고, 0.42라야 두 사람이 마주 오르는 폭이 나온다."
+        }
+      ]
+    }
+  ]
+}

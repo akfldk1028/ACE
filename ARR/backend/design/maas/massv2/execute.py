@@ -368,6 +368,21 @@ def _shear(frame: _Frame, op: Operation) -> None:
     author's. Sliding every volume by the same absolute distance is what makes
     a shifted stack read as a stack that slipped rather than one that was
     moved.
+
+    A volume keeps where it already stood. `frame.box` centres on the site
+    frame, so rebuilding a volume through it without adding back its own offset
+    teleports it to the middle of the parcel - and every other verb that
+    rebuilds a volume (`split`, `lift`, `taper`) had remembered to add it back
+    while this one had not. Measured: split a seed into `west` and `east` with
+    a gap and the east half stands at x=45.5; shear it across, and its x snaps
+    to 27.5, the frame centre, destroying the gap the split had just opened.
+
+    That is where the missing articulation went. Kunsthal, Educatorium and the
+    Netherlands Embassy all split and then shear a half, and the corpus measured
+    1.86 separate bodies at grade against a 3.4 benchmark - not because the
+    sentences failed to separate anything, but because the next word pulled the
+    pieces back together. An authoring agent found it by writing sentences that
+    should have worked and watching them not.
     """
 
     ratio = _clamp(float(op.params.get("ratio", 0.26)), MIN_OFFSET_RATIO, MAX_OFFSET_RATIO)
@@ -395,15 +410,14 @@ def _shear(frame: _Frame, op: Operation) -> None:
             moved.append(item)
             continue
         low, high = item.z_span()
-        corners = item.corners()
-        span_x = max(x for x, _y, _z in corners) - min(x for x, _y, _z in corners)
-        span_y = max(y for _x, y, _z in corners) - min(y for _x, y, _z in corners)
+        cx, cy, span_x, span_y = _bounds_of([item])
         # Steps counted from the anchor, so a shear at one level moves
         # its volume by one step rather than by none.
         reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
         moved.append(
             frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
-                      dx=ux * reach, dy=uy * reach,
+                      dx=cx - frame.cx + ux * reach,
+                      dy=cy - frame.cy + uy * reach,
                       plan=item.plan, kind=item.kind, occupiable=item.occupiable)
         )
     frame.placements = rest + moved

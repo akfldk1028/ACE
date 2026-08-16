@@ -1,0 +1,189 @@
+{
+  "run": "lang2-uij",
+  "ranking": [
+    {
+      "id": "alt-06",
+      "scheme": "oma_de_rotterdam~worked_ground^centred",
+      "wins": 8,
+      "outings": 8,
+      "faults": {
+        "none": 5,
+        "ground_floor_closed": 3
+      }
+    },
+    {
+      "id": "alt-11",
+      "scheme": "oma_cctv~full_ground^off_open",
+      "wins": 5,
+      "outings": 5,
+      "faults": {
+        "none": 4,
+        "contradicts_its_own_principle": 1
+      }
+    },
+    {
+      "id": "alt-02",
+      "scheme": "big_copenhill^centred",
+      "wins": 4,
+      "outings": 5,
+      "faults": {
+        "too_symmetric": 4,
+        "contradicts_its_own_principle": 1,
+        "fills_the_site": 1,
+        "u_shaped_court": 1
+      }
+    },
+    {
+      "id": "alt-03",
+      "scheme": "big_grove_at_grand_bay~worked_ground^to_open",
+      "wins": 4,
+      "outings": 6,
+      "faults": {
+        "reads_as_one_lump": 5,
+        "roof_is_leftover": 3,
+        "no_hierarchy": 1,
+        "principle_not_visible": 2,
+        "ground_floor_closed": 1
+      }
+    },
+    {
+      "id": "alt-10",
+      "scheme": "oma_netherlands_embassy~dispersed_ground^cross_open",
+      "wins": 4,
+      "outings": 6,
+      "faults": {
+        "box_with_a_hole": 4,
+        "ground_not_engaged": 2,
+        "none": 2,
+        "single_lump": 2
+      }
+    },
+    {
+      "id": "alt-08",
+      "scheme": "sanaa_serpentine_2009~worked_ground",
+      "wins": 4,
+      "outings": 8,
+      "faults": {
+        "box_with_a_hole": 5,
+        "too_symmetric": 2,
+        "reads_as_one_lump": 1,
+        "contradicts_its_own_principle": 3,
+        "pancake": 3,
+        "mass_before_programme": 2
+      }
+    },
+    {
+      "id": "alt-12",
+      "scheme": "big_kaktus_towers~dispersed_ground^centred",
+      "wins": 2,
+      "outings": 4,
+      "faults": {
+        "reads_as_one_lump": 2,
+        "roof_is_leftover": 3,
+        "no_hierarchy": 1,
+        "arbitrary_notch": 1,
+        "principle_not_visible": 1,
+        "mass_before_programme": 2
+      }
+    },
+    {
+      "id": "alt-07",
+      "scheme": "big_via57west~full_ground^centred",
+      "wins": 3,
+      "outings": 8,
+      "faults": {
+        "fussy_too_many_pieces": 2,
+        "roof_is_leftover": 5,
+        "no_hierarchy": 2,
+        "none": 3,
+        "overbearing_volume": 3,
+        "mass_before_programme": 3
+      }
+    },
+    {
+      "id": "alt-04",
+      "scheme": "oma_milstein_hall~full_ground",
+      "wins": 2,
+      "outings": 7,
+      "faults": {
+        "box_with_a_hole": 7,
+        "reads_as_one_lump": 2,
+        "no_hierarchy": 3,
+        "court_is_token": 3,
+        "generic_could_be_anyone": 3,
+        "single_lump": 1,
+        "mass_before_programme": 1
+      }
+    },
+    {
+      "id": "alt-09",
+      "scheme": "sanaa_rolex~worked_ground^centred",
+      "wins": 1,
+      "outings": 7,
+      "faults": {
+        "box_with_a_hole": 7,
+        "arbitrary_notch": 2,
+        "reads_as_one_lump": 2,
+        "ground_not_engaged": 1,
+        "no_hierarchy": 1,
+        "contradicts_its_own_principle": 2,
+        "single_lump": 3,
+        "ground_floor_closed": 3
+      }
+    },
+    {
+      "id": "alt-05",
+      "scheme": "sanaa_grace_farms~worked_ground^centred",
+      "wins": 1,
+      "outings": 8,
+      "faults": {
+        "box_with_a_hole": 8,
+        "reads_as_one_lump": 6,
+        "no_hierarchy": 2,
+        "ground_not_engaged": 2,
+        "court_is_token": 1,
+        "single_lump": 2,
+        "overbearing_volume": 2
+      }
+    },
+    {
+      "id": "alt-01",
+      "scheme": "sanaa_dior_omotesando~held_ground^centred",
+      "wins": 0,
+      "outings": 4,
+      "faults": {
+        "box_with_a_hole": 4,
+        "reads_as_one_lump": 2,
+        "no_hierarchy": 2,
+        "court_is_token": 2,
+        "wrong_lineage": 1,
+        "single_lump": 1,
+        "fills_the_site": 1,
+        "mass_before_programme": 1
+      }
+    }
+  ],
+  "faults_overall": {
+    "box_with_a_hole": 35,
+    "reads_as_one_lump": 20,
+    "no_hierarchy": 12,
+    "court_is_token": 6,
+    "wrong_lineage": 1,
+    "single_lump": 9,
+    "fills_the_site": 2,
+    "mass_before_programme": 9,
+    "too_symmetric": 6,
+    "contradicts_its_own_principle": 7,
+    "u_shaped_court": 1,
+    "roof_is_leftover": 11,
+    "principle_not_visible": 3,
+    "ground_floor_closed": 7,
+    "generic_could_be_anyone": 3,
+    "ground_not_engaged": 5,
+    "overbearing_volume": 5,
+    "none": 14,
+    "fussy_too_many_pieces": 2,
+    "pancake": 3,
+    "arbitrary_notch": 3
+  }
+}

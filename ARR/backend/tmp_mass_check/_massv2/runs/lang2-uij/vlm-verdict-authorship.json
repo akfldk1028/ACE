@@ -1,0 +1,109 @@
+{
+  "lens": "authorship",
+  "verdicts": [
+    {
+      "a": "alt-03",
+      "b": "alt-05",
+      "winner": "alt-03",
+      "why": "alt-03은 정원 위에 선 두 덩어리라는 BIG의 도해가 희미하게라도 남아 있으나, alt-05는 SANAA의 지붕 아래 매달린 방들 대신 모서리만 둥근 한 덩어리라 계보가 전혀 안 보인다.",
+      "a_faults": ["principle_not_visible", "reads_as_one_lump"],
+      "b_faults": ["reads_as_one_lump", "box_with_a_hole"]
+    },
+    {
+      "a": "alt-04",
+      "b": "alt-06",
+      "winner": "alt-06",
+      "why": "alt-06은 하나의 공통 기단 위에 서로 어긋난 불균등 볼륨이라는 OMA de Rotterdam의 조작이 그대로 읽히지만, alt-04는 얇은 판을 띄운다는 문장과 달리 구멍 뚫린 뚱뚱한 상자가 되어 누구 것인지 알 수 없다.",
+      "a_faults": ["generic_could_be_anyone", "box_with_a_hole"],
+      "b_faults": ["none"]
+    },
+    {
+      "a": "alt-05",
+      "b": "alt-07",
+      "winner": "alt-07",
+      "why": "alt-07은 세 모서리를 낮게 누르고 한 점으로 끌어올린 단일 변형이 실루엣에서 바로 보이는 반면, alt-05는 지붕 한 장이라는 원리가 세 겹 적층 덩어리에 완전히 묻혔다.",
+      "a_faults": ["reads_as_one_lump", "box_with_a_hole"],
+      "b_faults": ["none"]
+    },
+    {
+      "a": "alt-06",
+      "b": "alt-08",
+      "winner": "alt-06",
+      "why": "alt-08은 기둥 위에 뜬 얇은 판이어야 할 것이 10m 두께의 통 덩어리가 되어 SANAA의 가벼움이 사라졌고, alt-06은 기단과 어긋난 볼륨의 관계가 여전히 OMA의 문장대로 작동한다.",
+      "a_faults": ["none"],
+      "b_faults": ["contradicts_its_own_principle"]
+    },
+    {
+      "a": "alt-07",
+      "b": "alt-09",
+      "winner": "alt-07",
+      "why": "alt-07은 한 방향으로 일관되게 적용된 하나의 변형이라는 BIG의 조건을 충족하지만, alt-09는 단층 슬래브를 뚫어 지면을 잇는다는 SANAA의 원리 대신 지붕에 구멍만 뚫린 3층 덩어리다.",
+      "a_faults": ["none"],
+      "b_faults": ["box_with_a_hole", "contradicts_its_own_principle"]
+    },
+    {
+      "a": "alt-08",
+      "b": "alt-10",
+      "winner": "alt-10",
+      "why": "alt-10은 알려진 유형(큐브)에 프로그램적 절개 하나를 넣는 OMA 특유의 조작이 한눈에 잡히는데, alt-08은 벽 없는 얇은 판이라는 주장과 달리 속이 찬 원통으로 읽혀 자기 계보를 배반한다.",
+      "a_faults": ["contradicts_its_own_principle"],
+      "b_faults": ["none"]
+    },
+    {
+      "a": "alt-09",
+      "b": "alt-11",
+      "winner": "alt-11",
+      "why": "alt-11은 꺾여 이어지는 두 막대가 위계 없는 연속체를 지향한다는 OMA CCTV의 자세를 유지하지만, alt-09는 alt-05와 구별조차 어려운 둥근 상자에 구멍 하나다.",
+      "a_faults": ["box_with_a_hole", "contradicts_its_own_principle"],
+      "b_faults": ["contradicts_its_own_principle"]
+    },
+    {
+      "a": "alt-10",
+      "b": "alt-12",
+      "winner": "alt-10",
+      "why": "alt-10은 덩어리를 쪼개고 관통로를 파낸 조작이 형상에 남아 있으나, alt-12는 불균등한 두 타워도 회전한 바닥판도 없이 하나의 뭉툭한 덩어리라 BIG이라는 근거가 도면에 없다.",
+      "a_faults": ["none"],
+      "b_faults": ["reads_as_one_lump", "principle_not_visible"]
+    },
+    {
+      "a": "alt-01",
+      "b": "alt-04",
+      "winner": "alt-04",
+      "why": "둘 다 지붕에 구멍 뚫린 같은 상자로 이름을 가리면 구분이 불가능하지만, alt-04는 하부에 가느다란 지지대가 남아 판을 들어올린다는 흔적이라도 있고 alt-01의 SANAA는 아무 근거가 없다.",
+      "a_faults": ["box_with_a_hole", "wrong_lineage"],
+      "b_faults": ["generic_could_be_anyone", "box_with_a_hole"]
+    },
+    {
+      "a": "alt-02",
+      "b": "alt-05",
+      "winner": "alt-02",
+      "why": "alt-02는 단면의 부산물을 계단형 지붕으로 뒤집는 단일 도해가 끝까지 일관되게 적용된 데 반해, alt-05는 SANAA라는 이름만 붙은 모서리 둥근 덩어리다.",
+      "a_faults": ["contradicts_its_own_principle", "too_symmetric"],
+      "b_faults": ["reads_as_one_lump", "box_with_a_hole"]
+    },
+    {
+      "a": "alt-03",
+      "b": "alt-06",
+      "winner": "alt-06",
+      "why": "alt-06은 기단과 어긋난 볼륨의 위계가 OMA처럼 작동하는데, alt-03은 같은 기단 어휘를 쓰면서도 위에 얹힌 두 조각이 회전도 없고 너무 작아 두 타워로 읽히지 않는다.",
+      "a_faults": ["principle_not_visible", "reads_as_one_lump"],
+      "b_faults": ["none"]
+    },
+    {
+      "a": "alt-04",
+      "b": "alt-07",
+      "winner": "alt-07",
+      "why": "alt-07은 하나의 뒤틀린 경사라는 다이어그램이 형상 전체를 지배하지만, alt-04는 얇은 판이라는 OMA의 전제가 두꺼운 상자로 뒤집혀 원리가 보이지 않는다.",
+      "a_faults": ["generic_could_be_anyone", "box_with_a_hole"],
+      "b_faults": ["none"]
+    },
+    {
+      "a": "alt-05",
+      "b": "alt-08",
+      "winner": "alt-08",
+      "why": "alt-08은 두께가 과하긴 해도 기둥 위에 뜬 원판과 잘려나간 보이드라는 SANAA의 조작이 남아 있는 반면, alt-05는 지붕도 방도 사라지고 덩어리만 남았다.",
+      "a_faults": ["reads_as_one_lump", "box_with_a_hole"],
+      "b_faults": ["contradicts_its_own_principle"]
+    }
+  ]
+}

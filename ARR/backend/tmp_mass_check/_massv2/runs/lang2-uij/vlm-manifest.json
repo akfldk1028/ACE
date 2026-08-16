@@ -1,0 +1,125 @@
+{
+  "run": "lang2-uij",
+  "cards": [
+    {
+      "id": "alt-01",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-01.png",
+      "scheme": "sanaa_dior_omotesando~held_ground^centred",
+      "cell": "held|solid",
+      "bcr_pct": 35.0,
+      "far_pct": 209.8,
+      "height_m": 17.583,
+      "principle": "The trapezoidal plot is extruded to the legal cap at near-full coverage, and only the top is pulled back."
+    },
+    {
+      "id": "alt-02",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-02.png",
+      "scheme": "big_copenhill^centred",
+      "cell": "full|open",
+      "bcr_pct": 57.3,
+      "far_pct": 140.5,
+      "height_m": 11.4,
+      "principle": "The plant machinery is ordered by its own height and one continuous roof plane is laid over that order, turning the by-product of the section into a public slope."
+    },
+    {
+      "id": "alt-03",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-03.png",
+      "scheme": "big_grove_at_grand_bay~worked_ground^to_open",
+      "cell": "dispersed|solid",
+      "bcr_pct": 21.9,
+      "far_pct": 59.3,
+      "height_m": 15.627,
+      "principle": "Two towers stand in one garden and each rotates its plates as it climbs, tuned so neither moves into the other's line of sight."
+    },
+    {
+      "id": "alt-04",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-04.png",
+      "scheme": "oma_milstein_hall~full_ground",
+      "cell": "held|carved",
+      "bcr_pct": 35.1,
+      "far_pct": 151.2,
+      "height_m": 17.218,
+      "principle": "A single thin studio plate is raised on supports and pushed across the street so it joins two existing buildings at their second floor."
+    },
+    {
+      "id": "alt-05",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-05.png",
+      "scheme": "sanaa_grace_farms~worked_ground^centred",
+      "cell": "worked|carved",
+      "bcr_pct": 43.3,
+      "far_pct": 185.9,
+      "height_m": 15.797,
+      "principle": "A single continuous roof is the building; unequal glazed rooms hang beneath it down the hillside."
+    },
+    {
+      "id": "alt-06",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-06.png",
+      "scheme": "oma_de_rotterdam~worked_ground^centred",
+      "cell": "worked|open",
+      "bcr_pct": 43.7,
+      "far_pct": 120.5,
+      "height_m": 15.627,
+      "principle": "Three unequal towers of different programme are shifted against each other and tied down by one common plinth."
+    },
+    {
+      "id": "alt-07",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-07.png",
+      "scheme": "big_via57west~full_ground^centred",
+      "cell": "worked|porous_field",
+      "bcr_pct": 42.8,
+      "far_pct": 206.7,
+      "height_m": 28.48,
+      "principle": "A perimeter court is held low on three corners and pulled into a single peak on the fourth, so the roof becomes one warped slope falling toward the water."
+    },
+    {
+      "id": "alt-08",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-08.png",
+      "scheme": "sanaa_serpentine_2009~worked_ground",
+      "cell": "held|porous_field",
+      "bcr_pct": 36.6,
+      "far_pct": 123.7,
+      "height_m": 10.482,
+      "principle": "A single thin reflective plate is raised over the clearing and cut around the trees; no walls at all."
+    },
+    {
+      "id": "alt-09",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-09.png",
+      "scheme": "sanaa_rolex~worked_ground^centred",
+      "cell": "held|open",
+      "bcr_pct": 38.3,
+      "far_pct": 163.6,
+      "height_m": 16.835,
+      "principle": "One continuous single-storey slab covers the site and is perforated and lifted so the ground never stops."
+    },
+    {
+      "id": "alt-10",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-10.png",
+      "scheme": "oma_netherlands_embassy~dispersed_ground^cross_open",
+      "cell": "dispersed|carved",
+      "bcr_pct": 22.5,
+      "far_pct": 105.2,
+      "height_m": 13.939,
+      "principle": "The block the city demanded is split into a freestanding cube and a thin wall that keeps the street line, with a route carved through the cube."
+    },
+    {
+      "id": "alt-11",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-11.png",
+      "scheme": "oma_cctv~full_ground^off_open",
+      "cell": "dispersed|porous_field",
+      "bcr_pct": 25.5,
+      "far_pct": 120.6,
+      "height_m": 13.885,
+      "principle": "The whole production chain is bent into a continuous loop so the building has no top and no hierarchy of height."
+    },
+    {
+      "id": "alt-12",
+      "png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\lang2-uij\\alt-12.png",
+      "scheme": "big_kaktus_towers~dispersed_ground^centred",
+      "cell": "dispersed|open",
+      "bcr_pct": 24.7,
+      "far_pct": 105.8,
+      "height_m": 14.834,
+      "principle": "Two towers of unequal height rise from a shared plinth and every floor plate is rotated slightly so the facade becomes a field of pointed balconies."
+    }
+  ]
+}

@@ -247,18 +247,69 @@ def _scope(frame: _Frame, op: Operation) -> tuple[list[Placement], list[Placemen
     return picked, rest
 
 
-def _bounds_of(items: list[Placement]) -> tuple[float, float, float, float]:
-    """Centre and span in plan of a set of volumes, in the site frame."""
+def _bounds_of(
+    items: list[Placement], rotation_degrees: float = 0.0
+) -> tuple[float, float, float, float]:
+    """Centre and span in plan of a set of volumes, in the frame's own axes.
+
+    The spans have to be measured on the axes the boxes are built on. Every
+    volume here is posed at the parcel's bearing, and this used to take the
+    axis-aligned bounding box of the posed corners - which on a skewed parcel is
+    larger than the box it encloses, by the cosine of the bearing on each side.
+    So every verb that rebuilds a volume from these numbers rebuilt it bigger
+    than the volume it replaced, on every site whose seed rectangle is not
+    square to north.
+
+    Measured on Mountain Dwellings: the `split` leaves `slope` 49.2 m long and
+    the `grade` after it rebuilds its first step at 57.8 m, eating the 3.8 m
+    gap the split had opened and closing what the sentence was about. The same
+    inflation is why `lift` closed Villa dall'Ava's.
+
+    The centre is still returned in world coordinates, because that is what the
+    callers offset from.
+    """
 
     corners = [corner for item in items for corner in item.corners()]
     xs = [x for x, _y, _z in corners]
     ys = [y for _x, y, _z in corners]
-    return (
-        (min(xs) + max(xs)) / 2.0,
-        (min(ys) + max(ys)) / 2.0,
-        max(xs) - min(xs),
-        max(ys) - min(ys),
-    )
+    centre_x = (min(xs) + max(xs)) / 2.0
+    centre_y = (min(ys) + max(ys)) / 2.0
+    if abs(rotation_degrees) < 1e-9:
+        return (centre_x, centre_y, max(xs) - min(xs), max(ys) - min(ys))
+    bearing = math.radians(-rotation_degrees)
+    cos_b, sin_b = math.cos(bearing), math.sin(bearing)
+    turned = [
+        ((x - centre_x) * cos_b - (y - centre_y) * sin_b,
+         (x - centre_x) * sin_b + (y - centre_y) * cos_b)
+        for x, y, _z in corners
+    ]
+    us = [u for u, _v in turned]
+    vs = [v for _u, v in turned]
+    return (centre_x, centre_y, max(us) - min(us), max(vs) - min(vs))
+
+
+def _plan_shrink(item: Placement, span_x: float, span_y: float) -> float:
+    """How much a rebuilt box must shrink to hold no more plan than it had.
+
+    Every verb that rebuilds a volume rebuilds it as a rectangle spanning the
+    volume's bounding box, and every sentence starts from a parcel-shaped seed,
+    so the rebuilt piece is larger than the piece it replaced. `_split` grew a
+    building by 74% that way. The same arithmetic is here because `_grade` and
+    `_lift` rebuild too, and measured on the corpus it is why their gaps close:
+    Mountain Dwellings' `split` opens 3.8 m and its `grade` closes it to nothing,
+    Villa dall'Ava's `split` opens 3.05 m and its `lift` closes it to nothing.
+    The rebuilt piece grows sideways into the space the earlier word made.
+
+    Returns 1.0 for a rectangle, so nothing that was already honest moves.
+    """
+
+    box = span_x * span_y
+    if box <= 1e-9:
+        return 1.0
+    area = float(_plan(item).area)
+    if area <= 1e-9 or area >= box:
+        return 1.0
+    return (area / box) ** 0.5
 
 
 def _split(frame: _Frame, op: Operation) -> None:
@@ -293,7 +344,7 @@ def _split(frame: _Frame, op: Operation) -> None:
     made: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
+        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
         along = span_x if abs(ux) >= abs(uy) else span_y
         # Cutting cannot make the building bigger. The pieces are rectangles
         # spanning the bounding box, so a plan that is not a rectangle - the
@@ -462,7 +513,7 @@ def _taper(frame: _Frame, op: Operation) -> None:
     pulled: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, item_x, item_y = _bounds_of([item])
+        cx, cy, item_x, item_y = _bounds_of([item], frame.rotation)
         low_scale, high_scale = scale_at(low), scale_at(high)
         # A slab per storey is as fine as the thing being described, and the
         # bands this produces are what the compiler and every measure read, so
@@ -520,9 +571,12 @@ def _grade(frame: _Frame, op: Operation) -> None:
     made: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
+        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
         along = span_x if along_x else span_y
-        across = span_y if along_x else span_x
+        # A step cannot be wider than the plan it steps out of. Without this the
+        # stair walks sideways into whatever the sentence set beside it.
+        shrink = _plan_shrink(item, span_x, span_y)
+        across = (span_y if along_x else span_x) * shrink
         # One step per storey: the terraces are floors, and asking for more
         # resolution than the building has invents steps nobody stands on.
         steps = int(_clamp(
@@ -603,7 +657,7 @@ def _shear(frame: _Frame, op: Operation) -> None:
             moved.append(item)
             continue
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
+        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
         # Steps counted from the anchor, so a shear at one level moves
         # its volume by one step rather than by none.
         reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
@@ -714,7 +768,7 @@ def _twist(frame: _Frame, op: Operation) -> None:
     twisted: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
+        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
         storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 3, 10))
         twisted.extend(
             stack(
@@ -772,8 +826,13 @@ def _lift(frame: _Frame, op: Operation) -> None:
         span_y = max(y for _x, y, _z in corners) - min(y for _x, y, _z in corners)
         centre_x = (max(x for x, _y, _z in corners) + min(x for x, _y, _z in corners)) / 2.0
         centre_y = (max(y for _x, y, _z in corners) + min(y for _x, y, _z in corners)) / 2.0
+        # Raising a volume does not widen it. Rebuilt at its bounding box a
+        # parcel-shaped piece grows on every side, and on `oma_villa_dall_ava`
+        # that swallowed the 3.05 m the `split` before it had opened.
+        shrink = _plan_shrink(item, span_x, span_y)
         raised.append(
-            frame.box(item.role, w=span_x, d=span_y, z=low + clearance, h=high - low,
+            frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
+                      z=low + clearance, h=high - low,
                       dx=centre_x - frame.cx, dy=centre_y - frame.cy,
                       kind=item.kind, plan=item.plan, occupiable=item.occupiable)
         )
@@ -781,7 +840,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
     leg = 0.32
-    base_x, base_y, base_w, base_d = _bounds_of(picked)
+    base_x, base_y, base_w, base_d = _bounds_of(picked, frame.rotation)
     frame.placements = rest + raised + [
         frame.box("support", w=frame.width * leg, d=frame.depth * leg,
                   occupiable=False,

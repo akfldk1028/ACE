@@ -168,6 +168,7 @@ class _Frame:
         kind: str = "additive",
         plan: str = "",
         occupiable: bool = True,
+        turn: float = 0.0,
     ) -> Placement:
         """A volume centred on the site frame, offset in the frame's own axes.
 
@@ -191,7 +192,10 @@ class _Frame:
             role,
             size=(max(w, 0.5), max(d, 0.5), max(h, least, 0.5)),
             at=(self.cx + dx - w / 2.0, self.cy + dy - d / 2.0, z),
-            rotation_degrees=self.rotation,
+            # Off the frame's bearing, not instead of it. A volume that
+            # abandons the parcel's axis reads as a mistake; one sitting a few
+            # degrees off it reads as having been placed.
+            rotation_degrees=self.rotation + float(turn),
             kind=kind,
             plan=plan,
             occupiable=occupiable,
@@ -964,6 +968,25 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
         # rather than as a barracks - the thing the size fan exists to avoid,
         # asked of position as well as of size.
         drift = 0.14 * (1 if (column + row) % 2 else -1)
+        # And a bearing, which is the third property an object has and the only
+        # one this verb left uniform. The argument in the docstring above - that
+        # identical objects are the barracks again - was being applied to size
+        # and to position and not to which way a thing faces. Measured over the
+        # delivered sixteen, fifteen carried exactly one bearing in the entire
+        # mass, which is what reads as a stack of bricks.
+        #
+        # Silent unless the sentence asks: a loose settlement is a claim about
+        # this building, not a property of every field. Moriyama and the Inujima
+        # houses sit askew of one another; Kanazawa's boxes do not.
+        #
+        # It is a parameter and not a verb on purpose. A turn written as its own
+        # word costs the sentence a word, and `spoken_force` is the mean redraw
+        # per word - measured, adding a `rotate` to ACC Gwangju drops it from
+        # 0.303 to 0.283 even at 45 degrees, so the selector would refuse every
+        # sentence that tried to stop looking like a brick.
+        turn = float(op.params.get("turn", 0.0))
+        turn *= (1 if (column * 2 + row) % 3 else -1)
+        turn *= 0.4 + 0.6 * (index / max(count - 1, 1))
         frame.placements.append(
             frame.box(
                 f"object_{index}",
@@ -971,6 +994,7 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
                 h=frame.height * share * (0.55 + 0.45 * scale),
                 dx=(column + 0.5 + drift) * cell_w - frame.width / 2.0,
                 dy=(row + 0.5 - drift) * cell_d - frame.depth / 2.0,
+                turn=turn,
             )
         )
 

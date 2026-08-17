@@ -22,6 +22,7 @@ from design.maas.design_space import delivered_ground_take_band
 from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
+from design.maas.massv2 import ablation as ablate_module
 from design.maas.massv2 import postcondition
 from design.maas.massv2 import program as programme
 from design.maas.massv2.author import _to_form
@@ -294,6 +295,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"sampled sentences: {len(drawn)}")
             written = []
             mute = []
+            idle = []
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
             )
@@ -328,12 +330,25 @@ class Command(BaseCommand):
                     # always reports 1.0, which would flatten the difference
                     # between a sentence of two words and one of five.
                     said = list(spoken.changed[1:]) or list(spoken.changed)
+                    # And what each word is worth to the mass that gets drawn,
+                    # which is a different question - the growth loop and the
+                    # sunlight clip both run after the sentence, and both can
+                    # undo it. One extra pipeline run per word.
+                    torn = ablate_module.ablate(
+                        parti, buildable=buildable, axis=axis,
+                        height_m=authored_height, site=site,
+                        storey_height_m=site.floor_height_m,
+                    )
+                    if torn.idle:
+                        idle.append((parti.name, torn))
                     built = built.__class__(
                         **{
                             **built.__dict__,
                             "extra": {
                                 **dict(built.extra),
                                 "spoken_force": sum(said) / max(len(said), 1),
+                                "ablation_force": torn.force,
+                                "ablation": torn.evidence(),
                             },
                         }
                     )
@@ -361,6 +376,18 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"  silent: {name} -> {','.join(spoken.silent)} "
                     f"{[round(v, 3) for v in spoken.changed]}"
+                )
+            # Spoken at the time and absent from the drawing are different
+            # failures. This one is reported and not refused: nothing has been
+            # measured yet about whether it predicts anything.
+            self.stdout.write(
+                f"words the delivered mass does not miss: "
+                f"{sum(len(t.idle) for _n, t in idle)} in {len(idle)} sentences"
+            )
+            for name, torn in idle:
+                self.stdout.write(
+                    f"  idle: {name} -> {','.join(torn.idle)} "
+                    f"{[round(v, 3) for v in torn.removed_share]}"
                 )
 
         if options["spread_coverage"]:
@@ -486,6 +513,11 @@ class Command(BaseCommand):
                     "secondary": form.secondary_language,
                     "formal_principle": form.formal_principle,
                 },
+                # Recorded, not scored. It does not beat `spoken_force` on the
+                # two critique rounds there are, and n=10 cannot resolve the
+                # difference - so it accumulates until there is enough of it.
+                "ablation": form.extra.get("ablation"),
+                "spoken_force": form.extra.get("spoken_force"),
             })
             if fit.satisfied:
                 # An unlawful mass was being counted and then offered anyway.

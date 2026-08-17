@@ -848,11 +848,14 @@ def _lift(frame: _Frame, op: Operation) -> None:
     raised: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        corners = item.corners()
-        span_x = max(x for x, _y, _z in corners) - min(x for x, _y, _z in corners)
-        span_y = max(y for _x, y, _z in corners) - min(y for _x, y, _z in corners)
-        centre_x = (max(x for x, _y, _z in corners) + min(x for x, _y, _z in corners)) / 2.0
-        centre_y = (max(y for _x, y, _z in corners) + min(y for _x, y, _z in corners)) / 2.0
+        # On the frame's own axes. This used to take the axis-aligned bounds of
+        # the posed corners inline - the same inflation `_bounds_of` was fixed
+        # for, copied here and left behind. Villa dall'Ava's `split` opens
+        # 3.16 m and its `lift` rebuilt the raised half wide enough to close it
+        # to 0.95, and the supports were innocent: measured, all four sit at
+        # least 1.66 m from the other apartment and two of them entirely inside
+        # the volume they hold up.
+        centre_x, centre_y, span_x, span_y = _bounds_of([item], frame.rotation)
         # Raising a volume does not widen it. Rebuilt at its bounding box a
         # parcel-shaped piece grows on every side, and on `oma_villa_dall_ava`
         # that swallowed the 3.05 m the `split` before it had opened.
@@ -867,7 +870,12 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
     leg = 0.32
-    base_x, base_y, base_w, base_d = _bounds_of(picked, frame.rotation)
+    # Off the plate as it was built, not as it arrived. The raised volume is
+    # rebuilt to hold its own plan area rather than its bounding box, so sizing
+    # the legs from the original left them sticking out past the plate they
+    # carry - measured on Villa dall'Ava, the plate stood 3.16 m from the other
+    # apartment and a leg stood 1.66 m from it.
+    base_x, base_y, base_w, base_d = _bounds_of(raised, frame.rotation)
     frame.placements = rest + raised + [
         # Under the volume that was lifted, not under the site. These bounds
         # were being computed and then ignored: the supports were sized and

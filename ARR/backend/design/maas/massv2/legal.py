@@ -54,6 +54,10 @@ class LegalSite:
     # site-local frame as everything else. What is left of the boundary is the
     # side the parcel is open on - see `siting.open_side_direction`.
     shared_edges: tuple[tuple[tuple[float, float], ...], ...] = ()
+    # What is being built. It reached the capacity calculation and stopped
+    # there, so every gate downstream judged a 근린생활시설 by rules written
+    # for a dwelling - see `plausibility.daylight_is_required_for`.
+    building_type: str = "제1종근린생활시설"
 
     @property
     def parcel_area_m2(self) -> float:
@@ -200,4 +204,5 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
         context=context,
         floor_field=floor_field,
         shared_edges=shared,
+        building_type=building_type,
     )

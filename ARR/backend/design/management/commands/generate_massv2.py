@@ -233,6 +233,7 @@ class Command(BaseCommand):
                 ground_capacity_m2=site.ground_capacity_m2,
                 far_capacity_m2=site.far_capacity_m2,
                 floor_height_m=site.floor_height_m,
+                building_type=site.building_type,
             ))
 
         if options["authored_json"]:

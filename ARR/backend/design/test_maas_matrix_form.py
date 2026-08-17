@@ -636,7 +636,7 @@ class DaylightSaysHowDeepTests(SimpleTestCase):
         self.assertAlmostEqual(daylit_depth_m(3.0), 6.0)
         self.assertAlmostEqual(daylit_depth_m(4.5), 9.0)
 
-    def test_a_deep_slab_is_refused_by_the_gate(self):
+    def test_a_deep_slab_is_refused_where_the_law_asks_for_daylight(self):
         form = _form("slab", [place("plate", size=(38.0, 34.0, 12.0))])
         source = compile_matrix_form(form)
 
@@ -647,10 +647,37 @@ class DaylightSaysHowDeepTests(SimpleTestCase):
                 far_capacity_m2=6241.962, ground_capacity_m2=1497.877
             ),
             floor_height_m=3.0,
+            building_type="공동주택",
         )
 
         self.assertFalse(verdict.occupiable)
         self.assertTrue(any("daylight" in reason for reason in verdict.reasons))
+
+    def test_the_same_slab_is_lawful_as_a_shop(self):
+        """영 제51조 names four uses and this is not one of them.
+
+        The list is 단독/공동주택의 거실, 학교의 교실, 의료시설의 병실,
+        숙박시설의 객실. A 제1종근린생활시설 is not asked for daylight by any
+        Korean provision, and no provision anywhere limits how far a floor may
+        reach from a window - the only statutory plan depth is egress, 보행거리
+        30 m. Refusing this slab was refusing a lawful building: 297 of 533
+        refusals on the Uijeongbu parcel were this rule alone.
+        """
+
+        form = _form("slab", [place("plate", size=(38.0, 34.0, 12.0))])
+        source = compile_matrix_form(form)
+
+        verdict = plausibility_of(
+            source,
+            parcel_area_m2=2499.69,
+            max_slenderness=slenderness_limit(
+                far_capacity_m2=6241.962, ground_capacity_m2=1497.877
+            ),
+            floor_height_m=3.0,
+            building_type="제1종근린생활시설",
+        )
+
+        self.assertFalse(any("daylight" in reason for reason in verdict.reasons))
 
     def test_the_gate_is_silent_when_no_storey_height_is_given(self):
         """Callers that never knew the storey height keep their old verdict."""

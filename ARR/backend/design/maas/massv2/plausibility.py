@@ -77,6 +77,41 @@ DAYLIT_DEPTH_PER_STOREY = 2.0
 # exists to make.
 MAX_UNLIT_SHARE = 0.25
 
+# Which uses Korean law actually asks a daylight question about.
+#
+# 건축법 시행령 제51조(거실의 채광 등): "단독주택 및 공동주택의 거실, 교육연구시설 중
+# 학교의 교실, 의료시설의 병실 및 숙박시설의 객실". That list is the whole of it -
+# 근린생활시설, 업무시설 and 판매시설 are not in it, and this tool was rejecting a
+# 제1종근린생활시설 on a rule written for a dwelling. 297 of 533 refusals on the
+# Uijeongbu parcel were that rule alone, more than half of everything refused.
+#
+# Two further things the statute says, which is why even the covered uses are not
+# gated on plate depth here. The duty is a per-거실 window area - 피난·방화규칙
+# 제17조①, "그 거실의 바닥면적의 10분의 1 이상" - not a distance from a façade, and
+# it binds rooms rather than plates, so a deep plate whose core is 복도·창고·설비
+# (not 거실, 건축법 제2조제1항제6호) is untouched by it. And it is defeasible: the
+# same article exempts a 거실 lit to 별표 1의3 by lamps.
+#
+# No Korean provision anywhere limits how far a floor may extend from a window.
+# The only statutory plan-depth number is egress - 시행령 제34조①, 보행거리 30 m,
+# 50 m for 내화구조·불연재료 - and that one is use-blind. If this package ever wants
+# one depth gate for every use, that is the number, and 6 m is not it.
+#
+# 정북일조 is the other half of the same question and is not affected: 법 제61조①
+# triggers on 용도지역 (전용주거·일반주거) and says nothing about the building's use,
+# so a 근린생활시설 there obeys it like anything else. It is enforced in `legal_fit`
+# through the envelope, not here.
+DAYLIGHT_IS_A_DUTY_FOR = (
+    "단독주택", "공동주택", "학교", "병원", "의료시설", "숙박시설",
+)
+
+
+def daylight_is_required_for(building_type: str) -> bool:
+    """Does 영 제51조 ask this use for daylight at all."""
+
+    name = str(building_type or "")
+    return any(token in name for token in DAYLIGHT_IS_A_DUTY_FOR)
+
 
 def daylit_depth_m(floor_height_m: float) -> float:
     """How far in from a façade or a court a storey of this height is lit."""
@@ -188,6 +223,7 @@ def assess(
     parcel_area_m2: float,
     max_slenderness: float,
     floor_height_m: float = 0.0,
+    building_type: str = "",
 ) -> Plausibility:
     """Judge a compiled mass as a building rather than as a solid.
 
@@ -265,7 +301,7 @@ def assess(
     # is cheaper than by rising. This is the reason a courtyard block, a bar
     # and a comb exist at all, and it belongs at the gate rather than in the
     # score for the same reason standing up does.
-    if floor_height_m > 0.0:
+    if floor_height_m > 0.0 and daylight_is_required_for(building_type):
         dark = max(
             (unlit_share(volume.footprint, floor_height_m=floor_height_m)
              for volume in bands),

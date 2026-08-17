@@ -166,6 +166,18 @@ def gap_survived(
     pavilions".
     """
 
+    # ⚠️ This is the narrowest separation anywhere in the storey, not the
+    # separation the split asked for, and the difference matters on one class of
+    # scheme. `sanaa_sydney_modern` splits a field its `aggregate` already made:
+    # two of those objects stand 0.63 m apart, the split's own gap is fine, and
+    # this refuses the sentence for a gap it never claimed.
+    #
+    # Measuring between the parts the split named was tried and is worse. Roles
+    # do not survive the compiler - `_band_role` names each band after whichever
+    # volume dominates it, so both halves of a split share one name wherever
+    # they share a storey, the lookup finds nothing, and twenty-two sentences
+    # came back at 0.0 m. Fixing it properly means carrying both roles through
+    # the band, which is a change to the compiled representation.
     declared = max(
         (float(op.params.get("gap") or 0.0) for op in parti.ops), default=0.0
     ) * JOINT_CLEARANCE_M

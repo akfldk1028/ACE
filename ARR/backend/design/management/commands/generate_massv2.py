@@ -295,6 +295,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"sampled sentences: {len(drawn)}")
             written = []
             mute = []
+            clipped = []
             idle = []
             closed = []
             authored_height = site.floor_height_m * max(
@@ -316,7 +317,26 @@ class Command(BaseCommand):
                     storey_height_m=site.floor_height_m,
                 )
                 if not spoken.honest:
-                    mute.append((parti.name, spoken))
+                    # Silent because the word does nothing, or silent because
+                    # the law removed what it did? Measured over this corpus,
+                    # six of nine silent words clear the floor comfortably when
+                    # the same sentence is compiled without the sunlight
+                    # envelope - 0.001 becomes 0.063, 0.000 becomes 0.081. The
+                    # author redrew the building they wrote and the envelope
+                    # then took that part away, so the sentence is not wrong,
+                    # it is wrong *here*. The refusal stands either way, because
+                    # the delivered mass really is the same drawing - but a
+                    # corpus meant to travel between sites should be able to
+                    # tell the two apart.
+                    unclipped = postcondition.check_sentence(
+                        parti, buildable=buildable, axis=axis,
+                        height_m=authored_height, allowed_at=None,
+                        storey_height_m=site.floor_height_m,
+                    )
+                    if unclipped.honest:
+                        clipped.append((parti.name, spoken, unclipped))
+                    else:
+                        mute.append((parti.name, spoken))
                     continue
                 # A sentence about what happens between volumes has to leave
                 # something between them. The blind critique round tagged
@@ -399,6 +419,17 @@ class Command(BaseCommand):
                     f"  silent: {name} -> {','.join(spoken.silent)} "
                     f"{[round(v, 3) for v in spoken.changed]}"
                 )
+            self.stdout.write(
+                f"words the envelope removed: {len(clipped)} sentences "
+                f"(the word spoke, the law took it)"
+            )
+            for name, spoken, unclipped in clipped:
+                pairs = ", ".join(
+                    f"{verb} {a:.3f}->{c:.3f}"
+                    for verb, a, c in zip(spoken.declared, unclipped.changed, spoken.changed)
+                    if c < postcondition.MIN_CHANGED_SHARE
+                )
+                self.stdout.write(f"  clipped: {name} -> {pairs}")
             self.stdout.write(
                 f"gaps that closed before delivery: {len(closed)}"
             )

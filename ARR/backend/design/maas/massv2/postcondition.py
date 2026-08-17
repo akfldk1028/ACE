@@ -42,7 +42,7 @@ from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
 
-from .compile import compile_matrix_form
+from .compile import _plan, compile_matrix_form
 from .execute import execute_steps
 
 
@@ -56,6 +56,11 @@ MIN_CHANGED_SHARE = 0.05
 # Where the two masses are compared. Storey by storey, because that is how the
 # compiler bands them and how a person reads a section.
 _SAMPLES = 16
+
+# How far outside its own plan a scoped word may push its volumes and still be
+# measured. A `shift` moves the thing it is aimed at, and judging it only where
+# the volume used to be would score the move as a disappearance.
+_SCOPE_MARGIN_M = 12.0
 
 
 @dataclass(frozen=True)
@@ -100,7 +105,38 @@ def _height_of(source: SourceMass | None) -> float:
     return float(source.metadata.get("authored_height_m") or 0.0)
 
 
-def changed_share(before: SourceMass | None, after: SourceMass | None) -> float:
+def _scope_region(form, prefix: str):
+    """The plan the volumes a scoped word aims at were occupying.
+
+    A word aimed at one part of a composition is judged against that part. The
+    check compares whole masses, and a share of the whole is the wrong
+    denominator for `on: "bar_n"`: MMCA rings a court with four bars and then
+    splits one of them into a wing and a gate with a 6.1 m gap between - real
+    work, exactly what the sentence says - and it scored 0.029 because the other
+    three bars did not move. Below the 0.05 floor, so the sentence was refused
+    for a word that did its job.
+    """
+
+    if form is None or not prefix:
+        return None
+    picked = [
+        item for item in form.placements
+        if item.kind == "additive" and item.role.startswith(prefix)
+    ]
+    if not picked:
+        return None
+    shapes = [_plan(item) for item in picked]
+    shapes = [shape for shape in shapes if not shape.is_empty]
+    if not shapes:
+        return None
+    # Generously: the word may move its volumes as well as reshape them, and a
+    # displaced piece has to stay inside the region it is measured in.
+    return unary_union(shapes).buffer(_SCOPE_MARGIN_M)
+
+
+def changed_share(
+    before: SourceMass | None, after: SourceMass | None, region=None
+) -> float:
     """How much of the building this word redrew, as a share of the whole.
 
     Sampled storey by storey and summed, so a word that changes one band of a
@@ -123,13 +159,19 @@ def changed_share(before: SourceMass | None, after: SourceMass | None) -> float:
         if one is None and two is None:
             continue
         if one is None:
+            two = two.intersection(region) if region is not None else two
             differing += float(two.area)
             total += float(two.area)
             continue
         if two is None:
+            one = one.intersection(region) if region is not None else one
             differing += float(one.area)
             total += float(one.area)
             continue
+        if region is not None:
+            one, two = one.intersection(region), two.intersection(region)
+            if one.is_empty and two.is_empty:
+                continue
         try:
             differing += float(one.symmetric_difference(two).area)
             total += float(one.union(two).area)
@@ -157,13 +199,18 @@ def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_
     silent: list[str] = []
     shares: list[float] = []
     previous = None
+    previous_form = None
     for op, form in steps:
         current = compiled(form)
-        share = changed_share(previous, current)
+        # A scoped word is judged inside its scope, an unscoped one against the
+        # whole building - which is what each of them is claiming.
+        region = _scope_region(previous_form, str(op.params.get("on") or "").strip())
+        share = changed_share(previous, current, region)
         shares.append(share)
         if share < MIN_CHANGED_SHARE:
             silent.append(op.verb)
         previous = current
+        previous_form = form
     return Verdict(declared, tuple(silent), tuple(shares))
 
 

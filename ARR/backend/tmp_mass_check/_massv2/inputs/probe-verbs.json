@@ -1,0 +1,95 @@
+{
+  "schemes": [
+    {
+      "name": "kahn_kimbell_three_ranges_of_vaults",
+      "primary_language": "porous_field",
+      "secondary_language": "parallel bays of one depth, with open courts left where a bay is missing",
+      "formal_principle": "One repeated bay whose width is set by how far daylight reaches, and the courts are simply the bays left out.",
+      "dominant_gesture": "Three long low ranges lying parallel with open courts in the gaps between them.",
+      "reference_basis": "킴벨미술관 (미국 텍사스 포트워스, 1972, Louis Kahn). 폭 약 7m(23ft)·길이 약 30m(100ft)의 사이클로이드 볼트 16개가 세 열로 놓이고, 볼트 정점의 좁은 슬릿에서 들어온 빛이 알루미늄 반사판을 거쳐 전시실을 덮는다. 열과 열 사이에 뚫린 중정 세 곳이 전시 동선을 끊고 바깥 빛을 들인다. 반복되는 한 칸의 폭이 전시실의 폭이자 채광의 폭이라는 것이 이 건물의 원리다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.3,
+          "profile": "square",
+          "why": "킴벨은 사실상 한 층이다. 0.3은 이 필지 4.17층 중 층고 높은 한 층 남짓 - 볼트 아래 6m 가까운 실내고 - 에 해당한다. 이 문장은 높이가 아니라 반복으로 면적을 버는 문장이고, 그래서 처음부터 낮게 시작한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.7,
+          "along": "cross",
+          "first": "north_ranges",
+          "second": "south_range",
+          "gap": 8,
+          "contrast": 1.35,
+          "why": "볼트는 한 덩어리로 놓이지 않고 열로 끊긴다. 0.7은 북쪽 두 열이 남쪽 한 열보다 넓다는 실제 배치이고, gap 8(약 6m)은 그 사이에 뚫린 중정의 폭이다 - 이 틈이 없으면 안쪽 열은 어느 면에서도 6m 안에 창이 없다. contrast 1.35로 남쪽 열이 낮아 진입 쪽 처마가 내려앉는다."
+        },
+        {
+          "op": "split",
+          "on": "north_ranges",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "vault_range_a",
+          "second": "vault_range_b",
+          "gap": 7,
+          "contrast": 1.4,
+          "why": "북쪽 덩어리는 아직 두 열이 붙어 있다. 한 번 더 끊으면 세 열이 되고 각 열의 깊이가 볼트 한 칸의 배수 안으로 들어온다. 0.58은 전시열이 보존·관리열보다 넓다는 프로그램 차이이고, gap 7(약 5.3m)은 두 번째 중정 - 화석 중정처럼 작고 통과만 하는 마당 - 의 폭이다."
+        }
+      ]
+    },
+    {
+      "name": "cctv_a_loop_stood_up",
+      "primary_language": "open_figure",
+      "secondary_language": "바닥에 눕지 않고 서 있는 고리",
+      "formal_principle": "고리가 수평이 아니라 수직으로 서서, 두 다리와 공중의 귀환부가 하나의 회로를 이룬다.",
+      "dominant_gesture": "공중에서 닫히는 고리.",
+      "reference_basis": "OMA - CCTV Beijing 2012. 234 m, 두 타워가 6도 기울어 162 m 높이에서 75 m 캔틸레버로 접합",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.4,
+          "height": 1.0,
+          "why": "고리. bar 상한 0.4로 다리를 최대한 굵게"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.4,
+          "on": "bar_s",
+          "why": "한 변만 최대로 들어 고리를 세운다"
+        }
+      ]
+    },
+    {
+      "name": "mountain_dwellings_parking_is_the_slope",
+      "primary_language": "carved_body",
+      "secondary_language": "주차장이 곧 산비탈이고 그 위가 테라스인 것",
+      "formal_principle": "주차 램프의 경사가 건물 전체의 단면이 되고, 주거는 그 사면 위의 테라스가 된다.",
+      "dominant_gesture": "한 방향으로 통째로 기운 사면.",
+      "reference_basis": "BIG - Mountain Dwellings Copenhagen 2008. 주차 3층이 경사 기단이 되고 80세대가 그 위에 계단식으로 앉음",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "slope",
+          "second": "court",
+          "gap": 6.0,
+          "contrast": 1.6,
+          "why": "사면과 그 앞 마당. gap 6은 4.6 m로 둘 사이가 실제로 벌어진다"
+        },
+        {
+          "op": "grade",
+          "toward": "cross",
+          "on": "slope",
+          "why": "주차 램프의 경사가 단면이 되고 주거는 그 사면 위 테라스이므로, 기울인 상자가 아니라 층마다 물러서는 계단형 윤곽이어야 한다. 책의 Grade(단차화하다) - 단계적으로 깎아 계단형 윤곽 생성.",
+          "run": 0.7
+        }
+      ]
+    }
+  ]
+}

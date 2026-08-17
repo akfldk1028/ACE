@@ -1,0 +1,126 @@
+{
+  "schemes": [
+    {
+      "name": "oma_lab_city_saclay",
+      "primary_language": "open_figure",
+      "secondary_language": "three unequal bars lining a street cut through the block",
+      "formal_principle": "The largest laboratory building in France is cut apart by a public street, so the route through the block is the thing that is designed and the lab blocks are what line it.",
+      "dominant_gesture": "A wide open street running between low aluminium bars that stand clear of one another.",
+      "reference_basis": "OMA - Lab City, CentraleSupélec, 지프쉬르이베트(파리-사클레) 2017. 약 30,000 m²의 프랑스 최대 대학 실험동. 블록을 비스듬히 관통하는 실내 '거리'가 실험실 군을 둘로 가르고, 골이 진 아노다이즈드 알루미늄 외피가 4개 층을 감싼다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "profile": "trapezoidal",
+          "why": "실제 4개 층짜리 저층 실험동이고, 이 필지가 허용하는 4.17층이 정확히 그 높이다. 0.95로 대지가 주는 높이를 거의 다 쓰되 그 이상은 없다. 평면을 사다리꼴로 잡는 것은 이 건물을 가르는 거리가 블록을 직각이 아니라 비스듬히 지나가기 때문이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.63,
+          "along": "long",
+          "first": "lab_bar",
+          "second": "teaching_bar",
+          "gap": 10.0,
+          "contrast": 1.35,
+          "why": "이 건물의 전부는 가운데를 관통하는 실내 거리다. 0.63은 실험실 군이 강의·공용동보다 크다는 실제 면적 배분이고, gap 10(약 7.6m)은 그 거리가 복도가 아니라 카페와 계단과 만남이 일어나는 폭이라는 뜻이다. 4m 복도로 줄이면 이 건물은 그냥 두 동짜리 실험동이 된다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "wet_labs",
+          "second": "dry_labs",
+          "gap": 4.0,
+          "contrast": 1.3,
+          "why": "실험실 쪽은 한 덩어리가 아니다. 이 건물의 이름이 Lab City인 것은 거리를 따라 실험동들이 늘어서 있기 때문이고, 0.58은 배관이 필요한 습식 실험실이 건식보다 크다는 실제 배분이다. gap 4(약 3m)는 두 동 사이로 빛과 통로가 들어오는 최소 폭 - 이 틈이 없으면 거리는 있어도 도시는 없다.",
+          "on": "lab_bar"
+        }
+      ]
+    },
+    {
+      "name": "kr_amorepacific_hollow_cube_and_gardens",
+      "primary_language": "carved_body",
+      "secondary_language": "a cube with its middle removed and one face opened for a hanging garden",
+      "formal_principle": "A compact block only stays a building if what is taken out of it is inhabited, so the hollow is a court and not a shaft.",
+      "dominant_gesture": "A square block set back once as it rises, hollow at the centre, with one whole side cut away into a garden.",
+      "reference_basis": "아모레퍼시픽 사옥 (서울 용산구 한강대로, 2017, David Chipperfield Architects). 한 변 약 110m의 정육면체에 가까운 몸, 지상 22층·지하 7층, 연면적 약 188,902㎡. 저층부는 시민에게 열린 아트리움이고, 5층·11층·17층에 걸쳐 세 개의 큰 루프가든 보이드를 덩어리에서 파냈다. 정육면체를 유지하면서 깊이 문제를 파냄으로 푼 사례다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "profile": "square",
+          "why": "이 건물의 전제는 정육면체 하나를 끝까지 유지한다는 것이고, 그래서 첫 동사는 자르지도 쌓지도 않는다. 0.5는 이 필지가 주는 높이의 절반 - 4.17층 중 두 개 층 남짓 - 으로, 여기서 높이를 아껴야 남은 면적을 평면으로 벌게 되고 그때 파냄이 유일한 조작으로 남는다. profile square는 한 변이 같은 정육면체라는 실제 형태 그대로다."
+        },
+        {
+          "op": "carve",
+          "size": 0.45,
+          "at": "long",
+          "reach": 0.0,
+          "why": "정육면체를 그대로 세우면 가운데는 어떤 창도 닿지 않는다. size 0.45의 가운데 파냄은 남는 켜를 약 13m로 만드는 크기 - 바깥 창과 아트리움 창 양쪽에서 빛이 만나는 깊이다. reach 0.0은 이 보이드가 한쪽으로 치우친 채광정이 아니라 정중앙의 아트리움이라는 뜻이고, 로비와 매장이 실제로 그 바닥에 있다."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 1.0,
+          "why": "세 개의 루프가든은 아트리움과 다른 종류의 빈 곳이다. 덩어리의 한 면을 통째로 뜯어내 바깥으로 열린 정원을 만든다. size 0.42와 reach 1.0은 그 파냄이 고리의 한 변을 남김없이 관통한다는 뜻이고 - 얇은 조각을 남기면 그건 방이 아니라 난간이 된다 - 그래야 도시에서 건물 안이 보이고 정원에서 한강 쪽 하늘이 보인다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 1.0,
+          "why": "정원은 하나가 아니라 5층·11층·17층에 걸쳐 셋이고, 서로 다른 방향으로 열린다. 반대쪽 변을 더 작게(0.3) 뜯어내면 남은 고리가 ㄷ자가 되고, 그 순간 이 덩어리는 가운데만 빈 도넛이 아니라 두 방향으로 도시에 열린 몸이 된다. 앞의 정원보다 작은 것이 층이 올라갈수록 정원이 작아지는 실제 관계다."
+        }
+      ]
+    },
+    {
+      "name": "hertzberger_central_beheer_islands",
+      "primary_language": "porous_field",
+      "secondary_language": "four unequal islands with lit streets running between them",
+      "formal_principle": "The office is not one floorplate but a settlement of small blocks, and the streets between them are what makes each block a room.",
+      "dominant_gesture": "Four blocks of different size crowding one plot, with two crossing slots of daylight between them.",
+      "reference_basis": "센트랄 베헤이르 (네덜란드 아펠도른, 1972, Herman Hertzberger). 약 9m × 9m 콘크리트 '섬' 수십 개를 격자로 모으고 그 사이에 위에서 빛이 드는 가로와 광장을 남긴 사무소로, 약 1,000명이 일했다. 한 덩어리 사무소를 거부하고 작은 단위의 집합으로 만든 것, 그리고 단위 사이의 빈틈을 사람이 점유하도록 남긴 것이 이 건물의 주장이다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "profile": "square",
+          "why": "섬 하나는 4개 층 정도로 낮고, 전체는 그 섬들이 가로로 번진 것이다. 0.55는 이 필지 4.17층의 절반을 조금 넘는 값으로, 이 문장이 높이가 아니라 평면의 번짐으로 면적을 번다는 뜻이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.68,
+          "along": "long",
+          "first": "west_islands",
+          "second": "east_islands",
+          "gap": 6,
+          "contrast": 1.3,
+          "why": "첫 번째 가로. gap 6(약 4.6m)은 위에서 빛이 떨어지고 사람이 마주 서서 이야기하는 실내 골목의 폭이다. 0.68은 두 덩어리가 같지 않다는 뜻이고 - 이 건물의 단위는 반복되지만 군집은 대칭이 아니다 - contrast 1.3으로 동쪽이 한 층 낮게 앉는다."
+        },
+        {
+          "op": "split",
+          "on": "west_islands",
+          "ratio": 0.6,
+          "along": "cross",
+          "first": "island_block_a",
+          "second": "island_block_b",
+          "gap": 6,
+          "contrast": 1.45,
+          "why": "두 번째 가로를 앞의 것과 직교로 낸다. 격자 도시가 되려면 골목이 한 방향으로만 나 있으면 안 된다. 0.6은 북쪽 덩어리가 더 크다는 뜻이고 gap 6은 같은 골목 폭을 반복해 두 가로가 같은 종류의 공간으로 읽히게 한다."
+        },
+        {
+          "op": "split",
+          "on": "island_block_a",
+          "ratio": 0.58,
+          "along": "long",
+          "first": "island_a1",
+          "second": "island_a2",
+          "gap": 6,
+          "contrast": 1.5,
+          "why": "남은 가장 큰 덩어리는 아직 가운데에 창이 닿지 않는 자리가 있다. 한 번 더 끊어 네 개의 섬으로 만들면 어느 섬에서도 창까지가 한 켜 안이고, 그때 비로소 이 안은 '큰 판에 구멍을 낸 것'이 아니라 '작은 것들의 모임'이 된다. contrast 1.5로 넷의 높이가 전부 달라 위에서 보면 마을처럼 보인다."
+        }
+      ]
+    }
+  ]
+}

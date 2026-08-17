@@ -1,0 +1,61 @@
+{
+  "schemes": [
+    {
+      "name": "gable_test_05_steps",
+      "primary_language": "matrix_form",
+      "formal_principle": "A pitched roof approximated in 5 steps.",
+      "dominant_gesture": "One gabled bar.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55
+        },
+        {
+          "op": "gable",
+          "toward": "long",
+          "eaves": 0.5,
+          "ridge": 0.06,
+          "steps": 5
+        }
+      ]
+    },
+    {
+      "name": "gable_test_12_steps",
+      "primary_language": "matrix_form",
+      "formal_principle": "A pitched roof approximated in 12 steps.",
+      "dominant_gesture": "One gabled bar.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55
+        },
+        {
+          "op": "gable",
+          "toward": "long",
+          "eaves": 0.5,
+          "ridge": 0.06,
+          "steps": 12
+        }
+      ]
+    },
+    {
+      "name": "gable_test_24_steps",
+      "primary_language": "matrix_form",
+      "formal_principle": "A pitched roof approximated in 24 steps.",
+      "dominant_gesture": "One gabled bar.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55
+        },
+        {
+          "op": "gable",
+          "toward": "long",
+          "eaves": 0.5,
+          "ridge": 0.06,
+          "steps": 24
+        }
+      ]
+    }
+  ]
+}

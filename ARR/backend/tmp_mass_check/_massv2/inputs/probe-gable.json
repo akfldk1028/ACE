@@ -1,0 +1,80 @@
+{
+  "schemes": [
+    {
+      "name": "hdm_vitrahaus_stacked_gabled_houses",
+      "primary_language": "matrix_form",
+      "secondary_language": "stacked archetype",
+      "formal_principle": "The archetypal gabled house is the unit, and the building is twelve of them stacked and pushed past each other until the pile is the facade.",
+      "dominant_gesture": "Gabled bars piled and cantilevered off one another.",
+      "reference_basis": "Herzog & de Meuron, VitraHaus",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "집 한 채의 단면이 단위다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "first": "house_lower",
+          "second": "house_upper",
+          "gap": 5.0,
+          "contrast": 1.3,
+          "why": "두 채로 나눈다."
+        },
+        {
+          "op": "gable",
+          "toward": "long",
+          "eaves": 0.55,
+          "ridge": 0.08,
+          "why": "박공이 이 건물의 단위다. 지붕이 봉투가 남긴 자국이 아니라 저작된 형태여야 한다."
+        }
+      ]
+    },
+    {
+      "name": "kimbell_vaults_named_at_last",
+      "primary_language": "matrix_form",
+      "secondary_language": "repeated bay",
+      "formal_principle": "One repeated bay whose width is set by how far daylight reaches, and the vault is what makes the bay a room rather than a slice of slab.",
+      "dominant_gesture": "Three long low vaulted ranges lying parallel.",
+      "reference_basis": "Louis Kahn, Kimbell Art Museum",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.3,
+          "profile": "square",
+          "why": "낮고 긴 한 켜."
+        },
+        {
+          "op": "split",
+          "ratio": 0.7,
+          "along": "cross",
+          "first": "north_ranges",
+          "second": "south_range",
+          "gap": 8,
+          "contrast": 1.35,
+          "why": "열 사이가 마당."
+        },
+        {
+          "op": "split",
+          "on": "north_ranges",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "vault_a",
+          "second": "vault_b",
+          "gap": 7,
+          "contrast": 1.4,
+          "why": "세 열."
+        },
+        {
+          "op": "gable",
+          "toward": "long",
+          "eaves": 0.5,
+          "ridge": 0.12,
+          "why": "볼트다. 이름에 있는데 형상에 없었다."
+        }
+      ]
+    }
+  ]
+}

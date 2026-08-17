@@ -88,6 +88,17 @@ _MIN_MOVE, _MAX_MOVE = 0.15, 0.5
 _MIN_SIZE, _MAX_SIZE = 0.6, 1.6
 
 
+def _axis_scale(params: dict, ratio: float) -> tuple[float, float, float]:
+    """A scale vector that acts on the named axis only, or on both if unnamed."""
+
+    named = str(params.get("toward") or "").strip().lower()
+    if named in ("cross", "short", "side"):
+        return (1.0, ratio, 1.0)
+    if named in ("long", "back", "away", "off_open"):
+        return (ratio, 1.0, 1.0)
+    return (ratio, ratio, 1.0)
+
+
 def _toward(params: dict) -> tuple[float, float]:
     name = str(params.get("toward") or "long").lower()
     if name in ("cross", "short", "side"):
@@ -137,13 +148,15 @@ AFFINE_VERBS: dict[str, Callable] = {
     # Grow or shrink it in plan. `expand` and `compress` are the book's pair and
     # they are one scale with the ratio either side of one; `inflate` is the
     # same move read as swelling rather than as pushing a boundary out.
+    # Directional, because the buildings are. 8 House is pinched across its
+    # waist and not around it: an isotropic squeeze makes a smaller block, and
+    # what makes the bow-tie is that one dimension closes while the other does
+    # not. Naming no direction squeezes both, which is the old behaviour.
     "expand": _verb("scale", lambda p, span: {
-        "vector": (_clamp(float(p.get("ratio", 1.25)), 1.0, _MAX_SIZE),
-                   _clamp(float(p.get("ratio", 1.25)), 1.0, _MAX_SIZE), 1.0),
+        "vector": _axis_scale(p, _clamp(float(p.get("ratio", 1.25)), 1.0, _MAX_SIZE)),
     }),
     "compress": _verb("scale", lambda p, span: {
-        "vector": (_clamp(float(p.get("ratio", 0.8)), _MIN_SIZE, 1.0),
-                   _clamp(float(p.get("ratio", 0.8)), _MIN_SIZE, 1.0), 1.0),
+        "vector": _axis_scale(p, _clamp(float(p.get("ratio", 0.8)), _MIN_SIZE, 1.0)),
     }),
     "inflate": _verb("scale", lambda p, span: {
         "vector": (_clamp(float(p.get("ratio", 1.2)), 1.0, _MAX_SIZE),

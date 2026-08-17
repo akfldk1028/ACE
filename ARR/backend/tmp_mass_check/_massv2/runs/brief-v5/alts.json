@@ -1,0 +1,113 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "sanaa_rolex~full_ground^to_open",
+      "artic": "0.37",
+      "take": "0.29",
+      "far": "0.24",
+      "cell": "middle|porous_field"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "oma_educatorium~dispersed_ground",
+      "artic": "0.00",
+      "take": "0.25",
+      "far": "0.24",
+      "cell": "crown|solid"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "oma_shenzhen_stock_exchange~held_ground^off_open",
+      "artic": "0.35",
+      "take": "0.30",
+      "far": "0.23",
+      "cell": "middle|solid"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "sanaa_serpentine_2009~held_ground^centred",
+      "artic": "0.26",
+      "take": "0.24",
+      "far": "0.23",
+      "cell": "crown|carved"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "oma_netherlands_embassy~held_ground^off_open",
+      "artic": "0.11",
+      "take": "0.03",
+      "far": "0.03",
+      "cell": "base|solid"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "oma_milstein_hall^off_open",
+      "artic": "0.43",
+      "take": "0.63",
+      "far": "0.24",
+      "cell": "crown|open"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "sanaa_grace_farms~dispersed_ground^cross_open",
+      "artic": "0.20",
+      "take": "0.32",
+      "far": "0.23",
+      "cell": "middle|open"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "oma_de_rotterdam~full_ground^cross_open",
+      "artic": "0.58",
+      "take": "0.47",
+      "far": "0.22",
+      "cell": "base|porous_field"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "sanaa_zollverein~dispersed_ground^cross_open",
+      "artic": "0.19",
+      "take": "0.24",
+      "far": "0.23",
+      "cell": "base|carved"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "sanaa_naoshima_terminal~worked_ground^centred",
+      "artic": "0.20",
+      "take": "0.31",
+      "far": "0.23",
+      "cell": "middle|carved"
+    },
+    {
+      "index": 11,
+      "png": "alt-11.png",
+      "name": "big_vancouver_house~dispersed_ground^cross_open",
+      "artic": "0.32",
+      "take": "0.23",
+      "far": "0.27",
+      "cell": "base|open"
+    }
+  ]
+}

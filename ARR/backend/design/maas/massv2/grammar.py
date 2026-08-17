@@ -44,7 +44,14 @@ from .form import MatrixForm, Placement, place
 # across the corpus: De Rotterdam 8.88 m on a 36 m plan depth = 0.25, Seattle
 # 15.8 m on a 61 m plate = 0.26, Timmerhuis 21 m = exactly three 7.2 m modules.
 MIN_OFFSET_RATIO = 0.15
-MAX_OFFSET_RATIO = 0.35
+# Seattle Central Library moves its platforms by half to nine tenths of their
+# own plan, and the result is more legible for it, not less. The old ceiling
+# said that past 0.35 "the volume stops reading as displaced", which is an
+# observation this corpus contradicts: what it actually guaranteed was that
+# every sentence came out moderate, and moderate composed three times is a
+# composition rather than a diagram. Whether a displaced volume still stands is
+# `structure`'s question and it is still asked.
+MAX_OFFSET_RATIO = 0.9
 
 # Repeated volumes are never the same size in built work - they spread ten to
 # twenty times in plan and two to four in height. Nishizawa rejected identical

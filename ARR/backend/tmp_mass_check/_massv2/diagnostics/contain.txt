@@ -1,0 +1,6 @@
+buildable area 1922.2  bbox 69.0 x 53.7 = 3706.7
+raised_court_field       plan  1452.9  inside buildable   773.9 (53%)  contained=False
+open_u_court             plan  1452.9  inside buildable   890.0 (61%)  contained=False
+held_open_l              plan  1452.9  inside buildable   311.3 (21%)  contained=False
+full_open_comb           plan  1452.9  inside buildable  1045.6 (72%)  contained=False
+dispersed_pinwheel       plan  1452.9  inside buildable   680.3 (47%)  contained=False

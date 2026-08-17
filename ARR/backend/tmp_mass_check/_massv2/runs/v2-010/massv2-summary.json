@@ -1,0 +1,4540 @@
+{
+  "schema_version": "arr.maas.massv2_run.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 499.938,
+    "far_capacity_m2": 2499.691,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "form_count": 88,
+  "compiled": 88,
+  "unlawful": 8,
+  "occupied_cells": 16,
+  "cells": {
+    "dispersed_ground|carved_body": 3,
+    "dispersed_ground|open_figure": 3,
+    "dispersed_ground|porous_field": 9,
+    "dispersed_ground|solid_body": 3,
+    "full_ground|carved_body": 8,
+    "full_ground|open_figure": 3,
+    "full_ground|porous_field": 13,
+    "full_ground|solid_body": 3,
+    "held_ground|carved_body": 2,
+    "held_ground|open_figure": 2,
+    "held_ground|porous_field": 13,
+    "held_ground|solid_body": 2,
+    "worked_ground|carved_body": 3,
+    "worked_ground|open_figure": 3,
+    "worked_ground|porous_field": 15,
+    "worked_ground|solid_body": 3
+  },
+  "records": [
+    {
+      "name": "block_45",
+      "status": "compiled",
+      "cell": "dispersed_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 175.176,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.3504,
+        "gross_floor_area_m2": 1926.933,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7709,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1926.9,
+      "far_utilization": 0.7709,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.0,
+        "articulation": 0.0,
+        "void_band_id": "solid_body",
+        "band_count": 1,
+        "footprint_area_m2": 175.18,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "single_block",
+        "secondary": "",
+        "formal_principle": "extruded_block"
+      }
+    },
+    {
+      "name": "stacked_45",
+      "status": "compiled",
+      "cell": "dispersed_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 224.972,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.45,
+        "gross_floor_area_m2": 1540.609,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6163,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1540.6,
+      "far_utilization": 0.6163,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.277,
+        "articulation": 0.277,
+        "void_band_id": "solid_body",
+        "band_count": 5,
+        "footprint_area_m2": 224.97,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "setback_tower",
+        "formal_principle": "shifted_stack"
+      }
+    },
+    {
+      "name": "paired_bars_45",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 264.567,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.5292,
+        "gross_floor_area_m2": 2256.829,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9028,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2256.8,
+      "far_utilization": 0.9028,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3366,
+        "plan_void_ratio": 0.3573,
+        "section_change": 0.2787,
+        "articulation": 0.3573,
+        "void_band_id": "porous_field",
+        "band_count": 5,
+        "footprint_area_m2": 112.49,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.4444,
+            0.4444
+          ],
+          [
+            0.3467,
+            0.3467
+          ],
+          [
+            0.319,
+            0.4837
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "parallel_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "paired_bars_45_splayed",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 262.314,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.5247,
+        "gross_floor_area_m2": 2073.771,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8296,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2073.8,
+      "far_utilization": 0.8296,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2979,
+        "plan_void_ratio": 0.4293,
+        "section_change": 0.3428,
+        "articulation": 0.4293,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 224.95,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.4419,
+            0.618
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.319,
+            0.4837
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "splayed_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "courtyard_45",
+      "status": "compiled",
+      "cell": "dispersed_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 172.59,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.3452,
+        "gross_floor_area_m2": 1287.092,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5149,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1287.1,
+      "far_utilization": 0.5149,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.322,
+        "plan_void_ratio": 0.322,
+        "section_change": 0.0,
+        "articulation": 0.322,
+        "void_band_id": "open_figure",
+        "band_count": 1,
+        "footprint_area_m2": 117.01,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.322,
+            0.322
+          ]
+        ]
+      },
+      "language": {
+        "primary": "courtyard_block",
+        "secondary": "",
+        "formal_principle": "subtracted_court"
+      }
+    },
+    {
+      "name": "crossed_arms_45",
+      "status": "compiled",
+      "cell": "dispersed_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 210.452,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.421,
+        "gross_floor_area_m2": 1633.709,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6536,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1633.7,
+      "far_utilization": 0.6536,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0925,
+        "plan_void_ratio": 0.1624,
+        "section_change": 0.3198,
+        "articulation": 0.3198,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 98.99,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1347,
+            0.2374
+          ],
+          [
+            0.3006,
+            0.4623
+          ],
+          [
+            0.1399,
+            0.2455
+          ]
+        ]
+      },
+      "language": {
+        "primary": "crossed_arms",
+        "secondary": "cantilever",
+        "formal_principle": "cantilevered_cross"
+      }
+    },
+    {
+      "name": "notched_slab_45",
+      "status": "compiled",
+      "cell": "dispersed_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 178.772,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.3576,
+        "gross_floor_area_m2": 1579.394,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6318,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1579.4,
+      "far_utilization": 0.6318,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1988,
+        "plan_void_ratio": 0.1988,
+        "section_change": 0.248,
+        "articulation": 0.248,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 111.01,
+        "height_m": 33.0,
+        "band_profile": [
+          [
+            0.3145,
+            0.3145
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1815,
+            0.1815
+          ]
+        ]
+      },
+      "language": {
+        "primary": "notched_slab",
+        "secondary": "",
+        "formal_principle": "slotted_body"
+      }
+    },
+    {
+      "name": "block_65",
+      "status": "compiled",
+      "cell": "held_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 324.96,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.65,
+        "gross_floor_area_m2": 2274.718,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.91,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2274.7,
+      "far_utilization": 0.91,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.0,
+        "articulation": 0.0,
+        "void_band_id": "solid_body",
+        "band_count": 1,
+        "footprint_area_m2": 324.96,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "single_block",
+        "secondary": "",
+        "formal_principle": "extruded_block"
+      }
+    },
+    {
+      "name": "stacked_65",
+      "status": "compiled",
+      "cell": "held_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 324.96,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.65,
+        "gross_floor_area_m2": 1112.662,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.4451,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1112.7,
+      "far_utilization": 0.4451,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.277,
+        "articulation": 0.277,
+        "void_band_id": "solid_body",
+        "band_count": 5,
+        "footprint_area_m2": 324.96,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "setback_tower",
+        "formal_principle": "shifted_stack"
+      }
+    },
+    {
+      "name": "paired_bars_65",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 345.445,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.691,
+        "gross_floor_area_m2": 2127.296,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.851,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2127.3,
+      "far_utilization": 0.851,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4411,
+        "plan_void_ratio": 0.4659,
+        "section_change": 0.1684,
+        "articulation": 0.4659,
+        "void_band_id": "porous_field",
+        "band_count": 6,
+        "footprint_area_m2": 162.48,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.4771,
+            0.5003
+          ],
+          [
+            0.3712,
+            0.3991
+          ],
+          [
+            0.4771,
+            0.5003
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "parallel_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "paired_bars_65_splayed",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 378.813,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.7577,
+        "gross_floor_area_m2": 1741.036,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6965,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1741.0,
+      "far_utilization": 0.6965,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2977,
+        "plan_void_ratio": 0.4291,
+        "section_change": 0.3424,
+        "articulation": 0.4291,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 324.93,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.4419,
+            0.618
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.3185,
+            0.4831
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "splayed_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "courtyard_65",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 477.882,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9559,
+        "gross_floor_area_m2": 2385.587,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9544,
+        "passes": 1,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2385.6,
+      "far_utilization": 0.9544,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.168,
+        "plan_void_ratio": 0.168,
+        "section_change": 0.0,
+        "articulation": 0.168,
+        "void_band_id": "carved_body",
+        "band_count": 1,
+        "footprint_area_m2": 397.6,
+        "height_m": 18.0,
+        "band_profile": [
+          [
+            0.168,
+            0.168
+          ]
+        ]
+      },
+      "language": {
+        "primary": "courtyard_block",
+        "secondary": "",
+        "formal_principle": "subtracted_court"
+      }
+    },
+    {
+      "name": "crossed_arms_65",
+      "status": "compiled",
+      "cell": "worked_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 370.896,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.7419,
+        "gross_floor_area_m2": 1313.721,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5256,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1313.7,
+      "far_utilization": 0.5256,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0906,
+        "plan_void_ratio": 0.1589,
+        "section_change": 0.3481,
+        "articulation": 0.3481,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 142.98,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1347,
+            0.2374
+          ],
+          [
+            0.3471,
+            0.4232
+          ],
+          [
+            0.1321,
+            0.2333
+          ]
+        ]
+      },
+      "language": {
+        "primary": "crossed_arms",
+        "secondary": "cantilever",
+        "formal_principle": "cantilevered_cross"
+      }
+    },
+    {
+      "name": "notched_slab_65",
+      "status": "compiled",
+      "cell": "worked_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 377.86,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.7558,
+        "gross_floor_area_m2": 2180.253,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8722,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2180.3,
+      "far_utilization": 0.8722,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1598,
+        "plan_void_ratio": 0.1598,
+        "section_change": 0.205,
+        "articulation": 0.205,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 226.72,
+        "height_m": 21.0,
+        "band_profile": [
+          [
+            0.26,
+            0.26
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.15,
+            0.15
+          ]
+        ]
+      },
+      "language": {
+        "primary": "notched_slab",
+        "secondary": "",
+        "formal_principle": "slotted_body"
+      }
+    },
+    {
+      "name": "block_85",
+      "status": "compiled",
+      "cell": "worked_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 424.947,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.85,
+        "gross_floor_area_m2": 2124.736,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.85,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2124.7,
+      "far_utilization": 0.85,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.0,
+        "articulation": 0.0,
+        "void_band_id": "solid_body",
+        "band_count": 1,
+        "footprint_area_m2": 424.95,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "single_block",
+        "secondary": "",
+        "formal_principle": "extruded_block"
+      }
+    },
+    {
+      "name": "stacked_85",
+      "status": "compiled",
+      "cell": "worked_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 424.947,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.85,
+        "gross_floor_area_m2": 1455.02,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5821,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1455.0,
+      "far_utilization": 0.5821,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.277,
+        "articulation": 0.277,
+        "void_band_id": "solid_body",
+        "band_count": 5,
+        "footprint_area_m2": 424.95,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "setback_tower",
+        "formal_principle": "shifted_stack"
+      }
+    },
+    {
+      "name": "paired_bars_85",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 404.227,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8086,
+        "gross_floor_area_m2": 1790.1,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7161,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1790.1,
+      "far_utilization": 0.7161,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4556,
+        "plan_void_ratio": 0.4575,
+        "section_change": 0.1905,
+        "articulation": 0.4575,
+        "void_band_id": "porous_field",
+        "band_count": 7,
+        "footprint_area_m2": 165.15,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.4959,
+            0.4977
+          ],
+          [
+            0.3773,
+            0.3795
+          ],
+          [
+            0.4959,
+            0.4977
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "parallel_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "paired_bars_85_splayed",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 336.975,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.674,
+        "gross_floor_area_m2": 1460.04,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5841,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1460.0,
+      "far_utilization": 0.5841,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4956,
+        "plan_void_ratio": 0.6559,
+        "section_change": 0.2224,
+        "articulation": 0.6559,
+        "void_band_id": "porous_field",
+        "band_count": 6,
+        "footprint_area_m2": 162.24,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.5403,
+            0.6864
+          ],
+          [
+            0.4088,
+            0.5967
+          ],
+          [
+            0.5403,
+            0.6864
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "splayed_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "courtyard_85",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 2079.742,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.832,
+        "passes": 2,
+        "plan_scale_applied": 0.89443,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2079.7,
+      "far_utilization": 0.832,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.168,
+        "plan_void_ratio": 0.168,
+        "section_change": 0.0,
+        "articulation": 0.168,
+        "void_band_id": "carved_body",
+        "band_count": 1,
+        "footprint_area_m2": 415.95,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.168,
+            0.168
+          ]
+        ]
+      },
+      "language": {
+        "primary": "courtyard_block",
+        "secondary": "",
+        "formal_principle": "subtracted_court"
+      }
+    },
+    {
+      "name": "crossed_arms_85",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 485.018,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9702,
+        "gross_floor_area_m2": 1717.943,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6873,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1717.9,
+      "far_utilization": 0.6873,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0912,
+        "plan_void_ratio": 0.1597,
+        "section_change": 0.3481,
+        "articulation": 0.3481,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 186.98,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1347,
+            0.2374
+          ],
+          [
+            0.3471,
+            0.4232
+          ],
+          [
+            0.1321,
+            0.2333
+          ]
+        ]
+      },
+      "language": {
+        "primary": "crossed_arms",
+        "secondary": "cantilever",
+        "formal_principle": "cantilevered_cross"
+      }
+    },
+    {
+      "name": "notched_slab_85",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 494.125,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9884,
+        "gross_floor_area_m2": 2065.442,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8263,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2065.4,
+      "far_utilization": 0.8263,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1549,
+        "plan_void_ratio": 0.1549,
+        "section_change": 0.205,
+        "articulation": 0.205,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 296.47,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.26,
+            0.26
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.15,
+            0.15
+          ]
+        ]
+      },
+      "language": {
+        "primary": "notched_slab",
+        "secondary": "",
+        "formal_principle": "slotted_body"
+      }
+    },
+    {
+      "name": "block_100",
+      "status": "compiled",
+      "cell": "full_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 2499.69,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.0,
+        "passes": 1,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2499.7,
+      "far_utilization": 1.0,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.0,
+        "articulation": 0.0,
+        "void_band_id": "solid_body",
+        "band_count": 1,
+        "footprint_area_m2": 499.94,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "single_block",
+        "secondary": "",
+        "formal_principle": "extruded_block"
+      }
+    },
+    {
+      "name": "stacked_100",
+      "status": "compiled",
+      "cell": "full_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1711.788,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6848,
+        "passes": 1,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1711.8,
+      "far_utilization": 0.6848,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.277,
+        "articulation": 0.277,
+        "void_band_id": "solid_body",
+        "band_count": 5,
+        "footprint_area_m2": 499.94,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "setback_tower",
+        "formal_principle": "shifted_stack"
+      }
+    },
+    {
+      "name": "paired_bars_100",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 404.192,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8085,
+        "gross_floor_area_m2": 1790.35,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7162,
+        "passes": 2,
+        "plan_scale_applied": 0.92214,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1790.4,
+      "far_utilization": 0.7162,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4557,
+        "plan_void_ratio": 0.4576,
+        "section_change": 0.1902,
+        "articulation": 0.4576,
+        "void_band_id": "porous_field",
+        "band_count": 7,
+        "footprint_area_m2": 165.21,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.4959,
+            0.4977
+          ],
+          [
+            0.3776,
+            0.3797
+          ],
+          [
+            0.4959,
+            0.4977
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "parallel_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "paired_bars_100_splayed",
+      "status": "compiled",
+      "cell": "held_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 241.445,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4829,
+        "gross_floor_area_m2": 974.53,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.3899,
+        "passes": 2,
+        "plan_scale_applied": 0.9263,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 974.5,
+      "far_utilization": 0.3899,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.113,
+        "plan_void_ratio": 0.1689,
+        "section_change": 0.3213,
+        "articulation": 0.3213,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 163.88,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.3322,
+            0.4967
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "paired_bars",
+        "secondary": "splayed_pair",
+        "formal_principle": "court_between"
+      }
+    },
+    {
+      "name": "courtyard_100",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 2079.742,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.832,
+        "passes": 2,
+        "plan_scale_applied": 0.82462,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2079.7,
+      "far_utilization": 0.832,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.168,
+        "plan_void_ratio": 0.168,
+        "section_change": 0.0,
+        "articulation": 0.168,
+        "void_band_id": "carved_body",
+        "band_count": 1,
+        "footprint_area_m2": 415.95,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.168,
+            0.168
+          ]
+        ]
+      },
+      "language": {
+        "primary": "courtyard_block",
+        "secondary": "",
+        "formal_principle": "subtracted_court"
+      }
+    },
+    {
+      "name": "crossed_arms_100",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1770.79,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7084,
+        "passes": 2,
+        "plan_scale_applied": 0.93603,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1770.8,
+      "far_utilization": 0.7084,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0912,
+        "plan_void_ratio": 0.1597,
+        "section_change": 0.3481,
+        "articulation": 0.3481,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 192.73,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1347,
+            0.2374
+          ],
+          [
+            0.3471,
+            0.4232
+          ],
+          [
+            0.1321,
+            0.2333
+          ]
+        ]
+      },
+      "language": {
+        "primary": "crossed_arms",
+        "secondary": "cantilever",
+        "formal_principle": "cantilevered_cross"
+      }
+    },
+    {
+      "name": "notched_slab_100",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 2089.741,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.836,
+        "passes": 2,
+        "plan_scale_applied": 0.92736,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2089.7,
+      "far_utilization": 0.836,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1549,
+        "plan_void_ratio": 0.1549,
+        "section_change": 0.205,
+        "articulation": 0.205,
+        "void_band_id": "carved_body",
+        "band_count": 4,
+        "footprint_area_m2": 299.96,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.26,
+            0.26
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.15,
+            0.15
+          ]
+        ]
+      },
+      "language": {
+        "primary": "notched_slab",
+        "secondary": "",
+        "formal_principle": "slotted_body"
+      }
+    },
+    {
+      "name": "llm_raised_court_field",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1283.514,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5135,
+        "passes": 2,
+        "plan_scale_applied": 0.50023,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1283.5,
+      "far_utilization": 0.5135,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.495,
+        "plan_void_ratio": 0.495,
+        "section_change": 0.3041,
+        "articulation": 0.495,
+        "void_band_id": "porous_field",
+        "band_count": 6,
+        "footprint_area_m2": 48.97,
+        "height_m": 12.9,
+        "band_profile": [
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "raised_court",
+        "formal_principle": "field_of_parts"
+      }
+    },
+    {
+      "name": "llm_open_u_court",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 449.166,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8984,
+        "gross_floor_area_m2": 2245.832,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8984,
+        "passes": 1,
+        "plan_scale_applied": 0.5899,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2245.8,
+      "far_utilization": 0.8984,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.386,
+        "plan_void_ratio": 0.4126,
+        "section_change": 0.0,
+        "articulation": 0.4126,
+        "void_band_id": "porous_field",
+        "band_count": 2,
+        "footprint_area_m2": 360.64,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.386,
+            0.4126
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "u_court",
+        "formal_principle": "three_sided_court"
+      }
+    },
+    {
+      "name": "llm_held_open_l",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 342.168,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6844,
+        "gross_floor_area_m2": 1368.673,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5475,
+        "passes": 1,
+        "plan_scale_applied": 0.59608,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1368.7,
+      "far_utilization": 0.5475,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.398,
+        "plan_void_ratio": 0.5627,
+        "section_change": 0.0,
+        "articulation": 0.5627,
+        "void_band_id": "porous_field",
+        "band_count": 2,
+        "footprint_area_m2": 197.51,
+        "height_m": 12.9,
+        "band_profile": [
+          [
+            0.398,
+            0.5627
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "l_figure",
+        "formal_principle": "two_arm_l"
+      }
+    },
+    {
+      "name": "llm_full_open_comb",
+      "status": "compiled",
+      "cell": "full_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1999.752,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8,
+        "passes": 2,
+        "plan_scale_applied": 0.53822,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1999.8,
+      "far_utilization": 0.8,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2193,
+        "plan_void_ratio": 0.2302,
+        "section_change": 0.6443,
+        "articulation": 0.6443,
+        "void_band_id": "open_figure",
+        "band_count": 2,
+        "footprint_area_m2": 499.94,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.2437,
+            0.2558
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "comb",
+        "formal_principle": "teeth_off_a_spine"
+      }
+    },
+    {
+      "name": "llm_dispersed_pinwheel",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 235.64,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4713,
+        "gross_floor_area_m2": 1045.621,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.4183,
+        "passes": 2,
+        "plan_scale_applied": 0.68245,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1045.6,
+      "far_utilization": 0.4183,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.6304,
+        "plan_void_ratio": 0.7105,
+        "section_change": 0.1875,
+        "articulation": 0.7105,
+        "void_band_id": "porous_field",
+        "band_count": 5,
+        "footprint_area_m2": 113.94,
+        "height_m": 14.1,
+        "band_profile": [
+          [
+            0.6635,
+            0.7364
+          ],
+          [
+            0.5858,
+            0.6756
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "pinwheel",
+        "formal_principle": "rotational_offset"
+      }
+    },
+    {
+      "name": "llm_held_porous_stagger",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 442.889,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8859,
+        "gross_floor_area_m2": 1623.182,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6494,
+        "passes": 2,
+        "plan_scale_applied": 0.6258,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1623.2,
+      "far_utilization": 0.6494,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.552,
+        "plan_void_ratio": 0.6257,
+        "section_change": 0.1675,
+        "articulation": 0.6257,
+        "void_band_id": "porous_field",
+        "band_count": 7,
+        "footprint_area_m2": 144.0,
+        "height_m": 12.3,
+        "band_profile": [
+          [
+            0.5814,
+            0.649
+          ],
+          [
+            0.5009,
+            0.5855
+          ],
+          [
+            0.5814,
+            0.649
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "staggered_bars",
+        "formal_principle": "offset_repetition"
+      }
+    },
+    {
+      "name": "llm_full_porous_grid",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 875.47,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.3502,
+        "passes": 1,
+        "plan_scale_applied": 0.39492,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 875.5,
+      "far_utilization": 0.3502,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4163,
+        "plan_void_ratio": 0.4163,
+        "section_change": 0.0,
+        "articulation": 0.4163,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 291.82,
+        "height_m": 9.3,
+        "band_profile": [
+          [
+            0.4163,
+            0.4163
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "perforated_slab",
+        "formal_principle": "punched_field"
+      }
+    },
+    {
+      "name": "llm_worked_open_scissor",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1171.744,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.4688,
+        "passes": 1,
+        "plan_scale_applied": 0.50627,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1171.7,
+      "far_utilization": 0.4688,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1809,
+        "plan_void_ratio": 0.3382,
+        "section_change": 0.5607,
+        "articulation": 0.5607,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 294.33,
+        "height_m": 13.2,
+        "band_profile": [
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.1655,
+            0.4353
+          ],
+          [
+            0.1823,
+            0.3412
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "scissor_pair",
+        "formal_principle": "crossed_axes"
+      }
+    },
+    {
+      "name": "llm_dispersed_towers_bridge",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 465.315,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9307,
+        "gross_floor_area_m2": 1361.213,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.5446,
+        "passes": 1,
+        "plan_scale_applied": 0.85339,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1361.2,
+      "far_utilization": 0.5446,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4977,
+        "plan_void_ratio": 0.5319,
+        "section_change": 0.5187,
+        "articulation": 0.5319,
+        "void_band_id": "porous_field",
+        "band_count": 5,
+        "footprint_area_m2": 133.35,
+        "height_m": 15.0,
+        "band_profile": [
+          [
+            0.594,
+            0.6216
+          ],
+          [
+            0.1565,
+            0.2138
+          ],
+          [
+            0.594,
+            0.6216
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "bridged_towers",
+        "formal_principle": "two_points_one_span"
+      }
+    },
+    {
+      "name": "llm_worked_carved_wedge",
+      "status": "compiled",
+      "cell": "full_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 1584.803,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.634,
+        "passes": 2,
+        "plan_scale_applied": 0.49793,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1584.8,
+      "far_utilization": 0.634,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1672,
+        "plan_void_ratio": 0.2013,
+        "section_change": 0.2075,
+        "articulation": 0.2075,
+        "void_band_id": "open_figure",
+        "band_count": 4,
+        "footprint_area_m2": 249.97,
+        "height_m": 13.5,
+        "band_profile": [
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.151,
+            0.215
+          ]
+        ]
+      },
+      "language": {
+        "primary": "carved_body",
+        "secondary": "wedge_cut",
+        "formal_principle": "single_deep_cut"
+      }
+    },
+    {
+      "name": "llm_dispersed_stepped_ribbon",
+      "status": "compiled",
+      "cell": "full_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 490.038,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9802,
+        "gross_floor_area_m2": 490.038,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.196,
+        "passes": 1,
+        "plan_scale_applied": 0.54869,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 490.0,
+      "far_utilization": 0.196,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0054,
+        "plan_void_ratio": 0.008,
+        "section_change": 0.5,
+        "articulation": 0.5,
+        "void_band_id": "solid_body",
+        "band_count": 10,
+        "footprint_area_m2": 165.16,
+        "height_m": 17.1,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0939,
+            0.1398
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1282,
+            0.1926
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "terraced_ribbon",
+        "formal_principle": "descending_terraces"
+      }
+    },
+    {
+      "name": "llm_full_open_ring",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 499.938,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 1.0,
+        "gross_floor_area_m2": 854.658,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.3419,
+        "passes": 1,
+        "plan_scale_applied": 0.39492,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 854.7,
+      "far_utilization": 0.3419,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4302,
+        "plan_void_ratio": 0.4302,
+        "section_change": 0.0,
+        "articulation": 0.4302,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 284.89,
+        "height_m": 9.9,
+        "band_profile": [
+          [
+            0.4302,
+            0.4302
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "ring",
+        "formal_principle": "closed_ring_open_centre"
+      }
+    },
+    {
+      "name": "llm_raised_court_field~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 208.355,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4168,
+        "gross_floor_area_m2": 2826.608,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.1308,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2826.6,
+      "far_utilization": 1.1308,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4285,
+        "plan_void_ratio": 0.4285,
+        "section_change": 0.5896,
+        "articulation": 0.5896,
+        "void_band_id": "porous_field",
+        "band_count": 9,
+        "footprint_area_m2": 21.38,
+        "height_m": 68.877,
+        "band_profile": [
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0452,
+            0.0452
+          ],
+          [
+            0.6082,
+            0.6082
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "raised_court",
+        "formal_principle": "field_of_parts"
+      }
+    },
+    {
+      "name": "llm_raised_court_field~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2471.511,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9887,
+        "passes": 39,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2471.5,
+      "far_utilization": 0.9887,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3409,
+        "plan_void_ratio": 0.3409,
+        "section_change": 0.6554,
+        "articulation": 0.6554,
+        "void_band_id": "porous_field",
+        "band_count": 10,
+        "footprint_area_m2": 30.88,
+        "height_m": 41.453,
+        "band_profile": [
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "raised_court",
+        "formal_principle": "field_of_parts"
+      }
+    },
+    {
+      "name": "llm_raised_court_field~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2496.748,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9988,
+        "passes": 35,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2496.7,
+      "far_utilization": 0.9988,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2942,
+        "plan_void_ratio": 0.2942,
+        "section_change": 0.6554,
+        "articulation": 0.6554,
+        "void_band_id": "open_figure",
+        "band_count": 10,
+        "footprint_area_m2": 40.38,
+        "height_m": 28.347,
+        "band_profile": [
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "raised_court",
+        "formal_principle": "field_of_parts"
+      }
+    },
+    {
+      "name": "llm_raised_court_field~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2452.41,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9811,
+        "passes": 15,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2452.4,
+      "far_utilization": 0.9811,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3675,
+        "plan_void_ratio": 0.3831,
+        "section_change": 0.4295,
+        "articulation": 0.4295,
+        "void_band_id": "porous_field",
+        "band_count": 12,
+        "footprint_area_m2": 47.5,
+        "height_m": 26.495,
+        "band_profile": [
+          [
+            0.6082,
+            0.6082
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.6153,
+            0.7061
+          ],
+          [
+            0.629,
+            0.6871
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "raised_court",
+        "formal_principle": "field_of_parts"
+      }
+    },
+    {
+      "name": "llm_open_u_court~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 4276.854,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.711,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 4276.9,
+      "far_utilization": 1.711,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3532,
+        "plan_void_ratio": 0.3532,
+        "section_change": 0.4014,
+        "articulation": 0.4014,
+        "void_band_id": "porous_field",
+        "band_count": 3,
+        "footprint_area_m2": 218.22,
+        "height_m": 59.754,
+        "band_profile": [
+          [
+            0.3462,
+            0.3462
+          ],
+          [
+            0.4872,
+            0.4872
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "u_court",
+        "formal_principle": "three_sided_court"
+      }
+    },
+    {
+      "name": "llm_open_u_court~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 3025.569,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.2104,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 3025.6,
+      "far_utilization": 1.2104,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3606,
+        "plan_void_ratio": 0.3606,
+        "section_change": 0.4014,
+        "articulation": 0.4014,
+        "void_band_id": "porous_field",
+        "band_count": 3,
+        "footprint_area_m2": 315.21,
+        "height_m": 29.368,
+        "band_profile": [
+          [
+            0.3462,
+            0.3462
+          ],
+          [
+            0.4872,
+            0.4872
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "u_court",
+        "formal_principle": "three_sided_court"
+      }
+    },
+    {
+      "name": "llm_open_u_court~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2473.193,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9894,
+        "passes": 33,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2473.2,
+      "far_utilization": 0.9894,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3462,
+        "plan_void_ratio": 0.3462,
+        "section_change": 0.0,
+        "articulation": 0.3462,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 412.2,
+        "height_m": 19.282,
+        "band_profile": [
+          [
+            0.3462,
+            0.3462
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "u_court",
+        "formal_principle": "three_sided_court"
+      }
+    },
+    {
+      "name": "llm_open_u_court~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 472.529,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.9452,
+        "gross_floor_area_m2": 2436.279,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9746,
+        "passes": 10,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2436.3,
+      "far_utilization": 0.9746,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3855,
+        "plan_void_ratio": 0.3937,
+        "section_change": 0.4768,
+        "articulation": 0.4768,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 472.53,
+        "height_m": 20.44,
+        "band_profile": [
+          [
+            0.3555,
+            0.3629
+          ],
+          [
+            0.5025,
+            0.5137
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "u_court",
+        "formal_principle": "three_sided_court"
+      }
+    },
+    {
+      "name": "llm_held_open_l~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2493.122,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9974,
+        "passes": 33,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2493.1,
+      "far_utilization": 0.9974,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2942,
+        "plan_void_ratio": 0.4452,
+        "section_change": 0.5753,
+        "articulation": 0.5753,
+        "void_band_id": "porous_field",
+        "band_count": 2,
+        "footprint_area_m2": 218.22,
+        "height_m": 35.176,
+        "band_profile": [
+          [
+            0.3217,
+            0.4867
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "l_figure",
+        "formal_principle": "two_arm_l"
+      }
+    },
+    {
+      "name": "llm_held_open_l~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2340.333,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9362,
+        "passes": 23,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2340.3,
+      "far_utilization": 0.9362,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2824,
+        "plan_void_ratio": 0.4274,
+        "section_change": 0.5753,
+        "articulation": 0.5753,
+        "void_band_id": "porous_field",
+        "band_count": 2,
+        "footprint_area_m2": 315.21,
+        "height_m": 24.583,
+        "band_profile": [
+          [
+            0.3217,
+            0.4867
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "l_figure",
+        "formal_principle": "two_arm_l"
+      }
+    },
+    {
+      "name": "llm_held_open_l~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2473.193,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9894,
+        "passes": 6,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2473.2,
+      "far_utilization": 0.9894,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3169,
+        "plan_void_ratio": 0.4795,
+        "section_change": 0.411,
+        "articulation": 0.4795,
+        "void_band_id": "porous_field",
+        "band_count": 2,
+        "footprint_area_m2": 412.2,
+        "height_m": 19.453,
+        "band_profile": [
+          [
+            0.3217,
+            0.4867
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "l_figure",
+        "formal_principle": "two_arm_l"
+      }
+    },
+    {
+      "name": "llm_held_open_l~full_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 148.507,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.2971,
+        "gross_floor_area_m2": 1782.082,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7129,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1782.1,
+      "far_utilization": 0.7129,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0,
+        "plan_void_ratio": 0.0,
+        "section_change": 0.0,
+        "articulation": 0.0,
+        "void_band_id": "solid_body",
+        "band_count": 1,
+        "footprint_area_m2": 148.51,
+        "height_m": 37.429,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "l_figure",
+        "formal_principle": "two_arm_l"
+      }
+    },
+    {
+      "name": "llm_full_open_comb~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 5892.019,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 2.3571,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 5892.0,
+      "far_utilization": 2.3571,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2438,
+        "plan_void_ratio": 0.2559,
+        "section_change": 0.3299,
+        "articulation": 0.3299,
+        "void_band_id": "open_figure",
+        "band_count": 4,
+        "footprint_area_m2": 218.22,
+        "height_m": 79.765,
+        "band_profile": [
+          [
+            0.2437,
+            0.2558
+          ],
+          [
+            0.3182,
+            0.3182
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "comb",
+        "formal_principle": "teeth_off_a_spine"
+      }
+    },
+    {
+      "name": "llm_full_open_comb~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 4975.675,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.9905,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 4975.7,
+      "far_utilization": 1.9905,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2471,
+        "plan_void_ratio": 0.2633,
+        "section_change": 0.3229,
+        "articulation": 0.3229,
+        "void_band_id": "open_figure",
+        "band_count": 4,
+        "footprint_area_m2": 315.21,
+        "height_m": 46.914,
+        "band_profile": [
+          [
+            0.2437,
+            0.2558
+          ],
+          [
+            0.311,
+            0.4156
+          ],
+          [
+            0.2593,
+            0.2593
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "comb",
+        "formal_principle": "teeth_off_a_spine"
+      }
+    },
+    {
+      "name": "llm_full_open_comb~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 3893.934,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.5578,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 3893.9,
+      "far_utilization": 1.5578,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2457,
+        "plan_void_ratio": 0.2576,
+        "section_change": 0.3229,
+        "articulation": 0.3229,
+        "void_band_id": "open_figure",
+        "band_count": 4,
+        "footprint_area_m2": 412.2,
+        "height_m": 29.523,
+        "band_profile": [
+          [
+            0.2437,
+            0.2558
+          ],
+          [
+            0.311,
+            0.4156
+          ],
+          [
+            0.2593,
+            0.2593
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "comb",
+        "formal_principle": "teeth_off_a_spine"
+      }
+    },
+    {
+      "name": "llm_full_open_comb~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2424.699,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.97,
+        "passes": 31,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2424.7,
+      "far_utilization": 0.97,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2585,
+        "plan_void_ratio": 0.2697,
+        "section_change": 0.3819,
+        "articulation": 0.3819,
+        "void_band_id": "open_figure",
+        "band_count": 5,
+        "footprint_area_m2": 484.94,
+        "height_m": 18.454,
+        "band_profile": [
+          [
+            0.2437,
+            0.2558
+          ],
+          [
+            0.4061,
+            0.4156
+          ],
+          [
+            0.5455,
+            0.5455
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "comb",
+        "formal_principle": "teeth_off_a_spine"
+      }
+    },
+    {
+      "name": "llm_dispersed_pinwheel~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2977.959,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.1913,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2978.0,
+      "far_utilization": 1.1913,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.5476,
+        "plan_void_ratio": 0.5736,
+        "section_change": 0.0884,
+        "articulation": 0.5736,
+        "void_band_id": "porous_field",
+        "band_count": 13,
+        "footprint_area_m2": 49.73,
+        "height_m": 39.358,
+        "band_profile": [
+          [
+            0.5783,
+            0.6025
+          ],
+          [
+            0.5374,
+            0.564
+          ],
+          [
+            0.5783,
+            0.6025
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "pinwheel",
+        "formal_principle": "rotational_offset"
+      }
+    },
+    {
+      "name": "llm_dispersed_pinwheel~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2465.959,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9865,
+        "passes": 11,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2466.0,
+      "far_utilization": 0.9865,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.5386,
+        "plan_void_ratio": 0.5935,
+        "section_change": 0.3623,
+        "articulation": 0.5935,
+        "void_band_id": "porous_field",
+        "band_count": 17,
+        "footprint_area_m2": 71.84,
+        "height_m": 28.533,
+        "band_profile": [
+          [
+            0.5783,
+            0.6025
+          ],
+          [
+            0.5374,
+            0.564
+          ],
+          [
+            0.5214,
+            0.6063
+          ],
+          [
+            0.5699,
+            0.6405
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "pinwheel",
+        "formal_principle": "rotational_offset"
+      }
+    },
+    {
+      "name": "llm_dispersed_pinwheel~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 370.166,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.7404,
+        "gross_floor_area_m2": 2455.4,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9823,
+        "passes": 10,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2455.4,
+      "far_utilization": 0.9823,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.5889,
+        "plan_void_ratio": 0.6633,
+        "section_change": 0.2122,
+        "articulation": 0.6633,
+        "void_band_id": "porous_field",
+        "band_count": 16,
+        "footprint_area_m2": 93.94,
+        "height_m": 27.719,
+        "band_profile": [
+          [
+            0.6145,
+            0.643
+          ],
+          [
+            0.6181,
+            0.6962
+          ],
+          [
+            0.5601,
+            0.6501
+          ],
+          [
+            0.6181,
+            0.6962
+          ],
+          [
+            0.6562,
+            0.725
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "pinwheel",
+        "formal_principle": "rotational_offset"
+      }
+    },
+    {
+      "name": "llm_dispersed_pinwheel~full_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 339.216,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6785,
+        "gross_floor_area_m2": 2361.327,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9446,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2361.3,
+      "far_utilization": 0.9446,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.626,
+        "plan_void_ratio": 0.7089,
+        "section_change": 0.2132,
+        "articulation": 0.7089,
+        "void_band_id": "porous_field",
+        "band_count": 12,
+        "footprint_area_m2": 110.52,
+        "height_m": 31.211,
+        "band_profile": [
+          [
+            0.6457,
+            0.7292
+          ],
+          [
+            0.5944,
+            0.6901
+          ],
+          [
+            0.5857,
+            0.6755
+          ],
+          [
+            0.6634,
+            0.7363
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "pinwheel",
+        "formal_principle": "rotational_offset"
+      }
+    },
+    {
+      "name": "llm_held_porous_stagger~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2248.634,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8996,
+        "passes": 37,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2248.6,
+      "far_utilization": 0.8996,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4913,
+        "plan_void_ratio": 0.56,
+        "section_change": 0.2059,
+        "articulation": 0.56,
+        "void_band_id": "porous_field",
+        "band_count": 7,
+        "footprint_area_m2": 62.86,
+        "height_m": 35.953,
+        "band_profile": [
+          [
+            0.5496,
+            0.6063
+          ],
+          [
+            0.4788,
+            0.5444
+          ],
+          [
+            0.4779,
+            0.6168
+          ],
+          [
+            0.4408,
+            0.5591
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "staggered_bars",
+        "formal_principle": "offset_repetition"
+      }
+    },
+    {
+      "name": "llm_held_porous_stagger~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2445.539,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9783,
+        "passes": 8,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2445.5,
+      "far_utilization": 0.9783,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.449,
+        "plan_void_ratio": 0.5215,
+        "section_change": 0.2794,
+        "articulation": 0.5215,
+        "void_band_id": "porous_field",
+        "band_count": 8,
+        "footprint_area_m2": 90.79,
+        "height_m": 28.465,
+        "band_profile": [
+          [
+            0.5496,
+            0.6063
+          ],
+          [
+            0.4788,
+            0.5444
+          ],
+          [
+            0.4542,
+            0.6187
+          ],
+          [
+            0.4408,
+            0.5591
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "staggered_bars",
+        "formal_principle": "offset_repetition"
+      }
+    },
+    {
+      "name": "llm_held_porous_stagger~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 399.871,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.7998,
+        "gross_floor_area_m2": 2177.931,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.8713,
+        "passes": 8,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2177.9,
+      "far_utilization": 0.8713,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4997,
+        "plan_void_ratio": 0.5877,
+        "section_change": 0.2824,
+        "articulation": 0.5877,
+        "void_band_id": "porous_field",
+        "band_count": 7,
+        "footprint_area_m2": 118.73,
+        "height_m": 21.436,
+        "band_profile": [
+          [
+            0.5584,
+            0.6194
+          ],
+          [
+            0.4856,
+            0.5581
+          ],
+          [
+            0.4595,
+            0.6238
+          ],
+          [
+            0.4534,
+            0.607
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "staggered_bars",
+        "formal_principle": "offset_repetition"
+      }
+    },
+    {
+      "name": "llm_held_porous_stagger~full_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 310.101,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6203,
+        "gross_floor_area_m2": 2381.485,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9527,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 3,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2381.5,
+      "far_utilization": 0.9527,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3394,
+        "plan_void_ratio": 0.4412,
+        "section_change": 0.3964,
+        "articulation": 0.4412,
+        "void_band_id": "porous_field",
+        "band_count": 6,
+        "footprint_area_m2": 139.68,
+        "height_m": 32.379,
+        "band_profile": [
+          [
+            0.482,
+            0.6038
+          ],
+          [
+            0.4686,
+            0.6308
+          ],
+          [
+            0.482,
+            0.6038
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "staggered_bars",
+        "formal_principle": "offset_repetition"
+      }
+    },
+    {
+      "name": "llm_full_porous_grid~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2420.236,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9682,
+        "passes": 27,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2420.2,
+      "far_utilization": 0.9682,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4163,
+        "plan_void_ratio": 0.4163,
+        "section_change": 0.0,
+        "articulation": 0.4163,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 127.38,
+        "height_m": 55.609,
+        "band_profile": [
+          [
+            0.4163,
+            0.4163
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "perforated_slab",
+        "formal_principle": "punched_field"
+      }
+    },
+    {
+      "name": "llm_full_porous_grid~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2391.929,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9569,
+        "passes": 19,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2391.9,
+      "far_utilization": 0.9569,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4163,
+        "plan_void_ratio": 0.4163,
+        "section_change": 0.0,
+        "articulation": 0.4163,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 183.99,
+        "height_m": 37.576,
+        "band_profile": [
+          [
+            0.4163,
+            0.4163
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "perforated_slab",
+        "formal_principle": "punched_field"
+      }
+    },
+    {
+      "name": "llm_full_porous_grid~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2406.082,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9626,
+        "passes": 14,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2406.1,
+      "far_utilization": 0.9626,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4163,
+        "plan_void_ratio": 0.4163,
+        "section_change": 0.0,
+        "articulation": 0.4163,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 240.61,
+        "height_m": 30.323,
+        "band_profile": [
+          [
+            0.4163,
+            0.4163
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "perforated_slab",
+        "formal_principle": "punched_field"
+      }
+    },
+    {
+      "name": "llm_full_porous_grid~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2264.548,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9059,
+        "passes": 12,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2264.5,
+      "far_utilization": 0.9059,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4163,
+        "plan_void_ratio": 0.4163,
+        "section_change": 0.0,
+        "articulation": 0.4163,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 283.07,
+        "height_m": 25.474,
+        "band_profile": [
+          [
+            0.4163,
+            0.4163
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "perforated_slab",
+        "formal_principle": "punched_field"
+      }
+    },
+    {
+      "name": "llm_worked_open_scissor~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2901.606,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 1.1608,
+        "passes": 40,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": false,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2901.6,
+      "far_utilization": 1.1608,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1558,
+        "plan_void_ratio": 0.381,
+        "section_change": 0.3031,
+        "articulation": 0.381,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 128.48,
+        "height_m": 43.992,
+        "band_profile": [
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.1655,
+            0.4353
+          ],
+          [
+            0.1823,
+            0.3412
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "scissor_pair",
+        "formal_principle": "crossed_axes"
+      }
+    },
+    {
+      "name": "llm_worked_open_scissor~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2374.297,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9498,
+        "passes": 20,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2374.3,
+      "far_utilization": 0.9498,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1796,
+        "plan_void_ratio": 0.3741,
+        "section_change": 0.3041,
+        "articulation": 0.3741,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 185.58,
+        "height_m": 31.841,
+        "band_profile": [
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.1655,
+            0.4353
+          ],
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "scissor_pair",
+        "formal_principle": "crossed_axes"
+      }
+    },
+    {
+      "name": "llm_worked_open_scissor~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2449.976,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9801,
+        "passes": 14,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2450.0,
+      "far_utilization": 0.9801,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1786,
+        "plan_void_ratio": 0.3682,
+        "section_change": 0.5593,
+        "articulation": 0.5593,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 242.68,
+        "height_m": 26.462,
+        "band_profile": [
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.1655,
+            0.4353
+          ],
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "scissor_pair",
+        "formal_principle": "crossed_axes"
+      }
+    },
+    {
+      "name": "llm_worked_open_scissor~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2352.608,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9412,
+        "passes": 14,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2352.6,
+      "far_utilization": 0.9412,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.1613,
+        "plan_void_ratio": 0.3425,
+        "section_change": 0.5593,
+        "articulation": 0.5593,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 285.5,
+        "height_m": 20.093,
+        "band_profile": [
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.1655,
+            0.4353
+          ],
+          [
+            0.1992,
+            0.3594
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "scissor_pair",
+        "formal_principle": "crossed_axes"
+      }
+    },
+    {
+      "name": "llm_dispersed_towers_bridge~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 1760.63,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7043,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1760.6,
+      "far_utilization": 0.7043,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2339,
+        "plan_void_ratio": 0.2339,
+        "section_change": 0.4777,
+        "articulation": 0.4777,
+        "void_band_id": "open_figure",
+        "band_count": 6,
+        "footprint_area_m2": 58.21,
+        "height_m": 47.186,
+        "band_profile": [
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.1717,
+            0.1717
+          ],
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "bridged_towers",
+        "formal_principle": "two_points_one_span"
+      }
+    },
+    {
+      "name": "llm_dispersed_towers_bridge~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 1723.448,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6895,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1723.4,
+      "far_utilization": 0.6895,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.2339,
+        "plan_void_ratio": 0.2339,
+        "section_change": 0.4777,
+        "articulation": 0.4777,
+        "void_band_id": "open_figure",
+        "band_count": 6,
+        "footprint_area_m2": 84.08,
+        "height_m": 32.667,
+        "band_profile": [
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.1717,
+            0.1717
+          ],
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "bridged_towers",
+        "formal_principle": "two_points_one_span"
+      }
+    },
+    {
+      "name": "llm_dispersed_towers_bridge~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|open_figure",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 1923.892,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7697,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1923.9,
+      "far_utilization": 0.7697,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3137,
+        "plan_void_ratio": 0.3137,
+        "section_change": 0.4777,
+        "articulation": 0.4777,
+        "void_band_id": "open_figure",
+        "band_count": 6,
+        "footprint_area_m2": 109.95,
+        "height_m": 24.981,
+        "band_profile": [
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.1717,
+            0.1717
+          ],
+          [
+            0.5581,
+            0.5581
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "bridged_towers",
+        "formal_principle": "two_points_one_span"
+      }
+    },
+    {
+      "name": "llm_dispersed_towers_bridge~full_ground",
+      "status": "compiled",
+      "cell": "worked_ground|solid_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 402.72,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8055,
+        "gross_floor_area_m2": 1581.553,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6327,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1581.6,
+      "far_utilization": 0.6327,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0288,
+        "plan_void_ratio": 0.051,
+        "section_change": 0.6788,
+        "articulation": 0.6788,
+        "void_band_id": "solid_body",
+        "band_count": 3,
+        "footprint_area_m2": 129.35,
+        "height_m": 21.234,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.1311,
+            0.2318
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "porous_field",
+        "secondary": "bridged_towers",
+        "formal_principle": "two_points_one_span"
+      }
+    },
+    {
+      "name": "llm_worked_carved_wedge~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2391.723,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9568,
+        "passes": 23,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2391.7,
+      "far_utilization": 0.9568,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3484,
+        "plan_void_ratio": 0.3907,
+        "section_change": 0.2688,
+        "articulation": 0.3907,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 109.11,
+        "height_m": 55.743,
+        "band_profile": [
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.3673,
+            0.415
+          ]
+        ]
+      },
+      "language": {
+        "primary": "carved_body",
+        "secondary": "wedge_cut",
+        "formal_principle": "single_deep_cut"
+      }
+    },
+    {
+      "name": "llm_worked_carved_wedge~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2348.321,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9394,
+        "passes": 17,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2348.3,
+      "far_utilization": 0.9394,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3375,
+        "plan_void_ratio": 0.3767,
+        "section_change": 0.2688,
+        "articulation": 0.3767,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 157.61,
+        "height_m": 35.36,
+        "band_profile": [
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.3673,
+            0.415
+          ]
+        ]
+      },
+      "language": {
+        "primary": "carved_body",
+        "secondary": "wedge_cut",
+        "formal_principle": "single_deep_cut"
+      }
+    },
+    {
+      "name": "llm_worked_carved_wedge~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2347.472,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9391,
+        "passes": 13,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2347.5,
+      "far_utilization": 0.9391,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3283,
+        "plan_void_ratio": 0.3649,
+        "section_change": 0.2688,
+        "articulation": 0.3649,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 206.1,
+        "height_m": 27.04,
+        "band_profile": [
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.3673,
+            0.415
+          ]
+        ]
+      },
+      "language": {
+        "primary": "carved_body",
+        "secondary": "wedge_cut",
+        "formal_principle": "single_deep_cut"
+      }
+    },
+    {
+      "name": "llm_worked_carved_wedge~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2478.042,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9913,
+        "passes": 11,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2478.0,
+      "far_utilization": 0.9913,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.3217,
+        "plan_void_ratio": 0.3565,
+        "section_change": 0.2688,
+        "articulation": 0.3565,
+        "void_band_id": "porous_field",
+        "band_count": 4,
+        "footprint_area_m2": 242.47,
+        "height_m": 23.134,
+        "band_profile": [
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.3673,
+            0.415
+          ]
+        ]
+      },
+      "language": {
+        "primary": "carved_body",
+        "secondary": "wedge_cut",
+        "formal_principle": "single_deep_cut"
+      }
+    },
+    {
+      "name": "llm_dispersed_stepped_ribbon~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 1899.709,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.76,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 2,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1899.7,
+      "far_utilization": 0.76,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0933,
+        "plan_void_ratio": 0.1857,
+        "section_change": 0.3128,
+        "articulation": 0.3128,
+        "void_band_id": "carved_body",
+        "band_count": 16,
+        "footprint_area_m2": 72.09,
+        "height_m": 38.443,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.1345,
+            0.296
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "terraced_ribbon",
+        "formal_principle": "descending_terraces"
+      }
+    },
+    {
+      "name": "llm_dispersed_stepped_ribbon~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 1730.846,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.6924,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1730.8,
+      "far_utilization": 0.6924,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0847,
+        "plan_void_ratio": 0.1627,
+        "section_change": 0.3359,
+        "articulation": 0.3359,
+        "void_band_id": "carved_body",
+        "band_count": 16,
+        "footprint_area_m2": 104.13,
+        "height_m": 32.107,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.1345,
+            0.296
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.0939,
+            0.1398
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "terraced_ribbon",
+        "formal_principle": "descending_terraces"
+      }
+    },
+    {
+      "name": "llm_dispersed_stepped_ribbon~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2127.241,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.851,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2127.2,
+      "far_utilization": 0.851,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0777,
+        "plan_void_ratio": 0.1464,
+        "section_change": 0.3386,
+        "articulation": 0.3386,
+        "void_band_id": "carved_body",
+        "band_count": 16,
+        "footprint_area_m2": 136.17,
+        "height_m": 26.529,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.1345,
+            0.296
+          ],
+          [
+            0.1279,
+            0.244
+          ],
+          [
+            0.0939,
+            0.1398
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "terraced_ribbon",
+        "formal_principle": "descending_terraces"
+      }
+    },
+    {
+      "name": "llm_dispersed_stepped_ribbon~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|carved_body",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 1775.226,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.7102,
+        "passes": 0,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 1,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 1775.2,
+      "far_utilization": 0.7102,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.0735,
+        "plan_void_ratio": 0.1361,
+        "section_change": 0.3386,
+        "articulation": 0.3386,
+        "void_band_id": "carved_body",
+        "band_count": 16,
+        "footprint_area_m2": 160.2,
+        "height_m": 23.809,
+        "band_profile": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.086,
+            0.1248
+          ],
+          [
+            0.116,
+            0.2145
+          ],
+          [
+            0.1345,
+            0.296
+          ],
+          [
+            0.1279,
+            0.244
+          ],
+          [
+            0.0939,
+            0.1398
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "language": {
+        "primary": "stacked_platform",
+        "secondary": "terraced_ribbon",
+        "formal_principle": "descending_terraces"
+      }
+    },
+    {
+      "name": "llm_full_open_ring~dispersed_ground",
+      "status": "compiled",
+      "cell": "dispersed_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 218.223,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.4365,
+        "gross_floor_area_m2": 2487.055,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9949,
+        "passes": 28,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2487.1,
+      "far_utilization": 0.9949,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4302,
+        "plan_void_ratio": 0.4302,
+        "section_change": 0.0,
+        "articulation": 0.4302,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 124.35,
+        "height_m": 61.423,
+        "band_profile": [
+          [
+            0.4302,
+            0.4302
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "ring",
+        "formal_principle": "closed_ring_open_centre"
+      }
+    },
+    {
+      "name": "llm_full_open_ring~held_ground",
+      "status": "compiled",
+      "cell": "held_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 315.211,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.6305,
+        "gross_floor_area_m2": 2335.068,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9341,
+        "passes": 21,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2335.1,
+      "far_utilization": 0.9341,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4302,
+        "plan_void_ratio": 0.4302,
+        "section_change": 0.0,
+        "articulation": 0.4302,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 179.62,
+        "height_m": 37.677,
+        "band_profile": [
+          [
+            0.4302,
+            0.4302
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "ring",
+        "formal_principle": "closed_ring_open_centre"
+      }
+    },
+    {
+      "name": "llm_full_open_ring~worked_ground",
+      "status": "compiled",
+      "cell": "worked_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 412.199,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.8245,
+        "gross_floor_area_m2": 2348.885,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9397,
+        "passes": 16,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2348.9,
+      "far_utilization": 0.9397,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4302,
+        "plan_void_ratio": 0.4302,
+        "section_change": 0.0,
+        "articulation": 0.4302,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 234.89,
+        "height_m": 28.989,
+        "band_profile": [
+          [
+            0.4302,
+            0.4302
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "ring",
+        "formal_principle": "closed_ring_open_centre"
+      }
+    },
+    {
+      "name": "llm_full_open_ring~full_ground",
+      "status": "compiled",
+      "cell": "full_ground|porous_field",
+      "legal_fit": {
+        "schema_version": "arr.maas.massv2_legal_fit.v1",
+        "ground_area_m2": 484.94,
+        "ground_capacity_m2": 499.938,
+        "ground_take": 0.97,
+        "gross_floor_area_m2": 2487.055,
+        "far_capacity_m2": 2499.691,
+        "far_utilization": 0.9949,
+        "passes": 13,
+        "plan_scale_applied": 1.0,
+        "volumes_pulled_in": 0,
+        "satisfied": true,
+        "method": "per_volume_affine_no_csg"
+      },
+      "gfa_m2": 2487.1,
+      "far_utilization": 0.9949,
+      "measurement": {
+        "schema_version": "arr.maas.matrix_form_measurement.v1",
+        "convexity_drop": 0.4302,
+        "plan_void_ratio": 0.4302,
+        "section_change": 0.0,
+        "articulation": 0.4302,
+        "void_band_id": "porous_field",
+        "band_count": 1,
+        "footprint_area_m2": 276.34,
+        "height_m": 26.44,
+        "band_profile": [
+          [
+            0.4302,
+            0.4302
+          ]
+        ]
+      },
+      "language": {
+        "primary": "open_figure",
+        "secondary": "ring",
+        "formal_principle": "closed_ring_open_centre"
+      }
+    }
+  ]
+}

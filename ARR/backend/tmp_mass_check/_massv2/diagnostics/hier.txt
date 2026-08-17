@@ -1,0 +1,26 @@
+지배 볼륨이 전체에서 차지하는 비중 (1.0 = 단일 볼륨, 1/N = 완전 대등)
+
+전체 중앙값 0.38   평균 볼륨수 3.4
+분포: 대등에 가까움 (지배<1.5/N)=43, 중간=17, 위계 뚜렷 (>2.5/N)=1
+
+가장 대등한 12개 (= 레고로 읽힐 후보):
+  지배 0.23  볼륨 6  (대등이면 0.17)  twin_court_theta
+  지배 0.24  볼륨 5  (대등이면 0.20)  dispersed_pinwheel
+  지배 0.25  볼륨 5  (대등이면 0.20)  twisted_solid
+  지배 0.25  볼륨 4  (대등이면 0.25)  saw_tooth_sheds
+  지배 0.26  볼륨 5  (대등이면 0.20)  comb_off_a_spine
+  지배 0.26  볼륨 5  (대등이면 0.20)  splayed_fan
+  지배 0.26  볼륨 5  (대등이면 0.20)  portal_frame_ring
+  지배 0.27  볼륨 4  (대등이면 0.25)  counterpoise_solid
+  지배 0.27  볼륨 5  (대등이면 0.20)  scattered_rooms
+  지배 0.28  볼륨 6  (대등이면 0.17)  cloud_of_cubes
+  지배 0.28  볼륨 5  (대등이면 0.20)  opening_terraced_ell
+  지배 0.30  볼륨 4  (대등이면 0.25)  held_porous_stagger
+
+위계가 가장 뚜렷한 6개:
+  지배 1.00  볼륨 1  full_open_ring
+  지배 1.00  볼륨 1  full_porous_grid
+  지배 1.00  볼륨 1  hollow_market_arch
+  지배 1.00  볼륨 1  one_storey_spread
+  지배 1.00  볼륨 1  round_field_of_courts
+  지배 1.00  볼륨 1  worked_carved_wedge

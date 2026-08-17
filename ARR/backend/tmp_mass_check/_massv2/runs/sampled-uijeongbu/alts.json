@@ -1,0 +1,158 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "sampled_ring22_split70open_shearopen_closed~full_ground^cross_open",
+      "artic": "0.34",
+      "take": "0.87",
+      "far": "0.85",
+      "cell": "full|porous_field"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "sampled_ring22_whole_shearopen_closed~worked_ground^off_open",
+      "artic": "0.36",
+      "take": "0.61",
+      "far": "0.69",
+      "cell": "held|porous_field"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "sampled_ring30_split70open_shearopen_closed~dispersed_ground^to_open",
+      "artic": "0.34",
+      "take": "0.41",
+      "far": "0.48",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "sampled_ring22_split62open_shearopen_carveopen^centred",
+      "artic": "0.40",
+      "take": "0.66",
+      "far": "0.77",
+      "cell": "worked|porous_field"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "sampled_stack2back_split70open_shearopen_closed~full_ground^centred",
+      "artic": "0.37",
+      "take": "0.91",
+      "far": "0.99",
+      "cell": "full|solid"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "sampled_body90_split62open_lift18_carveopen",
+      "artic": "0.75",
+      "take": "0.90",
+      "far": "0.91",
+      "cell": "full|open"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "sampled_stack2back_split70open_shearopen_carveback~worked_ground^centred",
+      "artic": "0.36",
+      "take": "0.77",
+      "far": "0.85",
+      "cell": "worked|solid"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "sampled_body90_split62cross_lift18_carveopen^centred",
+      "artic": "0.75",
+      "take": "0.85",
+      "far": "0.86",
+      "cell": "worked|open"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "sampled_stack2open_split62open_shearopen_closed~held_ground^off_open",
+      "artic": "0.37",
+      "take": "0.51",
+      "far": "0.55",
+      "cell": "held|open"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "sampled_body72_split70open_shearopen_carveopen~held_ground^centred",
+      "artic": "0.45",
+      "take": "0.60",
+      "far": "0.65",
+      "cell": "held|solid"
+    },
+    {
+      "index": 11,
+      "png": "alt-11.png",
+      "name": "sampled_ring30_whole_shearopen_closed~held_ground^off_open",
+      "artic": "0.31",
+      "take": "0.41",
+      "far": "0.49",
+      "cell": "dispersed|open"
+    },
+    {
+      "index": 12,
+      "png": "alt-12.png",
+      "name": "sampled_body90_split70open_lift18_closed",
+      "artic": "0.75",
+      "take": "0.93",
+      "far": "0.95",
+      "cell": "full|carved"
+    },
+    {
+      "index": 13,
+      "png": "alt-13.png",
+      "name": "sampled_body72_split62open_shearopen_carveopen~dispersed_ground^centred",
+      "artic": "0.39",
+      "take": "0.42",
+      "far": "0.56",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 14,
+      "png": "alt-14.png",
+      "name": "sampled_body90_split70cross_lift18_closed~full_ground^cross_open",
+      "artic": "0.76",
+      "take": "0.60",
+      "far": "0.61",
+      "cell": "held|carved"
+    },
+    {
+      "index": 15,
+      "png": "alt-15.png",
+      "name": "sampled_body90_split62cross_lift18_closed",
+      "artic": "0.76",
+      "take": "0.84",
+      "far": "0.85",
+      "cell": "worked|carved"
+    },
+    {
+      "index": 16,
+      "png": "alt-16.png",
+      "name": "sampled_body72_split62open_lift18_closed~held_ground^off_open",
+      "artic": "0.42",
+      "take": "0.30",
+      "far": "0.49",
+      "cell": "dispersed|carved"
+    }
+  ]
+}

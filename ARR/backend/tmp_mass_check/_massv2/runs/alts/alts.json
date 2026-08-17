@@ -1,0 +1,158 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "llm_raked_bar~full_ground^to_open",
+      "artic": "0.30",
+      "take": "0.87",
+      "far": "0.87",
+      "cell": "full|solid"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "llm_staggered_solid~full_ground^to_open",
+      "artic": "0.26",
+      "take": "0.86",
+      "far": "0.59",
+      "cell": "full|carved"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "stacked_65",
+      "artic": "0.27",
+      "take": "0.78",
+      "far": "0.84",
+      "cell": "worked|solid"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "llm_terraced_solid~dispersed_ground^centred",
+      "artic": "0.17",
+      "take": "0.44",
+      "far": "0.47",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "llm_widening_stack~held_ground^centred",
+      "artic": "0.28",
+      "take": "0.63",
+      "far": "0.71",
+      "cell": "held|solid"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "llm_splayed_fan~dispersed_ground^off_open",
+      "artic": "0.70",
+      "take": "0.38",
+      "far": "0.51",
+      "cell": "dispersed|carved"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "llm_dispersed_towers_bridge~worked_ground",
+      "artic": "0.26",
+      "take": "0.77",
+      "far": "0.81",
+      "cell": "worked|carved"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "llm_dispersed_stepped_ribbon~held_ground",
+      "artic": "0.21",
+      "take": "0.59",
+      "far": "0.74",
+      "cell": "held|carved"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "llm_hollow_market_arch~full_ground",
+      "artic": "0.69",
+      "take": "0.89",
+      "far": "0.91",
+      "cell": "full|porous_field"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "llm_raked_bar^cross_open",
+      "artic": "0.38",
+      "take": "0.94",
+      "far": "0.67",
+      "cell": "full|open"
+    },
+    {
+      "index": 11,
+      "png": "alt-11.png",
+      "name": "llm_full_open_comb~dispersed_ground^to_open",
+      "artic": "0.61",
+      "take": "0.39",
+      "far": "0.60",
+      "cell": "dispersed|open"
+    },
+    {
+      "index": 12,
+      "png": "alt-12.png",
+      "name": "llm_worked_open_scissor~held_ground^cross_open",
+      "artic": "0.56",
+      "take": "0.55",
+      "far": "0.75",
+      "cell": "held|open"
+    },
+    {
+      "index": 13,
+      "png": "alt-13.png",
+      "name": "llm_hex_pinwheel~full_ground^cross_open",
+      "artic": "0.34",
+      "take": "0.70",
+      "far": "0.71",
+      "cell": "worked|open"
+    },
+    {
+      "index": 14,
+      "png": "alt-14.png",
+      "name": "llm_raised_court_field~worked_ground^to_open",
+      "artic": "0.69",
+      "take": "0.69",
+      "far": "0.95",
+      "cell": "worked|porous_field"
+    },
+    {
+      "index": 15,
+      "png": "alt-15.png",
+      "name": "llm_dispersed_pinwheel~full_ground",
+      "artic": "0.74",
+      "take": "0.46",
+      "far": "0.91",
+      "cell": "held|porous_field"
+    },
+    {
+      "index": 16,
+      "png": "alt-16.png",
+      "name": "llm_dispersed_pinwheel^to_open",
+      "artic": "0.73",
+      "take": "0.43",
+      "far": "0.77",
+      "cell": "dispersed|porous_field"
+    }
+  ]
+}

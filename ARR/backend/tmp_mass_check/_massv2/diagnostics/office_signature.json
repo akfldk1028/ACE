@@ -1,0 +1,362 @@
+[
+  {
+    "office": "big",
+    "name": "big_via57west",
+    "dominance": 0.2521031130778627,
+    "pieces": 8,
+    "spread": 11.94764702297243,
+    "convexity": 0.23723249589442483,
+    "void": 0.33707366989538573,
+    "section": 0.1380243962711319
+  },
+  {
+    "office": "big",
+    "name": "big_8house",
+    "dominance": 0.23227142686834132,
+    "pieces": 8,
+    "spread": 9.702758785703917,
+    "convexity": 0.1903303872074253,
+    "void": 0.30121770809284665,
+    "section": 0.1673764508997024
+  },
+  {
+    "office": "big",
+    "name": "big_mountain_dwellings",
+    "dominance": 0.2696037249806683,
+    "pieces": 10,
+    "spread": 20.32295990711694,
+    "convexity": 0.22200495493061698,
+    "void": 0.3182680909775817,
+    "section": 0.3774293057964026
+  },
+  {
+    "office": "big",
+    "name": "big_79_and_park",
+    "dominance": 0.20647081659780292,
+    "pieces": 8,
+    "spread": 10.080967007893413,
+    "convexity": 0.16784045998343172,
+    "void": 0.2770402196205139,
+    "section": 0.18004416708147833
+  },
+  {
+    "office": "big",
+    "name": "big_the_twist",
+    "dominance": 0.5021469417115808,
+    "pieces": 10,
+    "spread": 22.861918860061333,
+    "convexity": 0.3532351091873324,
+    "void": 0.35907286905694663,
+    "section": 0.5615416790406135
+  },
+  {
+    "office": "big",
+    "name": "big_vancouver_house",
+    "dominance": 0.7605521666092017,
+    "pieces": 2,
+    "spread": 3.176274998353895,
+    "convexity": 0.28176403333486655,
+    "void": 0.3142714457676642,
+    "section": 0.018044970126976725
+  },
+  {
+    "office": "big",
+    "name": "big_lego_house",
+    "dominance": 0.6438768809199052,
+    "pieces": 7,
+    "spread": 69.07637365535065,
+    "convexity": 0.27113063134117066,
+    "void": 0.2843925753505062,
+    "section": 0.2234583295791365
+  },
+  {
+    "office": "big",
+    "name": "big_copenhill",
+    "dominance": 0.7692543604924488,
+    "pieces": 2,
+    "spread": 3.333776370093768,
+    "convexity": 0.27319794837070194,
+    "void": 0.403078853879184,
+    "section": 0.7978805035414728
+  },
+  {
+    "office": "big",
+    "name": "big_kaktus_towers",
+    "dominance": 0.5854709914030923,
+    "pieces": 7,
+    "spread": 17.05576055663034,
+    "convexity": 0.18504901641874957,
+    "void": 0.24584676069699554,
+    "section": 0.6157599034450543
+  },
+  {
+    "office": "big",
+    "name": "big_one_high_line",
+    "dominance": 0.4572454068913505,
+    "pieces": 3,
+    "spread": 2.989024366166349,
+    "convexity": 0.4930677524145932,
+    "void": 0.552510033582454,
+    "section": 0.5002757907477023
+  },
+  {
+    "office": "big",
+    "name": "big_grove_at_grand_bay",
+    "dominance": 0.418496732633988,
+    "pieces": 7,
+    "spread": 9.551225911712939,
+    "convexity": 0.08766979035682805,
+    "void": 0.08831196819872317,
+    "section": 0.5200598232505611
+  },
+  {
+    "office": "big",
+    "name": "big_the_spiral",
+    "dominance": 0.4154510014327703,
+    "pieces": 6,
+    "spread": 17.244181386674917,
+    "convexity": 0.20393006093020546,
+    "void": 0.26502573150318615,
+    "section": 0.3735536162487005
+  },
+  {
+    "office": "oma",
+    "name": "oma_seattle_library",
+    "dominance": 0.3862591028145621,
+    "pieces": 5,
+    "spread": 8.157307209999962,
+    "convexity": 0.21921838326248802,
+    "void": 0.277832263177484,
+    "section": 0.7385275286401861
+  },
+  {
+    "office": "oma",
+    "name": "oma_cctv",
+    "dominance": 0.2893303684470121,
+    "pieces": 4,
+    "spread": 1.3888888888888056,
+    "convexity": 0.253045413809138,
+    "void": 0.31256313614948006,
+    "section": 0.2635754030937987
+  },
+  {
+    "office": "oma",
+    "name": "oma_de_rotterdam",
+    "dominance": 0.41713461972957117,
+    "pieces": 4,
+    "spread": 3.398362544671167,
+    "convexity": 0.26712073766426214,
+    "void": 0.3440077038888871,
+    "section": 0.4255408256368444
+  },
+  {
+    "office": "oma",
+    "name": "oma_casa_da_musica",
+    "dominance": 1.0,
+    "pieces": 1,
+    "spread": 1.0,
+    "convexity": 0.3553172944487829,
+    "void": 0.3869243047837815,
+    "section": 0.0
+  },
+  {
+    "office": "oma",
+    "name": "oma_timmerhuis",
+    "dominance": 0.5065926880363373,
+    "pieces": 5,
+    "spread": 6.450576701269177,
+    "convexity": 0.39885556381036374,
+    "void": 0.42931978750017646,
+    "section": 0.46696359868863063
+  },
+  {
+    "office": "oma",
+    "name": "oma_milstein_hall",
+    "dominance": 0.6819492951829268,
+    "pieces": 5,
+    "spread": 8.576611022763528,
+    "convexity": 0.3420946956143712,
+    "void": 0.3206166870558824,
+    "section": 0.6762565273613956
+  },
+  {
+    "office": "oma",
+    "name": "oma_kunsthal",
+    "dominance": 0.5276487809091418,
+    "pieces": 6,
+    "spread": 19.696785370229723,
+    "convexity": 0.03878343135504313,
+    "void": 0.1461317744162962,
+    "section": 0.31304958464103616
+  },
+  {
+    "office": "oma",
+    "name": "oma_educatorium",
+    "dominance": 0.6279271158416503,
+    "pieces": 2,
+    "spread": 1.6876454656513267,
+    "convexity": 0.0018371245922974124,
+    "void": 0.23178545971486908,
+    "section": 0.028588900573953975
+  },
+  {
+    "office": "oma",
+    "name": "oma_shenzhen_stock_exchange",
+    "dominance": 0.49811394896460054,
+    "pieces": 6,
+    "spread": 21.055533183823705,
+    "convexity": 0.08823443053285016,
+    "void": 0.1861046553845597,
+    "section": 0.39906503804785465
+  },
+  {
+    "office": "oma",
+    "name": "oma_taipei_performing_arts",
+    "dominance": 0.7037203682161535,
+    "pieces": 8,
+    "spread": 37.985390234522505,
+    "convexity": 0.13682280461249843,
+    "void": 0.1448677909062497,
+    "section": 0.1473073508461863
+  },
+  {
+    "office": "oma",
+    "name": "oma_fondazione_prada",
+    "dominance": 0.41508461841013405,
+    "pieces": 6,
+    "spread": 9.428571428570777,
+    "convexity": 0.33604721874427657,
+    "void": 0.4110852072860452,
+    "section": 0.37194516918838344
+  },
+  {
+    "office": "oma",
+    "name": "oma_netherlands_embassy",
+    "dominance": 0.5557723987800736,
+    "pieces": 2,
+    "spread": 1.251098304683963,
+    "convexity": 0.13791082181823872,
+    "void": 0.23247911129612048,
+    "section": 0.2931121864615227
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_kanazawa",
+    "dominance": 0.7477455793537099,
+    "pieces": 6,
+    "spread": 41.221453287194535,
+    "convexity": 0.21594540515286412,
+    "void": 0.26506334112922697,
+    "section": 0.3194803212835088
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_rolex",
+    "dominance": 0.7106506196870745,
+    "pieces": 5,
+    "spread": 9.82411808062004,
+    "convexity": 0.41812918588712367,
+    "void": 0.401740301290253,
+    "section": 0.685022340030605
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_zollverein",
+    "dominance": 1.0,
+    "pieces": 1,
+    "spread": 1.0,
+    "convexity": 0.14566235823082319,
+    "void": 0.1884319305450642,
+    "section": 0.0
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_toledo_glass",
+    "dominance": 0.6329303000324731,
+    "pieces": 7,
+    "spread": 30.198175526896378,
+    "convexity": 0.2089221953382983,
+    "void": 0.2386467325428917,
+    "section": 0.22837515779008777
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_new_museum",
+    "dominance": 0.3981023592340838,
+    "pieces": 6,
+    "spread": 19.033010894081972,
+    "convexity": 0.0001296190614007408,
+    "void": 0.030446454569638987,
+    "section": 0.7255488516441804
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_louvre_lens",
+    "dominance": 0.6332006151421362,
+    "pieces": 6,
+    "spread": 21.761101381124963,
+    "convexity": 0.186461967222876,
+    "void": 0.21842311026764127,
+    "section": 0.3497056502166269
+  },
+  {
+    "office": "sanaa",
+    "name": "nishizawa_moriyama",
+    "dominance": 0.4547895890056944,
+    "pieces": 7,
+    "spread": 15.378700499804674,
+    "convexity": 0.3857651157342157,
+    "void": 0.4062124286776124,
+    "section": 0.3282496527612482
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_dior_omotesando",
+    "dominance": 1.0,
+    "pieces": 1,
+    "spread": 1.0,
+    "convexity": 0.06560838257914259,
+    "void": 0.10722129960334334,
+    "section": 0.0
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_grace_farms",
+    "dominance": 0.7736662562404135,
+    "pieces": 10,
+    "spread": 102.46191301859227,
+    "convexity": 0.23449768021256506,
+    "void": 0.25730165135469385,
+    "section": 0.11404587930768283
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_serpentine_2009",
+    "dominance": 0.5390723456224229,
+    "pieces": 5,
+    "spread": 4.678151466961922,
+    "convexity": 0.44472819313516715,
+    "void": 0.4069557750190431,
+    "section": 0.6926156095666122
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_kunstlinie_almere",
+    "dominance": 0.5631959532595051,
+    "pieces": 6,
+    "spread": 11.741578450800743,
+    "convexity": 0.23403609317214713,
+    "void": 0.2953793542151138,
+    "section": 0.5969057267318549
+  },
+  {
+    "office": "sanaa",
+    "name": "sanaa_naoshima_terminal",
+    "dominance": 0.7569739817998478,
+    "pieces": 9,
+    "spread": 173.61154277274008,
+    "convexity": 0.26995489388286253,
+    "void": 0.3419086952310764,
+    "section": 0.13472991668161743
+  }
+]

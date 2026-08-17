@@ -1,0 +1,10 @@
+parcel bounds (wgs84): 127.107995 37.729727 127.108881 37.730278
+LT_C_UQ111 -> status=OK features=11
+     {"uname": "자연녹지지역", "dyear": "2026", "dnum": "0334", "sido_name": "경기도", "sigg_name": "의정부시"}
+     {"uname": "자연녹지지역", "dyear": "2026", "dnum": "0334", "sido_name": "경기도", "sigg_name": "의정부시"}
+     {"uname": "자연녹지지역", "dyear": "2025", "dnum": "0691", "sido_name": "경기도", "sigg_name": "의정부시"}
+     {"uname": "제3종일반주거지역", "dyear": "2018", "dnum": "0816", "sido_name": "경기도", "sigg_name": "의정부시"}
+     {"uname": "일반상업지역", "dyear": "2018", "dnum": "0816", "sido_name": "경기도", "sigg_name": "의정부시"}
+     {"uname": "일반상업지역", "dyear": "2018", "dnum": "0816", "sido_name": "경기도", "sigg_name": "의정부시"}
+LT_C_UQ111G -> status=ERROR features=0
+LT_C_UQ112 -> status=NOT_FOUND features=0

@@ -1,0 +1,77 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "oma_cctv~worked_ground^centred",
+      "artic": "0.32",
+      "take": "0.67",
+      "far": "0.00",
+      "cell": "worked|open"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "sanaa_zollverein^centred",
+      "artic": "0.47",
+      "take": "0.10",
+      "far": "0.12",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "oma_milstein_hall^centred",
+      "artic": "0.37",
+      "take": "0.51",
+      "far": "0.20",
+      "cell": "held|carved"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "big_8house~full_ground^off_open",
+      "artic": "0.23",
+      "take": "0.46",
+      "far": "0.00",
+      "cell": "held|open"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "oma_de_rotterdam^off_open",
+      "artic": "0.47",
+      "take": "0.37",
+      "far": "0.15",
+      "cell": "dispersed|carved"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "big_via57west^off_open",
+      "artic": "0.26",
+      "take": "0.13",
+      "far": "0.14",
+      "cell": "dispersed|open"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "oma_kunsthal^cross_open",
+      "artic": "0.57",
+      "take": "0.20",
+      "far": "0.08",
+      "cell": "dispersed|solid"
+    }
+  ]
+}

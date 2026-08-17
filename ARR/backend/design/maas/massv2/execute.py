@@ -278,7 +278,11 @@ def _stack(frame: _Frame, op: Operation) -> None:
     """
 
     count = int(_clamp(float(op.params.get("n", 3)), 2, 6))
-    contrast = max(MIN_TIER_CONTRAST, float(op.params.get("contrast", 1.35)))
+    # VIA 57 West holds three corners near 40 m and draws the fourth to 142 m -
+    # a contrast of 3.5 inside one figure. A ceiling of 2.0 made that sentence
+    # unwritable, so the cap is the built work's rather than a guess, and the
+    # storey and structure gates decide whether the result stands.
+    contrast = _clamp(float(op.params.get("contrast", 1.35)), MIN_TIER_CONTRAST, 3.5)
     # Which way the tiers change size. The corpus rule is that tiers are never
     # equal, not that they always get smaller: Vancouver House grows floor by
     # floor once it clears the bridge, and Korean briefs put the assembly hall

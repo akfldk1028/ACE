@@ -1,0 +1,23 @@
+볼륨 쌍이 면/모서리 좌표를 공유하는 비율 (정렬 규율)
+전체 평균 0.79  (쌍 309개)
+
+가장 안 맞는 10개:
+  0.00  staggered_solid              볼륨 3
+  0.20  cloud_of_cubes               볼륨 6
+  0.33  axis_swap_body               볼륨 3
+  0.33  dispersed_stepped_ribbon     볼륨 4
+  0.33  dispersed_towers_bridge      볼륨 3
+  0.33  leaning_prism                볼륨 3
+  0.33  lifted_undercut              볼륨 3
+  0.33  prow_solid                   볼륨 3
+  0.33  widening_stack               볼륨 3
+  0.40  twisted_solid                볼륨 5
+
+가장 잘 맞는 5개:
+  1.00  tapered_prow                 볼륨 2
+  1.00  terraced_solid               볼륨 4
+  1.00  twin_court_theta             볼륨 6
+  1.00  wedge_with_a_cut             볼륨 2
+  1.00  worked_open_scissor          볼륨 3
+
+분포: 완전정렬 1.00=31, 낮음 <.5=10, 중간 .5-.75=9, 높음 .75+=5

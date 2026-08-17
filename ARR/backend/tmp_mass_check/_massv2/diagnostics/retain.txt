@@ -1,0 +1,19 @@
+출고 16안이 유래한 저작 구성 15개
+
+저작 볼륨 → 클립 후 남은 평면 비율 / 밴드 수
+  0.55  dispersed_stepped_ribbon     저작볼륨 5 → 밴드 8
+  0.79  dispersed_towers_bridge      저작볼륨 4 → 밴드 5
+  0.69  full_open_comb               저작볼륨 4 → 밴드 2
+  0.81  full_open_ring               저작볼륨 1 → 밴드 2
+  0.68  held_court_ell               저작볼륨 4 → 밴드 5
+  0.60  held_porous_stagger          저작볼륨 4 → 밴드 7
+  0.82  hollow_market_arch           저작볼륨 1 → 밴드 3
+  0.85  raised_court_field           저작볼륨 5 → 밴드 6
+  0.81  raked_bar                    저작볼륨 5 → 밴드 5
+  0.78  splayed_fan                  저작볼륨 4 → 밴드 2
+  0.94  staggered_solid              저작볼륨 3 → 밴드 5
+  0.91  terraced_solid               저작볼륨 4 → 밴드 7
+  0.90  widening_stack               저작볼륨 3 → 밴드 5
+  0.86  worked_open_scissor          저작볼륨 3 → 밴드 3
+
+평균 유지율 0.78

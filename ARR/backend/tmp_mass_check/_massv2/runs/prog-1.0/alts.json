@@ -1,0 +1,104 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "sanaa_zollverein^centred",
+      "artic": "0.19",
+      "take": "0.73",
+      "far": "0.88",
+      "cell": "worked|carved"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "oma_shenzhen_stock_exchange~held_ground^off_open",
+      "artic": "0.35",
+      "take": "0.30",
+      "far": "0.33",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "sanaa_rolex~full_ground^centred",
+      "artic": "0.39",
+      "take": "0.69",
+      "far": "0.74",
+      "cell": "worked|porous_field"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "sanaa_grace_farms~held_ground^centred",
+      "artic": "0.20",
+      "take": "0.56",
+      "far": "0.40",
+      "cell": "held|carved"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "big_kaktus_towers~full_ground^centred",
+      "artic": "0.41",
+      "take": "0.82",
+      "far": "0.41",
+      "cell": "worked|open"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "nishizawa_moriyama~held_ground^cross_open",
+      "artic": "0.51",
+      "take": "0.41",
+      "far": "0.22",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "oma_cctv",
+      "artic": "0.35",
+      "take": "0.54",
+      "far": "0.65",
+      "cell": "held|porous_field"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "big_vancouver_house",
+      "artic": "0.31",
+      "take": "0.51",
+      "far": "0.61",
+      "cell": "held|open"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "oma_kunsthal~held_ground^off_open",
+      "artic": "0.28",
+      "take": "0.36",
+      "far": "0.46",
+      "cell": "dispersed|carved"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "sanaa_serpentine_2009~dispersed_ground^centred",
+      "artic": "0.29",
+      "take": "0.37",
+      "far": "0.43",
+      "cell": "dispersed|open"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+연속한 밴드가 같은 평면을 갖는 경우 = 그릴 때 합쳐야 할 이음선
+
+  raised_court_field           밴드  6  중 같은평면 이음선 1
+  open_u_court                 밴드  1  중 같은평면 이음선 0
+  held_open_l                  밴드  1  중 같은평면 이음선 0
+  full_open_comb               밴드  2  중 같은평면 이음선 0
+  dispersed_pinwheel           밴드 13  중 같은평면 이음선 0
+  held_porous_stagger          밴드  7  중 같은평면 이음선 0
+  full_porous_grid             밴드  2  중 같은평면 이음선 0
+  worked_open_scissor          밴드  4  중 같은평면 이음선 0
+  dispersed_towers_bridge      밴드  5  중 같은평면 이음선 0
+  worked_carved_wedge          밴드  4  중 같은평면 이음선 0
+
+합계: 밴드 45, 그중 1개가 아래 밴드와 사실상 같은 평면 (2%)

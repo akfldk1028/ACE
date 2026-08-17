@@ -1,0 +1,10 @@
+shear west   볼륨2 지배0.60 artic 0.19 carved_ OK
+shear east   볼륨2 지배0.60 artic 0.19 carved_ OK
+lift west    볼륨6 지배0.64 artic 0.39 carved_ OK
+lift east    볼륨6 지배0.47 artic 0.40 solid_b OK
+stack west   볼륨5 지배0.32 artic 0.17 carved_ OK
+taper west   볼륨2 지배0.61 artic 0.31 open_fi REJ ('2_separate_bodies_not_one_building',)
+taper east   볼륨2 지배0.77 artic 0.22 open_fi REJ ('2_separate_bodies_not_one_building',)
+no split     볼륨1 지배1.00 artic 0.20 carved_ OK
+
+서로 다른 구성(signature): 7 / 8

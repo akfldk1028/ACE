@@ -1,0 +1,16 @@
+parcel long axis: -29.8 deg
+raised_court_field         잘리고 남은 비율 0.85
+open_u_court               잘리고 남은 비율 0.70
+held_open_l                잘리고 남은 비율 0.64
+full_open_comb             잘리고 남은 비율 0.69
+dispersed_pinwheel         잘리고 남은 비율 0.58
+held_porous_stagger        잘리고 남은 비율 0.64
+full_porous_grid           잘리고 남은 비율 0.53
+worked_open_scissor        잘리고 남은 비율 0.77
+dispersed_towers_bridge    잘리고 남은 비율 0.91
+worked_carved_wedge        잘리고 남은 비율 0.86
+dispersed_stepped_ribbon   잘리고 남은 비율 0.82
+full_open_ring             잘리고 남은 비율 0.31
+loop_bridge                잘리고 남은 비율 0.57
+stacked_programme_shift    잘리고 남은 비율 0.94
+평균 0.70

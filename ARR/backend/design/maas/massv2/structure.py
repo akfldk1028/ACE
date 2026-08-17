@@ -19,10 +19,12 @@ function against physical stability and *both failed to predict it*, while an
 explicit support-polygon computation succeeded. Geometric plausibility and
 physical stability are not correlated. So this is computed, not scored.
 
-The cantilever bound is the AISC rule of thumb every structural engineer
-carries - a cantilever runs to about a third of its backspan - which is a
-proportion, not a dimension, and therefore says the same thing on a 20 m parcel
-and a 200 m one.
+The cantilever bound is a proportion rather than a dimension, and therefore
+says the same thing on a 20 m parcel and a 200 m one. It is taken at the
+generous end - what a storey-deep truss reaches, not what an ordinary beam
+does - for the reason the span bound already states: this is here to refuse
+the impossible, not to referee the ambitious. At the ordinary-beam value it
+refused Milstein Hall and Seattle Central Library, both of which are built.
 """
 
 from __future__ import annotations
@@ -37,8 +39,21 @@ from shapely.ops import nearest_points, unary_union
 from design.maas.source_geometry.ir import SourceMass
 
 
-# A cantilever reaches about a third of its backspan. AISC rule of thumb.
-CANTILEVER_BACKSPAN_RATIO = 1.0 / 3.0
+# A cantilever reaches about half its backspan when it is designed as one.
+#
+# A third is the AISC rule of thumb for an ordinary beam, and it was the number
+# here - which made this gate referee the ambitious rather than refuse the
+# impossible, the exact thing the span rule below says it is not for. Measured
+# against built work: Milstein Hall's plate reaches about 40% of its backspan,
+# Seattle Central Library's platforms cantilever past each other by design, and
+# both were refused. Every one of the twenty-four VIA 57 West variants and
+# twenty-four Seattle variants died here.
+#
+# A cantilever that far is a storey-deep truss rather than a beam, which is the
+# same structure the span rule already takes the generous end for. The gates
+# that judge whether the result is a building - it stands on something, a plate
+# holds a room, a storey is lit - are unchanged.
+CANTILEVER_BACKSPAN_RATIO = 0.5
 # A member held at both ends is a span, and a storey-deep steel transfer truss
 # runs to roughly ten to fifteen times its depth. The generous end is taken on
 # purpose: this is here to refuse the impossible, not to referee the ambitious.

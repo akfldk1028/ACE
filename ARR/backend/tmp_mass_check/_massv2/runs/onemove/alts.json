@@ -1,0 +1,50 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "cctv_a_loop_stood_up~dispersed_ground^centred",
+      "artic": "0.14",
+      "take": "0.44",
+      "far": "0.56",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "eight_house_pinched_at_the_waist^off_open",
+      "artic": "0.31",
+      "take": "0.71",
+      "far": "0.81",
+      "cell": "worked|carved"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "eight_house_pinched_at_the_waist~full_ground^cross_open",
+      "artic": "0.27",
+      "take": "0.61",
+      "far": "0.72",
+      "cell": "held|carved"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "milstein_a_plate_past_its_supports~full_ground^to_open",
+      "artic": "0.34",
+      "take": "0.37",
+      "far": "0.41",
+      "cell": "dispersed|carved"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+parti-a: 14안
+  llm_a_one_body_leaning_west  inherit 볼륨1 지배1.00 artic 0.20 carved_ OK 
+  llm_a_open_face_flush_terrac inherit 볼륨3 지배0.53 artic 0.18 carved_ OK 
+  llm_a_back_flush_wedge       inherit 볼륨4 지배0.42 artic 0.22 open_fi OK 
+  llm_a_three_unequal_peers    impose  볼륨4 지배0.60 artic 0.43 porous_ OK 
+  llm_a_plate_on_four_supports impose  볼륨5 지배0.91 artic 0.71 carved_ OK 
+  llm_a_long_axis_wedge        inherit 볼륨1 지배1.00 artic 0.04 solid_b OK 
+  llm_a_cross_axis_offset_pair inherit 볼륨2 지배0.63 artic 0.19 carved_ OK 
+  llm_a_forecourt_notch        impose  볼륨1 지배1.00 artic 0.20 open_fi OK 
+  llm_a_pure_court_ring        impose  볼륨4 지배0.32 artic 0.30 open_fi OK 
+  llm_a_full_depth_light_slot  impose  볼륨1 지배1.00 artic 0.05 solid_b OK 
+  llm_a_terrace_with_flank_not impose  볼륨2 지배0.66 artic 0.26 carved_ OK 
+  llm_a_sheared_court          impose  볼륨4 지배0.30 artic 0.28 carved_ OK 
+  llm_a_lifted_back_court      impose  볼륨5 지배0.92 artic 0.71 carved_ OK 
+  llm_a_stepped_back_open_slot impose  볼륨3 지배0.51 artic 0.21 open_fi OK 
+  → 서는 것 14/14

@@ -1,0 +1,158 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "llm_p_field_under_one_roof~full_ground^centred",
+      "artic": "0.34",
+      "take": "0.89",
+      "far": "0.43",
+      "cell": "full|porous_field"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "llm_p_lifted_and_cut^centred",
+      "artic": "0.67",
+      "take": "0.88",
+      "far": "0.71",
+      "cell": "full|open"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "llm_d_twin_court_spine^centred",
+      "artic": "0.38",
+      "take": "0.67",
+      "far": "0.78",
+      "cell": "worked|porous_field"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "llm_p_two_unequal_bars~full_ground^centred",
+      "artic": "0.26",
+      "take": "0.88",
+      "far": "0.92",
+      "cell": "full|solid"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "llm_b_west_court_ring^off_open",
+      "artic": "0.41",
+      "take": "0.50",
+      "far": "0.55",
+      "cell": "held|porous_field"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "llm_p_settled_terrace~worked_ground^centred",
+      "artic": "0.24",
+      "take": "0.79",
+      "far": "0.93",
+      "cell": "worked|solid"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "llm_p_lifted_ground",
+      "artic": "0.36",
+      "take": "0.88",
+      "far": "0.74",
+      "cell": "full|carved"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "llm_d_scatter_under_one_plate~held_ground^centred",
+      "artic": "0.33",
+      "take": "0.63",
+      "far": "0.60",
+      "cell": "held|solid"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "llm_a_lifted_back_court^to_open",
+      "artic": "0.68",
+      "take": "0.84",
+      "far": "0.67",
+      "cell": "worked|open"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "llm_d_lifted_crossing_wing~full_ground^centred",
+      "artic": "0.30",
+      "take": "0.81",
+      "far": "0.98",
+      "cell": "worked|carved"
+    },
+    {
+      "index": 11,
+      "png": "alt-11.png",
+      "name": "llm_d_perforated_half_tapered_half~full_ground^cross_open",
+      "artic": "0.35",
+      "take": "0.39",
+      "far": "0.56",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 12,
+      "png": "alt-12.png",
+      "name": "llm_c_whole_ring_taper~full_ground^off_open",
+      "artic": "0.27",
+      "take": "0.33",
+      "far": "0.36",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 13,
+      "png": "alt-13.png",
+      "name": "llm_c_sheared_court_front~held_ground",
+      "artic": "0.43",
+      "take": "0.56",
+      "far": "0.74",
+      "cell": "held|carved"
+    },
+    {
+      "index": 14,
+      "png": "alt-14.png",
+      "name": "llm_p_market_loop^off_open",
+      "artic": "0.34",
+      "take": "0.61",
+      "far": "0.68",
+      "cell": "held|open"
+    },
+    {
+      "index": 15,
+      "png": "alt-15.png",
+      "name": "llm_a_plate_on_four_supports~worked_ground^off_open",
+      "artic": "0.38",
+      "take": "0.34",
+      "far": "0.49",
+      "cell": "dispersed|carved"
+    },
+    {
+      "index": 16,
+      "png": "alt-16.png",
+      "name": "llm_c_lifted_court_pair~full_ground^off_open",
+      "artic": "0.33",
+      "take": "0.35",
+      "far": "0.50",
+      "cell": "dispersed|open"
+    }
+  ]
+}

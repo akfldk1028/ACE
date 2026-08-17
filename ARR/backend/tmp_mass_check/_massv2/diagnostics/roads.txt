@@ -1,0 +1,8 @@
+roads: 0  top keys=['roads', 'success']
+neighbors: 5  top keys=['neighbors', 'success']
+   item keys: ['geometry', 'landCategory', 'pnu', 'sharedEdge']
+   {"sharedEdge": [[127.1085148225161, 37.73027780236434], [127.10885595510281, 37.730129914551874]], "landCategory": "", "pnu": "4115011300106820000"}
+   geom type: MultiPolygon
+   item keys: ['geometry', 'landCategory', 'pnu', 'sharedEdge']
+   {"sharedEdge": [[127.10799468185927, 37.730012741445115], [127.10812465663317, 37.73007470935251]], "landCategory": "", "pnu": "4115011300106830000"}
+   geom type: MultiPolygon

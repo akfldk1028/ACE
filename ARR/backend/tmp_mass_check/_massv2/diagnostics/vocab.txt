@@ -1,0 +1,50 @@
+저작 스킴 61개
+볼륨 개수 분포: 2개=4, 3개=14, 4개=20, 5개=13, 6개=4, 7개=5, 8개=1
+평균 4.3개
+
+샘플 스킴 구조:
+{
+ "name": "raised_court_field",
+ "primary_language": "porous_field",
+ "secondary_language": "raised_court",
+ "formal_principle": "field_of_parts",
+ "dominant_gesture": "four small blocks stand apart under one thin plate that ties them together",
+ "reference_basis": "SANAA Zollverein School",
+ "placements": [
+  {
+   "role": "block_sw",
+   "kind": "additive",
+   "width": 0.22,
+   "depth": 0.24,
+   "height": 0.72,
+   "x": 0.04,
+   "y": 0.05,
+   "z": 0.0,
+   "rotation_degrees": 0
+  },
+  {
+   "role": "block_se",
+   "kind": "additive",
+   "width": 0.22,
+   "depth": 0.24,
+   "height": 0.72,
+   "x": 0.52,
+   "y": 0.05,
+   "z": 0.0,
+   "rotation_degrees": 0
+  },
+  {
+   "role": "block_nw",
+   "kind": "additive",
+   "width": 0.22,
+   "depth": 0.24,
+   "height": 0.72,
+   "x": 0.04,
+   "y": 0.58,
+   "z": 0.0,
+   "rotation_degrees": 0
+  },
+  {
+   "role": "block_ne",
+   "kind": "additive",
+   "width":

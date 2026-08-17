@@ -1,0 +1,15 @@
+항목                     코드     저촉여부
+과밀억제권역                 UBA100 포함
+공공주택지구                 UDL100 포함
+공공청사                   UQV200 포함
+사회복지시설                 UQV700 접함
+제2종일반주거지역              UQA122 포함
+일반상업지역                 UQA220 접함
+중로1류(폭 20m~25m)        UQS117 접함
+중로2류(폭 15m~20m)        UQS118 접함
+경관녹지                   UQT320 접함
+지구단위계획구역               UQQ300 포함
+자연녹지지역                 UQA430 저촉
+가축사육제한구역               UMZ100 저촉
+
+Vworld는 면적 비율을 주지 않음. 필드: ['cnflcAt', 'cnflcAtNm', 'lastUpdtDt', 'ldCode', 'ldCodeNm', 'manageNo', 'mnnmSlno', 'pnu', 'prposAreaDstrcCode', 'prposAreaDstrcCodeNm', 'registDt', 'regstrSeCode', 'regstrSeCodeNm']

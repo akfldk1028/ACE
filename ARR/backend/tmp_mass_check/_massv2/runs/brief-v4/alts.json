@@ -1,0 +1,113 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "sanaa_rolex~full_ground^to_open",
+      "artic": "0.37",
+      "take": "0.29",
+      "far": "0.24",
+      "cell": "middle|porous_field"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "oma_milstein_hall~dispersed_ground^off_open",
+      "artic": "0.20",
+      "take": "0.13",
+      "far": "0.16",
+      "cell": "crown|solid"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "big_grove_at_grand_bay~dispersed_ground^centred",
+      "artic": "0.39",
+      "take": "0.32",
+      "far": "0.23",
+      "cell": "middle|solid"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "sanaa_naoshima_terminal^off_open",
+      "artic": "0.29",
+      "take": "0.64",
+      "far": "0.23",
+      "cell": "crown|carved"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "oma_kunsthal~full_ground",
+      "artic": "0.38",
+      "take": "0.32",
+      "far": "0.23",
+      "cell": "base|solid"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "sanaa_serpentine_2009^off_open",
+      "artic": "0.46",
+      "take": "0.64",
+      "far": "0.24",
+      "cell": "crown|open"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "oma_shenzhen_stock_exchange~worked_ground^to_open",
+      "artic": "0.46",
+      "take": "0.32",
+      "far": "0.27",
+      "cell": "middle|open"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "nishizawa_moriyama~worked_ground^centred",
+      "artic": "0.50",
+      "take": "0.57",
+      "far": "0.23",
+      "cell": "base|porous_field"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "big_kaktus_towers~held_ground^to_open",
+      "artic": "0.42",
+      "take": "0.26",
+      "far": "0.13",
+      "cell": "base|carved"
+    },
+    {
+      "index": 10,
+      "png": "alt-10.png",
+      "name": "sanaa_grace_farms~worked_ground^to_open",
+      "artic": "0.20",
+      "take": "0.28",
+      "far": "0.21",
+      "cell": "middle|carved"
+    },
+    {
+      "index": 11,
+      "png": "alt-11.png",
+      "name": "oma_de_rotterdam~worked_ground^centred",
+      "artic": "0.56",
+      "take": "0.52",
+      "far": "0.23",
+      "cell": "base|open"
+    }
+  ]
+}

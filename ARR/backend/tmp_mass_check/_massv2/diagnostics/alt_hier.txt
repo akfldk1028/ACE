@@ -1,0 +1,18 @@
+출고 16안의 볼륨 위계
+
+  01  지배 0.31  볼륨 5  raked_bar                 
+  02  지배 0.35  볼륨 3  staggered_solid           
+  03  (시드)             stacked_65
+  04  지배 0.39  볼륨 4  terraced_solid            
+  05  지배 0.57  볼륨 3  widening_stack            
+  06  지배 0.35  볼륨 4  splayed_fan               
+  07  지배 0.38  볼륨 4  dispersed_towers_bridge   
+  08  지배 0.37  볼륨 5  dispersed_stepped_ribbon  
+  09  지배 1.00  볼륨 1  hollow_market_arch        
+  10  지배 0.31  볼륨 5  raked_bar                 
+  11  지배 0.38  볼륨 3  worked_open_scissor       
+  12  지배 0.37  볼륨 4  full_open_comb            
+  13  지배 0.45  볼륨 4  held_court_ell            
+  14  지배 0.36  볼륨 5  raised_court_field        
+  15  지배 1.00  볼륨 1  full_open_ring            
+  16  지배 0.30  볼륨 4  held_porous_stagger       

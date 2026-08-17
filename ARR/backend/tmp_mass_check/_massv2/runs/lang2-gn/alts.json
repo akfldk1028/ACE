@@ -1,0 +1,95 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "1168010100106770000",
+    "parcel_area_m2": 497.19,
+    "ground_capacity_m2": 397.748,
+    "far_capacity_m2": 6463.411,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "big_mountain_dwellings",
+      "artic": "0.34",
+      "take": "0.51",
+      "far": "0.25",
+      "cell": "held|porous_field"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "oma_educatorium^centred",
+      "artic": "0.01",
+      "take": "0.67",
+      "far": "0.24",
+      "cell": "worked|solid"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "big_mountain_dwellings~full_ground^off_open",
+      "artic": "0.33",
+      "take": "0.51",
+      "far": "0.28",
+      "cell": "held|open"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "oma_kunsthal~worked_ground^to_open",
+      "artic": "0.19",
+      "take": "0.45",
+      "far": "0.55",
+      "cell": "held|solid"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "oma_casa_da_musica~worked_ground^to_open",
+      "artic": "0.35",
+      "take": "0.26",
+      "far": "0.35",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 6,
+      "png": "alt-06.png",
+      "name": "big_kaktus_towers",
+      "artic": "0.58",
+      "take": "0.52",
+      "far": "0.20",
+      "cell": "held|carved"
+    },
+    {
+      "index": 7,
+      "png": "alt-07.png",
+      "name": "oma_milstein_hall",
+      "artic": "0.69",
+      "take": "0.40",
+      "far": "0.41",
+      "cell": "dispersed|solid"
+    },
+    {
+      "index": 8,
+      "png": "alt-08.png",
+      "name": "sanaa_rolex",
+      "artic": "0.67",
+      "take": "0.34",
+      "far": "0.37",
+      "cell": "dispersed|open"
+    },
+    {
+      "index": 9,
+      "png": "alt-09.png",
+      "name": "oma_netherlands_embassy~held_ground^centred",
+      "artic": "0.37",
+      "take": "0.31",
+      "far": "0.40",
+      "cell": "dispersed|carved"
+    }
+  ]
+}

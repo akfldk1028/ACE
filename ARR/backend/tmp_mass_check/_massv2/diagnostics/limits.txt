@@ -1,0 +1,3 @@
+effective: bcr=20  far=100   matched=2
+   제2종일반주거지역        bcr 60    far 250   
+   자연녹지지역           bcr 20    far 100   

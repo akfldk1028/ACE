@@ -1,0 +1,28 @@
+측정된 용도지역 면적:
+   제2종일반주거지역            2499.7 m2
+   자연녹지지역                  4.9 m2
+
+resolve_limits: bcr=59.9225  far=249.7094
+{
+ "article": "국토의 계획 및 이용에 관한 법률 제84조",
+ "capacity_method": "area_weighted_average",
+ "branch": "제84조제1항",
+ "other_restrictions": {
+  "source_zone": "제2종일반주거지역",
+  "rule": "largest_area",
+  "article": "국토의 계획 및 이용에 관한 법률 제84조제1항"
+ },
+ "areas_m2": {
+  "제2종일반주거지역": 2499.69,
+  "자연녹지지역": 4.85
+ },
+ "total_area_m2": 2504.54,
+ "smallest_part": {
+  "zone_name": "자연녹지지역",
+  "area_m2": 4.85,
+  "threshold_m2": 330.0,
+  "threshold_article": "국토의 계획 및 이용에 관한 법률 시행령 제94조",
+  "threshold_verified_in_corpus": false
+ },
+ "needs_zone_areas": false
+}

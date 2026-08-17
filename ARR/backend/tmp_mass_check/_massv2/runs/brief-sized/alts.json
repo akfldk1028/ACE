@@ -1,0 +1,59 @@
+{
+  "schema_version": "arr.maas.massv2_alternatives.v1",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.0,
+    "legal_floor_section_count": 16
+  },
+  "alternatives": [
+    {
+      "index": 1,
+      "png": "alt-01.png",
+      "name": "oma_netherlands_embassy~full_ground^centred",
+      "artic": "0.32",
+      "take": "0.49",
+      "far": "0.12",
+      "cell": "held|open"
+    },
+    {
+      "index": 2,
+      "png": "alt-02.png",
+      "name": "oma_educatorium^off_open",
+      "artic": "0.19",
+      "take": "0.25",
+      "far": "0.23",
+      "cell": "dispersed|carved"
+    },
+    {
+      "index": 3,
+      "png": "alt-03.png",
+      "name": "sanaa_zollverein^centred",
+      "artic": "0.47",
+      "take": "0.10",
+      "far": "0.12",
+      "cell": "dispersed|porous_field"
+    },
+    {
+      "index": 4,
+      "png": "alt-04.png",
+      "name": "big_one_high_line~dispersed_ground^off_open",
+      "artic": "0.72",
+      "take": "0.32",
+      "far": "0.03",
+      "cell": "dispersed|open"
+    },
+    {
+      "index": 5,
+      "png": "alt-05.png",
+      "name": "oma_de_rotterdam~held_ground^to_open",
+      "artic": "0.57",
+      "take": "0.03",
+      "far": "0.00",
+      "cell": "dispersed|solid"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+parti-d.json: 16안, split+on 13안, 서는 것 16
+  llm_d_yard_loop_neighbour_bar  볼륨9 지배0.18 artic 0.17 carved_ OK
+  llm_d_street_carve_long_bar    볼륨4 지배0.37 artic 0.27 carved_ OK
+  llm_d_lifted_crossing_wing     볼륨6 지배0.49 artic 0.41 solid_b OK
+  llm_d_three_tooth_comb         볼륨5 지배0.30 artic 0.42 carved_ OK
+  llm_d_sheared_open_half        볼륨2 지배0.60 artic 0.21 open_fi OK
+  llm_d_hook_arm_to_west         볼륨2 지배0.66 artic 0.26 open_fi OK
+  llm_d_single_volume_deep_court 볼륨4 지배0.41 artic 0.24 open_fi OK
+  llm_d_twin_court_spine         볼륨6 지배0.27 artic 0.35 open_fi OK
+  llm_d_scatter_under_one_plate  볼륨7 지배0.62 artic 0.15 solid_b OK
+  llm_d_field_west_bar_east      볼륨9 지배0.28 artic 0.16 solid_b OK
+  llm_d_lifted_field_over_yard   볼륨10 지배0.47 artic 0.09 solid_b OK
+  llm_d_ring_holding_objects     볼륨10 지배0.23 artic 0.27 open_fi OK
+  llm_d_carved_block_beside_fiel 볼륨7 지배0.35 artic 0.31 open_fi OK
+  llm_d_three_courts_field       볼륨11 지배0.22 artic 0.24 open_fi OK
+  llm_d_lifted_grove_behind_wall 볼륨13 지배0.32 artic 0.12 solid_b OK
+  llm_d_perforated_half_tapered_ 볼륨2 지배0.68 artic 0.31 open_fi OK

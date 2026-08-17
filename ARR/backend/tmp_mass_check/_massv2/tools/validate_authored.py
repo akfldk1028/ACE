@@ -19,6 +19,20 @@ VERBS = {
     "taper":     {"ratio", "on"},
     "lift":      {"clearance", "on"},
     "carve":     {"size", "at", "reach", "on"},
+    # The book's operations that arrived with `ops/affine.py` and the executor's
+    # subtractive and swept families. Kept in step with `execute._VERBS` by the
+    # test below - they had drifted once already, which is how an authoring
+    # agent hit a `tie` floor the executor no longer had.
+    "notch":     {"size", "at", "on"},
+    "puncture":  {"size", "n", "on"},
+    "rotate":    {"degrees", "on"},
+    "skew":      {"degrees", "toward", "on"},
+    "twist":     {"degrees", "on"},
+    "shift":     {"ratio", "toward", "on"},
+    "offset":    {"ratio", "toward", "on"},
+    "expand":    {"ratio", "toward", "on"},
+    "compress":  {"ratio", "toward", "on"},
+    "inflate":   {"ratio", "on"},
 }
 PROFILES = {"square", "oval", "stadium", "hexagon", "chamfered", "faceted",
             "trapezoidal", "triangular", "kite", "concave_l"}
@@ -31,12 +45,26 @@ RANGES = {
     # field cap was lifted. The validator was still refusing it.
     "tie": (0.0, 0.4),
     "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.05, 0.4),
+    "degrees": (-90.0, 90.0),
     # `gap` is a multiplier of JOINT_CLEARANCE_M (0.76 m) and the executor
     # does not clamp it. 9 is 6.8 m, which is a courtyard between two bodies
     # rather than a construction tolerance - the void the critics said the
     # corpus never produces. Bounded only where the parts would leave the site.
     "gap": (0.0, 12.0),
 }
+
+# Where a parameter name means different things to different verbs. `ratio` is
+# a share for `split` and a multiplier for `expand`, so one global range refused
+# a legal `expand: 1.6`. Checked before RANGES.
+PER_VERB_RANGES = {
+    ("expand", "ratio"): (1.0, 1.6),
+    ("inflate", "ratio"): (1.0, 1.6),
+    ("compress", "ratio"): (0.6, 1.0),
+    ("stack", "contrast"): (1.2, 2.5),
+    ("split", "contrast"): (1.2, 2.5),
+    ("aggregate", "spread"): (1.05, 2.5),
+}
+
 REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle",
             "dominant_gesture", "reference_basis", "ops")
 
@@ -77,6 +105,7 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
                 faults.append(f"{name} op{index} ({verb}): no why")
             for key, (lo, hi) in RANGES.items():
                 if key in op and isinstance(op[key], (int, float)):
+                    lo, hi = PER_VERB_RANGES.get((verb, key), (lo, hi))
                     if not lo <= op[key] <= hi:
                         faults.append(f"{name} op{index} ({verb}): {key}={op[key]} "
                                       f"outside {lo}..{hi}")

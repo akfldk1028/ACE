@@ -1,0 +1,8 @@
+llm_g_stack_shear    inherit 볼륨3 지배0.48 artic 0.21 cell=open_f  선다=True  ()
+llm_g_carved_block   impose  볼륨1 지배1.00 artic 0.12 cell=carved  선다=True  ()
+llm_g_loop           impose  볼륨4 지배0.32 artic 0.32 cell=open_f  선다=True  ()
+llm_g_field          impose  볼륨6 지배0.45 artic 0.32 cell=open_f  선다=True  ()
+llm_g_lifted         impose  볼륨6 지배0.58 artic 0.37 cell=carved  선다=True  ()
+llm_g_tapered        inherit 볼륨1 지배1.00 artic 0.11 cell=carved  선다=True  ()
+llm_g_ring_shear     impose  볼륨4 지배0.30 artic 0.30 cell=open_f  선다=True  ()
+llm_g_field_carve    impose  볼륨5 지배0.48 artic 0.41 cell=porous  선다=True  ()

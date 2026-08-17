@@ -1,0 +1,7 @@
+buildable 1922.2  target 1452.9
+raised_court_field       factor 0.90  plan  1619.9  inside  1452.9  ->fit   731.6  ok=True
+open_u_court             factor 4.00  plan 22987.2  inside     0.0  ->fit   513.1  ok=True
+held_open_l              factor 4.00  plan 22512.7  inside     0.3  ->fit     0.0  ok=False
+full_open_comb           factor 2.62  plan 11821.1  inside  1452.9  ->fit   459.6  ok=True
+dispersed_pinwheel       factor 4.00  plan 17175.2  inside  1221.3  ->fit   132.4  ok=True
+held_porous_stagger      factor 2.16  plan  5951.6  inside  1452.9  ->fit   378.3  ok=True

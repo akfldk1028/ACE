@@ -173,13 +173,49 @@ def _shape_work(item: Candidate) -> float:
     return max(item.measurement.convexity_drop, item.measurement.section_change)
 
 
+def _spoken_force(item: Candidate) -> float:
+    """How much of the building each word of its sentence actually redrew.
+
+    Both objectives that used to be here score negatively against the only
+    judgement of these sheets that comes from outside the geometry. Three
+    subagents compared thirty pairs of the ten Uijeongbu alternatives without
+    seeing each other's verdicts, and against that ranking:
+
+        far_utilization   rho -0.26     shape_work    rho -0.23
+        articulation      rho -0.31     plan_void     rho -0.48
+
+    The selector was rewarding, one for one, what the critics were marking
+    down - `kahn_kimbell` came last on every pairing while leading the field on
+    both objectives. 용적률 had already measured rho -0.73 against an earlier
+    critique round, so this is the third independent look saying the same thing.
+
+    What does predict is whether the words did any work: mean redraw per word
+    scores rho +0.62, and the critics' own language for the schemes that won is
+    that the operation is visible - "one operation you name in three seconds",
+    "the verb is legible in every edge". A mass whose sentence is invisible is
+    the failure they tagged seventeen times.
+
+    It is one objective on purpose, and that is a reversal of the note in
+    `_balance_keys`. Simulated over the same ten, the balanced pairs are all
+    worse than this alone: with far +0.43, with plan compactness +0.50, with a
+    word count +0.62 and no better. The warning that note carries was earned by
+    articulation, which is a property of a shape; this is a property of a
+    sentence, and the sheet is a sheet of sentences.
+
+    A seed family has no sentence, so it reads 0.0 and cannot win a cell it is
+    sharing with an authored one. That is the intended reading rather than a
+    fallback: this sheet is for options somebody wrote.
+    """
+
+    return float(item.form.extra.get("spoken_force") or 0.0)
+
+
 # What a scheme is asked to be good at, once its cell has already said where it
 # sits. Neither grid coordinate is here and that is deliberate: ground take and
 # plan void are the axes, so scoring them scores the thing every occupant of a
 # cell has in common.
 OBJECTIVES: tuple[tuple[str, Any], ...] = (
-    ("far_utilization", lambda item: item.far_utilization),
-    ("shape_work", _shape_work),
+    ("spoken_force", _spoken_force),
 )
 
 

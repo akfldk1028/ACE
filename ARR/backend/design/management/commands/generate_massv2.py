@@ -319,6 +319,23 @@ class Command(BaseCommand):
                     storey_height_m=site.floor_height_m,
                 )
                 if built is not None:
+                    # How hard the sentence's own words hit the mass. The check
+                    # already runs it word by word to find the silent ones; the
+                    # same numbers say how much each word that did speak redrew,
+                    # and that is what the selector reads. The first word is
+                    # dropped because it is always `extrude` against nothing and
+                    # always reports 1.0, which would flatten the difference
+                    # between a sentence of two words and one of five.
+                    said = list(spoken.changed[1:]) or list(spoken.changed)
+                    built = built.__class__(
+                        **{
+                            **built.__dict__,
+                            "extra": {
+                                **dict(built.extra),
+                                "spoken_force": sum(said) / max(len(said), 1),
+                            },
+                        }
+                    )
                     if schedule is not None:
                         built = programme.resized_to(
                             built, schedule,

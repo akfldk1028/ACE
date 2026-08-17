@@ -244,11 +244,19 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
         )
 
     def _candidate_at(self, name, *, far, convexity=0.0, section=0.0, void=0.75,
-                      placements=None):
+                      placements=None, spoken=0.0):
         item = self._candidate(name, self._measurement(
             void=void, convexity=convexity, section=section
         ), placements=placements)
-        return replace(item, far_utilization=far)
+        item = replace(item, far_utilization=far)
+        if spoken:
+            form = item.form
+            form = form.__class__(**{
+                **form.__dict__,
+                "extra": {**dict(form.extra), "spoken_force": spoken},
+            })
+            item = replace(item, form=form)
+        return item
 
     def test_no_objective_reads_either_grid_coordinate(self):
         """Ground take and plan void say where a scheme sits, not how good it is."""
@@ -259,38 +267,50 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
         self.assertNotIn(0.99, reads)
         self.assertNotIn(0.9, reads)  # ground_take on the fixture
 
-    def test_one_towering_strength_loses_to_no_weak_side(self):
-        """The card deck, in miniature.
+    def test_the_sentence_that_did_more_work_wins_its_cell(self):
+        """What the selector is for, after the objectives were measured.
 
-        `splayed_fan` won its cell on a single maximum while measuring nothing
-        in section and nothing in carving, and every scheme rewritten against
-        the critic lost to the one it replaced. Balance is the whole fix: a
-        scheme has to be worth something on each count it is asked about.
+        `far_utilization` and `shape_work` decided this cell until three
+        subagents ranked ten real alternatives by pairwise comparison and both
+        scored negatively against that ranking (-0.26 and -0.23); mean redraw
+        per word scored +0.62. So the cell goes to the scheme whose words did
+        more to the mass, not to the one that filled more of the envelope.
         """
 
-        # Three, because normalising two candidates makes each of them the best
-        # on one objective and the worst on the other, which is a tie by
-        # construction and tests nothing.
-        spike = self._candidate_at("card_deck", far=1.0, convexity=0.0, section=0.0)
-        balanced = self._candidate_at("worked_block", far=0.7, convexity=0.7, section=0.0,
-                                      placements=[
-                                          place("a", size=(24.0, 14.0, 9.0)),
-                                          place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
-                                      ])
-        # Weakest on area, but not zero: `choose` refuses an unbriefed scheme
-        # that delivers less than `MINIMUM_DELIVERED_SHARE` of the parcel, and
-        # a candidate at 0.0 was being dropped before the ranking it is here to
-        # exercise - leaving two, which this test's own comment says is a tie by
-        # construction.
-        thin = self._candidate_at("all_shape_no_area", far=0.4, convexity=1.0, section=0.0,
-                                  placements=[
-                                      place("a", size=(20.0, 6.0, 12.0)),
-                                      place("b", size=(6.0, 20.0, 12.0), at=(14.0, 0.0, 0.0)),
-                                  ])
+        loud = self._candidate_at("says_something", far=0.5, spoken=0.45)
+        quiet = self._candidate_at("says_little", far=1.0, spoken=0.08,
+                                   placements=[
+                                       place("a", size=(24.0, 14.0, 9.0)),
+                                       place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
+                                   ])
 
-        chosen = choose([spike, balanced, thin], per_cell=1)
+        chosen = choose([loud, quiet], per_cell=1)
 
-        self.assertEqual([item.form.name for item in chosen], ["worked_block"])
+        self.assertEqual([item.form.name for item in chosen], ["says_something"])
+
+    def test_a_scheme_with_no_sentence_does_not_take_a_cell_from_one(self):
+        """A seed family reads 0.0, which is the honest number rather than a hole.
+
+        This sheet is a sheet of options somebody wrote. A deterministic seed
+        has no sentence to be visible, so it cannot outrank one that does - and
+        it still gets the cell when it is the only occupant.
+        """
+
+        seed = self._candidate_at("seed_family", far=1.0)
+        written = self._candidate_at("authored", far=0.5, spoken=0.30,
+                                     placements=[
+                                         place("a", size=(24.0, 14.0, 9.0)),
+                                         place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
+                                     ])
+
+        self.assertEqual(
+            [item.form.name for item in choose([seed, written], per_cell=1)],
+            ["authored"],
+        )
+        self.assertEqual(
+            [item.form.name for item in choose([seed], per_cell=1)],
+            ["seed_family"],
+        )
 
     def test_carving_and_stepping_are_two_ways_to_do_one_thing(self):
         """A courtyard block never steps and a stepped tower is convex in plan.
@@ -359,28 +379,22 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
             ["llm_arch~held_ground", "llm_comb~full_ground"],
         )
 
-    def test_the_ring_that_also_steps_wins_its_cell(self):
-        # Both are the same kind of building by the grid's own reckoning. Under
-        # max() they tie at 0.75 and the cell is decided by floor area; the one
-        # that also works in section has to win.
-        plain = self._candidate("plain_ring", self._measurement(void=0.75))
-        worked = self._candidate(
-            "stepped_ring", self._measurement(void=0.75, section=0.30)
-        )
+    def test_two_masses_of_one_sentence_do_not_both_take_a_tile(self):
+        """Variants share a sentence, so they share its score and its signature.
 
-        chosen = choose([plain, worked], per_cell=1)
+        Carrying a composition along the coverage and siting axes is what fills
+        the grid, and every copy reads the same `spoken_force` because the
+        sentence is the same sentence. The scale-free signature folds them to
+        one entry per cell, and the tie among them falls to floor area - which
+        is the one place that number is still allowed to decide anything.
+        """
 
-        self.assertEqual([item.form.name for item in chosen], ["stepped_ring"])
+        near = self._candidate_at("one_sentence~held_ground", far=0.6, spoken=0.31)
+        far_copy = self._candidate_at("one_sentence~full_ground", far=0.9, spoken=0.31)
 
-    def test_the_carved_ring_beats_the_plain_one_too(self):
-        plain = self._candidate("plain_ring", self._measurement(void=0.75))
-        carved = self._candidate(
-            "quarried_ring", self._measurement(void=0.75, convexity=0.24)
-        )
+        chosen = choose([near, far_copy], per_cell=1)
 
-        chosen = choose([plain, carved], per_cell=1)
-
-        self.assertEqual([item.form.name for item in chosen], ["quarried_ring"])
+        self.assertEqual([item.form.name for item in chosen], ["one_sentence~full_ground"])
 
 
 class StandingUpIsAGateNotAScoreTests(SimpleTestCase):

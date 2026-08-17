@@ -50,6 +50,42 @@ def _is_authored(form) -> bool:
     return bool(form.extra.get("parti")) or form.name.startswith("llm_")
 
 
+def _shortlist(chosen, count: int):
+    """The few that go on the sheet, chosen to be different strategies.
+
+    Not the top N by score: three variations on one idea is what the practice
+    literature calls a single option sampled three times, and Shah's variety
+    framework does not count differences that leave the structure of the concept
+    intact. So the shortlist takes one per formal language first - a solid body,
+    a carved one, an open figure, a field are four positions, not four scores -
+    and only then falls back to rank to fill the remainder.
+
+    The first is the recommendation. Every published scope ends with one: RAIC
+    selects an alternative with the client for development, feasibility reports
+    recommend a direction, Seattle asks which option the applicant prefers.
+    """
+
+    if count <= 0 or count >= len(chosen):
+        return list(chosen)
+    picked: list = []
+    seen: set[str] = set()
+    for item in chosen:
+        language = item.form.primary_language or ""
+        if language in seen:
+            continue
+        seen.add(language)
+        picked.append(item)
+        if len(picked) == count:
+            return picked
+    for item in chosen:
+        if item in picked:
+            continue
+        picked.append(item)
+        if len(picked) == count:
+            break
+    return picked
+
+
 class Command(BaseCommand):
     help = "Generate matrix-form masses on a live parcel and report the grid."
 
@@ -123,6 +159,20 @@ class Command(BaseCommand):
             type=int,
             default=0,
             help="Keep only the best N per grid cell after deduping compositions.",
+        )
+        parser.add_argument(
+            "--shortlist",
+            type=int,
+            default=3,
+            help=(
+                "How many options go on the sheet. Everyone generates many and "
+                "shows few: OMA builds 30-150 study models per project and "
+                "presents three, Seattle's design review mandates exactly three "
+                "with a written rationale each, RAIC has the number agreed "
+                "before work starts and one selected for development. A contact "
+                "sheet of everything lawful is the workbench, not the study. "
+                "0 shows all of them."
+            ),
         )
         parser.add_argument(
             "--alt-png",
@@ -420,22 +470,33 @@ class Command(BaseCommand):
         if options["per_cell"] > 0:
             chosen = choose(pool, per_cell=options["per_cell"])
             selection = selection_summary(chosen, considered=len(pool))
+            shortlist = _shortlist(chosen, options["shortlist"])
             renderable = [
                 (
                     item.form.name,
                     item.source,
                     {
-                        "artic": f"{item.measurement.articulation():.2f}",
-                        "take": f"{item.ground_take:.2f}",
-                        "far": f"{item.far_utilization:.2f}",
+                        # The thesis first. A jury does not read `artic 0.36`,
+                        # and every massing study in print - RAIC, Seattle SDCI,
+                        # OMA's named options - carries a sentence per option
+                        # saying what it is for. The sentence was already on the
+                        # form and was being dropped at the tile.
+                        "thesis": item.form.formal_principle or item.form.secondary_language,
+                        "recommended": index == 0,
+                        "건폐율": f"{item.source.footprint.area / site.parcel_area_m2 * 100:.0f}%",
+                        "용적률": f"{item.far_utilization * site.far_capacity_m2 / site.parcel_area_m2 * 100:.0f}%",
                         "cell": item.cell.replace("_ground", "").replace("_body", "").replace("_figure", ""),
                     },
                 )
-                for item in chosen
+                for index, item in enumerate(shortlist)
             ]
             self.stdout.write(
                 f"selected {len(chosen)} from {len(pool)} "
                 f"({selection['distinct_compositions']} distinct compositions)"
+            )
+            self.stdout.write(
+                f"shortlist {len(shortlist)} for the sheet, "
+                f"recommended: {shortlist[0].form.name if shortlist else '-'}"
             )
 
         site_ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]

@@ -354,7 +354,24 @@ def _render_one(
     for shape, colour in polygons:
         draw.polygon([to_screen(point) for point in shape], fill=colour, outline=_EDGE)
 
-    draw.text((10, 6), title[:40], fill=_INK)
+    # A recommended option is named as one. RAIC and every feasibility scope say
+    # a massing study ends with a recommendation, and a sheet without one is an
+    # inventory rather than a proposal.
+    body = _font(11)
+    mark = "★ " if caption.pop("recommended", None) else ""
+    draw.text((10, 6), (mark + title)[:44], font=_font(12, bold=True), fill=_INK)
+
+    # The thesis, then the numbers. It was the numbers alone, and the numbers
+    # are the part a jury does not read: what an option is for is a sentence,
+    # and OMA gives every option a name for exactly this reason. The sentence
+    # was already being carried on the form as `formal_principle` and thrown
+    # away at the tile.
+    thesis = str(caption.pop("thesis", "") or "").strip()
+    y = tile[1] - 58
+    if thesis:
+        for text in _wrap(thesis, body, tile[0] - 20)[:2]:
+            draw.text((10, y), text, font=body, fill=(52, 52, 58))
+            y += 13
     line = "  ".join(f"{key} {value}" for key, value in caption.items())
-    draw.text((10, tile[1] - 46), line[:58], fill=(70, 70, 76))
+    draw.text((10, y + 1), line[:58], font=body, fill=(120, 120, 128))
     return panel

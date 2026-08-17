@@ -681,6 +681,26 @@ def _carve(frame: _Frame, op: Operation) -> None:
     ux, uy = _direction(frame, op.params.get("at"))
     w, d = frame.width * share, frame.depth * share
     reach = (frame.width - w) / 2.0 * float(op.params.get("reach", 0.55))
+    # How far up the void reaches. Every subtractive volume in this grammar was
+    # written to go clean through - `z=-height, h=3*height` in carve, notch and
+    # puncture alike - so there was no way to take out the lower part of a mass
+    # and leave the upper part standing. That is an arch, and it is also CCTV:
+    # "고리가 수평이 아니라 수직으로 서서, 두 다리와 공중의 귀환부가 하나의
+    # 회로를 이룬다". Written with `loop`, which rings a court in plan, the mass
+    # came out as a flat donut - the opposite of its own sentence, and the
+    # critics tagged it `sentence-contradicted` in three rounds running.
+    #
+    # The compiler subtracts per band, so a cutter with a bounded z-range cuts
+    # only the bands it spans. The machinery was there; the word was not.
+    # 1.0 is through, which is what every existing sentence gets.
+    up_to = _clamp(float(op.params.get("up_to", 1.0)), 0.2, 1.0)
+    # And whether it goes all the way across. A court is inboard on both axes
+    # and leaves building on every side of it; an arch is open at both ends, and
+    # what is left either side of it are two legs. Without this the void stays
+    # square in plan however large it is, so `up_to` alone made a low recess in
+    # a face rather than a hole you can see the sky through - measured on CCTV,
+    # whose whole sentence is the two legs.
+    through = bool(op.params.get("through", False))
     # What was taken out is a place, and the rest of the sentence may want to
     # be about it - a court that later moves alone is a hole; a court the
     # building turns around is a courtyard.
@@ -690,8 +710,11 @@ def _carve(frame: _Frame, op: Operation) -> None:
     frame.placements.append(
         frame.box(
             "court",
-            w=w, d=d, z=-frame.height,
-            h=frame.height * 3.0,
+            w=w if abs(ux) >= abs(uy) or not through else frame.width * 1.2,
+            d=frame.depth * 1.2 if through and abs(ux) >= abs(uy) else d,
+            z=-frame.height,
+            # Up from below the ground to wherever the sentence says it stops.
+            h=frame.height * (1.0 + up_to),
             dx=ux * reach, dy=uy * reach,
             kind="subtractive",
         )

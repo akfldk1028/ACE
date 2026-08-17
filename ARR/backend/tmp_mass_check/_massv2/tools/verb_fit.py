@@ -60,9 +60,16 @@ def sweep() -> list[tuple]:
     rows = []
     for path in sorted(INPUTS.glob("gen-*.json")):
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
-            said = (
-                scheme.get("formal_principle", "") + " " + scheme.get("dominant_gesture", "")
-            ).lower()
+            # The principle only. `dominant_gesture` describes the reference
+            # building - what it looks like in photographs - while the principle
+            # is what this mass has to do. Reading both flagged all three of
+            # `oma_netherlands_dance_theatre`, `oma_snu_museum_of_art` and
+            # `kunsthal_a_ramp_is_the_building` for slopes and tunnels that
+            # appear only in the description of the original: Dance Theatre's
+            # claim is three bodies tied by one floor, which its `aggregate` and
+            # `tie` build exactly, and SNU's is one core with two unequal arms,
+            # which its `split` and `lift` build exactly.
+            said = scheme.get("formal_principle", "").lower()
             used = {op["op"] for op in scheme["ops"]}
             for label, pattern, buildable in RULES:
                 hit = re.search(pattern, said)

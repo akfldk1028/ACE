@@ -869,15 +869,22 @@ def _lift(frame: _Frame, op: Operation) -> None:
     leg = 0.32
     base_x, base_y, base_w, base_d = _bounds_of(picked, frame.rotation)
     frame.placements = rest + raised + [
-        frame.box("support", w=frame.width * leg, d=frame.depth * leg,
+        # Under the volume that was lifted, not under the site. These bounds
+        # were being computed and then ignored: the supports were sized and
+        # placed from `frame.width`/`frame.depth`, so lifting one half of a
+        # split building stood four legs across the whole parcel and welded the
+        # two halves together. Villa dall'Ava's sentence is two apartments
+        # standing apart, its `split` opens 3.8 m, and the `lift` after it closed
+        # the mass to a single piece - it lost every pair it appeared in.
+        frame.box("support", w=base_w * leg, d=base_d * leg,
                   occupiable=False,
                   # Exactly the clearance, not a hair over. Overlapping into
                   # the slab cut a sliver band whose depth was 5% of the leg,
                   # and the raised plate then measured 540 times its own depth
                   # across that sliver - a span rule reading a rounding error.
                   z=0.0, h=clearance,
-                  dx=sx * frame.width * (0.5 - leg / 2.0) * 0.78,
-                  dy=sy * frame.depth * (0.5 - leg / 2.0) * 0.78)
+                  dx=(base_x - frame.cx) + sx * base_w * (0.5 - leg / 2.0) * 0.78,
+                  dy=(base_y - frame.cy) + sy * base_d * (0.5 - leg / 2.0) * 0.78)
         for sx, sy in ((-1, -1), (1, 1), (1, -1), (-1, 1))
     ]
 

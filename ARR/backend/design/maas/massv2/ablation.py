@@ -35,11 +35,16 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
+from shapely.ops import unary_union
+
+from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
+
 from design.maas.source_geometry.ir import SourceMass
 
 from .compile import compile_matrix_form
 from .execute import execute as execute_parti
 from .fill import fill_to_site
+from .grammar import JOINT_CLEARANCE_M
 from .postcondition import changed_share
 
 
@@ -136,4 +141,86 @@ def ablate(
     return Ablation(declared, tuple(shares))
 
 
-__all__ = ["Ablation", "ablate", "IDLE_BELOW"]
+def gap_survived(
+    parti, *, buildable, axis, height_m, site, storey_height_m: float
+) -> tuple[float, float]:
+    """A sentence that declared a gap, and the widest gap the building has.
+
+    Returned as (declared_m, delivered_m). Both zero when the sentence never
+    claimed one.
+
+    Sixteen of the faults in the last critique round were `gaps-not-present`,
+    and three of the four judges independently named the same thing: a verb ran,
+    the gate said it changed the mass, and the thing the sentence was about -
+    the lane, the street, the space between - is not in the drawing. The two
+    lowest-scoring alternatives of sixteen both say volumes stand apart and both
+    draw them fused; each lost every pair it appeared in.
+
+    It is checked on the delivered mass because that is where it goes wrong. The
+    executor sets the gap by construction, so at authoring size it is always
+    there; the growth loop widens the pieces back toward each other and the
+    legal clip trims what overhangs, and between them the gap closes.
+
+    `gap` in a sentence is multiplied by JOINT_CLEARANCE_M, which is how a
+    corpus came to write 0.14 and mean 11 cm while the caption said "separate
+    pavilions".
+    """
+
+    declared = max(
+        (float(op.params.get("gap") or 0.0) for op in parti.ops), default=0.0
+    ) * JOINT_CLEARANCE_M
+    if declared <= 0.0:
+        return (0.0, 0.0)
+    source = _delivered(
+        parti, buildable=buildable, axis=axis, height_m=height_m,
+        site=site, storey_height_m=storey_height_m,
+    )
+    if source is None:
+        return (declared, 0.0)
+
+    # A gap is the narrowest separation in the storey that has one, not the
+    # distance between the two furthest pieces - the first version measured the
+    # latter and reported every sentence at over 100% because the two ends of a
+    # building are always far apart.
+    height = float(source.metadata.get("authored_height_m") or 0.0)
+    widest = 0.0
+    for volume in source.volumes:
+        level = (volume.bottom_fraction + volume.top_fraction) / 2.0
+        parts = [
+            item.footprint
+            for item in source.volumes
+            if item.bottom_fraction - 1e-6 <= level <= item.top_fraction + 1e-6
+        ]
+        if len(parts) < 2:
+            continue
+        merged = unary_union(parts)
+        pieces = list(merged.geoms) if merged.geom_type == "MultiPolygon" else [merged]
+        if len(pieces) < 2:
+            # Everything at this height is one solid: nothing stands apart.
+            continue
+        narrowest = min(
+            float(one.distance(two))
+            for index, one in enumerate(pieces)
+            for two in pieces[index + 1:]
+        )
+        widest = max(widest, narrowest)
+    return (declared, widest)
+
+
+# How wide the surviving gap has to be to still be a gap.
+#
+# A share of what was declared is the wrong test, and the corpus says why: Lab
+# City writes 7.6 m and delivers 2.7 m, which is 35% and is still a lane you
+# walk down - it scored 83% with the critics and is one of the best things the
+# grammar makes. Kimbell writes 6.1 m and delivers 0.6 m, which is 10% and is a
+# construction joint. What separates them is not the ratio, it is whether the
+# thing left over is a space.
+#
+# So the threshold is the project's own minimum room depth. A gap narrower than
+# a room is not a street, a lane, a court or a valley - it is the line where two
+# volumes failed to touch. Measured over the corpus: 34 sentences declare a gap,
+# 15 deliver under half of it and four deliver exactly nothing.
+GAP_IS_A_SPACE_M = DEFAULT_MINIMUM_CLEAR_DEPTH_M
+
+
+__all__ = ["Ablation", "ablate", "gap_survived", "IDLE_BELOW", "GAP_IS_A_SPACE_M"]

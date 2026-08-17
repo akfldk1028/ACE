@@ -296,6 +296,7 @@ class Command(BaseCommand):
             written = []
             mute = []
             idle = []
+            closed = []
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
             )
@@ -316,6 +317,27 @@ class Command(BaseCommand):
                 )
                 if not spoken.honest:
                     mute.append((parti.name, spoken))
+                    continue
+                # A sentence about what happens between volumes has to leave
+                # something between them. The blind critique round tagged
+                # `gaps-not-present` sixteen times and the two alternatives that
+                # lost every pair they appeared in were both of this kind - a
+                # thesis of standing apart, drawn fused. The executor sets the
+                # gap by construction; the growth loop and the legal clip close
+                # it, so it is checked on the delivered mass.
+                declared_gap, built_gap = ablate_module.gap_survived(
+                    parti, buildable=buildable, axis=axis,
+                    height_m=authored_height, site=site,
+                    storey_height_m=site.floor_height_m,
+                )
+                # Judged against whichever is smaller: a sentence asking for
+                # a room-width gap owes a room-width gap, and one asking for a
+                # 20 cm reveal owes 20 cm. `sanaa_bocconi` wrote 0.2 m, built
+                # 2.0 m, and the first version of this refused it for delivering
+                # ten times what it asked.
+                owed = min(declared_gap, ablate_module.GAP_IS_A_SPACE_M)
+                if declared_gap > 0.0 and built_gap < owed:
+                    closed.append((parti.name, declared_gap, built_gap))
                     continue
                 built = execute_parti(
                     parti, buildable=buildable, axis=axis, height_m=authored_height,
@@ -376,6 +398,13 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"  silent: {name} -> {','.join(spoken.silent)} "
                     f"{[round(v, 3) for v in spoken.changed]}"
+                )
+            self.stdout.write(
+                f"gaps that closed before delivery: {len(closed)}"
+            )
+            for name, declared_gap, built_gap in closed:
+                self.stdout.write(
+                    f"  closed: {name} -> declared {declared_gap:.1f}m, built {built_gap:.1f}m"
                 )
             # Spoken at the time and absent from the drawing are different
             # failures. This one is reported and not refused: nothing has been

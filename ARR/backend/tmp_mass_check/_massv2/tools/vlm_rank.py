@@ -101,6 +101,23 @@ def tally(run: str) -> None:
             for tag in tags or ():
                 faults[target][str(tag)] += 1
 
+    # Per-criterion tallies. The rubric is Sun & Fu, Buildings 16(6):1265,
+    # Appendix B - published anchors instead of tags the judges invent, because
+    # letting them invent their own is what made two rounds incomparable.
+    criteria = ("legibility", "intent_match", "alignment", "aesthetics")
+    per = {name: Counter() for name in criteria}
+    seen = {name: Counter() for name in criteria}
+    for v in verdicts:
+        a, b = v.get("a"), v.get("b")
+        if a not in cards or b not in cards:
+            continue
+        for name in criteria:
+            pick = v.get(name)
+            if pick in (a, b):
+                seen[name][a] += 1
+                seen[name][b] += 1
+                per[name][pick] += 1
+
     print(f"{len(verdicts)} comparisons over {len(outings)} alternatives\n")
     ranked = sorted(cards.values(),
                     key=lambda c: -(wins[c["id"]] / max(outings[c["id"]], 1)))
@@ -112,6 +129,20 @@ def tally(run: str) -> None:
               f"= {rate:.0%}  건폐율 {card['bcr_pct']:4.1f}%  용적률 {card['far_pct']:5.1f}%")
         print(f"    지적: {top}")
 
+    scored = [name for name in criteria if sum(seen[name].values())]
+    if scored:
+        print()
+        print("기준별 승률 (Buildings 16(6):1265 Appendix B anchors)")
+        print("%-34s%s" % ("scheme", "".join("%11s" % n[:9] for n in scored)))
+        for card in ranked:
+            cid = card["id"]
+            row = "".join(
+                ("%10.0f%% " % (100 * per[n][cid] / seen[n][cid])) if seen[n][cid] else "%11s" % "-"
+                for n in scored
+            )
+            print("%-34s%s" % (card["scheme"][:32], row))
+        print()
+
     everything = Counter()
     for counter in faults.values():
         everything += counter
@@ -120,6 +151,7 @@ def tally(run: str) -> None:
         print(f"   {tag:34s} {n}")
     (folder / "vlm-ranking.json").write_text(json.dumps({
         "run": run,
+        "per_criterion": {n: {c: {"wins": per[n][c], "outings": seen[n][c]} for c in cards} for n in criteria if sum(seen[n].values())},
         "ranking": [{"id": c["id"], "scheme": c["scheme"],
                      "wins": wins[c["id"]], "outings": outings[c["id"]],
                      "faults": dict(faults[c["id"]])} for c in ranked],

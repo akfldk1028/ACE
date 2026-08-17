@@ -11,6 +11,27 @@ is 96% of a portfolio run's wall clock.
 Subtraction is per band, so a court that is roofed over still reads as a court
 in the bands below the roof - the flattened-union measurement that hid exactly
 that case is what this representation avoids by construction.
+
+What it cannot say, so that the next person does not spend the afternoon again:
+a roof that is not flat. Every `SourceVolume` is (plan polygon x height band),
+which is a prism with a level top and a level bottom, and there is no plane
+term anywhere to tilt one. A pitched roof - 박공, and the vaults Kimbell is
+named for - has no representation here at all.
+
+Approximating one by stacking thin tapering slabs was tried and measured, and
+it gets worse with resolution rather than better: the same bar at 5 steps came
+out at 0.29 articulation over 0.81 ground take, and at 24 steps at 0.09 over
+0.94 - a corrugated pad, not a roof, because `taper` scales about the centre so
+every added slab sits nearer full size. The stripes are the renderer stroking
+each slab, but smoothing only the drawing would be worse than the stripes:
+`measure`, `plausibility` and `legal_fit` all read the steps, so the picture
+would stop agreeing with every number under it.
+
+A designed roof needs a sloped top on the volume itself - a plane term on
+`SourceVolume` and every consumer of it - and until that exists the silhouettes
+this package produces are flat tops with whatever the sunlight envelope sliced
+off them. Which is what the critics keep saying: `roof-is-envelope-residue`,
+22 times across 30 comparisons, their most frequent complaint by a wide margin.
 """
 
 from __future__ import annotations

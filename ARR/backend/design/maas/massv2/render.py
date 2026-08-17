@@ -320,6 +320,51 @@ def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
     return runs
 
 
+def _draw_plan(draw, source, box, site_ring) -> None:
+    """A roof plan beside the axonometric.
+
+    The axonometric hides the one thing a settlement scheme is about. Central
+    Beheer came out of the executor as four blocks standing apart - measured,
+    four disjoint pieces in plan, and the streets between them are 4.6 m wide -
+    and from a single viewpoint the near blocks simply cover them. The gaps are
+    in the building and not in the drawing.
+
+    Which is the practice answer as well: SANAA require every option to carry a
+    plan, a drawing and a model, and a Korean 배치도 is what a jury reads first.
+    One viewpoint is not a massing study.
+    """
+
+    left, top, width, height = box
+    shapes = [footprint for _low, _high, footprint in _merged_runs(source.volumes)]
+    if not shapes:
+        return
+    rings = [list(site_ring)] if site_ring else []
+    points = [point for shape in shapes for point in shape.exterior.coords]
+    points += [point for ring in rings for point in ring]
+    xs = [x for x, _y in points]
+    ys = [y for _x, y in points]
+    span_x = max(max(xs) - min(xs), 1e-6)
+    span_y = max(max(ys) - min(ys), 1e-6)
+    scale = min(width / span_x, height / span_y)
+    off_x = left + (width - span_x * scale) / 2.0
+    off_y = top + (height - span_y * scale) / 2.0
+
+    def to_screen(point):
+        # North up: screen y grows downward, so the site's y is flipped.
+        return (off_x + (point[0] - min(xs)) * scale,
+                off_y + (max(ys) - point[1]) * scale)
+
+    for ring in rings:
+        draw.polygon([to_screen(point) for point in ring], fill=_SITE, outline=None)
+    for shape in shapes:
+        draw.polygon(
+            [to_screen(point) for point in shape.exterior.coords],
+            fill=_ROOF, outline=_EDGE,
+        )
+        for hole in shape.interiors:
+            draw.polygon([to_screen(point) for point in hole.coords], fill=_SITE, outline=_EDGE)
+
+
 def _render_one(
     source: SourceMass,
     tile: tuple[int, int],
@@ -375,8 +420,13 @@ def _render_one(
     max_y = max(py for _px, py in flat)
     span_x = max(max_x - min_x, 1e-6)
     span_y = max(max_y - min_y, 1e-6)
-    scale = min((tile[0] - 30) / span_x, (tile[1] - 22 - reserve) / span_y)
-    off_x = (tile[0] - span_x * scale) / 2.0
+    # The plan needs its own column, not a corner: dropped on top of the
+    # axonometric it lands on the roof, which is the one place a reader is
+    # already looking.
+    inset = int(tile[0] * 0.26) if tile[0] >= 700 else 0
+    gutter = inset + 32 if inset else 0
+    scale = min((tile[0] - 30 - gutter) / span_x, (tile[1] - 22 - reserve) / span_y)
+    off_x = (tile[0] - gutter - span_x * scale) / 2.0
     off_y = 22.0 + (tile[1] - 22 - reserve - span_y * scale) / 2.0
 
     def to_screen(point: tuple[float, float]) -> tuple[float, float]:
@@ -384,6 +434,13 @@ def _render_one(
 
     for shape, colour in polygons:
         draw.polygon([to_screen(point) for point in shape], fill=colour, outline=_EDGE)
+
+    # Room for a plan only where there is room: the contact sheet's tile is a
+    # thumbnail and an inset in it would be a smudge. The large drawing per
+    # alternative is where the gaps have to be readable.
+    if inset:
+        draw.text((tile[0] - inset - 16, 38), "배치", font=_font(10), fill=_MUTED)
+        _draw_plan(draw, source, (tile[0] - inset - 16, 54, inset, inset), site_ring)
 
     # A recommended option is named as one. RAIC and every feasibility scope say
     # a massing study ends with a recommendation, and a sheet without one is an

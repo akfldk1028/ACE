@@ -880,6 +880,8 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
     leg = 0.32
+    # Where the lifted volume was before it went up.
+    stood_at = min((item.z_span()[0] for item in picked), default=0.0)
     # Off the plate as it was built, not as it arrived. The raised volume is
     # rebuilt to hold its own plan area rather than its bounding box, so sizing
     # the legs from the original left them sticking out past the plate they
@@ -896,11 +898,19 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # the mass to a single piece - it lost every pair it appeared in.
         frame.box("support", w=base_w * leg, d=base_d * leg,
                   occupiable=False,
+                  # From wherever the lifted volume was standing, not from the
+                  # ground. `z=0.0` was hardcoded, so lifting the top of a stack
+                  # drew its legs at grade - buried inside the tiers below,
+                  # seven metres under the gap they were meant to hold open.
+                  # Maison Bordeaux says the heaviest dwelling does not touch
+                  # what is under it; the gap was there at 7.2-10.6 m and
+                  # nothing in the drawing showed anything holding it up.
+                  #
                   # Exactly the clearance, not a hair over. Overlapping into
                   # the slab cut a sliver band whose depth was 5% of the leg,
                   # and the raised plate then measured 540 times its own depth
                   # across that sliver - a span rule reading a rounding error.
-                  z=0.0, h=clearance,
+                  z=stood_at, h=clearance,
                   dx=(base_x - frame.cx) + sx * base_w * (0.5 - leg / 2.0) * 0.78,
                   dy=(base_y - frame.cy) + sy * base_d * (0.5 - leg / 2.0) * 0.78)
         for sx, sy in ((-1, -1), (1, 1), (1, -1), (-1, 1))

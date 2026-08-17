@@ -265,6 +265,49 @@ def _render_frame(
     return panel
 
 
+def _plan_key(polygon) -> tuple:
+    """What makes two bands the same plan, coarsely enough to survive floats."""
+
+    bounds = tuple(round(value, 2) for value in polygon.bounds)
+    return (bounds, round(float(polygon.area), 2), len(polygon.interiors))
+
+
+def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
+    """Consecutive bands with the same plan, drawn as one prism.
+
+    The compiler cuts a mass at every height where any volume starts or stops,
+    which is right - it is how a setback is measured and how a court that is
+    roofed over still reads as a court below the roof. It is not how a building
+    is drawn. A tower crossing thirteen band edges was being drawn as thirteen
+    stacked prisms, each with its own outline, so the sheet showed twelve lines
+    that are not in the building and the mass read as a pile of slabs.
+
+    Where the plan does not change from one band to the next there is no edge,
+    so the run is one volume and gets one outline. Where it does change the line
+    stays, because that line is the setback.
+    """
+
+    runs: list[tuple[float, float, Any]] = []
+    by_plan: dict[tuple, list] = {}
+    for volume in volumes:
+        by_plan.setdefault(_plan_key(volume.footprint), []).append(volume)
+    for group in by_plan.values():
+        group.sort(key=lambda item: item.bottom_fraction)
+        low = float(group[0].bottom_fraction)
+        high = float(group[0].top_fraction)
+        for volume in group[1:]:
+            # Contiguous, allowing for the rounding the compiler's fractions
+            # carry. A gap means two separate pieces of the same plan - a court
+            # roofed over, say - and those are two prisms, not one.
+            if float(volume.bottom_fraction) <= high + 1e-4:
+                high = max(high, float(volume.top_fraction))
+                continue
+            runs.append((low, high, group[0].footprint))
+            low, high = float(volume.bottom_fraction), float(volume.top_fraction)
+        runs.append((low, high, group[0].footprint))
+    return runs
+
+
 def _render_one(
     source: SourceMass,
     tile: tuple[int, int],
@@ -285,11 +328,12 @@ def _render_one(
     # Painter's algorithm on the band's own depth: farther bands first, and
     # within a band the lower one first, so an upper volume overlaps the one
     # holding it up rather than the other way round.
-    ordered = sorted(source.volumes, key=lambda item: (item.bottom_fraction, -item.footprint.centroid.y))
-    for volume in ordered:
-        low = float(volume.bottom_fraction) * height
-        high = float(volume.top_fraction) * height
-        polygons.extend(_faces(volume.footprint, low, high))
+    ordered = sorted(_merged_runs(source.volumes),
+                     key=lambda item: (item[0], -item[2].centroid.y))
+    for low_fraction, high_fraction, footprint in ordered:
+        low = low_fraction * height
+        high = high_fraction * height
+        polygons.extend(_faces(footprint, low, high))
 
     flat = [point for shape, _colour in polygons for point in shape]
     if not flat:

@@ -393,11 +393,18 @@ class Command(BaseCommand):
                     "formal_principle": form.formal_principle,
                 },
             })
-            pool.append(Candidate(
-                form=fit.form, source=source, measurement=measurement,
-                plausibility=standing, cell=cell, ground_take=take,
-                far_utilization=far_use,
-            ))
+            if fit.satisfied:
+                # An unlawful mass was being counted and then offered anyway.
+                # `central_beheer_islands` came out at 1.17 of the 건폐율 cap
+                # after the fitter gave up at two passes, and went onto the
+                # sheet as an alternative. A mass the legal fitter could not
+                # satisfy is not a low-scoring option, it is not an option -
+                # the same argument `plausibility` makes about standing up.
+                pool.append(Candidate(
+                    form=fit.form, source=source, measurement=measurement,
+                    plausibility=standing, cell=cell, ground_take=take,
+                    far_utilization=far_use,
+                ))
             renderable.append((
                 form.name,
                 source,

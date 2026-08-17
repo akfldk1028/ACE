@@ -26,7 +26,10 @@ LANGUAGES = {"solid_body", "carved_body", "open_figure", "porous_field"}
 RANGES = {
     "height": (0.1, 1.0), "ratio": (0.15, 0.95), "n": (2, 6),
     "contrast": (1.2, 2.5), "spread": (1.2, 2.5), "bar": (0.15, 0.5),
-    "tie": (0.08, 0.4),
+    # 0 is legal and means "no binding plate at all" - Moriyama and the
+    # Inujima Art Houses have none, and the executor allows it since the
+    # field cap was lifted. The validator was still refusing it.
+    "tie": (0.0, 0.4),
     "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.05, 0.4),
     # `gap` is a multiplier of JOINT_CLEARANCE_M (0.76 m) and the executor
     # does not clamp it. 9 is 6.8 m, which is a courtyard between two bodies

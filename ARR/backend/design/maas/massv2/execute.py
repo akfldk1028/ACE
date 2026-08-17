@@ -27,6 +27,7 @@ from shapely.geometry import Polygon
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 
 from .form import MatrixForm, Placement, place, stack
+from .ops import AFFINE_VERBS
 from .profiles import plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
@@ -524,76 +525,6 @@ def _puncture(frame: _Frame, op: Operation) -> None:
         )
 
 
-def _rotate(frame: _Frame, op: Operation) -> None:
-    """Turn what it is aimed at, in plan.
-
-    The matrix has carried a rotation term since `place` was written and no verb
-    ever set it: every volume took the site's bearing and nothing else. A critic
-    looking at the sheet named it without seeing the code - Grove at Grand Bay
-    and Kaktus Towers are both defined by plates that rotate as they rise, and
-    it reported that neither showed any trace of its stated principle.
-    """
-
-    turn = _clamp(float(op.params.get("degrees", 20.0)), -45.0, 45.0)
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    ordered = sorted(picked, key=lambda item: item.z_span()[0])
-    turned: list[Placement] = []
-    for index, item in enumerate(ordered):
-        low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
-        #累progressive: aimed at a stack, each tier turns further than the one
-        # below, which is the move itself. Aimed at one volume it is a single
-        # turn, because there is nothing to be progressive against.
-        amount = turn * (index + 1) / max(len(ordered), 1) if len(ordered) > 1 else turn
-        turned.append(
-            place(
-                item.role,
-                size=(span_x, span_y, max(high - low, 0.5)),
-                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
-                rotation_degrees=frame.rotation + amount,
-                plan=item.plan,
-                kind=item.kind,
-                occupiable=item.occupiable,
-            )
-        )
-    frame.placements = rest + turned
-
-
-def _skew(frame: _Frame, op: Operation) -> None:
-    """Lean what it is aimed at off vertical.
-
-    `place` has taken `lean_degrees` since it was written, `shear_matrix4` was
-    wired in for it, and across the whole corpus the count of leaning volumes
-    was zero. The book keeps skew apart from shear for a reason a matrix agrees
-    with: a shear slides a volume sideways, a skew tilts it, and only the second
-    changes what the plan is at each storey.
-    """
-
-    lean = _clamp(float(op.params.get("degrees", 12.0)), -30.0, 30.0)
-    axis = "y" if str(op.params.get("toward", "long")).lower() in ("cross", "short", "side") else "x"
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    leaned: list[Placement] = []
-    for item in picked:
-        low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item])
-        leaned.append(
-            place(
-                item.role,
-                size=(span_x, span_y, max(high - low, 0.5)),
-                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
-                rotation_degrees=frame.rotation,
-                lean_degrees=lean,
-                lean_axis=axis,
-                plan=item.plan,
-                kind=item.kind,
-                occupiable=item.occupiable,
-            )
-        )
-    frame.placements = rest + leaned
 
 
 def _twist(frame: _Frame, op: Operation) -> None:
@@ -812,9 +743,12 @@ _VERBS = {
     # was missing was a word.
     "notch": _notch,
     "puncture": _puncture,
-    "rotate": _rotate,
-    "skew": _skew,
     "twist": _twist,
+    # Verbs that are one matrix on volumes already standing live in `ops.affine`
+    # and are written as (which volumes, which operator, about what pivot). The
+    # ones above bring volumes into being or cut them, which is a different kind
+    # of statement and stays here until it has a module of its own.
+    **AFFINE_VERBS,
 }
 
 

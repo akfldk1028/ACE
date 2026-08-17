@@ -69,6 +69,19 @@ def _verb(operator: str, build: Callable[[dict, tuple], dict]) -> Callable:
             return
         rest = [item for item in frame.placements if item not in picked]
         cx, cy, base, span_x, span_y, span_z = _bounds(picked)
+        # `about:` names a regulating element the composition is already
+        # holding - the line a `split` cut, the centre a `loop` made - and two
+        # operations sharing one is the whole of what makes their volumes read
+        # as related rather than as neighbours. Unnamed, the pivot is what it
+        # has always been: the centre of what this operation picked.
+        named = str(op.params.get("about") or "").strip()
+        held = frame.centres.get(named)
+        if held is not None:
+            cx, cy = held.point
+        else:
+            line = frame.lines.get(named)
+            if line is not None:
+                cx, cy = line.origin
         params = build(dict(op.params), (span_x, span_y, span_z))
         frame.placements = rest + _operate(picked, operator, params, (cx, cy, base))
 

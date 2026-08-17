@@ -18,7 +18,8 @@ chosen and what they were aimed at, and both of those come from the parcel.
 
 from __future__ import annotations
 
-from dataclasses import replace
+import math
+from dataclasses import dataclass, replace
 from math import ceil, sqrt
 from typing import Any
 
@@ -70,8 +71,39 @@ MIN_FIELD_SPREAD = 1.05
 MAX_UNDERCROFT_STOREYS = 2.0
 
 
+@dataclass(frozen=True)
+class Line:
+    """An alignment or symmetry axis the composition is holding onto."""
+
+    origin: tuple[float, float]
+    direction: tuple[float, float]
+    born: str = "site"
+
+
+@dataclass(frozen=True)
+class Centre:
+    """A point operations turn about, or a void is centred on."""
+
+    point: tuple[float, float]
+    born: str = "site"
+
+
 class _Frame:
-    """The site's own box, and the volumes standing in it so far."""
+    """The site's own box, the volumes standing in it, and what regulates them.
+
+    Akin & Moustapha (Design Studies 25(1), 2004) watched six architects mass a
+    building for two hours each and found the mechanism that structured all of
+    it: regulating elements - symmetry axes, centres of rotation, alignment
+    lines. What they let an architect do is add and remove masses freely while
+    the underlying structure survives, and that survival is what separates a
+    composition from a pile.
+
+    This grammar had the machinery and no vocabulary. `ops.affine` already says
+    "which volumes, which operator, about what pivot", but the pivot was the
+    bounding-box centre of whatever the operation happened to pick, recomputed
+    per call and thrown away - so no two operations could share one, and a
+    sentence had no way to say "turn this about the line the split just cut".
+    """
 
     def __init__(
         self,
@@ -97,6 +129,31 @@ class _Frame:
         # circular museum is circular in every volume it is cut into.
         self.profile = "square"
         self.placements: list[Placement] = []
+        # What the site gives, before any word is said. Nothing is invented
+        # here: every one of these is already computed elsewhere in the package
+        # and was being thrown away.
+        along = (math.cos(math.radians(rotation)), math.sin(math.radians(rotation)))
+        across = (-along[1], along[0])
+        self.lines: dict[str, Line] = {
+            "spine": Line((cx, cy), along, "site"),
+            "cross": Line((cx, cy), across, "site"),
+            "street": Line((cx, cy), axis, "site"),
+        }
+        self.centres: dict[str, Centre] = {"site": Centre((cx, cy), "site")}
+
+    def regulates(self, name: str, element) -> None:
+        """Record an axis or a centre an operation just brought into being.
+
+        This is the half of the finding that matters. A regulating element is
+        not drawn up front and obeyed - it is produced by a move and then
+        honoured by the moves after it, which is how the structure survives
+        being edited.
+        """
+
+        if isinstance(element, Line):
+            self.lines[name] = element
+        else:
+            self.centres[name] = element
 
     def box(
         self,
@@ -151,6 +208,16 @@ def _direction(frame: _Frame, toward: Any) -> tuple[float, float]:
     """
 
     name = str(toward or "long").lower()
+    # A named regulating element wins over the three site directions: a
+    # sentence that says "along the line the split cut" means that line, and
+    # the fallback below is what every existing sentence already gets.
+    held = frame.lines.get(str(toward or ""))
+    if held is not None:
+        dx, dy = held.direction
+        # Back into the frame's own axes, which is what every caller expects.
+        bearing = math.radians(frame.rotation)
+        cos_b, sin_b = math.cos(-bearing), math.sin(-bearing)
+        return (dx * cos_b - dy * sin_b, dx * sin_b + dy * cos_b)
     if name in ("cross", "short", "side"):
         return (0.0, 1.0)
     if name in ("back", "away", "off_open"):
@@ -275,6 +342,17 @@ def _split(frame: _Frame, op: Operation) -> None:
                     occupiable=item.occupiable,
                 )
             )
+        # The cut is an alignment line the rest of the sentence can hold onto.
+        # It is the composition's own axis rather than the site's, and it is
+        # exactly what an architect draws first and keeps.
+        frame.regulates(
+            f"{names[0]}|{names[1]}",
+            Line(
+                (cx, cy),
+                (-uy, ux) if abs(ux) >= abs(uy) else (uy, -ux),
+                "split",
+            ),
+        )
     frame.placements = rest + made
 
 
@@ -545,6 +623,12 @@ def _carve(frame: _Frame, op: Operation) -> None:
     ux, uy = _direction(frame, op.params.get("at"))
     w, d = frame.width * share, frame.depth * share
     reach = (frame.width - w) / 2.0 * float(op.params.get("reach", 0.55))
+    # What was taken out is a place, and the rest of the sentence may want to
+    # be about it - a court that later moves alone is a hole; a court the
+    # building turns around is a courtyard.
+    frame.regulates(
+        "court", Centre((frame.cx + ux * reach, frame.cy + uy * reach), "carve")
+    )
     frame.placements.append(
         frame.box(
             "court",
@@ -747,6 +831,8 @@ def _loop(frame: _Frame, op: Operation) -> None:
     # A ring that wants a step says it: `stack` or `shift` or `lift` aimed at
     # one bar, which is what the corpus does and what `on` is for.
     step = _clamp(float(op.params.get("step", 1.0)), 0.4, 1.0)
+    # A ring has a middle, and it is the thing the ring is about.
+    frame.regulates("court", Centre((frame.cx, frame.cy), "loop"))
     frame.placements.extend([
         frame.box("bar_n", w=frame.width, d=bar_d, z=0.0, h=h,
                   dy=(frame.depth - bar_d) / 2.0),

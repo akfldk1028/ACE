@@ -677,6 +677,20 @@ def _shear(frame: _Frame, op: Operation) -> None:
 def _carve(frame: _Frame, op: Operation) -> None:
     """Take a named room out of the mass, on the side the author aimed it."""
 
+    # Sized and placed against the site's seed rectangle, not against the mass
+    # that is standing. That looks like the wrong frame of reference - it is the
+    # mistake `_lift` made three times - and aiming it at the standing mass was
+    # tried and is not supported by the measurement. Removal as a share of the
+    # compiled solid, over the thirteen sentences that carve, notch or puncture:
+    #
+    #     median 14.4%, and only one case under 5%
+    #     big_tirpitz_blaavand at 1.6% - already reported silent by the gate
+    #
+    # Aiming at the mass moved two schemes up by about two points, two down by
+    # about one, and left the rest flat; Tirpitz itself got worse, 2.3% to 1.6%.
+    # So the compositions here stay close enough to the seed that the two frames
+    # agree, and Tirpitz's weak carve has some other cause. Reverted rather than
+    # kept on principle.
     share = _clamp(float(op.params.get("size", 0.35)), 0.15, 0.6)
     ux, uy = _direction(frame, op.params.get("at"))
     w, d = frame.width * share, frame.depth * share

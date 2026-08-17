@@ -241,7 +241,19 @@ def _split(frame: _Frame, op: Operation) -> None:
                     dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
                     dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
                     kind=item.kind,
-                    plan=item.plan,
+                    # A piece cut from a plan is not a copy of that plan. Cut a
+                    # circular museum in two and you get two half-circles, not
+                    # two circles - and this vocabulary has no half-circle, so
+                    # the honest piece is the rectangle.
+                    #
+                    # Copying it was worse than either: a profile is normalized
+                    # into the unit square and then scaled by each volume's own
+                    # width and depth, so the same trapezoid came out at a
+                    # different splay in every part. Lab City's three volumes
+                    # measured 2.07, 1.64 and 2.33 to one, which drew three
+                    # unrelated wedges where the building is one block with a
+                    # diagonal street cut through it.
+                    plan="square",
                     occupiable=item.occupiable,
                 )
             )

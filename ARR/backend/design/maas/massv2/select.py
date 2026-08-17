@@ -103,6 +103,19 @@ CORPUS_PIECES = 3.4
 # documents make exceeding it a deduction and then a disqualification.
 BRIEF_TOLERANCE = 0.05
 
+# How little of the parcel's 용적률 an unbriefed scheme may deliver and still be
+# an alternative. Half of `fill._TARGET_FLOOR`: the growth loop aims at 0.75 and
+# a scheme that lands under half of that did not choose a low coverage, it ran
+# out of moves. Kept loose on purpose - the point is to refuse the house on the
+# 2,499 m2 parcel, not to push every scheme toward the ceiling, which is the
+# objective the critics scored worst (rho -0.73 against their own ranking).
+MINIMUM_DELIVERED_SHARE = 0.375
+
+# How many tiles one composition may occupy. See `family_of`: two cells apart is
+# the same scheme moved along an axis and is worth showing twice; three is the
+# same drawing printed three times.
+MAX_TILES_PER_FAMILY = 2
+
 
 def _brief_tolerance(item) -> float | None:
     """How far off the brief this scheme is, or None if it has no brief."""
@@ -288,6 +301,22 @@ def choose(
         inside = [item for item in briefed if _brief_tolerance(item) <= BRIEF_TOLERANCE]
         if inside:
             pool = inside
+    else:
+        # With no brief, the parcel is the brief. A scheme that delivers a
+        # fraction of what the site affords is not a low-coverage proposition,
+        # it is a scheme that could not grow: Villa dall'Ava came out at 5.5%
+        # 건폐율 and 578 m2 on a 2,499 m2 parcel - a house - and went onto the
+        # sheet as an alternative.
+        #
+        # Low coverage IS how some Korean winners work (7.88%, 6.94%), but they
+        # get there against a 소요면적표 that asks for little, which is the
+        # briefed branch above. Unbriefed, the floor is `fill`'s own growth
+        # target: a scheme that cannot reach it has failed at the thing the
+        # growth loop exists to do, and saying so here keeps the judgement in
+        # one place rather than adding a second opinion about the same number.
+        standing = [item for item in pool if item.far_utilization >= MINIMUM_DELIVERED_SHARE]
+        if standing:
+            pool = standing
     keys = _balance_keys(pool)
 
     def rank(item: Candidate) -> tuple:
@@ -307,10 +336,33 @@ def choose(
     order = sorted(by_cell, key=lambda cell: (len(by_cell[cell]), cell))
 
     taken: set[str] = set()
+    times: dict[str, int] = {}
     chosen: list[Candidate] = []
     for cell in order:
+        # A family that has already had its two outings is out of the running,
+        # not merely sorted below. Preferring the unseen is what `taken` does,
+        # and it is enough only while some other family is available in the
+        # cell - `lab_city` took four of thirteen tiles the moment a change in
+        # the geometry made it rank first in cells where nothing else did.
+        #
+        # Two is the number `family_of` argues for directly: two cells apart is
+        # a move along an axis and belongs on the sheet twice, three cells apart
+        # is the same drawing printed three times.
+        available = [
+            item for item in by_cell[cell].values()
+            if times.get(family_of(item), 0) < MAX_TILES_PER_FAMILY
+        ]
+        if not available:
+            # The cell goes empty rather than take a third copy. Measured on the
+            # 의정부 sheet, four cells had exactly one sentence able to occupy
+            # them - the high ground-take column, which only a handful of
+            # compositions can reach at all - and `lab_city` printed four times
+            # out of thirteen tiles. An empty cell says the supply does not
+            # reach here, which is true and useful; a repeated tile says it does,
+            # which is neither. This module opens by refusing exactly that trade.
+            continue
         ranked = sorted(
-            by_cell[cell].values(),
+            available,
             # An unseen composition first: the sheet is a set of options, and an
             # option the architect has already been shown is worth less than one
             # they have not, even when it measures a little better.
@@ -327,7 +379,9 @@ def choose(
             reverse=True,
         )
         for candidate in ranked[:max(1, per_cell)]:
-            taken.add(family_of(candidate))
+            family = family_of(candidate)
+            taken.add(family)
+            times[family] = times.get(family, 0) + 1
             chosen.append(candidate)
     return chosen
 

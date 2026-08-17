@@ -277,7 +277,12 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
                                           place("a", size=(24.0, 14.0, 9.0)),
                                           place("b", size=(10.0, 14.0, 6.0), at=(0.0, 0.0, 9.0)),
                                       ])
-        thin = self._candidate_at("all_shape_no_area", far=0.0, convexity=1.0, section=0.0,
+        # Weakest on area, but not zero: `choose` refuses an unbriefed scheme
+        # that delivers less than `MINIMUM_DELIVERED_SHARE` of the parcel, and
+        # a candidate at 0.0 was being dropped before the ranking it is here to
+        # exercise - leaving two, which this test's own comment says is a tie by
+        # construction.
+        thin = self._candidate_at("all_shape_no_area", far=0.4, convexity=1.0, section=0.0,
                                   placements=[
                                       place("a", size=(20.0, 6.0, 12.0)),
                                       place("b", size=(6.0, 20.0, 12.0), at=(14.0, 0.0, 0.0)),

@@ -469,6 +469,168 @@ def _carve(frame: _Frame, op: Operation) -> None:
     )
 
 
+def _notch(frame: _Frame, op: Operation) -> None:
+    """Take a bite out of a corner.
+
+    `carve` aims at a side and reaches in; a notch belongs to a corner, and the
+    book keeps them apart because they read differently - a court is a room the
+    building holds, a notch is the building declining to occupy a corner. Two of
+    the twenty combinations the book records are notches (Notch + Notch, Shift +
+    Notch), and neither is expressible as a carve.
+    """
+
+    share = _clamp(float(op.params.get("size", 0.3)), 0.15, 0.5)
+    ux, uy = _direction(frame, op.params.get("at"))
+    # A corner, so both axes are committed. The named direction picks the long
+    # side and the cross sign follows it rather than being a second parameter.
+    sy = 1.0 if ux >= 0.0 else -1.0
+    w, d = frame.width * share, frame.depth * share
+    frame.placements.append(
+        frame.box(
+            "notch",
+            w=w, d=d, z=-frame.height, h=frame.height * 3.0,
+            dx=(ux if abs(ux) >= abs(uy) else sy) * (frame.width - w) / 2.0,
+            dy=(uy if abs(uy) > abs(ux) else sy) * (frame.depth - d) / 2.0,
+            kind="subtractive",
+        )
+    )
+
+
+def _puncture(frame: _Frame, op: Operation) -> None:
+    """Drive a hole clean through, top to bottom.
+
+    A court is open to the sky and stops at the ground; a puncture goes through
+    the whole mass and is a route, a light well or a passage. `carve` already
+    cuts a full-height void, so the difference the book draws is where it sits:
+    a puncture is inboard, away from every edge, which is what makes it read as
+    a hole rather than as a recess.
+    """
+
+    share = _clamp(float(op.params.get("size", 0.22)), 0.1, 0.45)
+    count = int(_clamp(float(op.params.get("n", 1)), 1, 3))
+    w, d = frame.width * share, frame.depth * share
+    for index in range(count):
+        # Spaced along the length rather than stacked on one spot, and kept off
+        # the edges so each one is surrounded by building.
+        along = (index + 1) / (count + 1) - 0.5
+        frame.placements.append(
+            frame.box(
+                f"puncture_{index}",
+                w=w, d=d, z=-frame.height, h=frame.height * 3.0,
+                dx=along * (frame.width - w) * 0.8,
+                dy=0.0,
+                kind="subtractive",
+            )
+        )
+
+
+def _rotate(frame: _Frame, op: Operation) -> None:
+    """Turn what it is aimed at, in plan.
+
+    The matrix has carried a rotation term since `place` was written and no verb
+    ever set it: every volume took the site's bearing and nothing else. A critic
+    looking at the sheet named it without seeing the code - Grove at Grand Bay
+    and Kaktus Towers are both defined by plates that rotate as they rise, and
+    it reported that neither showed any trace of its stated principle.
+    """
+
+    turn = _clamp(float(op.params.get("degrees", 20.0)), -45.0, 45.0)
+    picked, rest = _scope(frame, op)
+    if not picked:
+        return
+    ordered = sorted(picked, key=lambda item: item.z_span()[0])
+    turned: list[Placement] = []
+    for index, item in enumerate(ordered):
+        low, high = item.z_span()
+        cx, cy, span_x, span_y = _bounds_of([item])
+        #累progressive: aimed at a stack, each tier turns further than the one
+        # below, which is the move itself. Aimed at one volume it is a single
+        # turn, because there is nothing to be progressive against.
+        amount = turn * (index + 1) / max(len(ordered), 1) if len(ordered) > 1 else turn
+        turned.append(
+            place(
+                item.role,
+                size=(span_x, span_y, max(high - low, 0.5)),
+                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
+                rotation_degrees=frame.rotation + amount,
+                plan=item.plan,
+                kind=item.kind,
+                occupiable=item.occupiable,
+            )
+        )
+    frame.placements = rest + turned
+
+
+def _skew(frame: _Frame, op: Operation) -> None:
+    """Lean what it is aimed at off vertical.
+
+    `place` has taken `lean_degrees` since it was written, `shear_matrix4` was
+    wired in for it, and across the whole corpus the count of leaning volumes
+    was zero. The book keeps skew apart from shear for a reason a matrix agrees
+    with: a shear slides a volume sideways, a skew tilts it, and only the second
+    changes what the plan is at each storey.
+    """
+
+    lean = _clamp(float(op.params.get("degrees", 12.0)), -30.0, 30.0)
+    axis = "y" if str(op.params.get("toward", "long")).lower() in ("cross", "short", "side") else "x"
+    picked, rest = _scope(frame, op)
+    if not picked:
+        return
+    leaned: list[Placement] = []
+    for item in picked:
+        low, high = item.z_span()
+        cx, cy, span_x, span_y = _bounds_of([item])
+        leaned.append(
+            place(
+                item.role,
+                size=(span_x, span_y, max(high - low, 0.5)),
+                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
+                rotation_degrees=frame.rotation,
+                lean_degrees=lean,
+                lean_axis=axis,
+                plan=item.plan,
+                kind=item.kind,
+                occupiable=item.occupiable,
+            )
+        )
+    frame.placements = rest + leaned
+
+
+def _twist(frame: _Frame, op: Operation) -> None:
+    """Turn the section progressively as it rises.
+
+    One affine cannot twist, for the same reason it cannot taper: the transform
+    varies with height and a matrix is linear. `form.stack` was written for
+    exactly this and carries a `twist_degrees` argument that nothing had ever
+    passed. Vancouver House and the Shanghai Tower are this verb; so is half of
+    what the corpus calls a tower.
+    """
+
+    turn = _clamp(float(op.params.get("degrees", 30.0)), 5.0, 90.0)
+    picked, rest = _scope(frame, op)
+    if not picked:
+        return
+    twisted: list[Placement] = []
+    for item in picked:
+        low, high = item.z_span()
+        cx, cy, span_x, span_y = _bounds_of([item])
+        storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 3, 10))
+        twisted.extend(
+            stack(
+                item.role,
+                size=(span_x, span_y, high - low),
+                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
+                storeys=storeys,
+                twist_degrees=turn,
+                plan=item.plan,
+                kind=item.kind,
+                rotation_degrees=frame.rotation,
+                occupiable=item.occupiable,
+            )
+        )
+    frame.placements = rest + twisted
+
+
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -643,6 +805,16 @@ _VERBS = {
     "lift": _lift,
     "loop": _loop,
     "aggregate": _aggregate,
+    # The book's own operation list runs to thirty and this grammar spoke nine
+    # of them. These five ask nothing new of the machinery - the rotation and
+    # lean terms have been in `place` since it was written, `form.stack` has
+    # carried `twist_degrees` since it was written, and both were dead. What
+    # was missing was a word.
+    "notch": _notch,
+    "puncture": _puncture,
+    "rotate": _rotate,
+    "skew": _skew,
+    "twist": _twist,
 }
 
 

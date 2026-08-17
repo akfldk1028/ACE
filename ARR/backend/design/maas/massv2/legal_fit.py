@@ -23,6 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.geometry_language.affine_matrix import (
@@ -49,6 +50,12 @@ _MAX_PASSES = 6
 # limit converged onto from above is a limit crossed.
 _CEILING_PASSES = 24
 _CEILING_AIM = 0.999
+# How close a volume's base has to be to another's top to count as resting on
+# it, and how much plan they have to share. Both are the float-noise thresholds
+# the structure module already uses for the same question.
+_SETTLE_TOLERANCE_M = 0.05
+_MEANINGFUL_CONTACT_M2 = 1.0
+
 # Floor area is trimmed one storey at a time, so the bound is a storey count
 # rather than a ratio. A building with more storeys than this over its capacity
 # was authored for a different parcel.
@@ -176,6 +183,47 @@ def _shortened(placement: Placement, factor: float) -> Placement:
         translation_matrix4((0.0, 0.0, low)),
     )
     return replace(placement, matrix=validate_matrix4(matrix))
+
+
+def _dropped(placement: Placement, distance: float) -> Placement:
+    """Move a volume straight down, keeping its size."""
+
+    return replace(placement, matrix=validate_matrix4(compose_matrix4(
+        placement.matrix, translation_matrix4((0.0, 0.0, -distance))
+    )))
+
+
+def _settled_onto(placements, trimmed_index: int, drop: float):
+    """Bring down whatever was resting on a volume that just got shorter.
+
+    Taking a storey off a lower tier and leaving the tiers above it in the air
+    opens a gap the width of the storey, and the mass then reports itself as
+    `only_63%_of_the_mass_reaches_the_ground` - which is true, and is the
+    trim's doing rather than the author's. A building settles when you remove a
+    floor from underneath it.
+
+    What is resting on it is what overlaps it in plan and starts at its old top.
+    Anything standing beside it, or bridging over it from its own supports,
+    stays where it is.
+    """
+
+    trimmed = placements[trimmed_index]
+    old_top = trimmed.z_span()[1] + drop
+    footprint = Polygon([(x, y) for x, y, _z in trimmed.corners()]).convex_hull
+    out = list(placements)
+    for index, item in enumerate(placements):
+        if index == trimmed_index or item.kind != "additive":
+            continue
+        low = item.z_span()[0]
+        if abs(low - old_top) > _SETTLE_TOLERANCE_M:
+            continue
+        plan = Polygon([(x, y) for x, y, _z in item.corners()]).convex_hull
+        if plan.is_empty or footprint.is_empty:
+            continue
+        if float(plan.intersection(footprint).area) <= _MEANINGFUL_CONTACT_M2:
+            continue
+        out[index] = _dropped(item, drop)
+    return out
 
 
 def _lowered_under_envelope(placement: Placement, allowed_at) -> Placement | None:
@@ -492,12 +540,14 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
             low, high = tallest.z_span()
             span = high - low
             trimmed = _shortened(tallest, (span - floor_height) / span)
-            fitted = replace(
-                fitted,
-                placements=tuple(
-                    trimmed if item is tallest else item for item in fitted.placements
-                ),
+            index = next(
+                position for position, item in enumerate(fitted.placements)
+                if item is tallest
             )
+            settled = list(fitted.placements)
+            settled[index] = trimmed
+            settled = _settled_onto(settled, index, floor_height)
+            fitted = replace(fitted, placements=tuple(settled))
 
     # Height is exhausted when every volume is down to one storey, and a scheme
     # can still be over 용적률 there - clipped to a wide parcel, plan alone can

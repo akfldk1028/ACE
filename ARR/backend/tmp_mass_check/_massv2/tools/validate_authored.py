@@ -14,7 +14,7 @@ VERBS = {
     "split":     {"ratio", "along", "first", "second", "contrast", "gap", "on", "profile"},
     "stack":     {"n", "contrast", "align", "height", "grow", "on", "profile"},
     "aggregate": {"n", "spread", "height", "tie", "on", "profile"},
-    "loop":      {"bar", "height", "on", "profile"},
+    "loop":      {"bar", "height", "step", "on", "profile"},
     "shear":     {"ratio", "toward", "on"},
     "taper":     {"ratio", "on"},
     "lift":      {"clearance", "on"},
@@ -43,7 +43,7 @@ RANGES = {
     # 0 is legal and means "no binding plate at all" - Moriyama and the
     # Inujima Art Houses have none, and the executor allows it since the
     # field cap was lifted. The validator was still refusing it.
-    "tie": (0.0, 0.4),
+    "tie": (0.0, 0.4), "step": (0.4, 1.0),
     "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.05, 0.4),
     "degrees": (-90.0, 90.0),
     # `gap` is a multiplier of JOINT_CLEARANCE_M (0.76 m) and the executor
@@ -60,10 +60,16 @@ PER_VERB_RANGES = {
     ("expand", "ratio"): (1.0, 1.6),
     ("inflate", "ratio"): (1.0, 1.6),
     ("compress", "ratio"): (0.6, 1.0),
-    ("stack", "contrast"): (1.2, 2.5),
-    ("split", "contrast"): (1.2, 2.5),
+    ("stack", "contrast"): (1.2, 3.5),
+    ("split", "contrast"): (1.2, 3.5),
     ("aggregate", "spread"): (1.05, 2.5),
 }
+
+# Verbs that bring volumes into being. Everything else transforms or cuts what
+# is already standing, so a sentence that opens with one of those has nothing to
+# act on and produces no mass at all - the diff check reports an empty list
+# rather than a silent word, which is easy to miss.
+MAKING_VERBS = {"extrude", "stack", "loop", "aggregate"}
 
 REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle",
             "dominant_gesture", "reference_basis", "ops")
@@ -87,6 +93,9 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
             faults.append(f"{name}: primary_language {scheme.get('primary_language')!r} "
                           f"not one of {sorted(LANGUAGES)}")
         ops = scheme.get("ops") or []
+        if ops and str(ops[0].get("op")) not in MAKING_VERBS:
+            faults.append(f"{name}: opens with {ops[0].get('op')!r}, which needs a "
+                          f"volume to act on - start with one of {sorted(MAKING_VERBS)}")
         if not 2 <= len(ops) <= 6:
             faults.append(f"{name}: {len(ops)} ops, wanted 2..6")
 

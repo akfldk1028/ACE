@@ -647,14 +647,24 @@ def _loop(frame: _Frame, op: Operation) -> None:
     # why its overhang is not a cantilever - and the corner clearance belongs
     # between separate enclosures, not inside a single closed figure. Held
     # apart it reported itself as two buildings, correctly.
+    # The four bars are the same height unless the sentence says otherwise.
+    # They used to be h, 0.72h, 0.86h and 0.58h, hardcoded - so every ring in
+    # the corpus arrived already broken into four heights, and a sentence whose
+    # one decisive move was "draw one corner up" had nothing to draw it up
+    # against. Looked at full size, CCTV came out as a jumble of bars rather
+    # than a ring, and the reason was in the verb, not in the sentence.
+    #
+    # A ring that wants a step says it: `stack` or `shift` or `lift` aimed at
+    # one bar, which is what the corpus does and what `on` is for.
+    step = _clamp(float(op.params.get("step", 1.0)), 0.4, 1.0)
     frame.placements.extend([
         frame.box("bar_n", w=frame.width, d=bar_d, z=0.0, h=h,
                   dy=(frame.depth - bar_d) / 2.0),
-        frame.box("bar_s", w=frame.width, d=bar_d, z=0.0, h=h * 0.72,
+        frame.box("bar_s", w=frame.width, d=bar_d, z=0.0, h=h * step,
                   dy=-(frame.depth - bar_d) / 2.0),
-        frame.box("bar_e", w=bar_w, d=frame.depth, z=0.0, h=h * 0.86,
+        frame.box("bar_e", w=bar_w, d=frame.depth, z=0.0, h=h,
                   dx=(frame.width - bar_w) / 2.0),
-        frame.box("bar_w", w=bar_w, d=frame.depth, z=0.0, h=h * 0.58,
+        frame.box("bar_w", w=bar_w, d=frame.depth, z=0.0, h=h * step,
                   dx=-(frame.width - bar_w) / 2.0),
     ])
 

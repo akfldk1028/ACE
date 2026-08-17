@@ -701,6 +701,16 @@ def _carve(frame: _Frame, op: Operation) -> None:
     # a face rather than a hole you can see the sky through - measured on CCTV,
     # whose whole sentence is the two legs.
     through = bool(op.params.get("through", False))
+    # Measured against what is standing, not against the frame. `frame.height`
+    # is what the parcel affords, and a sentence that extrudes to a third of it
+    # has a mass a third as tall - so `up_to` read off the frame put the top of
+    # the cutter above the building and cut clean through. Milstein extrudes to
+    # 4.2 m and its 0.55 asked for 6.6, which drew a doughnut where the sentence
+    # says the ground passes under a plate.
+    standing = max(
+        (item.z_span()[1] for item in frame.placements if item.kind == "additive"),
+        default=frame.height,
+    )
     # What was taken out is a place, and the rest of the sentence may want to
     # be about it - a court that later moves alone is a hole; a court the
     # building turns around is a courtyard.
@@ -714,7 +724,7 @@ def _carve(frame: _Frame, op: Operation) -> None:
             d=frame.depth * 1.2 if through and abs(ux) >= abs(uy) else d,
             z=-frame.height,
             # Up from below the ground to wherever the sentence says it stops.
-            h=frame.height * (1.0 + up_to),
+            h=frame.height + standing * up_to,
             dx=ux * reach, dy=uy * reach,
             kind="subtractive",
         )

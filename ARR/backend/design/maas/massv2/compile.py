@@ -49,9 +49,20 @@ from .form import MatrixForm, Placement
 from .profiles import unit_plan
 
 
-# Bands thinner than this are float noise from two volumes meeting at a shared
-# level, not a storey; merging them keeps the band list readable.
-_MINIMUM_BAND_M = 0.05
+# Bands thinner than this are a seam between two volumes that end near each
+# other, not a layer of the building. The number is the package's own floor on
+# how thin anything it builds may be - `_Frame.box` holds every volume to at
+# least 0.5 m, and a storey to a storey - so a band under it corresponds to no
+# building element at all.
+#
+# It was 0.05, chosen against float noise, and 5 cm is far below the scale of
+# the mistake: measured over the sixteen delivered alternatives, seven of the
+# seventy-four prisms drawn were under a metre. In an axonometric each of those
+# is a line across a facade that no wall makes, which is what "정갈하지 않다"
+# turned out to mean in about a tenth of the cases. The rest of the layering is
+# not noise - forty-nine of the seventy-four are 3 m or thicker, and those are
+# storeys.
+_MINIMUM_BAND_M = 0.5
 # A band whose remaining plan is slighter than this was cut away, not built.
 _MINIMUM_BAND_AREA_M2 = 1.0
 

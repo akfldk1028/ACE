@@ -100,6 +100,31 @@ PLOT_MODES: dict[str, PlotMode] = {
     "lift": "impose",
     "loop": "impose",
     "aggregate": "impose",
+    # The ten below were added to the executor and never added here, so the
+    # parser dropped them - six words across the corpus, and `skew` three times,
+    # which is why Mountain Dwellings' 30-degree ramp never appeared. Worse
+    # than being wrong: the postcondition check judges the ops it was *given*,
+    # so a word lost at parse time is never reported silent. The sentence said
+    # three things, two were built, and nothing anywhere said so.
+    #
+    # `_VERBS` and this table must name the same verbs; a test holds them equal.
+    #
+    # Which mode follows what the verb does to the figure. A void or a turn is
+    # the point of the scheme and a clip to the boundary erases it, so those
+    # impose; a slide or a size change is a move inside a mass that still takes
+    # the plot's outline, so those inherit - the same reading that puts `shear`
+    # and `taper` on one side and `carve` on the other.
+    "grade": "impose",
+    "notch": "impose",
+    "puncture": "impose",
+    "twist": "impose",
+    "rotate": "impose",
+    "skew": "inherit",
+    "shift": "inherit",
+    "offset": "inherit",
+    "expand": "inherit",
+    "compress": "inherit",
+    "inflate": "inherit",
 }
 
 

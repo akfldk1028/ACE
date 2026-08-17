@@ -25,7 +25,9 @@ from typing import Any
 from shapely.geometry import Polygon
 
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
+from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY
 
+from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
 from .profiles import plan_names
@@ -226,6 +228,21 @@ def _split(frame: _Frame, op: Operation) -> None:
         low, high = item.z_span()
         cx, cy, span_x, span_y = _bounds_of([item])
         along = span_x if abs(ux) >= abs(uy) else span_y
+        # Cutting cannot make the building bigger. The pieces are rectangles
+        # spanning the bounding box, so a plan that is not a rectangle - the
+        # parcel-shaped volume every sentence starts from - grew every time it
+        # was cut: Central Beheer's three splits took 3,342 m² to 5,815 m², a
+        # 74% rise that put it over 건폐율 at 1.17 of the cap while the sentence
+        # believed it was dividing a settlement. So the cross dimension is
+        # whatever holds the plan area it was cut from, not the bounding box.
+        # For a rectangle the two are the same and nothing changes.
+        across_span = span_y if abs(ux) >= abs(uy) else span_x
+        plan_area = float(_plan(item).area)
+        across = (
+            min(across_span, plan_area / along)
+            if along > 1e-9 and plan_area > 1e-9
+            else across_span
+        )
         first = along * ratio - gap / 2.0
         second = along * (1.0 - ratio) - gap / 2.0
         for name, size, side in ((names[0], first, -1.0), (names[1], second, 1.0)):
@@ -236,8 +253,8 @@ def _split(frame: _Frame, op: Operation) -> None:
             made.append(
                 frame.box(
                     name,
-                    w=size if abs(ux) >= abs(uy) else span_x,
-                    d=span_y if abs(ux) >= abs(uy) else size,
+                    w=size if abs(ux) >= abs(uy) else across,
+                    d=across if abs(ux) >= abs(uy) else size,
                     z=low, h=tall,
                     dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
                     dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
@@ -392,6 +409,71 @@ def _taper(frame: _Frame, op: Operation) -> None:
             )
         )
     frame.placements = rest + pulled
+
+
+def _grade(frame: _Frame, op: Operation) -> None:
+    """Cut it back a step at a time, so the section becomes a stair.
+
+    The book's own word - Grade, 단차화하다, "단계적으로 깎아 계단형 윤곽 생성" -
+    and the grammar had no way to say it. Mountain Dwellings is the sentence
+    that needed it: the parking ramp's slope is the section of the whole
+    building and the dwellings are terraces on that slope. Written with `skew`,
+    which leans a prism, the mass came out a box with an overhang - a sheared
+    solid still has a flat top and a flat bottom, and a terrace is neither.
+
+    A `taper` is the nearest thing already here and it is not this either: it
+    narrows on every side as it rises, which is a ziggurat rather than a slope.
+    A grade gives ground away on one side only, so the far edge stands where it
+    always did and the near one walks back.
+
+    Discrete on purpose. The book says 계단형 - stepped - and the terraces are
+    the storeys, so the steps are storeys and not a smooth ramp.
+    """
+
+    picked, rest = _scope(frame, op)
+    if not picked:
+        return
+    # How much of the plan the top step has given up. Below a fifth the stair
+    # is a setback detail; above nine tenths the top step has no floor left.
+    run = _clamp(float(op.params.get("run", 0.6)), 0.2, 0.9)
+    ux, uy = _direction(frame, op.params.get("toward"))
+    along_x = abs(ux) >= abs(uy)
+
+    made: list[Placement] = []
+    for item in picked:
+        low, high = item.z_span()
+        cx, cy, span_x, span_y = _bounds_of([item])
+        along = span_x if along_x else span_y
+        across = span_y if along_x else span_x
+        # One step per storey: the terraces are floors, and asking for more
+        # resolution than the building has invents steps nobody stands on.
+        steps = int(_clamp(
+            round((high - low) / max(frame.storey, 1.0)),
+            2, int(_clamp(float(op.params.get("steps", 6)), 2, 8)),
+        ))
+        band = (high - low) / steps
+        for index in range(steps):
+            keep = along * (1.0 - run * index / max(steps - 1, 1))
+            if keep <= 0.5:
+                continue
+            # The high side stands still and the low side steps back, so the
+            # stair reads from one direction rather than as a symmetric pile.
+            shift = (along - keep) / 2.0
+            made.append(
+                frame.box(
+                    f"{item.role}_step_{index}",
+                    w=keep if along_x else across,
+                    d=across if along_x else keep,
+                    z=low + index * band,
+                    h=band,
+                    dx=cx - frame.cx + (ux * shift if along_x else 0.0),
+                    dy=cy - frame.cy + (uy * shift if not along_x else 0.0),
+                    kind=item.kind,
+                    plan=item.plan,
+                    occupiable=item.occupiable,
+                )
+            )
+    frame.placements = rest + made
 
 
 def _shear(frame: _Frame, op: Operation) -> None:
@@ -639,7 +721,15 @@ def _loop(frame: _Frame, op: Operation) -> None:
     """
 
     depth = _clamp(float(op.params.get("bar", 0.26)), 0.15, 0.4)
-    bar_w, bar_d = frame.width * depth, frame.depth * depth
+    # A ring's bars are bars. `bar` is a share of the frame, so on a 60 m field
+    # the 0.4 ceiling builds four volumes 24 m deep, which is twice as deep as
+    # daylight reaches from both sides - a block, not a bar - and the four of
+    # them close the court to 4% of the plan. CCTV came out a solid box with a
+    # light shaft in it. The ceiling is the depth the corpus already builds
+    # every daylit bar to, stated one file over: twice the daylit reach.
+    lit = DAYLIT_DEPTH_PER_STOREY * (frame.storey or 3.0)
+    bar_w = min(frame.width * depth, 2.0 * lit)
+    bar_d = min(frame.depth * depth, 2.0 * lit)
     share = _clamp(float(op.params.get("height", 1.0)), 0.1, 1.0)
     h = frame.height * share
     # The bars run the full width and meet at the corners. A ring is one
@@ -758,6 +848,10 @@ _VERBS = {
     "notch": _notch,
     "puncture": _puncture,
     "twist": _twist,
+    # Grade is the book's stepped profile, and the only way this grammar can
+    # say a terraced section. `skew` leans a prism and `taper` narrows on every
+    # side; neither is a slope you can stand on.
+    "grade": _grade,
     # Verbs that are one matrix on volumes already standing live in `ops.affine`
     # and are written as (which volumes, which operator, about what pivot). The
     # ones above bring volumes into being or cut them, which is a different kind

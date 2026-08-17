@@ -727,3 +727,28 @@ class TheCorpusSaysHowManyVolumesTests(SimpleTestCase):
 
         self.assertEqual(_piece_distance(near), 0.0)
         self.assertEqual(_piece_distance(far), 0.0)
+
+
+class EveryVerbTheExecutorKnowsCanBeWrittenTests(SimpleTestCase):
+    """A word the parser does not accept is dropped before anything judges it.
+
+    `PLOT_MODES` decides what `parti_from_record` will read, and it named nine
+    verbs while the executor had grown to nineteen. The ten it did not name -
+    the ones taken from the book's operation list - were silently discarded, so
+    Mountain Dwellings' `skew` never ran and the sentence's own postcondition
+    check, which judges the ops it was given, reported the mass honest.
+
+    Six words across the authored corpus were lost this way. The failure mode is
+    that it looks like nothing: the drawing is a legal, plausible building that
+    simply does not do what its caption says.
+    """
+
+    def test_the_parser_accepts_exactly_what_the_executor_runs(self):
+        from design.maas.massv2.execute import _VERBS
+        from design.maas.massv2.grammar import PLOT_MODES
+
+        self.assertEqual(
+            sorted(_VERBS),
+            sorted(PLOT_MODES),
+            "add the verb to PLOT_MODES as well, or the parser drops it",
+        )

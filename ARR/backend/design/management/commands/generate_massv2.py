@@ -94,6 +94,21 @@ class Command(BaseCommand):
         parser.add_argument("--output-dir", required=True)
         parser.add_argument("--building-type", default="제1종근린생활시설")
         parser.add_argument(
+            "--track",
+            choices=("overseas", "korea"),
+            default="overseas",
+            help=(
+                "Which of the two editions this run is. They have different "
+                "objective functions and must not share a sheet: overseas lets "
+                "the form decide the size and reads 용적률 as whatever it grew "
+                "to, korea hands the size to a 실별 소요면적표 and reads 용적률 "
+                "as whether the brief was met. Mixed together, the korea masses "
+                "look like they failed to fill the cap and the overseas ones "
+                "look like they ignored the brief. So korea requires a "
+                "schedule and overseas refuses one."
+            ),
+        )
+        parser.add_argument(
             "--authored-json",
             action="append",
             help=(
@@ -193,6 +208,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         output = Path(options["output_dir"])
         output.mkdir(parents=True, exist_ok=True)
+
+        track = options["track"]
+        if track == "korea" and not options["program_json"]:
+            raise CommandError(
+                "the korea edition is brief-driven: pass --program-json a 실별 소요면적표"
+            )
+        if track == "overseas" and options["program_json"]:
+            raise CommandError(
+                "the overseas edition lets the form decide its size: "
+                "drop --program-json or run --track korea"
+            )
 
         try:
             site = load_legal_site(options["pnu"], building_type=options["building_type"])
@@ -467,6 +493,7 @@ class Command(BaseCommand):
             ))
 
         selection = None
+        compiled_count = len(renderable)
         if options["per_cell"] > 0:
             chosen = choose(pool, per_cell=options["per_cell"])
             selection = selection_summary(chosen, considered=len(pool))
@@ -499,6 +526,28 @@ class Command(BaseCommand):
                 f"recommended: {shortlist[0].form.name if shortlist else '-'}"
             )
 
+        # Which edition, off which vocabulary, against which brief. Two runs of
+        # this command produced 용적률 110-229% and 58-60% and nothing in either
+        # output said why - the difference was in how the command line was
+        # typed. A sheet nobody can trace back to its inputs is not evidence.
+        provenance = {
+            "track": track,
+            "corpus": sorted(
+                Path(path).name
+                for path in (options["authored_json"] or []) + (options["parti_json"] or [])
+            ),
+            "sampled": options["sample"] or 0,
+            "brief": (
+                {
+                    "name": schedule.name,
+                    "gross_m2": round(schedule.gross_m2, 1),
+                    "weight": options["program_weight"],
+                }
+                if schedule is not None
+                else None
+            ),
+        }
+
         site_ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]
         sheet = render_masses(renderable, output / "massv2-sheet.png", site_ring=site_ring)
 
@@ -517,6 +566,7 @@ class Command(BaseCommand):
                 json.dumps(
                     {
                         "schema_version": "arr.maas.massv2_alternatives.v1",
+                        "provenance": provenance,
                         "site": site.evidence(),
                         "alternatives": [
                             {"index": i, "png": f"alt-{i:02d}.png", "name": n, **cap}
@@ -532,9 +582,11 @@ class Command(BaseCommand):
 
         summary = {
             "schema_version": "arr.maas.massv2_run.v1",
+            "provenance": provenance,
             "site": site.evidence(),
             "form_count": len(forms),
-            "compiled": len(renderable),
+            "compiled": compiled_count,
+            "delivered": len(renderable),
             "unlawful": unlawful,
             "implausible": implausible,
             "occupied_cells": len(cells),
@@ -546,8 +598,10 @@ class Command(BaseCommand):
             json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+        # `renderable` is the shortlist by this point, so reporting it as the
+        # compiled count read "compiled 3/1099" on a run that compiled 1,098.
         self.stdout.write(
-            f"compiled {len(renderable)}/{len(forms)}  "
+            f"compiled {compiled_count}/{len(forms)}  delivered {len(renderable)}  "
             f"unlawful {unlawful}  implausible {implausible}  cells {len(cells)}/16"
         )
         self.stdout.write(str(sheet))

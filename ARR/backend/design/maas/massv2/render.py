@@ -75,6 +75,18 @@ def _wrap(text: str, font, width: float) -> list[str]:
     return lines
 
 
+def _elide(text: str, font, width: float) -> str:
+    """Cut to the space there is, not to a character count. A fixed `[:44]`
+    fits a sheet tile and truncates nothing on a drawing three times as wide,
+    which is where the name matters most."""
+
+    if font.getlength(text) <= width:
+        return text
+    while text and font.getlength(text + "…") > width:
+        text = text[:-1]
+    return text + "…"
+
+
 def _project(x: float, y: float, z: float) -> tuple[float, float]:
     sx = x * math.cos(_YAW) - y * math.sin(_YAW)
     sy = x * math.sin(_YAW) + y * math.cos(_YAW)
@@ -319,6 +331,25 @@ def _render_one(
     panel = Image.new("RGB", tile, _BACKGROUND)
     draw = ImageDraw.Draw(panel)
 
+    # Read the caption without consuming it. `pop` on the caller's dict meant
+    # the sheet ate the thesis and the star, and the per-alternative drawings -
+    # rendered afterwards from the same list - came out with the numbers only.
+    # The large drawing is the one that gets looked at, so it lost exactly the
+    # line it existed to carry.
+    body = _font(11)
+    mark = "★ " if caption.get("recommended") else ""
+    numbers = "  ".join(
+        f"{key} {value}"
+        for key, value in caption.items()
+        if key not in ("thesis", "recommended")
+    )
+    thesis = str(caption.get("thesis") or "").strip()
+    # However many lines the sentence needs. Two was a guess that cut every
+    # thesis mid-clause, and a thesis that stops at "so the route through the
+    # block is the thing that" argues nothing.
+    thesis_lines = _wrap(thesis, body, tile[0] - 20) if thesis else []
+    reserve = 46 + 13 * len(thesis_lines)
+
     height = float(source.metadata.get("authored_height_m") or 0.0)
     polygons: list[tuple[list[tuple[float, float]], tuple[int, int, int]]] = []
 
@@ -344,9 +375,9 @@ def _render_one(
     max_y = max(py for _px, py in flat)
     span_x = max(max_x - min_x, 1e-6)
     span_y = max(max_y - min_y, 1e-6)
-    scale = min((tile[0] - 30) / span_x, (tile[1] - 78) / span_y)
+    scale = min((tile[0] - 30) / span_x, (tile[1] - 22 - reserve) / span_y)
     off_x = (tile[0] - span_x * scale) / 2.0
-    off_y = 22.0 + (tile[1] - 78 - span_y * scale) / 2.0
+    off_y = 22.0 + (tile[1] - 22 - reserve - span_y * scale) / 2.0
 
     def to_screen(point: tuple[float, float]) -> tuple[float, float]:
         return (off_x + (point[0] - min_x) * scale, off_y + (point[1] - min_y) * scale)
@@ -357,21 +388,17 @@ def _render_one(
     # A recommended option is named as one. RAIC and every feasibility scope say
     # a massing study ends with a recommendation, and a sheet without one is an
     # inventory rather than a proposal.
-    body = _font(11)
-    mark = "★ " if caption.pop("recommended", None) else ""
-    draw.text((10, 6), (mark + title)[:44], font=_font(12, bold=True), fill=_INK)
+    heading = _font(12, bold=True)
+    draw.text((10, 6), _elide(mark + title, heading, tile[0] - 20), font=heading, fill=_INK)
 
     # The thesis, then the numbers. It was the numbers alone, and the numbers
     # are the part a jury does not read: what an option is for is a sentence,
     # and OMA gives every option a name for exactly this reason. The sentence
     # was already being carried on the form as `formal_principle` and thrown
     # away at the tile.
-    thesis = str(caption.pop("thesis", "") or "").strip()
-    y = tile[1] - 58
-    if thesis:
-        for text in _wrap(thesis, body, tile[0] - 20)[:2]:
-            draw.text((10, y), text, font=body, fill=(52, 52, 58))
-            y += 13
-    line = "  ".join(f"{key} {value}" for key, value in caption.items())
-    draw.text((10, y + 1), line[:58], font=body, fill=(120, 120, 128))
+    y = tile[1] - reserve + 8
+    for text in thesis_lines:
+        draw.text((10, y), text, font=body, fill=(52, 52, 58))
+        y += 13
+    draw.text((10, y + 1), _elide(numbers, body, tile[0] - 20), font=body, fill=(120, 120, 128))
     return panel

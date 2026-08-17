@@ -36,8 +36,16 @@ RULES = [
      {"puncture"}),
     ("공중/캔틸레버", r"\b(cantilever|cantilevers|floats)\b|받치는 것들보다|"
      r"does not touch|passes under|아래 지면이", {"lift", "carve"}),
+    # ⚠️ Both Seattle sentences hit this rule and both are false positives,
+    # settled by measuring rather than by argument. Their "사이" is not a gap
+    # in plan, it is the space under the plates their shear already builds:
+    # `shifted_past_each_other` overhangs 930 m² at 4.8 m of clearance, 427 at
+    # 7.2 and 165 at 9.6; `moved_nine_tenths` has two tiers overhanging 100% -
+    # they do not rest on the tier below at all. Every one of those clearances
+    # is far past the 2.4 m this package calls a room. A shear can build a
+    # between-space, so it belongs in the set.
     ("떨어져 섬", r"\b(apart|separate)\b|streets between|between them|사이가|사이로|떨어져",
-     {"split", "aggregate", "loop"}),
+     {"split", "aggregate", "loop", "shear"}),
     # Nothing builds these. `SourceVolume` is a prism with a level top and there
     # is no plane term anywhere to tilt one - see compile.py.
     ("지붕 형태", r"\b(gable|gabled|vault|vaults|vaulted|pitched|ridge)\b|박공|볼트|"

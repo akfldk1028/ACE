@@ -44,7 +44,11 @@ RULES = [
     # they do not rest on the tier below at all. Every one of those clearances
     # is far past the 2.4 m this package calls a room. A shear can build a
     # between-space, so it belongs in the set.
-    ("떨어져 섬", r"\b(apart|separate)\b|streets between|between them|사이가|사이로|떨어져",
+    # "told apart" and "tell apart" mean distinguished, not standing apart -
+    # Richards' towers are told apart in the massing and attached to their
+    # spine, and the bare \bapart\b flagged the idiom. Same trap family as
+    # `ring` inside "bring", recorded at the bottom of this file.
+    ("떨어져 섬", r"\b(?<!told )(?<!tell )apart\b|\bseparate\b|streets between|between them|사이가|사이로|떨어져",
      {"split", "aggregate", "loop", "shear"}),
     # Nothing builds these. `SourceVolume` is a prism with a level top and there
     # is no plane term anywhere to tilt one - see compile.py.

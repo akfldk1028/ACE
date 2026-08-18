@@ -595,6 +595,14 @@ def _grade(frame: _Frame, op: Operation) -> None:
             2, int(_clamp(float(op.params.get("steps", 6)), 2, 8)),
         ))
         band = (high - low) / steps
+        # Stepping by the band asked for buries each step in the one below
+        # whenever `box` holds it up to a storey - Mountain Dwellings asks for
+        # 2.70 m over four steps and gets 3.00 m ones, so every step overlaps by
+        # 0.30 and the compiler cuts a band at each overlap. Exactly the fault
+        # `_stack` had; CopenHill escaped it only because its band happened to
+        # land on the storey height. So the next step starts where the last one
+        # actually ended.
+        rises_at = low
         for index in range(steps):
             keep = along * (1.0 - run * index / max(steps - 1, 1))
             if keep <= 0.5:
@@ -602,12 +610,11 @@ def _grade(frame: _Frame, op: Operation) -> None:
             # The high side stands still and the low side steps back, so the
             # stair reads from one direction rather than as a symmetric pile.
             shift = (along - keep) / 2.0
-            made.append(
-                frame.box(
+            step = frame.box(
                     f"{item.role}_step_{index}",
                     w=keep if along_x else across,
                     d=across if along_x else keep,
-                    z=low + index * band,
+                    z=rises_at,
                     h=band,
                     dx=cx - frame.cx + (ux * shift if along_x else 0.0),
                     dy=cy - frame.cy + (uy * shift if not along_x else 0.0),
@@ -615,7 +622,8 @@ def _grade(frame: _Frame, op: Operation) -> None:
                     plan=item.plan,
                     occupiable=item.occupiable,
                 )
-            )
+            made.append(step)
+            rises_at = step.z_span()[1]
     frame.placements = rest + made
 
 

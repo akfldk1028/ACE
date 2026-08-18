@@ -78,6 +78,23 @@ def _shortlist(chosen, count: int):
         picked.append(item)
         if len(picked) == count:
             return picked
+    # Then by rank, but never the same sentence twice. A composition carried to
+    # another coverage band or another position on the parcel is the same
+    # building drawn again - `nishizawa_towada~full_ground^centred` and
+    # `nishizawa_towada~held_ground` differ by where they sit, not by what they
+    # are - and the paragraph above is the reason: Shah's variety framework does
+    # not count differences that leave the structure of the concept intact. Two
+    # of the sixteen were a pair of `cctv_a_loop_stood_up` variants standing
+    # side by side on the sheet.
+    said = {_sentence_of(item) for item in picked}
+    for item in chosen:
+        if item in picked or _sentence_of(item) in said:
+            continue
+        said.add(_sentence_of(item))
+        picked.append(item)
+        if len(picked) == count:
+            return picked
+    # Only if that leaves the sheet short: a second variant beats an empty tile.
     for item in chosen:
         if item in picked:
             continue
@@ -85,6 +102,12 @@ def _shortlist(chosen, count: int):
         if len(picked) == count:
             break
     return picked
+
+
+def _sentence_of(item) -> str:
+    """The composition a variant came from, without its band or its position."""
+
+    return str(item.form.name).split("~")[0].split("^")[0]
 
 
 class Command(BaseCommand):

@@ -416,7 +416,20 @@ def _split(frame: _Frame, op: Operation) -> None:
         first = along * ratio - gap / 2.0
         second = along * (1.0 - ratio) - gap / 2.0
         for name, size, side in ((names[0], first, -1.0), (names[1], second, 1.0)):
-            if size <= 0.5:
+            # A piece narrower than a room is not a piece of a building. The
+            # floor used to be half a metre, which is a wall, and on a 264 m²
+            # parcel in Gangnam `kr_hoeryong_nursery_three_low_wings` came out
+            # as a 3.7 m body, a 2.1 m one and a 1.5 x 4.0 m needle standing
+            # 7.6 m tall beside them. The plausibility gate passed it because it
+            # weighs the whole mass and the needle is 18% of it - which is the
+            # right question for that gate and the wrong place to catch this.
+            #
+            # Refusing the piece means a mass too small to cut comes through
+            # uncut, and the silence gate then reports the `split` as a word
+            # that did nothing. That is the honest outcome: on a plot this size
+            # the sentence cannot be said, and it should say so rather than
+            # deliver splinters.
+            if size <= DEFAULT_MINIMUM_CLEAR_DEPTH_M or across <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
                 continue
             shift = side * (along - size) / 2.0
             tall = (high - low) if size >= along / 2.0 else (high - low) / contrast
@@ -660,8 +673,14 @@ def _grade(frame: _Frame, op: Operation) -> None:
         rises_at = low
         for index in range(steps):
             keep = along * (1.0 - run * index / max(steps - 1, 1))
-            if keep <= 0.5:
-                continue
+            # A terrace narrower than a room is not a terrace, for the same
+            # reason a split piece that narrow is not a piece - and the stair
+            # runs into it first, because every step is narrower than the last.
+            # On the 264 m² Gangnam parcel CopenHill's steps came out 6.1, 6.1,
+            # 3.9 and then 1.0 m across, and the last one drew as a spike on the
+            # roof. The stair simply stops where the building runs out of plan.
+            if keep <= DEFAULT_MINIMUM_CLEAR_DEPTH_M or across <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
+                break
             # The high side stands still and the low side steps back, so the
             # stair reads from one direction rather than as a symmetric pile.
             shift = (along - keep) / 2.0

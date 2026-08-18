@@ -180,6 +180,14 @@ class _Frame:
         cos_b, sin_b = math.cos(bearing), math.sin(bearing)
         return (dx * cos_b - dy * sin_b, dx * sin_b + dy * cos_b)
 
+    def point(self, dx: float, dy: float) -> tuple[float, float]:
+        """The world position of a frame offset, for the two verbs that place
+        absolutely instead of through `box` - `taper` and `twist` hand a corner
+        straight to `stack`."""
+
+        world = self.out(dx, dy)
+        return (self.cx + world[0], self.cy + world[1])
+
     def local(self, x: float, y: float) -> tuple[float, float]:
         """Where a world point sits in the frame's axes, from the frame centre."""
 
@@ -569,6 +577,9 @@ def _taper(frame: _Frame, op: Operation) -> None:
     for item in picked:
         low, high = item.z_span()
         cx, cy, item_x, item_y = _bounds_of([item], frame)
+        # `stack` takes a world corner, not a frame offset - this verb does not
+        # go through `box`, so the conversion has to happen here.
+        world_x, world_y = frame.point(cx, cy)
         low_scale, high_scale = scale_at(low), scale_at(high)
         # A slab per storey is as fine as the thing being described, and the
         # bands this produces are what the compiler and every measure read, so
@@ -580,8 +591,8 @@ def _taper(frame: _Frame, op: Operation) -> None:
                 item.role,
                 size=(item_x * low_scale, item_y * low_scale, high - low),
                 at=(
-                    cx - item_x * low_scale / 2.0,
-                    cy - item_y * low_scale / 2.0,
+                    world_x - item_x * low_scale / 2.0,
+                    world_y - item_y * low_scale / 2.0,
                     low,
                 ),
                 storeys=storeys,
@@ -886,12 +897,14 @@ def _twist(frame: _Frame, op: Operation) -> None:
     for item in picked:
         low, high = item.z_span()
         cx, cy, span_x, span_y = _bounds_of([item], frame)
+        # As in `_taper`: a world corner, not a frame offset.
+        world_x, world_y = frame.point(cx, cy)
         storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 3, 10))
         twisted.extend(
             stack(
                 item.role,
                 size=(span_x, span_y, high - low),
-                at=(cx - span_x / 2.0, cy - span_y / 2.0, low),
+                at=(world_x - span_x / 2.0, world_y - span_y / 2.0, low),
                 storeys=storeys,
                 twist_degrees=turn,
                 plan=item.plan,

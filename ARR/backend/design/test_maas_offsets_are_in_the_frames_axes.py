@@ -30,9 +30,20 @@ from design.maas.massv2.execute import _Frame, execute
 from design.maas.massv2.grammar import JOINT_CLEARANCE_M, parti_from_record
 
 
+# ⚠️ Away from the origin, and it has to be. A parcel centred on (0, 0) makes
+# the frame's own axes and the world's numerically identical, so a verb that
+# reads a frame offset as a world point is indistinguishable from a correct one
+# and the file passes with the conversion deliberately removed. That happened
+# here, on the second falsification pass. Real parcels are in a projected
+# system: the Uijeongbu plot sits near (208000, 553000) in EPSG:5186.
+PLOT_AT = (208_400.0, 553_100.0)
+
+
 def _square(side: float) -> Polygon:
     half = side / 2.0
-    return Polygon([(-half, -half), (half, -half), (half, half), (-half, half)])
+    ox, oy = PLOT_AT
+    return Polygon([(ox - half, oy - half), (ox + half, oy - half),
+                    (ox + half, oy + half), (ox - half, oy + half)])
 
 
 def _axis(degrees: float) -> tuple[float, float]:
@@ -114,3 +125,39 @@ class ASecondCutKeepsTheFirstCutsGapTests(SimpleTestCase):
             parts = self._parts(degrees)
             distance = parts["office"].distance(parts["library"])
             self.assertAlmostEqual(distance, owed, delta=0.05, msg=str(degrees))
+
+
+class VerbsThatPlaceAbsolutelyStayOnTheParcelTests(SimpleTestCase):
+    """`taper` and `twist` hand a world corner straight to `stack`.
+
+    Every other verb offsets through `frame.box`, which converts. These two do
+    not, and when `_bounds_of` began returning its centre in the frame's axes
+    they kept reading it as a world point - so the slabs were built near the
+    origin instead of on the parcel, and the legal clip then removed the whole
+    building. `nishizawa_teshima` compiled to 2 bands and 2,754 m² raw and to
+    `None` clipped, which the silence gate read as two words that did nothing.
+    """
+
+    def _form(self, verb: str, degrees: float):
+        sentence = parti_from_record({
+            "name": f"one_{verb}",
+            "primary_language": "solid_body",
+            "ops": [{"op": "extrude", "height": 0.9},
+                    {"op": verb, "ratio": 0.45, "degrees": 30.0}],
+        })
+        return execute(
+            sentence, buildable=_square(60.0), axis=_axis(degrees),
+            height_m=16.8, storey_height_m=4.2,
+        )
+
+    def test_the_slabs_stand_where_the_parcel_is(self):
+        plot = _square(60.0)
+        for verb in ("taper", "twist"):
+            for degrees in BEARINGS:
+                form = self._form(verb, degrees)
+                for item in form.additive():
+                    plan = _plan(item)
+                    self.assertGreater(
+                        plan.intersection(plot).area, 0.5 * plan.area,
+                        msg=f"{verb} at {degrees} deg put {item.role} off the plot",
+                    )

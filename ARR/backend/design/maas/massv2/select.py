@@ -218,6 +218,17 @@ OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("spoken_force", _spoken_force),
 )
 
+# ⚠️ One objective, so `_balance_keys` degenerates for the overseas edition: a
+# one-tuple sorts to itself, and comparing one-tuples is comparing one number.
+# The balance criterion below is live only on the briefed path, which has two.
+#
+# That is not an oversight to quietly patch. `far` and `shape_work` were here
+# and were removed on measurement - their correlation with the critics' ranking
+# flipped sign between rounds, -0.23 then +0.33, while `spoken_force` held at
+# +0.67 and +0.48. Putting a second axis back means finding one that survives a
+# judged comparison, not one that makes this tuple longer. Until then the
+# overseas sheet is chosen by a single number and this comment says so.
+
 
 def _brief_fit(item: Candidate) -> float:
     """How near the delivered floor area is to what the brief asked for.
@@ -271,6 +282,10 @@ BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
 
 def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
     """Score every candidate on how balanced it is, with no weights.
+
+    ⚠️ Live on the briefed path only. `OBJECTIVES` is one entry long, so for the
+    overseas edition everything below reduces to maximising `spoken_force` -
+    see the note there for why a second axis has not simply been added back.
 
     A single number decided cells until now and it picked the worse building.
     `splayed_fan` topped its cell at an articulation of 0.79 while measuring

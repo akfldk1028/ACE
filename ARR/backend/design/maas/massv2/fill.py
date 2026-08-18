@@ -360,11 +360,21 @@ def fill_to_site(
     # times the size it was asked for.
     #
     # Plan first, and only plan: the brief says how much floor, and the storey
-    # heights belong to the rooms. `_wider` anchors on the whole composition's
-    # own centre, so shrinking brings the volumes toward each other in the same
+    # heights belong to the rooms. `_wider` scales the whole composition about
+    # one anchor, so shrinking brings the volumes toward each other in the same
     # proportion and what was touching stays touching - which is the thing two
     # hand-written attempts at this got wrong, reporting 296 of 403 schemes as
     # several separate buildings.
+    #
+    # ⚠️ That anchor is an axis-aligned box around volumes posed at the parcel's
+    # bearing, so it is not the composition's own centre, as this comment used
+    # to claim. Scaling about the wrong point translates the result by
+    # (1 - factor) times the offset. Measured over the corpus on 의정부 the
+    # offset is a median 0.82 m and 9.91 m at worst, so a 1.15 growth step
+    # slides the mass 0.12 m typically and 1.5 m at worst on a 68 m plot.
+    # Contact is preserved either way - a similarity transform cannot break it -
+    # so this is left alone and measured rather than changed. Same call, same
+    # reason, as `legal_fit._scaled_about_own_centre`.
     if briefed:
         for _step in range(_MAX_STEPS):
             standing = best.gross_floor_area_m2

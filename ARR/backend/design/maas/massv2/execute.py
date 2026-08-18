@@ -33,6 +33,7 @@ from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
 from .ops.swept import SWEPT_VERBS
 from .ops.piercing import PIERCING_VERBS
+from .ops.grafting import GRAFTING_VERBS
 from .profiles import plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
@@ -994,6 +995,7 @@ _VERBS = {
     **AFFINE_VERBS,
     **SWEPT_VERBS,
     **PIERCING_VERBS,
+    **GRAFTING_VERBS,
 }
 
 

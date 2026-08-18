@@ -396,6 +396,40 @@
      "why": "이 건물의 유일한 수직 사건은 피라미드형 탑이다. 0.45는 올라가면서 평면이 절반 가까이 좁아진다는 뜻으로, 낮은 몸 위에서 하나의 덩어리만 뾰족해져야 나머지가 조용해진다. 좁은 쪽이 아니라 넓은 상설 전시 켜에 걸어야 꼭대기까지 방의 폭이 남는다 - 좁은 켜를 이만큼 좁히면 위쪽 두세 켜가 방이 아니라 처마가 된다."
     }
    ]
+  },
+  {
+   "name": "kahn_richards_towers_off_a_spine",
+   "primary_language": "open_figure",
+   "secondary_language": "laboratory towers branching off a served spine",
+   "formal_principle": "One service spine runs the length of the site and the laboratories stand as separate towers branching off it, so served and servant spaces are told apart in the massing itself.",
+   "dominant_gesture": "A low continuous bar with tall square towers growing off alternating sides.",
+   "reference_basis": "Louis Kahn - Richards Medical Research Laboratories, Philadelphia (1957-65): studio towers attached to a service spine, served and servant spaces separated as distinct volumes, brick shafts against glazed studios",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "why": "척추. 설비와 동선이 사는 낮고 긴 몸이 먼저 있다."
+    },
+    {
+     "op": "compress",
+     "toward": "cross",
+     "ratio": 0.6,
+     "why": "척추는 바(bar)여야 한다. compress는 0.6 바닥이 있어 한 번으로는 판이 남는다(0.34를 써도 0.6으로 잘림 — 실측 33m)."
+    },
+    {
+     "op": "compress",
+     "toward": "cross",
+     "ratio": 0.6,
+     "why": "그래서 두 번 조인다. 책의 combination 층이 같은 동사의 반복을 정식으로 둔다(Expand+Expand 단계형 확장) — 0.36이면 20m 척추가 된다."
+    },
+    {
+     "op": "branch",
+     "n": 3,
+     "reach": 0.7,
+     "height": 1.0,
+     "why": "실험탑들이 척추에서 가지쳐 나온다 — 책의 Branch 그대로. 팔은 줄기의 단위공간에 쓰여 어느 필지에서든 줄기에 붙어 나온다. reach 0.7은 실측으로 정했다: 0.9는 팔끝이 대지 모서리를 스쳐 잘린다."
+    }
+   ]
   }
  ]
 }

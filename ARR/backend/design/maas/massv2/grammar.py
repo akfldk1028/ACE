@@ -107,6 +107,10 @@ PLOT_MODES: dict[str, PlotMode] = {
     # The book's Intersect (두 볼륨을 서로 관통시킴). The bar is aimed across
     # what is standing, so it inherits the standing frame.
     "intersect": "inherit",
+    # Branch (하나의 줄기에서 여러 팔) and Embed (제2 볼륨을 제1에 삽입). Both
+    # grow off what is standing, in the host's own unit space, so they inherit.
+    "branch": "inherit",
+    "embed": "inherit",
     "carve": "impose",
     "lift": "impose",
     "loop": "impose",

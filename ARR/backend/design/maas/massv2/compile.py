@@ -67,15 +67,58 @@ _MINIMUM_BAND_M = 0.5
 _MINIMUM_BAND_AREA_M2 = 1.0
 
 
-def _plan(placement: Placement) -> Polygon:
-    """Plan outline of a posed box, over its whole height.
+def _ring_at(placement: Placement, level: float) -> list[tuple[float, float]]:
+    """The volume's plan outline at one normalized height, in order."""
 
-    The convex hull of the eight projected corners is exact for any affine image
-    of a cube - the projection of a convex solid is convex - so this stays right
-    under rotation and shear without needing a mesh. This is the right measure
-    for 건축면적, which is the projection of the whole building.
+    return [
+        (x, y)
+        for x, y, _z in (
+            transform_point3(placement.matrix, (corner[0], corner[1], level))
+            for corner in unit_plan(placement.plan)
+        )
+    ]
+
+
+def _stands_upright(placement: Placement) -> bool:
+    """Is this volume's plan the same at every height.
+
+    Cheap and non-recursive, so the plan functions can ask it. Compares the
+    posed ring at the bottom and the top point for point, which is exactly what
+    a lean or a twist changes.
     """
 
+    bottom, top = _ring_at(placement, 0.0), _ring_at(placement, 1.0)
+    return all(
+        abs(a[0] - b[0]) < 1e-9 and abs(a[1] - b[1]) < 1e-9
+        for a, b in zip(bottom, top)
+    )
+
+
+def _ordered(points) -> Polygon:
+    polygon = Polygon(points)
+    if not polygon.is_valid:
+        polygon = polygon.buffer(0)
+    return polygon if isinstance(polygon, Polygon) else Polygon()
+
+
+def _plan(placement: Placement) -> Polygon:
+    """Plan outline of a posed volume, over its whole height.
+
+    A volume that stands upright has the same plan at every height, so the
+    posed ring in order is exact. A convex hull is not: `concave_l` is one of
+    the ten profiles this grammar can name, and its hull is 32% larger than the
+    shape - the notch that makes it an L was being filled in, in the measure of
+    건축면적, in every downstream metric, and in the drawing. Two sentences in
+    the corpus ask for that plan and none of them has ever been drawn with it.
+
+    A leaning or twisting volume is the case the hull was written for: its
+    projection over height is the union of every level's ring, and the hull of
+    the eight corners is exact for the affine image of a *cube* - which is what
+    every leaning volume here is, because the profiles that lean are square.
+    """
+
+    if _stands_upright(placement):
+        return _ordered(_ring_at(placement, 0.0))
     hull = Polygon([(x, y) for x, y, _z in placement.corners()]).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()
 
@@ -100,17 +143,13 @@ def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
     span = high_z - low_z
     if span <= 1e-9:
         return _plan(placement)
+    if _stands_upright(placement):
+        # Same plan at every height, so the slice is the whole plan and the
+        # ring in order is exact - hulling it would fill a concave profile in.
+        return _ordered(_ring_at(placement, 0.0))
     lower = max(0.0, min(1.0, (low - low_z) / span))
     upper = max(0.0, min(1.0, (high - low_z) / span))
-    ring = unit_plan(placement.plan)
-    points = [
-        (x, y)
-        for level in (lower, upper)
-        for x, y, _z in (
-            transform_point3(placement.matrix, (corner[0], corner[1], level))
-            for corner in ring
-        )
-    ]
+    points = _ring_at(placement, lower) + _ring_at(placement, upper)
     hull = Polygon(points).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()
 
@@ -225,8 +264,10 @@ def _leans(placement: Placement) -> bool:
     low, high = placement.z_span()
     if high - low <= 1e-9:
         return False
-    bottom = _plan_between(placement, low, low + (high - low) * 0.02)
-    top = _plan_between(placement, high - (high - low) * 0.02, high)
+    if _stands_upright(placement):
+        return False
+    bottom = _ordered(_ring_at(placement, 0.0))
+    top = _ordered(_ring_at(placement, 1.0))
     if bottom.is_empty or top.is_empty:
         return False
     union = bottom.union(top)

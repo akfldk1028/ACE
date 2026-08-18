@@ -33,7 +33,7 @@ RULES = [
     ("한방향 경사", r"\b(slope|sloping|ramp|ramps)\b|경사|내려온다|\bdescends?\b",
      {"grade", "skew"}),
     ("관통 구멍", r"\b(tube|tubes|pierced|pierces)\b|관통|light well",
-     {"puncture"}),
+     {"puncture", "intersect"}),
     ("공중/캔틸레버", r"\b(cantilever|cantilevers|floats)\b|받치는 것들보다|"
      r"does not touch|passes under|아래 지면이", {"lift", "carve"}),
     # ⚠️ Both Seattle sentences hit this rule and both are false positives,

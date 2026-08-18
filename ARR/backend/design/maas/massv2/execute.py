@@ -32,6 +32,7 @@ from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
 from .ops.swept import SWEPT_VERBS
+from .ops.piercing import PIERCING_VERBS
 from .profiles import plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
@@ -992,6 +993,7 @@ _VERBS = {
     # of statement and stays here until it has a module of its own.
     **AFFINE_VERBS,
     **SWEPT_VERBS,
+    **PIERCING_VERBS,
 }
 
 

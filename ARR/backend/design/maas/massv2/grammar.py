@@ -104,6 +104,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     # bar at a joint or close a waist while leaving both ends full.
     "bend": "inherit",
     "pinch": "inherit",
+    # The book's Intersect (두 볼륨을 서로 관통시킴). The bar is aimed across
+    # what is standing, so it inherits the standing frame.
+    "intersect": "inherit",
     "carve": "impose",
     "lift": "impose",
     "loop": "impose",

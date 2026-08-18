@@ -507,7 +507,8 @@ def _stack(frame: _Frame, op: Operation) -> None:
     # Shrinking upward was hard-coded, so the largest volume was always the
     # bottom one and "hall on top" was unbuildable. The strategy axis reported
     # zero `crown` schemes out of 888 candidates for that reason alone.
-    if bool(op.params.get("grow")):
+    growing = bool(op.params.get("grow"))
+    if growing:
         contrast = 1.0 / contrast
     share = _clamp(float(op.params.get("height", 1.0)), 0.1, 1.0)
     tier_h = frame.height * share / count
@@ -518,6 +519,22 @@ def _stack(frame: _Frame, op: Operation) -> None:
     # do not float concentrically inside one another.
     ux, uy = _direction(frame, op.params.get("align")) if op.params.get("align") else (0.0, 0.0)
     w, d = frame.width, frame.depth
+    if growing:
+        # The plot is the size of the largest tier, whichever end of the stack
+        # that is. Shrinking, the largest is the first and the series starts at
+        # the seed; growing, it is the last, and starting at the seed anyway
+        # multiplied the plot by the contrast once per tier:
+        #
+        #     vancouver_house  n=3 contrast=3.0 grow   1,866 -> 166,049 m² in plan
+        #     via57            n=2 contrast=3.5 grow   2,375 ->  45,723 m²
+        #
+        # The alignment offset below is `(frame.width - w) / 2`, which is a
+        # displacement to the flush face while `w` fits the plot and a throw off
+        # the site once it does not: those two masses were built 269 m and 81 m
+        # from the parcel centre, and only the growth loop's re-centring
+        # brought them back.
+        span = contrast ** (count - 1)
+        w, d = w * span, d * span
     z = 0.0
     for index in range(count):
         # Tiers meet on a shared face, they do not overlap. Overlapping them by

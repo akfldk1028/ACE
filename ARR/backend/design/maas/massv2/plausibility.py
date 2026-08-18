@@ -23,6 +23,8 @@ it is not an option, and a gate is the only place that distinction exists.
 
 from __future__ import annotations
 
+from math import hypot
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -213,8 +215,29 @@ class Plausibility:
 
 
 def _min_dimension(polygon) -> float:
-    min_x, min_y, max_x, max_y = polygon.bounds
-    return float(min(max_x - min_x, max_y - min_y))
+    """How narrow this plan is across its own narrowest direction.
+
+    On its own axes, not the world's. Every volume here is posed at the parcel's
+    bearing and an axis-aligned box around a turned shape is wider than the
+    shape - a 3 x 40 m bar reads 13.3 m across at 15 degrees, 30.4 m at 45. The
+    three live parcels sit at -168.3, 35.5 and 165.0 degrees, so against a
+    1.5 m floor this test could not fire on any of them.
+    """
+
+    if polygon is None or polygon.is_empty:
+        return 0.0
+    ring = list(polygon.minimum_rotated_rectangle.exterior.coords)[:4]
+    if len(ring) < 3:
+        min_x, min_y, max_x, max_y = polygon.bounds
+        return float(min(max_x - min_x, max_y - min_y))
+    # Adjacent edges. Sorting three of them takes the long one twice whenever
+    # the ring starts on a short side - the fault `seed_rectangle` and
+    # `principal_axes` both carried.
+    sides = [
+        hypot(ring[i + 1][0] - ring[i][0], ring[i + 1][1] - ring[i][1])
+        for i in range(2)
+    ]
+    return float(min(sides))
 
 
 def assess(

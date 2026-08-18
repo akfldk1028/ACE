@@ -1,212 +1,207 @@
 {
-  "schemes": [
+ "schemes": [
+  {
+   "name": "via57_corner_drawn_to_three_and_a_half",
+   "primary_language": "open_figure",
+   "secondary_language": "한 모서리만 3.5배로 끌어올린 중정 블록",
+   "formal_principle": "둘레는 낮게 두고 한 변만 극단으로 세워, 지붕이 하나의 뒤틀린 사면이 된다.",
+   "dominant_gesture": "낮은 둘레에서 돛처럼 일어서는 한 모서리.",
+   "reference_basis": "BIG - VIA 57 West New York 2016. 세 모서리 약 40 m, 북동 모서리 142 m — 한 도형 안 높이비 3.5:1",
+   "ops": [
     {
-      "name": "via57_corner_drawn_to_three_and_a_half",
-      "primary_language": "open_figure",
-      "secondary_language": "한 모서리만 3.5배로 끌어올린 중정 블록",
-      "formal_principle": "둘레는 낮게 두고 한 변만 극단으로 세워, 지붕이 하나의 뒤틀린 사면이 된다.",
-      "dominant_gesture": "낮은 둘레에서 돛처럼 일어서는 한 모서리.",
-      "reference_basis": "BIG - VIA 57 West New York 2016. 세 모서리 약 40 m, 북동 모서리 142 m — 한 도형 안 높이비 3.5:1",
-      "ops": [
-        {
-          "op": "loop",
-          "bar": 0.3,
-          "height": 0.3,
-          "why": "둘레 블록을 아주 낮게. 이게 비교 대상이 된다"
-        },
-        {
-          "op": "stack",
-          "n": 2,
-          "contrast": 3.5,
-          "grow": true,
-          "align": "open",
-          "on": "bar_n",
-          "height": 1.0,
-          "why": "3.5는 실제 건물의 높이비 그대로. 이전 상한 2.0에서는 쓸 수 없던 문장이다"
-        }
-      ]
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.3,
+     "why": "둘레 블록을 아주 낮게. 이게 비교 대상이 된다"
     },
     {
-      "name": "seattle_platforms_moved_nine_tenths",
-      "primary_language": "carved_body",
-      "secondary_language": "자기 평면의 9할만큼 서로 지나쳐 밀린 플랫폼들",
-      "formal_principle": "다섯 플랫폼이 서로를 크게 지나쳐, 어긋난 사이가 곧 대공간이 된다.",
-      "dominant_gesture": "비껴 나간 판들 사이로 뚫린 대각선.",
-      "reference_basis": "OMA - Seattle Central Library 2004. 프로그램 플랫폼 다섯이 서로 캔틸레버되도록 이동, 이동량 평면의 0.5~0.9",
-      "ops": [
-        {
-          "op": "stack",
-          "n": 5,
-          "contrast": 1.25,
-          "align": "open",
-          "height": 1.0,
-          "why": "다섯 플랫폼. 크기가 아니라 위치가 이 건물의 수다"
-        },
-        {
-          "op": "shear",
-          "ratio": 0.9,
-          "toward": "long",
-          "why": "0.9는 실제 이동량의 위쪽 끝. 이전 상한 0.35에서는 절반도 못 밀었다"
-        }
-      ]
-    },
-    {
-      "name": "cctv_loop_stood_on_two_legs",
-      "primary_language": "open_figure",
-      "secondary_language": "바닥에 눕지 않고 두 다리로 선 고리",
-      "formal_principle": "고리가 수직으로 서서 두 다리와 공중의 귀환부가 하나의 회로를 이룬다.",
-      "dominant_gesture": "공중에서 닫히는 고리.",
-      "reference_basis": "OMA - CCTV Beijing 2012. 234 m, 두 타워가 6도 기울어 162 m에서 75 m 캔틸레버로 접합",
-      "ops": [
-        {
-          "op": "loop",
-          "bar": 0.28,
-          "height": 1.0,
-          "why": "가는 고리. 다리가 얇아야 회로로 읽힌다"
-        },
-        {
-          "op": "lift",
-          "clearance": 0.4,
-          "on": "bar_s",
-          "why": "한 변을 최대로 들어 고리를 세운다. 캔틸레버 상한이 0.5로 열려 이제 통과한다"
-        }
-      ]
-    },
-    {
-      "name": "mountain_dwellings_parking_is_the_slope",
-      "primary_language": "carved_body",
-      "secondary_language": "주차장이 곧 산비탈이고 그 위가 테라스인 것",
-      "formal_principle": "주차 램프의 경사가 건물 전체의 단면이 되고, 주거는 그 사면 위의 테라스가 된다.",
-      "dominant_gesture": "한 방향으로 통째로 기운 사면.",
-      "reference_basis": "BIG - Mountain Dwellings Copenhagen 2008. 주차 3층이 경사 기단이 되고 80세대가 그 위에 계단식으로 앉음",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 0.9,
-          "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
-        },
-        {
-          "op": "split",
-          "ratio": 0.62,
-          "along": "cross",
-          "first": "slope",
-          "second": "court",
-          "gap": 6.0,
-          "contrast": 1.6,
-          "why": "사면과 그 앞 마당. gap 6은 4.6 m로 둘 사이가 실제로 벌어진다"
-        },
-        {
-          "op": "grade",
-          "toward": "cross",
-          "on": "slope",
-          "why": "주차 램프의 경사가 단면이 되고 주거는 그 사면 위 테라스이므로, 기울인 상자가 아니라 층마다 물러서는 계단형 윤곽이어야 한다. 책의 Grade(단차화하다) - 단계적으로 깎아 계단형 윤곽 생성.",
-          "run": 0.7
-        }
-      ]
-    },
-    {
-      "name": "sluishuis_one_corner_lifted_over_water",
-      "primary_language": "open_figure",
-      "secondary_language": "한 모서리가 물 위로 크게 들린 중정 블록",
-      "formal_principle": "둘레 블록의 한 모서리만 크게 들어올려 마당이 물과 이어지게 한다.",
-      "dominant_gesture": "들린 모서리 아래로 지나가는 지면.",
-      "reference_basis": "BIG - Sluishuis Amsterdam 2022. 46,000 m2, 442세대, 중정 안에 마리나, IJ 위로 약 24 m 캔틸레버",
-      "ops": [
-        {
-          "op": "loop",
-          "bar": 0.32,
-          "height": 0.85,
-          "why": "마리나를 감싸는 둘레"
-        },
-        {
-          "op": "lift",
-          "clearance": 0.4,
-          "on": "bar_e",
-          "why": "한 변만 최대로 들어 물 쪽을 연다"
-        }
-      ]
-    },
-    {
-      "name": "vancouver_house_grows_as_it_rises",
-      "primary_language": "solid_body",
-      "secondary_language": "아래는 삼각형으로 좁고 위로 갈수록 커지는 것",
-      "formal_principle": "다리와 이격선이 저층을 깎아내고, 상층이 그 손실을 되찾으며 커진다.",
-      "dominant_gesture": "위가 무거운 하나의 덩어리.",
-      "reference_basis": "BIG - Vancouver House 2020. 저층 삼각형 6,000 sq ft에서 상층 정사각형으로 확장, 다리 이격 때문",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 1.0,
-          "profile": "triangular",
-          "why": "삼각형에서 시작. 다리 이격이 만든 평면이다"
-        },
-        {
-          "op": "stack",
-          "n": 3,
-          "contrast": 3.0,
-          "grow": true,
-          "align": "open",
-          "height": 1.0,
-          "why": "위로 갈수록 3배. grow와 3.0 상한이 둘 다 있어야 쓸 수 있는 문장"
-        }
-      ]
-    },
-    {
-      "name": "kimbell_vaults_with_light_between",
-      "primary_language": "porous_field",
-      "secondary_language": "사이로 빛이 드는 세 개의 볼트 열",
-      "formal_principle": "세 개의 긴 열이 서로 떨어져 서고, 그 틈이 빛과 동선을 모두 나른다.",
-      "dominant_gesture": "나란히 선 세 줄, 사이가 비어 있음.",
-      "reference_basis": "Kahn - Kimbell Art Museum Fort Worth 1972. 100 ft 사이클로이드 볼트 열, 열 사이에 채광 슬롯",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 0.9,
-          "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
-        },
-        {
-          "op": "split",
-          "ratio": 0.34,
-          "along": "long",
-          "first": "range_a",
-          "second": "rest",
-          "gap": 8.0,
-          "contrast": 1.25,
-          "why": "세 열 중 첫 열을 떼어낸다. 0.66이면 첫 열이 전체의 3분의 2를 가져가고 남은 3분의 1을 반으로 갈라 17%짜리 조각 둘이 붙는다 — 실측 2030/305/305로 '세 개의 긴 열'이 아니라 큰 덩어리 하나에 부스러기 둘이었다. 3분의 1이 맞다."
-        },
-        {
-          "op": "split",
-          "ratio": 0.5,
-          "along": "long",
-          "first": "range_b",
-          "second": "range_c",
-          "gap": 8.0,
-          "contrast": 1.25,
-          "on": "rest",
-          "why": "나머지를 다시 둘로. 세 열이 각각 6 m 떨어져 선다 (실제 세 열은 거의 같은 크기인데 문법 하한이 1.25라 그 값을 쓴다)"
-        }
-      ]
-    },
-    {
-      "name": "marina_city_petals_turn_as_they_rise",
-      "primary_language": "carved_body",
-      "secondary_language": "올라가며 꽃잎이 돌아가는 원통",
-      "formal_principle": "원형 평면의 꽃잎이 층마다 조금씩 돌아, 발코니가 나선으로 읽힌다.",
-      "dominant_gesture": "비틀리며 올라가는 하나의 원통.",
-      "reference_basis": "Goldberg - Marina City Chicago 1964. 원형 60층 타워, 꽃잎형 발코니가 층마다 어긋남",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 1.0,
-          "profile": "oval",
-          "why": "원형 평면"
-        },
-        {
-          "op": "twist",
-          "degrees": 90.0,
-          "why": "90도는 상한. 층마다 자기 행렬로 돌아가는 세분화가 이걸 가능하게 한다"
-        }
-      ]
+     "op": "stack",
+     "n": 2,
+     "contrast": 3.5,
+     "grow": true,
+     "align": "open",
+     "on": "bar_n",
+     "height": 1.0,
+     "why": "3.5는 실제 건물의 높이비 그대로. 이전 상한 2.0에서는 쓸 수 없던 문장이다"
     }
-  ]
+   ]
+  },
+  {
+   "name": "seattle_platforms_moved_nine_tenths",
+   "primary_language": "carved_body",
+   "secondary_language": "자기 평면의 9할만큼 서로 지나쳐 밀린 플랫폼들",
+   "formal_principle": "다섯 플랫폼이 서로를 크게 지나쳐, 어긋난 사이가 곧 대공간이 된다.",
+   "dominant_gesture": "비껴 나간 판들 사이로 뚫린 대각선.",
+   "reference_basis": "OMA - Seattle Central Library 2004. 프로그램 플랫폼 다섯이 서로 캔틸레버되도록 이동, 이동량 평면의 0.5~0.9",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 5,
+     "contrast": 1.25,
+     "align": "open",
+     "height": 1.0,
+     "why": "다섯 플랫폼. 크기가 아니라 위치가 이 건물의 수다"
+    },
+    {
+     "op": "shear",
+     "ratio": 0.9,
+     "toward": "long",
+     "why": "0.9는 실제 이동량의 위쪽 끝. 이전 상한 0.35에서는 절반도 못 밀었다"
+    }
+   ]
+  },
+  {
+   "name": "cctv_loop_stood_on_two_legs",
+   "primary_language": "open_figure",
+   "secondary_language": "바닥에 눕지 않고 두 다리로 선 고리",
+   "formal_principle": "고리가 수직으로 서서 두 다리와 공중의 귀환부가 하나의 회로를 이룬다.",
+   "dominant_gesture": "공중에서 닫히는 고리.",
+   "reference_basis": "OMA - CCTV Beijing 2012. 234 m, 두 타워가 6도 기울어 162 m에서 75 m 캔틸레버로 접합",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.28,
+     "height": 1.0,
+     "why": "가는 고리. 다리가 얇아야 회로로 읽힌다"
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "on": "bar_s",
+     "why": "한 변을 최대로 들어 고리를 세운다. 캔틸레버 상한이 0.5로 열려 이제 통과한다"
+    }
+   ]
+  },
+  {
+   "name": "mountain_dwellings_parking_is_the_slope",
+   "primary_language": "carved_body",
+   "secondary_language": "주차장이 곧 산비탈이고 그 위가 테라스인 것",
+   "formal_principle": "주차 램프의 경사가 건물 전체의 단면이 되고, 주거는 그 사면 위의 테라스가 된다.",
+   "dominant_gesture": "한 방향으로 통째로 기운 사면.",
+   "reference_basis": "BIG - Mountain Dwellings Copenhagen 2008. 주차 3층이 경사 기단이 되고 80세대가 그 위에 계단식으로 앉음",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "slope",
+     "second": "court",
+     "gap": 6.0,
+     "contrast": 1.6,
+     "why": "사면과 그 앞 마당. gap 6은 4.6 m로 둘 사이가 실제로 벌어진다"
+    },
+    {
+     "op": "grade",
+     "toward": "cross",
+     "on": "slope",
+     "why": "주차 램프의 경사가 단면이 되고 주거는 그 사면 위 테라스이므로, 기울인 상자가 아니라 층마다 물러서는 계단형 윤곽이어야 한다. 책의 Grade(단차화하다) - 단계적으로 깎아 계단형 윤곽 생성.",
+     "run": 0.7
+    }
+   ]
+  },
+  {
+   "name": "sluishuis_one_corner_lifted_over_water",
+   "primary_language": "open_figure",
+   "secondary_language": "한 모서리가 물 위로 크게 들린 중정 블록",
+   "formal_principle": "둘레 블록의 한 모서리만 크게 들어올려 마당이 물과 이어지게 한다.",
+   "dominant_gesture": "들린 모서리 아래로 지나가는 지면.",
+   "reference_basis": "BIG - Sluishuis Amsterdam 2022. 46,000 m2, 442세대, 중정 안에 마리나, IJ 위로 약 24 m 캔틸레버",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.32,
+     "height": 0.85,
+     "why": "마리나를 감싸는 둘레"
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "on": "bar_e",
+     "why": "한 변만 최대로 들어 물 쪽을 연다"
+    }
+   ]
+  },
+  {
+   "name": "vancouver_house_grows_as_it_rises",
+   "primary_language": "solid_body",
+   "secondary_language": "아래는 삼각형으로 좁고 위로 갈수록 커지는 것",
+   "formal_principle": "다리와 이격선이 저층을 깎아내고, 상층이 그 손실을 되찾으며 커진다.",
+   "dominant_gesture": "위가 무거운 하나의 덩어리.",
+   "reference_basis": "BIG - Vancouver House 2020. 저층 삼각형 6,000 sq ft에서 상층 정사각형으로 확장, 다리 이격 때문",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 3.0,
+     "grow": true,
+     "align": "open",
+     "height": 1.0,
+     "why": "위로 갈수록 3배. grow와 3.0 상한이 둘 다 있어야 쓸 수 있는 문장 앞의 extrude를 지웠다. stack은 자기 앞의 것을 대체하지 않고 덧붙이므로, 대지 전체를 채운 몸이 서 있는 한 자라나는 단들은 그 안에 갇혀 평면이 바뀌지 않는다 — 실행 보고가 그 extrude를 idle로 불러왔다. 삼각 평면은 stack이 이어받는다.",
+     "profile": "triangular"
+    }
+   ]
+  },
+  {
+   "name": "kimbell_vaults_with_light_between",
+   "primary_language": "porous_field",
+   "secondary_language": "사이로 빛이 드는 세 개의 볼트 열",
+   "formal_principle": "세 개의 긴 열이 서로 떨어져 서고, 그 틈이 빛과 동선을 모두 나른다.",
+   "dominant_gesture": "나란히 선 세 줄, 사이가 비어 있음.",
+   "reference_basis": "Kahn - Kimbell Art Museum Fort Worth 1972. 100 ft 사이클로이드 볼트 열, 열 사이에 채광 슬롯",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.9,
+     "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
+    },
+    {
+     "op": "split",
+     "ratio": 0.34,
+     "along": "long",
+     "first": "range_a",
+     "second": "rest",
+     "gap": 8.0,
+     "contrast": 1.25,
+     "why": "세 열 중 첫 열을 떼어낸다. 0.66이면 첫 열이 전체의 3분의 2를 가져가고 남은 3분의 1을 반으로 갈라 17%짜리 조각 둘이 붙는다 — 실측 2030/305/305로 '세 개의 긴 열'이 아니라 큰 덩어리 하나에 부스러기 둘이었다. 3분의 1이 맞다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.5,
+     "along": "long",
+     "first": "range_b",
+     "second": "range_c",
+     "gap": 8.0,
+     "contrast": 1.25,
+     "on": "rest",
+     "why": "나머지를 다시 둘로. 세 열이 각각 6 m 떨어져 선다 (실제 세 열은 거의 같은 크기인데 문법 하한이 1.25라 그 값을 쓴다)"
+    }
+   ]
+  },
+  {
+   "name": "marina_city_petals_turn_as_they_rise",
+   "primary_language": "carved_body",
+   "secondary_language": "올라가며 꽃잎이 돌아가는 원통",
+   "formal_principle": "원형 평면의 꽃잎이 층마다 조금씩 돌아, 발코니가 나선으로 읽힌다.",
+   "dominant_gesture": "비틀리며 올라가는 하나의 원통.",
+   "reference_basis": "Goldberg - Marina City Chicago 1964. 원형 60층 타워, 꽃잎형 발코니가 층마다 어긋남",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "profile": "oval",
+     "why": "원형 평면"
+    },
+    {
+     "op": "twist",
+     "degrees": 90.0,
+     "why": "90도는 상한. 층마다 자기 행렬로 돌아가는 세분화가 이걸 가능하게 한다"
+    }
+   ]
+  }
+ ]
 }

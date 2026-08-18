@@ -145,12 +145,23 @@ def principal_axes(buildable: Polygon) -> tuple[tuple[float, float], tuple[float
 
     box = buildable.minimum_rotated_rectangle
     ring = list(box.exterior.coords)[:4]
-    edges = [
+    # Adjacent edges, which are the two directions a rectangle has. Taking three
+    # edges and sorting them by length takes the long one twice whenever the
+    # ring starts on a short side, and then both axes are the same line:
+    # measured on 의정부 and 종로 the pair came back 0.0 degrees apart, so all
+    # four sitings slid along one direction and `cross_side` was `long_front`
+    # under another name. 강남's ring happened to start the other way and was
+    # correct. Same fault as `grammar.seed_rectangle` had, in the other file.
+    #
+    # This is the fallback: whenever the open side can be worked out,
+    # `place_on_site` uses it and its perpendicular instead, which is why the
+    # three live parcels never reached this.
+    adjacent = [
         (ring[i + 1][0] - ring[i][0], ring[i + 1][1] - ring[i][1])
-        for i in range(3)
+        for i in range(2)
     ]
-    edges.sort(key=lambda e: hypot(e[0], e[1]), reverse=True)
-    long_edge, short_edge = edges[0], edges[1]
+    adjacent.sort(key=lambda e: hypot(e[0], e[1]), reverse=True)
+    long_edge, short_edge = adjacent[0], adjacent[1]
     return _unit(long_edge), _unit(short_edge)
 
 

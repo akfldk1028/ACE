@@ -48,12 +48,23 @@ def _clamp(value: float, low: float, high: float) -> float:
     return low if value < low else high if value > high else value
 
 
-def _slab(index: int, count: int) -> Matrix4:
-    """The i-th of n equal z-bands of the unit cube, said in unit space."""
+def _slab(index: int, count: int, axis: int = 2) -> Matrix4:
+    """The i-th of n equal bands of the unit cube along one axis, in unit space.
 
+    Axis 2 slices by height, which is what a taper or a twist wants. Axis 0
+    slices by length, which is what the book's Bend and Pinch want - both act
+    along a bar, not up it. Same discipline either way: the band is a piece of
+    the unit cube and the volume's own matrix puts it where the volume already
+    is, so nothing here knows or cares which way the parcel faces.
+    """
+
+    scale = [1.0, 1.0, 1.0]
+    scale[axis] = 1.0 / count
+    offset = [0.0, 0.0, 0.0]
+    offset[axis] = index / count
     return compose_matrix4(
-        scale_matrix4((1.0, 1.0, 1.0 / count)),
-        translation_matrix4((0.0, 0.0, index / count)),
+        scale_matrix4(tuple(scale)),
+        translation_matrix4(tuple(offset)),
     )
 
 
@@ -71,6 +82,7 @@ def _banded(
     item: Placement,
     count: int,
     shape: Callable[[int, float], Matrix4 | None],
+    axis: int = 2,
 ) -> list[Placement]:
     """Slice one volume into bands and shape each with its own matrix.
 
@@ -85,7 +97,7 @@ def _banded(
         shaping = shape(index, t)
         if shaping is None:
             break
-        matrix = compose_matrix4(_slab(index, count), shaping, item.matrix)
+        matrix = compose_matrix4(_slab(index, count, axis), shaping, item.matrix)
         made.append(replace(item, matrix=validate_matrix4(matrix)))
     return made
 
@@ -256,11 +268,89 @@ def shear(frame, op) -> None:
     frame.placements = rest + moved
 
 
+def bend(frame, op) -> None:
+    """Kink the bar while keeping it connected - the book's Bend.
+
+    "연결을 유지하며 방향을 꺾음". The volume is sliced along its own length and
+    each segment turns a little further about the joint it shares with the one
+    before, a forward-kinematic chain: the joint's world position is read off
+    the chain built so far, so the pieces stay connected by construction. Two
+    segments are the book's single kink; more approach an arc.
+
+    This is the verb `big_vm_houses_orestad` needed all along - its sentence
+    says "each part is bent off the axis" and the corpus had to say it with a
+    `rotate`, which turns a part in place but cannot kink one.
+    """
+
+    turn = _clamp(float(op.params.get("degrees", 25.0)), -60.0, 60.0)
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    count = int(_clamp(float(op.params.get("segments", 2)), 2, 6))
+
+    made: list[Placement] = []
+    for item in picked:
+        chain = compose_matrix4()  # identity: the first segment holds still
+        step = turn / max(count - 1, 1)
+        for index in range(count):
+            band = compose_matrix4(_slab(index, count, 0), item.matrix, chain)
+            made.append(replace(item, matrix=validate_matrix4(band)))
+            joint = transform_point3(
+                compose_matrix4(item.matrix, chain),
+                ((index + 1) / count, 0.5, 0.0),
+            )
+            chain = compose_matrix4(
+                chain,
+                translation_matrix4((-joint[0], -joint[1], 0.0)),
+                rotation_matrix4((0.0, 0.0, step)),
+                translation_matrix4((joint[0], joint[1], 0.0)),
+            )
+    frame.placements = rest + made
+
+
+def pinch(frame, op) -> None:
+    """Narrow the middle from both sides - the book's Pinch.
+
+    "중앙 양측을 깎아 좁힘". Sliced along the length, each segment scaled across
+    itself about its own centreline, deepest at the middle of the run - a
+    triangular waist, which is what a prism language can say of one. Eight
+    House is pinched across its waist and not around it: this is the verb that
+    sentence used `compress` as a stand-in for.
+    """
+
+    depth = _clamp(float(op.params.get("ratio", 0.4)), 0.15, 0.7)
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    across_y = _along_is_x(op.params)
+
+    made: list[Placement] = []
+    for item in picked:
+        count = int(_clamp(float(op.params.get("segments", 5)), 3, 8))
+
+        def shape(index: int, t: float) -> Matrix4:
+            waist = 1.0 - depth * (1.0 - abs(2.0 * t - 1.0))
+            # A hair of overlap along the run, so adjacent segments share a
+            # face in floating point and not only in mathematics - a rotated
+            # pinch union came back as pieces split by 1e-9 slivers. About each
+            # band's OWN centre: scaled about the shared centre the joint edges
+            # of both neighbours land on the same line and still only touch.
+            grip = 1.002
+            vector = (grip, waist, 1.0) if across_y else (waist, grip, 1.0)
+            pivot = (t, 0.5, 0.0) if across_y else (0.5, t, 0.0)
+            return _about_unit(pivot, scale_matrix4(vector))
+
+        made.extend(_banded(item, count, shape, axis=0 if across_y else 1))
+    frame.placements = rest + made
+
+
 SWEPT_VERBS: dict[str, Callable] = {
     "taper": taper,
     "twist": twist,
     "grade": grade,
     "shear": shear,
+    "bend": bend,
+    "pinch": pinch,
 }
 
 

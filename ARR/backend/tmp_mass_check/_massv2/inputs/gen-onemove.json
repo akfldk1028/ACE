@@ -189,11 +189,10 @@
      "why": "둘레 블록"
     },
     {
-     "op": "compress",
-     "ratio": 0.6,
-     "toward": "cross",
+     "op": "pinch",
+     "ratio": 0.5,
      "on": "bar_n",
-     "why": "0.6은 문법 하한 = 최대 조임. 실제 8House는 0까지 조인다"
+     "why": "이름부터 pinched_at_the_waist인데 compress로 때우고 있었다. compress는 폭 전체를 줄이고, pinch는 양 끝을 온전히 두고 허리만 조인다 — 책의 Pinch(중앙 양측을 깎아 좁힘) 그대로. 8자 매듭은 허리에서만 생긴다."
     }
    ]
   }

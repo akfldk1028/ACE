@@ -96,6 +96,14 @@ PLOT_MODES: dict[str, PlotMode] = {
     "stack": "inherit",
     "shear": "inherit",
     "taper": "inherit",
+    # The book's Bend (연결을 유지하며 방향을 꺾음) and Pinch (중앙 양측을 깎아
+    # 좁힘). Both transform what is standing rather than imposing a shape, so
+    # they inherit - and both were being said with stand-ins before they
+    # existed: a `rotate` for VM Houses' kinked bars, a `compress` for Eight
+    # House's waist. The stand-ins turn or shrink a part; neither can kink a
+    # bar at a joint or close a waist while leaving both ends full.
+    "bend": "inherit",
+    "pinch": "inherit",
     "carve": "impose",
     "lift": "impose",
     "loop": "impose",

@@ -1118,13 +1118,30 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
     # objects are what the gate said they were, five buildings on one parcel.
     tie = _clamp(float(op.params.get("tie", 0.18)), 0.0, 0.4)
     if tie > 0.0:
+        # Where the tie sits is the whole reading. It is Kanazawa's roof and
+        # Grace Farms' ribbon - the comment said so and the code put it on the
+        # ground at z=0, which is a plinth. A plinth fills the lanes: judging
+        # the delivered field, four independent readers wrote "the continuous
+        # plinth binds them and no street reads through", "they sit on one
+        # continuous podium, so the leftover space is slab, not garden" and
+        # "the podium slightly blunts their separateness" - for
+        # `nishizawa_towada`, `sejima_inujima_art_houses` and
+        # `kr_gusandong_library_of_five_houses`, whose sentences are all about
+        # what runs between the volumes.
+        #
+        # Lifted to the top of the shortest object it is a canopy: every object
+        # reaches it, the ground between them stays open, and the sentence
+        # `big_bay_view_canopy` writes - three separate low buildings held
+        # together not by touching but by one thin roof plane lifted clear above
+        # all of them - becomes sayable rather than approximated.
+        shortest = frame.height * share * (0.55 + 0.45 / spread)
         frame.placements.append(
-            # The tie is a boundary, not a room - Kanazawa's roof, Grace Farms'
-            # ribbon - so it is exempt from the one-storey floor for the same
-            # reason a support is. Held to a storey it grew as thick as the
-            # objects it binds and swallowed them, and a `taper` aimed at one of
-            # them then changed the compiled mass by exactly nothing.
-            frame.box("field_plate", w=frame.width, d=frame.depth, z=0.0,
+            # A boundary, not a room, so it is exempt from the one-storey floor
+            # for the same reason a support is. Held to a storey it grew as
+            # thick as the objects it binds and swallowed them, and a `taper`
+            # aimed at one of them then changed the compiled mass by nothing.
+            frame.box("field_plate", w=frame.width, d=frame.depth,
+                      z=max(0.0, shortest - frame.height * tie * 0.5),
                       h=frame.height * tie, occupiable=False)
         )
     # A field may have no boundary at all, and then the objects are separate

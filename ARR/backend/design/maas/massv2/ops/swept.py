@@ -318,18 +318,73 @@ def pinch(frame, op) -> None:
     sentence used `compress` as a stand-in for.
     """
 
-    depth = _clamp(float(op.params.get("ratio", 0.4)), 0.15, 0.7)
+    # Up to 0.9: at 0.7 a ring's bars pull toward each other and stop short,
+    # which is a waist; past ~0.8 their inner faces cross and the figure closes
+    # into two courts, which is what 8 House's sentence actually claims.
+    depth = _clamp(float(op.params.get("ratio", 0.4)), 0.15, 0.9)
     picked, rest = frame.pick(op)
     if not picked:
         return
     across_y = _along_is_x(op.params)
 
+    # The composition's own centreline and run, for the bow below. Thinning
+    # each volume about itself is a notch, and two judges called it exactly
+    # that - "the waist pressed to ground is barely a notch, not a split". A
+    # waist is the whole figure drawing in: every band is also pulled toward
+    # the centreline by how deep the waist is at its station along the run,
+    # so a ring's long sides bow together at the middle the way 8 House's do.
+    # A single centred volume has no offset from the centreline, so the bow
+    # is silently the old pure thinning there.
+    solid = [item for item in picked if item.kind == "additive"] or picked
+    corners = [corner for item in solid for corner in item.corners()]
+    run_dir = frame.out(1.0, 0.0) if across_y else frame.out(0.0, 1.0)
+    across_dir = (-run_dir[1], run_dir[0])
+    stations = [x * run_dir[0] + y * run_dir[1] for x, y, _z in corners]
+    run_lo, run_hi = min(stations), max(stations)
+    run_span = max(run_hi - run_lo, 1e-9)
+    centre_across = sum(
+        x * across_dir[0] + y * across_dir[1] for x, y, _z in corners
+    ) / max(len(corners), 1)
+
     made: list[Placement] = []
     for item in picked:
-        count = int(_clamp(float(op.params.get("segments", 5)), 3, 8))
+        # Only volumes that actually run with the waist are banded. A ring's
+        # end bars lie across the run: banding them slices them across their
+        # own width and the waist thins them along the run, which punched four
+        # pinholes into the corners of the drawing. Direction cannot tell the
+        # bars apart - every box a frame poses has its unit-x on the frame's
+        # long axis and the bars differ by proportion, not bearing - so the
+        # test is proportion: a volume is banded when it is longer along the
+        # run than across it. The end bars are held anyway by the bowing bars
+        # meeting them, since the pull is zero at the run's ends.
+        along_run = _span_along_unit_axis(item, 0 if across_y else 1)
+        across_run = _span_along_unit_axis(item, 1 if across_y else 0)
+        if along_run < across_run:
+            made.append(item)
+            continue
+        # A bar standing off the centreline bows; a bar standing on it thins.
+        # Both at once cancel: thinned to 0.15 of its width at the waist, a
+        # bowed bar's inner face retreats as fast as its centre advances, and
+        # a ring asked to close into two courts still read one - measured at
+        # 0.85 with the peak on a boundary, gap 3.96 m. 8 House's bars keep
+        # their width and bend; a bowtie's single centred slab keeps its place
+        # and narrows. The volume's own offset says which it is.
+        item_centre = transform_point3(item.matrix, (0.5, 0.5, 0.0))
+        item_offset = abs(
+            (item_centre[0] * across_dir[0] + item_centre[1] * across_dir[1])
+            - centre_across
+        )
+        bows = item_offset > 0.25 * max(across_run, 1e-9)
+        count = int(_clamp(float(op.params.get("segments", 6)), 3, 8))
+        # An even count, always: the waist's deepest point is t = 0.5, and the
+        # bow interpolates linearly inside each band, so the peak is only
+        # reached if a band boundary lands on it. Five segments put t = 0.5
+        # mid-band and the chord undershot the pull by a fifth - a ring asked
+        # to close into two courts at 0.85 still read one court.
+        count += count % 2
 
-        def shape(index: int, t: float) -> Matrix4:
-            waist = 1.0 - depth * (1.0 - abs(2.0 * t - 1.0))
+        def shape(index: int, t: float, bows=bows) -> Matrix4:
+            waist = 1.0 if bows else 1.0 - depth * (1.0 - abs(2.0 * t - 1.0))
             # A hair of overlap along the run, so adjacent segments share a
             # face in floating point and not only in mathematics - a rotated
             # pinch union came back as pieces split by 1e-9 slivers. About each
@@ -340,7 +395,48 @@ def pinch(frame, op) -> None:
             pivot = (t, 0.5, 0.0) if across_y else (0.5, t, 0.0)
             return _about_unit(pivot, scale_matrix4(vector))
 
-        made.extend(_banded(item, count, shape, axis=0 if across_y else 1))
+        a_run, a_across = (0, 1) if across_y else (1, 0)
+        for band in _banded(item, count, shape, axis=a_run):
+            # The bow varies linearly WITHIN the band, so neighbouring bands
+            # meet exactly - a per-band translation stepped the pull 4 m at a
+            # joint and the ring came apart into corner-touching pieces. A
+            # shear whose lateral term interpolates the pull between the
+            # band's own two end stations is C0-continuous by construction,
+            # and at the run's ends the waist is 1 so the pull is 0 and the
+            # ring's corner bars stay attached without being told to.
+            ends = []
+            if not bows:
+                made.append(band)
+                continue
+            for x_unit in (0.0, 1.0):
+                point = [0.5, 0.5, 0.0]
+                point[a_run] = x_unit
+                world = transform_point3(band.matrix, tuple(point))
+                station = (
+                    (world[0] * run_dir[0] + world[1] * run_dir[1]) - run_lo
+                ) / run_span
+                waist = 1.0 - depth * (1.0 - abs(2.0 * station - 1.0))
+                offset = (
+                    world[0] * across_dir[0] + world[1] * across_dir[1]
+                ) - centre_across
+                ends.append(-(1.0 - waist) * offset)
+            breadth = max(_span_along_unit_axis(band, a_across), 1e-6)
+            slope = (ends[1] - ends[0]) / breadth
+            base = ends[0] / breadth
+            bow = [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]
+            bow[a_across][a_run] = slope
+            bow[a_across][3] = base
+            made.append(replace(
+                band,
+                matrix=validate_matrix4(compose_matrix4(
+                    tuple(tuple(row) for row in bow), band.matrix
+                )),
+            ))
     frame.placements = rest + made
 
 

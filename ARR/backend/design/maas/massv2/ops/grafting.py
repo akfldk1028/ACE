@@ -72,7 +72,11 @@ def branch(frame, op) -> None:
         return
     count = int(_clamp(float(op.params.get("n", 3)), 2, 5))
     reach = _clamp(float(op.params.get("reach", 0.8)), 0.3, 1.5)
-    share = _clamp(float(op.params.get("height", 1.0)), 0.2, 1.0)
+    # Above 1.0 the arms rise past the trunk, which is what a tower off a
+    # spine is - two judges read equal-height arms as "one flat arrow-shaped
+    # slab, no towers, no spine", and Kahn's studios stand above their service
+    # bar, not level with it.
+    share = _clamp(float(op.params.get("height", 1.0)), 0.2, 2.5)
     # Arms and the bays between them split the trunk evenly: n arms, n+1 gaps.
     bay = 1.0 / (2 * count + 1)
 

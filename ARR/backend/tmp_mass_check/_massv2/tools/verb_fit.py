@@ -50,10 +50,10 @@ RULES = [
     # `ring` inside "bring", recorded at the bottom of this file.
     ("떨어져 섬", r"\b(?<!told )(?<!tell )apart\b|\bseparate\b|streets between|between them|사이가|사이로|떨어져",
      {"split", "aggregate", "loop", "shear", "branch"}),
-    # Nothing builds these. `SourceVolume` is a prism with a level top and there
-    # is no plane term anywhere to tilt one - see compile.py.
-    ("지붕 형태", r"\b(gable|gabled|vault|vaults|vaulted|pitched|ridge)\b|박공|볼트|"
-     r"roof that narrows", set()),
+    # 박공 is sayable now - two wedges meeting at a ridge, real planes since
+    # `top_drop` entered the IR. Vaults still are not: no curved-section term.
+    ("지붕 형태", r"\b(gable|gabled|pitched|ridge)\b|박공", {"gable"}),
+    ("볼트 지붕", r"\b(vault|vaults|vaulted)\b|볼트|roof that narrows", set()),
     ("틀어짐", r"\b(askew|rotated|rotates)\b|at an angle|틀어|각을",
      {"rotate", "twist", "skew"}),
     ("둘러쌈/고리", r"\b(ring|loop|encircles|wraps)\b|고리|둘러", {"loop", "carve"}),

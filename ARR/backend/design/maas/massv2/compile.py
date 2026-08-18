@@ -43,6 +43,7 @@ from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
 
+from dataclasses import replace
 from design.maas.geometry_language.affine_matrix import transform_point3
 
 from .form import MatrixForm, Placement
@@ -299,14 +300,29 @@ def compile_matrix_form(
     if height <= 1e-6:
         return None
 
+    # A tilted volume never merges. `_band_parts` unions every footprint in a
+    # band into one polygon, and a union can carry only one roof plane - a
+    # gable's two halves came through as a single band with a single tilt, so
+    # half of every pitched roof compiled flat. Tilted placements are set
+    # aside here and emitted per placement, clipped by the same envelope,
+    # with their own tilt carried directly.
+    tilted = [
+        item for item in form.additive()
+        if float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
+        and item.drop_toward is not None
+    ]
+    flat_form = replace(
+        form,
+        placements=tuple(
+            item for item in form.placements if item not in tilted
+        ),
+    ) if tilted else form
+
     volumes: list[SourceVolume] = []
     structural: list[int] = []
     dropped_bands = 0
     for low, high in zip(edges, edges[1:]):
-        parts = _band_parts(form, low, high, allowed_at)
-        if not parts:
-            dropped_bands += 1
-            continue
+        parts = _band_parts(flat_form, low, high, allowed_at)
         role = _band_role(form, low, high)
         is_structure = _band_is_structure(form, low, high)
         for part in parts:
@@ -321,34 +337,57 @@ def compile_matrix_form(
                     verb=verb,
                 )
             )
+        emitted = bool(parts)
+        for item in tilted:
+            if not _spans(item, low, high):
+                continue
+            plan = _plan_between(item, low, high)
+            if allowed_at is not None:
+                allowed = allowed_at((low + high) / 2.0)
+                if allowed is None or allowed.is_empty:
+                    continue
+                plan = plan.intersection(allowed)
+            cutters = [
+                _plan_between(cutter, low, high)
+                for cutter in form.subtractive()
+                if _spans(cutter, low, high)
+            ]
+            cutters = [c for c in cutters if not c.is_empty]
+            if cutters:
+                plan = plan.difference(unary_union(cutters))
+            if plan.is_empty:
+                continue
+            pieces = list(plan.geoms) if isinstance(plan, MultiPolygon) else [plan]
+            z0, z1 = item.z_span()
+            crest = min(high, z1)
+            for piece in pieces:
+                if not isinstance(piece, Polygon) or piece.area < _MINIMUM_BAND_AREA_M2:
+                    continue
+                emitted = True
+                volumes.append(SourceVolume(
+                    role=item.role,
+                    footprint=piece,
+                    bottom_fraction=max(0.0, (low - ground) / height),
+                    top_fraction=min(1.0, (crest - ground) / height),
+                    verb=verb,
+                    # Only the band holding the volume's top tilts; the
+                    # storeys under a shed roof are flat.
+                    # Tolerance wider than the band-edge rounding: edges are
+                    # rounded to 4 decimals (error up to 5e-5) and a 1e-6 test
+                    # let only volumes with arithmetically clean heights keep
+                    # their tilt - three gabled bars compiled with one pitched
+                    # and two flat, decided by which heights rounded neatly.
+                    # ...and wider still than the minimum band: an edge that
+                    # falls within _MINIMUM_BAND_M of the volume's top gets
+                    # merged away entirely, so the top band's crest can sit up
+                    # to half a metre under z1 and still be the roof band.
+                    top_drop=float(item.top_drop) if crest >= z1 - _MINIMUM_BAND_M - 1e-6 else 0.0,
+                    drop_toward=item.drop_toward if crest >= z1 - _MINIMUM_BAND_M - 1e-6 else None,
+                ))
+        if not emitted:
+            dropped_bands += 1
     if not volumes:
         return None
-    # Carry each sloped placement's tilt onto the band that holds its top.
-    # Only the top band tilts - the storeys under a shed roof are flat - and
-    # the legal counting above already measured the full prism, which is the
-    # stricter reading, so nothing the law checked changes here.
-    sloped = [item for item in form.placements
-              if getattr(item, "top_drop", 0.0) > 0.0 and item.drop_toward is not None]
-    if sloped:
-        from dataclasses import replace as _replace
-        for item in sloped:
-            _low, item_top = item.z_span()
-            item_top_fraction = min(1.0, max(0.0, (item_top - ground) / height))
-            item_plan = _plan(item)
-            for index, volume in enumerate(volumes):
-                if abs(volume.top_fraction - item_top_fraction) > 1e-4:
-                    continue
-                overlap = volume.footprint.intersection(item_plan).area
-                if overlap < 0.5 * max(volume.footprint.area, 1e-9):
-                    continue
-                band_share = max(volume.top_fraction - volume.bottom_fraction, 1e-9)
-                item_share = max(item_top_fraction - max(0.0, (_low - ground) / height), 1e-9)
-                volumes[index] = _replace(
-                    volume,
-                    top_drop=min(0.95, float(item.top_drop) * item_share / band_share),
-                    drop_toward=item.drop_toward,
-                )
-
     grounded = [item for item in volumes if item.bottom_fraction <= 1e-6]
     topmost = [item for item in volumes if item.top_fraction >= 1.0 - 1e-6]
     footprint = unary_union([item.footprint for item in grounded]) if grounded else volumes[0].footprint

@@ -111,6 +111,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     # grow off what is standing, in the host's own unit space, so they inherit.
     "branch": "inherit",
     "fracture": "inherit",
+    # 박공. Tried once as a staircase and reverted by measurement; with
+    # `top_drop` in the IR it is two real planes meeting at a ridge.
+    "gable": "inherit",
     "embed": "inherit",
     "carve": "impose",
     "lift": "impose",

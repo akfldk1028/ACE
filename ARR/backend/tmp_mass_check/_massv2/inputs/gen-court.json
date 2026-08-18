@@ -460,6 +460,31 @@
     }
    ],
    "floor_height_m": 4.2
+  },
+  {
+   "name": "herzog_vitrahaus_gabled_bars_stacked",
+   "primary_language": "porous_field",
+   "secondary_language": "the archetypal house, taken as a unit and piled",
+   "formal_principle": "집의 원형 단면 - 박공 바 - 를 단위로 삼아 서로 엇놓아 쌓고, 바와 바 사이가 통로와 마당으로 남는다.",
+   "dominant_gesture": "박공 지붕의 긴 집들이 서로 다른 방향으로 걸쳐 쌓인 무리.",
+   "reference_basis": "Herzog & de Meuron - VitraHaus, Weil am Rhein (2010): twelve archetypal gabled house-bars stacked five storeys, crossing at angles; here at 4.2 storeys as a low pile of three",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "spread": 1.3,
+     "height": 0.6,
+     "tie": 0.0,
+     "turn": 24,
+     "why": "집-바 셋이 서로 다른 방위로 놓인다. tie 0 - 이들을 묶는 건 판이 아니라 겹침이다."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.65,
+     "why": "박공 - 두 세션 동안 '표현 불가'로 박제됐던 단어. top_drop이 IR에 들어와 쐐기 둘이 용마루에서 만나는 진짜 경사면 두 장이 됐다. 계단 근사(5단 0.29, 24단 0.09로 악화)를 측정으로 되돌렸던 그 자리의 회복이다."
+    }
+   ]
   }
  ]
 }

@@ -326,9 +326,17 @@ def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
     stays, because that line is the setback.
     """
 
-    runs: list[tuple[float, float, Any]] = []
+    runs: list[tuple[float, float, Any, Any]] = []
     by_plan: dict[tuple, list] = {}
     for volume in volumes:
+        # A tilted band never merges and carries itself: the merge yields bare
+        # (low, high, footprint) rows, which is exactly how the first gable
+        # ever compiled - two wedges, both carrying their tilt - was drawn as
+        # two offset flat slabs. The tilt survived compile and died here.
+        if float(getattr(volume, "top_drop", 0.0) or 0.0) > 0.0:
+            runs.append((float(volume.bottom_fraction), float(volume.top_fraction),
+                         volume.footprint, volume))
+            continue
         by_plan.setdefault(_plan_key(volume.footprint), []).append(volume)
     for group in by_plan.values():
         group.sort(key=lambda item: item.bottom_fraction)
@@ -341,9 +349,9 @@ def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
             if float(volume.bottom_fraction) <= high + 1e-4:
                 high = max(high, float(volume.top_fraction))
                 continue
-            runs.append((low, high, group[0].footprint))
+            runs.append((low, high, group[0].footprint, None))
             low, high = float(volume.bottom_fraction), float(volume.top_fraction)
-        runs.append((low, high, group[0].footprint))
+        runs.append((low, high, group[0].footprint, None))
     return runs
 
 
@@ -362,7 +370,7 @@ def _draw_plan(draw, source, box, site_ring) -> None:
     """
 
     left, top, width, height = box
-    shapes = [footprint for _low, _high, footprint in _merged_runs(source.volumes)]
+    shapes = [row[2] for row in _merged_runs(source.volumes)]
     if not shapes:
         return
     rings = [list(site_ring)] if site_ring else []
@@ -433,10 +441,11 @@ def _render_one(
     # holding it up rather than the other way round.
     ordered = sorted(_merged_runs(source.volumes),
                      key=lambda item: (item[0], -item[2].centroid.y))
-    for low_fraction, high_fraction, footprint in ordered:
+    for low_fraction, high_fraction, footprint, tilted in ordered:
         low = low_fraction * height
         high = high_fraction * height
-        polygons.extend(_faces(footprint, low, high))
+        slope = _slope_of(tilted, low, high) if tilted is not None else None
+        polygons.extend(_faces(footprint, low, high, slope))
 
     flat = [point for shape, _colour in polygons for point in shape]
     if not flat:

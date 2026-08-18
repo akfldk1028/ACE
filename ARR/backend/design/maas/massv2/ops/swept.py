@@ -467,6 +467,48 @@ def pinch(frame, op) -> None:
     frame.placements = rest + made
 
 
+def gable(frame, op) -> None:
+    """A pitched roof: two wedges meeting at a ridge - Herzog's house profile.
+
+    This verb existed once as a staircase and was reverted by measurement: the
+    stepped approximation read worse the finer it was cut (5 steps 0.29
+    articulation, 24 steps 0.09), and the memory of that revert is why the
+    corpus said 박공 with nothing for two sessions. With `top_drop` in the IR
+    the roof is two real planes: the volume is halved across the ridge in its
+    own unit space and each half's top descends outward from the ridge, so the
+    silhouette is the triangle a person draws when asked for a house.
+
+    The ridge runs along the volume's own long axis unless `along: "cross"`.
+    Legal counting stays on the full prisms - stricter, as everywhere.
+    """
+
+    pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 0.9)
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    ridge_x = _along_is_x({"along": op.params.get("along", "long")})
+    across_axis = 1 if ridge_x else 0
+    outward = frame.out(*((0.0, 1.0) if ridge_x else (1.0, 0.0)))
+    length = (outward[0] ** 2 + outward[1] ** 2) ** 0.5 or 1.0
+    unit = (outward[0] / length, outward[1] / length)
+
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive":
+            made.append(item)
+            continue
+        for side in (0, 1):
+            half = compose_matrix4(_slab(side, 2, across_axis), item.matrix)
+            direction = unit if side == 1 else (-unit[0], -unit[1])
+            made.append(replace(
+                item,
+                matrix=validate_matrix4(half),
+                top_drop=pitch,
+                drop_toward=direction,
+            ))
+    frame.placements = rest + made
+
+
 SWEPT_VERBS: dict[str, Callable] = {
     "taper": taper,
     "twist": twist,
@@ -474,6 +516,7 @@ SWEPT_VERBS: dict[str, Callable] = {
     "shear": shear,
     "bend": bend,
     "pinch": pinch,
+    "gable": gable,
 }
 
 

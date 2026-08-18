@@ -178,9 +178,19 @@ def gap_survived(
     # they share a storey, the lookup finds nothing, and twenty-two sentences
     # came back at 0.0 m. Fixing it properly means carrying both roles through
     # the band, which is a change to the compiled representation.
-    declared = max(
-        (float(op.params.get("gap") or 0.0) for op in parti.ops), default=0.0
-    ) * JOINT_CLEARANCE_M
+    # The narrowest claim, against the narrowest delivery below. Taking the
+    # widest claim compares the loudest thing the sentence says to the quietest
+    # thing it builds, and on a sentence that cuts twice those are different
+    # cuts: `kr_hansol_gym_is_its_own_body` declares 2.58 m and 1.82 m and
+    # delivers 1.82 m exactly - its second gap, intact - and was being failed
+    # against its first. What this gate exists to catch is a declared
+    # separation that came out fused, and min against min catches that.
+    claims = [
+        float(op.params.get("gap") or 0.0) * JOINT_CLEARANCE_M
+        for op in parti.ops
+        if float(op.params.get("gap") or 0.0) > 0.0
+    ]
+    declared = min(claims) if claims else 0.0
     if declared <= 0.0:
         return (0.0, 0.0)
     source = _delivered(
@@ -234,5 +244,12 @@ def gap_survived(
 # 15 deliver under half of it and four deliver exactly nothing.
 GAP_IS_A_SPACE_M = DEFAULT_MINIMUM_CLEAR_DEPTH_M
 
+# Below this a shortfall is construction noise, not a closed gap. `JOINT_CLEARANCE_M`
+# is 0.76 m, so the smallest thing any sentence can declare is centimetres wide:
+# `sanaa_bocconi_campus` writes 0.21 m and delivers 0.20 m, and failing that as a
+# missing space says nothing about the building.
+GAP_TOLERANCE_M = 0.05
 
-__all__ = ["Ablation", "ablate", "gap_survived", "IDLE_BELOW", "GAP_IS_A_SPACE_M"]
+
+__all__ = ["Ablation", "ablate", "gap_survived", "IDLE_BELOW", "GAP_IS_A_SPACE_M",
+           "GAP_TOLERANCE_M"]

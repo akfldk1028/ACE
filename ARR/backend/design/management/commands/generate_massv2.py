@@ -356,7 +356,7 @@ class Command(BaseCommand):
                 # 2.0 m, and the first version of this refused it for delivering
                 # ten times what it asked.
                 owed = min(declared_gap, ablate_module.GAP_IS_A_SPACE_M)
-                if declared_gap > 0.0 and built_gap < owed:
+                if declared_gap > 0.0 and built_gap < owed - ablate_module.GAP_TOLERANCE_M:
                     closed.append((parti.name, declared_gap, built_gap))
                     continue
                 built = execute_parti(

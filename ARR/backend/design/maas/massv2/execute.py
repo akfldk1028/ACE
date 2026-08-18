@@ -155,6 +155,41 @@ class _Frame:
         else:
             self.centres[name] = element
 
+    def out(self, dx: float, dy: float) -> tuple[float, float]:
+        """A displacement written in the frame's axes, said in world terms.
+
+        The frame is the parcel's own rectangle and it is almost never square
+        to north - Uijeongbu's bearing is -168.3 degrees, Gangnam's is 35.5.
+        `_direction` returns its vectors in the frame's axes, and `box` was
+        adding them straight onto a world centre, so a move written "along" ran
+        along world east instead: at -168 degrees the cosine is -0.979 and the
+        move went backwards.
+
+        Both halves of a top-level `split` survive that, because they are
+        symmetric about one centre and reversing the sides only swaps their
+        names. A second `split` aimed at one of those halves does not: the
+        parent's offset is a world quantity and the child's shift is a frame
+        one, so the child crosses the gap the first cut opened. Measured on
+        `kr_hansol_gym_is_its_own_body`, whose sentence cuts twice, `library`
+        stood 0.00 m from `gym` across a 2.58 m declared gap.
+        """
+
+        if abs(self.rotation) < 1e-9:
+            return (dx, dy)
+        bearing = math.radians(self.rotation)
+        cos_b, sin_b = math.cos(bearing), math.sin(bearing)
+        return (dx * cos_b - dy * sin_b, dx * sin_b + dy * cos_b)
+
+    def local(self, x: float, y: float) -> tuple[float, float]:
+        """Where a world point sits in the frame's axes, from the frame centre."""
+
+        if abs(self.rotation) < 1e-9:
+            return (x - self.cx, y - self.cy)
+        bearing = math.radians(-self.rotation)
+        cos_b, sin_b = math.cos(bearing), math.sin(bearing)
+        ox, oy = x - self.cx, y - self.cy
+        return (ox * cos_b - oy * sin_b, ox * sin_b + oy * cos_b)
+
     def box(
         self,
         role: str,
@@ -188,10 +223,11 @@ class _Frame:
 
         least = self.storey if occupiable and kind == "additive" else 0.5
         plan = plan or self.profile
+        world_dx, world_dy = self.out(dx, dy)
         return place(
             role,
             size=(max(w, 0.5), max(d, 0.5), max(h, least, 0.5)),
-            at=(self.cx + dx - w / 2.0, self.cy + dy - d / 2.0, z),
+            at=(self.cx + world_dx - w / 2.0, self.cy + world_dy - d / 2.0, z),
             # Off the frame's bearing, not instead of it. A volume that
             # abandons the parcel's axis reads as a mistake; one sitting a few
             # degrees off it reads as having been placed.
@@ -252,7 +288,7 @@ def _scope(frame: _Frame, op: Operation) -> tuple[list[Placement], list[Placemen
 
 
 def _bounds_of(
-    items: list[Placement], rotation_degrees: float = 0.0
+    items: list[Placement], frame: "_Frame"
 ) -> tuple[float, float, float, float]:
     """Centre and span in plan of a set of volumes, in the frame's own axes.
 
@@ -269,8 +305,11 @@ def _bounds_of(
     gap the split had opened and closing what the sentence was about. The same
     inflation is why `lift` closed Villa dall'Ava's.
 
-    The centre is still returned in world coordinates, because that is what the
-    callers offset from.
+    The centre comes back in the frame's axes too, as an offset from the frame
+    centre, which is the form every caller passes straight to `box`. It used to
+    be returned in world coordinates and the callers subtracted `frame.cx`
+    themselves, which left a world quantity being added to a frame one in the
+    same expression - see `_Frame.out`.
     """
 
     corners = [corner for item in items for corner in item.corners()]
@@ -278,9 +317,10 @@ def _bounds_of(
     ys = [y for _x, y, _z in corners]
     centre_x = (min(xs) + max(xs)) / 2.0
     centre_y = (min(ys) + max(ys)) / 2.0
-    if abs(rotation_degrees) < 1e-9:
-        return (centre_x, centre_y, max(xs) - min(xs), max(ys) - min(ys))
-    bearing = math.radians(-rotation_degrees)
+    offset = frame.local(centre_x, centre_y)
+    if abs(frame.rotation) < 1e-9:
+        return (offset[0], offset[1], max(xs) - min(xs), max(ys) - min(ys))
+    bearing = math.radians(-frame.rotation)
     cos_b, sin_b = math.cos(bearing), math.sin(bearing)
     turned = [
         ((x - centre_x) * cos_b - (y - centre_y) * sin_b,
@@ -289,7 +329,7 @@ def _bounds_of(
     ]
     us = [u for u, _v in turned]
     vs = [v for _u, v in turned]
-    return (centre_x, centre_y, max(us) - min(us), max(vs) - min(vs))
+    return (offset[0], offset[1], max(us) - min(us), max(vs) - min(vs))
 
 
 def _plan_shrink(item: Placement, span_x: float, span_y: float) -> float:
@@ -348,7 +388,7 @@ def _split(frame: _Frame, op: Operation) -> None:
     made: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
+        cx, cy, span_x, span_y = _bounds_of([item], frame)
         along = span_x if abs(ux) >= abs(uy) else span_y
         # Cutting cannot make the building bigger. The pieces are rectangles
         # spanning the bounding box, so a plan that is not a rectangle - the
@@ -378,8 +418,8 @@ def _split(frame: _Frame, op: Operation) -> None:
                     w=size if abs(ux) >= abs(uy) else across,
                     d=across if abs(ux) >= abs(uy) else size,
                     z=low, h=tall,
-                    dx=cx - frame.cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
-                    dy=cy - frame.cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
+                    dx=cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
+                    dy=cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
                     kind=item.kind,
                     # A piece cut from a plan is not a copy of that plan. Cut a
                     # circular museum in two and you get two half-circles, not
@@ -400,11 +440,15 @@ def _split(frame: _Frame, op: Operation) -> None:
         # The cut is an alignment line the rest of the sentence can hold onto.
         # It is the composition's own axis rather than the site's, and it is
         # exactly what an architect draws first and keeps.
+        # Stored in world terms, because that is where a line lives and what
+        # `_direction` turns back into the frame's axes when a later word names
+        # it. The point and the direction are both frame quantities here.
+        cut = (-uy, ux) if abs(ux) >= abs(uy) else (uy, -ux)
         frame.regulates(
             f"{names[0]}|{names[1]}",
             Line(
-                (cx, cy),
-                (-uy, ux) if abs(ux) >= abs(uy) else (uy, -ux),
+                (frame.cx + frame.out(cx, cy)[0], frame.cy + frame.out(cx, cy)[1]),
+                frame.out(*cut),
                 "split",
             ),
         )
@@ -524,7 +568,7 @@ def _taper(frame: _Frame, op: Operation) -> None:
     pulled: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, item_x, item_y = _bounds_of([item], frame.rotation)
+        cx, cy, item_x, item_y = _bounds_of([item], frame)
         low_scale, high_scale = scale_at(low), scale_at(high)
         # A slab per storey is as fine as the thing being described, and the
         # bands this produces are what the compiler and every measure read, so
@@ -582,7 +626,7 @@ def _grade(frame: _Frame, op: Operation) -> None:
     made: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
+        cx, cy, span_x, span_y = _bounds_of([item], frame)
         along = span_x if along_x else span_y
         # A step cannot be wider than the plan it steps out of. Without this the
         # stair walks sideways into whatever the sentence set beside it.
@@ -616,8 +660,8 @@ def _grade(frame: _Frame, op: Operation) -> None:
                     d=across if along_x else keep,
                     z=rises_at,
                     h=band,
-                    dx=cx - frame.cx + (ux * shift if along_x else 0.0),
-                    dy=cy - frame.cy + (uy * shift if not along_x else 0.0),
+                    dx=cx + (ux * shift if along_x else 0.0),
+                    dy=cy + (uy * shift if not along_x else 0.0),
                     kind=item.kind,
                     plan=item.plan,
                     occupiable=item.occupiable,
@@ -676,14 +720,14 @@ def _shear(frame: _Frame, op: Operation) -> None:
             moved.append(item)
             continue
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
+        cx, cy, span_x, span_y = _bounds_of([item], frame)
         # Steps counted from the anchor, so a shear at one level moves
         # its volume by one step rather than by none.
         reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
         moved.append(
             frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
-                      dx=cx - frame.cx + ux * reach,
-                      dy=cy - frame.cy + uy * reach,
+                      dx=cx + ux * reach,
+                      dy=cy + uy * reach,
                       plan=item.plan, kind=item.kind, occupiable=item.occupiable)
         )
     frame.placements = rest + moved
@@ -744,7 +788,14 @@ def _carve(frame: _Frame, op: Operation) -> None:
     # be about it - a court that later moves alone is a hole; a court the
     # building turns around is a courtyard.
     frame.regulates(
-        "court", Centre((frame.cx + ux * reach, frame.cy + uy * reach), "carve")
+        "court",
+        Centre(
+            (
+                frame.cx + frame.out(ux * reach, uy * reach)[0],
+                frame.cy + frame.out(ux * reach, uy * reach)[1],
+            ),
+            "carve",
+        ),
     )
     frame.placements.append(
         frame.box(
@@ -834,7 +885,7 @@ def _twist(frame: _Frame, op: Operation) -> None:
     twisted: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame.rotation)
+        cx, cy, span_x, span_y = _bounds_of([item], frame)
         storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 3, 10))
         twisted.extend(
             stack(
@@ -894,7 +945,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # to 0.95, and the supports were innocent: measured, all four sit at
         # least 1.66 m from the other apartment and two of them entirely inside
         # the volume they hold up.
-        centre_x, centre_y, span_x, span_y = _bounds_of([item], frame.rotation)
+        centre_x, centre_y, span_x, span_y = _bounds_of([item], frame)
         # Raising a volume does not widen it. Rebuilt at its bounding box a
         # parcel-shaped piece grows on every side, and on `oma_villa_dall_ava`
         # that swallowed the 3.05 m the `split` before it had opened.
@@ -902,7 +953,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
         raised.append(
             frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
                       z=low + clearance, h=high - low,
-                      dx=centre_x - frame.cx, dy=centre_y - frame.cy,
+                      dx=centre_x, dy=centre_y,
                       kind=item.kind, plan=item.plan, occupiable=item.occupiable)
         )
     # Four supports, a third of the plan each, so what is raised spans between
@@ -922,7 +973,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # the legs from the original left them sticking out past the plate they
     # carry - measured on Villa dall'Ava, the plate stood 3.16 m from the other
     # apartment and a leg stood 1.66 m from it.
-    base_x, base_y, base_w, base_d = _bounds_of(raised, frame.rotation)
+    base_x, base_y, base_w, base_d = _bounds_of(raised, frame)
     frame.placements = rest + raised + [
         # Under the volume that was lifted, not under the site. These bounds
         # were being computed and then ignored: the supports were sized and
@@ -946,8 +997,8 @@ def _lift(frame: _Frame, op: Operation) -> None:
                   # and the raised plate then measured 540 times its own depth
                   # across that sliver - a span rule reading a rounding error.
                   z=stood_at, h=clearance,
-                  dx=(base_x - frame.cx) + sx * base_w * (0.5 - leg / 2.0) * 0.78,
-                  dy=(base_y - frame.cy) + sy * base_d * (0.5 - leg / 2.0) * 0.78)
+                  dx=base_x + sx * base_w * (0.5 - leg / 2.0) * 0.78,
+                  dy=base_y + sy * base_d * (0.5 - leg / 2.0) * 0.78)
         for sx, sy in ((-1, -1), (1, 1), (1, -1), (-1, 1))
     ]
 

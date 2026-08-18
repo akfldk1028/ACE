@@ -914,7 +914,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # benchmark said "nothing floats" of Maison Bordeaux while its geometry had
     # a 3.4 m gap in it. The old value was set against the span rule with *two*
     # supports; with four the span is halved and the plate still stands.
-    leg = 0.18
+    leg = 0.24
     # Where the lifted volume was before it went up.
     stood_at = min((item.z_span()[0] for item in picked), default=0.0)
     # Off the plate as it was built, not as it arrived. The raised volume is

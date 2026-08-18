@@ -108,5 +108,19 @@
    "17": "casa 여전: bore severs into two detached buildings",
    "13": "eight_house 여전: waist notched, one courtyard"
   }
+ },
+ "final-01": {
+  "ranking": [
+   13,
+   18,
+   17,
+   15
+  ],
+  "notes": {
+   "13": "eight_house 1위, 앵커를 이김: figure-eight perimeter, pinched waist splitting two courtyards, sentence built almost literally",
+   "18": "sluishuis 앵커 2위",
+   "17": "casa 개선: one solid with void at base — 다만 관통홀이 undercut으로 읽힘",
+   "15": "de_rotterdam 3차 실패: one wedge with shifted slab, three towers not legible"
+  }
  }
 }

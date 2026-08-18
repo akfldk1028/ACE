@@ -242,16 +242,35 @@ def assess(
     slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
 
     structural = set(source.metadata.get("structural_bands") or ())
-    viable = 0
+    viable = 0.0
+    counted = 0.0
     room = 0.0
     occupied = 0.0
     holding = 0.0
     for index, volume in enumerate(bands):
+        # A support is not asked to be a floor. The exemption is already granted
+        # two rules below - a column is small next to what it holds up, and that
+        # is what makes it a column - and it was missing here, so the thinner the
+        # legs the worse the building scored. Counted rather than weighed, too:
+        # four slim legs are four bands against one plate, so `lift` could only
+        # ever stand a slab on stumps thick enough to read as blocks under it.
+        # Both judges of the fixed benchmark said the same thing about Maison
+        # Bordeaux - "nothing floats", "it plainly rests on the tier below" -
+        # and the geometry had a 3.4 m gap in it the whole time.
+        #
+        # Same correction the storey rule already carries: weigh by how much
+        # building each band is.
+        if index in structural:
+            continue
         verdict = evaluate_floor_section_viability(
             volume.footprint, parcel_area_m2=parcel_area_m2
         )
+        weight = float(volume.footprint.area) * max(
+            0.0, volume.top_fraction - volume.bottom_fraction
+        )
+        counted += weight
         if verdict.get("hard_pass"):
-            viable += 1
+            viable += weight
         # Weighed by how much building each band is, not counted. Counting made
         # one thin terrace among Mountain Dwellings' thirteen bands worth as
         # much as the forty-metre plates beside it, and refused the scheme.
@@ -264,7 +283,7 @@ def assess(
         occupied += bulk
         if holds_a_storey(volume.footprint):
             room += bulk
-    share = viable / len(bands)
+    share = (viable / counted) if counted > 1e-9 else 1.0
     storey_share = (room / occupied) if occupied > 1e-9 else 1.0
     held_share = holding / max(holding + occupied, 1e-9)
 

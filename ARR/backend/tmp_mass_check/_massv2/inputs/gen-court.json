@@ -401,14 +401,14 @@
    "name": "kahn_richards_towers_off_a_spine",
    "primary_language": "open_figure",
    "secondary_language": "laboratory towers branching off a served spine",
-   "formal_principle": "One service spine runs the length of the site and the laboratories stand as separate towers branching off it, so served and servant spaces are told apart in the massing itself.",
+   "formal_principle": "One service spine runs the length of the site and the laboratories stand as their own towers branching off it, so served and servant spaces are told apart in the massing itself.",
    "dominant_gesture": "A low continuous bar with tall square towers growing off alternating sides.",
    "reference_basis": "Louis Kahn - Richards Medical Research Laboratories, Philadelphia (1957-65): studio towers attached to a service spine, served and servant spaces separated as distinct volumes, brick shafts against glazed studios",
    "ops": [
     {
      "op": "extrude",
      "height": 0.5,
-     "why": "척추. 설비와 동선이 사는 낮고 긴 몸이 먼저 있다."
+     "why": "척추. 설비와 동선이 사는 낮고 긴 몸이 먼저 있다. principle의 separate를 걷어냈다 — branch는 붙여 세우는 동사이고 Kahn의 탑도 척추에 붙어 있다. 훑기가 잡은 거짓 주장."
     },
     {
      "op": "compress",

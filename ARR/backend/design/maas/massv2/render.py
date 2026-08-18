@@ -93,15 +93,42 @@ def _project(x: float, y: float, z: float) -> tuple[float, float]:
     return sx, sy * math.sin(_PITCH) - z * math.cos(_PITCH)
 
 
-def _walls(ring: Sequence[tuple[float, float]], low: float, high: float):
+def _top_at(x: float, y: float, high: float, slope) -> float:
+    """The top face's height at a plan point - flat unless the band tilts."""
+
+    if slope is None:
+        return high
+    drop_m, ux, uy, lo_p, hi_p = slope
+    span = max(hi_p - lo_p, 1e-9)
+    t = (x * ux + y * uy - lo_p) / span
+    return high - drop_m * min(1.0, max(0.0, t))
+
+
+def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=None):
     for (x0, y0), (x1, y1) in zip(ring, list(ring[1:]) + [ring[0]]):
         yield [
             _project(x0, y0, low), _project(x1, y1, low),
-            _project(x1, y1, high), _project(x0, y0, high),
+            _project(x1, y1, _top_at(x1, y1, high, slope)),
+            _project(x0, y0, _top_at(x0, y0, high, slope)),
         ], _WALL
 
 
-def _faces(polygon, low: float, high: float):
+def _slope_of(volume, low: float, high: float):
+    """The renderer's reading of a tilted band: metres of drop and its axis.
+
+    The projection range comes from the volume's own footprint, so the top
+    meets `high` at the rear edge and `high - drop` at the front edge exactly.
+    """
+
+    drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
+    if drop <= 0.0 or volume.drop_toward is None:
+        return None
+    ux, uy = volume.drop_toward
+    values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
+    return (drop * (high - low), ux, uy, min(values), max(values))
+
+
+def _faces(polygon, low: float, high: float, slope=None):
     """Walls for every ring, then the roof drawn as a ring with its holes.
 
     Drawing only the exterior ring made every courtyard scheme render as a solid
@@ -113,18 +140,18 @@ def _faces(polygon, low: float, high: float):
     outer = [(float(x), float(y)) for x, y in polygon.exterior.coords[:-1]]
     if len(outer) < 3:
         return
-    yield from _walls(outer, low, high)
+    yield from _walls(outer, low, high, slope)
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
-            yield from _walls(court, low, high)
+            yield from _walls(court, low, high, slope)
     # The roof is the ring minus its holes. Painting the hole in the background
     # colour is the cheapest correct answer for a filled polygon renderer.
-    yield [_project(x, y, high) for x, y in outer], _ROOF
+    yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _ROOF
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
-            yield [_project(x, y, high) for x, y in court], _COURT
+            yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in court], _COURT
 
 
 def render_masses(
@@ -185,7 +212,7 @@ def render_sequence(
         for volume in source.volumes:
             low = float(volume.bottom_fraction) * height
             high = float(volume.top_fraction) * height
-            for shape, _colour in _faces(volume.footprint, low, high):
+            for shape, _colour in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
                 world.extend(shape)
     if not world:
         raise ValueError("nothing to draw")
@@ -254,7 +281,7 @@ def _render_frame(
         for volume in ordered:
             low = float(volume.bottom_fraction) * height
             high = float(volume.top_fraction) * height
-            for shape, colour in _faces(volume.footprint, low, high):
+            for shape, colour in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
                 draw.polygon([to_screen(point) for point in shape], fill=colour, outline=_EDGE)
 
     y = tile[1] - 150

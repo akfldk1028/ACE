@@ -346,6 +346,10 @@ class Command(BaseCommand):
                 parti = parti_from_record(record)
                 if parti is None:
                     continue
+                # The sentence's own storey. A gallery is not a shop and the
+                # corpus can finally say so - every gate below judges the
+                # sentence at the floor height it was written for.
+                storey = float(parti.floor_height_m or site.floor_height_m)
                 # Judge the sentence, not its variants: a word that redraws
                 # nothing at the size it was written redraws nothing at any
                 # coverage or siting derived from it.
@@ -355,7 +359,7 @@ class Command(BaseCommand):
                     axis=axis,
                     height_m=authored_height,
                     allowed_at=site.plan_at,
-                    storey_height_m=site.floor_height_m,
+                    storey_height_m=storey,
                 )
                 if not spoken.honest:
                     # Silent because the word does nothing, or silent because
@@ -372,7 +376,7 @@ class Command(BaseCommand):
                     unclipped = postcondition.check_sentence(
                         parti, buildable=buildable, axis=axis,
                         height_m=authored_height, allowed_at=None,
-                        storey_height_m=site.floor_height_m,
+                        storey_height_m=storey,
                     )
                     if unclipped.honest:
                         clipped.append((parti.name, spoken, unclipped))
@@ -389,7 +393,7 @@ class Command(BaseCommand):
                 declared_gap, built_gap = ablate_module.gap_survived(
                     parti, buildable=buildable, axis=axis,
                     height_m=authored_height, site=site,
-                    storey_height_m=site.floor_height_m,
+                    storey_height_m=storey,
                 )
                 # Judged against whichever is smaller: a sentence asking for
                 # a room-width gap owes a room-width gap, and one asking for a
@@ -402,7 +406,7 @@ class Command(BaseCommand):
                     continue
                 built = execute_parti(
                     parti, buildable=buildable, axis=axis, height_m=authored_height,
-                    storey_height_m=site.floor_height_m,
+                    storey_height_m=storey,
                 )
                 if built is not None:
                     # How hard the sentence's own words hit the mass. The check
@@ -420,7 +424,7 @@ class Command(BaseCommand):
                     torn = ablate_module.ablate(
                         parti, buildable=buildable, axis=axis,
                         height_m=authored_height, site=site,
-                        storey_height_m=site.floor_height_m,
+                        storey_height_m=storey,
                     )
                     if torn.idle:
                         idle.append((parti.name, torn))
@@ -439,7 +443,7 @@ class Command(BaseCommand):
                         built = programme.resized_to(
                             built, schedule,
                             weight=options["program_weight"],
-                            storey_height_m=site.floor_height_m,
+                            storey_height_m=storey,
                         )
                         built = built.__class__(
                             **{
@@ -555,9 +559,12 @@ class Command(BaseCommand):
             # The same clip the legal fit measured through. Compiling without
             # it is how the sheet came to print 용적률 of 1.52 on a run the fit
             # certified lawful - two measures of one building again.
+            form_storey = float(
+                getattr(form, "floor_height_m", None) or site.floor_height_m
+            )
             source = compile_matrix_form(
                 fit.form,
-                storey_height_m=site.floor_height_m,
+                storey_height_m=form_storey,
                 allowed_at=site.plan_at,
             )
             if source is None:
@@ -571,7 +578,7 @@ class Command(BaseCommand):
                     far_capacity_m2=site.far_capacity_m2,
                     ground_capacity_m2=site.ground_capacity_m2,
                 ),
-                floor_height_m=site.floor_height_m,
+                floor_height_m=form_storey,
             )
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m

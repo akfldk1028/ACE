@@ -71,6 +71,11 @@ class Placement:
     # a wedge, a folded plate and a circle are different base shapes, not
     # different transforms, and no matrix can turn one into another.
     plan: str = "square"
+    # A tilted top, in the volume's own terms: the top face drops by this
+    # share of the volume's height along `drop_toward` (world unit vector).
+    # Compile carries it onto the band that holds this volume's top.
+    top_drop: float = 0.0
+    drop_toward: tuple[float, float] | None = None
     # Is this volume a room, or is it what holds a room up. A column is meant
     # to be thin and a storey is not, so every rule about how wide or how deep
     # a plate must be has to know which of the two it is looking at. The

@@ -40,9 +40,20 @@ class SourceVolume:
     bottom_fraction: float
     top_fraction: float
     verb: str
+    # A top plane that is allowed to tilt. Zero means the flat-topped prism
+    # every existing consumer assumes; a positive value drops the top by that
+    # share of the band's own height across the footprint, along
+    # `drop_toward` (a world unit vector). This is the one term the prism
+    # language lacked: without it a continuous roof - CopenHill's slope, a
+    # shed, a wedge - could only be said as a staircase, and the stepping got
+    # worse the finer it was cut (measured: 5 steps 0.29 articulation, 24
+    # steps 0.09). Legal counting stays on the full prism, which is always
+    # the stricter reading.
+    top_drop: float = 0.0
+    drop_toward: tuple[float, float] | None = None
 
     def signature(self) -> dict[str, Any]:
-        return {
+        data = {
             "role": self.role,
             "verb": self.verb,
             "bottom_fraction": round(self.bottom_fraction, 3),
@@ -51,6 +62,11 @@ class SourceVolume:
             "geometry_utm": mapping(self.footprint),
             "geometry_crs": "EPSG:32652",
         }
+        # Only when present, so every existing signature hash is unchanged.
+        if self.top_drop > 0.0 and self.drop_toward is not None:
+            data["top_drop"] = round(self.top_drop, 3)
+            data["drop_toward"] = (round(self.drop_toward[0], 4), round(self.drop_toward[1], 4))
+        return data
 
 
 @dataclass(frozen=True)
@@ -62,6 +78,23 @@ class SourceSurface:
     vertices_m: tuple[tuple[float, float, float], ...]
     operator: str = "extrude"
     semantic_patch_id: str = ""
+
+    def authority_record(self) -> dict[str, Any]:
+        """Serialize the exact surface fields bound by visual certificates."""
+
+        return {
+            "role": self.role,
+            "volume_role": self.volume_role,
+            "verb": self.verb,
+            "surface_type": self.surface_type,
+            "vertex_count": len(self.vertices_m),
+            "vertices_m": [
+                [float(x), float(y), float(z)]
+                for x, y, z in self.vertices_m
+            ],
+            "operator": self.operator,
+            "semantic_patch_id": self.semantic_patch_id,
+        }
 
     def signature(self) -> dict[str, Any]:
         return {
@@ -309,7 +342,9 @@ class SourceMass:
         return tuple(volume.signature() for volume in self.volumes)
 
     def source_surface_signatures(self) -> tuple[dict[str, Any], ...]:
-        return tuple(surface.signature() for surface in self.surfaces)
+        # Live candidate records are visual-authority payloads, not compact
+        # diagnostic signatures. Preserve every hash-bearing field exactly.
+        return tuple(surface.authority_record() for surface in self.surfaces)
 
 
 def _source_surface_payload_hash(

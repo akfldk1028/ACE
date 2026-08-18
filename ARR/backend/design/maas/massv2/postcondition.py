@@ -38,6 +38,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
@@ -83,19 +84,64 @@ class Verdict:
         }
 
 
+def _sliced_by_tilt(volume, z: float, height: float):
+    """The part of a tilted band's footprint whose top is still above z.
+
+    A band with `top_drop` is a wedge: solid where top(x, y) >= z, gone where
+    the roof has already descended below the sample. Without this cut the gate
+    read a smooth `grade` as changing nothing - the wedge kept one full-height
+    band and the flat footprint matched at every level, so the first sloped
+    roof this language ever drew was reported silent at exactly 0.0.
+    """
+
+    drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
+    if drop <= 0.0 or volume.drop_toward is None:
+        return volume.footprint
+    low = volume.bottom_fraction * height
+    high = volume.top_fraction * height
+    band = max(high - low, 1e-9)
+    drop_m = drop * band
+    if z <= high - drop_m:
+        return volume.footprint
+    ux, uy = volume.drop_toward
+    values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
+    lo_p, hi_p = min(values), max(values)
+    span = max(hi_p - lo_p, 1e-9)
+    # Solid while t <= (high - z) / drop_m along the tilt.
+    keep = lo_p + span * max(0.0, (high - z) / drop_m)
+    # A half-plane as a generous rotated box, then the intersection.
+    reach = span + 1.0
+    cx = [x for x, _y in volume.footprint.exterior.coords]
+    cy = [y for _x, y in volume.footprint.exterior.coords]
+    mid_x, mid_y = (min(cx) + max(cx)) / 2.0, (min(cy) + max(cy)) / 2.0
+    base_x = mid_x + (keep - (mid_x * ux + mid_y * uy)) * ux
+    base_y = mid_y + (keep - (mid_x * ux + mid_y * uy)) * uy
+    px, py = -uy, ux
+    half = Polygon([
+        (base_x + px * reach, base_y + py * reach),
+        (base_x - px * reach, base_y - py * reach),
+        (base_x - px * reach - ux * reach, base_y - py * reach - uy * reach),
+        (base_x + px * reach - ux * reach, base_y + py * reach - uy * reach),
+    ])
+    cut = volume.footprint.intersection(half)
+    return cut if not cut.is_empty else None
+
+
 def _plan_at(source: SourceMass | None, z: float):
-    """The mass's plan at a height, as one polygon."""
+    """The mass's plan at a height, as one polygon. Tilted tops are cut."""
 
     if source is None:
         return None
     height = float(source.metadata.get("authored_height_m") or 0.0)
     if height <= 0.0:
         return None
-    parts = [
-        volume.footprint
-        for volume in source.volumes
-        if volume.bottom_fraction * height - 1e-6 <= z < volume.top_fraction * height + 1e-6
-    ]
+    parts = []
+    for volume in source.volumes:
+        if not (volume.bottom_fraction * height - 1e-6 <= z < volume.top_fraction * height + 1e-6):
+            continue
+        piece = _sliced_by_tilt(volume, z, height)
+        if piece is not None and not piece.is_empty:
+            parts.append(piece)
     return unary_union(parts) if parts else None
 
 

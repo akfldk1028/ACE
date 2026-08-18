@@ -206,6 +206,28 @@ def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMe
     # the bar and false of the building. Regroup by the band's own fractions.
     grouped: dict[tuple[float, float], list[Polygon]] = {}
     for volume in bands:
+        drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
+        if drop > 0.0 and volume.drop_toward is not None:
+            # A tilted band is a continuous section event, and grouped by its
+            # flat footprint it measured as none at all: the first sloped roof
+            # this language drew compiled to one band, read articulation ~0,
+            # and lost its grid cell to its own stepped approximation. Slice
+            # the wedge into four virtual bands whose plans shrink as the roof
+            # descends - the same cut the silence gate uses - so the measures
+            # see the slope the drawing shows.
+            from .postcondition import _sliced_by_tilt
+            b0, t0 = float(volume.bottom_fraction), float(volume.top_fraction)
+            height = float(source.metadata.get("authored_height_m") or 1.0)
+            for step in range(4):
+                lo = b0 + (t0 - b0) * step / 4.0
+                hi = b0 + (t0 - b0) * (step + 1) / 4.0
+                z = hi * height - 1e-6
+                piece = _sliced_by_tilt(volume, z, height)
+                if piece is None or piece.is_empty:
+                    continue
+                key = (round(lo, 4), round(hi, 4))
+                grouped.setdefault(key, []).append(piece)
+            continue
         key = (round(float(volume.bottom_fraction), 4), round(float(volume.top_fraction), 4))
         grouped.setdefault(key, []).append(volume.footprint)
 

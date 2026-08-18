@@ -49,7 +49,7 @@ RULES = [
     # spine, and the bare \bapart\b flagged the idiom. Same trap family as
     # `ring` inside "bring", recorded at the bottom of this file.
     ("떨어져 섬", r"\b(?<!told )(?<!tell )apart\b|\bseparate\b|streets between|between them|사이가|사이로|떨어져",
-     {"split", "aggregate", "loop", "shear"}),
+     {"split", "aggregate", "loop", "shear", "branch"}),
     # Nothing builds these. `SourceVolume` is a prism with a level top and there
     # is no plane term anywhere to tilt one - see compile.py.
     ("지붕 형태", r"\b(gable|gabled|vault|vaults|vaulted|pitched|ridge)\b|박공|볼트|"

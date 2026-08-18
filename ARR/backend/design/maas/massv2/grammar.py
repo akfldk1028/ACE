@@ -197,6 +197,22 @@ def parti_from_record(record: dict[str, Any]) -> Parti | None:
         ))
     if not ops:
         return None
+    # A sentence that does not open with a creator gets the implicit seed every
+    # massing study starts from - the parcel volume - so its first spoken word
+    # transforms something that exists. Three LLM-authored sentences opened
+    # with split or compress ("조여진 씨앗에서 시작한다" is a legitimate first
+    # thought) and every word of them ran on an empty frame and did nothing:
+    # the silence gate reported all-silent with an empty trace.
+    # stack creates too - it builds its tiers from the frame whether or not
+    # anything stands. Leaving it off this list prepended a full seed in
+    # front of seven stack-first sentences and the seed swallowed their
+    # tiers, the exact disease vancouver_house was cured of.
+    if ops[0].verb not in ("extrude", "loop", "aggregate", "stack"):
+        ops.insert(0, Operation(
+            verb="extrude", plot_mode=PLOT_MODES["extrude"],
+            params={"height": 0.9},
+            why="암묵 씨앗 - 첫 동사가 변형이라 파서가 필지 볼륨을 깔았다.",
+        ))
     return Parti(
         name=str(record.get("name") or "unnamed"),
         ops=tuple(ops),

@@ -323,6 +323,31 @@ def compile_matrix_form(
             )
     if not volumes:
         return None
+    # Carry each sloped placement's tilt onto the band that holds its top.
+    # Only the top band tilts - the storeys under a shed roof are flat - and
+    # the legal counting above already measured the full prism, which is the
+    # stricter reading, so nothing the law checked changes here.
+    sloped = [item for item in form.placements
+              if getattr(item, "top_drop", 0.0) > 0.0 and item.drop_toward is not None]
+    if sloped:
+        from dataclasses import replace as _replace
+        for item in sloped:
+            _low, item_top = item.z_span()
+            item_top_fraction = min(1.0, max(0.0, (item_top - ground) / height))
+            item_plan = _plan(item)
+            for index, volume in enumerate(volumes):
+                if abs(volume.top_fraction - item_top_fraction) > 1e-4:
+                    continue
+                overlap = volume.footprint.intersection(item_plan).area
+                if overlap < 0.5 * max(volume.footprint.area, 1e-9):
+                    continue
+                band_share = max(volume.top_fraction - volume.bottom_fraction, 1e-9)
+                item_share = max(item_top_fraction - max(0.0, (_low - ground) / height), 1e-9)
+                volumes[index] = _replace(
+                    volume,
+                    top_drop=min(0.95, float(item.top_drop) * item_share / band_share),
+                    drop_toward=item.drop_toward,
+                )
 
     grounded = [item for item in volumes if item.bottom_fraction <= 1e-6]
     topmost = [item for item in volumes if item.top_fraction >= 1.0 - 1e-6]

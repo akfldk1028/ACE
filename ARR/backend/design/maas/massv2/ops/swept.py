@@ -210,6 +210,33 @@ def grade(frame, op) -> None:
     along_x = _along_is_x(op.params)
     axis = 0 if along_x else 1
 
+    # `smooth: true` keeps the volume whole and tilts its top instead of
+    # cutting steps. This is the word CopenHill's sentence needed from the
+    # start - "지붕이 정상에서 지면까지 끊기지 않고 내려온다" - and a staircase
+    # could only approximate it, worse the finer it stepped. The tilt is a
+    # term on the volume (`top_drop`, along the volume's own axis said in
+    # world), the compiler carries it to the top band, the renderer draws it,
+    # and the law still counts the full prism, which is the stricter reading.
+    if bool(op.params.get("smooth")):
+        # Signed, so "toward: back" tilts the other way - the first version
+        # used the unsigned axis and a roof asked to rise toward the
+        # neighbours fell toward them instead. "corner" is the diagonal: BIG's
+        # most frequent single move (the survey counted corner pull five times
+        # in sixteen works) is one corner drawn up while the plan stays
+        # orthogonal, and a planar top through the diagonal is exactly that.
+        named = str(op.params.get("toward") or "long").lower()
+        if named in ("corner", "diagonal"):
+            fx, fy = 1.0, 1.0
+        else:
+            fx, fy = frame.direction(op.params.get("toward"))
+        direction = frame.out(fx, fy)
+        length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5 or 1.0
+        unit = (direction[0] / length, direction[1] / length)
+        frame.placements = rest + [
+            replace(item, top_drop=run, drop_toward=unit) for item in picked
+        ]
+        return
+
     made: list[Placement] = []
     for item in picked:
         count = int(_clamp(

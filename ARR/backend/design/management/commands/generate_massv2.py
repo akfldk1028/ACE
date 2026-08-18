@@ -67,14 +67,32 @@ def _shortlist(chosen, count: int):
     """
 
     if count <= 0 or count >= len(chosen):
-        return list(chosen)
+        # Everything fits - but one composition still does not get two tiles.
+        # This early return bypassed the dedup entirely, and a starved sheet is
+        # exactly where the duplicate shows: 강남 delivered five tiles and two
+        # of them were `cctv_a_loop_stood_up` in different cells.
+        kept: list = []
+        told: set[str] = set()
+        for item in chosen:
+            if _sentence_of(item) in told:
+                continue
+            told.add(_sentence_of(item))
+            kept.append(item)
+        return kept
     picked: list = []
     seen: set[str] = set()
+    said: set[str] = set()
     for item in chosen:
         language = item.form.primary_language or ""
-        if language in seen:
+        # One per language AND one per sentence, even here: a coverage variant
+        # can come back reclassified into a different formal language - its
+        # language is re-read off the delivered mass - so on a starved sheet
+        # the language pass itself put `cctv_a_loop_stood_up` up twice, in two
+        # languages, side by side. 강남 delivered five tiles and two were it.
+        if language in seen or _sentence_of(item) in said:
             continue
         seen.add(language)
+        said.add(_sentence_of(item))
         picked.append(item)
         if len(picked) == count:
             return picked
@@ -86,7 +104,7 @@ def _shortlist(chosen, count: int):
     # not count differences that leave the structure of the concept intact. Two
     # of the sixteen were a pair of `cctv_a_loop_stood_up` variants standing
     # side by side on the sheet.
-    said = {_sentence_of(item) for item in picked}
+    said = {_sentence_of(item) for item in picked}  # carries the language pass's set forward
     for item in chosen:
         if item in picked or _sentence_of(item) in said:
             continue

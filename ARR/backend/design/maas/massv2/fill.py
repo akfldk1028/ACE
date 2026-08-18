@@ -118,13 +118,27 @@ def _taller(form: MatrixForm, factor: float) -> MatrixForm:
     tower: the growth loop asked for floor area, and area bought on a support
     is area nobody can enter. A column is sized by what walks under it and that
     does not change when the parcel allows more storeys.
+
+    A void is not a support and was being left behind with them, because the
+    test was `additive and occupiable` and a cutter is neither. So the building
+    grew and its courts, tubes and arches stayed the height they were authored:
+    CCTV's arch is cut to 62% of a 12 m mass, the growth loop takes that mass to
+    21.9 m, and what was an opening a person walks under becomes a notch at the
+    foot of a tall box. Three of four blind judges said so independently -
+    "a cube on two stumps", "the six carved theses collectively produced two
+    voids", "rings and fields survive the pipeline; lifts, slopes, cores and
+    voids do not".
+
+    A court that is the full height of a building is still the full height of it
+    after the building grows. Subtractive volumes stretch with what they cut.
     """
 
     return replace(
         form,
         placements=tuple(
             _stretched(item, factor)
-            if item.kind == "additive" and item.occupiable
+            if (item.kind == "additive" and item.occupiable)
+            or item.kind == "subtractive"
             else item
             for item in form.placements
         ),

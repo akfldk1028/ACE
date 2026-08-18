@@ -64,6 +64,34 @@ _DEFAULT_TARGET = 0.85
 # scheme that genuinely cannot grow without ceasing to be itself stops early and
 # keeps its own number.
 _TARGET_FLOOR = 0.75
+
+# What each formal language can hold without ceasing to be itself.
+#
+# The docstring of `fill_to_site` already argued this and nothing acted on it:
+# "a shop block fills it, a gallery does not, and a scheme of small dispersed
+# rooms cannot without ceasing to be one". Measured across the corpus, not one
+# authored sentence sets `far_target`, so every one of them - a bathhouse, a
+# vertical city, a bridge over a river, a field of pavilions - was grown to
+# between 0.75 and 0.85 of the same cap. That is the monoculture: sixteen
+# buildings at one density, which is what a sheet looks like when the growth
+# loop is the only thing deciding how big anything is.
+#
+# A field is the clearest case and it sets the low end: Moriyama, Inujima and
+# Towada are ten to twenty small volumes with lanes between them, and the only
+# way to add area to that is to pull it upward, which is the one thing it must
+# not do. A stacked body is the opposite - De Rotterdam is called a vertical
+# city - and a solid body sits between them.
+#
+# These are the language's own ceiling, not a target to chase: `worth_taking`
+# still refuses any step that costs the composition, so a scheme stops earlier
+# than this whenever growing would cost it its shape.
+_LANGUAGE_TARGET: dict[str, float] = {
+    "porous_field": 0.45,
+    "open_figure": 0.62,
+    "carved_body": 0.72,
+    "solid_body": 0.85,
+    "stacked_body": 0.98,
+}
 # How much of its articulation a scheme may lose in exchange for floor area.
 # Not zero: growth legitimately rounds a composition off a little. But a step
 # that costs a fifth of the move is buying area with the design.
@@ -243,9 +271,11 @@ def fill_to_site(
         allow_plan_growth = False
 
     authored = form.extra.get("far_target")
+    spoken_for = _LANGUAGE_TARGET.get(str(form.primary_language or "").strip())
     share = float(
         authored if authored is not None
         else target_utilization if target_utilization is not None
+        else spoken_for if spoken_for is not None
         else _DEFAULT_TARGET
     )
     # The floor exists for the case where nothing says how large the building
@@ -256,7 +286,14 @@ def fill_to_site(
     # and 면적표 is judged the other way, with 연면적 over the brief by more
     # than 5% costing marks and enough of it disqualifying the entry.
     briefed = form.extra.get("programme_target") is not None
-    share = min(1.0, share) if briefed else max(_TARGET_FLOOR, min(1.0, share))
+    # The floor is for a scheme that says nothing about its own size. A language
+    # says something, so it is not overruled by a number written for silence -
+    # holding a `porous_field` to 0.75 is exactly the instruction to stop being
+    # a field.
+    if briefed or authored is not None or spoken_for is not None:
+        share = min(1.0, share)
+    else:
+        share = max(_TARGET_FLOOR, min(1.0, share))
     capacity = capacity * share
 
     current = best.form

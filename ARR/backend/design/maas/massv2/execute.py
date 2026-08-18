@@ -31,6 +31,7 @@ from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY
 from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
+from .ops.swept import SWEPT_VERBS
 from .profiles import plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
@@ -154,6 +155,16 @@ class _Frame:
             self.lines[name] = element
         else:
             self.centres[name] = element
+
+    def pick(self, op) -> tuple[list[Placement], list[Placement]]:
+        """What this operation acts on, and the rest. See `_scope`."""
+
+        return _scope(self, op)
+
+    def direction(self, toward) -> tuple[float, float]:
+        """Which way a name means, in the frame's own axes. See `_direction`."""
+
+        return _direction(self, toward)
 
     def out(self, dx: float, dy: float) -> tuple[float, float]:
         """A displacement written in the frame's axes, said in world terms.
@@ -561,225 +572,6 @@ def _stack(frame: _Frame, op: Operation) -> None:
         w, d = w / contrast, d / contrast
 
 
-def _taper(frame: _Frame, op: Operation) -> None:
-    """Narrow what is standing as it rises.
-
-    A taper varies with height, and one affine matrix is linear, so no single
-    box can be one - a box can only be *smaller*, which is a setback. That is
-    what this used to build: it rebuilt the single highest volume at `ratio`
-    and left everything else alone. Measured on the corpus, that volume is 1.0%
-    of 79&Park, 1.6% of the New Museum and 1.7% of the Spiral, so the verb
-    could not redraw a twentieth of the building whatever the author asked for.
-    It was the silent word in eight of the twelve sentences the diff gate
-    refused.
-
-    An attempt to scale every picked volume by its own height fraction was
-    worse (24 spoken to 21, cells 16/16 to 15/16) and the measurement said why:
-    the volumes are not stacked. Timmerhuis' `field_plate` and its four objects
-    all start at z=0, so interpolating by a volume's midpoint handed the tallest
-    object 0.775 of the 0.55 the author wrote. Diluted, not tapered.
-
-    The answer is the one the graphics literature gives and this package
-    already had sitting unused: subdivide. `form.stack` cuts a volume into
-    slabs, each with its own matrix, and that is what makes a continuously
-    changing section representable at all - the same primitive that will carry
-    bend, twist and pinch.
-
-    The taper runs over the picked set as a whole, and each volume takes the
-    part of it that its own z-range spans, so a tall object narrows more than a
-    short one standing beside it and both belong to one silhouette.
-    """
-
-    ratio = _clamp(float(op.params.get("ratio", 0.7)), 0.3, 0.95)
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    base = min(item.z_span()[0] for item in picked)
-    crest = max(item.z_span()[1] for item in picked)
-    span = crest - base
-
-    def scale_at(z: float) -> float:
-        if span <= 1e-6:
-            return ratio
-        return 1.0 + (ratio - 1.0) * _clamp((z - base) / span, 0.0, 1.0)
-
-    pulled: list[Placement] = []
-    for item in picked:
-        low, high = item.z_span()
-        cx, cy, item_x, item_y = _bounds_of([item], frame)
-        # `stack` takes a world corner, not a frame offset - this verb does not
-        # go through `box`, so the conversion has to happen here.
-        world_x, world_y = frame.point(cx, cy)
-        low_scale, high_scale = scale_at(low), scale_at(high)
-        # A slab per storey is as fine as the thing being described, and the
-        # bands this produces are what the compiler and every measure read, so
-        # the resolution is capped: past this the section is smooth enough and
-        # the extra bands only cost.
-        storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 2, 8))
-        pulled.extend(
-            stack(
-                item.role,
-                size=(item_x * low_scale, item_y * low_scale, high - low),
-                at=(
-                    world_x - item_x * low_scale / 2.0,
-                    world_y - item_y * low_scale / 2.0,
-                    low,
-                ),
-                storeys=storeys,
-                taper=high_scale / low_scale,
-                plan=item.plan,
-                kind=item.kind,
-                rotation_degrees=frame.rotation,
-                occupiable=item.occupiable,
-            )
-        )
-    frame.placements = rest + pulled
-
-
-def _grade(frame: _Frame, op: Operation) -> None:
-    """Cut it back a step at a time, so the section becomes a stair.
-
-    The book's own word - Grade, 단차화하다, "단계적으로 깎아 계단형 윤곽 생성" -
-    and the grammar had no way to say it. Mountain Dwellings is the sentence
-    that needed it: the parking ramp's slope is the section of the whole
-    building and the dwellings are terraces on that slope. Written with `skew`,
-    which leans a prism, the mass came out a box with an overhang - a sheared
-    solid still has a flat top and a flat bottom, and a terrace is neither.
-
-    A `taper` is the nearest thing already here and it is not this either: it
-    narrows on every side as it rises, which is a ziggurat rather than a slope.
-    A grade gives ground away on one side only, so the far edge stands where it
-    always did and the near one walks back.
-
-    Discrete on purpose. The book says 계단형 - stepped - and the terraces are
-    the storeys, so the steps are storeys and not a smooth ramp.
-    """
-
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    # How much of the plan the top step has given up. Below a fifth the stair
-    # is a setback detail; above nine tenths the top step has no floor left.
-    run = _clamp(float(op.params.get("run", 0.6)), 0.2, 0.9)
-    ux, uy = _direction(frame, op.params.get("toward"))
-    along_x = abs(ux) >= abs(uy)
-
-    made: list[Placement] = []
-    for item in picked:
-        low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame)
-        along = span_x if along_x else span_y
-        # A step cannot be wider than the plan it steps out of. Without this the
-        # stair walks sideways into whatever the sentence set beside it.
-        shrink = _plan_shrink(item, span_x, span_y)
-        across = (span_y if along_x else span_x) * shrink
-        # One step per storey: the terraces are floors, and asking for more
-        # resolution than the building has invents steps nobody stands on.
-        steps = int(_clamp(
-            round((high - low) / max(frame.storey, 1.0)),
-            2, int(_clamp(float(op.params.get("steps", 6)), 2, 8)),
-        ))
-        band = (high - low) / steps
-        # Stepping by the band asked for buries each step in the one below
-        # whenever `box` holds it up to a storey - Mountain Dwellings asks for
-        # 2.70 m over four steps and gets 3.00 m ones, so every step overlaps by
-        # 0.30 and the compiler cuts a band at each overlap. Exactly the fault
-        # `_stack` had; CopenHill escaped it only because its band happened to
-        # land on the storey height. So the next step starts where the last one
-        # actually ended.
-        rises_at = low
-        for index in range(steps):
-            keep = along * (1.0 - run * index / max(steps - 1, 1))
-            # A terrace narrower than a room is not a terrace, for the same
-            # reason a split piece that narrow is not a piece - and the stair
-            # runs into it first, because every step is narrower than the last.
-            # On the 264 m² Gangnam parcel CopenHill's steps came out 6.1, 6.1,
-            # 3.9 and then 1.0 m across, and the last one drew as a spike on the
-            # roof. The stair simply stops where the building runs out of plan.
-            if keep <= DEFAULT_MINIMUM_CLEAR_DEPTH_M or across <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
-                break
-            # The high side stands still and the low side steps back, so the
-            # stair reads from one direction rather than as a symmetric pile.
-            shift = (along - keep) / 2.0
-            step = frame.box(
-                    f"{item.role}_step_{index}",
-                    w=keep if along_x else across,
-                    d=across if along_x else keep,
-                    z=rises_at,
-                    h=band,
-                    dx=cx + (ux * shift if along_x else 0.0),
-                    dy=cy + (uy * shift if not along_x else 0.0),
-                    kind=item.kind,
-                    plan=item.plan,
-                    occupiable=item.occupiable,
-                )
-            made.append(step)
-            rises_at = step.z_span()[1]
-    frame.placements = rest + made
-
-
-def _shear(frame: _Frame, op: Operation) -> None:
-    """Displace the upper volumes, by a fraction of their own dimension.
-
-    The magnitude is the corpus's and is clamped to it; the direction is the
-    author's. Sliding every volume by the same absolute distance is what makes
-    a shifted stack read as a stack that slipped rather than one that was
-    moved.
-
-    A volume keeps where it already stood. `frame.box` centres on the site
-    frame, so rebuilding a volume through it without adding back its own offset
-    teleports it to the middle of the parcel - and every other verb that
-    rebuilds a volume (`split`, `lift`, `taper`) had remembered to add it back
-    while this one had not. Measured: split a seed into `west` and `east` with
-    a gap and the east half stands at x=45.5; shear it across, and its x snaps
-    to 27.5, the frame centre, destroying the gap the split had just opened.
-
-    That is where the missing articulation went. Kunsthal, Educatorium and the
-    Netherlands Embassy all split and then shear a half, and the corpus measured
-    1.86 separate bodies at grade against a 3.4 benchmark - not because the
-    sentences failed to separate anything, but because the next word pulled the
-    pieces back together. An authoring agent found it by writing sentences that
-    should have worked and watching them not.
-    """
-
-    ratio = _clamp(float(op.params.get("ratio", 0.26)), MIN_OFFSET_RATIO, MAX_OFFSET_RATIO)
-    ux, uy = _direction(frame, op.params.get("toward"))
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    ordered = sorted(picked, key=lambda item: item.z_span()[0])
-    # What the move is measured against. Aimed at a stack, a shear is a stack
-    # that slipped and the volume on the ground is what it slipped from, so
-    # that one holds still. Aimed at something standing at one level - a tier,
-    # an object, a leg of a ring - there is nothing above it in the picked set
-    # to slip past, and anchoring the lowest picked volume meant the move did
-    # nothing whatever: the diff check reported exactly 0.0 for eleven of the
-    # corpus sentences, Seattle and De Rotterdam and CCTV among them.
-    #
-    # An earlier attempt anchored on the rest of the building for every scoped
-    # shear, which sent a large split part a full step off the parcel and into
-    # the clip. Narrowed here to the case that is actually broken.
-    levels = {round(item.z_span()[0], 3) for item in ordered}
-    anchored = 0 if len(levels) > 1 else -1
-    moved: list[Placement] = []
-    for index, item in enumerate(ordered):
-        if index == anchored:
-            moved.append(item)
-            continue
-        low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame)
-        # Steps counted from the anchor, so a shear at one level moves
-        # its volume by one step rather than by none.
-        reach = ratio * (span_x if abs(ux) >= abs(uy) else span_y) * (index - anchored)
-        moved.append(
-            frame.box(item.role, w=span_x, d=span_y, z=low, h=high - low,
-                      dx=cx + ux * reach,
-                      dy=cy + uy * reach,
-                      plan=item.plan, kind=item.kind, occupiable=item.occupiable)
-        )
-    frame.placements = rest + moved
-
-
 def _carve(frame: _Frame, op: Operation) -> None:
     """Take a named room out of the mass, on the side the author aimed it."""
 
@@ -913,43 +705,6 @@ def _puncture(frame: _Frame, op: Operation) -> None:
         )
 
 
-
-
-def _twist(frame: _Frame, op: Operation) -> None:
-    """Turn the section progressively as it rises.
-
-    One affine cannot twist, for the same reason it cannot taper: the transform
-    varies with height and a matrix is linear. `form.stack` was written for
-    exactly this and carries a `twist_degrees` argument that nothing had ever
-    passed. Vancouver House and the Shanghai Tower are this verb; so is half of
-    what the corpus calls a tower.
-    """
-
-    turn = _clamp(float(op.params.get("degrees", 30.0)), 5.0, 90.0)
-    picked, rest = _scope(frame, op)
-    if not picked:
-        return
-    twisted: list[Placement] = []
-    for item in picked:
-        low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame)
-        # As in `_taper`: a world corner, not a frame offset.
-        world_x, world_y = frame.point(cx, cy)
-        storeys = int(_clamp(round((high - low) / max(frame.storey, 1.0)), 3, 10))
-        twisted.extend(
-            stack(
-                item.role,
-                size=(span_x, span_y, high - low),
-                at=(world_x - span_x / 2.0, world_y - span_y / 2.0, low),
-                storeys=storeys,
-                twist_degrees=turn,
-                plan=item.plan,
-                kind=item.kind,
-                rotation_degrees=frame.rotation,
-                occupiable=item.occupiable,
-            )
-        )
-    frame.placements = rest + twisted
 
 
 def _lift(frame: _Frame, op: Operation) -> None:
@@ -1213,8 +968,8 @@ _VERBS = {
     "split": _split,
     "extrude": _extrude,
     "stack": _stack,
-    "taper": _taper,
-    "shear": _shear,
+    
+    
     "carve": _carve,
     "lift": _lift,
     "loop": _loop,
@@ -1226,16 +981,17 @@ _VERBS = {
     # was missing was a word.
     "notch": _notch,
     "puncture": _puncture,
-    "twist": _twist,
+    
     # Grade is the book's stepped profile, and the only way this grammar can
     # say a terraced section. `skew` leans a prism and `taper` narrows on every
     # side; neither is a slope you can stand on.
-    "grade": _grade,
+    
     # Verbs that are one matrix on volumes already standing live in `ops.affine`
     # and are written as (which volumes, which operator, about what pivot). The
     # ones above bring volumes into being or cut them, which is a different kind
     # of statement and stays here until it has a module of its own.
     **AFFINE_VERBS,
+    **SWEPT_VERBS,
 }
 
 

@@ -1,289 +1,289 @@
 {
-  "schemes": [
+ "schemes": [
+  {
+   "name": "nishizawa_teshima",
+   "primary_language": "carved_body",
+   "secondary_language": "one seamless shell with the sky let in twice",
+   "formal_principle": "A single columnless shell lies on the ground, narrows as it rises, and is opened only where the weather is meant to enter.",
+   "dominant_gesture": "A low white drop of concrete with two holes cut to the sky.",
+   "reference_basis": "Ryue Nishizawa + Rei Naito - Teshima Art Museum, Teshima Kagawa (2010): a columnless concrete shell 40 x 60 m in plan, 250 mm thick, 4.5 m at its highest, two elliptical oculi open to rain and wind, floor area about 2,335 m2",
+   "ops": [
     {
-      "name": "nishizawa_teshima",
-      "primary_language": "carved_body",
-      "secondary_language": "one seamless shell with the sky let in twice",
-      "formal_principle": "A single columnless shell lies on the ground, narrows as it rises, and is opened only where the weather is meant to enter.",
-      "dominant_gesture": "A low white drop of concrete with two holes cut to the sky.",
-      "reference_basis": "Ryue Nishizawa + Rei Naito - Teshima Art Museum, Teshima Kagawa (2010): a columnless concrete shell 40 x 60 m in plan, 250 mm thick, 4.5 m at its highest, two elliptical oculi open to rain and wind, floor area about 2,335 m2",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 0.25,
-          "profile": "oval",
-          "why": "실물이 최고 4.5m 한 겹의 공간이라 층을 쌓을 이유가 없다. 이 필지가 허용하는 4.17층 중 약 4분의 1만 써서 언덕의 등고선보다 낮게 누워야 원본의 자세가 유지된다."
-        },
-        {
-          "op": "taper",
-          "ratio": 0.45,
-          "on": "body",
-          "why": "40x60m 평면이 무주로 서려면 껍질 자체가 구조여야 하고, 그러려면 위로 갈수록 좁아져야 한다. 0.45는 4.5m 높이에서 바닥 60m가 상부에서 거의 사라지는 물방울 단면의 비율이다."
-        },
-        {
-          "op": "carve",
-          "size": 0.3,
-          "at": "cross",
-          "reach": 0.85,
-          "why": "이 건물에서 유일한 개구부는 지붕의 타원 두 개다. 벽에 창을 내지 않기로 한 이상 빛·비·바람·새소리가 들어올 통로는 위에서 크게 뚫린 구멍뿐이라 작게 뚫으면 건물이 성립하지 않는다."
-        }
-      ]
+     "op": "extrude",
+     "height": 0.25,
+     "profile": "oval",
+     "why": "실물이 최고 4.5m 한 겹의 공간이라 층을 쌓을 이유가 없다. 이 필지가 허용하는 4.17층 중 약 4분의 1만 써서 언덕의 등고선보다 낮게 누워야 원본의 자세가 유지된다."
     },
     {
-      "name": "nishizawa_towada",
-      "primary_language": "porous_field",
-      "secondary_language": "one room per artwork, standing apart on a street",
-      "formal_principle": "The programme is broken into as many separate volumes as there are works, and the street runs between them.",
-      "dominant_gesture": "A block of white boxes of unequal height with glass slots of daylight between them.",
-      "reference_basis": "Ryue Nishizawa - Towada Art Center, Towada Aomori (2008): each permanent commission housed in its own white volume of different height and footprint, volumes linked only by glass corridors, floor area about 3,078 m2, one to two storeys, fronting Kanchogai-dori",
-      "ops": [
-        {
-          "op": "aggregate",
-          "n": 6,
-          "spread": 1.2,
-          "height": 0.4,
-          "tie": 0.12,
-          "why": "작품 하나에 방 하나라는 규칙이 그대로 볼륨 개수가 된다. 6개는 문법이 허용하는 최대 분절이며, 실물의 '작품마다 다른 천장고'를 지키면서 각 방이 4.8m 폭 이상을 유지하는 개수이기도 하다. 산포 1.2는 법정 최소값인데 이것이 맞다. 도와다의 상자들은 높이만 다를 뿐 바닥 크기는 서로 비슷해서, 크기를 더 벌리면 '작품마다 한 방'이 아니라 '본관과 부속동'으로 읽혀버린다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
-          "turn": 18
-        },
-        {
-          "op": "split",
-          "ratio": 0.55,
-          "along": "long",
-          "first": "street_row",
-          "second": "garden_row",
-          "gap": 0.18,
-          "contrast": 1.35,
-          "why": "실물은 관청가 대로에 면한 줄과 뒤뜰에 면한 줄로 성격이 갈린다. 0.18의 간격은 유리 복도 한 폭이며, 이 틈이 없으면 여섯 개 방이 다시 한 덩어리로 붙어버린다."
-        },
-        {
-          "op": "shear",
-          "ratio": 0.22,
-          "toward": "open",
-          "on": "street_row",
-          "why": "표를 사지 않은 사람도 길에서 작품을 보게 하려고 앞줄을 대로 쪽으로 내민다. 0.22는 유리 복도 한 칸만큼으로, 그 이상 밀면 뒷줄로 가는 시선이 막힌다."
-        }
-      ]
+     "op": "taper",
+     "ratio": 0.45,
+     "on": "body",
+     "why": "40x60m 평면이 무주로 서려면 껍질 자체가 구조여야 하고, 그러려면 위로 갈수록 좁아져야 한다. 0.45는 4.5m 높이에서 바닥 60m가 상부에서 거의 사라지는 물방울 단면의 비율이다."
     },
     {
-      "name": "nishizawa_nishinoyama",
-      "primary_language": "porous_field",
-      "secondary_language": "ten small roofs instead of one apartment block",
-      "formal_principle": "A single housing programme is dissolved into ten low houses so that the space left over becomes everyone's garden.",
-      "dominant_gesture": "A field of low pitched roofs at eye level, with paths slipping between them.",
-      "reference_basis": "Ryue Nishizawa - Nishinoyama House, Kyoto (2013): ten rental dwellings on one site of roughly 1,100 m2, at most two storeys, each unit under its own low pitched roof, the gardens between the units left continuous",
-      "ops": [
-        {
-          "op": "aggregate",
-          "n": 6,
-          "spread": 1.45,
-          "height": 0.3,
-          "tie": 0.08,
-          "why": "실물이 열 세대를 한 동으로 묶지 않고 열 채로 흩은 것이 이 집의 전부다. 6은 문법이 허용하는 최대 분절이라 열 채를 여섯 채로 줄여 말한 것이고, 이 정도가 '한 동을 여러 칸으로 나눈 것'이 아니라 '여러 채가 모인 것'으로 읽히는 하한이다. 산포 1.45는 임대 세대들이 원룸에서 가족용까지 걸쳐 있되 어느 하나가 본채로 보이지는 않는 정도다. 묶음판 0.08은 채와 채를 잇는 최소한의 처마로, 이보다 두꺼우면 사이 정원이 실내 복도가 된다. 높이 0.3은 실물의 2층 상한이다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
-          "turn": 14
-        },
-        {
-          "op": "split",
-          "ratio": 0.45,
-          "along": "long",
-          "first": "street_cluster",
-          "second": "garden_cluster",
-          "gap": 0.22,
-          "why": "교토 주택가의 골목이 대지 안으로 그대로 이어져야 남는 땅이 정원이 된다. 0.22는 사람 둘이 지나는 골목 폭이고, 이보다 좁히면 뒤쪽 채들이 막다른 안뜰이 된다."
-        },
-        {
-          "op": "taper",
-          "ratio": 0.55,
-          "on": "garden_cluster",
-          "why": "이 집의 얼굴은 벽이 아니라 낮은 박공지붕들이다. 0.55는 처마에서 용마루까지 평면이 절반가량 줄어드는 완만한 물매로, 2층짜리 채에서도 지붕이 이웃집 창을 가리지 않는 각도다."
-        }
-      ]
-    },
-    {
-      "name": "sejima_inujima_art_houses",
-      "primary_language": "porous_field",
-      "secondary_language": "a museum with no building, scattered through a village",
-      "formal_principle": "The institution is dispersed into pavilions small enough to stand between existing houses, and the village lanes are the circulation.",
-      "dominant_gesture": "Transparent and curved little rooms glimpsed one at a time between old tiled roofs.",
-      "reference_basis": "Kazuyo Sejima - Inujima Art House Project, Inujima Okayama (2010-2013): F, S, I, A and C Art Houses plus the Nakanotani Gazebo, sited among the houses of a village of about fifty residents; A-Art House is a transparent acrylic cylinder, the Gazebo an open aluminium canopy",
-      "ops": [
-        {
-          "op": "aggregate",
-          "n": 6,
-          "spread": 2.2,
-          "height": 0.16,
-          "tie": 0.06,
-          "profile": "oval",
-          "why": "기존 집들 사이에 설 만큼 작은 파빌리온 여섯. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
-          "turn": 16
-        },
-        {
-          "op": "split",
-          "ratio": 0.5,
-          "along": "cross",
-          "first": "upper_hamlet",
-          "second": "lower_hamlet",
-          "gap": 8.0,
-          "why": "마을 길이다. gap 0.3은 23cm였다 — 길이 아니라 줄눈. 8이면 6.1m로 사람이 지나간다."
-        },
-        {
-          "op": "shift",
-          "on": "lower_hamlet",
-          "along": "upper_hamlet|lower_hamlet",
-          "ratio": 0.22,
-          "why": "아랫마을이 그 길을 따라 밀린다. 길이 동선이라는 말은 그 길이 배치를 지배한다는 뜻이다."
-        },
-        {
-          "op": "lift",
-          "clearance": 0.35,
-          "on": "lower_hamlet",
-          "why": "길이 건물 밑으로 이어진다."
-        }
-      ]
-    },
-    {
-      "name": "sanaa_bocconi_campus",
-      "primary_language": "open_figure",
-      "secondary_language": "two open rings holding a park that stays public",
-      "formal_principle": "The campus is a thin curved band on the perimeter so that the middle of the block can be given back to the city as a park.",
-      "dominant_gesture": "A long low curve of glass bending away, with the park visible straight through it.",
-      "reference_basis": "SANAA - Bocconi Urban Campus, Milan (2021): about 35,000 m2 on the former Centrale del Latte site, low curved buildings held to the edges around a large publicly accessible park, with a separate round student residence",
-      "ops": [
-        {
-          "op": "loop",
-          "bar": 0.3,
-          "height": 0.7,
-          "profile": "stadium",
-          "why": "실물은 가운데 공원을 시민에게 돌려주려고 건물을 대지 가장자리로만 밀었다. 폭 0.3은 강의실 한 켜에 복도를 붙인 두께이고, 이보다 두꺼우면 안쪽 방이 공원을 못 본다. 높이 0.7은 이 필지 4.17층 중 3층이다."
-        },
-        {
-          "op": "split",
-          "ratio": 0.62,
-          "along": "cross",
-          "first": "teaching_arc",
-          "second": "residence_arc",
-          "gap": 0.28,
-          "why": "실물에서 강의동과 기숙사는 붙어 있지 않고 따로 선다. 고리를 0.28만큼 끊어 두 개의 열린 호로 만들면 닫힌 ㅁ자가 아니게 되고, 공원이 두 군데에서 길과 이어진다."
-        },
-        {
-          "op": "shear",
-          "ratio": 0.25,
-          "toward": "cross",
-          "on": "residence_arc",
-          "why": "기숙사 호를 공원 반대편으로 밀어야 강의동에서 보는 공원 폭이 넓어진다. 0.25는 두 호의 끝이 서로를 가리지 않기 시작하는 최소 어긋남이다."
-        }
-      ]
-    },
-    {
-      "name": "sanaa_sydney_modern",
-      "primary_language": "porous_field",
-      "secondary_language": "pavilions terracing down to the water",
-      "formal_principle": "The building follows the fall of the land as separate low pavilions rather than one cut platform.",
-      "dominant_gesture": "Flat roofs stepping down one behind the other toward the harbour.",
-      "reference_basis": "SANAA - Sydney Modern, Art Gallery of New South Wales north building (2022): a chain of low limestone-and-glass pavilions terracing down the slope toward Woolloomooloo Bay, roughly 16,000 m2, planted roofs, entry from the upper level and the harbour level both",
-      "ops": [
-        {
-          "op": "aggregate",
-          "n": 4,
-          "spread": 2.4,
-          "height": 0.38,
-          "tie": 0.08,
-          "profile": "trapezoidal",
-          "why": "tie 0.4는 파빌리온들을 한 매트로 용접했다. 문장은 '별개'라고 말한다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
-          "turn": 12
-        },
-        {
-          "op": "split",
-          "ratio": 0.5,
-          "along": "long",
-          "first": "upper_terrace",
-          "second": "lower_terrace",
-          "gap": 7.0,
-          "contrast": 1.4,
-          "why": "땅이 떨어지는 자리. gap 0.14는 11cm였다."
-        },
-        {
-          "op": "shear",
-          "ratio": 0.28,
-          "toward": "upper_terrace|lower_terrace",
-          "on": "lower_terrace",
-          "why": "땅의 흐름을 따른다 — 그 흐름은 방금 낸 단차선이다."
-        }
-      ]
-    },
-    {
-      "name": "ishigami_vijversburg",
-      "primary_language": "open_figure",
-      "secondary_language": "three glass arms wandering into a park",
-      "formal_principle": "The building is not an object in the park but three thin paths that happen to have glass on both sides.",
-      "dominant_gesture": "A curving glass wall in the trees with the earth carried over the top of it.",
-      "reference_basis": "Junya Ishigami + Studio MAKS - Park Groot Vijversburg visitor centre, Tytsjerk Netherlands (2017): a single-storey pavilion of three arms extending from the 19th-century villa, walls of curved glass, roof covered with earth so the park runs over the building, about 950 m2",
-      "ops": [
-        {
-          "op": "extrude",
-          "height": 0.12,
-          "profile": "triangular",
-          "why": "공원 바닥에 붙는 한 켜."
-        },
-        {
-          "op": "split",
-          "ratio": 0.62,
-          "along": "cross",
-          "first": "west_arm",
-          "second": "rest",
-          "gap": 9.0,
-          "why": "첫 번째 길. gap 0.3은 23cm였고 문장은 '얇은 길 셋'이라고 말한다."
-        },
-        {
-          "op": "split",
-          "on": "rest",
-          "ratio": 0.55,
-          "along": "west_arm|rest",
-          "first": "mid_arm",
-          "second": "east_arm",
-          "gap": 9.0,
-          "why": "셋이 되려면 한 번 더. 그리고 첫 갈라짐이 낸 선을 따라야 세 길이 나란하다."
-        },
-        {
-          "op": "shear",
-          "ratio": 0.3,
-          "toward": "west_arm|rest",
-          "on": "east_arm",
-          "why": "같은 선을 따라 미끄러진다. 세 길이 한 방향으로 읽힌다."
-        }
-      ]
-    },
-    {
-      "name": "nishizawa_garden_and_house",
-      "primary_language": "open_figure",
-      "secondary_language": "four slabs with plants instead of walls",
-      "formal_principle": "Nothing is enclosed; floor plates of different depths are stacked and the gardens on each plate do the work of the facade.",
-      "dominant_gesture": "Four thin lines of concrete between two office blocks, with trees on each one.",
-      "reference_basis": "Ryue Nishizawa - Garden & House, Nishi-Shimbashi Tokyo (2011): a plot roughly 4 x 8 m squeezed between two office buildings, four storeys, floor area about 78 m2, no exterior walls at all - only slabs, hairline columns, curtains and potted gardens, each slab a different depth",
-      "ops": [
-        {
-          "op": "stack",
-          "n": 4,
-          "contrast": 1.6,
-          "height": 0.95,
-          "align": "open",
-          "why": "실물이 4층인 것은 4x8m 대지에서 방 하나씩을 겹쳐 쌓는 것 말고 방법이 없었기 때문이다. 이 필지가 허용하는 층수도 4.17층이라 0.95가 곧 그 4층이다. 대비 1.6은 층마다 슬래브 깊이가 다르다는 실물의 규칙이다."
-        },
-        {
-          "op": "shear",
-          "ratio": 0.75,
-          "toward": "long",
-          "on": "tier_2",
-          "why": "2층 슬래브를 앞으로 내밀어야 그 위가 3층의 정원이 된다. 벽이 없는 집에서 그늘과 프라이버시를 만드는 것은 커튼이 아니라 위아래 슬래브의 어긋남이다. (0.3 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
-        },
-        {
-          "op": "shear",
-          "ratio": 0.26,
-          "toward": "cross",
-          "on": "tier_1",
-          "why": "3층을 반대 방향으로 어긋내면 4개 층이 모두 하늘에 직접 열린 면을 하나씩 갖는다. 0.26 이하로 줄이면 위층이 아래층을 덮어 가장 아래 슬래브가 어두운 실내가 된다. (on tier_3 → tier_1: 지면을 채운 단에 걸면 법규선이 이동을 되잘라내 출고물에서 안 보인다 — 움직일 여유가 있는 상부 단으로 겨냥을 옮겼다)"
-        }
-      ]
+     "op": "carve",
+     "size": 0.38,
+     "at": "cross",
+     "reach": 0.85,
+     "why": "이 건물에서 유일한 개구부는 지붕의 타원 두 개다. 벽에 창을 내지 않기로 한 이상 빛·비·바람·새소리가 들어올 통로는 위에서 크게 뚫린 구멍뿐이라 작게 뚫으면 건물이 성립하지 않는다. size 0.3→0.38. taper가 행렬 밴드로 옮겨지며 배율을 밴드 중점에서 표집해 몸이 커졌고, 같은 중정이 전체의 4.9%로 떨어져 0.05 침묵 게이트에 반 끗 모자라게 됐다. 하늘로 열린 구멍이 이 문장의 유일한 사건이니 더 분명히 말한다."
     }
-  ]
+   ]
+  },
+  {
+   "name": "nishizawa_towada",
+   "primary_language": "porous_field",
+   "secondary_language": "one room per artwork, standing apart on a street",
+   "formal_principle": "The programme is broken into as many separate volumes as there are works, and the street runs between them.",
+   "dominant_gesture": "A block of white boxes of unequal height with glass slots of daylight between them.",
+   "reference_basis": "Ryue Nishizawa - Towada Art Center, Towada Aomori (2008): each permanent commission housed in its own white volume of different height and footprint, volumes linked only by glass corridors, floor area about 3,078 m2, one to two storeys, fronting Kanchogai-dori",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.2,
+     "height": 0.4,
+     "tie": 0.12,
+     "why": "작품 하나에 방 하나라는 규칙이 그대로 볼륨 개수가 된다. 6개는 문법이 허용하는 최대 분절이며, 실물의 '작품마다 다른 천장고'를 지키면서 각 방이 4.8m 폭 이상을 유지하는 개수이기도 하다. 산포 1.2는 법정 최소값인데 이것이 맞다. 도와다의 상자들은 높이만 다를 뿐 바닥 크기는 서로 비슷해서, 크기를 더 벌리면 '작품마다 한 방'이 아니라 '본관과 부속동'으로 읽혀버린다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
+     "turn": 18
+    },
+    {
+     "op": "split",
+     "ratio": 0.55,
+     "along": "long",
+     "first": "street_row",
+     "second": "garden_row",
+     "gap": 0.18,
+     "contrast": 1.35,
+     "why": "실물은 관청가 대로에 면한 줄과 뒤뜰에 면한 줄로 성격이 갈린다. 0.18의 간격은 유리 복도 한 폭이며, 이 틈이 없으면 여섯 개 방이 다시 한 덩어리로 붙어버린다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.22,
+     "toward": "open",
+     "on": "street_row",
+     "why": "표를 사지 않은 사람도 길에서 작품을 보게 하려고 앞줄을 대로 쪽으로 내민다. 0.22는 유리 복도 한 칸만큼으로, 그 이상 밀면 뒷줄로 가는 시선이 막힌다."
+    }
+   ]
+  },
+  {
+   "name": "nishizawa_nishinoyama",
+   "primary_language": "porous_field",
+   "secondary_language": "ten small roofs instead of one apartment block",
+   "formal_principle": "A single housing programme is dissolved into ten low houses so that the space left over becomes everyone's garden.",
+   "dominant_gesture": "A field of low pitched roofs at eye level, with paths slipping between them.",
+   "reference_basis": "Ryue Nishizawa - Nishinoyama House, Kyoto (2013): ten rental dwellings on one site of roughly 1,100 m2, at most two storeys, each unit under its own low pitched roof, the gardens between the units left continuous",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.45,
+     "height": 0.3,
+     "tie": 0.08,
+     "why": "실물이 열 세대를 한 동으로 묶지 않고 열 채로 흩은 것이 이 집의 전부다. 6은 문법이 허용하는 최대 분절이라 열 채를 여섯 채로 줄여 말한 것이고, 이 정도가 '한 동을 여러 칸으로 나눈 것'이 아니라 '여러 채가 모인 것'으로 읽히는 하한이다. 산포 1.45는 임대 세대들이 원룸에서 가족용까지 걸쳐 있되 어느 하나가 본채로 보이지는 않는 정도다. 묶음판 0.08은 채와 채를 잇는 최소한의 처마로, 이보다 두꺼우면 사이 정원이 실내 복도가 된다. 높이 0.3은 실물의 2층 상한이다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
+     "turn": 14
+    },
+    {
+     "op": "split",
+     "ratio": 0.45,
+     "along": "long",
+     "first": "street_cluster",
+     "second": "garden_cluster",
+     "gap": 0.22,
+     "why": "교토 주택가의 골목이 대지 안으로 그대로 이어져야 남는 땅이 정원이 된다. 0.22는 사람 둘이 지나는 골목 폭이고, 이보다 좁히면 뒤쪽 채들이 막다른 안뜰이 된다."
+    },
+    {
+     "op": "taper",
+     "ratio": 0.55,
+     "on": "garden_cluster",
+     "why": "이 집의 얼굴은 벽이 아니라 낮은 박공지붕들이다. 0.55는 처마에서 용마루까지 평면이 절반가량 줄어드는 완만한 물매로, 2층짜리 채에서도 지붕이 이웃집 창을 가리지 않는 각도다."
+    }
+   ]
+  },
+  {
+   "name": "sejima_inujima_art_houses",
+   "primary_language": "porous_field",
+   "secondary_language": "a museum with no building, scattered through a village",
+   "formal_principle": "The institution is dispersed into pavilions small enough to stand between existing houses, and the village lanes are the circulation.",
+   "dominant_gesture": "Transparent and curved little rooms glimpsed one at a time between old tiled roofs.",
+   "reference_basis": "Kazuyo Sejima - Inujima Art House Project, Inujima Okayama (2010-2013): F, S, I, A and C Art Houses plus the Nakanotani Gazebo, sited among the houses of a village of about fifty residents; A-Art House is a transparent acrylic cylinder, the Gazebo an open aluminium canopy",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 2.2,
+     "height": 0.16,
+     "tie": 0.06,
+     "profile": "oval",
+     "why": "기존 집들 사이에 설 만큼 작은 파빌리온 여섯. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
+     "turn": 16
+    },
+    {
+     "op": "split",
+     "ratio": 0.5,
+     "along": "cross",
+     "first": "upper_hamlet",
+     "second": "lower_hamlet",
+     "gap": 8.0,
+     "why": "마을 길이다. gap 0.3은 23cm였다 — 길이 아니라 줄눈. 8이면 6.1m로 사람이 지나간다."
+    },
+    {
+     "op": "shift",
+     "on": "lower_hamlet",
+     "along": "upper_hamlet|lower_hamlet",
+     "ratio": 0.22,
+     "why": "아랫마을이 그 길을 따라 밀린다. 길이 동선이라는 말은 그 길이 배치를 지배한다는 뜻이다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.35,
+     "on": "lower_hamlet",
+     "why": "길이 건물 밑으로 이어진다."
+    }
+   ]
+  },
+  {
+   "name": "sanaa_bocconi_campus",
+   "primary_language": "open_figure",
+   "secondary_language": "two open rings holding a park that stays public",
+   "formal_principle": "The campus is a thin curved band on the perimeter so that the middle of the block can be given back to the city as a park.",
+   "dominant_gesture": "A long low curve of glass bending away, with the park visible straight through it.",
+   "reference_basis": "SANAA - Bocconi Urban Campus, Milan (2021): about 35,000 m2 on the former Centrale del Latte site, low curved buildings held to the edges around a large publicly accessible park, with a separate round student residence",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.7,
+     "profile": "stadium",
+     "why": "실물은 가운데 공원을 시민에게 돌려주려고 건물을 대지 가장자리로만 밀었다. 폭 0.3은 강의실 한 켜에 복도를 붙인 두께이고, 이보다 두꺼우면 안쪽 방이 공원을 못 본다. 높이 0.7은 이 필지 4.17층 중 3층이다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "teaching_arc",
+     "second": "residence_arc",
+     "gap": 0.28,
+     "why": "실물에서 강의동과 기숙사는 붙어 있지 않고 따로 선다. 고리를 0.28만큼 끊어 두 개의 열린 호로 만들면 닫힌 ㅁ자가 아니게 되고, 공원이 두 군데에서 길과 이어진다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.25,
+     "toward": "cross",
+     "on": "residence_arc",
+     "why": "기숙사 호를 공원 반대편으로 밀어야 강의동에서 보는 공원 폭이 넓어진다. 0.25는 두 호의 끝이 서로를 가리지 않기 시작하는 최소 어긋남이다."
+    }
+   ]
+  },
+  {
+   "name": "sanaa_sydney_modern",
+   "primary_language": "porous_field",
+   "secondary_language": "pavilions terracing down to the water",
+   "formal_principle": "The building follows the fall of the land as separate low pavilions rather than one cut platform.",
+   "dominant_gesture": "Flat roofs stepping down one behind the other toward the harbour.",
+   "reference_basis": "SANAA - Sydney Modern, Art Gallery of New South Wales north building (2022): a chain of low limestone-and-glass pavilions terracing down the slope toward Woolloomooloo Bay, roughly 16,000 m2, planted roofs, entry from the upper level and the harbour level both",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 2.4,
+     "height": 0.38,
+     "tie": 0.08,
+     "profile": "trapezoidal",
+     "why": "tie 0.4는 파빌리온들을 한 매트로 용접했다. 문장은 '별개'라고 말한다. 취락은 집들이 서로 조금씩 다른 방향으로 앉아서 취락이다. 전부 평행하면 창고 단지고, 그게 레고처럼 보이는 이유였다.",
+     "turn": 12
+    },
+    {
+     "op": "split",
+     "ratio": 0.5,
+     "along": "long",
+     "first": "upper_terrace",
+     "second": "lower_terrace",
+     "gap": 7.0,
+     "contrast": 1.4,
+     "why": "땅이 떨어지는 자리. gap 0.14는 11cm였다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.28,
+     "toward": "upper_terrace|lower_terrace",
+     "on": "lower_terrace",
+     "why": "땅의 흐름을 따른다 — 그 흐름은 방금 낸 단차선이다."
+    }
+   ]
+  },
+  {
+   "name": "ishigami_vijversburg",
+   "primary_language": "open_figure",
+   "secondary_language": "three glass arms wandering into a park",
+   "formal_principle": "The building is not an object in the park but three thin paths that happen to have glass on both sides.",
+   "dominant_gesture": "A curving glass wall in the trees with the earth carried over the top of it.",
+   "reference_basis": "Junya Ishigami + Studio MAKS - Park Groot Vijversburg visitor centre, Tytsjerk Netherlands (2017): a single-storey pavilion of three arms extending from the 19th-century villa, walls of curved glass, roof covered with earth so the park runs over the building, about 950 m2",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.12,
+     "profile": "triangular",
+     "why": "공원 바닥에 붙는 한 켜."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "west_arm",
+     "second": "rest",
+     "gap": 9.0,
+     "why": "첫 번째 길. gap 0.3은 23cm였고 문장은 '얇은 길 셋'이라고 말한다."
+    },
+    {
+     "op": "split",
+     "on": "rest",
+     "ratio": 0.55,
+     "along": "west_arm|rest",
+     "first": "mid_arm",
+     "second": "east_arm",
+     "gap": 9.0,
+     "why": "셋이 되려면 한 번 더. 그리고 첫 갈라짐이 낸 선을 따라야 세 길이 나란하다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.3,
+     "toward": "west_arm|rest",
+     "on": "east_arm",
+     "why": "같은 선을 따라 미끄러진다. 세 길이 한 방향으로 읽힌다."
+    }
+   ]
+  },
+  {
+   "name": "nishizawa_garden_and_house",
+   "primary_language": "open_figure",
+   "secondary_language": "four slabs with plants instead of walls",
+   "formal_principle": "Nothing is enclosed; floor plates of different depths are stacked and the gardens on each plate do the work of the facade.",
+   "dominant_gesture": "Four thin lines of concrete between two office blocks, with trees on each one.",
+   "reference_basis": "Ryue Nishizawa - Garden & House, Nishi-Shimbashi Tokyo (2011): a plot roughly 4 x 8 m squeezed between two office buildings, four storeys, floor area about 78 m2, no exterior walls at all - only slabs, hairline columns, curtains and potted gardens, each slab a different depth",
+   "ops": [
+    {
+     "op": "stack",
+     "n": 4,
+     "contrast": 1.6,
+     "height": 0.95,
+     "align": "open",
+     "why": "실물이 4층인 것은 4x8m 대지에서 방 하나씩을 겹쳐 쌓는 것 말고 방법이 없었기 때문이다. 이 필지가 허용하는 층수도 4.17층이라 0.95가 곧 그 4층이다. 대비 1.6은 층마다 슬래브 깊이가 다르다는 실물의 규칙이다."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.75,
+     "toward": "long",
+     "on": "tier_2",
+     "why": "2층 슬래브를 앞으로 내밀어야 그 위가 3층의 정원이 된다. 벽이 없는 집에서 그늘과 프라이버시를 만드는 것은 커튼이 아니라 위아래 슬래브의 어긋남이다. (0.3 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
+    },
+    {
+     "op": "shear",
+     "ratio": 0.26,
+     "toward": "cross",
+     "on": "tier_1",
+     "why": "3층을 반대 방향으로 어긋내면 4개 층이 모두 하늘에 직접 열린 면을 하나씩 갖는다. 0.26 이하로 줄이면 위층이 아래층을 덮어 가장 아래 슬래브가 어두운 실내가 된다. (on tier_3 → tier_1: 지면을 채운 단에 걸면 법규선이 이동을 되잘라내 출고물에서 안 보인다 — 움직일 여유가 있는 상부 단으로 겨냥을 옮겼다)"
+    }
+   ]
+  }
+ ]
 }

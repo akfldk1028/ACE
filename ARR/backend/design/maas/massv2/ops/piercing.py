@@ -20,11 +20,17 @@ cannot say.
 
 from __future__ import annotations
 
-from math import cos, radians, sin
+from dataclasses import replace
+from math import cos, radians, sin, tan
 from typing import Callable
 
-from design.maas.geometry_language.affine_matrix import translation_matrix4
+from design.maas.geometry_language.affine_matrix import (
+    compose_matrix4,
+    translation_matrix4,
+    validate_matrix4,
+)
 
+from ..form import Placement
 from .swept import _banded, _clamp
 
 
@@ -95,9 +101,90 @@ def intersect(frame, op) -> None:
     frame.placements = rest + picked + made
 
 
+def fracture(frame, op) -> None:
+    """Cut irregular leaning fissures through the mass - the book's Fracture.
+
+    "불규칙 사선 틈을 절삭". Not a split: a split parts a volume along its own
+    axes and the pieces stand plumb. A fracture drives thin subtractive slats
+    through at a lean, so the crack wanders as it rises and the shards change
+    shape storey by storey - the compiler already cuts a leaning volume at
+    storeys, so the machinery was waiting for the word.
+
+    Irregular but deterministic: the fissures alternate their turn and their
+    lean by position, the same way `aggregate` drifts its objects - no
+    randomness, because a resumable pipeline cannot roll dice.
+    """
+
+    picked, rest = frame.pick(op)
+    solid = [item for item in picked if item.kind == "additive"]
+    if not solid:
+        return
+    corners = [corner for item in solid for corner in item.corners()]
+    xs = [x for x, _y, _z in corners]
+    ys = [y for _x, y, _z in corners]
+    zs = [z for _x, _y, z in corners]
+    centre_x, centre_y = (min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0
+    height = max(zs) - min(zs)
+
+    count = int(_clamp(float(op.params.get("n", 2)), 1, 4))
+    # The crack's width, in shares of the extent along the run. Named `slot`
+    # and not `gap` on purpose: `ablation.gap_survived` reads a `gap` param off
+    # every operation as a declared separation between bodies, and a fissure's
+    # width is not that claim - naming it the same would put every fractured
+    # sentence in front of a gate about a promise it never made.
+    width = _clamp(float(op.params.get("slot", 0.06)), 0.03, 0.15)
+    tilt = _clamp(float(op.params.get("degrees", 16.0)), 6.0, 30.0)
+    turn0 = _clamp(float(op.params.get("turn", 12.0)), -45.0, 45.0)
+
+    bearing = radians(frame.rotation)
+    along = (cos(bearing), sin(bearing))
+    run = max(x * along[0] + y * along[1] for x, y in zip(xs, ys)) - min(
+        x * along[0] + y * along[1] for x, y in zip(xs, ys)
+    )
+    across = (-along[1], along[0])
+    breadth = max(x * across[0] + y * across[1] for x, y in zip(xs, ys)) - min(
+        x * across[0] + y * across[1] for x, y in zip(xs, ys)
+    )
+
+    dx0, dy0 = frame.local(centre_x, centre_y)
+    made: list[Placement] = []
+    for index in range(count):
+        # Spread along the run, off-centre on purpose; alternate the wander.
+        station = (index + 1.0) / (count + 1.0) - 0.5
+        turn = (turn0 + 9.0 * index) * (1 if index % 2 else -1)
+        lean = tilt * (1 if index % 2 else -1)
+        slat = frame.box(
+            f"fissure_{index}",
+            w=width * run, d=breadth * 1.6,
+            # Overshot on both ends, like carve's cutter, so the cut reaches
+            # cleanly through the ground and roof faces.
+            z=-height, h=3.0 * max(height, 1.0),
+            dx=dx0 + station * run, dy=dy0,
+            turn=turn, kind="subtractive", occupiable=False,
+        )
+        # The lean, said in the slat's own unit space: x drifts with z, so the
+        # crack wanders as it rises whatever the parcel's bearing.
+        drift = tan(radians(lean))
+        # x' = x + drift * z: row 0 carries the z coefficient. Written
+        # transposed the first time - z' = z + drift * x - which tilted the
+        # cutter's TOP away instead of its side, changed nothing in plan, and
+        # announced itself by stretching the z-span to -14.2.
+        wander = (
+            (1.0, 0.0, drift, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        )
+        made.append(replace(
+            slat, matrix=validate_matrix4(compose_matrix4(wander, slat.matrix))
+        ))
+    frame.placements = rest + picked + made
+
+
 PIERCING_VERBS: dict[str, Callable] = {
     "intersect": intersect,
+    "fracture": fracture,
 }
 
 
-__all__ = ["PIERCING_VERBS", "intersect"]
+__all__ = ["PIERCING_VERBS", "fracture", "intersect"]

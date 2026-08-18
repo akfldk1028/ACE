@@ -110,6 +110,7 @@ PLOT_MODES: dict[str, PlotMode] = {
     # Branch (하나의 줄기에서 여러 팔) and Embed (제2 볼륨을 제1에 삽입). Both
     # grow off what is standing, in the host's own unit space, so they inherit.
     "branch": "inherit",
+    "fracture": "inherit",
     "embed": "inherit",
     "carve": "impose",
     "lift": "impose",

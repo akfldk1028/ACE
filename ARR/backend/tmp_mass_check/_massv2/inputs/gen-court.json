@@ -430,6 +430,29 @@
      "why": "실험탑들이 척추에서 가지쳐 나온다 — 책의 Branch 그대로. 팔은 줄기의 단위공간에 쓰여 어느 필지에서든 줄기에 붙어 나온다. reach 0.7은 실측으로 정했다: 0.9는 팔끝이 대지 모서리를 스쳐 잘린다."
     }
    ]
+  },
+  {
+   "name": "libeskind_rom_shards_of_one_block",
+   "primary_language": "carved_body",
+   "secondary_language": "one low block cracked into leaning crystals",
+   "formal_principle": "One block is cracked by leaning fissures that wander as they rise, so the shards change shape storey by storey and the building reads as crystals grown against each other.",
+   "dominant_gesture": "Prismatic shards separated by narrow slanting slots of light.",
+   "reference_basis": "Daniel Libeskind - Michael Lee-Chin Crystal, Royal Ontario Museum Toronto (2007): five self-supporting prismatic volumes interlocking against the existing museum, their junctions read as slanting fissures of glazing",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.55,
+     "why": "하나의 블록. 결정은 쌓은 것이 아니라 한 덩어리가 갈라진 것이다."
+    },
+    {
+     "op": "fracture",
+     "n": 3,
+     "slot": 0.07,
+     "degrees": 22,
+     "turn": 16,
+     "why": "책의 Fracture(불규칙 사선 틈을 절삭) — 기운 틈이 오르며 이동해 파편의 평면이 층마다 달라진다. split은 조각을 수직으로 세우므로 이 말을 못 한다. tirpitz에 넣어 재봤더니 현행 split×2가 더 세게 말해(0.54/0.33/0.27 대 0.30) tirpitz는 그대로 두고, 균열이 곧 건물인 이 문장이 동사를 받는다."
+    }
+   ]
   }
  ]
 }

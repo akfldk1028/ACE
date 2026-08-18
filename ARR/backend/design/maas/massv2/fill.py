@@ -26,7 +26,13 @@ from dataclasses import dataclass, replace
 from typing import Any
 
 from .compile import compile_matrix_form
-from .form import MatrixForm
+from design.maas.geometry_language.affine_matrix import (
+    compose_matrix4,
+    translation_matrix4,
+    validate_matrix4,
+)
+
+from .form import MatrixForm, Placement
 from .legal import LegalSite
 from .measure import measure_form
 from .legal_fit import (
@@ -133,15 +139,52 @@ def _taller(form: MatrixForm, factor: float) -> MatrixForm:
     after the building grows. Subtractive volumes stretch with what they cut.
     """
 
+    # Bottom-up, each volume rebased onto whatever it was resting on. Stretching
+    # about a volume's own base is right when what is under it did not move, and
+    # wrong for a stack: tiers keep their spacing while their thickness grows, so
+    # they interpenetrate, and the compiler cuts a band at every overlap. Seattle
+    # is five platforms 2.40 m apart that grew to 4.05 m thick - band edges at
+    # 0, 2.40, 4.05, 4.80, 6.45, 7.20, 8.85, 9.60, 11.25, 13.65, which is nine
+    # prisms for five platforms and reads as horizontal stripes across every one
+    # of them. `form.stack` already warns about exactly this: "an overlap
+    # declares one extra band per joint carrying the plan of the slab below".
+    #
+    # Rebasing keeps both cases right. A body on supports still lands on its
+    # supports, because they do not grow and its base does not move; a tier lands
+    # on the new top of the tier below.
+    grown: dict[int, Placement] = {}
+    order = sorted(
+        range(len(form.placements)),
+        key=lambda index: form.placements[index].z_span()[0],
+    )
+    for index in order:
+        item = form.placements[index]
+        low, high = item.z_span()
+        if not ((item.kind == "additive" and item.occupiable)
+                or item.kind == "subtractive"):
+            grown[index] = item
+            continue
+        # What it was standing on: anything whose old top met its old base.
+        carried = [
+            grown[other].z_span()[1]
+            for other in order
+            if other in grown
+            and abs(form.placements[other].z_span()[1] - low) <= 1e-6
+        ]
+        raised = _stretched(item, factor)
+        if carried:
+            lift = max(carried) - raised.z_span()[0]
+            if abs(lift) > 1e-9:
+                raised = replace(
+                    raised,
+                    matrix=validate_matrix4(compose_matrix4(
+                        raised.matrix, translation_matrix4((0.0, 0.0, lift))
+                    )),
+                )
+        grown[index] = raised
     return replace(
         form,
-        placements=tuple(
-            _stretched(item, factor)
-            if (item.kind == "additive" and item.occupiable)
-            or item.kind == "subtractive"
-            else item
-            for item in form.placements
-        ),
+        placements=tuple(grown[index] for index in range(len(form.placements))),
     )
 
 

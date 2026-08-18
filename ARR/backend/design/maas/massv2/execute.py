@@ -463,12 +463,19 @@ def _stack(frame: _Frame, op: Operation) -> None:
         # renderer drew each as a false eaves line, so every stacked scheme read
         # as a pancake, and `large_span_strategy` read those slices as candidate
         # halls until it was taught to weigh volume instead of plan.
-        frame.placements.append(
-            frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h,
-                      dx=ux * (frame.width - w) / 2.0,
-                      dy=uy * (frame.depth - d) / 2.0)
-        )
-        z += tier_h
+        tier = frame.box(f"tier_{index}", w=w, d=d, z=z, h=tier_h,
+                         dx=ux * (frame.width - w) / 2.0,
+                         dy=uy * (frame.depth - d) / 2.0)
+        frame.placements.append(tier)
+        # Advance by what the tier actually came out at, not by what was asked
+        # for. `box` holds an occupiable volume to a storey, so a stack of five
+        # on a twelve-metre frame asks for 2.40 m tiers and gets 3.00 m ones -
+        # and stepping by 2.40 buried each tier 0.60 m in the one below. The
+        # growth loop then widened that to 1.65 m, and the compiler cut a band
+        # at every overlap: nine prisms for five platforms, drawn as horizontal
+        # stripes across the whole of Seattle. Which is the failure the comment
+        # above already describes, arriving by a different route.
+        z = tier.z_span()[1]
         w, d = w / contrast, d / contrast
 
 

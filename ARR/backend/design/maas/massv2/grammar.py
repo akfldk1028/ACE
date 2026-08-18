@@ -194,31 +194,66 @@ def parti_from_record(record: dict[str, Any]) -> Parti | None:
 
 
 def seed_rectangle(buildable: Polygon, axis: tuple[float, float]) -> tuple[float, float, float, float, float]:
-    """The site's own starting box: its widest rectangle, on its own axis.
+    """The site's own starting box: the parcel's extent on the axis it is posed on.
 
-    Taking the parcel's minimum rotated rectangle rather than an axis-aligned
-    box is what lets a clean orthogonal composition sit in a skewed plot without
-    being cut to pieces - the mass is turned to the site the way a building is,
-    instead of meeting every boundary at an angle.
+    Turning the box to the site rather than to north is what lets a clean
+    orthogonal composition sit in a skewed plot without meeting every boundary
+    at an angle. The bearing is the open side - the street - because that is the
+    direction a building is placed along, and when no side is open it falls back
+    to the parcel's own longest edge.
+
+    Measured on that same bearing, which is the part that was wrong. Two faults
+    sat on top of each other here.
+
+    The depth was read off the minimum rotated rectangle's edge list, and that
+    list runs corner to corner: for a rectangle, `ring[:4]` gives three edges as
+    long, short, long. Sorting them by length and taking the first two takes the
+    long edge twice whenever the ring happens to start on a short side, so the
+    seed came out square. Which way it fell was decided by wherever shapely
+    began the ring:
+
+        의정부  edges 57.8, 41.8, 57.8  ->  57.8 x 57.8   3,343 m² on a 1,922 m² plot
+        종로    edges 231.6, 73.3, 231.6 -> 231.6 x 231.6  53,627 m² on a 1,503 m²
+        강남    edges 8.0, 12.9, 8.0    ->  12.9 x 8.0    correct
+
+    And the extent was measured on the minimum rotated rectangle's own axes
+    while the frame is posed on the axis, which on 의정부 differ by 41.5 degrees
+    - so even a correctly read pair of edges described a rectangle standing
+    somewhere else. The same fault `_bounds_of` had, one stage earlier: measure
+    on the axes the thing is built on.
 
     Returns (centre x, centre y, width, depth, rotation in degrees).
     """
 
-    from math import atan2, degrees, hypot
+    from math import atan2, cos, degrees, hypot, radians, sin
 
-    box = buildable.minimum_rotated_rectangle
-    ring = list(box.exterior.coords)[:4]
-    edges = [
-        (ring[i + 1][0] - ring[i][0], ring[i + 1][1] - ring[i][1]) for i in range(3)
+    if axis != (0.0, 0.0):
+        rotation = degrees(atan2(axis[1], axis[0]))
+    else:
+        ring = list(buildable.minimum_rotated_rectangle.exterior.coords)[:4]
+        adjacent = [
+            (ring[i + 1][0] - ring[i][0], ring[i + 1][1] - ring[i][1]) for i in range(2)
+        ]
+        longest = max(adjacent, key=lambda edge: hypot(edge[0], edge[1]))
+        rotation = degrees(atan2(longest[1], longest[0]))
+
+    bearing = radians(-rotation)
+    cos_b, sin_b = cos(bearing), sin(bearing)
+    turned = [
+        (x * cos_b - y * sin_b, x * sin_b + y * cos_b)
+        for x, y in buildable.exterior.coords
     ]
-    edges.sort(key=lambda e: hypot(e[0], e[1]), reverse=True)
-    width = hypot(edges[0][0], edges[0][1])
-    depth = hypot(edges[1][0], edges[1][1])
-    centre = box.centroid
-    rotation = degrees(atan2(axis[1], axis[0])) if axis != (0.0, 0.0) else degrees(
-        atan2(edges[0][1], edges[0][0])
-    )
-    return float(centre.x), float(centre.y), float(width), float(depth), float(rotation)
+    us = [u for u, _v in turned]
+    vs = [v for _u, v in turned]
+    width, depth = max(us) - min(us), max(vs) - min(vs)
+
+    # The centre of that box, said in world terms again.
+    mid_u, mid_v = (min(us) + max(us)) / 2.0, (min(vs) + max(vs)) / 2.0
+    back = radians(rotation)
+    cos_f, sin_f = cos(back), sin(back)
+    centre_x = mid_u * cos_f - mid_v * sin_f
+    centre_y = mid_u * sin_f + mid_v * cos_f
+    return float(centre_x), float(centre_y), float(width), float(depth), float(rotation)
 
 
 __all__ = [

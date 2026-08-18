@@ -287,6 +287,11 @@ def compile_matrix_form(
     topmost = [item for item in volumes if item.top_fraction >= 1.0 - 1e-6]
     footprint = unary_union([item.footprint for item in grounded]) if grounded else volumes[0].footprint
     if not isinstance(footprint, Polygon):
+        # ⚠️ `SourceMass.footprint` is typed as one Polygon, so a mass standing
+        # on several bodies loses all but its largest here. This is ground
+        # contact and not 건축면적 either - a lifted wing touches nothing - so
+        # nothing that has to agree with the law may read it. 건폐율 comes from
+        # `legal_fit.ground_area_m2`, which is what the gate checks.
         footprint = max(footprint.geoms, key=lambda item: item.area)
     upper = unary_union([item.footprint for item in topmost]) if topmost else None
     if upper is not None and not isinstance(upper, Polygon):

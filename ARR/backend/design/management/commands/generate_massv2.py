@@ -620,7 +620,17 @@ class Command(BaseCommand):
                         # form and was being dropped at the tile.
                         "thesis": item.form.formal_principle or item.form.secondary_language,
                         "recommended": index == 0,
-                        "건폐율": f"{item.source.footprint.area / site.parcel_area_m2 * 100:.0f}%",
+                        # The number the law was checked against, in the same
+                        # form as the 용적률 line below it. `source.footprint`
+                        # is not that number twice over: it is what touches the
+                        # ground rather than the horizontal projection 건축면적
+                        # is defined as, and `compile` keeps only the largest
+                        # piece of it when a mass stands on several. On
+                        # `oma_blox_copenhagen`, whose sentence lifts one wing
+                        # over a road, those read 169.7 m² and 796.7 m² - the
+                        # tile said 7% under a drawing of a building covering
+                        # 32% of its plot.
+                        "건폐율": f"{item.ground_take * site.ground_capacity_m2 / site.parcel_area_m2 * 100:.0f}%",
                         "용적률": f"{item.far_utilization * site.far_capacity_m2 / site.parcel_area_m2 * 100:.0f}%",
                         "cell": item.cell.replace("_ground", "").replace("_body", "").replace("_figure", ""),
                     },

@@ -21,7 +21,7 @@ skipped and the mass is the sentence executed, grown to the site and clipped -
 the delivered geometry, not the authored size, because that is where every
 failure this branch has chased actually lives.
 
-    python tmp_mass_check/_massv2/tools/bench.py <output-name>
+    python tmp_mass_check/_massv2/tools/bench.py <output-name> [pnu]
 """
 
 import json
@@ -44,7 +44,12 @@ from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import open_side_direction  # noqa: E402
 
 ROOT = Path("D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2")
-PNU = "4115011300106840001"
+# The parcel is an argument, not a constant. Every fix in this branch is written
+# to travel - spans measured on the frame's own axes, voids measured against what
+# is standing, strides taken from what `box` actually built, thresholds that are
+# package constants or ratios - and none of that is worth anything until the same
+# twelve sentences are drawn on a second site.
+DEFAULT_PNU = "4115011300106840001"
 
 # Twelve sentences held fixed. Chosen to span what this branch has been chasing:
 # the ones that read (ewha, towada, acc, saclay, seattle, sluishuis), the ones a
@@ -69,6 +74,7 @@ BENCH = (
 
 def main() -> int:
     out = ROOT / "runs" / (sys.argv[1] if len(sys.argv) > 1 else "bench")
+    pnu = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_PNU
     out.mkdir(parents=True, exist_ok=True)
 
     corpus = {}
@@ -76,7 +82,7 @@ def main() -> int:
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
             corpus[scheme["name"]] = scheme
 
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(pnu, building_type="제1종근린생활시설")
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     height = site.floor_height_m * max(

@@ -214,20 +214,58 @@ def _spoken_force(item: Candidate) -> float:
 # sits. Neither grid coordinate is here and that is deliberate: ground take and
 # plan void are the axes, so scoring them scores the thing every occupant of a
 # cell has in common.
+def _shape_read(item: Candidate) -> float:
+    """Is this shaped at all, asked without asking where its cell is.
+
+    `FormMeasurement.articulation` is the max of three readings and one of them
+    is `plan_void_ratio`, which is a grid coordinate - so the whole measure is
+    the void axis whenever the void dominates, and `test_no_objective_reads_
+    either_grid_coordinate` refuses it, correctly. This takes the other two.
+
+    Chosen by measurement, against a sample drawn evenly across the compiled
+    pool rather than the delivered shortlist, judged pairwise in two independent
+    rounds under one prompt:
+
+        objective                   round 1   round 2   with the void axis
+        plan_void_ratio              +0.538    +0.536   it is the void axis
+        far_utilization              -0.566    -0.540      -0.71
+        convexity_drop               +0.329    +0.343      +0.87
+        articulation (with void)     +0.263    +0.253      +0.29
+        max(convexity, section)      +0.237    +0.234      +0.18   <- this
+        section_change alone         +0.106    +0.067       0.00
+
+    Everything that reads stronger is a grid coordinate under another name.
+    Dropping the void term costs 0.026 of correlation and halves what the
+    objective shares with the axis; against ground take it reads -0.10, and
+    against `spoken_force` +0.43, so it is neither the grid nor a copy of the
+    objective already here.
+
+    ⚠️ On the delivered shortlist the same measure reads +0.028 and +0.020 - no
+    relationship at all, which is why it had looked useless. That sample is
+    chosen by `spoken_force`, and inside the winners of a contest the criterion
+    that decided it stops varying, so every correlation measured there is about
+    what the winners had to overcome. Both members of this tuple had the
+    opposite sign on it. See `tools/judge_fit.py` and `tools/sample_pool.py`.
+    """
+
+    measurement = item.measurement
+    return max(measurement.convexity_drop, measurement.section_change)
+
+
 OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("spoken_force", _spoken_force),
+    ("shape_read", _shape_read),
 )
 
-# ⚠️ One objective, so `_balance_keys` degenerates for the overseas edition: a
-# one-tuple sorts to itself, and comparing one-tuples is comparing one number.
-# The balance criterion below is live only on the briefed path, which has two.
+# Neither entry is a grid coordinate, and that is the rule this tuple is kept
+# to: ground take and plan void are the axes, so scoring them scores the thing
+# every occupant of a cell already has in common.
 #
-# That is not an oversight to quietly patch. `far` and `shape_work` were here
-# and were removed on measurement - their correlation with the critics' ranking
-# flipped sign between rounds, -0.23 then +0.33, while `spoken_force` held at
-# +0.67 and +0.48. Putting a second axis back means finding one that survives a
-# judged comparison, not one that makes this tuple longer. Until then the
-# overseas sheet is chosen by a single number and this comment says so.
+# `far` and `shape_work` used to be here and were removed on measurement - their
+# correlation with judged ranking flipped sign between rounds. So did the first
+# reading of both members above, on a sample that had been selected by one of
+# them. An axis earns its place by holding its sign, and its size, over two
+# rounds against an unselected sample. Nothing else.
 
 
 def _brief_fit(item: Candidate) -> float:
@@ -282,10 +320,6 @@ BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
 
 def _balance_keys(pool: list[Candidate]) -> dict[int, tuple[float, ...]]:
     """Score every candidate on how balanced it is, with no weights.
-
-    ⚠️ Live on the briefed path only. `OBJECTIVES` is one entry long, so for the
-    overseas edition everything below reduces to maximising `spoken_force` -
-    see the note there for why a second axis has not simply been added back.
 
     A single number decided cells until now and it picked the worse building.
     `splayed_fan` topped its cell at an articulation of 0.79 while measuring

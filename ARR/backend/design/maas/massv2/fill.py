@@ -199,6 +199,21 @@ def _taller(form: MatrixForm, factor: float) -> MatrixForm:
             if other in grown
             and abs(form.placements[other].z_span()[1] - low) <= 1e-6
         ]
+        if item.kind == "subtractive":
+            # A cutter stretches about the ground, not about its own base. It
+            # overshoots downward on purpose - carve writes z at minus the
+            # building's height so the cut clears the floor face - and scaling
+            # that overshoot about its own base grows the cutter's top three
+            # times as fast as the body it cuts. Casa da Música's bore was
+            # authored to stop at 55% of the body with two storeys of building
+            # bridging over it; grown 1.82x, the body topped out at 19.7 m and
+            # the cutter at 20.7, and the bridge that made it one solid with a
+            # void - rather than two towers - was eaten by its own overshoot.
+            # About z = 0 the ratio of cut to body is what the sentence set,
+            # at every size.
+            raised = _stretched_about_ground(item, factor)
+            grown[index] = raised
+            continue
         raised = _stretched(item, factor)
         if carried:
             lift = max(carried) - raised.z_span()[0]
@@ -213,6 +228,23 @@ def _taller(form: MatrixForm, factor: float) -> MatrixForm:
     return replace(
         form,
         placements=tuple(grown[index] for index in range(len(form.placements))),
+    )
+
+
+def _stretched_about_ground(item: Placement, factor: float) -> Placement:
+    """Scale a volume's height about z = 0 rather than its own base."""
+
+    return replace(
+        item,
+        matrix=validate_matrix4(compose_matrix4(
+            item.matrix,
+            (
+                (1.0, 0.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0, 0.0),
+                (0.0, 0.0, float(factor), 0.0),
+                (0.0, 0.0, 0.0, 1.0),
+            ),
+        )),
     )
 
 

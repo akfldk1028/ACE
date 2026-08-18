@@ -301,29 +301,42 @@
    "name": "oma_de_rotterdam_three_towers_slipped",
    "primary_language": "stacked_body",
    "secondary_language": "one plinth, three towers, and the upper halves slid apart",
-   "formal_principle": "Three towers stand on one shared base and their upper halves slide off each other, so what reads from the river is a single block that has come loose above the middle.",
+   "formal_principle": "Three towers stand shoulder to shoulder in one row, and the middle one is slid out of the row, so what reads from the street is a single block that has come loose.",
    "dominant_gesture": "A wide grey plinth with three shafts whose tops step sideways out of line.",
    "reference_basis": "OMA - De Rotterdam, Wilhelminapier Rotterdam (2013): a vertical city of 160,000 m2 in three interconnected towers on a shared 7-storey plinth, the upper blocks offset from the lower ones, 149 m tall",
    "ops": [
     {
      "op": "extrude",
-     "height": 0.28,
-     "why": "강 쪽에서 하나의 덩어리로 읽히는 공유 저층부. 전체 높이의 0.28은 7층 플린스의 비율이다."
-    },
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.3,
-     "align": "long",
      "height": 1.0,
-     "why": "세 탑은 같은 크기가 아니고, 한쪽 면을 맞춰 세워 강변에서 한 블록으로 보이게 한다."
+     "why": "한 블록에서 시작한다. 세 탑은 별개 건물이 아니라 한 덩어리가 놓아진 것이다."
     },
     {
-     "op": "shear",
-     "ratio": 0.35,
-     "toward": "cross",
-     "on": "tier_2",
-     "why": "위쪽 절반만 옆으로 밀어낸다. 이 건물의 유일한 사건이고, 아래는 그대로 둔다."
+     "op": "split",
+     "ratio": 0.34,
+     "along": "cross",
+     "gap": 4.0,
+     "contrast": 1.25,
+     "first": "t_west",
+     "second": "t_rest",
+     "why": "첫 탑을 가른다. 판정이 stack판을 '적층 밴드'라 읽었다 — 탑은 위로 쌓는 게 아니라 옆으로 서는 것이라 split이 맞는 동사다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
+    },
+    {
+     "op": "split",
+     "on": "t_rest",
+     "ratio": 0.5,
+     "along": "cross",
+     "gap": 4.0,
+     "contrast": 1.25,
+     "first": "t_mid",
+     "second": "t_east",
+     "why": "나머지를 둘로 — 어깨를 맞댄 세 탑이 된다. contrast 1.12로 높이가 조금씩 달라 한 판으로 안 읽힌다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
+    },
+    {
+     "op": "shift",
+     "on": "t_mid",
+     "toward": "long",
+     "ratio": 0.4,
+     "why": "가운데 탑이 열에서 미끄러져 나온다. 4층 필지에서 '위 절반이 미끄러진다'는 말은 층이 없어 안 보이므로, 미끄러짐을 탑 단위로 옮겼다 — 놓아진 블록이라는 명제는 그대로다."
     }
    ]
   },

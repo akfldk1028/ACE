@@ -11,6 +11,7 @@ anything.
 from __future__ import annotations
 
 from dataclasses import replace
+from math import cos, radians, sin
 from typing import Callable
 
 from design.maas.geometry_language.affine_matrix import (
@@ -40,6 +41,7 @@ def _operate(
     operator: str,
     params: dict,
     pivot: tuple[float, float, float],
+    rotation_degrees: float = 0.0,
 ) -> list[Placement]:
     """Compose an operator onto each volume's own matrix, about a shared pivot.
 
@@ -47,9 +49,42 @@ def _operate(
     matrix already carries where it stands, so composing about a point in world
     coordinates turns it in place; composing about the origin would swing it
     across the site, which is the class of mistake this module exists to remove.
+
+    And the operator is conjugated into the frame's axes. `matrix4_for_transform`
+    builds its scales and shears on the world's x and y, and every volume here
+    is posed at the parcel's bearing - so a directional scale applied raw turns
+    a rotated bar into a parallelogram, and a "toward the long axis" translate
+    slides along world east instead. Measured on `oma_de_rotterdam`: a shift
+    meant to run a tower along its row moved it across the row and closed a
+    3.04 m gap to 0.00. R(θ) · M · R(-θ) about the same pivot makes the matrix
+    mean what the sentence said, at any bearing. Rotations about z commute with
+    R and pass through unchanged.
     """
 
     matrix = matrix4_for_transform(operator, {**params, "pivot": pivot})
+    if abs(rotation_degrees) > 1e-9 and operator in ("scale", "shear", "translate"):
+        if operator == "translate":
+            # A vector, not a frame field: rotate it once instead of
+            # conjugating the whole matrix.
+            bearing = radians(rotation_degrees)
+            cos_b, sin_b = cos(bearing), sin(bearing)
+            x, y, z = params["vector"]
+            matrix = matrix4_for_transform(
+                operator,
+                {**params, "vector": (x * cos_b - y * sin_b,
+                                      x * sin_b + y * cos_b, z),
+                 "pivot": pivot},
+            )
+        else:
+            unturn = matrix4_for_transform(
+                "rotate", {"axis": "z", "angle_degrees": -rotation_degrees,
+                           "pivot": pivot},
+            )
+            turn = matrix4_for_transform(
+                "rotate", {"axis": "z", "angle_degrees": rotation_degrees,
+                           "pivot": pivot},
+            )
+            matrix = compose_matrix4(unturn, matrix, turn)
     return [
         replace(item, matrix=validate_matrix4(compose_matrix4(item.matrix, matrix)))
         for item in items
@@ -83,7 +118,9 @@ def _verb(operator: str, build: Callable[[dict, tuple], dict]) -> Callable:
             if line is not None:
                 cx, cy = line.origin
         params = build(dict(op.params), (span_x, span_y, span_z))
-        frame.placements = rest + _operate(picked, operator, params, (cx, cy, base))
+        frame.placements = rest + _operate(
+            picked, operator, params, (cx, cy, base), frame.rotation
+        )
 
     return run
 

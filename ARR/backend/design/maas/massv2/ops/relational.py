@@ -39,6 +39,17 @@ def merge(frame, op) -> None:
     single volume spanning their joint extent, measured on the frame's own
     axes - an axis-aligned box inflated Vancouver House by its bearing once
     already, and a merge must not grow what it fuses.
+
+    A merge must not erase a roof either. The first version rebuilt its
+    bodies as one plain box, so `aggregate + gable + merge` - fused gabled
+    bars, the VitraHaus sentence - delivered a flat prism: the gable spoke at
+    its own step and was gone from the drawing, the same derived-geometry
+    class as the lift legs that stayed behind. So the fused box rises to the
+    lowest eave, and what stands above it - each body's own roof wedge, or
+    the top of a body the box does not reach - is kept as its own volume,
+    named onto the merged body so later words carry it. Nothing overlaps:
+    the floor-area reading sums volumes, and a body kept whole above a box
+    that also spans it would be counted twice.
     """
 
     picked, rest = frame.pick(op)
@@ -59,14 +70,51 @@ def merge(frame, op) -> None:
     dx, dy = frame.local(world_x, world_y)
     share = _clamp(float(op.params.get("height", 1.0)), 0.2, 1.0)
     kept = [item for item in picked if item not in bodies]
-    frame.placements = rest + kept + [
-        frame.box(
-            bodies[0].role,
-            w=max(along) - min(along), d=max(across) - min(across),
-            z=min(zs), h=(max(zs) - min(zs)) * share,
-            dx=dx, dy=dy,
+
+    # The fused box stops at the lowest eave among bodies that carry a
+    # section; with no section anywhere it takes the joint height as before.
+    # `box` floors an occupiable height at one storey, so the box's real top
+    # is read back off the placement rather than assumed - a roof the box
+    # swallowed is fused, which is what the word says happens where they meet.
+    eaves = []
+    for body in bodies:
+        drop = float(body.top_drop or 0.0)
+        if drop > 0.0 and (body.ridge_along is not None or body.drop_toward is not None):
+            low, high = body.z_span()
+            eaves.append(high - (high - low) * drop)
+    cap = min(eaves) if eaves else max(zs)
+    fused = frame.box(
+        bodies[0].role,
+        w=max(along) - min(along), d=max(across) - min(across),
+        z=min(zs), h=(cap - min(zs)) * share,
+        dx=dx, dy=dy,
+    )
+    _low, box_top = fused.z_span()
+
+    # Whatever a body holds above the box - a roof wedge, or whole storeys
+    # the capped box does not reach - stays, windowed in the body's own unit
+    # space so its plan and its section ride every later transform, and named
+    # onto the merged body so later words carry it. A piece shorter than a
+    # storey is a roof over the fused body, not a room, and says so.
+    above: list[Placement] = []
+    for index, body in enumerate(bodies):
+        low, high = body.z_span()
+        if high <= box_top + 1e-9 or high - low <= 1e-9:
+            continue
+        window = max(0.0, (box_top - low) / (high - low))
+        piece = _region(
+            body, f"{bodies[0].role}_roof_{index}",
+            (0.0, 0.0, window), (1.0, 1.0, 1.0),
         )
-    ]
+        drop = float(body.top_drop or 0.0)
+        kept_share = 1.0 - window
+        above.append(replace(
+            piece, plan=body.plan,
+            top_drop=min(1.0, drop / kept_share) if drop > 0.0 else 0.0,
+            occupiable=body.occupiable and (high - low) * kept_share >= frame.storey - 1e-6,
+        ))
+
+    frame.placements = rest + kept + [fused] + above
 
 
 def nest(frame, op) -> None:

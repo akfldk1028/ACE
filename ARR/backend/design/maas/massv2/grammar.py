@@ -112,8 +112,12 @@ PLOT_MODES: dict[str, PlotMode] = {
     "branch": "inherit",
     "fracture": "inherit",
     # 박공. Tried once as a staircase and reverted by measurement; with
-    # `top_drop` in the IR it is two real planes meeting at a ridge.
+    # `top_drop` in the IR it is two real planes meeting at a ridge. The
+    # butterfly and the mansard are the same top profile with the folds
+    # elsewhere - a valley, a pair of shoulders.
     "gable": "inherit",
+    "butterfly": "inherit",
+    "mansard": "inherit",
     "embed": "inherit",
     # The book's volume-to-volume family (BOOK 045/046/052/055/056/068/069),
     # said in the host's own unit space like branch and embed, so they inherit

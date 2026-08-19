@@ -135,6 +135,60 @@
     }
    ],
    "floor_height_m": 2.9
+  },
+  {
+   "name": "breuer_geller_butterfly",
+   "primary_language": "solid_body",
+   "secondary_language": "a low house whose two roof planes fall inward to a shared valley",
+   "formal_principle": "지붕 두 면이 바깥 처마에서 안쪽 골짜기로 떨어진다 — 비를 집의 가운데로 모으고, 두 끝은 하늘로 열린다.",
+   "dominant_gesture": "the V section: eaves up, valley in the middle",
+   "reference_basis": "Geller House I (Marcel Breuer, 1945, Lawrence NY). 최초의 버터플라이 지붕 주택으로 불리는 이중핵(binuclear) 평면 — 낮은 몸통 하나가 V 단면을 쓴다.",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.25,
+     "why": "버터플라이는 낮은 집의 단면이다 — 몸통이 낮아야 골짜기의 각도가 입면에서 읽힌다."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.45,
+     "toward": "long",
+     "why": "V의 방향이 읽히려면 몸통이 바여야 한다 — 골짜기는 긴 축을 따라 달린다."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.9,
+     "at": 0.5,
+     "why": "두 면이 가운데로 떨어지는 것이 이 집의 전부다 — 처마가 올라가고 물이 안으로 모인다."
+    }
+   ]
+  },
+  {
+   "name": "haussmann_block_mansard",
+   "primary_language": "solid_body",
+   "secondary_language": "a street-wall bar whose top storeys lean back behind a fold at the cornice line",
+   "formal_principle": "수직의 가로벽이 처마선에서 꺾여 지붕층이 뒤로 눕는다 — 거리에서 보면 벽, 하늘에서 보면 지붕인 층.",
+   "dominant_gesture": "steep shoulders, level crown - the mansard fold at the cornice",
+   "reference_basis": "오스만의 파리 가로블록 (1853-1870). 코니스 높이 제한 아래에서 지붕층을 거주층으로 만드는 단면 — 어깨는 가파르고 정수리는 평평하다.",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.7,
+     "why": "가로벽은 먼저 벽이어야 한다 — 오스만의 단면은 대여섯 층을 세운 다음에야 꺾인다. 낮은 몸통의 맨사드는 텐트다."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.35,
+     "toward": "long",
+     "why": "블록의 단위는 가로에 면한 바다 — 꺾임선이 거리와 평행해야 파리의 단면이 된다."
+    },
+    {
+     "op": "mansard",
+     "pitch": 0.6,
+     "shoulder": 0.2,
+     "why": "처마선에서 꺾여 정수리가 평평한 것이 이 단면의 이름이다 — 지붕이 한 층 반을 살고, 어깨는 눕되 정수리의 절반 이상은 평평하게 남는다."
+    }
+   ]
   }
  ]
 }

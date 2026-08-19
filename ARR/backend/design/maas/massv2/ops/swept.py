@@ -602,6 +602,105 @@ def gable(frame, op) -> None:
     frame.placements = rest + made
 
 
+def _profile_axes(item, long_named: bool):
+    """The fold axis choice for a section verb, on the volume's own matrix.
+
+    Returns (ridge_x, across_metres, across_unit_world, body_metres): which
+    unit axis the fold runs along, how wide the volume is across it, the
+    world direction stations are measured along, and the volume's height.
+    """
+
+    origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
+    tip_x = transform_point3(item.matrix, (1.0, 0.0, 0.0))
+    tip_y = transform_point3(item.matrix, (0.0, 1.0, 0.0))
+    span_x = ((tip_x[0] - origin[0]) ** 2 + (tip_x[1] - origin[1]) ** 2) ** 0.5
+    span_y = ((tip_y[0] - origin[0]) ** 2 + (tip_y[1] - origin[1]) ** 2) ** 0.5
+    ridge_x = (span_x >= span_y) if long_named else (span_x < span_y)
+    tip = tip_y if ridge_x else tip_x
+    ax, ay = tip[0] - origin[0], tip[1] - origin[1]
+    norm = (ax * ax + ay * ay) ** 0.5 or 1.0
+    low, high = item.z_span()
+    return ridge_x, (span_y if ridge_x else span_x), (ax / norm, ay / norm), max(high - low, 1e-6)
+
+
+def butterfly(frame, op) -> None:
+    """Two planes falling to an inner valley - the V roof.
+
+    Breuer's Geller House, the section drawn when a house wants its rain in
+    the middle and its eyes up at both edges. The valley runs along the
+    volume's own long axis unless `along: "cross"`; `at` places it. Said as
+    a top profile - the primitive the gable's ridge generalised into - so it
+    survives every later transform whole.
+    """
+
+    pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 1.2)
+    at = _clamp(float(op.params.get("at", 0.5)), 0.2, 0.8)
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    long_named = _along_is_x({"along": op.params.get("along", "long")})
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive":
+            made.append(item)
+            continue
+        _rx, across, unit, body = _profile_axes(item, long_named)
+        # One valley has one depth: the shorter run sets it, so the declared
+        # pitch is the steeper side's and the longer side lies back.
+        depth = _clamp(pitch * min(at, 1.0 - at) * across / body, 0.15, 0.95)
+        made.append(replace(
+            item,
+            top_drop=depth,
+            drop_toward=None,
+            ridge_along=None,
+            top_profile=((0.0, 1.0), (at, 1.0 - depth), (1.0, 1.0)),
+            profile_across=unit,
+        ))
+    frame.placements = rest + made
+
+
+def mansard(frame, op) -> None:
+    """Steep shoulders, a near-flat crown - the Haussmann section.
+
+    `shoulder` is how far in from each eave the steep face runs before the
+    crown; the crown itself stays level. Four breakpoints of the same top
+    profile the gable and the butterfly use.
+    """
+
+    pitch = _clamp(float(op.params.get("pitch", 0.8)), 0.15, 1.2)
+    shoulder = _clamp(float(op.params.get("shoulder", 0.25)), 0.1, 0.4)
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    long_named = _along_is_x({"along": op.params.get("along", "long")})
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive":
+            made.append(item)
+            continue
+        _rx, across, unit, body = _profile_axes(item, long_named)
+        # The fold lives at the cornice: a mansard's roof is a storey or two,
+        # never half the building. On a wide body a shoulder fraction of the
+        # width is tens of metres of run, and the crown collapsed to a tent -
+        # so the drop is capped at two storeys and the shoulder is re-read
+        # from the declared pitch, which the steep face actually keeps.
+        drop_m = min(pitch * shoulder * across, 1.5 * frame.storey)
+        share = _clamp(drop_m / body, 0.15, 0.95)
+        shoulder_u = min(0.45, max(0.02, (share * body / pitch) / max(across, 1e-6)))
+        made.append(replace(
+            item,
+            top_drop=share,
+            drop_toward=None,
+            ridge_along=None,
+            top_profile=(
+                (0.0, 1.0 - share), (shoulder_u, 1.0),
+                (1.0 - shoulder_u, 1.0), (1.0, 1.0 - share),
+            ),
+            profile_across=unit,
+        ))
+    frame.placements = rest + made
+
+
 def gabled_halves(frame, item, pitch: float, *, ridge_x: bool = True) -> list:
     """A volume as the archetypal house: ONE volume whose top is a ridge.
 
@@ -642,6 +741,8 @@ SWEPT_VERBS: dict[str, Callable] = {
     "bend": bend,
     "pinch": pinch,
     "gable": gable,
+    "butterfly": butterfly,
+    "mansard": mansard,
 }
 
 

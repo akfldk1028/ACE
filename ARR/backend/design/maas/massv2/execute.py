@@ -788,6 +788,14 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # carry - measured on Villa dall'Ava, the plate stood 3.16 m from the other
     # apartment and a leg stood 1.66 m from it.
     base_x, base_y, base_w, base_d = _bounds_of(raised, frame)
+    # The legs belong to whatever this lift was aimed at. Named plain
+    # "support" they answered to no later word: Villa dall'Ava's shift moved
+    # the raised apartment and left its four legs standing where the building
+    # used to be. A verb's derived bodies carry the scope's role as a prefix -
+    # the same ownership rule the relational verbs are written under - so the
+    # word that moves the plate moves what holds it up.
+    owner = str(op.params.get("on") or "").strip()
+    leg_role = f"{owner}_support" if owner else "support"
     frame.placements = rest + raised + [
         # Under the volume that was lifted, not under the site. These bounds
         # were being computed and then ignored: the supports were sized and
@@ -796,7 +804,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # two halves together. Villa dall'Ava's sentence is two apartments
         # standing apart, its `split` opens 3.8 m, and the `lift` after it closed
         # the mass to a single piece - it lost every pair it appeared in.
-        frame.box("support", w=base_w * leg, d=base_d * leg,
+        frame.box(leg_role, w=base_w * leg, d=base_d * leg,
                   occupiable=False,
                   # From wherever the lifted volume was standing, not from the
                   # ground. `z=0.0` was hardcoded, so lifting the top of a stack

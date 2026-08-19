@@ -115,6 +115,17 @@ PLOT_MODES: dict[str, PlotMode] = {
     # `top_drop` in the IR it is two real planes meeting at a ridge.
     "gable": "inherit",
     "embed": "inherit",
+    # The book's volume-to-volume family (BOOK 045/046/052/055/056/068/069),
+    # said in the host's own unit space like branch and embed, so they inherit
+    # - except inscribe, which is a void, and a void imposes for the same
+    # reason carve does.
+    "merge": "inherit",
+    "nest": "inherit",
+    "interlock": "inherit",
+    "lodge": "inherit",
+    "overlap": "inherit",
+    "extract": "inherit",
+    "inscribe": "impose",
     "carve": "impose",
     "lift": "impose",
     "loop": "impose",

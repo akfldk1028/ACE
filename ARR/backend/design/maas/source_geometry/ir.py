@@ -51,6 +51,10 @@ class SourceVolume:
     # the stricter reading.
     top_drop: float = 0.0
     drop_toward: tuple[float, float] | None = None
+    # The gable as one volume: with `ridge_along` set (world unit vector of
+    # the ridge line through the plan centroid) instead of `drop_toward`, the
+    # top drops on both sides of that line - two planes meeting at a ridge.
+    ridge_along: tuple[float, float] | None = None
 
     def signature(self) -> dict[str, Any]:
         data = {

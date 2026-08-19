@@ -412,10 +412,13 @@ class Command(BaseCommand):
                     # How hard the sentence's own words hit the mass. The check
                     # already runs it word by word to find the silent ones; the
                     # same numbers say how much each word that did speak redrew,
-                    # and that is what the selector reads. The first word is
-                    # dropped because it is always `extrude` against nothing and
-                    # always reports 1.0, which would flatten the difference
-                    # between a sentence of two words and one of five.
+                    # and that is what the selector reads. The opener is dropped
+                    # from a multi-word sentence so a sentence of two words and
+                    # one of five stay comparable; for a one-word sentence the
+                    # fallback now returns the opener measured against the null
+                    # mass rather than the flat 1.0 it used to report against
+                    # nothing - `stack` alone was taking that 1.0 as its whole
+                    # force and sweeping four cells of the delivered grid.
                     said = list(spoken.changed[1:]) or list(spoken.changed)
                     # And what each word is worth to the mass that gets drawn,
                     # which is a different question - the growth loop and the

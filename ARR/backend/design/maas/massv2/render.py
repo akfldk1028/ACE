@@ -98,10 +98,55 @@ def _top_at(x: float, y: float, high: float, slope) -> float:
 
     if slope is None:
         return high
+    if len(slope) == 6:
+        # A ridge: full height on the line, both eaves at full drop.
+        _tag, drop_m, px, py, centre, half = slope
+        t = abs(x * px + y * py - centre) / max(half, 1e-9)
+        return high - drop_m * min(1.0, t)
     drop_m, ux, uy, lo_p, hi_p = slope
     span = max(hi_p - lo_p, 1e-9)
     t = (x * ux + y * uy - lo_p) / span
     return high - drop_m * min(1.0, max(0.0, t))
+
+
+def _ridge_points(ring, slope):
+    """The ring with a vertex wherever the ridge line crosses an edge.
+
+    The gable's end face has its peak ON the ridge; without a vertex there the
+    wall quad tops out at the eaves and the pentagon renders as a trapezoid.
+    """
+
+    _tag, _drop, px, py, centre, _half = slope
+    out = []
+    n = len(ring)
+    for i in range(n):
+        x0, y0 = ring[i]
+        x1, y1 = ring[(i + 1) % n]
+        out.append((x0, y0))
+        v0 = x0 * px + y0 * py - centre
+        v1 = x1 * px + y1 * py - centre
+        if (v0 < -1e-9 and v1 > 1e-9) or (v1 < -1e-9 and v0 > 1e-9):
+            t = v0 / (v0 - v1)
+            out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+    return out
+
+
+def _clip_halfplane(ring, px, py, centre, side):
+    """Sutherland-Hodgman clip of a ring against one side of the ridge line."""
+
+    out = []
+    n = len(ring)
+    for i in range(n):
+        x0, y0 = ring[i]
+        x1, y1 = ring[(i + 1) % n]
+        v0 = (x0 * px + y0 * py - centre) * side
+        v1 = (x1 * px + y1 * py - centre) * side
+        if v0 >= -1e-9:
+            out.append((x0, y0))
+        if (v0 < -1e-9) != (v1 < -1e-9):
+            t = v0 / (v0 - v1)
+            out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+    return out if len(out) >= 3 else None
 
 
 def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=None):
@@ -121,7 +166,18 @@ def _slope_of(volume, low: float, high: float):
     """
 
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
-    if drop <= 0.0 or volume.drop_toward is None:
+    if drop <= 0.0:
+        return None
+    ridge = getattr(volume, "ridge_along", None)
+    if ridge is not None:
+        rx, ry = ridge
+        norm = math.hypot(rx, ry) or 1.0
+        px, py = -ry / norm, rx / norm
+        values = [x * px + y * py for x, y in volume.footprint.exterior.coords]
+        lo_p, hi_p = min(values), max(values)
+        return ("R", drop * (high - low), px, py,
+                (lo_p + hi_p) / 2.0, (hi_p - lo_p) / 2.0)
+    if volume.drop_toward is None:
         return None
     ux, uy = volume.drop_toward
     values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
@@ -140,14 +196,28 @@ def _faces(polygon, low: float, high: float, slope=None):
     outer = [(float(x), float(y)) for x, y in polygon.exterior.coords[:-1]]
     if len(outer) < 3:
         return
+    ridged = slope is not None and len(slope) == 6
+    if ridged:
+        # A vertex on the ridge, or the end face loses its peak.
+        outer = _ridge_points(outer, slope)
     yield from _walls(outer, low, high, slope)
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
+            if ridged:
+                court = _ridge_points(court, slope)
             yield from _walls(court, low, high, slope)
     # The roof is the ring minus its holes. Painting the hole in the background
     # colour is the cheapest correct answer for a filled polygon renderer.
-    yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _ROOF
+    if ridged:
+        # Two planes, drawn as two polygons so the ridge is a drawn line.
+        _tag, _drop, px, py, centre, _half = slope
+        for side in (1.0, -1.0):
+            part = _clip_halfplane(outer, px, py, centre, side)
+            if part:
+                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _ROOF
+    else:
+        yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _ROOF
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:

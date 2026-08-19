@@ -76,6 +76,15 @@ class Placement:
     # Compile carries it onto the band that holds this volume's top.
     top_drop: float = 0.0
     drop_toward: tuple[float, float] | None = None
+    # The house section as ONE volume: when `ridge_along` (world unit vector,
+    # the ridge line's direction through the plan centroid) is set instead of
+    # `drop_toward`, the top drops by `top_drop` of the height on BOTH sides
+    # of that line, full drop at the farthest eave. It exists because the
+    # pentagon was first said as two independent half-wedges, and any later
+    # word that scaled plans - a coverage retarget scales each volume about
+    # its own centre - pulled the ridge apart into a slot. A section is a
+    # base shape, not an assembly; one volume survives every transform whole.
+    ridge_along: tuple[float, float] | None = None
     # Is this volume a room, or is it what holds a room up. A column is meant
     # to be thin and a storey is not, so every rule about how wide or how deep
     # a plate must be has to know which of the two it is looking at. The

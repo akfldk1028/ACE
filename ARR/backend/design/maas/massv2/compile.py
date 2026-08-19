@@ -309,7 +309,8 @@ def compile_matrix_form(
     tilted = [
         item for item in form.additive()
         if float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
-        and item.drop_toward is not None
+        and (item.drop_toward is not None
+             or getattr(item, "ridge_along", None) is not None)
     ]
     flat_form = replace(
         form,
@@ -338,52 +339,72 @@ def compile_matrix_form(
                 )
             )
         emitted = bool(parts)
-        for item in tilted:
-            if not _spans(item, low, high):
-                continue
-            plan = _plan_between(item, low, high)
+
+        def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward, ridge=None) -> bool:
+            plan = _plan_between(item, lo, hi)
             if allowed_at is not None:
-                allowed = allowed_at((low + high) / 2.0)
+                allowed = allowed_at((lo + hi) / 2.0)
                 if allowed is None or allowed.is_empty:
-                    continue
+                    return False
                 plan = plan.intersection(allowed)
             cutters = [
-                _plan_between(cutter, low, high)
+                _plan_between(cutter, lo, hi)
                 for cutter in form.subtractive()
-                if _spans(cutter, low, high)
+                if _spans(cutter, lo, hi)
             ]
             cutters = [c for c in cutters if not c.is_empty]
             if cutters:
                 plan = plan.difference(unary_union(cutters))
             if plan.is_empty:
-                continue
+                return False
+            made = False
             pieces = list(plan.geoms) if isinstance(plan, MultiPolygon) else [plan]
-            z0, z1 = item.z_span()
-            crest = min(high, z1)
             for piece in pieces:
                 if not isinstance(piece, Polygon) or piece.area < _MINIMUM_BAND_AREA_M2:
                     continue
-                emitted = True
+                made = True
                 volumes.append(SourceVolume(
                     role=item.role,
                     footprint=piece,
-                    bottom_fraction=max(0.0, (low - ground) / height),
-                    top_fraction=min(1.0, (crest - ground) / height),
+                    bottom_fraction=max(0.0, (lo - ground) / height),
+                    top_fraction=min(1.0, (hi - ground) / height),
                     verb=verb,
-                    # Only the band holding the volume's top tilts; the
-                    # storeys under a shed roof are flat.
-                    # Tolerance wider than the band-edge rounding: edges are
-                    # rounded to 4 decimals (error up to 5e-5) and a 1e-6 test
-                    # let only volumes with arithmetically clean heights keep
-                    # their tilt - three gabled bars compiled with one pitched
-                    # and two flat, decided by which heights rounded neatly.
-                    # ...and wider still than the minimum band: an edge that
-                    # falls within _MINIMUM_BAND_M of the volume's top gets
-                    # merged away entirely, so the top band's crest can sit up
-                    # to half a metre under z1 and still be the roof band.
-                    top_drop=float(item.top_drop) if crest >= z1 - _MINIMUM_BAND_M - 1e-6 else 0.0,
-                    drop_toward=item.drop_toward if crest >= z1 - _MINIMUM_BAND_M - 1e-6 else None,
+                    top_drop=drop,
+                    drop_toward=toward,
+                    ridge_along=ridge,
                 ))
+            return made
+
+        for item in tilted:
+            if not _spans(item, low, high):
+                continue
+            # `top_drop` is declared as a share of the volume's own height
+            # (form.py) and the renderer reads a volume's drop as a share of
+            # the band it arrived in (`_slope_of`) - so carrying the declared
+            # number onto a storey-thick top band drew every roof one storey
+            # deep at most: a 0.8 pitch on a nine-metre bar rendered as a
+            # 2.4 m bevel, and the fifth frame-of-reference mismatch in this
+            # package was a house profile that could not be drawn. The roof
+            # zone - the declared drop's own depth - is emitted as a single
+            # volume whose drop is its full height, and the storeys under it
+            # stay flat bands; the declared metres and the drawn metres are
+            # the same number for the first time.
+            z0, z1 = item.z_span()
+            share = min(max(float(item.top_drop), 0.0), 1.0)
+            drop_m = max(share * (z1 - z0), _MINIMUM_BAND_M)
+            roof_lo = max(z0, z1 - drop_m)
+            body_hi = min(high, roof_lo)
+            if body_hi - max(low, z0) > 1e-6:
+                emitted |= _tilted_piece(
+                    item, max(low, z0), body_hi, drop=0.0, toward=None,
+                )
+            if low - 1e-6 <= roof_lo < high - 1e-6 or (
+                roof_lo <= z0 + 1e-9 and low - 1e-6 <= z0 < high - 1e-6
+            ):
+                emitted |= _tilted_piece(
+                    item, roof_lo, z1, drop=1.0, toward=item.drop_toward,
+                    ridge=getattr(item, "ridge_along", None),
+                )
         if not emitted:
             dropped_bands += 1
     if not volumes:

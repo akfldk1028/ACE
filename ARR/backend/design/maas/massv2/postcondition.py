@@ -35,7 +35,7 @@ property of what was written, not of how large it was later drawn.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from shapely.geometry import Polygon
@@ -45,6 +45,7 @@ from design.maas.source_geometry.ir import SourceMass
 
 from .compile import _plan, compile_matrix_form
 from .execute import execute_steps
+from .grammar import Operation
 
 
 # How much of the mass a word has to change to count as having been said. Below
@@ -95,7 +96,8 @@ def _sliced_by_tilt(volume, z: float, height: float):
     """
 
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
-    if drop <= 0.0 or volume.drop_toward is None:
+    ridge = getattr(volume, "ridge_along", None)
+    if drop <= 0.0 or (volume.drop_toward is None and ridge is None):
         return volume.footprint
     low = volume.bottom_fraction * height
     high = volume.top_fraction * height
@@ -103,6 +105,31 @@ def _sliced_by_tilt(volume, z: float, height: float):
     drop_m = drop * band
     if z <= high - drop_m:
         return volume.footprint
+    if ridge is not None:
+        # A ridge keeps a band around its line: solid where the roof has not
+        # yet descended below the sample, on both sides at once.
+        rx, ry = ridge
+        norm = (rx * rx + ry * ry) ** 0.5 or 1.0
+        rx, ry = rx / norm, ry / norm
+        px, py = -ry, rx
+        values = [x * px + y * py for x, y in volume.footprint.exterior.coords]
+        lo_p, hi_p = min(values), max(values)
+        centre = (lo_p + hi_p) / 2.0
+        half = max((hi_p - lo_p) / 2.0, 1e-9)
+        keep = half * max(0.0, (high - z) / drop_m)
+        along = [x * rx + y * ry for x, y in volume.footprint.exterior.coords]
+        reach = (max(along) - min(along)) + 1.0
+        mid_r = (max(along) + min(along)) / 2.0
+        base_x = rx * mid_r + px * centre
+        base_y = ry * mid_r + py * centre
+        strip = Polygon([
+            (base_x + rx * reach + px * keep, base_y + ry * reach + py * keep),
+            (base_x - rx * reach + px * keep, base_y - ry * reach + py * keep),
+            (base_x - rx * reach - px * keep, base_y - ry * reach - py * keep),
+            (base_x + rx * reach - px * keep, base_y + ry * reach - py * keep),
+        ])
+        cut = volume.footprint.intersection(strip)
+        return cut if not cut.is_empty else None
     ux, uy = volume.drop_toward
     values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
     lo_p, hi_p = min(values), max(values)
@@ -246,15 +273,34 @@ def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_
     shares: list[float] = []
     previous = None
     previous_form = None
-    for op, form in steps:
+    for index, (op, form) in enumerate(steps):
         current = compiled(form)
         # A scoped word is judged inside its scope, an unscoped one against the
         # whole building - which is what each of them is claiming.
         region = _scope_region(previous_form, str(op.params.get("on") or "").strip())
-        share = changed_share(previous, current, region)
-        shares.append(share)
-        if share < MIN_CHANGED_SHARE:
-            silent.append(op.verb)
+        if index == 0:
+            # The opener is measured against the null mass - the plain lawful
+            # extrusion every sentence implicitly starts from - not against
+            # nothing. Against nothing it always reported 1.0, and a sentence
+            # of one word then took that 1.0 as its whole force: `stack` alone
+            # scored a perfect redraw for standing a building up, and swept
+            # four cells of the delivered grid with it. Against the null, an
+            # `extrude` opener says the default box and reports ~0, a `loop`
+            # or `aggregate` opener reports what it actually differs from a
+            # box - and the opener stays exempt from the silence gate, because
+            # standing the building up is not a claim about it.
+            null_steps = execute_steps(
+                replace(parti, ops=(Operation("extrude", "inherit", {}),)),
+                buildable=buildable, axis=axis, height_m=height_m,
+                storey_height_m=storey_height_m or 0.0,
+            )
+            null = compiled(null_steps[-1][1]) if null_steps else None
+            shares.append(changed_share(null, current, region))
+        else:
+            share = changed_share(previous, current, region)
+            shares.append(share)
+            if share < MIN_CHANGED_SHARE:
+                silent.append(op.verb)
         previous = current
         previous_form = form
     return Verdict(declared, tuple(silent), tuple(shares))

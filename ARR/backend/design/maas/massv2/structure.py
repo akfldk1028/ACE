@@ -39,21 +39,27 @@ from shapely.ops import nearest_points, unary_union
 from design.maas.source_geometry.ir import SourceMass
 
 
-# A cantilever reaches about half its backspan when it is designed as one.
+# A cantilever reaches about its own backspan and a half when it is designed
+# as one and the member is a building, not a beam.
 #
-# A third is the AISC rule of thumb for an ordinary beam, and it was the number
-# here - which made this gate referee the ambitious rather than refuse the
-# impossible, the exact thing the span rule below says it is not for. Measured
-# against built work: Milstein Hall's plate reaches about 40% of its backspan,
-# Seattle Central Library's platforms cantilever past each other by design, and
-# both were refused. Every one of the twenty-four VIA 57 West variants and
-# twenty-four Seattle variants died here.
+# This constant has now been raised twice by the same evidence, which is the
+# tell worth recording. A third is the AISC rule of thumb for an ordinary
+# beam, and at a third this gate refused Milstein Hall (~40%) and every VIA 57
+# West and Seattle variant - refereeing the ambitious rather than refusing the
+# impossible, the exact thing the span rule below says it is not for. Raised
+# to a half. At a half it refused the VitraHaus pile: twelve gabled houses on
+# five levels, cantilevered up to fifteen metres in the built work (Weil am
+# Rhein, 2010), measuring ~1.45 of backspan in this gate's own band-wise
+# terms, standing for sixteen years. MVRDV's Balancing Barn holds half its
+# whole length in the air - ratio 1.0 as a counterweighted see-saw.
 #
-# A cantilever that far is a storey-deep truss rather than a beam, which is the
-# same structure the span rule already takes the generous end for. The gates
-# that judge whether the result is a building - it stands on something, a plate
-# holds a room, a storey is lit - are unchanged.
-CANTILEVER_BACKSPAN_RATIO = 0.5
+# A cantilever that far is a storey-deep truss rather than a beam, which is
+# the same structure the span rule already takes the generous end for
+# (SPAN_TO_DEPTH_RATIO below). 1.6 clears what is built and refuses what is
+# not; the floating-slab case - nothing under a band at all - still refuses
+# at infinity. The gates that judge whether the result is a building - it
+# stands on something, a plate holds a room, a storey is lit - are unchanged.
+CANTILEVER_BACKSPAN_RATIO = 1.6
 # A member held at both ends is a span, and a storey-deep steel transfer truss
 # runs to roughly ten to fifteen times its depth. The generous end is taken on
 # purpose: this is here to refuse the impossible, not to referee the ambitious.

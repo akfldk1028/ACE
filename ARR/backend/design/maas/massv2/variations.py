@@ -23,7 +23,6 @@ from design.maas.design_space import COVERAGE_BANDS, CoverageBand
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
     scale_matrix4,
-    translation_matrix4,
     validate_matrix4,
 )
 
@@ -80,16 +79,21 @@ def retarget_ground_take(
 
 
 def _stretched(placement, lift: float):
-    """Raise a volume's top by `lift`, keeping its base where it is."""
+    """Scale a volume's height about the ground, so compositions settle.
+
+    This scaled about each volume's own base once - harmless while every
+    base sat at grade, and wrong the day units stacked: shrinking a pile's
+    heights left every upper base where it was, opened an air gap between
+    levels, and the connectivity gate honestly reported two thirds of the
+    building floating. Scaling z about the ground moves bases and heights
+    together, so what rested on what still does, at every lift.
+    """
 
     if abs(lift - 1.0) < 1e-6:
         return placement
-    low, _high = placement.z_span()
     matrix = compose_matrix4(
         placement.matrix,
-        translation_matrix4((0.0, 0.0, -low)),
         scale_matrix4((1.0, 1.0, max(1e-3, lift))),
-        translation_matrix4((0.0, 0.0, low)),
     )
     return replace(placement, matrix=validate_matrix4(matrix))
 

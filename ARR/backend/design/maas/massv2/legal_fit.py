@@ -26,8 +26,11 @@ from typing import Any
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from math import atan2, degrees
+
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
+    rotation_matrix4,
     scale_matrix4,
     translation_matrix4,
     validate_matrix4,
@@ -161,6 +164,13 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
     anchor rather than each volume's own centre keeps the composition's
     relationships - a shifted stack stays shifted instead of collapsing into a
     concentric wedding cake.
+
+    A volume with a ridge keeps its section: the across-ridge share of the
+    scale is undone about the volume's own centre, so a gabled bar pays for
+    coverage with length, never with its pentagon. This lives here and not in
+    any caller because every scaler goes through this function - the coverage
+    retarget held the section and the growth loop then squashed it anyway,
+    which is what an invariant enforced at one call site out of five does.
     """
 
     matrix = compose_matrix4(
@@ -169,7 +179,23 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
         scale_matrix4((factor, factor, 1.0)),
         translation_matrix4((anchor[0], anchor[1], 0.0)),
     )
-    return replace(placement, matrix=validate_matrix4(matrix))
+    scaled = replace(placement, matrix=validate_matrix4(matrix))
+    ridge = getattr(placement, "ridge_along", None)
+    if ridge is None or abs(factor - 1.0) < 1e-6 or factor <= 1e-9:
+        return scaled
+    corners = scaled.corners()
+    cx = sum(x for x, _y, _z in corners) / len(corners)
+    cy = sum(y for _x, y, _z in corners) / len(corners)
+    angle = degrees(atan2(ridge[1], ridge[0]))
+    kept = compose_matrix4(
+        scaled.matrix,
+        translation_matrix4((-cx, -cy, 0.0)),
+        rotation_matrix4((0.0, 0.0, -angle)),
+        scale_matrix4((1.0, 1.0 / factor, 1.0)),
+        rotation_matrix4((0.0, 0.0, angle)),
+        translation_matrix4((cx, cy, 0.0)),
+    )
+    return replace(scaled, matrix=validate_matrix4(kept))
 
 
 def _shortened(placement: Placement, factor: float) -> Placement:

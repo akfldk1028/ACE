@@ -487,26 +487,46 @@ def gable(frame, op) -> None:
     if not picked:
         return
     ridge_x = _along_is_x({"along": op.params.get("along", "long")})
-    across_axis = 1 if ridge_x else 0
-    outward = frame.out(*((0.0, 1.0) if ridge_x else (1.0, 0.0)))
-    length = (outward[0] ** 2 + outward[1] ** 2) ** 0.5 or 1.0
-    unit = (outward[0] / length, outward[1] / length)
 
     made: list[Placement] = []
     for item in picked:
         if item.kind != "additive":
             made.append(item)
             continue
-        for side in (0, 1):
-            half = compose_matrix4(_slab(side, 2, across_axis), item.matrix)
-            direction = unit if side == 1 else (-unit[0], -unit[1])
-            made.append(replace(
-                item,
-                matrix=validate_matrix4(half),
-                top_drop=pitch,
-                drop_toward=direction,
-            ))
+        made.extend(gabled_halves(frame, item, pitch, ridge_x=ridge_x))
     frame.placements = rest + made
+
+
+def gabled_halves(frame, item, pitch: float, *, ridge_x: bool = True) -> list:
+    """A volume as the archetypal house: ONE volume whose top is a ridge.
+
+    Two earlier representations failed in sequence and both are worth
+    remembering. Halving the whole volume made each half a sliver the storey
+    gate refused. Keeping the body whole and splitting only the roof drew
+    correctly out of the executor - and then a coverage retarget, which
+    scales every volume about its own centre, pulled the two roof wedges
+    apart into a slot along the ridge. A section is a base shape, not an
+    assembly: `ridge_along` says the pentagon on one volume, and one volume
+    survives every later transform whole.
+    """
+
+    # The ridge runs along the VOLUME's own axis, read off its matrix - a
+    # turned bar's ridge turns with it. Read off the frame instead, every
+    # unit of a crosswise pile wore a ridge diagonal to its own body, and
+    # three gates downstream measured the diagonal and objected in three
+    # different vocabularies before the cause was found once.
+    origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
+    tip = transform_point3(
+        item.matrix, (1.0, 0.0, 0.0) if ridge_x else (0.0, 1.0, 0.0)
+    )
+    along = (tip[0] - origin[0], tip[1] - origin[1])
+    length = (along[0] ** 2 + along[1] ** 2) ** 0.5 or 1.0
+    return [replace(
+        item,
+        top_drop=pitch,
+        ridge_along=(along[0] / length, along[1] / length),
+        drop_toward=None,
+    )]
 
 
 SWEPT_VERBS: dict[str, Callable] = {

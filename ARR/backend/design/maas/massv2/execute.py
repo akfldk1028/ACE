@@ -31,7 +31,8 @@ from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY
 from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
-from .ops.swept import SWEPT_VERBS
+from .ops.relational import RELATIONAL_VERBS
+from .ops.swept import SWEPT_VERBS, gabled_halves
 from .ops.piercing import PIERCING_VERBS
 from .ops.grafting import GRAFTING_VERBS
 from .profiles import plan_names
@@ -64,6 +65,13 @@ MAX_FIELD_OBJECTS = 12
 # it is what makes the result read as a neighbourhood rather than as a house
 # with outbuildings. Equal is still refused; close is now allowed.
 MIN_FIELD_SPREAD = 1.05
+
+# A house-section unit's depth as a share of its own height. Drop equals half
+# the depth, so the roof planes stand at 45 degrees whatever the aspect; at
+# 0.9 the roof takes 0.45 of the section, which is the pentagon a person
+# draws when asked for a house - and the body under it stays wide enough for
+# the storey gate, which a roof-dominated section is not.
+HOUSE_ASPECT = 0.9
 
 # How tall an undercroft may be, in storeys of the building it belongs to.
 # The corpus lifts to let the ground run under a building, not to stand it on
@@ -909,6 +917,73 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
     # is not wrong for these, and holding every field together is what kept
     # grade articulation pinned at one however many objects were placed.
 
+    # How the units gather is the book's own axis, separate from what a unit
+    # is: the aggregation layer (BOOK 091-095) names Reflect, Pack, Stack,
+    # Array and Join. The grid settlement below is Pack; everything this verb
+    # had ever built was Pack, which is why a sentence saying "엇놓아 쌓고"
+    # compiled as a village at grade - the pile it wrote was unsayable. `stack`
+    # is 적층 (BOOK 093): units bearing on units, each level drifted and turned
+    # past its carrier, and it takes any unit the later words shape - gabled,
+    # bent, tapered - because the method never asks what it is stacking.
+    # Reflect, Array and Join stay unimplemented until a sentence speaks them.
+    method = str(op.params.get("method", "pack")).strip().lower()
+    if method == "stack":
+        # A stacked unit is a building riding on a building, so its height is
+        # said in storeys - the same argument `lift` makes for clearance: the
+        # storey is the human constant on every site. Divided from the
+        # authored height budget instead, five units on a 12 m budget came out
+        # 2.3 m each and the pile drew as planks; whether the whole pile is
+        # too tall is the legal clip's question, not this word's.
+        per = _clamp(float(op.params.get("storeys", 2)), 1.0, 5.0)
+        level = per * frame.storey if frame.storey else frame.height * share / count
+        # What a unit IS is the base-volume axis (BOOK 030), separate again
+        # from how the units gather. A `house` unit is the archetypal pentagon
+        # section: its depth comes from its own height, never from the parcel
+        # - a bar 0.62 of a forty-metre parcel wore a 0.45 pitch as a bevelled
+        # slab, because a roof reads as a house only when the section is
+        # house-proportioned - and its two roof planes meet the ridge at 45
+        # degrees by construction (drop = half the depth).
+        unit_kind = str(op.params.get("unit", "slab")).strip().lower()
+        # A pile has a wider foot than its crown. One unit per level made the
+        # pile a tower of bars - slenderness 6.7 against a 4.2 ceiling, a fifth
+        # of the mass off the ground, every upper bar a backspan violation -
+        # and VitraHaus itself is twelve houses on five levels, not five on
+        # five. Units spread over levels, the spare ones landing low.
+        levels = int(_clamp(float(op.params.get("levels", (count + 1) // 2)), 1, count))
+        base_n, extra = divmod(count, levels)
+        counts = [base_n + (1 if lvl < extra else 0) for lvl in range(levels)]
+        z = 0.0
+        index = 0
+        for lvl, in_level in enumerate(counts):
+            turn = float(op.params.get("turn", 0.0)) * (1 if lvl % 2 else -1)
+            rise = lvl / max(levels - 1, 1)
+            h = max(level, frame.storey)
+            for j in range(in_level):
+                scale = 1.0 / (spread ** (index / max(count - 1, 1)))
+                w = frame.width * 0.62 * scale
+                d = frame.depth * 0.62 * scale
+                if unit_kind == "house":
+                    d = min(d, HOUSE_ASPECT * h)
+                # Neighbours in a level stand side by side across the pile's
+                # cross axis; the level itself drifts as it rises, gently
+                # enough that its centre stays over the level below.
+                row = (j - (in_level - 1) / 2.0) * d * 1.35
+                drift_x = 0.10 * frame.width * rise * (1 if lvl % 2 else -1)
+                drift_y = row + 0.06 * frame.depth * rise * (1 if (lvl // 2) % 2 else -1)
+                box = frame.box(
+                    f"object_{index}",
+                    w=w, d=d, z=z, h=h,
+                    dx=drift_x, dy=drift_y, turn=turn,
+                )
+                if unit_kind == "house":
+                    pitch = _clamp((d / 2.0) / h, 0.15, 0.9)
+                    frame.placements.extend(gabled_halves(frame, box, pitch))
+                else:
+                    frame.placements.append(box)
+                index += 1
+            z += h
+        return
+
     # Objects sit in the cells of a loose grid rather than in a table of corner
     # slots. The table held six, and six was the ceiling on how many bodies this
     # whole grammar could stand at grade - `split` divides a field, it does not
@@ -996,6 +1071,9 @@ _VERBS = {
     **SWEPT_VERBS,
     **PIERCING_VERBS,
     **GRAFTING_VERBS,
+    # What one body does to another - the book's last seven words
+    # (Merge, Nest, Interlock, Lodge, Overlap, Extract, Inscribe).
+    **RELATIONAL_VERBS,
 }
 
 

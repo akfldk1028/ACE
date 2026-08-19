@@ -64,12 +64,24 @@ _SAMPLES = 16
 # the volume used to be would score the move as a disappearance.
 _SCOPE_MARGIN_M = 12.0
 
+# Below this share of a storey band, the band does not count as touched by the
+# word - it is jitter, not reach. Used only by the reach-normalised share.
+_TOUCHED = 1e-3
+
 
 @dataclass(frozen=True)
 class Verdict:
     declared: tuple[str, ...]
     silent: tuple[str, ...]
     changed: tuple[float, ...]
+    # The same words measured against only the storey bands they touched. A
+    # roof word can only ever reach the top band, so against the whole volume
+    # its ceiling is the band's share of the building (`gable` capped at 0.17)
+    # and a language that says roofs is structurally underscored. The silence
+    # gate stays on `changed` - "redrew a twentieth of the building" is the
+    # right floor for whether a word was said at all - this answers the other
+    # question, how decisively the word redrew what it could reach.
+    reached: tuple[float, ...] = ()
 
     @property
     def honest(self) -> bool:
@@ -77,10 +89,11 @@ class Verdict:
 
     def evidence(self) -> dict[str, Any]:
         return {
-            "schema_version": "arr.maas.massv2_postcondition.v2",
+            "schema_version": "arr.maas.massv2_postcondition.v3",
             "declared": list(self.declared),
             "silent": list(self.silent),
             "changed_share": [round(value, 4) for value in self.changed],
+            "reached_share": [round(value, 4) for value in self.reached],
             "honest": self.honest,
         }
 
@@ -218,14 +231,49 @@ def changed_share(
     higher has changed everything above the old top, and that has to count.
     """
 
-    if after is None:
-        return 0.0
-    top = max(_height_of(before), _height_of(after))
-    if top <= 0.0:
-        return 0.0
+    differing = 0.0
+    total = 0.0
+    for diff, union in _share_samples(before, after, region):
+        differing += diff
+        total += union
+    return (differing / total) if total > 1e-9 else 0.0
+
+
+def reached_share(
+    before: SourceMass | None, after: SourceMass | None, region=None
+) -> float:
+    """How decisively this word redrew the storey bands it touched.
+
+    The same samples as `changed_share`, with the untouched bands left out of
+    the denominator. A word confined to one band of a six-band mass - every
+    roof word is - has a ceiling of about a sixth on the whole-mass share no
+    matter how completely it redraws its band, so a selector reading that
+    number prefers sentences that never look up. This is the companion number:
+    1.0 means the word redrew everything it reached, however little that was.
+    """
 
     differing = 0.0
     total = 0.0
+    for diff, union in _share_samples(before, after, region):
+        if diff <= _TOUCHED * union:
+            continue
+        differing += diff
+        total += union
+    return (differing / total) if total > 1e-9 else 0.0
+
+
+def _share_samples(
+    before: SourceMass | None, after: SourceMass | None, region=None
+) -> list[tuple[float, float]]:
+    """(differing, union) area per storey sample, region-cut if one is given."""
+
+    if after is None:
+        return []
+    top = max(_height_of(before), _height_of(after))
+    if top <= 0.0:
+        return []
+
+    samples: list[tuple[float, float]] = []
     for index in range(_SAMPLES):
         z = top * (index + 0.5) / _SAMPLES
         one, two = _plan_at(before, z), _plan_at(after, z)
@@ -233,24 +281,24 @@ def changed_share(
             continue
         if one is None:
             two = two.intersection(region) if region is not None else two
-            differing += float(two.area)
-            total += float(two.area)
+            samples.append((float(two.area), float(two.area)))
             continue
         if two is None:
             one = one.intersection(region) if region is not None else one
-            differing += float(one.area)
-            total += float(one.area)
+            samples.append((float(one.area), float(one.area)))
             continue
         if region is not None:
             one, two = one.intersection(region), two.intersection(region)
             if one.is_empty and two.is_empty:
                 continue
         try:
-            differing += float(one.symmetric_difference(two).area)
-            total += float(one.union(two).area)
+            samples.append((
+                float(one.symmetric_difference(two).area),
+                float(one.union(two).area),
+            ))
         except Exception:  # pragma: no cover - GEOS refusing a degenerate pair
             continue
-    return (differing / total) if total > 1e-9 else 0.0
+    return samples
 
 
 def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_height_m=None) -> Verdict:
@@ -271,6 +319,7 @@ def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_
 
     silent: list[str] = []
     shares: list[float] = []
+    reached: list[float] = []
     previous = None
     previous_form = None
     for index, (op, form) in enumerate(steps):
@@ -296,14 +345,19 @@ def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_
             )
             null = compiled(null_steps[-1][1]) if null_steps else None
             shares.append(changed_share(null, current, region))
+            reached.append(reached_share(null, current, region))
         else:
             share = changed_share(previous, current, region)
             shares.append(share)
+            reached.append(reached_share(previous, current, region))
             if share < MIN_CHANGED_SHARE:
                 silent.append(op.verb)
         previous = current
         previous_form = form
-    return Verdict(declared, tuple(silent), tuple(shares))
+    return Verdict(declared, tuple(silent), tuple(shares), tuple(reached))
 
 
-__all__ = ["Verdict", "changed_share", "check_sentence", "MIN_CHANGED_SHARE"]
+__all__ = [
+    "Verdict", "changed_share", "reached_share", "check_sentence",
+    "MIN_CHANGED_SHARE",
+]

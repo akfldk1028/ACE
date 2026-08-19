@@ -418,7 +418,20 @@ class Command(BaseCommand):
                     # mass rather than the flat 1.0 it used to report against
                     # nothing - `stack` alone was taking that 1.0 as its whole
                     # force and sweeping four cells of the delivered grid.
-                    said = list(spoken.changed[1:]) or list(spoken.changed)
+                    # Each word is worth the geometric mean of its whole-mass
+                    # share and its within-reach share. On the whole-mass share
+                    # alone a roof word is capped at its band's fraction of the
+                    # building (`gable` at 0.17) and the selector prefers
+                    # sentences that never look up; on the reach share alone a
+                    # tiny complete move saturates at 1.0 (`nest` did) and the
+                    # selector is back to optimising noise. Benched over the
+                    # 103-sentence corpus the blend leaves the top of the table
+                    # standing and lifts the roof sentences out of the floor.
+                    pairs = list(zip(spoken.changed, spoken.reached))
+                    said = [
+                        (whole * reach) ** 0.5
+                        for whole, reach in (pairs[1:] or pairs)
+                    ]
                     # And what each word is worth to the mass that gets drawn,
                     # which is a different question - the growth loop and the
                     # sunlight clip both run after the sentence, and both can

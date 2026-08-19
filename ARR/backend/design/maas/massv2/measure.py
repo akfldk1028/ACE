@@ -207,7 +207,10 @@ def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMe
     grouped: dict[tuple[float, float], list[Polygon]] = {}
     for volume in bands:
         drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
-        if drop > 0.0 and volume.drop_toward is not None:
+        if drop > 0.0 and (
+            volume.drop_toward is not None
+            or getattr(volume, "ridge_along", None) is not None
+        ):
             # A tilted band is a continuous section event, and grouped by its
             # flat footprint it measured as none at all: the first sloped roof
             # this language drew compiled to one band, read articulation ~0,

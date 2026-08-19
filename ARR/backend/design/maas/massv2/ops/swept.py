@@ -277,18 +277,52 @@ def shear(frame, op) -> None:
     if not picked:
         return
     ux, uy = frame.out(*frame.direction(op.params.get("toward")))
-    ordered = sorted(picked, key=lambda item: item.z_span()[0])
+    # A derived body is not a tier. Verbs name what they make after the volume
+    # they made it for - `tier_2_support`, `bar_nested` - and the scope brings
+    # those bodies along, which is right. But this verb grades displacement by
+    # stacking order, and counted as steps of the stair the four legs under
+    # Maison Bordeaux's raised tier took indices 0-3, each slid a different
+    # amount, and the plate slid off all of them: 3 of 22 occupiable fell to
+    # 0 of 18 the day the legs learned to follow. An attachment rides its
+    # owner rigidly - the grading is over owners alone.
+    primary = [
+        item for item in picked
+        if not any(
+            other is not item and item.role.startswith(other.role + "_")
+            for other in picked
+        )
+    ]
+    primary_ids = {id(item) for item in primary}
+    ordered = sorted(primary, key=lambda item: item.z_span()[0])
     levels = {round(item.z_span()[0], 3) for item in ordered}
     anchored = 0 if len(levels) > 1 else -1
 
     moved: list[Placement] = []
+    slides: dict[str, tuple[float, float]] = {}
     for index, item in enumerate(ordered):
         if index == anchored:
             moved.append(item)
+            slides.setdefault(item.role, (0.0, 0.0))
             continue
         axis = 0 if abs(ux) >= abs(uy) else 1
         reach = ratio * _span_along_unit_axis(item, axis) * (index - anchored)
+        slides.setdefault(item.role, (ux * reach, uy * reach))
         slide = translation_matrix4((ux * reach, uy * reach, 0.0))
+        moved.append(replace(
+            item, matrix=validate_matrix4(compose_matrix4(item.matrix, slide))
+        ))
+    for item in picked:
+        if id(item) in primary_ids:
+            continue
+        owner = max(
+            (role for role in slides if item.role.startswith(role + "_")),
+            key=len,
+        )
+        dx, dy = slides[owner]
+        if abs(dx) < 1e-12 and abs(dy) < 1e-12:
+            moved.append(item)
+            continue
+        slide = translation_matrix4((dx, dy, 0.0))
         moved.append(replace(
             item, matrix=validate_matrix4(compose_matrix4(item.matrix, slide))
         ))

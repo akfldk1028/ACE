@@ -75,11 +75,20 @@ _MEANINGFUL_OVERHANG_M2 = 1.0
 # of them. The grid has a `detached` column that could only ever be filled by
 # schemes whose halves secretly touched.
 #
-# The bound comes from the same place the column does: Kim (2026, SNU) measures
-# 3.4 masses per winning entry, so a scheme standing as up to four bodies is
-# inside what the corpus does and a cloud of twelve is a compound rather than a
-# building. Each body still has to answer the other three questions on its own.
-MAX_SEPARATE_BODIES = 4
+# The bound was 4, from Kim (2026, SNU): 3.4 masses per Korean winning entry.
+# That number is a fact about a jury, not about standing up - and applied as
+# physics it refused the other canon wholesale: Moriyama House stands as ten
+# boxes on one Tokyo parcel, Inujima scatters five pavilions, Nishinoyama is
+# ten houses under twenty-one roofs, and every SANAA dispersal in the corpus
+# came back "not one building" - 0 of 64 variants occupiable across the three
+# sentences whose whole argument is separateness. The same evidence pattern
+# that moved the cantilever constant: when the built canon trips the gate, the
+# gate is wrong. How near a scheme sits to a jury's habits is the selection's
+# question and `_piece_distance` already asks it on briefed runs; this gate
+# keeps only the physical backstop at the canon's built extreme, past which
+# the supply is rubble rather than a composition. Each body still answers
+# every other question on its own.
+MAX_SEPARATE_BODIES = 10
 
 
 @dataclass(frozen=True)

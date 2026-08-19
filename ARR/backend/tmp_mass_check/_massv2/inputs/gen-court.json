@@ -1,490 +1,489 @@
 {
- "schemes": [
-  {
-   "name": "kr_mmca_seoul_madang_chain",
-   "primary_language": "open_figure",
-   "secondary_language": "low wings holding a chain of courtyards, broken open twice so the street walks through",
-   "formal_principle": "The building is not the figure - the courtyards are, and the wings are only thick enough to be a room lit from both sides.",
-   "dominant_gesture": "A low ring around a large court, cut through on the north and on the east so the yard is a street and not a private garden.",
-   "reference_basis": "국립현대미술관 서울관 (서울 종로구 소격동, 2013년 11월 개관, mpArt건축사사무소 민현준). 대지면적 27,264㎡, 연면적 52,101㎡, 지상 3층·지하 3층. 옛 기무사 부지에 종친부 경근당·옥첩당을 복원해 앉히고, 전시동들을 낮게 흩어 그 사이를 여러 개의 마당으로 남겼다. 도심 한복판에서 건물보다 마당이 먼저 읽히는 것이 이 미술관의 전제다.",
-   "ops": [
+  "schemes": [
     {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.7,
-     "profile": "square",
-     "why": "마당을 가운데 두고 낮은 채들이 그 둘레를 잡는다. bar 0.3은 이 필지 폭의 약 14m로, 바깥 면과 마당 면 양쪽에서 빛이 들어오는 전시실 한 켜의 깊이다. 이보다 두꺼우면 가운데가 어두워져 창고가 되고, 얇으면 전시실이 못 된다. height 0.7은 지상 3층짜리 미술관이 이 필지가 주는 4.17층을 다 쓰지 않는다는 뜻이고, 고리의 네 변이 서로 다른 높이로 나오는 것이 소격동의 분동 배열과 같다."
+      "name": "kr_mmca_seoul_madang_chain",
+      "primary_language": "open_figure",
+      "secondary_language": "low wings holding a chain of courtyards, broken open twice so the street walks through",
+      "formal_principle": "The building is not the figure - the courtyards are, and the wings are only thick enough to be a room lit from both sides.",
+      "dominant_gesture": "A low ring around a large court, cut through on the north and on the east so the yard is a street and not a private garden.",
+      "reference_basis": "국립현대미술관 서울관 (서울 종로구 소격동, 2013년 11월 개관, mpArt건축사사무소 민현준). 대지면적 27,264㎡, 연면적 52,101㎡, 지상 3층·지하 3층. 옛 기무사 부지에 종친부 경근당·옥첩당을 복원해 앉히고, 전시동들을 낮게 흩어 그 사이를 여러 개의 마당으로 남겼다. 도심 한복판에서 건물보다 마당이 먼저 읽히는 것이 이 미술관의 전제다.",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.7,
+          "profile": "square",
+          "why": "마당을 가운데 두고 낮은 채들이 그 둘레를 잡는다. bar 0.3은 이 필지 폭의 약 14m로, 바깥 면과 마당 면 양쪽에서 빛이 들어오는 전시실 한 켜의 깊이다. 이보다 두꺼우면 가운데가 어두워져 창고가 되고, 얇으면 전시실이 못 된다. height 0.7은 지상 3층짜리 미술관이 이 필지가 주는 4.17층을 다 쓰지 않는다는 뜻이고, 고리의 네 변이 서로 다른 높이로 나오는 것이 소격동의 분동 배열과 같다."
+        },
+        {
+          "op": "split",
+          "on": "bar_n",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "north_wing",
+          "second": "madang_gate",
+          "gap": 8,
+          "contrast": 1.4,
+          "why": "고리가 닫혀 있으면 마당은 사유지가 된다. 북쪽 채를 끊어 삼청로 쪽에서 마당으로 곧장 걸어 들어오게 한다. gap 8은 약 6m로 사람과 자전거가 지나는 골목 폭이고, 0.62는 끊긴 자리가 채의 한가운데가 아니라 한쪽으로 치우쳐야 통로가 대각선으로 읽힌다는 뜻이다. contrast 1.4로 작은 쪽이 낮게 앉아 문설주처럼 보인다."
+        },
+        {
+          "op": "split",
+          "on": "bar_e",
+          "ratio": 0.66,
+          "along": "cross",
+          "first": "east_wing",
+          "second": "corner_pavilion",
+          "gap": 7,
+          "contrast": 1.5,
+          "why": "서울관의 마당은 하나가 아니라 여러 개가 이어진 것이고, 그러려면 고리가 두 군데에서 끊겨야 한다. 동쪽 채를 0.66에서 끊어 작은 조각을 떼면 큰 마당과 작은 마당이 그 틈으로 이어진다. gap 7(약 5.3m)은 두 마당 사이를 좁혀 통과할 때 압축감을 주는 폭이고, contrast 1.5로 떨어져 나온 조각은 한 층 낮은 정자가 된다."
+        },
+        {
+          "op": "rotate",
+          "on": "north_wing",
+          "about": "madang_gate|north_wing",
+          "degrees": 12,
+          "why": "마당 연쇄는 동들이 서로 각을 틀어 만들어진다. 두 동을 가른 그 선을 축으로 돌려야 연쇄가 된다."
+        }
+      ]
     },
     {
-     "op": "split",
-     "on": "bar_n",
-     "ratio": 0.62,
-     "along": "long",
-     "first": "north_wing",
-     "second": "madang_gate",
-     "gap": 8,
-     "contrast": 1.4,
-     "why": "고리가 닫혀 있으면 마당은 사유지가 된다. 북쪽 채를 끊어 삼청로 쪽에서 마당으로 곧장 걸어 들어오게 한다. gap 8은 약 6m로 사람과 자전거가 지나는 골목 폭이고, 0.62는 끊긴 자리가 채의 한가운데가 아니라 한쪽으로 치우쳐야 통로가 대각선으로 읽힌다는 뜻이다. contrast 1.4로 작은 쪽이 낮게 앉아 문설주처럼 보인다."
+      "name": "kr_ewha_ecc_valley_walls",
+      "primary_language": "open_figure",
+      "secondary_language": "three thin slabs standing along a valley that is the real room",
+      "formal_principle": "The void cut between the built walls is the building; everything built is only the two faces that valley needs.",
+      "dominant_gesture": "A wide slot running the length of the site with slabs standing along it, each thin enough that light crosses it.",
+      "reference_basis": "이화여자대학교 ECC (서울 서대문구, 2008, Dominique Perrault). 연면적 약 68,657㎡를 거의 전부 지하에 두고, 길이 약 250m의 '캠퍼스 밸리'가 대지를 갈라 그 양쪽에 유리벽 두 면이 마주 선다. 지붕은 잔디 경사로 남아 캠퍼스가 그 위를 걷는다. 건물이 서는 것이 아니라 땅이 갈라지는 것이 이 안의 조작이다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "profile": "trapezoidal",
+          "why": "ECC는 높이로 존재하지 않는다. 0.45는 이 필지 4.17층의 절반 남짓으로, 계곡 양쪽 벽이 사람 눈높이보다 조금 높은 정도에서 멈춘다는 뜻이다. trapezoidal은 계곡이 정문 쪽으로 벌어지며 넓어지는 실제 평면이고, 두 벽이 나란하지 않아야 걸어 들어가는 동안 폭이 변한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "west_wall",
+          "second": "east_wall",
+          "gap": 11,
+          "contrast": 1.45,
+          "why": "이 건물의 전부는 하나의 갈라짐이다. gap 11은 약 8.4m로, 양쪽 벽이 서로의 빛을 가리지 않으면서 한 사람이 아니라 한 무리가 걷는 폭이다. 0.62는 두 벽이 대칭이 아니라는 뜻이고 - 서쪽이 도서관, 동쪽이 강의실로 두께가 다르다 - contrast 1.45로 작은 쪽이 낮아야 계곡 안에서 하늘이 한쪽으로 열린다."
+        },
+        {
+          "op": "split",
+          "on": "west_wall",
+          "ratio": 0.58,
+          "along": "long",
+          "first": "library_wall",
+          "second": "hall_wall",
+          "gap": 5,
+          "contrast": 1.6,
+          "why": "서쪽 벽 하나는 여전히 너무 두껍다. 한 번 더 갈라 두 켜로 만들면 각 켜가 양면 채광 깊이 안으로 들어오고, 그 사이의 좁은 틈(gap 5, 약 3.8m)이 계곡과 평행한 두 번째 골목이 된다. 0.58은 도서관 켜가 강당 켜보다 넓다는 실제 면적 차이이고, contrast 1.6은 강당 쪽이 한 층 낮게 앉아 지붕 경사가 이어지게 한다."
+        }
+      ]
     },
     {
-     "op": "split",
-     "on": "bar_e",
-     "ratio": 0.66,
-     "along": "cross",
-     "first": "east_wing",
-     "second": "corner_pavilion",
-     "gap": 7,
-     "contrast": 1.5,
-     "why": "서울관의 마당은 하나가 아니라 여러 개가 이어진 것이고, 그러려면 고리가 두 군데에서 끊겨야 한다. 동쪽 채를 0.66에서 끊어 작은 조각을 떼면 큰 마당과 작은 마당이 그 틈으로 이어진다. gap 7(약 5.3m)은 두 마당 사이를 좁혀 통과할 때 압축감을 주는 폭이고, contrast 1.5로 떨어져 나온 조각은 한 층 낮은 정자가 된다."
+      "name": "kr_acc_gwangju_ring_around_a_sunken_plaza",
+      "primary_language": "open_figure",
+      "secondary_language": "a low perimeter of wings with the great room dug out below the court",
+      "formal_principle": "The programme goes underground and what stands is only the edge that gives the sunken plaza a wall.",
+      "dominant_gesture": "A low ring whose east side is quarried away into a broad stair descending to the court.",
+      "reference_basis": "국립아시아문화전당 (광주 동구 옛 전남도청 부지, 2015년 개관, 우규승). 5개 원(민주평화교류원·문화정보원·문화창조원·예술극장·어린이문화원)을 대부분 지하에 넣고 지상은 공원과 낮은 매스로 남긴 것이 당선안의 전제였다. 가운데 아시아문화광장은 지하로 내려간 큰 마당이고, 지상에서는 그 마당으로 내려가는 계단과 낮은 채들만 보인다.",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.5,
+          "profile": "chamfered",
+          "why": "지상에 남는 것은 광장을 둘러싸는 낮은 채들뿐이다. bar 0.3은 약 14m로 바깥 공원과 안쪽 광장 양쪽에서 빛을 받는 한 켜이고, height 0.5는 이 필지 4.17층의 절반 - 도청 옛 건물보다 낮게 앉아야 광장이 주인공이 된다는 실제 조건이다. chamfered는 광장으로 내려가는 모서리들이 직각으로 서지 않고 잘려 있다는 뜻으로, 그래야 네 귀퉁이가 전부 진입로가 된다."
+        },
+        {
+          "op": "carve",
+          "size": 0.4,
+          "at": "long",
+          "reach": 1.0,
+          "why": "아시아문화광장은 파낸 마당이지 남은 마당이 아니다. size 0.4는 고리의 한 변을 통째로 관통하는 크기이고, reach 1.0으로 대지 경계까지 밀어야 도로에서 광장 바닥까지 계단이 끊기지 않고 내려간다. 이 파냄이 없으면 고리는 담이 되고 광장은 뒷마당이 된다. 이 court는 천창이 아니라 사람이 앉고 공연을 보는 실제 바닥이다."
+        },
+        {
+          "op": "rotate",
+          "on": "bar_n",
+          "about": "court",
+          "degrees": 14,
+          "why": "테두리가 가라앉은 광장을 향해 돌아앉는다. 자기 중심으로 돌면 비뚤어진 상자고, 광장 중심으로 돌아야 광장을 둘러싼 벽이 된다."
+        },
+        {
+          "op": "split",
+          "on": "bar_s",
+          "ratio": 0.66,
+          "along": "long",
+          "first": "children_wing",
+          "second": "theatre_wing",
+          "gap": 6,
+          "contrast": 1.5,
+          "why": "남쪽 채 하나에 어린이문화원과 예술극장이 같이 들어가지 않는다. 0.66은 어린이문화원이 더 넓다는 프로그램 차이이고, gap 6(약 4.6m)은 두 원 사이로 공원에서 광장으로 빠지는 두 번째 통로다. contrast 1.5로 극장 쪽이 낮게 앉아 무대탑이 광장 위로 솟지 않는다."
+        }
+      ]
     },
     {
-     "op": "rotate",
-     "on": "north_wing",
-     "about": "madang_gate|north_wing",
-     "degrees": 12,
-     "why": "마당 연쇄는 동들이 서로 각을 틀어 만들어진다. 두 동을 가른 그 선을 축으로 돌려야 연쇄가 된다."
+      "name": "kr_amorepacific_hollow_cube_and_gardens",
+      "primary_language": "carved_body",
+      "secondary_language": "a cube with its middle removed and one face opened for a hanging garden",
+      "formal_principle": "A compact block only stays a building if what is taken out of it is inhabited, so the hollow is a court and not a shaft.",
+      "dominant_gesture": "A square block set back once as it rises, hollow at the centre, with one whole side cut away into a garden.",
+      "reference_basis": "아모레퍼시픽 사옥 (서울 용산구 한강대로, 2017, David Chipperfield Architects). 한 변 약 110m의 정육면체에 가까운 몸, 지상 22층·지하 7층, 연면적 약 188,902㎡. 저층부는 시민에게 열린 아트리움이고, 5층·11층·17층에 걸쳐 세 개의 큰 루프가든 보이드를 덩어리에서 파냈다. 정육면체를 유지하면서 깊이 문제를 파냄으로 푼 사례다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "profile": "square",
+          "why": "이 건물의 전제는 정육면체 하나를 끝까지 유지한다는 것이고, 그래서 첫 동사는 자르지도 쌓지도 않는다. 0.5는 이 필지가 주는 높이의 절반 - 4.17층 중 두 개 층 남짓 - 으로, 여기서 높이를 아껴야 남은 면적을 평면으로 벌게 되고 그때 파냄이 유일한 조작으로 남는다. profile square는 한 변이 같은 정육면체라는 실제 형태 그대로다."
+        },
+        {
+          "op": "carve",
+          "size": 0.45,
+          "at": "long",
+          "reach": 0.0,
+          "why": "정육면체를 그대로 세우면 가운데는 어떤 창도 닿지 않는다. size 0.45의 가운데 파냄은 남는 켜를 약 13m로 만드는 크기 - 바깥 창과 아트리움 창 양쪽에서 빛이 만나는 깊이다. reach 0.0은 이 보이드가 한쪽으로 치우친 채광정이 아니라 정중앙의 아트리움이라는 뜻이고, 로비와 매장이 실제로 그 바닥에 있다."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 1.0,
+          "why": "세 개의 루프가든은 아트리움과 다른 종류의 빈 곳이다. 덩어리의 한 면을 통째로 뜯어내 바깥으로 열린 정원을 만든다. size 0.42와 reach 1.0은 그 파냄이 고리의 한 변을 남김없이 관통한다는 뜻이고 - 얇은 조각을 남기면 그건 방이 아니라 난간이 된다 - 그래야 도시에서 건물 안이 보이고 정원에서 한강 쪽 하늘이 보인다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 1.0,
+          "why": "정원은 하나가 아니라 5층·11층·17층에 걸쳐 셋이고, 서로 다른 방향으로 열린다. 반대쪽 변을 더 작게(0.3) 뜯어내면 남은 고리가 ㄷ자가 되고, 그 순간 이 덩어리는 가운데만 빈 도넛이 아니라 두 방향으로 도시에 열린 몸이 된다. 앞의 정원보다 작은 것이 층이 올라갈수록 정원이 작아지는 실제 관계다."
+        }
+      ]
+    },
+    {
+      "name": "ito_sendai_plate_pierced_by_tubes",
+      "primary_language": "carved_body",
+      "secondary_language": "one wide plate kept occupiable by the shafts driven through it",
+      "formal_principle": "A plate this wide is only a floor because the tubes bring light, air and people into its middle.",
+      "dominant_gesture": "A single square plate with two large irregular shafts punched through it, off-centre and touching one edge.",
+      "reference_basis": "센다이 미디어테크 (일본 미야기현 센다이, 2001, 이토 도요). 50m × 50m 평면의 판 7장(지상 7층·지하 2층), 연면적 약 21,682㎡. 기둥이 아니라 13개의 강관 튜브가 판을 관통하며 구조·설비·수직동선·빛을 함께 나른다. 벽 없는 넓은 판을 성립시키는 것이 전적으로 이 튜브들이라는 점이 이 건물의 전부다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "profile": "square",
+          "why": "넓은 한 판."
+        },
+        {
+          "op": "puncture",
+          "n": 3,
+          "size": 0.15,
+          "why": "튜브다. carve는 한 변에서 안쪽으로 파고드는 것이라 벽감이 되고, 그중 하나는 reach 0.85로 아예 가장자리에 붙어 있었다. 코드 자신이 구분해둔 대로 안쪽에서 관통하는 건 puncture다. 크기 0.26은 중심 간격보다 커서 둘이 하나로 붙었다 — 튜브 '들'이 되려면 떨어져야 한다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "chipperfield_neues_museum_twin_courts",
+      "primary_language": "carved_body",
+      "secondary_language": "one block with two rooms-without-roofs quarried out of it side by side",
+      "formal_principle": "Two courts of different character, not one, so the block reads as a sequence of rooms rather than as a doughnut.",
+      "dominant_gesture": "A single block with two square voids punched through it, separated by a narrow spine of building.",
+      "reference_basis": "노이에스 무제움 (베를린 무제움스인젤, 1859 F.A.Stüler 원작, 2009 David Chipperfield + Julian Harrap 재건). 연면적 약 20,500㎡. 전쟁으로 무너진 몸을 남은 것 위에 다시 채우면서 이집트 안뜰(Egyptian Court)과 그리스 안뜰(Greek Court) 두 개의 중정을 되살렸고, 두 중정은 크기도 성격도 다르며 그 사이를 계단홀이 지난다. 하나의 덩어리가 두 개의 파냄으로 읽히는 것이 이 건물의 평면이다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.62,
+          "profile": "square",
+          "why": "무제움스인젤의 블록은 도시가 정한 하나의 덩어리이고 그 윤곽은 건축가가 고른 것이 아니다. 0.62는 이 필지 4.17층 중 두 개 반 층 - 층고가 높은 전시실 두 켜 - 에 해당하는 값으로, 높이로 부피를 벌지 않고 평면으로 번다는 뜻이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "long",
+          "reach": 0.62,
+          "why": "그리스 안뜰. size 0.3은 이 덩어리에서 창까지 6m가 넘는 자리를 없애면서도 남는 켜가 전시실 폭을 유지하는 크기이고, reach 0.62는 중정이 정중앙이 아니라 한쪽으로 밀려 있다는 실제 평면이다. 정중앙에 하나만 파면 도넛이 되고, 이 건물은 도넛이 아니라 방들의 열이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 0.62,
+          "why": "이집트 안뜰. 같은 크기를 반대쪽 같은 거리에 파면 두 중정 사이에 약 6m 폭의 등뼈가 남는데, 그것이 실제로 두 안뜰을 잇는 계단홀이다. 하나를 크게 파는 대신 둘을 파는 이유가 여기 있다 - 파낸 자리가 두 개여야 그 사이에 지나가는 방이 생긴다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "kahn_kimbell_three_ranges_of_vaults",
+      "primary_language": "porous_field",
+      "secondary_language": "parallel bays of one depth, with open courts left where a bay is missing",
+      "formal_principle": "One repeated bay whose width is set by how far daylight reaches, and the courts are simply the bays left out.",
+      "dominant_gesture": "Three long low ranges lying parallel with open courts in the gaps between them.",
+      "reference_basis": "킴벨미술관 (미국 텍사스 포트워스, 1972, Louis Kahn). 폭 약 7m(23ft)·길이 약 30m(100ft)의 사이클로이드 볼트 16개가 세 열로 놓이고, 볼트 정점의 좁은 슬릿에서 들어온 빛이 알루미늄 반사판을 거쳐 전시실을 덮는다. 열과 열 사이에 뚫린 중정 세 곳이 전시 동선을 끊고 바깥 빛을 들인다. 반복되는 한 칸의 폭이 전시실의 폭이자 채광의 폭이라는 것이 이 건물의 원리다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.3,
+          "profile": "square",
+          "why": "킴벨은 사실상 한 층이다. 0.3은 이 필지 4.17층 중 층고 높은 한 층 남짓 - 볼트 아래 6m 가까운 실내고 - 에 해당한다. 이 문장은 높이가 아니라 반복으로 면적을 버는 문장이고, 그래서 처음부터 낮게 시작한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.7,
+          "along": "cross",
+          "first": "north_ranges",
+          "second": "south_range",
+          "gap": 8,
+          "contrast": 1.35,
+          "why": "볼트는 한 덩어리로 놓이지 않고 열로 끊긴다. 0.7은 북쪽 두 열이 남쪽 한 열보다 넓다는 실제 배치이고, gap 8(약 6m)은 그 사이에 뚫린 중정의 폭이다 - 이 틈이 없으면 안쪽 열은 어느 면에서도 6m 안에 창이 없다. contrast 1.35로 남쪽 열이 낮아 진입 쪽 처마가 내려앉는다."
+        },
+        {
+          "op": "split",
+          "on": "north_ranges",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "vault_range_a",
+          "second": "vault_range_b",
+          "gap": 7,
+          "contrast": 1.4,
+          "why": "북쪽 덩어리는 아직 두 열이 붙어 있다. 한 번 더 끊으면 세 열이 되고 각 열의 깊이가 볼트 한 칸의 배수 안으로 들어온다. 0.58은 전시열이 보존·관리열보다 넓다는 프로그램 차이이고, gap 7(약 5.3m)은 두 번째 중정 - 화석 중정처럼 작고 통과만 하는 마당 - 의 폭이다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "hertzberger_central_beheer_islands",
+      "primary_language": "porous_field",
+      "secondary_language": "four unequal islands with lit streets running between them",
+      "formal_principle": "The office is not one floorplate but a settlement of small blocks, and the streets between them are what makes each block a room.",
+      "dominant_gesture": "Four blocks of different size crowding one plot, with two crossing slots of daylight between them.",
+      "reference_basis": "센트랄 베헤이르 (네덜란드 아펠도른, 1972, Herman Hertzberger). 약 9m × 9m 콘크리트 '섬' 수십 개를 격자로 모으고 그 사이에 위에서 빛이 드는 가로와 광장을 남긴 사무소로, 약 1,000명이 일했다. 한 덩어리 사무소를 거부하고 작은 단위의 집합으로 만든 것, 그리고 단위 사이의 빈틈을 사람이 점유하도록 남긴 것이 이 건물의 주장이다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "profile": "square",
+          "why": "섬 하나는 4개 층 정도로 낮고, 전체는 그 섬들이 가로로 번진 것이다. 0.55는 이 필지 4.17층의 절반을 조금 넘는 값으로, 이 문장이 높이가 아니라 평면의 번짐으로 면적을 번다는 뜻이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.68,
+          "along": "long",
+          "first": "west_islands",
+          "second": "east_islands",
+          "gap": 6,
+          "contrast": 1.3,
+          "why": "첫 번째 가로. gap 6(약 4.6m)은 위에서 빛이 떨어지고 사람이 마주 서서 이야기하는 실내 골목의 폭이다. 0.68은 두 덩어리가 같지 않다는 뜻이고 - 이 건물의 단위는 반복되지만 군집은 대칭이 아니다 - contrast 1.3으로 동쪽이 한 층 낮게 앉는다."
+        },
+        {
+          "op": "split",
+          "on": "west_islands",
+          "ratio": 0.6,
+          "along": "cross",
+          "first": "island_block_a",
+          "second": "island_block_b",
+          "gap": 6,
+          "contrast": 1.45,
+          "why": "두 번째 가로를 앞의 것과 직교로 낸다. 격자 도시가 되려면 골목이 한 방향으로만 나 있으면 안 된다. 0.6은 북쪽 덩어리가 더 크다는 뜻이고 gap 6은 같은 골목 폭을 반복해 두 가로가 같은 종류의 공간으로 읽히게 한다."
+        },
+        {
+          "op": "split",
+          "on": "island_block_a",
+          "ratio": 0.58,
+          "along": "long",
+          "first": "island_a1",
+          "second": "island_a2",
+          "gap": 6,
+          "contrast": 1.5,
+          "why": "남은 가장 큰 덩어리는 아직 가운데에 창이 닿지 않는 자리가 있다. 한 번 더 끊어 네 개의 섬으로 만들면 어느 섬에서도 창까지가 한 켜 안이고, 그때 비로소 이 안은 '큰 판에 구멍을 낸 것'이 아니라 '작은 것들의 모임'이 된다. contrast 1.5로 넷의 높이가 전부 달라 위에서 보면 마을처럼 보인다."
+        },
+        {
+          "op": "rotate",
+          "on": "island_a1",
+          "about": "west_islands|east_islands",
+          "degrees": 15,
+          "why": "취락은 집들이 길에 대해 조금씩 다르게 앉아서 취락이다. 전부 평행하면 창고 단지다."
+        }
+      ],
+      "floor_height_m": 3.3
+    },
+    {
+      "name": "zumthor_kunsthaus_bregenz_cube_and_black_box",
+      "primary_language": "solid_body",
+      "secondary_language": "one compact gallery block, its base, and a separate lower bar standing off it",
+      "formal_principle": "A solid this compact earns its light by staying small in plan and putting everything it is not into a second building.",
+      "dominant_gesture": "A short thick block with a low base beside it and a long low bar standing apart across a gap.",
+      "reference_basis": "쿤스트하우스 브레겐츠 (오스트리아 브레겐츠, 1997, Peter Zumthor). 전시동은 한 변 약 26.5m·높이 약 27m의 거의 정육면체인 몸이고 지상 4개 전시층이다. 매표·서점·카페·사무는 전시동에 넣지 않고 별동의 낮고 검은 바로 떼어 두 채가 보덴제 호숫가에 마주 선다. 에칭 유리 비늘과 그 안쪽 벽 사이의 빈 층이 빛을 확산시켜 전시실로 들인다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "profile": "square",
+          "why": "브레겐츠는 이 목록에서 유일하게 높이가 성격인 건물이다. 26.5m 폭에 27m 높이 - 폭과 높이가 같다는 것이 이 몸의 전부이므로, 0.95로 이 필지가 허용하는 높이를 거의 다 쓴다. 다른 문장들이 낮게 번지는 자리에서 이 문장만 서 있어야 격자에 대비가 생긴다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.7,
+          "along": "long",
+          "first": "kub_side",
+          "second": "verwaltung_bar",
+          "gap": 8,
+          "contrast": 1.6,
+          "why": "전시동에 매표소와 카페를 넣지 않은 것이 이 건물의 첫 번째 결정이다. gap 8(약 6m)은 두 채 사이로 호숫바람과 사람이 지나는 폭이고, contrast 1.6은 관리동이 전시동보다 확실히 낮다는 실제 관계다. 0.7은 관리동이 전시동의 절반도 안 되는 폭이라는 뜻이고, 이보다 두꺼우면 그 채 자체가 가운데에 창이 닿지 않는 몸이 된다."
+        },
+        {
+          "op": "split",
+          "on": "kub_side",
+          "ratio": 0.6,
+          "along": "long",
+          "first": "gallery_side",
+          "second": "service_slot",
+          "gap": 6,
+          "contrast": 1.35,
+          "why": "전시동 쪽 덩어리는 아직 이 필지에서 너무 넓다 - 26.5m 정육면체를 이 대지에 그대로 놓으면 판 가운데가 어두워진다. 계단·화물·설비를 얇은 켜(0.42)로 떼어내면 전시 몸이 채광 깊이 안으로 들어온다. gap 5(약 3.8m)는 두 켜 사이의 실제 틈이고, 춤토어가 전시실에서 모든 부대시설을 밀어낸 것과 같은 조작이다."
+        },
+        {
+          "op": "split",
+          "on": "gallery_side",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "gallery_cube",
+          "second": "entry_base",
+          "gap": 4,
+          "contrast": 1.5,
+          "why": "마지막으로 긴 켜를 가로로 끊어 짧고 두꺼운 몸을 만든다. 이 조각이 정육면체 전시동이고, 남은 낮은 조각이 그 아래 진입층이다. 0.62는 전시층이 진입층보다 크다는 뜻, contrast 1.5는 진입층이 확실히 낮다는 뜻이며, gap 4(약 3m)는 두 몸이 붙지 않고 홈 하나를 사이에 둔다는 것 - 그 홈이 정육면체의 네 모서리를 살린다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "souto_moura_casa_das_historias_low_body",
+      "primary_language": "solid_body",
+      "secondary_language": "a low red body of two narrow halls with a wing beside it, one hall rising to a point",
+      "formal_principle": "A low body kept one room deep, with two narrow towers standing above it like chimneys.",
+      "dominant_gesture": "Two low parallel halls under one red mass, one of them tapering upward into a pyramid.",
+      "reference_basis": "카사 다스 이스토리아스 파울라 헤구 (포르투갈 카스카이스, 2009, Eduardo Souto de Moura). 붉은 안료를 섞은 노출콘크리트 단일체이고, 전시실은 낮게 깔린 몸에 있으며 그 위로 피라미드형 탑 두 개가 굴뚝처럼 솟는다. 전시 면적은 약 750㎡로 크지 않고 200석 강당이 함께 있다. 낮고 조용한 몸에 수직 사건 하나만 허용한 것이 이 건물의 절제다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "profile": "square",
+          "why": "이 건물은 낮다. 0.4는 이 필지 4.17층 중 층고 높은 전시실 한 층 반 정도로, 소나무 숲보다 높아지지 않겠다는 실제 결정에 해당한다. 높이를 여기서 아끼기 때문에 뒤의 taper가 유일한 수직 사건이 된다. 원래 문장은 '유일한 수직 사건은 없어지도록 좁아지는 지붕'이라 했다. 프리즘 언어는 피라미드를 말할 수 없고 계단 근사는 촘촘할수록 나빠진다. 그런데 원 건물의 실제 사건은 지붕면이 아니라 낮은 몸 위로 굴뚝처럼 솟는 피라미드 탑 두 개이고, 그 관계 — 낮은 몸 + 가늘고 높은 것 둘 — 는 split과 taper가 이미 짓는다. 매스가 하는 일로 고쳤다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "gallery_body",
+          "second": "auditorium_wing",
+          "gap": 6,
+          "contrast": 1.4,
+          "why": "전시실과 200석 강당은 한 몸이 아니다. 0.62는 전시 쪽이 넓다는 실제 면적 비이고, gap 6(약 4.6m)은 두 몸 사이의 안뜰 - 카스카이스에서 관람객이 두 프로그램 사이를 밖으로 걸어 옮기는 틈 - 이다. contrast 1.4로 강당이 낮게 앉아 전시 몸의 지붕선이 끊기지 않는다."
+        },
+        {
+          "op": "split",
+          "on": "gallery_body",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "north_gallery",
+          "second": "south_gallery",
+          "gap": 5,
+          "contrast": 1.5,
+          "why": "전시 몸 하나로는 폭이 너무 넓어 가운데가 어두워진다. 두 켜로 끊으면 각 켜가 한쪽 벽에서 반대쪽 벽까지 빛이 건너가는 폭이 되고, gap 5(약 3.8m)의 틈이 두 전시실 사이의 중정이 된다. 0.58은 상설 쪽이 기획 쪽보다 넓다는 뜻이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.45,
+          "on": "north_gallery",
+          "why": "이 건물의 유일한 수직 사건은 피라미드형 탑이다. 0.45는 올라가면서 평면이 절반 가까이 좁아진다는 뜻으로, 낮은 몸 위에서 하나의 덩어리만 뾰족해져야 나머지가 조용해진다. 좁은 쪽이 아니라 넓은 상설 전시 켜에 걸어야 꼭대기까지 방의 폭이 남는다 - 좁은 켜를 이만큼 좁히면 위쪽 두세 켜가 방이 아니라 처마가 된다."
+        }
+      ]
+    },
+    {
+      "name": "kahn_richards_towers_off_a_spine",
+      "primary_language": "open_figure",
+      "secondary_language": "laboratory towers branching off a served spine",
+      "formal_principle": "One service spine runs the length of the site and the laboratories stand as their own towers branching off it, so served and servant spaces are told apart in the massing itself.",
+      "dominant_gesture": "A low continuous bar with tall square towers growing off alternating sides.",
+      "reference_basis": "Louis Kahn - Richards Medical Research Laboratories, Philadelphia (1957-65): studio towers attached to a service spine, served and servant spaces separated as distinct volumes, brick shafts against glazed studios",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "척추. 설비와 동선이 사는 낮고 긴 몸이 먼저 있다. principle의 separate를 걷어냈다 — branch는 붙여 세우는 동사이고 Kahn의 탑도 척추에 붙어 있다. 훑기가 잡은 거짓 주장."
+        },
+        {
+          "op": "compress",
+          "toward": "cross",
+          "ratio": 0.6,
+          "why": "척추는 바(bar)여야 한다. compress는 0.6 바닥이 있어 한 번으로는 판이 남는다(0.34를 써도 0.6으로 잘림 — 실측 33m)."
+        },
+        {
+          "op": "compress",
+          "toward": "cross",
+          "ratio": 0.6,
+          "why": "그래서 두 번 조인다. 책의 combination 층이 같은 동사의 반복을 정식으로 둔다(Expand+Expand 단계형 확장) — 0.36이면 20m 척추가 된다."
+        },
+        {
+          "op": "branch",
+          "n": 3,
+          "reach": 0.7,
+          "height": 2.0,
+          "why": "실험탑들이 척추에서 가지쳐 나온다 — 책의 Branch 그대로. 팔은 줄기의 단위공간에 쓰여 어느 필지에서든 줄기에 붙어 나온다. reach 0.7은 실측으로 정했다: 0.9는 팔끝이 대지 모서리를 스쳐 잘린다. height 1.0→2.0. 판정 2조가 '탑이 없고 화살표 판'이라 했다 — 팔이 척추와 같은 높이면 요철이지 탑이 아니다. Kahn의 탑은 척추 위로 솟는다."
+        }
+      ],
+      "floor_height_m": 3.6
+    },
+    {
+      "name": "libeskind_rom_shards_of_one_block",
+      "primary_language": "carved_body",
+      "secondary_language": "one low block cracked into leaning crystals",
+      "formal_principle": "One block is cracked by leaning fissures that wander as they rise, so the shards change shape storey by storey and the building reads as crystals grown against each other.",
+      "dominant_gesture": "Prismatic shards separated by narrow slanting slots of light.",
+      "reference_basis": "Daniel Libeskind - Michael Lee-Chin Crystal, Royal Ontario Museum Toronto (2007): five self-supporting prismatic volumes interlocking against the existing museum, their junctions read as slanting fissures of glazing",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "하나의 블록. 결정은 쌓은 것이 아니라 한 덩어리가 갈라진 것이다."
+        },
+        {
+          "op": "fracture",
+          "n": 3,
+          "slot": 0.07,
+          "degrees": 28,
+          "turn": 16,
+          "why": "책의 Fracture(불규칙 사선 틈을 절삭) — 기운 틈이 오르며 이동해 파편의 평면이 층마다 달라진다. split은 조각을 수직으로 세우므로 이 말을 못 한다. tirpitz에 넣어 재봤더니 현행 split×2가 더 세게 말해(0.54/0.33/0.27 대 0.30) tirpitz는 그대로 두고, 균열이 곧 건물인 이 문장이 동사를 받는다. 판정 2조가 '파편은 1위로 읽히는데 틈이 수직으로 보인다'고 했다 — 22도에 7m 높이는 이동이 2.8m뿐. 블록을 0.8로 키우고 28도로 기울여 균열의 방황이 눈에 들어오게 한다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "herzog_vitrahaus_gabled_bars_stacked",
+      "primary_language": "porous_field",
+      "secondary_language": "the archetypal house, taken as a unit and piled",
+      "formal_principle": "집의 원형 단면 - 박공 바 - 를 단위로 삼아 서로 엇놓아 쌓고, 바와 바 사이가 통로와 마당으로 남는다.",
+      "dominant_gesture": "박공 지붕의 긴 집들이 서로 다른 방향으로 걸쳐 쌓인 무리.",
+      "reference_basis": "Herzog & de Meuron - VitraHaus, Weil am Rhein (2010): twelve archetypal gabled house-bars stacked five storeys, crossing at angles; here at 4.2 storeys as a low pile of three",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 9,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "spread": 1.15,
+          "height": 0.95,
+          "tie": 0.0,
+          "turn": 45,
+          "why": "집이라는 기본 볼륨 아홉 채를 세 레벨에 적층(BOOK 093). 레벨마다 방위가 90도 엇갈려 위 바가 아래 바들 위에 양단지지로 걸린다 - 캔틸레버가 아니라 스팬.",
+          "levels": 3
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "kr_ewha_ecc_valley_walls",
-   "primary_language": "open_figure",
-   "secondary_language": "three thin slabs standing along a valley that is the real room",
-   "formal_principle": "The void cut between the built walls is the building; everything built is only the two faces that valley needs.",
-   "dominant_gesture": "A wide slot running the length of the site with slabs standing along it, each thin enough that light crosses it.",
-   "reference_basis": "이화여자대학교 ECC (서울 서대문구, 2008, Dominique Perrault). 연면적 약 68,657㎡를 거의 전부 지하에 두고, 길이 약 250m의 '캠퍼스 밸리'가 대지를 갈라 그 양쪽에 유리벽 두 면이 마주 선다. 지붕은 잔디 경사로 남아 캠퍼스가 그 위를 걷는다. 건물이 서는 것이 아니라 땅이 갈라지는 것이 이 안의 조작이다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.45,
-     "profile": "trapezoidal",
-     "why": "ECC는 높이로 존재하지 않는다. 0.45는 이 필지 4.17층의 절반 남짓으로, 계곡 양쪽 벽이 사람 눈높이보다 조금 높은 정도에서 멈춘다는 뜻이다. trapezoidal은 계곡이 정문 쪽으로 벌어지며 넓어지는 실제 평면이고, 두 벽이 나란하지 않아야 걸어 들어가는 동안 폭이 변한다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "long",
-     "first": "west_wall",
-     "second": "east_wall",
-     "gap": 11,
-     "contrast": 1.45,
-     "why": "이 건물의 전부는 하나의 갈라짐이다. gap 11은 약 8.4m로, 양쪽 벽이 서로의 빛을 가리지 않으면서 한 사람이 아니라 한 무리가 걷는 폭이다. 0.62는 두 벽이 대칭이 아니라는 뜻이고 - 서쪽이 도서관, 동쪽이 강의실로 두께가 다르다 - contrast 1.45로 작은 쪽이 낮아야 계곡 안에서 하늘이 한쪽으로 열린다."
-    },
-    {
-     "op": "split",
-     "on": "west_wall",
-     "ratio": 0.58,
-     "along": "long",
-     "first": "library_wall",
-     "second": "hall_wall",
-     "gap": 5,
-     "contrast": 1.6,
-     "why": "서쪽 벽 하나는 여전히 너무 두껍다. 한 번 더 갈라 두 켜로 만들면 각 켜가 양면 채광 깊이 안으로 들어오고, 그 사이의 좁은 틈(gap 5, 약 3.8m)이 계곡과 평행한 두 번째 골목이 된다. 0.58은 도서관 켜가 강당 켜보다 넓다는 실제 면적 차이이고, contrast 1.6은 강당 쪽이 한 층 낮게 앉아 지붕 경사가 이어지게 한다."
-    }
-   ]
-  },
-  {
-   "name": "kr_acc_gwangju_ring_around_a_sunken_plaza",
-   "primary_language": "open_figure",
-   "secondary_language": "a low perimeter of wings with the great room dug out below the court",
-   "formal_principle": "The programme goes underground and what stands is only the edge that gives the sunken plaza a wall.",
-   "dominant_gesture": "A low ring whose east side is quarried away into a broad stair descending to the court.",
-   "reference_basis": "국립아시아문화전당 (광주 동구 옛 전남도청 부지, 2015년 개관, 우규승). 5개 원(민주평화교류원·문화정보원·문화창조원·예술극장·어린이문화원)을 대부분 지하에 넣고 지상은 공원과 낮은 매스로 남긴 것이 당선안의 전제였다. 가운데 아시아문화광장은 지하로 내려간 큰 마당이고, 지상에서는 그 마당으로 내려가는 계단과 낮은 채들만 보인다.",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.5,
-     "profile": "chamfered",
-     "why": "지상에 남는 것은 광장을 둘러싸는 낮은 채들뿐이다. bar 0.3은 약 14m로 바깥 공원과 안쪽 광장 양쪽에서 빛을 받는 한 켜이고, height 0.5는 이 필지 4.17층의 절반 - 도청 옛 건물보다 낮게 앉아야 광장이 주인공이 된다는 실제 조건이다. chamfered는 광장으로 내려가는 모서리들이 직각으로 서지 않고 잘려 있다는 뜻으로, 그래야 네 귀퉁이가 전부 진입로가 된다."
-    },
-    {
-     "op": "carve",
-     "size": 0.4,
-     "at": "long",
-     "reach": 1.0,
-     "why": "아시아문화광장은 파낸 마당이지 남은 마당이 아니다. size 0.4는 고리의 한 변을 통째로 관통하는 크기이고, reach 1.0으로 대지 경계까지 밀어야 도로에서 광장 바닥까지 계단이 끊기지 않고 내려간다. 이 파냄이 없으면 고리는 담이 되고 광장은 뒷마당이 된다. 이 court는 천창이 아니라 사람이 앉고 공연을 보는 실제 바닥이다."
-    },
-    {
-     "op": "rotate",
-     "on": "bar_n",
-     "about": "court",
-     "degrees": 14,
-     "why": "테두리가 가라앉은 광장을 향해 돌아앉는다. 자기 중심으로 돌면 비뚤어진 상자고, 광장 중심으로 돌아야 광장을 둘러싼 벽이 된다."
-    },
-    {
-     "op": "split",
-     "on": "bar_s",
-     "ratio": 0.66,
-     "along": "long",
-     "first": "children_wing",
-     "second": "theatre_wing",
-     "gap": 6,
-     "contrast": 1.5,
-     "why": "남쪽 채 하나에 어린이문화원과 예술극장이 같이 들어가지 않는다. 0.66은 어린이문화원이 더 넓다는 프로그램 차이이고, gap 6(약 4.6m)은 두 원 사이로 공원에서 광장으로 빠지는 두 번째 통로다. contrast 1.5로 극장 쪽이 낮게 앉아 무대탑이 광장 위로 솟지 않는다."
-    }
-   ]
-  },
-  {
-   "name": "kr_amorepacific_hollow_cube_and_gardens",
-   "primary_language": "carved_body",
-   "secondary_language": "a cube with its middle removed and one face opened for a hanging garden",
-   "formal_principle": "A compact block only stays a building if what is taken out of it is inhabited, so the hollow is a court and not a shaft.",
-   "dominant_gesture": "A square block set back once as it rises, hollow at the centre, with one whole side cut away into a garden.",
-   "reference_basis": "아모레퍼시픽 사옥 (서울 용산구 한강대로, 2017, David Chipperfield Architects). 한 변 약 110m의 정육면체에 가까운 몸, 지상 22층·지하 7층, 연면적 약 188,902㎡. 저층부는 시민에게 열린 아트리움이고, 5층·11층·17층에 걸쳐 세 개의 큰 루프가든 보이드를 덩어리에서 파냈다. 정육면체를 유지하면서 깊이 문제를 파냄으로 푼 사례다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.5,
-     "profile": "square",
-     "why": "이 건물의 전제는 정육면체 하나를 끝까지 유지한다는 것이고, 그래서 첫 동사는 자르지도 쌓지도 않는다. 0.5는 이 필지가 주는 높이의 절반 - 4.17층 중 두 개 층 남짓 - 으로, 여기서 높이를 아껴야 남은 면적을 평면으로 벌게 되고 그때 파냄이 유일한 조작으로 남는다. profile square는 한 변이 같은 정육면체라는 실제 형태 그대로다."
-    },
-    {
-     "op": "carve",
-     "size": 0.45,
-     "at": "long",
-     "reach": 0.0,
-     "why": "정육면체를 그대로 세우면 가운데는 어떤 창도 닿지 않는다. size 0.45의 가운데 파냄은 남는 켜를 약 13m로 만드는 크기 - 바깥 창과 아트리움 창 양쪽에서 빛이 만나는 깊이다. reach 0.0은 이 보이드가 한쪽으로 치우친 채광정이 아니라 정중앙의 아트리움이라는 뜻이고, 로비와 매장이 실제로 그 바닥에 있다."
-    },
-    {
-     "op": "carve",
-     "size": 0.42,
-     "at": "cross",
-     "reach": 1.0,
-     "why": "세 개의 루프가든은 아트리움과 다른 종류의 빈 곳이다. 덩어리의 한 면을 통째로 뜯어내 바깥으로 열린 정원을 만든다. size 0.42와 reach 1.0은 그 파냄이 고리의 한 변을 남김없이 관통한다는 뜻이고 - 얇은 조각을 남기면 그건 방이 아니라 난간이 된다 - 그래야 도시에서 건물 안이 보이고 정원에서 한강 쪽 하늘이 보인다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "back",
-     "reach": 1.0,
-     "why": "정원은 하나가 아니라 5층·11층·17층에 걸쳐 셋이고, 서로 다른 방향으로 열린다. 반대쪽 변을 더 작게(0.3) 뜯어내면 남은 고리가 ㄷ자가 되고, 그 순간 이 덩어리는 가운데만 빈 도넛이 아니라 두 방향으로 도시에 열린 몸이 된다. 앞의 정원보다 작은 것이 층이 올라갈수록 정원이 작아지는 실제 관계다."
-    }
-   ]
-  },
-  {
-   "name": "ito_sendai_plate_pierced_by_tubes",
-   "primary_language": "carved_body",
-   "secondary_language": "one wide plate kept occupiable by the shafts driven through it",
-   "formal_principle": "A plate this wide is only a floor because the tubes bring light, air and people into its middle.",
-   "dominant_gesture": "A single square plate with two large irregular shafts punched through it, off-centre and touching one edge.",
-   "reference_basis": "센다이 미디어테크 (일본 미야기현 센다이, 2001, 이토 도요). 50m × 50m 평면의 판 7장(지상 7층·지하 2층), 연면적 약 21,682㎡. 기둥이 아니라 13개의 강관 튜브가 판을 관통하며 구조·설비·수직동선·빛을 함께 나른다. 벽 없는 넓은 판을 성립시키는 것이 전적으로 이 튜브들이라는 점이 이 건물의 전부다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.85,
-     "profile": "square",
-     "why": "넓은 한 판."
-    },
-    {
-     "op": "puncture",
-     "n": 3,
-     "size": 0.15,
-     "why": "튜브다. carve는 한 변에서 안쪽으로 파고드는 것이라 벽감이 되고, 그중 하나는 reach 0.85로 아예 가장자리에 붙어 있었다. 코드 자신이 구분해둔 대로 안쪽에서 관통하는 건 puncture다. 크기 0.26은 중심 간격보다 커서 둘이 하나로 붙었다 — 튜브 '들'이 되려면 떨어져야 한다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "chipperfield_neues_museum_twin_courts",
-   "primary_language": "carved_body",
-   "secondary_language": "one block with two rooms-without-roofs quarried out of it side by side",
-   "formal_principle": "Two courts of different character, not one, so the block reads as a sequence of rooms rather than as a doughnut.",
-   "dominant_gesture": "A single block with two square voids punched through it, separated by a narrow spine of building.",
-   "reference_basis": "노이에스 무제움 (베를린 무제움스인젤, 1859 F.A.Stüler 원작, 2009 David Chipperfield + Julian Harrap 재건). 연면적 약 20,500㎡. 전쟁으로 무너진 몸을 남은 것 위에 다시 채우면서 이집트 안뜰(Egyptian Court)과 그리스 안뜰(Greek Court) 두 개의 중정을 되살렸고, 두 중정은 크기도 성격도 다르며 그 사이를 계단홀이 지난다. 하나의 덩어리가 두 개의 파냄으로 읽히는 것이 이 건물의 평면이다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.62,
-     "profile": "square",
-     "why": "무제움스인젤의 블록은 도시가 정한 하나의 덩어리이고 그 윤곽은 건축가가 고른 것이 아니다. 0.62는 이 필지 4.17층 중 두 개 반 층 - 층고가 높은 전시실 두 켜 - 에 해당하는 값으로, 높이로 부피를 벌지 않고 평면으로 번다는 뜻이다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "long",
-     "reach": 0.62,
-     "why": "그리스 안뜰. size 0.3은 이 덩어리에서 창까지 6m가 넘는 자리를 없애면서도 남는 켜가 전시실 폭을 유지하는 크기이고, reach 0.62는 중정이 정중앙이 아니라 한쪽으로 밀려 있다는 실제 평면이다. 정중앙에 하나만 파면 도넛이 되고, 이 건물은 도넛이 아니라 방들의 열이다."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "back",
-     "reach": 0.62,
-     "why": "이집트 안뜰. 같은 크기를 반대쪽 같은 거리에 파면 두 중정 사이에 약 6m 폭의 등뼈가 남는데, 그것이 실제로 두 안뜰을 잇는 계단홀이다. 하나를 크게 파는 대신 둘을 파는 이유가 여기 있다 - 파낸 자리가 두 개여야 그 사이에 지나가는 방이 생긴다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "kahn_kimbell_three_ranges_of_vaults",
-   "primary_language": "porous_field",
-   "secondary_language": "parallel bays of one depth, with open courts left where a bay is missing",
-   "formal_principle": "One repeated bay whose width is set by how far daylight reaches, and the courts are simply the bays left out.",
-   "dominant_gesture": "Three long low ranges lying parallel with open courts in the gaps between them.",
-   "reference_basis": "킴벨미술관 (미국 텍사스 포트워스, 1972, Louis Kahn). 폭 약 7m(23ft)·길이 약 30m(100ft)의 사이클로이드 볼트 16개가 세 열로 놓이고, 볼트 정점의 좁은 슬릿에서 들어온 빛이 알루미늄 반사판을 거쳐 전시실을 덮는다. 열과 열 사이에 뚫린 중정 세 곳이 전시 동선을 끊고 바깥 빛을 들인다. 반복되는 한 칸의 폭이 전시실의 폭이자 채광의 폭이라는 것이 이 건물의 원리다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.3,
-     "profile": "square",
-     "why": "킴벨은 사실상 한 층이다. 0.3은 이 필지 4.17층 중 층고 높은 한 층 남짓 - 볼트 아래 6m 가까운 실내고 - 에 해당한다. 이 문장은 높이가 아니라 반복으로 면적을 버는 문장이고, 그래서 처음부터 낮게 시작한다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.7,
-     "along": "cross",
-     "first": "north_ranges",
-     "second": "south_range",
-     "gap": 8,
-     "contrast": 1.35,
-     "why": "볼트는 한 덩어리로 놓이지 않고 열로 끊긴다. 0.7은 북쪽 두 열이 남쪽 한 열보다 넓다는 실제 배치이고, gap 8(약 6m)은 그 사이에 뚫린 중정의 폭이다 - 이 틈이 없으면 안쪽 열은 어느 면에서도 6m 안에 창이 없다. contrast 1.35로 남쪽 열이 낮아 진입 쪽 처마가 내려앉는다."
-    },
-    {
-     "op": "split",
-     "on": "north_ranges",
-     "ratio": 0.58,
-     "along": "cross",
-     "first": "vault_range_a",
-     "second": "vault_range_b",
-     "gap": 7,
-     "contrast": 1.4,
-     "why": "북쪽 덩어리는 아직 두 열이 붙어 있다. 한 번 더 끊으면 세 열이 되고 각 열의 깊이가 볼트 한 칸의 배수 안으로 들어온다. 0.58은 전시열이 보존·관리열보다 넓다는 프로그램 차이이고, gap 7(약 5.3m)은 두 번째 중정 - 화석 중정처럼 작고 통과만 하는 마당 - 의 폭이다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "hertzberger_central_beheer_islands",
-   "primary_language": "porous_field",
-   "secondary_language": "four unequal islands with lit streets running between them",
-   "formal_principle": "The office is not one floorplate but a settlement of small blocks, and the streets between them are what makes each block a room.",
-   "dominant_gesture": "Four blocks of different size crowding one plot, with two crossing slots of daylight between them.",
-   "reference_basis": "센트랄 베헤이르 (네덜란드 아펠도른, 1972, Herman Hertzberger). 약 9m × 9m 콘크리트 '섬' 수십 개를 격자로 모으고 그 사이에 위에서 빛이 드는 가로와 광장을 남긴 사무소로, 약 1,000명이 일했다. 한 덩어리 사무소를 거부하고 작은 단위의 집합으로 만든 것, 그리고 단위 사이의 빈틈을 사람이 점유하도록 남긴 것이 이 건물의 주장이다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.55,
-     "profile": "square",
-     "why": "섬 하나는 4개 층 정도로 낮고, 전체는 그 섬들이 가로로 번진 것이다. 0.55는 이 필지 4.17층의 절반을 조금 넘는 값으로, 이 문장이 높이가 아니라 평면의 번짐으로 면적을 번다는 뜻이다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.68,
-     "along": "long",
-     "first": "west_islands",
-     "second": "east_islands",
-     "gap": 6,
-     "contrast": 1.3,
-     "why": "첫 번째 가로. gap 6(약 4.6m)은 위에서 빛이 떨어지고 사람이 마주 서서 이야기하는 실내 골목의 폭이다. 0.68은 두 덩어리가 같지 않다는 뜻이고 - 이 건물의 단위는 반복되지만 군집은 대칭이 아니다 - contrast 1.3으로 동쪽이 한 층 낮게 앉는다."
-    },
-    {
-     "op": "split",
-     "on": "west_islands",
-     "ratio": 0.6,
-     "along": "cross",
-     "first": "island_block_a",
-     "second": "island_block_b",
-     "gap": 6,
-     "contrast": 1.45,
-     "why": "두 번째 가로를 앞의 것과 직교로 낸다. 격자 도시가 되려면 골목이 한 방향으로만 나 있으면 안 된다. 0.6은 북쪽 덩어리가 더 크다는 뜻이고 gap 6은 같은 골목 폭을 반복해 두 가로가 같은 종류의 공간으로 읽히게 한다."
-    },
-    {
-     "op": "split",
-     "on": "island_block_a",
-     "ratio": 0.58,
-     "along": "long",
-     "first": "island_a1",
-     "second": "island_a2",
-     "gap": 6,
-     "contrast": 1.5,
-     "why": "남은 가장 큰 덩어리는 아직 가운데에 창이 닿지 않는 자리가 있다. 한 번 더 끊어 네 개의 섬으로 만들면 어느 섬에서도 창까지가 한 켜 안이고, 그때 비로소 이 안은 '큰 판에 구멍을 낸 것'이 아니라 '작은 것들의 모임'이 된다. contrast 1.5로 넷의 높이가 전부 달라 위에서 보면 마을처럼 보인다."
-    },
-    {
-     "op": "rotate",
-     "on": "island_a1",
-     "about": "west_islands|east_islands",
-     "degrees": 15,
-     "why": "취락은 집들이 길에 대해 조금씩 다르게 앉아서 취락이다. 전부 평행하면 창고 단지다."
-    }
-   ],
-   "floor_height_m": 3.3
-  },
-  {
-   "name": "zumthor_kunsthaus_bregenz_cube_and_black_box",
-   "primary_language": "solid_body",
-   "secondary_language": "one compact gallery block, its base, and a separate lower bar standing off it",
-   "formal_principle": "A solid this compact earns its light by staying small in plan and putting everything it is not into a second building.",
-   "dominant_gesture": "A short thick block with a low base beside it and a long low bar standing apart across a gap.",
-   "reference_basis": "쿤스트하우스 브레겐츠 (오스트리아 브레겐츠, 1997, Peter Zumthor). 전시동은 한 변 약 26.5m·높이 약 27m의 거의 정육면체인 몸이고 지상 4개 전시층이다. 매표·서점·카페·사무는 전시동에 넣지 않고 별동의 낮고 검은 바로 떼어 두 채가 보덴제 호숫가에 마주 선다. 에칭 유리 비늘과 그 안쪽 벽 사이의 빈 층이 빛을 확산시켜 전시실로 들인다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.95,
-     "profile": "square",
-     "why": "브레겐츠는 이 목록에서 유일하게 높이가 성격인 건물이다. 26.5m 폭에 27m 높이 - 폭과 높이가 같다는 것이 이 몸의 전부이므로, 0.95로 이 필지가 허용하는 높이를 거의 다 쓴다. 다른 문장들이 낮게 번지는 자리에서 이 문장만 서 있어야 격자에 대비가 생긴다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.7,
-     "along": "long",
-     "first": "kub_side",
-     "second": "verwaltung_bar",
-     "gap": 8,
-     "contrast": 1.6,
-     "why": "전시동에 매표소와 카페를 넣지 않은 것이 이 건물의 첫 번째 결정이다. gap 8(약 6m)은 두 채 사이로 호숫바람과 사람이 지나는 폭이고, contrast 1.6은 관리동이 전시동보다 확실히 낮다는 실제 관계다. 0.7은 관리동이 전시동의 절반도 안 되는 폭이라는 뜻이고, 이보다 두꺼우면 그 채 자체가 가운데에 창이 닿지 않는 몸이 된다."
-    },
-    {
-     "op": "split",
-     "on": "kub_side",
-     "ratio": 0.6,
-     "along": "long",
-     "first": "gallery_side",
-     "second": "service_slot",
-     "gap": 6,
-     "contrast": 1.35,
-     "why": "전시동 쪽 덩어리는 아직 이 필지에서 너무 넓다 - 26.5m 정육면체를 이 대지에 그대로 놓으면 판 가운데가 어두워진다. 계단·화물·설비를 얇은 켜(0.42)로 떼어내면 전시 몸이 채광 깊이 안으로 들어온다. gap 5(약 3.8m)는 두 켜 사이의 실제 틈이고, 춤토어가 전시실에서 모든 부대시설을 밀어낸 것과 같은 조작이다."
-    },
-    {
-     "op": "split",
-     "on": "gallery_side",
-     "ratio": 0.62,
-     "along": "cross",
-     "first": "gallery_cube",
-     "second": "entry_base",
-     "gap": 4,
-     "contrast": 1.5,
-     "why": "마지막으로 긴 켜를 가로로 끊어 짧고 두꺼운 몸을 만든다. 이 조각이 정육면체 전시동이고, 남은 낮은 조각이 그 아래 진입층이다. 0.62는 전시층이 진입층보다 크다는 뜻, contrast 1.5는 진입층이 확실히 낮다는 뜻이며, gap 4(약 3m)는 두 몸이 붙지 않고 홈 하나를 사이에 둔다는 것 - 그 홈이 정육면체의 네 모서리를 살린다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "souto_moura_casa_das_historias_low_body",
-   "primary_language": "solid_body",
-   "secondary_language": "a low red body of two narrow halls with a wing beside it, one hall rising to a point",
-   "formal_principle": "A low body kept one room deep, with two narrow towers standing above it like chimneys.",
-   "dominant_gesture": "Two low parallel halls under one red mass, one of them tapering upward into a pyramid.",
-   "reference_basis": "카사 다스 이스토리아스 파울라 헤구 (포르투갈 카스카이스, 2009, Eduardo Souto de Moura). 붉은 안료를 섞은 노출콘크리트 단일체이고, 전시실은 낮게 깔린 몸에 있으며 그 위로 피라미드형 탑 두 개가 굴뚝처럼 솟는다. 전시 면적은 약 750㎡로 크지 않고 200석 강당이 함께 있다. 낮고 조용한 몸에 수직 사건 하나만 허용한 것이 이 건물의 절제다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.4,
-     "profile": "square",
-     "why": "이 건물은 낮다. 0.4는 이 필지 4.17층 중 층고 높은 전시실 한 층 반 정도로, 소나무 숲보다 높아지지 않겠다는 실제 결정에 해당한다. 높이를 여기서 아끼기 때문에 뒤의 taper가 유일한 수직 사건이 된다. 원래 문장은 '유일한 수직 사건은 없어지도록 좁아지는 지붕'이라 했다. 프리즘 언어는 피라미드를 말할 수 없고 계단 근사는 촘촘할수록 나빠진다. 그런데 원 건물의 실제 사건은 지붕면이 아니라 낮은 몸 위로 굴뚝처럼 솟는 피라미드 탑 두 개이고, 그 관계 — 낮은 몸 + 가늘고 높은 것 둘 — 는 split과 taper가 이미 짓는다. 매스가 하는 일로 고쳤다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "cross",
-     "first": "gallery_body",
-     "second": "auditorium_wing",
-     "gap": 6,
-     "contrast": 1.4,
-     "why": "전시실과 200석 강당은 한 몸이 아니다. 0.62는 전시 쪽이 넓다는 실제 면적 비이고, gap 6(약 4.6m)은 두 몸 사이의 안뜰 - 카스카이스에서 관람객이 두 프로그램 사이를 밖으로 걸어 옮기는 틈 - 이다. contrast 1.4로 강당이 낮게 앉아 전시 몸의 지붕선이 끊기지 않는다."
-    },
-    {
-     "op": "split",
-     "on": "gallery_body",
-     "ratio": 0.58,
-     "along": "cross",
-     "first": "north_gallery",
-     "second": "south_gallery",
-     "gap": 5,
-     "contrast": 1.5,
-     "why": "전시 몸 하나로는 폭이 너무 넓어 가운데가 어두워진다. 두 켜로 끊으면 각 켜가 한쪽 벽에서 반대쪽 벽까지 빛이 건너가는 폭이 되고, gap 5(약 3.8m)의 틈이 두 전시실 사이의 중정이 된다. 0.58은 상설 쪽이 기획 쪽보다 넓다는 뜻이다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.45,
-     "on": "north_gallery",
-     "why": "이 건물의 유일한 수직 사건은 피라미드형 탑이다. 0.45는 올라가면서 평면이 절반 가까이 좁아진다는 뜻으로, 낮은 몸 위에서 하나의 덩어리만 뾰족해져야 나머지가 조용해진다. 좁은 쪽이 아니라 넓은 상설 전시 켜에 걸어야 꼭대기까지 방의 폭이 남는다 - 좁은 켜를 이만큼 좁히면 위쪽 두세 켜가 방이 아니라 처마가 된다."
-    }
-   ]
-  },
-  {
-   "name": "kahn_richards_towers_off_a_spine",
-   "primary_language": "open_figure",
-   "secondary_language": "laboratory towers branching off a served spine",
-   "formal_principle": "One service spine runs the length of the site and the laboratories stand as their own towers branching off it, so served and servant spaces are told apart in the massing itself.",
-   "dominant_gesture": "A low continuous bar with tall square towers growing off alternating sides.",
-   "reference_basis": "Louis Kahn - Richards Medical Research Laboratories, Philadelphia (1957-65): studio towers attached to a service spine, served and servant spaces separated as distinct volumes, brick shafts against glazed studios",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.5,
-     "why": "척추. 설비와 동선이 사는 낮고 긴 몸이 먼저 있다. principle의 separate를 걷어냈다 — branch는 붙여 세우는 동사이고 Kahn의 탑도 척추에 붙어 있다. 훑기가 잡은 거짓 주장."
-    },
-    {
-     "op": "compress",
-     "toward": "cross",
-     "ratio": 0.6,
-     "why": "척추는 바(bar)여야 한다. compress는 0.6 바닥이 있어 한 번으로는 판이 남는다(0.34를 써도 0.6으로 잘림 — 실측 33m)."
-    },
-    {
-     "op": "compress",
-     "toward": "cross",
-     "ratio": 0.6,
-     "why": "그래서 두 번 조인다. 책의 combination 층이 같은 동사의 반복을 정식으로 둔다(Expand+Expand 단계형 확장) — 0.36이면 20m 척추가 된다."
-    },
-    {
-     "op": "branch",
-     "n": 3,
-     "reach": 0.7,
-     "height": 2.0,
-     "why": "실험탑들이 척추에서 가지쳐 나온다 — 책의 Branch 그대로. 팔은 줄기의 단위공간에 쓰여 어느 필지에서든 줄기에 붙어 나온다. reach 0.7은 실측으로 정했다: 0.9는 팔끝이 대지 모서리를 스쳐 잘린다. height 1.0→2.0. 판정 2조가 '탑이 없고 화살표 판'이라 했다 — 팔이 척추와 같은 높이면 요철이지 탑이 아니다. Kahn의 탑은 척추 위로 솟는다."
-    }
-   ],
-   "floor_height_m": 3.6
-  },
-  {
-   "name": "libeskind_rom_shards_of_one_block",
-   "primary_language": "carved_body",
-   "secondary_language": "one low block cracked into leaning crystals",
-   "formal_principle": "One block is cracked by leaning fissures that wander as they rise, so the shards change shape storey by storey and the building reads as crystals grown against each other.",
-   "dominant_gesture": "Prismatic shards separated by narrow slanting slots of light.",
-   "reference_basis": "Daniel Libeskind - Michael Lee-Chin Crystal, Royal Ontario Museum Toronto (2007): five self-supporting prismatic volumes interlocking against the existing museum, their junctions read as slanting fissures of glazing",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.8,
-     "why": "하나의 블록. 결정은 쌓은 것이 아니라 한 덩어리가 갈라진 것이다."
-    },
-    {
-     "op": "fracture",
-     "n": 3,
-     "slot": 0.07,
-     "degrees": 28,
-     "turn": 16,
-     "why": "책의 Fracture(불규칙 사선 틈을 절삭) — 기운 틈이 오르며 이동해 파편의 평면이 층마다 달라진다. split은 조각을 수직으로 세우므로 이 말을 못 한다. tirpitz에 넣어 재봤더니 현행 split×2가 더 세게 말해(0.54/0.33/0.27 대 0.30) tirpitz는 그대로 두고, 균열이 곧 건물인 이 문장이 동사를 받는다. 판정 2조가 '파편은 1위로 읽히는데 틈이 수직으로 보인다'고 했다 — 22도에 7m 높이는 이동이 2.8m뿐. 블록을 0.8로 키우고 28도로 기울여 균열의 방황이 눈에 들어오게 한다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "herzog_vitrahaus_gabled_bars_stacked",
-   "primary_language": "porous_field",
-   "secondary_language": "the archetypal house, taken as a unit and piled",
-   "formal_principle": "집의 원형 단면 - 박공 바 - 를 단위로 삼아 서로 엇놓아 쌓고, 바와 바 사이가 통로와 마당으로 남는다.",
-   "dominant_gesture": "박공 지붕의 긴 집들이 서로 다른 방향으로 걸쳐 쌓인 무리.",
-   "reference_basis": "Herzog & de Meuron - VitraHaus, Weil am Rhein (2010): twelve archetypal gabled house-bars stacked five storeys, crossing at angles; here at 4.2 storeys as a low pile of three",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 3,
-     "spread": 1.3,
-     "height": 0.6,
-     "tie": 0.0,
-     "turn": 24,
-     "why": "집-바 셋이 서로 다른 방위로 놓인다. tie 0 - 이들을 묶는 건 판이 아니라 겹침이다."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.65,
-     "why": "박공 - 두 세션 동안 '표현 불가'로 박제됐던 단어. top_drop이 IR에 들어와 쐐기 둘이 용마루에서 만나는 진짜 경사면 두 장이 됐다. 계단 근사(5단 0.29, 24단 0.09로 악화)를 측정으로 되돌렸던 그 자리의 회복이다."
-    }
-   ]
-  }
- ]
+  ]
 }

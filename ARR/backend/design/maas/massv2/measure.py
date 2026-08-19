@@ -210,6 +210,7 @@ def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMe
         if drop > 0.0 and (
             volume.drop_toward is not None
             or getattr(volume, "ridge_along", None) is not None
+            or getattr(volume, "top_profile", None) is not None
         ):
             # A tilted band is a continuous section event, and grouped by its
             # flat footprint it measured as none at all: the first sloped roof

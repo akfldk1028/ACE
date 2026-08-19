@@ -85,6 +85,15 @@ class Placement:
     # its own centre - pulled the ridge apart into a slot. A section is a
     # base shape, not an assembly; one volume survives every transform whole.
     ridge_along: tuple[float, float] | None = None
+    # The general section: the top face as a piecewise-linear height profile
+    # across one axis - ((station, height), ...) along `profile_across` (world
+    # unit vector), stations and heights in [0, 1]. Shed and ridge are its two
+    # special cases and stay as written; this says the rest of the family a
+    # single axis can say - asymmetric gables, mansards, butterflies. When
+    # set, `top_drop` still carries 1 - min(height) so every "is this tilted"
+    # gate keeps reading the same field.
+    top_profile: tuple[tuple[float, float], ...] | None = None
+    profile_across: tuple[float, float] | None = None
     # Is this volume a room, or is it what holds a room up. A column is meant
     # to be thin and a storey is not, so every rule about how wide or how deep
     # a plate must be has to know which of the two it is looking at. The

@@ -310,7 +310,8 @@ def compile_matrix_form(
         item for item in form.additive()
         if float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
         and (item.drop_toward is not None
-             or getattr(item, "ridge_along", None) is not None)
+             or getattr(item, "ridge_along", None) is not None
+             or getattr(item, "top_profile", None) is not None)
     ]
     flat_form = replace(
         form,
@@ -340,7 +341,8 @@ def compile_matrix_form(
             )
         emitted = bool(parts)
 
-        def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward, ridge=None) -> bool:
+        def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward,
+                          ridge=None, profile=None, across=None) -> bool:
             plan = _plan_between(item, lo, hi)
             if allowed_at is not None:
                 allowed = allowed_at((lo + hi) / 2.0)
@@ -372,6 +374,8 @@ def compile_matrix_form(
                     top_drop=drop,
                     drop_toward=toward,
                     ridge_along=ridge,
+                    top_profile=profile,
+                    profile_across=across,
                 ))
             return made
 
@@ -401,9 +405,20 @@ def compile_matrix_form(
             if low - 1e-6 <= roof_lo < high - 1e-6 or (
                 roof_lo <= z0 + 1e-9 and low - 1e-6 <= z0 < high - 1e-6
             ):
+                # A profile's heights are shares of the whole volume; the roof
+                # band is only its top `share`, so the profile is re-read in
+                # the band's own terms - the eaves at 0, the crest at 1.
+                profile = getattr(item, "top_profile", None)
+                if profile is not None and share > 1e-9:
+                    profile = tuple(
+                        (u, min(1.0, max(0.0, (h - (1.0 - share)) / share)))
+                        for u, h in profile
+                    )
                 emitted |= _tilted_piece(
                     item, roof_lo, z1, drop=1.0, toward=item.drop_toward,
                     ridge=getattr(item, "ridge_along", None),
+                    profile=profile,
+                    across=getattr(item, "profile_across", None),
                 )
         if not emitted:
             dropped_bands += 1

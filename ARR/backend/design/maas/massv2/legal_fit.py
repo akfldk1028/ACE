@@ -181,6 +181,12 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
     )
     scaled = replace(placement, matrix=validate_matrix4(matrix))
     ridge = getattr(placement, "ridge_along", None)
+    if ridge is None:
+        # A profiled top holds its section the same way a ridge does: the
+        # preserved axis is the fold line, perpendicular to the profile's run.
+        across = getattr(placement, "profile_across", None)
+        if across is not None:
+            ridge = (-across[1], across[0])
     if ridge is None or abs(factor - 1.0) < 1e-6 or factor <= 1e-9:
         return scaled
     corners = scaled.corners()

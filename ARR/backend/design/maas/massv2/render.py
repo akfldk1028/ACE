@@ -18,7 +18,7 @@ from typing import Any, Iterable, Sequence
 
 from PIL import Image, ImageDraw, ImageFont
 
-from design.maas.source_geometry.ir import SourceMass
+from design.maas.source_geometry.ir import SourceMass, profile_height
 
 
 _YAW = math.radians(-35.0)
@@ -98,36 +98,64 @@ def _top_at(x: float, y: float, high: float, slope) -> float:
 
     if slope is None:
         return high
-    if len(slope) == 6:
+    if slope[0] == "R":
         # A ridge: full height on the line, both eaves at full drop.
         _tag, drop_m, px, py, centre, half = slope
         t = abs(x * px + y * py - centre) / max(half, 1e-9)
         return high - drop_m * min(1.0, t)
+    if slope[0] == "P":
+        # A profile: the top is the piecewise-linear height at this station.
+        _tag, band_m, ux, uy, lo_p, hi_p, points = slope
+        span = max(hi_p - lo_p, 1e-9)
+        u = min(1.0, max(0.0, (x * ux + y * uy - lo_p) / span))
+        return high - band_m * (1.0 - profile_height(points, u))
     drop_m, ux, uy, lo_p, hi_p = slope
     span = max(hi_p - lo_p, 1e-9)
     t = (x * ux + y * uy - lo_p) / span
     return high - drop_m * min(1.0, max(0.0, t))
 
 
-def _ridge_points(ring, slope):
-    """The ring with a vertex wherever the ridge line crosses an edge.
+def _break_lines(slope):
+    """The plan lines where the top face folds: (px, py, offset) per fold.
 
-    The gable's end face has its peak ON the ridge; without a vertex there the
-    wall quad tops out at the eaves and the pentagon renders as a trapezoid.
+    For a ridge that is the one ridge line; for a profile, every interior
+    breakpoint station. A vertex is needed on each so the end wall carries
+    its peak (or its valley) - without one, the pentagon renders as a
+    trapezoid, which was the second life of the half-wedge bug.
     """
 
-    _tag, _drop, px, py, centre, _half = slope
-    out = []
-    n = len(ring)
-    for i in range(n):
-        x0, y0 = ring[i]
-        x1, y1 = ring[(i + 1) % n]
-        out.append((x0, y0))
-        v0 = x0 * px + y0 * py - centre
-        v1 = x1 * px + y1 * py - centre
-        if (v0 < -1e-9 and v1 > 1e-9) or (v1 < -1e-9 and v0 > 1e-9):
-            t = v0 / (v0 - v1)
-            out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+    if slope is None:
+        return []
+    if slope[0] == "R":
+        _tag, _drop, px, py, centre, _half = slope
+        return [(px, py, centre)]
+    if slope[0] == "P":
+        _tag, _band, ux, uy, lo_p, hi_p, points = slope
+        span = hi_p - lo_p
+        return [
+            (ux, uy, lo_p + u * span)
+            for u, _h in points
+            if 1e-6 < u < 1.0 - 1e-6
+        ]
+    return []
+
+
+def _ridge_points(ring, slope):
+    """The ring with a vertex wherever a fold line crosses an edge."""
+
+    out = list(ring)
+    for px, py, centre in _break_lines(slope):
+        ring_in, out = out, []
+        n = len(ring_in)
+        for i in range(n):
+            x0, y0 = ring_in[i]
+            x1, y1 = ring_in[(i + 1) % n]
+            out.append((x0, y0))
+            v0 = x0 * px + y0 * py - centre
+            v1 = x1 * px + y1 * py - centre
+            if (v0 < -1e-9 and v1 > 1e-9) or (v1 < -1e-9 and v0 > 1e-9):
+                t = v0 / (v0 - v1)
+                out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
     return out
 
 
@@ -168,6 +196,14 @@ def _slope_of(volume, low: float, high: float):
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
     if drop <= 0.0:
         return None
+    points = getattr(volume, "top_profile", None)
+    across = getattr(volume, "profile_across", None)
+    if points is not None and across is not None:
+        ux, uy = across
+        norm = math.hypot(ux, uy) or 1.0
+        ux, uy = ux / norm, uy / norm
+        values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
+        return ("P", high - low, ux, uy, min(values), max(values), tuple(points))
     ridge = getattr(volume, "ridge_along", None)
     if ridge is not None:
         rx, ry = ridge
@@ -196,24 +232,35 @@ def _faces(polygon, low: float, high: float, slope=None):
     outer = [(float(x), float(y)) for x, y in polygon.exterior.coords[:-1]]
     if len(outer) < 3:
         return
-    ridged = slope is not None and len(slope) == 6
-    if ridged:
-        # A vertex on the ridge, or the end face loses its peak.
+    folds = _break_lines(slope)
+    if folds:
+        # A vertex on every fold, or the end face loses its peak.
         outer = _ridge_points(outer, slope)
     yield from _walls(outer, low, high, slope)
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
-            if ridged:
+            if folds:
                 court = _ridge_points(court, slope)
             yield from _walls(court, low, high, slope)
     # The roof is the ring minus its holes. Painting the hole in the background
     # colour is the cheapest correct answer for a filled polygon renderer.
-    if ridged:
+    if folds and slope[0] == "R":
         # Two planes, drawn as two polygons so the ridge is a drawn line.
         _tag, _drop, px, py, centre, _half = slope
         for side in (1.0, -1.0):
             part = _clip_halfplane(outer, px, py, centre, side)
+            if part:
+                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _ROOF
+    elif folds:
+        # One plane per profile segment: the ring clipped to the slab between
+        # neighbouring fold lines, so every crease is a drawn line.
+        _tag, _band, ux, uy, lo_p, hi_p, points = slope
+        span = hi_p - lo_p
+        stations = [lo_p - 1.0] + [c for _px, _py, c in folds] + [hi_p + 1.0]
+        for lo_c, hi_c in zip(stations, stations[1:]):
+            part = _clip_halfplane(outer, ux, uy, lo_c, 1.0)
+            part = _clip_halfplane(part, ux, uy, hi_c, -1.0) if part else None
             if part:
                 yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _ROOF
     else:

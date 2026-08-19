@@ -110,12 +110,63 @@ def _sliced_by_tilt(volume, z: float, height: float):
 
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
     ridge = getattr(volume, "ridge_along", None)
-    if drop <= 0.0 or (volume.drop_toward is None and ridge is None):
+    points = getattr(volume, "top_profile", None)
+    across = getattr(volume, "profile_across", None)
+    if drop <= 0.0 or (
+        volume.drop_toward is None and ridge is None and points is None
+    ):
         return volume.footprint
     low = volume.bottom_fraction * height
     high = volume.top_fraction * height
     band = max(high - low, 1e-9)
     drop_m = drop * band
+    if points is not None and across is not None:
+        # A profile keeps the stations whose top is still above the sample:
+        # the u-intervals where h(u) >= (z - low) / band, cut as slabs along
+        # the profile's own axis. A gable keeps one interval, a butterfly two.
+        rel = (z - low) / band
+        if rel <= min(h for _u, h in points):
+            return volume.footprint
+        ux, uy = across
+        norm = (ux * ux + uy * uy) ** 0.5 or 1.0
+        ux, uy = ux / norm, uy / norm
+        values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
+        lo_p, hi_p = min(values), max(values)
+        span = max(hi_p - lo_p, 1e-9)
+        # Walk the segments collecting where h crosses rel.
+        kept: list[tuple[float, float]] = []
+        start = points[0][0] if points[0][1] >= rel else None
+        for (u0, h0), (u1, h1) in zip(points, points[1:]):
+            if (h0 >= rel) != (h1 >= rel):
+                t = (rel - h0) / ((h1 - h0) or 1e-9)
+                u_cross = u0 + (u1 - u0) * t
+                if start is None:
+                    start = u_cross
+                else:
+                    kept.append((start, u_cross))
+                    start = None
+        if start is not None:
+            kept.append((start, points[-1][0]))
+        px, py = -uy, ux
+        perp = [x * px + y * py for x, y in volume.footprint.exterior.coords]
+        mid_perp = (min(perp) + max(perp)) / 2.0
+        reach = (max(perp) - min(perp)) + 1.0
+        parts = []
+        for u0, u1 in kept:
+            c0 = lo_p + max(0.0, u0) * span
+            c1 = lo_p + min(1.0, u1) * span
+            if c1 - c0 <= 1e-9:
+                continue
+            slab = Polygon([
+                (ux * c0 + px * (mid_perp - reach), uy * c0 + py * (mid_perp - reach)),
+                (ux * c1 + px * (mid_perp - reach), uy * c1 + py * (mid_perp - reach)),
+                (ux * c1 + px * (mid_perp + reach), uy * c1 + py * (mid_perp + reach)),
+                (ux * c0 + px * (mid_perp + reach), uy * c0 + py * (mid_perp + reach)),
+            ])
+            cut = volume.footprint.intersection(slab)
+            if not cut.is_empty:
+                parts.append(cut)
+        return unary_union(parts) if parts else None
     if z <= high - drop_m:
         return volume.footprint
     if ridge is not None:

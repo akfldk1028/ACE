@@ -55,6 +55,16 @@ class SourceVolume:
     # the ridge line through the plan centroid) instead of `drop_toward`, the
     # top drops on both sides of that line - two planes meeting at a ridge.
     ridge_along: tuple[float, float] | None = None
+    # The general section: the top face as a piecewise-linear height profile
+    # across one axis. `top_profile` is ((station, height), ...) with stations
+    # ascending in [0, 1] measured along `profile_across` (world unit vector)
+    # over the footprint's own extent, heights in [0, 1] of the band - 1 is
+    # the band's top, 0 its bottom. A shed is two points, a gable three, a
+    # mansard four, a butterfly a valley; `drop_toward` and `ridge_along` are
+    # this profile's two oldest special cases and stay as written. Off-axis
+    # shapes - hips, vaults - are still outside this primitive.
+    top_profile: tuple[tuple[float, float], ...] | None = None
+    profile_across: tuple[float, float] | None = None
 
     def signature(self) -> dict[str, Any]:
         data = {
@@ -70,7 +80,23 @@ class SourceVolume:
         if self.top_drop > 0.0 and self.drop_toward is not None:
             data["top_drop"] = round(self.top_drop, 3)
             data["drop_toward"] = (round(self.drop_toward[0], 4), round(self.drop_toward[1], 4))
+        if self.top_profile is not None:
+            data["top_profile"] = [
+                (round(u, 4), round(h, 4)) for u, h in self.top_profile
+            ]
         return data
+
+
+def profile_height(points: tuple[tuple[float, float], ...], u: float) -> float:
+    """The profile's height at a station, linearly interpolated and clamped."""
+
+    if u <= points[0][0]:
+        return points[0][1]
+    for (u0, h0), (u1, h1) in zip(points, points[1:]):
+        if u <= u1:
+            span = max(u1 - u0, 1e-9)
+            return h0 + (h1 - h0) * (u - u0) / span
+    return points[-1][1]
 
 
 @dataclass(frozen=True)

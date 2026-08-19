@@ -79,7 +79,11 @@ def merge(frame, op) -> None:
     eaves = []
     for body in bodies:
         drop = float(body.top_drop or 0.0)
-        if drop > 0.0 and (body.ridge_along is not None or body.drop_toward is not None):
+        if drop > 0.0 and (
+            body.ridge_along is not None
+            or body.drop_toward is not None
+            or getattr(body, "top_profile", None) is not None
+        ):
             low, high = body.z_span()
             eaves.append(high - (high - low) * drop)
     cap = min(eaves) if eaves else max(zs)
@@ -108,9 +112,18 @@ def merge(frame, op) -> None:
         )
         drop = float(body.top_drop or 0.0)
         kept_share = 1.0 - window
+        profile = getattr(body, "top_profile", None)
+        if profile is not None and kept_share > 1e-9:
+            # Profile heights are shares of the whole body; the kept piece is
+            # only its top, so the heights are re-read in the piece's terms.
+            profile = tuple(
+                (u, min(1.0, max(0.0, (h - window) / kept_share)))
+                for u, h in profile
+            )
         above.append(replace(
             piece, plan=body.plan,
             top_drop=min(1.0, drop / kept_share) if drop > 0.0 else 0.0,
+            top_profile=profile,
             occupiable=body.occupiable and (high - low) * kept_share >= frame.storey - 1e-6,
         ))
 

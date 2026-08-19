@@ -533,10 +533,35 @@ def gable(frame, op) -> None:
     # many strips, each a whole primitive with its own ridge, so the row
     # survives every later transform the way one ridge does.
     bays = int(_clamp(float(op.params.get("bays", 1)), 1, 6))
+    # Where the ridge sits across the body. 0.5 is the symmetric gable and
+    # stays on the ridge primitive; anywhere else is a saltbox - same pitch
+    # both sides, the longer side reaching lower - said as a top profile.
+    at = _clamp(float(op.params.get("at", 0.5)), 0.15, 0.85)
     picked, rest = frame.pick(op)
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})
+
+    def _pitched(volume, across_w: float, body: float, ridge_x: bool) -> list:
+        if abs(at - 0.5) < 1e-6:
+            share = _clamp((across_w / 2.0) * pitch / body, 0.15, 0.95)
+            return gabled_halves(frame, volume, share, ridge_x=ridge_x)
+        origin = transform_point3(volume.matrix, (0.0, 0.0, 0.0))
+        tip = transform_point3(
+            volume.matrix, (0.0, 1.0, 0.0) if ridge_x else (1.0, 0.0, 0.0)
+        )
+        ax, ay = tip[0] - origin[0], tip[1] - origin[1]
+        norm = (ax * ax + ay * ay) ** 0.5 or 1.0
+        left = _clamp(pitch * at * across_w / body, 0.0, 0.95)
+        right = _clamp(pitch * (1.0 - at) * across_w / body, 0.0, 0.95)
+        return [replace(
+            volume,
+            top_drop=max(left, right),
+            drop_toward=None,
+            ridge_along=None,
+            top_profile=((0.0, 1.0 - left), (at, 1.0), (1.0, 1.0 - right)),
+            profile_across=(ax / norm, ay / norm),
+        )]
 
     made: list[Placement] = []
     for item in picked:
@@ -555,9 +580,8 @@ def gable(frame, op) -> None:
         # A slice of a circle is not a smaller circle, so only the square
         # plan family splits into bays; anything else keeps its one ridge.
         rows = bays if bays > 1 and item.plan == "square" else 1
-        share = _clamp((across / (2.0 * rows)) * pitch / body, 0.15, 0.95)
         if rows == 1:
-            made.extend(gabled_halves(frame, item, share, ridge_x=ridge_x))
+            made.extend(_pitched(item, across, body, ridge_x))
             continue
         axis = 1 if ridge_x else 0
         size = [1.0, 1.0, 1.0]
@@ -574,7 +598,7 @@ def gable(frame, op) -> None:
                     item.matrix,
                 )),
             )
-            made.extend(gabled_halves(frame, strip, share, ridge_x=ridge_x))
+            made.extend(_pitched(strip, across / rows, body, ridge_x))
     frame.placements = rest + made
 
 

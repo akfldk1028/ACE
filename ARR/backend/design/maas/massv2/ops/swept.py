@@ -514,20 +514,67 @@ def gable(frame, op) -> None:
 
     The ridge runs along the volume's own long axis unless `along: "cross"`.
     Legal counting stays on the full prisms - stricter, as everywhere.
+
+    `pitch` is a slope - rise per unit of run, 1.0 is 45 degrees - not a share
+    of the volume's height. As a height share it drew a 45-degree roof on a
+    six-metre house bar and a five-degree tilt on a twenty-metre slab from the
+    same word: the fused-gables sentence spoke 박공 and delivered a plane. The
+    house unit already converts its geometry to a height share before calling
+    `gabled_halves` ((d/2)/h); this verb now does the same per volume, capped
+    at what the body can hold. And "long" means the volume's actually longer
+    world axis, read off its matrix - as a fixed unit axis, a bar built
+    deep-in-y wore its ridge across its own body.
     """
 
-    pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 0.9)
+    pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 1.2)
+    # A wide body wearing ONE ridge is a nearly flat tent; the roof a wide
+    # body actually wears is a row of ridges - M-roofs, sawtooth gables,
+    # terraced housing. `bays` splits the body across the ridge into that
+    # many strips, each a whole primitive with its own ridge, so the row
+    # survives every later transform the way one ridge does.
+    bays = int(_clamp(float(op.params.get("bays", 1)), 1, 6))
     picked, rest = frame.pick(op)
     if not picked:
         return
-    ridge_x = _along_is_x({"along": op.params.get("along", "long")})
+    long_named = _along_is_x({"along": op.params.get("along", "long")})
 
     made: list[Placement] = []
     for item in picked:
         if item.kind != "additive":
             made.append(item)
             continue
-        made.extend(gabled_halves(frame, item, pitch, ridge_x=ridge_x))
+        origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
+        tip_x = transform_point3(item.matrix, (1.0, 0.0, 0.0))
+        tip_y = transform_point3(item.matrix, (0.0, 1.0, 0.0))
+        span_x = ((tip_x[0] - origin[0]) ** 2 + (tip_x[1] - origin[1]) ** 2) ** 0.5
+        span_y = ((tip_y[0] - origin[0]) ** 2 + (tip_y[1] - origin[1]) ** 2) ** 0.5
+        ridge_x = (span_x >= span_y) if long_named else (span_x < span_y)
+        across = span_y if ridge_x else span_x
+        low, high = item.z_span()
+        body = max(high - low, 1e-6)
+        # A slice of a circle is not a smaller circle, so only the square
+        # plan family splits into bays; anything else keeps its one ridge.
+        rows = bays if bays > 1 and item.plan == "square" else 1
+        share = _clamp((across / (2.0 * rows)) * pitch / body, 0.15, 0.95)
+        if rows == 1:
+            made.extend(gabled_halves(frame, item, share, ridge_x=ridge_x))
+            continue
+        axis = 1 if ridge_x else 0
+        size = [1.0, 1.0, 1.0]
+        size[axis] = 1.0 / rows
+        for k in range(rows):
+            low_corner = [0.0, 0.0, 0.0]
+            low_corner[axis] = k / rows
+            strip = replace(
+                item,
+                role=f"{item.role}_bay{k}",
+                matrix=validate_matrix4(compose_matrix4(
+                    scale_matrix4(tuple(size)),
+                    translation_matrix4(tuple(low_corner)),
+                    item.matrix,
+                )),
+            )
+            made.extend(gabled_halves(frame, strip, share, ridge_x=ridge_x))
     frame.placements = rest + made
 
 

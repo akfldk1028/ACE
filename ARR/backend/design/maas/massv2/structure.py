@@ -200,10 +200,27 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
     worst_ratio = 0.0
     worst_reach = 0.0
     worst_slenderness = 0.0
-    for index in range(1, len(bands)):
+    for index in range(len(bands)):
         low, high, plan = bands[index]
-        support = bands[index - 1][2]
-        if plan.is_empty or support.is_empty:
+        if low <= 1e-6 or plan.is_empty:
+            # Grounded bands answer to the earth, not to a neighbour.
+            continue
+        # Support is what this band actually touches from below: every band
+        # that ends at its bottom, and every band that runs past it - a taller
+        # volume alongside is solid through this level where the plans meet.
+        # "The previous band in the sorted list" held one object's roof against
+        # another object's heel the moment a field's members differed in
+        # height, and a village of saltboxes was refused as unsupported by a
+        # sliver it never stood on.
+        parts = [
+            other for low2, high2, other in bands
+            if (abs(high2 - low) <= 2e-3 or (low2 < low - 1e-6 and high2 > low + 1e-6))
+            and other is not plan
+        ]
+        if not parts:
+            return float("inf"), 0.0, worst_slenderness
+        support = parts[0] if len(parts) == 1 else unary_union(parts)
+        if support.is_empty:
             continue
         overhang = plan.difference(support.buffer(_CONTACT_TOLERANCE_M))
         for piece in _polygons(overhang):

@@ -34,7 +34,13 @@ from design.maas.massv2.sampler import read_facts, sample_sentences
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
 from design.maas.massv2.seeds import seed_forms
-from design.maas.massv2.siting import open_side_direction, spread_across_siting
+from design.maas.massv2.siting import (
+    OPEN_SIDE_SITINGS,
+    SITINGS,
+    open_side_direction,
+    place_on_site,
+    spread_across_siting,
+)
 from design.maas.massv2.variations import spread_across_coverage
 
 
@@ -360,6 +366,7 @@ class Command(BaseCommand):
                     allowed_at=site.plan_at,
                     storey_height_m=storey,
                 )
+                spoken_sitings: list[str] = []
                 if not spoken.honest:
                     # Silent because the word does nothing, or silent because
                     # the law removed what it did? Measured over this corpus,
@@ -368,20 +375,49 @@ class Command(BaseCommand):
                     # envelope - 0.001 becomes 0.063, 0.000 becomes 0.081. The
                     # author redrew the building they wrote and the envelope
                     # then took that part away, so the sentence is not wrong,
-                    # it is wrong *here*. The refusal stands either way, because
-                    # the delivered mass really is the same drawing - but a
-                    # corpus meant to travel between sites should be able to
-                    # tell the two apart.
+                    # it is wrong *here*.
                     unclipped = postcondition.check_sentence(
                         parti, buildable=buildable, axis=axis,
                         height_m=authored_height, allowed_at=None,
                         storey_height_m=storey,
                     )
-                    if unclipped.honest:
-                        clipped.append((parti.name, spoken, unclipped))
-                    else:
+                    if not unclipped.honest:
                         mute.append((parti.name, spoken))
-                    continue
+                        continue
+                    # Wrong HERE is a property of the placement, not of the
+                    # sentence: the check above tried one position, and the
+                    # envelope's bite moves when the composition does. This
+                    # refusal was excluding fourteen sentences wholesale -
+                    # the whole twist family among them - whose words all
+                    # speak somewhere else on the same parcel. The
+                    # constrained-archive literature (FI-MAP-Elites) keeps
+                    # the infeasible and searches its neighbourhood; ours is
+                    # finite - the four sitings - so each is asked directly,
+                    # and the sentence lives only at the placements where
+                    # every word speaks.
+                    open_side = open_side_direction(buildable, site.shared_edges)
+                    sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
+                    best = None
+                    for siting in sitings:
+                        placed = postcondition.check_sentence(
+                            parti, buildable=buildable, axis=axis,
+                            height_m=authored_height, allowed_at=site.plan_at,
+                            storey_height_m=storey,
+                            place=lambda f, s=siting: place_on_site(
+                                f, buildable, s, open_side=open_side
+                            ),
+                        )
+                        if placed.honest:
+                            spoken_sitings.append(siting.siting_id)
+                            said_now = list(placed.changed[1:]) or list(placed.changed)
+                            if best is None or (sum(said_now) > sum(
+                                list(best.changed[1:]) or list(best.changed)
+                            )):
+                                best = placed
+                    if best is None:
+                        clipped.append((parti.name, spoken, unclipped))
+                        continue
+                    spoken = best
                 # A sentence about what happens between volumes has to leave
                 # something between them. The blind critique round tagged
                 # `gaps-not-present` sixteen times and the two alternatives that
@@ -451,6 +487,11 @@ class Command(BaseCommand):
                                 "spoken_force": sum(said) / max(len(said), 1),
                                 "ablation_force": torn.force,
                                 "ablation": torn.evidence(),
+                                # A rescued sentence speaks only at these
+                                # placements; variants anywhere else are the
+                                # dishonest drawing the check refused.
+                                **({"spoken_sitings": tuple(spoken_sitings)}
+                                   if spoken_sitings else {}),
                             },
                         }
                     )
@@ -549,6 +590,23 @@ class Command(BaseCommand):
             ]
             forms.extend(placed)
             self.stdout.write(f"siting variants: {len(placed)}")
+
+        # A rescued sentence (words silenced by the envelope at some
+        # placements) competes only where every word speaks: variants at
+        # other sitings - and the unplaced original, whose default position
+        # is the one the check refused - are the same drawing the silence
+        # gate already rejected.
+        before = len(forms)
+        forms = [
+            form for form in forms
+            if not form.extra.get("spoken_sitings")
+            or form.extra.get("siting") in form.extra["spoken_sitings"]
+        ]
+        if len(forms) != before:
+            self.stdout.write(
+                f"rescued sentences held to their spoken sitings: "
+                f"{before - len(forms)} dishonest placements dropped"
+            )
 
         records = []
         renderable = []

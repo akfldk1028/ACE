@@ -352,13 +352,33 @@ def _share_samples(
     return samples
 
 
-def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_height_m=None) -> Verdict:
-    """Run the sentence one word at a time and find the words that did nothing."""
+def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None,
+                   storey_height_m=None, place=None) -> Verdict:
+    """Run the sentence one word at a time and find the words that did nothing.
+
+    `place` moves each step's form before it is compiled - the same siting
+    transform the spread uses. It exists because honesty against the envelope
+    is a property of (sentence x placement), not of the sentence: fourteen
+    sentences whose words all spoke unclipped were being refused wholesale
+    because the envelope ate the word at the one placement this check tried,
+    and the whole twist family went out with them. The constrained-archive
+    literature keeps the infeasible and searches its neighbourhood
+    (FI-MAP-Elites); here the neighbourhood is finite and known - the four
+    sitings - so the caller asks each one directly.
+    """
 
     steps = execute_steps(
         parti, buildable=buildable, axis=axis, height_m=height_m,
         storey_height_m=storey_height_m or 0.0,
     )
+    if place is not None:
+        placed = [(op, place(form)) for op, form in steps]
+        if any(form is None for _op, form in placed):
+            # The composition does not fit at this placement at all, so no
+            # word can be judged there.
+            declared = tuple(op.verb for op in parti.ops)
+            return Verdict(declared, declared, ())
+        steps = placed
     declared = tuple(op.verb for op in parti.ops)
     if not steps:
         return Verdict(declared, declared, ())
@@ -394,7 +414,10 @@ def check_sentence(parti, *, buildable, axis, height_m, allowed_at=None, storey_
                 buildable=buildable, axis=axis, height_m=height_m,
                 storey_height_m=storey_height_m or 0.0,
             )
-            null = compiled(null_steps[-1][1]) if null_steps else None
+            null_form = null_steps[-1][1] if null_steps else None
+            if null_form is not None and place is not None:
+                null_form = place(null_form)
+            null = compiled(null_form) if null_form is not None else None
             shares.append(changed_share(null, current, region))
             reached.append(reached_share(null, current, region))
         else:

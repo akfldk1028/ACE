@@ -219,6 +219,105 @@ def plan(run: str) -> int:
     return 0
 
 
+# A pairwise judge can name the better card but never refuse both, so a cell
+# whose two candidates are both bad ships the less bad one wearing the fault
+# tags that say so. The repechage reads those tags off the standing winners -
+# the tags were the one signal the blind round validated - and stages one more
+# duel for each tagged cell against the strongest family the sheet has not
+# heard from. The veto the pair judge cannot say, the next candidate says.
+FATAL = {"sentence-contradicted", "sentence-invisible", "no-figure",
+         "reads-as-one-lump", "pieces-look-random"}
+
+
+def repechage(run: str) -> int:
+    folder = ROOT / "runs" / run
+    out = ROOT / "runs" / f"{run}-arb"
+    duels = json.loads((out / "duels.json").read_text(encoding="utf-8"))["duels"]
+    manifest = json.loads((out / "vlm-manifest.json").read_text(encoding="utf-8"))
+    cards = {c["id"]: c for c in manifest["cards"]}
+    verdicts = []
+    for f in sorted(out.glob("vlm-verdict-*.json")):
+        verdicts += json.loads(f.read_text(encoding="utf-8"))["verdicts"]
+    won = {(v["a"], v["b"]): v for v in verdicts}
+    summary = json.loads((folder / "massv2-summary.json").read_text(encoding="utf-8"))
+    recs = [r for r in summary["records"] if "plausibility" in r]
+
+    corpus = {}
+    for p in sorted((ROOT / "inputs").glob("gen-*.json")):
+        for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
+            corpus[s["name"]] = s
+    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    buildable = site.plan_at(0.0)
+    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    height = site.floor_height_m * max(
+        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
+    )
+    ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]
+
+    # Every family the arbitrated sheet holds or has already auditioned.
+    heard = set()
+    for d in duels:
+        heard.add(scheme_of(d["winner"]))
+        if d.get("challenger"):
+            heard.add(scheme_of(d["challenger"]))
+
+    index = max((int(c["id"].split("-")[1]) for c in manifest["cards"]), default=0)
+    pairs = []
+    staged = 0
+    for d in [x for x in duels if x.get("pair") and x.get("kind", "family") == "family"]:
+        v = won.get(tuple(d["pair"]))
+        if v is None:
+            continue
+        win_id = v["winner"]
+        faults = set(v["a_faults" if win_id == v["a"] else "b_faults"])
+        if not (faults & FATAL):
+            continue
+        holder = cards[win_id]["scheme"]
+        cell = next((r["cell"] for r in recs if r["name"] == holder), None)
+        rivals = [
+            r for r in recs
+            if r["cell"] == cell and scheme_of(r["name"]) not in heard
+            and r["plausibility"]["occupiable"] and r["far_utilization"] >= 0.375
+        ]
+        if not rivals:
+            continue
+        rival = max(rivals, key=lambda r: r.get("spoken_force") or 0.0)
+        heard.add(scheme_of(rival["name"]))
+        src = rebuild(rival["name"], corpus, site, buildable, axis, height)
+        if src is None:
+            continue
+        index += 1
+        cid = f"alt-{index:02d}"
+        rec = corpus[scheme_of(rival["name"])]
+        png = out / f"{cid}.png"
+        render_masses(
+            [(rival["name"], src, {"thesis": rec.get("formal_principle", "")})],
+            png, site_ring=ring, columns=1, tile=(900, 760),
+        )
+        manifest["cards"].append({
+            "id": cid, "png": str(png.resolve()), "scheme": rival["name"],
+            "principle": rec.get("formal_principle", ""),
+        })
+        duels.append({"cell": d["cell"], "winner": holder, "challenger": rival["name"],
+                      "kind": "repechage", "pair": [win_id, cid],
+                      "challenger_record": {
+                          "far_utilization": rival["far_utilization"],
+                          "gfa_m2": rival.get("gfa_m2"),
+                          "ground_area_m2": (rival.get("legal_fit") or {}).get("ground_area_m2"),
+                      }})
+        pairs.append([win_id, cid])
+        staged += 1
+    (out / "vlm-manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out / "duels.json").write_text(
+        json.dumps({"duels": duels}, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out / "vlm-pairs-repechage.json").write_text(
+        json.dumps({"run": f"{run}-arb", "pairs": pairs}, ensure_ascii=False, indent=2),
+        encoding="utf-8")
+    print(f"{staged} repechage duels -> vlm-pairs-repechage.json")
+    return 0
+
+
 def apply(run: str) -> int:
     folder = ROOT / "runs" / run
     out = ROOT / "runs" / f"{run}-arb"
@@ -244,7 +343,7 @@ def apply(run: str) -> int:
         # Family first (who holds the cell), then variant (which drawing of
         # the holder shows). A variant duel staged for the original winner is
         # moot once its family lost the cell.
-        for kind in ("family", "variant"):
+        for kind in ("family", "variant", "repechage"):
             duel = next(
                 (d for d in duels
                  if d["winner"] == a["name"] and d.get("pair")
@@ -282,4 +381,4 @@ def apply(run: str) -> int:
 
 if __name__ == "__main__":
     mode, run = sys.argv[1], sys.argv[2]
-    sys.exit(plan(run) if mode == "plan" else apply(run))
+    sys.exit({"plan": plan, "repechage": repechage}.get(mode, apply)(run))

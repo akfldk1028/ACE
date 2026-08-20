@@ -12,6 +12,7 @@ produces masses worth looking at.
 
 from __future__ import annotations
 
+import bisect
 import collections
 import json
 from pathlib import Path
@@ -344,6 +345,7 @@ class Command(BaseCommand):
             clipped = []
             idle = []
             closed = []
+            pending_force = []
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
             )
@@ -463,10 +465,20 @@ class Command(BaseCommand):
                     # selector is back to optimising noise. Benched over the
                     # 103-sentence corpus the blend leaves the top of the table
                     # standing and lifts the roof sentences out of the floor.
-                    pairs = list(zip(spoken.changed, spoken.reached))
-                    said = [
+                    # Each word's raw hit is the geometric mean of its
+                    # whole-mass and within-reach shares; its VALUE to the
+                    # selector is that hit ranked among its own verb's hits
+                    # across this run's corpus (computed after the loop, when
+                    # the populations exist). An absolute force made the loud
+                    # verbs a caste: loop's median is 0.77 and skew's 0.02,
+                    # so a sentence was rewarded for which words it chose
+                    # before anything was drawn. Local competition is the
+                    # quality-diversity answer (NSLC; Dominated Novelty
+                    # Search, GECCO 2025): compete against behavioural
+                    # neighbours - here, the same verb - not the whole field.
+                    word_blends = [
                         (whole * reach) ** 0.5
-                        for whole, reach in (pairs[1:] or pairs)
+                        for whole, reach in zip(spoken.changed, spoken.reached)
                     ]
                     # And what each word is worth to the mass that gets drawn,
                     # which is a different question - the growth loop and the
@@ -484,7 +496,6 @@ class Command(BaseCommand):
                             **built.__dict__,
                             "extra": {
                                 **dict(built.extra),
-                                "spoken_force": sum(said) / max(len(said), 1),
                                 "ablation_force": torn.force,
                                 "ablation": torn.evidence(),
                                 # A rescued sentence speaks only at these
@@ -494,6 +505,9 @@ class Command(BaseCommand):
                                    if spoken_sitings else {}),
                             },
                         }
+                    )
+                    pending_force.append(
+                        (len(written), tuple(spoken.declared), tuple(word_blends))
                     )
                     if schedule is not None:
                         built = programme.resized_to(
@@ -511,6 +525,48 @@ class Command(BaseCommand):
                             }
                         )
                     written.append(built)
+            # Second pass: each word's blend becomes its percentile among its
+            # own verb's blends in this run's corpus, shrunk toward the global
+            # percentile when the verb has few instances - a mansard alone
+            # must not score a perfect redraw for being the only mansard.
+            # Populations come from this run on this parcel on purpose:
+            # quiet is a property of (word x site), so the competition is
+            # local in both senses.
+            verb_pop: dict[str, list[float]] = {}
+            all_pop: list[float] = []
+            for _idx, verbs, blends_ in pending_force:
+                for verb, value in zip(verbs, blends_):
+                    verb_pop.setdefault(verb, []).append(value)
+                    all_pop.append(value)
+            for values in verb_pop.values():
+                values.sort()
+            all_pop.sort()
+
+            def _pct(pop: list[float], x: float) -> float:
+                return bisect.bisect_right(pop, x) / len(pop) if pop else 0.0
+
+            _SHRINK = 4.0
+            for idx, verbs, blends_ in pending_force:
+                pairs = list(zip(verbs, blends_))
+                said = pairs[1:] or pairs
+                scores = []
+                for verb, value in said:
+                    pop = verb_pop[verb]
+                    local = _pct(pop, value)
+                    scores.append(
+                        (len(pop) * local + _SHRINK * _pct(all_pop, value))
+                        / (len(pop) + _SHRINK)
+                    )
+                form = written[idx]
+                written[idx] = form.__class__(
+                    **{
+                        **form.__dict__,
+                        "extra": {
+                            **dict(form.extra),
+                            "spoken_force": sum(scores) / max(len(scores), 1),
+                        },
+                    }
+                )
             forms.extend(written)
             self.stdout.write(
                 f"parti sentences: {len(written)} spoken, {len(mute)} with a silent word"

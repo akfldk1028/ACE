@@ -19,7 +19,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from design.maas.design_space import delivered_ground_take_band
+from design.maas.design_space import delivered_ground_take_band, delivered_stature_band
 from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
@@ -741,8 +741,15 @@ class Command(BaseCommand):
                     f"|{measurement.void_band_id}"
                 )
             else:
-                ground_band = delivered_ground_take_band(take).band_id
-                cell = f"{ground_band}|{measurement.void_band_id}"
+                # Stature crossed with void, since the flatness measurement:
+                # ground-take crossed with void left height a leftover, and a
+                # sheet that owes no cell a tall building ships a flat sheet
+                # (16 m average against a 48 m legal section). Ground take is
+                # still measured and reported; it is the free variable now.
+                stature = delivered_stature_band(
+                    measurement.height_m, storey_height_m=form_storey
+                ).band_id
+                cell = f"{stature}|{measurement.void_band_id}"
             cells[cell] += 1
             if not fit.satisfied:
                 unlawful += 1

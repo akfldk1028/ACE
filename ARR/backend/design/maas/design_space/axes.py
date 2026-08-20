@@ -265,3 +265,94 @@ def delivered_void_band(ratio: float) -> VoidBand:
         if measured <= band.void_ceiling + 1e-9:
             return band
     return ordered[-1]
+
+
+# ---------------------------------------------------------------------------
+# Stature: how tall a proposal stands, as a choice rather than a leftover.
+#
+# The grid crossed ground-take with void and left height to fall where it
+# fell, and it fell flat: measured on PNU 4115011300106840001, the finished
+# sheet averaged 16 m on a parcel whose legal section allows 48, while the
+# tallest variant of almost every delivered family lived in no cell at all -
+# height changes the ground-take class, so the low bands collected the low
+# variants and nothing ever demanded a tall one. An architect chooses a
+# stature the way they choose a ground-take; the axis has to exist for the
+# sheet to owe it diversity. Ground-take stays measured and reported - it
+# becomes the free variable height used to be.
+#
+# The boundaries are storey counts, not metres fitted to a run: three
+# storeys is the house and the walk-up, six is the street wall and the
+# lift threshold, ten is where a body stops belonging to the street. The
+# same building must land in the same band on every parcel.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class StatureBand:
+    """One position on the stature axis."""
+
+    band_id: str
+    label: str
+    intent: str
+    storey_ceiling: float
+
+    def evidence(self) -> dict[str, object]:
+        return {
+            "band_id": self.band_id,
+            "label": self.label,
+            "intent": self.intent,
+            "storey_ceiling": self.storey_ceiling,
+        }
+
+
+STATURE_BANDS: tuple[StatureBand, ...] = (
+    StatureBand(
+        "seated_figure",
+        "Seated figure",
+        "house-scaled; the roofline keeps the street's low datum",
+        3.0,
+    ),
+    StatureBand(
+        "standing_body",
+        "Standing body",
+        "a street wall; rooms stack but the building still faces, not looms",
+        6.0,
+    ),
+    StatureBand(
+        "risen_body",
+        "Risen body",
+        "clear of its neighbours; the upper floors read the skyline, not the street",
+        10.0,
+    ),
+    StatureBand(
+        "towering_figure",
+        "Towering figure",
+        "a vertical figure; the parcel is a base and the section is the argument",
+        float("inf"),
+    ),
+)
+
+_STATURE_BAND_BY_ID = {band.band_id: band for band in STATURE_BANDS}
+
+
+def stature_band_ids() -> tuple[str, ...]:
+    return tuple(band.band_id for band in STATURE_BANDS)
+
+
+def delivered_stature_band(height_m: float, *, storey_height_m: float) -> StatureBand:
+    """Which stature a *delivered* mass actually holds.
+
+    Read from the measured height in the mass's own storey module, so it says
+    what was built. A count lands in the lowest band that can contain it.
+    """
+
+    try:
+        storeys = float(height_m) / max(float(storey_height_m), 1e-6)
+    except (TypeError, ValueError):
+        storeys = 0.0
+    if not isfinite(storeys) or storeys < 0.0:
+        storeys = 0.0
+    for band in STATURE_BANDS:
+        if storeys <= band.storey_ceiling + 1e-9:
+            return band
+    return STATURE_BANDS[-1]

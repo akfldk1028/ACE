@@ -40,22 +40,29 @@ from .structure import Standing, assess_standing
 
 AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
 
-# How much of a plate must survive being eroded by the project's own minimum
-# room depth before it stops being a storey somebody occupies.
+# The erosion radius under which a plate stops being a storey somebody
+# occupies: half the narrowest habitable plate, which is one room's clear
+# depth plus its two walls.
 #
-# `floor_viability` erodes by half that depth, which asks whether one room fits
-# and is the right question when the subject is a room. A storey is not one
-# room: whatever is on it has to be reached, and the way up is a room too. So
-# the same number is spent twice rather than halved, and the plate has to be
-# wide enough to hold a room with something else beside it.
+# The first value here was the room depth spent whole - erode by 2.4, so the
+# plate had to be 4.8 m wide, "a room with the way to it beside it". That is a
+# corridor typology, not physics, and the built canon refutes it the same way
+# it refuted the four-body count: Moriyama House's freestanding units are about
+# three metres wide and each IS one room - the way up is inside the room or
+# outside the building. Measured on the Uijeongbu sheet the 4.8 m reading
+# killed not the authored SANAA sentences (they pass, 0.67-1.00) but their
+# low-coverage retargets - inujima lost 15 of 22 variants and every occupiable
+# one - for bars a real Moriyama unit would clear.
 #
-# This is the `lift` clearance lesson a second time. Every other magnitude in
-# this grammar is a ratio because the building's own proportions set it; these
-# are metres because a person sets them, and a person is the same size on every
-# site. The measured consequence of not having it: on 강남 역삼 the parcel's own
-# slenderness limit comes out at 16.25, so 4.2 m x 65 m sticks were lawful,
-# stood up, were fully daylit, held a 2.4 m room - and went out as alternatives.
-MINIMUM_STOREY_WIDTH_M = DEFAULT_MINIMUM_CLEAR_DEPTH_M
+# So the floor is the pinned 2.4 m clear room depth ([[splinters]] - do not
+# touch that number) plus 0.6 m of wall, halved for the erosion: a 3.0 m plate
+# holds a room and stands in the canon; below it is a wall, not a building.
+# Metres rather than a ratio because a person sets this and a person is the
+# same size on every site. The 4.2 m Gangnam sticks this constant was first
+# aimed at now pass the width test - whether a stick belongs on a sheet is the
+# selector's judgement, not a physics gate's, the same boundary the body-count
+# recalibration drew.
+MINIMUM_STOREY_WIDTH_M = (DEFAULT_MINIMUM_CLEAR_DEPTH_M + 0.6) / 2.0
 
 # How far daylight reaches into a storey, as a multiple of its own height.
 # Reinhart's rule of thumb puts the daylit zone at two to two and a half times

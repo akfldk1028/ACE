@@ -958,6 +958,14 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
         # and VitraHaus itself is twelve houses on five levels, not five on
         # five. Units spread over levels, the spare ones landing low.
         levels = int(_clamp(float(op.params.get("levels", (count + 1) // 2)), 1, count))
+        # How far a unit slides along its own long axis, as a share of its
+        # length, alternating ends level by level - the flying bar ends that
+        # make VitraHaus VitraHaus. Zero by default: the pile's conservative
+        # habit (centres over centres) stays unless the sentence asks its ends
+        # to fly, and whether a flight stands is the cantilever gate's
+        # question - the gate was recalibrated on this very building (1.45 of
+        # backspan) and no word could ask for what it allows.
+        reach = _clamp(float(op.params.get("reach", 0.0)), 0.0, 0.6)
         base_n, extra = divmod(count, levels)
         counts = [base_n + (1 if lvl < extra else 0) for lvl in range(levels)]
         z = 0.0
@@ -978,6 +986,13 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
                 row = (j - (in_level - 1) / 2.0) * d * 1.35
                 drift_x = 0.10 * frame.width * rise * (1 if lvl % 2 else -1)
                 drift_y = row + 0.06 * frame.depth * rise * (1 if (lvl // 2) % 2 else -1)
+                # The slide is along the unit's own turned axis, ground level
+                # held still - a flight needs something under its heel.
+                if reach > 0.0 and lvl > 0:
+                    slide = reach * w * (1 if index % 2 else -1)
+                    rad = math.radians(turn)
+                    drift_x += slide * math.cos(rad)
+                    drift_y += slide * math.sin(rad)
                 box = frame.box(
                     f"object_{index}",
                     w=w, d=d, z=z, h=h,

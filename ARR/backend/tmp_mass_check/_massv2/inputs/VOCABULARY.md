@@ -28,6 +28,7 @@
 - `aggregate` {n 2-12, spread≥1, height, tie 0-0.4, turn(도), method, storeys}
   - `method: "pack"`(기본, 그리드 정착) | `"stack"`(**적층** — 단위들이 서로 위에 엇놓임, 층마다 turn 부호 교대)
   - method stack일 때 `storeys`(1-5, 기본 2) = 단위 한 채의 층수. 총높이의 적법은 법규 클립이 심판.
+  - `reach`(0-0.6, 기본 0) = **바 끝이 자기 축으로 교대로 미끄러져 더미 밖으로 낢** (VitraHaus의 나는 끝). 지상층은 고정. 서는지는 캔틸레버 게이트(backspan 1.6)가 심판 — 실측: 0.28은 델리버리까지 통과, 0.35는 성장 후 1.61로 기각.
   - `unit: "slab"`(기본) | `"house"`(**기본 볼륨** BOOK 030 — 단면이 집: 깊이가 자기 높이에서 유도되고 45° 박공이 태생부터 붙는다. gable 단어 불필요. VitraHaus = `method:stack unit:house` 한 단어)
 
 ## 관계동사 (신규 — 한 몸이 다른 몸에게 하는 일, 호스트 단위공간)

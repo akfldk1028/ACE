@@ -138,11 +138,45 @@ def plan(run: str) -> int:
             continue
         rival = max(rivals, key=lambda r: r.get("spoken_force") or 0.0)
         used.add(scheme_of(rival["name"]))
-        duels.append({"cell": a["cell"], "winner": a["name"], "challenger": rival["name"],
+        duels.append({"cell": a["cell"], "winner": a["name"], "challenger": rival["name"], "kind": "family",
                       "challenger_record": {
                           "far_utilization": rival["far_utilization"],
                           "gfa_m2": rival.get("gfa_m2"),
-                          "footprint_area_m2": (rival.get("measurement") or {}).get("footprint_area_m2"),
+                          "ground_area_m2": (rival.get("legal_fit") or {}).get("ground_area_m2"),
+                      }})
+
+    # The second duel: the chosen variant against its own family's tallest
+    # same-cell variant. Measured on uij-dns, five of fifteen cell winners
+    # were crushed variants of their family - seattle shipped 15 m out of a
+    # family reaching 47 - because all variants of a sentence share one
+    # spoken_force and the tie is broken by the same proxies the blind round
+    # failed. Which variant of a family shows is a judgement of eyes too.
+    for a in alts:
+        cell = None
+        chosen = None
+        for r in recs:
+            if r["name"] == a["name"]:
+                cell = r["cell"]; chosen = r; break
+        if chosen is None:
+            continue
+        family = scheme_of(a["name"])
+        kin = [
+            r for r in recs
+            if r["cell"] == cell and scheme_of(r["name"]) == family
+            and r["name"] != a["name"]
+            and r["plausibility"]["occupiable"] and r["far_utilization"] >= 0.375
+        ]
+        if not kin:
+            continue
+        tall = max(kin, key=lambda r: (r.get("measurement") or {}).get("height_m") or 0.0)
+        if ((tall.get("measurement") or {}).get("height_m") or 0.0) <            ((chosen.get("measurement") or {}).get("height_m") or 0.0) + 2.0:
+            continue
+        duels.append({"cell": a["cell"], "winner": a["name"], "challenger": tall["name"],
+                      "kind": "variant",
+                      "challenger_record": {
+                          "far_utilization": tall["far_utilization"],
+                          "gfa_m2": tall.get("gfa_m2"),
+                          "ground_area_m2": (tall.get("legal_fit") or {}).get("ground_area_m2"),
                       }})
 
     index = 0
@@ -207,29 +241,37 @@ def apply(run: str) -> int:
 
     swaps = 0
     for a in alts["alternatives"]:
-        duel = next((d for d in duels if d["winner"] == a["name"] and d.get("pair")), None)
-        if duel is None:
-            # keep, but point the tile at the arbitration render if we have it
-            continue
-        v = won.get(tuple(duel["pair"]))
-        if v is None:
-            continue
-        w_id, c_id = duel["pair"]
-        keep = v["winner"] == w_id
-        chosen = w_id if keep else c_id
-        card = cards[chosen]
-        if not keep:
-            swaps += 1
-            rec = duel.get("challenger_record") or {}
-            a["name"] = card["scheme"]
-            a["thesis"] = corpus[scheme_of(card["scheme"])].get("formal_principle", "")
-            if rec.get("far_utilization") is not None:
-                a["용적률"] = f"{rec['far_utilization']*far_ratio*100:.0f}%"
-            if rec.get("footprint_area_m2"):
-                a["건폐율"] = f"{rec['footprint_area_m2']/parcel*100:.0f}%"
-        a["png"] = f"{chosen}.png"
-        a["arbitrated"] = True
-        a["arb_why"] = v.get("why", "")
+        # Family first (who holds the cell), then variant (which drawing of
+        # the holder shows). A variant duel staged for the original winner is
+        # moot once its family lost the cell.
+        for kind in ("family", "variant"):
+            duel = next(
+                (d for d in duels
+                 if d["winner"] == a["name"] and d.get("pair")
+                 and d.get("kind", "family") == kind),
+                None,
+            )
+            if duel is None:
+                continue
+            v = won.get(tuple(duel["pair"]))
+            if v is None:
+                continue
+            w_id, c_id = duel["pair"]
+            keep = v["winner"] == w_id
+            chosen = w_id if keep else c_id
+            card = cards[chosen]
+            if not keep:
+                swaps += 1
+                rec = duel.get("challenger_record") or {}
+                a["name"] = card["scheme"]
+                a["thesis"] = corpus[scheme_of(card["scheme"])].get("formal_principle", "")
+                if rec.get("far_utilization") is not None:
+                    a["용적률"] = f"{rec['far_utilization']*far_ratio*100:.0f}%"
+                if rec.get("ground_area_m2"):
+                    a["건폐율"] = f"{rec['ground_area_m2']/parcel*100:.0f}%"
+            a["png"] = f"{chosen}.png"
+            a["arbitrated"] = True
+            a["arb_why"] = v.get("why", "")
     (out / "alts.json").write_text(
         json.dumps(alts, ensure_ascii=False, indent=2), encoding="utf-8")
     # carry the summary over so the sheet builder finds it

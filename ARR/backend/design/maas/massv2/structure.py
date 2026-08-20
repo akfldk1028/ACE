@@ -243,12 +243,18 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
 
 
 def _span_to_depth(piece: Polygon, contacts: list[Polygon], depth_m: float) -> float:
-    """How far a two-ended member reaches for the depth it is given.
+    """How far a member reaches BETWEEN supports, for the depth it is given.
 
-    Measured between the two largest things holding it up, along the line that
-    joins them - which is the direction the span is actually in, whatever
-    orientation the bar was drawn at. A band with no thickness cannot span at
-    all, so it returns an infinite slenderness rather than dividing by zero.
+    Along the line joining the two largest things holding it up - which is the
+    direction the span is actually in, whatever orientation the bar was drawn
+    at. The span is the largest CLEAR opening between neighbouring supports,
+    not the member's whole length: measured end to end, a canopy resting on
+    ten houses read as one forty-metre span and Nishinoyama's tie - lanes of
+    three to six metres between dwellings - was refused as a transfer fantasy
+    it never was. A continuous plate over many supports is many short spans;
+    a plate that really has only two supports forty metres apart still reads
+    forty. A band with no thickness cannot span at all, so it returns an
+    infinite slenderness rather than dividing by zero.
     """
 
     largest = sorted(contacts, key=lambda item: float(item.area), reverse=True)[:2]
@@ -257,10 +263,25 @@ def _span_to_depth(piece: Polygon, contacts: list[Polygon], depth_m: float) -> f
     length = hypot(dx, dy)
     if length <= 1e-9:
         return 0.0
-    span = _extent_along(piece, (dx / length, dy / length))
+    direction = (dx / length, dy / length)
     if depth_m <= 1e-6:
         return float("inf")
-    return span / depth_m
+    # Every support as an interval along the span line, then the widest gap
+    # between neighbouring intervals is the clear span.
+    intervals = []
+    for contact in contacts:
+        values = [
+            x * direction[0] + y * direction[1]
+            for x, y in contact.exterior.coords
+        ]
+        intervals.append((min(values), max(values)))
+    intervals.sort()
+    span = 0.0
+    reach = intervals[0][1]
+    for lo, hi in intervals[1:]:
+        span = max(span, lo - reach)
+        reach = max(reach, hi)
+    return max(span, 0.0) / depth_m
 
 
 def centre_of_mass(source: SourceMass, *, height_m: float) -> tuple[float, float, float]:

@@ -349,10 +349,24 @@ class Command(BaseCommand):
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
             )
+            # The parcel's average storeys, handed to every sentence, was a
+            # silent flatness budget: a tower, a portal, a twist could never
+            # even ask for height - the law admits sixteen sections somewhere
+            # on this parcel and the executor was capping every figure at
+            # four. A sentence that says storeys gets the height it asked
+            # for; whether that height is lawful stays the clip's question.
+            base_budget = authored_height
+            def _height_budget(record) -> float:
+                asked = max(
+                    (float(op.get("storeys") or 0) for op in record.get("ops", [])),
+                    default=0.0,
+                )
+                return max(base_budget, asked * site.floor_height_m)
             for record in sentences:
                 parti = parti_from_record(record)
                 if parti is None:
                     continue
+                authored_height = _height_budget(record)
                 # The sentence's own storey. A gallery is not a shop and the
                 # corpus can finally say so - every gate below judges the
                 # sentence at the floor height it was written for.

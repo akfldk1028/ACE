@@ -1,194 +1,195 @@
 {
- "schemes": [
-  {
-   "name": "mountain_dwellings_parking_is_the_slope",
-   "primary_language": "carved_body",
-   "secondary_language": "주차장이 곧 산비탈이고 그 위가 테라스인 것",
-   "formal_principle": "주차 램프의 경사가 건물 전체의 단면이 되고, 주거는 그 사면 위의 테라스가 된다.",
-   "dominant_gesture": "한 방향으로 통째로 기운 사면.",
-   "reference_basis": "BIG - Mountain Dwellings Copenhagen 2008. 주차 3층이 경사 기단이 되고 80세대가 그 위에 계단식으로 앉음",
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
+      "name": "mountain_dwellings_parking_is_the_slope",
+      "primary_language": "carved_body",
+      "secondary_language": "주차장이 곧 산비탈이고 그 위가 테라스인 것",
+      "formal_principle": "주차 램프의 경사가 건물 전체의 단면이 되고, 주거는 그 사면 위의 테라스가 된다.",
+      "dominant_gesture": "한 방향으로 통째로 기운 사면.",
+      "reference_basis": "BIG - Mountain Dwellings Copenhagen 2008. 주차 3층이 경사 기단이 되고 80세대가 그 위에 계단식으로 앉음",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "slope",
+          "second": "court",
+          "gap": 6.0,
+          "contrast": 1.6,
+          "why": "사면과 그 앞 마당. gap 6은 4.6 m로 둘 사이가 실제로 벌어진다"
+        },
+        {
+          "op": "grade",
+          "toward": "cross",
+          "on": "slope",
+          "why": "주차 램프의 경사가 단면이 되고 주거는 그 사면 위 테라스이므로, 기울인 상자가 아니라 층마다 물러서는 계단형 윤곽이어야 한다. 책의 Grade(단차화하다) - 단계적으로 깎아 계단형 윤곽 생성.",
+          "run": 0.7
+        }
+      ],
+      "floor_height_m": 2.9
     },
     {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "cross",
-     "first": "slope",
-     "second": "court",
-     "gap": 6.0,
-     "contrast": 1.6,
-     "why": "사면과 그 앞 마당. gap 6은 4.6 m로 둘 사이가 실제로 벌어진다"
+      "name": "sluishuis_one_corner_lifted_over_water",
+      "primary_language": "open_figure",
+      "secondary_language": "한 모서리가 물 위로 크게 들린 중정 블록",
+      "formal_principle": "둘레 블록의 한 모서리만 크게 들어올려 마당이 물과 이어지게 한다.",
+      "dominant_gesture": "들린 모서리 아래로 지나가는 지면.",
+      "reference_basis": "BIG - Sluishuis Amsterdam 2022. 46,000 m2, 442세대, 중정 안에 마리나, IJ 위로 약 24 m 캔틸레버",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.32,
+          "height": 0.85,
+          "why": "마리나를 감싸는 둘레"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.4,
+          "on": "bar_e",
+          "why": "한 변만 최대로 들어 물 쪽을 연다"
+        }
+      ],
+      "floor_height_m": 2.9
     },
     {
-     "op": "grade",
-     "toward": "cross",
-     "on": "slope",
-     "why": "주차 램프의 경사가 단면이 되고 주거는 그 사면 위 테라스이므로, 기울인 상자가 아니라 층마다 물러서는 계단형 윤곽이어야 한다. 책의 Grade(단차화하다) - 단계적으로 깎아 계단형 윤곽 생성.",
-     "run": 0.7
+      "name": "vancouver_house_grows_as_it_rises",
+      "primary_language": "solid_body",
+      "secondary_language": "아래는 삼각형으로 좁고 위로 갈수록 커지는 것",
+      "formal_principle": "다리와 이격선이 저층을 깎아내고, 상층이 그 손실을 되찾으며 커진다.",
+      "dominant_gesture": "위가 무거운 하나의 덩어리.",
+      "reference_basis": "BIG - Vancouver House 2020. 저층 삼각형 6,000 sq ft에서 상층 정사각형으로 확장, 다리 이격 때문",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 3.0,
+          "grow": true,
+          "align": "open",
+          "height": 1.0,
+          "why": "위로 갈수록 3배. grow와 3.0 상한이 둘 다 있어야 쓸 수 있는 문장 앞의 extrude를 지웠다. stack은 자기 앞의 것을 대체하지 않고 덧붙이므로, 대지 전체를 채운 몸이 서 있는 한 자라나는 단들은 그 안에 갇혀 평면이 바뀌지 않는다 — 실행 보고가 그 extrude를 idle로 불러왔다. 삼각 평면은 stack이 이어받는다.",
+          "profile": "triangular"
+        }
+      ],
+      "floor_height_m": 2.9
+    },
+    {
+      "name": "kimbell_vaults_with_light_between",
+      "primary_language": "porous_field",
+      "secondary_language": "사이로 빛이 드는 세 개의 볼트 열",
+      "formal_principle": "세 개의 긴 열이 서로 떨어져 서고, 그 틈이 빛과 동선을 모두 나른다.",
+      "dominant_gesture": "나란히 선 세 줄, 사이가 비어 있음.",
+      "reference_basis": "Kahn - Kimbell Art Museum Fort Worth 1972. 100 ft 사이클로이드 볼트 열, 열 사이에 채광 슬롯",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다 — profile이 없으면 몸이 마름모 대지를 통째로 상속해 split의 세 열이 삼각형 조각이 된다. 열은 직사각 몸에서만 열이다.",
+          "profile": "square"
+        },
+        {
+          "op": "split",
+          "ratio": 0.34,
+          "along": "long",
+          "first": "range_a",
+          "second": "rest",
+          "gap": 8.0,
+          "contrast": 1.25,
+          "why": "세 열 중 첫 열을 떼어낸다. 0.66이면 첫 열이 전체의 3분의 2를 가져가고 남은 3분의 1을 반으로 갈라 17%짜리 조각 둘이 붙는다 — 실측 2030/305/305로 '세 개의 긴 열'이 아니라 큰 덩어리 하나에 부스러기 둘이었다. 3분의 1이 맞다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.5,
+          "along": "long",
+          "first": "range_b",
+          "second": "range_c",
+          "gap": 8.0,
+          "contrast": 1.25,
+          "on": "rest",
+          "why": "나머지를 다시 둘로. 세 열이 각각 6 m 떨어져 선다 (실제 세 열은 거의 같은 크기인데 문법 하한이 1.25라 그 값을 쓴다)"
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "marina_city_petals_turn_as_they_rise",
+      "primary_language": "carved_body",
+      "secondary_language": "올라가며 꽃잎이 돌아가는 원통",
+      "formal_principle": "원형 평면의 꽃잎이 층마다 조금씩 돌아, 발코니가 나선으로 읽힌다.",
+      "dominant_gesture": "비틀리며 올라가는 하나의 원통.",
+      "reference_basis": "Goldberg - Marina City Chicago 1964. 원형 60층 타워, 꽃잎형 발코니가 층마다 어긋남",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "oval",
+          "why": "원형 평면"
+        },
+        {
+          "op": "twist",
+          "degrees": 90.0,
+          "why": "90도는 상한. 층마다 자기 행렬로 돌아가는 세분화가 이걸 가능하게 한다"
+        }
+      ],
+      "floor_height_m": 2.9
+    },
+    {
+      "name": "breuer_geller_butterfly",
+      "primary_language": "solid_body",
+      "secondary_language": "a low house whose two roof planes fall inward to a shared valley",
+      "formal_principle": "지붕 두 면이 바깥 처마에서 안쪽 골짜기로 떨어진다 — 비를 집의 가운데로 모으고, 두 끝은 하늘로 열린다.",
+      "dominant_gesture": "the V section: eaves up, valley in the middle",
+      "reference_basis": "Geller House I (Marcel Breuer, 1945, Lawrence NY). 최초의 버터플라이 지붕 주택으로 불리는 이중핵(binuclear) 평면 — 낮은 몸통 하나가 V 단면을 쓴다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.25,
+          "why": "버터플라이는 낮은 집의 단면이다 — 몸통이 낮아야 골짜기의 각도가 입면에서 읽힌다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.45,
+          "toward": "long",
+          "why": "V의 방향이 읽히려면 몸통이 바여야 한다 — 골짜기는 긴 축을 따라 달린다."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.9,
+          "at": 0.5,
+          "why": "두 면이 가운데로 떨어지는 것이 이 집의 전부다 — 처마가 올라가고 물이 안으로 모인다."
+        }
+      ]
+    },
+    {
+      "name": "haussmann_block_mansard",
+      "primary_language": "solid_body",
+      "secondary_language": "a street-wall bar whose top storeys lean back behind a fold at the cornice line",
+      "formal_principle": "수직의 가로벽이 처마선에서 꺾여 지붕층이 뒤로 눕는다 — 거리에서 보면 벽, 하늘에서 보면 지붕인 층.",
+      "dominant_gesture": "steep shoulders, level crown - the mansard fold at the cornice",
+      "reference_basis": "오스만의 파리 가로블록 (1853-1870). 코니스 높이 제한 아래에서 지붕층을 거주층으로 만드는 단면 — 어깨는 가파르고 정수리는 평평하다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.7,
+          "why": "가로벽은 먼저 벽이어야 한다 — 오스만의 단면은 대여섯 층을 세운 다음에야 꺾인다. 낮은 몸통의 맨사드는 텐트다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.35,
+          "toward": "long",
+          "why": "블록의 단위는 가로에 면한 바다 — 꺾임선이 거리와 평행해야 파리의 단면이 된다."
+        },
+        {
+          "op": "mansard",
+          "pitch": 0.6,
+          "shoulder": 0.2,
+          "why": "처마선에서 꺾여 정수리가 평평한 것이 이 단면의 이름이다 — 지붕이 한 층 반을 살고, 어깨는 눕되 정수리의 절반 이상은 평평하게 남는다."
+        }
+      ]
     }
-   ],
-   "floor_height_m": 2.9
-  },
-  {
-   "name": "sluishuis_one_corner_lifted_over_water",
-   "primary_language": "open_figure",
-   "secondary_language": "한 모서리가 물 위로 크게 들린 중정 블록",
-   "formal_principle": "둘레 블록의 한 모서리만 크게 들어올려 마당이 물과 이어지게 한다.",
-   "dominant_gesture": "들린 모서리 아래로 지나가는 지면.",
-   "reference_basis": "BIG - Sluishuis Amsterdam 2022. 46,000 m2, 442세대, 중정 안에 마리나, IJ 위로 약 24 m 캔틸레버",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.32,
-     "height": 0.85,
-     "why": "마리나를 감싸는 둘레"
-    },
-    {
-     "op": "lift",
-     "clearance": 0.4,
-     "on": "bar_e",
-     "why": "한 변만 최대로 들어 물 쪽을 연다"
-    }
-   ],
-   "floor_height_m": 2.9
-  },
-  {
-   "name": "vancouver_house_grows_as_it_rises",
-   "primary_language": "solid_body",
-   "secondary_language": "아래는 삼각형으로 좁고 위로 갈수록 커지는 것",
-   "formal_principle": "다리와 이격선이 저층을 깎아내고, 상층이 그 손실을 되찾으며 커진다.",
-   "dominant_gesture": "위가 무거운 하나의 덩어리.",
-   "reference_basis": "BIG - Vancouver House 2020. 저층 삼각형 6,000 sq ft에서 상층 정사각형으로 확장, 다리 이격 때문",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 3.0,
-     "grow": true,
-     "align": "open",
-     "height": 1.0,
-     "why": "위로 갈수록 3배. grow와 3.0 상한이 둘 다 있어야 쓸 수 있는 문장 앞의 extrude를 지웠다. stack은 자기 앞의 것을 대체하지 않고 덧붙이므로, 대지 전체를 채운 몸이 서 있는 한 자라나는 단들은 그 안에 갇혀 평면이 바뀌지 않는다 — 실행 보고가 그 extrude를 idle로 불러왔다. 삼각 평면은 stack이 이어받는다.",
-     "profile": "triangular"
-    }
-   ],
-   "floor_height_m": 2.9
-  },
-  {
-   "name": "kimbell_vaults_with_light_between",
-   "primary_language": "porous_field",
-   "secondary_language": "사이로 빛이 드는 세 개의 볼트 열",
-   "formal_principle": "세 개의 긴 열이 서로 떨어져 서고, 그 틈이 빛과 동선을 모두 나른다.",
-   "dominant_gesture": "나란히 선 세 줄, 사이가 비어 있음.",
-   "reference_basis": "Kahn - Kimbell Art Museum Fort Worth 1972. 100 ft 사이클로이드 볼트 열, 열 사이에 채광 슬롯",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "자를 덩어리를 먼저 세운다. split은 서 있는 것을 나눌 뿐 만들지 않는다"
-    },
-    {
-     "op": "split",
-     "ratio": 0.34,
-     "along": "long",
-     "first": "range_a",
-     "second": "rest",
-     "gap": 8.0,
-     "contrast": 1.25,
-     "why": "세 열 중 첫 열을 떼어낸다. 0.66이면 첫 열이 전체의 3분의 2를 가져가고 남은 3분의 1을 반으로 갈라 17%짜리 조각 둘이 붙는다 — 실측 2030/305/305로 '세 개의 긴 열'이 아니라 큰 덩어리 하나에 부스러기 둘이었다. 3분의 1이 맞다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.5,
-     "along": "long",
-     "first": "range_b",
-     "second": "range_c",
-     "gap": 8.0,
-     "contrast": 1.25,
-     "on": "rest",
-     "why": "나머지를 다시 둘로. 세 열이 각각 6 m 떨어져 선다 (실제 세 열은 거의 같은 크기인데 문법 하한이 1.25라 그 값을 쓴다)"
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "marina_city_petals_turn_as_they_rise",
-   "primary_language": "carved_body",
-   "secondary_language": "올라가며 꽃잎이 돌아가는 원통",
-   "formal_principle": "원형 평면의 꽃잎이 층마다 조금씩 돌아, 발코니가 나선으로 읽힌다.",
-   "dominant_gesture": "비틀리며 올라가는 하나의 원통.",
-   "reference_basis": "Goldberg - Marina City Chicago 1964. 원형 60층 타워, 꽃잎형 발코니가 층마다 어긋남",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 1.0,
-     "profile": "oval",
-     "why": "원형 평면"
-    },
-    {
-     "op": "twist",
-     "degrees": 90.0,
-     "why": "90도는 상한. 층마다 자기 행렬로 돌아가는 세분화가 이걸 가능하게 한다"
-    }
-   ],
-   "floor_height_m": 2.9
-  },
-  {
-   "name": "breuer_geller_butterfly",
-   "primary_language": "solid_body",
-   "secondary_language": "a low house whose two roof planes fall inward to a shared valley",
-   "formal_principle": "지붕 두 면이 바깥 처마에서 안쪽 골짜기로 떨어진다 — 비를 집의 가운데로 모으고, 두 끝은 하늘로 열린다.",
-   "dominant_gesture": "the V section: eaves up, valley in the middle",
-   "reference_basis": "Geller House I (Marcel Breuer, 1945, Lawrence NY). 최초의 버터플라이 지붕 주택으로 불리는 이중핵(binuclear) 평면 — 낮은 몸통 하나가 V 단면을 쓴다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.25,
-     "why": "버터플라이는 낮은 집의 단면이다 — 몸통이 낮아야 골짜기의 각도가 입면에서 읽힌다."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.45,
-     "toward": "long",
-     "why": "V의 방향이 읽히려면 몸통이 바여야 한다 — 골짜기는 긴 축을 따라 달린다."
-    },
-    {
-     "op": "butterfly",
-     "pitch": 0.9,
-     "at": 0.5,
-     "why": "두 면이 가운데로 떨어지는 것이 이 집의 전부다 — 처마가 올라가고 물이 안으로 모인다."
-    }
-   ]
-  },
-  {
-   "name": "haussmann_block_mansard",
-   "primary_language": "solid_body",
-   "secondary_language": "a street-wall bar whose top storeys lean back behind a fold at the cornice line",
-   "formal_principle": "수직의 가로벽이 처마선에서 꺾여 지붕층이 뒤로 눕는다 — 거리에서 보면 벽, 하늘에서 보면 지붕인 층.",
-   "dominant_gesture": "steep shoulders, level crown - the mansard fold at the cornice",
-   "reference_basis": "오스만의 파리 가로블록 (1853-1870). 코니스 높이 제한 아래에서 지붕층을 거주층으로 만드는 단면 — 어깨는 가파르고 정수리는 평평하다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.7,
-     "why": "가로벽은 먼저 벽이어야 한다 — 오스만의 단면은 대여섯 층을 세운 다음에야 꺾인다. 낮은 몸통의 맨사드는 텐트다."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.35,
-     "toward": "long",
-     "why": "블록의 단위는 가로에 면한 바다 — 꺾임선이 거리와 평행해야 파리의 단면이 된다."
-    },
-    {
-     "op": "mansard",
-     "pitch": 0.6,
-     "shoulder": 0.2,
-     "why": "처마선에서 꺾여 정수리가 평평한 것이 이 단면의 이름이다 — 지붕이 한 층 반을 살고, 어깨는 눕되 정수리의 절반 이상은 평평하게 남는다."
-    }
-   ]
-  }
- ]
+  ]
 }

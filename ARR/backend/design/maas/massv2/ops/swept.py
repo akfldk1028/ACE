@@ -543,8 +543,14 @@ def gable(frame, op) -> None:
     long_named = _along_is_x({"along": op.params.get("along", "long")})
 
     def _pitched(volume, across_w: float, body: float, ridge_x: bool) -> list:
+        # The mansard's cap, for the same reason: a roof is a storey or two,
+        # never the building. On a forty-metre body an honest slope wants
+        # eight metres of roof and leaves one metre of wall - a tent, not a
+        # house. The slope yields to the eave when they conflict; a body that
+        # wide should be saying `bays`.
+        cap_m = 1.5 * frame.storey
         if abs(at - 0.5) < 1e-6:
-            share = _clamp((across_w / 2.0) * pitch / body, 0.15, 0.95)
+            share = _clamp(min((across_w / 2.0) * pitch, cap_m) / body, 0.15, 0.95)
             return gabled_halves(frame, volume, share, ridge_x=ridge_x)
         origin = transform_point3(volume.matrix, (0.0, 0.0, 0.0))
         tip = transform_point3(
@@ -552,8 +558,8 @@ def gable(frame, op) -> None:
         )
         ax, ay = tip[0] - origin[0], tip[1] - origin[1]
         norm = (ax * ax + ay * ay) ** 0.5 or 1.0
-        left = _clamp(pitch * at * across_w / body, 0.0, 0.95)
-        right = _clamp(pitch * (1.0 - at) * across_w / body, 0.0, 0.95)
+        left = _clamp(min(pitch * at * across_w, cap_m) / body, 0.0, 0.95)
+        right = _clamp(min(pitch * (1.0 - at) * across_w, cap_m) / body, 0.0, 0.95)
         return [replace(
             volume,
             top_drop=max(left, right),
@@ -646,8 +652,12 @@ def butterfly(frame, op) -> None:
             continue
         _rx, across, unit, body = _profile_axes(item, long_named)
         # One valley has one depth: the shorter run sets it, so the declared
-        # pitch is the steeper side's and the longer side lies back.
-        depth = _clamp(pitch * min(at, 1.0 - at) * across / body, 0.15, 0.95)
+        # pitch is the steeper side's and the longer side lies back. Capped
+        # like the mansard and the gable - a roof is never half the building.
+        depth = _clamp(
+            min(pitch * min(at, 1.0 - at) * across, 1.5 * frame.storey) / body,
+            0.15, 0.95,
+        )
         made.append(replace(
             item,
             top_drop=depth,

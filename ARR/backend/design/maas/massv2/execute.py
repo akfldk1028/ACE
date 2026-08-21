@@ -780,14 +780,25 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # a 3.4 m gap in it. The old value was set against the span rule with *two*
     # supports; with four the span is halved and the plate still stands.
     leg = 0.24
-    # Where the lifted volume was before it went up.
-    stood_at = min((item.z_span()[0] for item in picked), default=0.0)
+    # Where the lifted volume was before it went up - reading the solids only.
+    # A subtractive cutter is in scope like anything else, and a carve's cutter
+    # is placed to reach in from outside the mass, so `min` over everything
+    # picked took its depth instead: `b_heori_du_madang` (carve, pinch, lift)
+    # stood its four legs at z -12.0 to -9.6, twelve metres underground, while
+    # the body it was meant to hold floated at 2.4. The mass then had nothing
+    # under it and the structure gate refused every variant of the sentence.
+    standing = [item for item in picked if item.kind == "additive"] or picked
+    stood_at = min((item.z_span()[0] for item in standing), default=0.0)
     # Off the plate as it was built, not as it arrived. The raised volume is
     # rebuilt to hold its own plan area rather than its bounding box, so sizing
     # the legs from the original left them sticking out past the plate they
     # carry - measured on Villa dall'Ava, the plate stood 3.16 m from the other
     # apartment and a leg stood 1.66 m from it.
-    base_x, base_y, base_w, base_d = _bounds_of(raised, frame)
+    # Solids only here too, for the same reason: a cutter rebuilt alongside the
+    # plate would size and place the legs to a void.
+    base_x, base_y, base_w, base_d = _bounds_of(
+        [item for item in raised if item.kind == "additive"] or raised, frame
+    )
     # The legs belong to whatever this lift was aimed at. Named plain
     # "support" they answered to no later word: Villa dall'Ava's shift moved
     # the raised apartment and left its four legs standing where the building

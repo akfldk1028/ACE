@@ -118,6 +118,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     "gable": "inherit",
     "butterfly": "inherit",
     "mansard": "inherit",
+    # 볼트. A polyline with enough vertices is a curve, so the barrel needed
+    # the word rather than a new primitive.
+    "vault": "inherit",
     "embed": "inherit",
     # The book's volume-to-volume family (BOOK 045/046/052/055/056/068/069),
     # said in the host's own unit space like branch and embed, so they inherit

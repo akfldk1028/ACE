@@ -13,6 +13,7 @@ question being asked here.
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -23,20 +24,62 @@ from design.maas.source_geometry.ir import SourceMass, profile_height
 
 _YAW = math.radians(-35.0)
 _PITCH = math.radians(28.0)
-_BACKGROUND = (250, 250, 248)
-_SITE = (196, 214, 200)
-_WALL = (214, 132, 66)
-_ROOF = (238, 168, 92)
-_EDGE = (120, 68, 26)
-# A court is a hole in the roof, painted back to the ground it opens onto.
-_COURT = (206, 218, 208)
-# The boundary a neighbour is already built against. The parcel's open side is
-# whatever is left of the outline, and it is the reason the siting axis points
-# where it does - so the drawing should say which is which.
-_PARTY_WALL = (128, 122, 116)
-_INK = (40, 40, 44)
-_MUTED = (108, 110, 104)
-_ACCENT = (170, 82, 20)
+
+
+@dataclass(frozen=True)
+class _Palette:
+    """What the drawing is made of. Two of these, because the drawing is an
+    argument about the mass and the palette decides which argument.
+
+    The clay palette reads as a diagram: warm solids on a green parcel, the
+    kind of thing that says "this is a study, do not mistake it for a
+    building". The massing palette is the white study model the discipline
+    actually judges shape by - practice pins its models white precisely so
+    nothing but silhouette and proportion can be argued about, and the same
+    geometry rendered white was measured to read as a different quality of
+    proposal in this project's own review rounds.
+    """
+
+    background: tuple[int, int, int]
+    site: tuple[int, int, int]
+    wall: tuple[int, int, int]
+    roof: tuple[int, int, int]
+    edge: tuple[int, int, int]
+    # A court is a hole in the roof, painted back to the ground it opens onto.
+    court: tuple[int, int, int]
+    # The boundary a neighbour is already built against. The parcel's open side
+    # is whatever is left of the outline, and it is the reason the siting axis
+    # points where it does - so the drawing should say which is which.
+    party_wall: tuple[int, int, int]
+    ink: tuple[int, int, int]
+    muted: tuple[int, int, int]
+    accent: tuple[int, int, int]
+
+
+_CLAY = _Palette(
+    background=(250, 250, 248), site=(196, 214, 200),
+    wall=(214, 132, 66), roof=(238, 168, 92), edge=(120, 68, 26),
+    court=(206, 218, 208), party_wall=(128, 122, 116),
+    ink=(40, 40, 44), muted=(108, 110, 104), accent=(170, 82, 20),
+)
+# White model: the faces carry almost no colour, so the edge does the drawing
+# and the eye reads silhouette, proportion and the fall of the top surface -
+# which is what a massing study is for.
+_MASSING = _Palette(
+    background=(255, 255, 255), site=(233, 235, 231),
+    wall=(235, 235, 231), roof=(253, 253, 251), edge=(58, 58, 62),
+    court=(233, 235, 231), party_wall=(150, 150, 146),
+    ink=(30, 30, 34), muted=(112, 112, 108), accent=(90, 90, 96),
+)
+_STYLES = {"clay": _CLAY, "massing": _MASSING}
+
+# A top profile with more vertices than this is a sampled curve, not a set of
+# folds, and its segment boundaries are sampling artefacts rather than creases.
+_CREASE_LIMIT = 6
+
+# The active palette. Swapped for the duration of one render call rather than
+# threaded through fifteen signatures; the drawing functions are pure readers.
+_PAL = _CLAY
 
 _FONT_FACES = ("C:/Windows/Fonts/malgun.ttf", "C:/Windows/Fonts/gulim.ttc")
 
@@ -183,7 +226,7 @@ def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=N
             _project(x0, y0, low), _project(x1, y1, low),
             _project(x1, y1, _top_at(x1, y1, high, slope)),
             _project(x0, y0, _top_at(x0, y0, high, slope)),
-        ], _WALL
+        ], _PAL.wall, True
 
 
 def _slope_of(volume, low: float, high: float):
@@ -251,24 +294,28 @@ def _faces(polygon, low: float, high: float, slope=None):
         for side in (1.0, -1.0):
             part = _clip_halfplane(outer, px, py, centre, side)
             if part:
-                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _ROOF
+                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _PAL.roof, True
     elif folds:
         # One plane per profile segment: the ring clipped to the slab between
-        # neighbouring fold lines, so every crease is a drawn line.
+        # neighbouring fold lines, so every crease is a drawn line - unless the
+        # profile is a sampled curve, where the "creases" are an artefact of
+        # sampling and drawing them turns a barrel vault into corrugation.
         _tag, _band, ux, uy, lo_p, hi_p, points = slope
         span = hi_p - lo_p
         stations = [lo_p - 1.0] + [c for _px, _py, c in folds] + [hi_p + 1.0]
+        creased = len(points) <= _CREASE_LIMIT
         for lo_c, hi_c in zip(stations, stations[1:]):
             part = _clip_halfplane(outer, ux, uy, lo_c, 1.0)
             part = _clip_halfplane(part, ux, uy, hi_c, -1.0) if part else None
             if part:
-                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _ROOF
+                yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in part],
+                       _PAL.roof, creased)
     else:
-        yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _ROOF
+        yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _PAL.roof, True
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
-            yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in court], _COURT
+            yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in court], _PAL.court, True
 
 
 def render_masses(
@@ -278,18 +325,24 @@ def render_masses(
     site_ring: Sequence[tuple[float, float]] | None = None,
     columns: int = 4,
     tile: tuple[int, int] = (330, 300),
+    style: str = "clay",
 ) -> Path:
     """Contact sheet, one compiled mass per tile, captioned with its numbers."""
 
     entries = list(items)
     if not entries:
         raise ValueError("nothing to render")
-    rows = math.ceil(len(entries) / columns)
-    sheet = Image.new("RGB", (columns * tile[0], rows * tile[1]), _BACKGROUND)
+    global _PAL
+    previous, _PAL = _PAL, _STYLES.get(style, _CLAY)
+    try:
+        rows = math.ceil(len(entries) / columns)
+        sheet = Image.new("RGB", (columns * tile[0], rows * tile[1]), _PAL.background)
 
-    for index, (title, source, caption) in enumerate(entries):
-        panel = _render_one(source, tile, site_ring=site_ring, title=title, caption=caption)
-        sheet.paste(panel, ((index % columns) * tile[0], (index // columns) * tile[1]))
+        for index, (title, source, caption) in enumerate(entries):
+            panel = _render_one(source, tile, site_ring=site_ring, title=title, caption=caption)
+            sheet.paste(panel, ((index % columns) * tile[0], (index // columns) * tile[1]))
+    finally:
+        _PAL = previous
 
     output.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(output)
@@ -329,7 +382,7 @@ def render_sequence(
         for volume in source.volumes:
             low = float(volume.bottom_fraction) * height
             high = float(volume.top_fraction) * height
-            for shape, _colour in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
+            for shape, _colour, _seam in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
                 world.extend(shape)
     if not world:
         raise ValueError("nothing to draw")
@@ -350,13 +403,13 @@ def render_sequence(
         return (off_x + (point[0] - min_x) * scale, off_y + (point[1] - min_y) * scale)
 
     head = 78 if heading else 0
-    sheet = Image.new("RGB", (len(frames) * tile[0], tile[1] + head), _BACKGROUND)
+    sheet = Image.new("RGB", (len(frames) * tile[0], tile[1] + head), _PAL.background)
     board = ImageDraw.Draw(sheet)
 
     if heading:
-        board.text((26, 22), heading, font=_font(25, bold=True), fill=_INK)
+        board.text((26, 22), heading, font=_font(25, bold=True), fill=_PAL.ink)
         if subheading:
-            board.text((26, 52), subheading, font=_font(14), fill=_MUTED)
+            board.text((26, 52), subheading, font=_font(14), fill=_PAL.muted)
 
     for index, frame in enumerate(frames):
         panel = _render_frame(frame, tile, to_screen, site_ring, party_edges, index + 1)
@@ -375,18 +428,18 @@ def _render_frame(
     party_edges: Sequence[Sequence[tuple[float, float]]],
     number: int,
 ) -> Image.Image:
-    panel = Image.new("RGB", tile, _BACKGROUND)
+    panel = Image.new("RGB", tile, _PAL.background)
     draw = ImageDraw.Draw(panel)
 
-    draw.text((22, 18), f"{number:02d}", font=_font(13, bold=True), fill=_ACCENT)
-    draw.text((48, 17), str(frame.get("verb") or ""), font=_font(15, bold=True), fill=_INK)
+    draw.text((22, 18), f"{number:02d}", font=_font(13, bold=True), fill=_PAL.accent)
+    draw.text((48, 17), str(frame.get("verb") or ""), font=_font(15, bold=True), fill=_PAL.ink)
 
     if site_ring:
-        draw.polygon([to_screen(_project(x, y, 0.0)) for x, y in site_ring], fill=_SITE)
+        draw.polygon([to_screen(_project(x, y, 0.0)) for x, y in site_ring], fill=_PAL.site)
     for edge in party_edges:
         points = [to_screen(_project(x, y, 0.0)) for x, y in edge]
         if len(points) >= 2:
-            draw.line(points, fill=_PARTY_WALL, width=4)
+            draw.line(points, fill=_PAL.party_wall, width=4)
 
     source = frame.get("source")
     if source is not None:
@@ -398,8 +451,11 @@ def _render_frame(
         for volume in ordered:
             low = float(volume.bottom_fraction) * height
             high = float(volume.top_fraction) * height
-            for shape, colour in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
-                draw.polygon([to_screen(point) for point in shape], fill=colour, outline=_EDGE)
+            for shape, colour, seam in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
+                draw.polygon(
+                    [to_screen(point) for point in shape], fill=colour,
+                    outline=_PAL.edge if seam else colour,
+                )
 
     y = tile[1] - 150
     draw.line([(22, y), (tile[0] - 22, y)], fill=(220, 220, 214), width=1)
@@ -407,17 +463,17 @@ def _render_frame(
 
     aim = str(frame.get("aim") or "")
     if aim:
-        draw.text((22, y), aim, font=_font(12, bold=True), fill=_ACCENT)
+        draw.text((22, y), aim, font=_font(12, bold=True), fill=_PAL.accent)
         y += 20
 
     body = _font(13)
     for line in _wrap(str(frame.get("why") or ""), body, tile[0] - 46)[:5]:
-        draw.text((22, y), line, font=body, fill=_MUTED)
+        draw.text((22, y), line, font=body, fill=_PAL.muted)
         y += 19
 
     numbers = frame.get("numbers")
     if numbers:
-        draw.text((22, tile[1] - 30), str(numbers), font=_font(12, bold=True), fill=_INK)
+        draw.text((22, tile[1] - 30), str(numbers), font=_font(12, bold=True), fill=_PAL.ink)
     return panel
 
 
@@ -507,14 +563,14 @@ def _draw_plan(draw, source, box, site_ring) -> None:
                 off_y + (max(ys) - point[1]) * scale)
 
     for ring in rings:
-        draw.polygon([to_screen(point) for point in ring], fill=_SITE, outline=None)
+        draw.polygon([to_screen(point) for point in ring], fill=_PAL.site, outline=None)
     for shape in shapes:
         draw.polygon(
             [to_screen(point) for point in shape.exterior.coords],
-            fill=_ROOF, outline=_EDGE,
+            fill=_PAL.roof, outline=_PAL.edge,
         )
         for hole in shape.interiors:
-            draw.polygon([to_screen(point) for point in hole.coords], fill=_SITE, outline=_EDGE)
+            draw.polygon([to_screen(point) for point in hole.coords], fill=_PAL.site, outline=_PAL.edge)
 
 
 def _render_one(
@@ -525,7 +581,7 @@ def _render_one(
     title: str,
     caption: dict[str, Any],
 ) -> Image.Image:
-    panel = Image.new("RGB", tile, _BACKGROUND)
+    panel = Image.new("RGB", tile, _PAL.background)
     draw = ImageDraw.Draw(panel)
 
     # Read the caption without consuming it. `pop` on the caller's dict meant
@@ -548,10 +604,10 @@ def _render_one(
     reserve = 46 + 13 * len(thesis_lines)
 
     height = float(source.metadata.get("authored_height_m") or 0.0)
-    polygons: list[tuple[list[tuple[float, float]], tuple[int, int, int]]] = []
+    polygons: list[tuple[list[tuple[float, float]], tuple[int, int, int], bool]] = []
 
     if site_ring:
-        polygons.append(([_project(x, y, 0.0) for x, y in site_ring], _SITE))
+        polygons.append(([_project(x, y, 0.0) for x, y in site_ring], _PAL.site, True))
 
     # Painter's algorithm on the band's own depth: farther bands first, and
     # within a band the lower one first, so an upper volume overlaps the one
@@ -564,7 +620,7 @@ def _render_one(
         slope = _slope_of(tilted, low, high) if tilted is not None else None
         polygons.extend(_faces(footprint, low, high, slope))
 
-    flat = [point for shape, _colour in polygons for point in shape]
+    flat = [point for shape, _colour, _seam in polygons for point in shape]
     if not flat:
         return panel
     min_x = min(px for px, _py in flat)
@@ -585,21 +641,24 @@ def _render_one(
     def to_screen(point: tuple[float, float]) -> tuple[float, float]:
         return (off_x + (point[0] - min_x) * scale, off_y + (point[1] - min_y) * scale)
 
-    for shape, colour in polygons:
-        draw.polygon([to_screen(point) for point in shape], fill=colour, outline=_EDGE)
+    for shape, colour, seam in polygons:
+        draw.polygon(
+            [to_screen(point) for point in shape], fill=colour,
+            outline=_PAL.edge if seam else colour,
+        )
 
     # Room for a plan only where there is room: the contact sheet's tile is a
     # thumbnail and an inset in it would be a smudge. The large drawing per
     # alternative is where the gaps have to be readable.
     if inset:
-        draw.text((tile[0] - inset - 16, 38), "배치", font=_font(10), fill=_MUTED)
+        draw.text((tile[0] - inset - 16, 38), "배치", font=_font(10), fill=_PAL.muted)
         _draw_plan(draw, source, (tile[0] - inset - 16, 54, inset, inset), site_ring)
 
     # A recommended option is named as one. RAIC and every feasibility scope say
     # a massing study ends with a recommendation, and a sheet without one is an
     # inventory rather than a proposal.
     heading = _font(12, bold=True)
-    draw.text((10, 6), _elide(mark + title, heading, tile[0] - 20), font=heading, fill=_INK)
+    draw.text((10, 6), _elide(mark + title, heading, tile[0] - 20), font=heading, fill=_PAL.ink)
 
     # The thesis, then the numbers. It was the numbers alone, and the numbers
     # are the part a jury does not read: what an option is for is a sentence,

@@ -157,6 +157,50 @@
           "why": "입력은 열세 층 용적과 좁은 발자국 — 육각 켜 다섯을 한 면만 맞춰 쌓는다. 한 면만 맞추는 것이 지배 무브이고, 물러섬이 한 방향으로만 일어나 나선으로 읽힌다. 대비 1.45는 다섯 켜가 끝까지 방으로 남는 최대 축소이며, shear를 더하면 무브가 둘이 되어 필연성이 깨진다(실측: 덩어리로 읽혔다)."
         }
       ]
+    },
+    {
+      "name": "i_kimbell_vault_field",
+      "primary_language": "porous_field",
+      "secondary_language": "three long barrel vaults standing apart, light in the slots between",
+      "formal_principle": "세 개의 긴 배럴 볼트가 떨어져 서고 그 틈이 빛을 나른다 — 지붕이 곡면이라 실루엣이 각이 아니라 호로 읽힌다.",
+      "dominant_gesture": "parallel barrel vaults with light slots between",
+      "reference_basis": "저작 신작 (Kahn Kimbell의 사이클로이드 볼트 원리 — 곡면 지붕은 어휘에 이미 있었으나 아무도 말하지 않았다)",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "profile": "square",
+          "storeys": 3,
+          "why": "입력은 한 층 높이의 긴 전시 열 — 직사각 몸으로 세 층을 세운다. 마름모 대지를 상속하면 열이 조각이 되므로 profile을 못 박는다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.34,
+          "along": "long",
+          "first": "range_a",
+          "second": "rest",
+          "gap": 8.0,
+          "contrast": 1.25,
+          "why": "세 열 중 첫 열을 떼어낸다 — 틈 8m는 빛과 동선이 함께 지나는 폭이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.5,
+          "along": "long",
+          "first": "range_b",
+          "second": "range_c",
+          "gap": 8.0,
+          "contrast": 1.25,
+          "on": "rest",
+          "why": "나머지를 다시 둘로 — 같은 축, 같은 틈. 세 열이 나란해야 볼트가 리듬이 된다."
+        },
+        {
+          "op": "vault",
+          "rise": 0.9,
+          "along": "long",
+          "why": "세 열 각각의 윗면이 호가 된다 — 각진 박공이 아니라 곡면이라야 빛이 정수리에서 벽으로 흘러내린다. rise 0.9는 스팬 절반의 0.9배 높이로, 한 층 반 캡에서 멈춘다."
+        }
+      ]
     }
   ]
 }

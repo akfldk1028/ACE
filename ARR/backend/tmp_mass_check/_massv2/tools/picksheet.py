@@ -8,7 +8,7 @@ cell, it renders the strongest few per cell as one gallery, so the person
 the sheet is for can pick from the pool the machine would otherwise pick
 from alone.
 
-    python tools/picksheet.py <run> [per_cell]
+    python tools/picksheet.py <run> [per_cell] [style]   # style: massing|clay
 """
 
 import json
@@ -24,7 +24,7 @@ from design.maas.massv2.siting import open_side_direction  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main(run: str, per_cell: int = 3) -> int:
+def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     folder = ROOT / "runs" / run
     out = ROOT / "runs" / f"{run}-pick"
     out.mkdir(parents=True, exist_ok=True)
@@ -81,7 +81,7 @@ def main(run: str, per_cell: int = 3) -> int:
             rec = corpus[scheme_of(r["name"])]
             render_masses(
                 [(r["name"], src, {"thesis": rec.get("formal_principle", "")})],
-                png, site_ring=ring, columns=1, tile=(900, 760),
+                png, site_ring=ring, columns=1, tile=(900, 760), style=style,
             )
             ground = (r.get("legal_fit") or {}).get("ground_area_m2") or 0.0
             picks.append({
@@ -100,4 +100,8 @@ def main(run: str, per_cell: int = 3) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 3))
+    sys.exit(main(
+        sys.argv[1],
+        int(sys.argv[2]) if len(sys.argv) > 2 else 3,
+        sys.argv[3] if len(sys.argv) > 3 else "massing",
+    ))

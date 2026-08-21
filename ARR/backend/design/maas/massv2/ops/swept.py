@@ -27,6 +27,7 @@ Which volumes, which operator, about what point. Same contract as `affine`.
 
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 from typing import Callable
 
@@ -716,6 +717,78 @@ def mansard(frame, op) -> None:
     frame.placements = rest + made
 
 
+def vault(frame, op) -> None:
+    """A curved top: the barrel, Kahn's cycloid at Kimbell.
+
+    The corpus has said 볼트 twice and delivered a pitched roof both times,
+    and the IR was blamed for it - the note on `top_profile` said hips and
+    vaults were outside the primitive. Half of that was wrong. A profile is a
+    polyline, and a polyline with enough vertices IS a curve; only the hip is
+    genuinely two-axis. So the vault costs no new geometry, only the word.
+
+    Sampled rather than fitted: sixteen stations across the span carry the
+    arc, which reads as curved at every size the sheet draws and still
+    interpolates exactly like every other profile downstream. `rise` is the
+    crown's height above the springing as a slope, read the way `pitch` is,
+    and capped at the same storey and a half - a roof is not the building.
+    """
+
+    rise = _clamp(float(op.params.get("rise", 0.6)), 0.15, 1.2)
+    bays = int(_clamp(float(op.params.get("bays", 1)), 1, 6))
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    long_named = _along_is_x({"along": op.params.get("along", "long")})
+    steps = 16
+
+    def _arched(item, across_w: float, body: float, unit) -> list:
+        drop_m = min(rise * across_w / 2.0, 1.5 * frame.storey)
+        share = _clamp(drop_m / body, 0.15, 0.95)
+        points = tuple(
+            (
+                index / steps,
+                1.0 - share * (1.0 - math.sin(math.pi * index / steps)),
+            )
+            for index in range(steps + 1)
+        )
+        return [replace(
+            item,
+            top_drop=share,
+            drop_toward=None,
+            ridge_along=None,
+            top_profile=points,
+            profile_across=unit,
+        )]
+
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive":
+            made.append(item)
+            continue
+        ridge_x, across, unit, body = _profile_axes(item, long_named)
+        rows = bays if bays > 1 and item.plan == "square" else 1
+        if rows == 1:
+            made.extend(_arched(item, across, body, unit))
+            continue
+        axis = 1 if ridge_x else 0
+        size = [1.0, 1.0, 1.0]
+        size[axis] = 1.0 / rows
+        for k in range(rows):
+            low_corner = [0.0, 0.0, 0.0]
+            low_corner[axis] = k / rows
+            strip = replace(
+                item,
+                role=f"{item.role}_bay{k}",
+                matrix=validate_matrix4(compose_matrix4(
+                    scale_matrix4(tuple(size)),
+                    translation_matrix4(tuple(low_corner)),
+                    item.matrix,
+                )),
+            )
+            made.extend(_arched(strip, across / rows, body, unit))
+    frame.placements = rest + made
+
+
 def gabled_halves(frame, item, pitch: float, *, ridge_x: bool = True) -> list:
     """A volume as the archetypal house: ONE volume whose top is a ridge.
 
@@ -758,6 +831,7 @@ SWEPT_VERBS: dict[str, Callable] = {
     "gable": gable,
     "butterfly": butterfly,
     "mansard": mansard,
+    "vault": vault,
 }
 
 

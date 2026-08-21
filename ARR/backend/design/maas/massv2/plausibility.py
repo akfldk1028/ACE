@@ -35,7 +35,7 @@ from design.maas.floor_viability import (
 )
 from design.maas.source_geometry.ir import SourceMass
 
-from .structure import Standing, assess_standing
+from .structure import Standing, assess_standing, bodies_of
 
 
 AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
@@ -267,9 +267,41 @@ def assess(
         return Plausibility(0.0, 0.0, 0.0, False, ("no_bands",))
 
     height = float(source.metadata.get("authored_height_m") or 0.0)
+    # Slenderness is a property of a body. Measured against `source.footprint`
+    # it was the whole building's height over the widest single grounded body's
+    # narrowest dimension - the same field that once reported a brick pile at
+    # four percent coverage, because it keeps only the largest piece. A village
+    # of five houses and a plate on four legs both read as sticks that way:
+    # measured over this corpus, sixty-seven candidates were refused on
+    # slenderness alone and five of six of them are not slender at all.
+    #
+    # Taking the union of everything grounded instead would answer the opposite
+    # question wrongly - two three-metre towers standing forty metres apart
+    # would measure as one fat body. So each connected body is asked about its
+    # own height over its own width, and the worst of them stands for the
+    # building. That refuses the chimney this gate was written for, refuses the
+    # pair of sticks, and lets the village and the lifted plate through.
     ground = source.footprint
     min_dimension = _min_dimension(ground)
-    slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
+    bodies = bodies_of(source)
+    # A fragment is not a body. Boolean cuts leave slivers a few centimetres
+    # across, and "the worst body" hands the whole building's verdict to one of
+    # them - `i_naseon_tap` reported a slenderness of 5,774 on a spiral that is
+    # plainly a tower. A piece has to be at least room-sized before it is asked
+    # to stand on its own.
+    floor = max(10.0, 0.01 * sum(float(plan.area) for _l, _h, plan in bodies))
+    bodies = [item for item in bodies if float(item[2].area) >= floor]
+    if bodies:
+        slenderness = 0.0
+        for low, high, plan in bodies:
+            span = max(0.0, (high - low)) * height
+            width = _min_dimension(plan)
+            slenderness = max(
+                slenderness,
+                span / width if width > 1e-6 else float("inf"),
+            )
+    else:
+        slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
 
     structural = set(source.metadata.get("structural_bands") or ())
     viable = 0.0

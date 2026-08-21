@@ -24,6 +24,7 @@ from math import ceil, sqrt
 from typing import Any
 
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY

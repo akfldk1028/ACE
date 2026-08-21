@@ -440,6 +440,46 @@ def connectivity(source: SourceMass) -> tuple[float, int]:
     return (held / total if total > 1e-9 else 0.0), bodies
 
 
+def bodies_of(source: SourceMass) -> list[tuple[float, float, Polygon]]:
+    """Each separate body as (bottom fraction, top fraction, its plan union).
+
+    Slenderness is a property of a body, not of a drawing. A village of five
+    houses is not a stick because one house is narrow, and a plate on four legs
+    is not a stick because a leg is - but a chimney is, and so are two thin
+    towers standing apart. Telling those apart needs the connected components,
+    which `connectivity` already walks to answer a different question.
+
+    Pieces are grouped by the same touching rule: overlapping in plan and in
+    height, so a block hovering above another is its own body.
+    """
+
+    pieces = band_parts(source)
+    if not pieces:
+        return []
+    seen: set[int] = set()
+    bodies: list[tuple[float, float, Polygon]] = []
+    for start in range(len(pieces)):
+        if start in seen:
+            continue
+        group = [start]
+        seen.add(start)
+        frontier = [start]
+        while frontier:
+            current = frontier.pop()
+            for index, piece in enumerate(pieces):
+                if index in seen:
+                    continue
+                if _touching(pieces[current], piece):
+                    seen.add(index)
+                    group.append(index)
+                    frontier.append(index)
+        low = min(pieces[index][0] for index in group)
+        high = max(pieces[index][1] for index in group)
+        plan = unary_union([pieces[index][2] for index in group])
+        bodies.append((low, high, plan))
+    return bodies
+
+
 def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
     """Two physical questions, asked of the compiled bands."""
 

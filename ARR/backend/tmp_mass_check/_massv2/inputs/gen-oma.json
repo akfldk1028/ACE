@@ -1,432 +1,432 @@
 {
- "schemes": [
-  {
-   "name": "oma_villa_dall_ava",
-   "primary_language": "open_figure",
-   "secondary_language": "two separate dwellings held apart above one glass floor",
-   "formal_principle": "One house is written as two unequal apartments standing apart, so what happens between them - the roof pool and the view - is the room the building is really about.",
-   "dominant_gesture": "Two unequal boxes standing apart, the smaller one off the ground with garden running under it and a pool lying in the gap between them.",
-   "reference_basis": "OMA - Villa dall'Ava, Saint-Cloud (Paris) 1991. 한 대지에 부모용과 딸용 두 개의 독립 주거, 유리로 둘러싼 거실층 위에 침실 상자 두 개가 서로 다른 방향으로 놓이고, 그 사이 옥상에 에펠탑을 향한 수영장이 놓인다. 지상 3개 층.",
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "height": 0.72,
-     "why": "실제로 지상 3개 층짜리 집이다. 이 필지가 주는 4.17층을 다 쓰지 않고 0.72(=약 3개 층)에서 멈춰야, 남은 높이가 옥상 수영장과 테라스로 남는다. 이 집의 부피는 층수가 아니라 평면의 벌어짐에 있다."
+      "name": "oma_villa_dall_ava",
+      "primary_language": "open_figure",
+      "secondary_language": "two separate dwellings held apart above one glass floor",
+      "formal_principle": "One house is written as two unequal apartments standing apart, so what happens between them - the roof pool and the view - is the room the building is really about.",
+      "dominant_gesture": "Two unequal boxes standing apart, the smaller one off the ground with garden running under it and a pool lying in the gap between them.",
+      "reference_basis": "OMA - Villa dall'Ava, Saint-Cloud (Paris) 1991. 한 대지에 부모용과 딸용 두 개의 독립 주거, 유리로 둘러싼 거실층 위에 침실 상자 두 개가 서로 다른 방향으로 놓이고, 그 사이 옥상에 에펠탑을 향한 수영장이 놓인다. 지상 3개 층.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.72,
+          "why": "실제로 지상 3개 층짜리 집이다. 이 필지가 주는 4.17층을 다 쓰지 않고 0.72(=약 3개 층)에서 멈춰야, 남은 높이가 옥상 수영장과 테라스로 남는다. 이 집의 부피는 층수가 아니라 평면의 벌어짐에 있다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "parents_box",
+          "second": "daughter_box",
+          "gap": 5.0,
+          "contrast": 1.55,
+          "why": "한 가족의 집이 아니라 서로 독립한 두 주거다. 0.62는 부모 주거가 딸 주거보다 넓다는 실제 면적 차이이고, gap 5(약 3.8m)는 두 상자 사이에 수영장과 옥상 통로가 지나갈 폭이다. 1.55는 작은 쪽이 낮게 앉는다는 뜻으로, 두 덩어리가 평면에서도 옆면에서도 따로 읽힌다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "on": "daughter_box",
+          "why": "딸의 상자는 유리 거실층 위에 가는 기둥들로 떠 있다. 0.3은 사람이 지나가는 한 개 층 높이만 띄우는 값이고, 이만큼만 들어야 경사진 정원이 집 밑을 끊기지 않고 통과한다. 부모 상자는 반대로 땅에 앉아 있어야 두 주거가 서로 다른 지면을 갖는다."
+        }
+      ]
     },
     {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "long",
-     "first": "parents_box",
-     "second": "daughter_box",
-     "gap": 5.0,
-     "contrast": 1.55,
-     "why": "한 가족의 집이 아니라 서로 독립한 두 주거다. 0.62는 부모 주거가 딸 주거보다 넓다는 실제 면적 차이이고, gap 5(약 3.8m)는 두 상자 사이에 수영장과 옥상 통로가 지나갈 폭이다. 1.55는 작은 쪽이 낮게 앉는다는 뜻으로, 두 덩어리가 평면에서도 옆면에서도 따로 읽힌다."
+      "name": "oma_maison_bordeaux",
+      "primary_language": "solid_body",
+      "secondary_language": "three houses of different character piled up, the top one hanging",
+      "formal_principle": "Three dwellings with nothing in common are stacked, and the heaviest one is the one that does not touch what is under it.",
+      "dominant_gesture": "A closed concrete box floating clear above an open glass room, with the lowest level buried in the hill.",
+      "reference_basis": "OMA - Maison à Bordeaux, Floirac 1998. 세 채의 집이 포개진 구성 - 언덕을 파고든 굴 같은 아래층, 사방이 유리로 열린 가운데층, 둥근 창이 뚫린 콘크리트 상자 위층. 3 x 3.5m 승강 플랫폼이 세 층을 관통하고, 위층 상자는 기둥 하나와 보, 외부 강철 아치가 잡아 공중에 떠 있다.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.45,
+          "height": 0.9,
+          "align": "back",
+          "why": "이 집은 세 채다 - 굴, 유리방, 콘크리트 상자. 3은 그 세 채이고 0.9는 세 채가 이 필지의 4.17층을 나눠 갖는 값이다. 1.45는 셋이 같은 크기가 아니라는 실제 관계이고, align back은 언덕 쪽 면을 맞춰 절토면에 붙인다는 뜻이다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.28,
+          "on": "tier_2",
+          "why": "위층 콘크리트 상자는 가운데 유리층에 얹혀 있지 않다. 기둥 하나와 보에 걸려 공중에 떠 있고, 0.28은 그 사이에 사람 키를 넘는 한 개 층만큼의 빈 틈을 두는 값이다. 이 틈이 없으면 세 채가 아니라 한 채가 된다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.75,
+          "toward": "open",
+          "on": "tier_2",
+          "why": "그 상자는 아래 유리방의 윤곽 밖으로 나가 있어야 가운데 층이 사방으로 열린다. 0.32는 자기 폭의 3분의 1로, 코르동베르 언덕에서 보르도 시가지를 내려다보는 방향으로 내민 실제 거리에 해당한다. (0.32 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
+        },
+        {
+          "op": "shear",
+          "ratio": 0.2,
+          "toward": "back",
+          "on": "tier_1",
+          "why": "맨 아래 채는 언덕을 파고든 굴이라 반대 방향으로 물러난다. 0.2는 절토면에 붙는 최소한의 밀기이고, 이만큼 물려야 가운데 유리층 앞에 마당이 남는다. (on tier_0 → tier_1: 지면을 채운 단에 걸면 법규선이 이동을 되잘라내 출고물에서 안 보인다 — 움직일 여유가 있는 상부 단으로 겨냥을 옮겼다)"
+        }
+      ]
     },
     {
-     "op": "lift",
-     "clearance": 0.3,
-     "on": "daughter_box",
-     "why": "딸의 상자는 유리 거실층 위에 가는 기둥들로 떠 있다. 0.3은 사람이 지나가는 한 개 층 높이만 띄우는 값이고, 이만큼만 들어야 경사진 정원이 집 밑을 끊기지 않고 통과한다. 부모 상자는 반대로 땅에 앉아 있어야 두 주거가 서로 다른 지면을 갖는다."
+      "name": "oma_netherlands_dance_theatre",
+      "primary_language": "porous_field",
+      "secondary_language": "three volumes of different material leaning on one lobby floor",
+      "formal_principle": "An auditorium, a rehearsal wing and a bar are kept as three separate bodies of three different materials, tied only by the floor the audience stands on.",
+      "dominant_gesture": "A sloping black hall with a golden cone stuck to its side and a studio block sliding out toward the square.",
+      "reference_basis": "OMA - Nederlands Dans Theater, 헤이그 1987 (2015 철거). 1,001석 대극장, 리허설 스튜디오동, 금색 원뿔의 스카이바가 각각 다른 볼륨·다른 재료로 붙어 있고 검은 물결 지붕이 객석 위를 덮는다. 저예산으로 8개월 만에 지어져 볼륨마다 마감이 다르다.",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.4,
+          "height": 0.8,
+          "tie": 0.1,
+          "profile": "faceted",
+          "why": "극장 하나가 아니라 성격이 다른 세 덩어리다 - 1,001석 객석, 리허설 스튜디오, 금색 원뿔의 바. 3은 그 셋이고 1.4는 객석이 나머지 둘보다 확실히 크다는 실제 비례다. tie 0.1의 얇은 판은 셋을 하나의 극장으로 묶는 로비 바닥이다. 기울어진 유리벽과 꺾인 대리석 면들로 이루어진 건물이라 직각 상자가 아니라 faceted로 세운다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.5,
+          "on": "object_0",
+          "why": "가장 큰 덩어리인 객석은 위로 갈수록 좁아진다. 0.5는 무대에서 뒤로 올라가는 1,001석 경사 객석과 그 위를 덮은 검은 물결 지붕이 만드는 단면이고, 상부가 절반까지 줄어야 그 지붕선이 밖에서 보인다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.3,
+          "toward": "open",
+          "on": "object_1",
+          "why": "스튜디오동을 자기 폭의 0.3만큼 광장 쪽으로 밀어낸다. 공연 전의 관객과 연습 중인 무용수가 같은 유리면을 사이에 두고 서로 보이게 한 것이 이 건물의 장치였고, 그 장면은 스튜디오가 앞으로 나와야만 생긴다."
+        }
+      ],
+      "floor_height_m": 4.5
+    },
+    {
+      "name": "oma_qatar_national_library",
+      "primary_language": "carved_body",
+      "secondary_language": "one room whose edge folds up and whose middle is dug out",
+      "formal_principle": "The building is a single room; the shelving is the folded-up edge of its floor and the archive is a pit excavated in the middle of it.",
+      "dominant_gesture": "A low diamond lifted off the ground along one side, with a sunken excavation at its centre.",
+      "reference_basis": "OMA - Qatar National Library, 도하 2018. 연면적 약 42,000 m²가 층으로 나뉘지 않은 하나의 실. 마름모꼴 평면의 세 변을 접어 올려 100만 권 이상이 놓이는 계단식 서가를 만들고, 한가운데 바닥을 약 6m 파내려간 유산 도서관(Heritage Library)을 베이지색 대리석으로 마감했다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "profile": "kite",
+          "why": "하나의 방."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 0.0,
+          "why": "아카이브는 가운데 파낸 구덩이다. 가운데여야 하므로 reach 0."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "shelf_terrace",
+          "second": "reading_room",
+          "gap": 3.0,
+          "contrast": 1.4,
+          "why": "바닥의 끝이 접혀 올라간 것이 서가다."
+        },
+        {
+          "op": "rotate",
+          "on": "shelf_terrace",
+          "about": "court",
+          "degrees": 10,
+          "why": "서가는 구덩이를 둘러싼다. 구덩이의 중심을 축으로 돌아야 '둘러쌈'이 된다 — 자기 중심으로 돌면 그냥 비뚤어진 상자다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.26,
+          "on": "shelf_terrace",
+          "why": "접혀 올라간 끝."
+        }
+      ],
+      "floor_height_m": 3.6
+    },
+    {
+      "name": "oma_lab_city_saclay",
+      "primary_language": "open_figure",
+      "secondary_language": "three unequal bars lining a street cut through the block",
+      "formal_principle": "The largest laboratory building in France is cut apart by a public street, so the route through the block is the thing that is designed and the lab blocks are what line it.",
+      "dominant_gesture": "A wide open street running between low aluminium bars that stand clear of one another.",
+      "reference_basis": "OMA - Lab City, CentraleSupélec, 지프쉬르이베트(파리-사클레) 2017. 약 30,000 m²의 프랑스 최대 대학 실험동. 블록을 비스듬히 관통하는 실내 '거리'가 실험실 군을 둘로 가르고, 골이 진 아노다이즈드 알루미늄 외피가 4개 층을 감싼다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "profile": "trapezoidal",
+          "why": "4층 한 켜의 연구동."
+        },
+        {
+          "op": "split",
+          "ratio": 0.63,
+          "along": "long",
+          "first": "lab_bar",
+          "second": "teaching_bar",
+          "gap": 10.0,
+          "contrast": 1.35,
+          "why": "이 갈라짐이 공공 가로다. 7.6m — 카페와 계단이 일어나는 길."
+        },
+        {
+          "op": "split",
+          "on": "lab_bar",
+          "ratio": 0.58,
+          "along": "cross",
+          "gap": 5.0,
+          "contrast": 1.3,
+          "first": "wet_labs",
+          "second": "dry_labs",
+          "why": "어휘의 축 토큰은 long/cross뿐 — 역할 이름을 축 자리에 넣어 단어가 조용히 죽어 있었다. 두 번째 칼은 직교로."
+        }
+      ],
+      "floor_height_m": 3.6
+    },
+    {
+      "name": "oma_agadir_convention",
+      "primary_language": "carved_body",
+      "secondary_language": "an excavated ground under a plate that never touches it",
+      "formal_principle": "The section is the project: a hollowed-out artificial ground below, a flat inhabited plate above, and the two surfaces meeting only at columns.",
+      "dominant_gesture": "A wide roof plate slid toward the sea over a ground that has been dug out into caves.",
+      "reference_basis": "OMA - Agadir 컨벤션센터·호텔 (모로코, 1990 현상설계 당선, 미건축). 아래는 인공 지반을 파낸 동굴 같은 공용 공간, 위는 객실을 얹은 평평한 판. 물결치는 아래 천장과 평평한 위 천장은 기둥에서만 만나고, 단면이 곧 계획인 프로젝트로 알려져 있다.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.25,
+          "height": 0.9,
+          "align": "open",
+          "grow": true,
+          "why": "이 건물은 두 겹이다 - 동굴 같은 공용층 위에 객실 판. 2가 그 두 겹이고 0.9는 두 겹이 이 필지 높이를 나눠 쓰는 값이다. grow는 위가 아래보다 크다는 뜻으로, 아가디르에서 지붕 판은 대지 전체를 덮고 그 아래 동굴은 기둥 사이에만 있다."
+        },
+        {
+          "op": "carve",
+          "size": 0.5,
+          "at": "long",
+          "reach": 0.5,
+          "why": "아래 겹은 채워 만든 것이 아니라 파낸 것이다. 0.5는 아가디르의 공용층이 덩어리가 아니라 동굴들의 연속이라는 뜻이고, 이보다 작게 파면 로비에 홈을 낸 것에 지나지 않는다. reach 0.5로 바다 쪽에 치우쳐 파야 그 동굴이 해변에서 바로 들여다보인다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.75,
+          "toward": "open",
+          "on": "tier_1",
+          "why": "객실 판은 자기 깊이의 0.28만큼 바다 쪽으로 나가 있어야 모든 객실이 대서양을 보고, 그 내민 그늘이 아래 동굴 입구의 차양이 된다. 두 면이 서로 어긋나 있다는 것이 이 단면의 전부다. (0.28 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
+        }
+      ],
+      "floor_height_m": 4.5
+    },
+    {
+      "name": "oma_snu_museum_of_art",
+      "primary_language": "open_figure",
+      "secondary_language": "two arms reaching off one core on a slope",
+      "formal_principle": "A single concrete core is the only thing in the ground, and the building reaches out from it in two unequal directions to join the campus's upper and lower levels.",
+      "dominant_gesture": "A translucent box with two arms hanging over a slope, the ground running free beneath the longer one.",
+      "reference_basis": "OMA - 서울대학교미술관(MoA), 서울 2005. 연면적 약 4,900 m². 경사진 대지에 콘크리트 코어 하나만 땅에 박히고 상자가 양쪽으로 각각 15m 가까이 내밀어 위 캠퍼스와 아래 진입로를 잇는다. 예산 삭감으로 기둥 대신 단일 코어가 전체를 지탱하며, 외피는 반투명 U자형 채널 유리다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "4개 층 규모의 미술관이다. 0.8이 이 필지에서 그 4개 층이고, 여기서 더 올리면 '땅에 거의 닿지 않는 상자'라는 이 건물의 성격이 사라지고 그냥 탑이 된다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.6,
+          "along": "long",
+          "first": "campus_arm",
+          "second": "valley_arm",
+          "gap": 4.0,
+          "contrast": 1.5,
+          "why": "하나의 코어에서 상자가 양쪽으로 뻗는다. 0.6은 위 캠퍼스 쪽 팔이 아래 진입로 쪽 팔보다 길다는 실제 비대칭이고, gap 4(약 3m)는 두 팔 사이에서 코어와 계단이 서는 폭이다. 1.5는 아래쪽 팔이 낮게 걸린다는 뜻이다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "on": "valley_arm",
+          "why": "아래쪽 팔은 경사면 위로 15m 가까이 내밀어 땅에 닿지 않는다. 0.3은 그 아래로 사람과 차가 지나갈 한 개 층 높이이고, 기둥 없이 코어 하나로 버티는 구조가 이 이상 띄우지 못하게 한다."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.26,
+          "toward": "back",
+          "on": "campus_arm",
+          "why": "위쪽 팔은 자기 길이의 0.26만큼 캠퍼스 상단 쪽으로 더 밀려 나간다. 그래야 위 레벨 보행로에서 계단 없이 바로 전시층으로 들어오고, 두 팔이 코어를 사이에 두고 반대로 뻗는 모습이 성립한다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "oma_blox_copenhagen",
+      "primary_language": "open_figure",
+      "secondary_language": "three interlocking masses with a road passing between them",
+      "formal_principle": "A six-lane road runs through the site, so the building is several bodies from the start and the piece that is raised over the road is the public one.",
+      "dominant_gesture": "A lifted glass mass on the harbour side with the road running under it, facing two smaller blocks held apart on the city side.",
+      "reference_basis": "OMA - BLOX / BLOXHUB (덴마크 건축센터), 코펜하겐 2018. 약 28,000 m². 옛 양조장 부지에서 6차선 크리스티안스 브뤼게 도로를 타고 넘어 항구까지 간다. 사무실·전시·22세대 주거·지하 350대 주차가 서로 어긋나게 물린 유리 볼륨들에 담기고, 도로 위로 들린 광장과 그 아래 낮은 광장이 함께 생긴다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "지상 5개 층짜리 건물이지만 이 필지는 4.17층까지만 준다. 0.95는 이 대지가 줄 수 있는 전부이고, BLOX의 부피는 높이가 아니라 도로를 타고 넘는 길이에서 나오므로 그 이상은 필요하지 않다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.64,
+          "along": "cross",
+          "first": "harbour_wing",
+          "second": "city_wing",
+          "gap": 8.0,
+          "contrast": 1.45,
+          "why": "6차선 도로가 대지 한가운데를 지나가므로 이 건물은 처음부터 두 덩어리다. 0.64는 전시와 사무가 들어가는 항구 쪽 덩어리가 주거가 들어가는 도시 쪽보다 크다는 실제 배분이고, gap 8(약 6m)은 그 도로가 지나갈 폭이다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "long",
+          "first": "office_stack",
+          "second": "housing_block",
+          "gap": 8.0,
+          "contrast": 1.75,
+          "why": "도시 쪽도 한 덩어리가 아니다. BLOX는 사무·코워킹과 22세대 주거가 서로 어긋나게 물린 볼륨들이고, 0.62는 22세대 주거가 28,000 m² 안에서 작은 몫이라는 실제 비율이다. gap 8(약 6m)은 주거동이 사무동에 붙지 않고 자기 출입구와 사방 창을 갖는 폭이며, 1.75는 주거동이 사무 볼륨보다 확실히 낮게 앉는다는 뜻이다.",
+          "on": "city_wing"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "on": "harbour_wing",
+          "why": "항구 쪽 덩어리는 들려 있어야 6차선 도로와 부두 산책로가 그 밑을 그대로 통과한다. 0.3은 차가 지나갈 한 개 층 높이이고, 그 아래 비워진 자리가 BLOX의 낮은 광장으로 이어진다. 이 하나의 동작이 이 건물을 '도로를 타고 넘는 건물'로 만든다."
+        }
+      ]
+    },
+    {
+      "name": "oma_de_rotterdam_three_towers_slipped",
+      "primary_language": "stacked_body",
+      "secondary_language": "one plinth, three towers, and the upper halves slid apart",
+      "formal_principle": "Three towers stand shoulder to shoulder in one row, and the middle one is slid out of the row, so what reads from the street is a single block that has come loose.",
+      "dominant_gesture": "A wide grey plinth with three shafts whose tops step sideways out of line.",
+      "reference_basis": "OMA - De Rotterdam, Wilhelminapier Rotterdam (2013): a vertical city of 160,000 m2 in three interconnected towers on a shared 7-storey plinth, the upper blocks offset from the lower ones, 149 m tall",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "한 블록에서 시작한다. 세 탑은 별개 건물이 아니라 한 덩어리가 놓아진 것이다. ⚠️ 판정 3라운드 연속 불통(stack판 적층밴드 / 1.06m열 두 탑 / 3.04m열 한 쐐기). 4.2층 필지는 수직도시의 탑 셋을 읽을 높이가 없다 — 강남이 틈 어휘를 말할 수 없는 것과 같은 계급. 게이트는 전부 통과하므로 풀에는 남기되, 판정으로 이길 수 없음을 여기 기록한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.34,
+          "along": "cross",
+          "gap": 4.0,
+          "contrast": 1.25,
+          "first": "t_west",
+          "second": "t_rest",
+          "why": "첫 탑을 가른다. 판정이 stack판을 '적층 밴드'라 읽었다 — 탑은 위로 쌓는 게 아니라 옆으로 서는 것이라 split이 맞는 동사다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
+        },
+        {
+          "op": "split",
+          "on": "t_rest",
+          "ratio": 0.5,
+          "along": "cross",
+          "gap": 4.0,
+          "contrast": 1.25,
+          "first": "t_mid",
+          "second": "t_east",
+          "why": "나머지를 둘로 — 어깨를 맞댄 세 탑이 된다. contrast 1.12로 높이가 조금씩 달라 한 판으로 안 읽힌다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
+        },
+        {
+          "op": "shift",
+          "on": "t_mid",
+          "toward": "long",
+          "ratio": 0.4,
+          "why": "가운데 탑이 열에서 미끄러져 나온다. 4층 필지에서 '위 절반이 미끄러진다'는 말은 층이 없어 안 보이므로, 미끄러짐을 탑 단위로 옮겼다 — 놓아진 블록이라는 명제는 그대로다."
+        }
+      ],
+      "floor_height_m": 3.3
+    },
+    {
+      "name": "oma_taipei_performing_arts_three_theatres_plugged",
+      "primary_language": "carved_body",
+      "secondary_language": "a cube with three auditoria pushed into its sides",
+      "formal_principle": "The lobbies and stages are one cube lifted off the ground, and three auditoria are pushed into it from three sides so each keeps its own shape.",
+      "dominant_gesture": "A raised cube with a sphere and two boxes docking into its faces.",
+      "reference_basis": "OMA - Taipei Performing Arts Center, Shilin Taipei (2022): a central cube holding stage and support, with an 800-seat Globe Playhouse, a 1500-seat Grand Theatre and an 800-seat Blue Box plugged into three faces, ground level left open as public passage",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "profile": "faceted",
+          "why": "중앙 큐브. 무대와 지원부가 여기 다 들어간다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.22,
+          "why": "지상층을 공공 통로로 내준다. 이 건물이 시장 한복판에 서는 방식이다."
+        },
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.5,
+          "height": 0.5,
+          "tie": 0.0,
+          "turn": 22,
+          "why": "세 극장은 크기도 방향도 달라야 한다. 각자 형태를 지킨 채 큐브에 꽂힌다는 게 문장이고, tie는 0 — 이들은 묶이는 게 아니라 박히는 것이다."
+        }
+      ],
+      "floor_height_m": 4.5
+    },
+    {
+      "name": "oma_casa_da_musica_solid_with_a_hall_cut_through",
+      "primary_language": "carved_body",
+      "secondary_language": "one faceted solid with the hall bored through it",
+      "formal_principle": "A single faceted solid stands alone on its plaza and the main hall is bored straight through it, so the void is the room and everything else is what is left.",
+      "dominant_gesture": "A white faceted block with a rectangular opening passing clean through.",
+      "reference_basis": "OMA - Casa da Musica, Porto (2005): a single faceted concrete solid on an open travertine plaza, the 1300-seat shoebox hall carved through the mass with glazed ends at both faces",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "profile": "faceted",
+          "why": "다면체 단일 덩어리. 이 건물은 광장 위에 하나의 물체로 선다."
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "long",
+          "reach": 0.0,
+          "up_to": 0.55,
+          "through": true,
+          "why": "홀이 덩어리를 관통한다. through로 양 끝이 열려야 뚫렸다가 되고, up_to 0.72는 위쪽에 덩어리를 남겨 구멍이 아니라 관통실이 되게 한다. up_to 0.72→0.55. 판정 2조가 '한 덩어리 관통이 아니라 두 채'라 했다 — 위에 남는 다리가 28%뿐이라 안 읽혔다. 45%(두 층)면 구멍 위가 몸으로 읽힌다."
+        }
+      ],
+      "floor_height_m": 4.5
+    },
+    {
+      "name": "oma_timmerhuis_stepped_field_of_blocks",
+      "primary_language": "porous_field",
+      "secondary_language": "a grid of small blocks stepping back as it rises",
+      "formal_principle": "The building is a grid of equal small blocks and it is the stepping back of that grid, not any outline, that gives the mass its shape.",
+      "dominant_gesture": "A pixelated stack of glass cubes setting back irregularly toward the top.",
+      "reference_basis": "OMA - Timmerhuis, Rotterdam (2015): a modular grid of 7.2 m units stacked and set back irregularly around two atria, joining an existing 1950s municipal block",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.25,
+          "height": 0.55,
+          "tie": 0.14,
+          "why": "동일 모듈의 격자. spread는 최소에 가깝게 — 이 건물은 크기 차이가 아니라 배열로 형태를 만든다."
+        },
+        {
+          "op": "grade",
+          "toward": "cross",
+          "run": 0.55,
+          "steps": 4,
+          "why": "격자가 올라가며 물러선다. 계단은 층이고, 이 건물의 실루엣은 그 물러섬 자체다."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "oma_maison_bordeaux",
-   "primary_language": "solid_body",
-   "secondary_language": "three houses of different character piled up, the top one hanging",
-   "formal_principle": "Three dwellings with nothing in common are stacked, and the heaviest one is the one that does not touch what is under it.",
-   "dominant_gesture": "A closed concrete box floating clear above an open glass room, with the lowest level buried in the hill.",
-   "reference_basis": "OMA - Maison à Bordeaux, Floirac 1998. 세 채의 집이 포개진 구성 - 언덕을 파고든 굴 같은 아래층, 사방이 유리로 열린 가운데층, 둥근 창이 뚫린 콘크리트 상자 위층. 3 x 3.5m 승강 플랫폼이 세 층을 관통하고, 위층 상자는 기둥 하나와 보, 외부 강철 아치가 잡아 공중에 떠 있다.",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.45,
-     "height": 0.9,
-     "align": "back",
-     "why": "이 집은 세 채다 - 굴, 유리방, 콘크리트 상자. 3은 그 세 채이고 0.9는 세 채가 이 필지의 4.17층을 나눠 갖는 값이다. 1.45는 셋이 같은 크기가 아니라는 실제 관계이고, align back은 언덕 쪽 면을 맞춰 절토면에 붙인다는 뜻이다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.28,
-     "on": "tier_2",
-     "why": "위층 콘크리트 상자는 가운데 유리층에 얹혀 있지 않다. 기둥 하나와 보에 걸려 공중에 떠 있고, 0.28은 그 사이에 사람 키를 넘는 한 개 층만큼의 빈 틈을 두는 값이다. 이 틈이 없으면 세 채가 아니라 한 채가 된다."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.75,
-     "toward": "open",
-     "on": "tier_2",
-     "why": "그 상자는 아래 유리방의 윤곽 밖으로 나가 있어야 가운데 층이 사방으로 열린다. 0.32는 자기 폭의 3분의 1로, 코르동베르 언덕에서 보르도 시가지를 내려다보는 방향으로 내민 실제 거리에 해당한다. (0.32 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
-    },
-    {
-     "op": "shear",
-     "ratio": 0.2,
-     "toward": "back",
-     "on": "tier_1",
-     "why": "맨 아래 채는 언덕을 파고든 굴이라 반대 방향으로 물러난다. 0.2는 절토면에 붙는 최소한의 밀기이고, 이만큼 물려야 가운데 유리층 앞에 마당이 남는다. (on tier_0 → tier_1: 지면을 채운 단에 걸면 법규선이 이동을 되잘라내 출고물에서 안 보인다 — 움직일 여유가 있는 상부 단으로 겨냥을 옮겼다)"
-    }
-   ]
-  },
-  {
-   "name": "oma_netherlands_dance_theatre",
-   "primary_language": "porous_field",
-   "secondary_language": "three volumes of different material leaning on one lobby floor",
-   "formal_principle": "An auditorium, a rehearsal wing and a bar are kept as three separate bodies of three different materials, tied only by the floor the audience stands on.",
-   "dominant_gesture": "A sloping black hall with a golden cone stuck to its side and a studio block sliding out toward the square.",
-   "reference_basis": "OMA - Nederlands Dans Theater, 헤이그 1987 (2015 철거). 1,001석 대극장, 리허설 스튜디오동, 금색 원뿔의 스카이바가 각각 다른 볼륨·다른 재료로 붙어 있고 검은 물결 지붕이 객석 위를 덮는다. 저예산으로 8개월 만에 지어져 볼륨마다 마감이 다르다.",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 3,
-     "spread": 1.4,
-     "height": 0.8,
-     "tie": 0.1,
-     "profile": "faceted",
-     "why": "극장 하나가 아니라 성격이 다른 세 덩어리다 - 1,001석 객석, 리허설 스튜디오, 금색 원뿔의 바. 3은 그 셋이고 1.4는 객석이 나머지 둘보다 확실히 크다는 실제 비례다. tie 0.1의 얇은 판은 셋을 하나의 극장으로 묶는 로비 바닥이다. 기울어진 유리벽과 꺾인 대리석 면들로 이루어진 건물이라 직각 상자가 아니라 faceted로 세운다."
-    },
-    {
-     "op": "taper",
-     "ratio": 0.5,
-     "on": "object_0",
-     "why": "가장 큰 덩어리인 객석은 위로 갈수록 좁아진다. 0.5는 무대에서 뒤로 올라가는 1,001석 경사 객석과 그 위를 덮은 검은 물결 지붕이 만드는 단면이고, 상부가 절반까지 줄어야 그 지붕선이 밖에서 보인다."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.3,
-     "toward": "open",
-     "on": "object_1",
-     "why": "스튜디오동을 자기 폭의 0.3만큼 광장 쪽으로 밀어낸다. 공연 전의 관객과 연습 중인 무용수가 같은 유리면을 사이에 두고 서로 보이게 한 것이 이 건물의 장치였고, 그 장면은 스튜디오가 앞으로 나와야만 생긴다."
-    }
-   ],
-   "floor_height_m": 4.5
-  },
-  {
-   "name": "oma_qatar_national_library",
-   "primary_language": "carved_body",
-   "secondary_language": "one room whose edge folds up and whose middle is dug out",
-   "formal_principle": "The building is a single room; the shelving is the folded-up edge of its floor and the archive is a pit excavated in the middle of it.",
-   "dominant_gesture": "A low diamond lifted off the ground along one side, with a sunken excavation at its centre.",
-   "reference_basis": "OMA - Qatar National Library, 도하 2018. 연면적 약 42,000 m²가 층으로 나뉘지 않은 하나의 실. 마름모꼴 평면의 세 변을 접어 올려 100만 권 이상이 놓이는 계단식 서가를 만들고, 한가운데 바닥을 약 6m 파내려간 유산 도서관(Heritage Library)을 베이지색 대리석으로 마감했다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.6,
-     "profile": "kite",
-     "why": "하나의 방."
-    },
-    {
-     "op": "carve",
-     "size": 0.42,
-     "at": "cross",
-     "reach": 0.0,
-     "why": "아카이브는 가운데 파낸 구덩이다. 가운데여야 하므로 reach 0."
-    },
-    {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "cross",
-     "first": "shelf_terrace",
-     "second": "reading_room",
-     "gap": 3.0,
-     "contrast": 1.4,
-     "why": "바닥의 끝이 접혀 올라간 것이 서가다."
-    },
-    {
-     "op": "rotate",
-     "on": "shelf_terrace",
-     "about": "court",
-     "degrees": 10,
-     "why": "서가는 구덩이를 둘러싼다. 구덩이의 중심을 축으로 돌아야 '둘러쌈'이 된다 — 자기 중심으로 돌면 그냥 비뚤어진 상자다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.26,
-     "on": "shelf_terrace",
-     "why": "접혀 올라간 끝."
-    }
-   ],
-   "floor_height_m": 3.6
-  },
-  {
-   "name": "oma_lab_city_saclay",
-   "primary_language": "open_figure",
-   "secondary_language": "three unequal bars lining a street cut through the block",
-   "formal_principle": "The largest laboratory building in France is cut apart by a public street, so the route through the block is the thing that is designed and the lab blocks are what line it.",
-   "dominant_gesture": "A wide open street running between low aluminium bars that stand clear of one another.",
-   "reference_basis": "OMA - Lab City, CentraleSupélec, 지프쉬르이베트(파리-사클레) 2017. 약 30,000 m²의 프랑스 최대 대학 실험동. 블록을 비스듬히 관통하는 실내 '거리'가 실험실 군을 둘로 가르고, 골이 진 아노다이즈드 알루미늄 외피가 4개 층을 감싼다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.95,
-     "profile": "trapezoidal",
-     "why": "4층 한 켜의 연구동."
-    },
-    {
-     "op": "split",
-     "ratio": 0.63,
-     "along": "long",
-     "first": "lab_bar",
-     "second": "teaching_bar",
-     "gap": 10.0,
-     "contrast": 1.35,
-     "why": "이 갈라짐이 공공 가로다. 7.6m — 카페와 계단이 일어나는 길."
-    },
-    {
-     "op": "split",
-     "on": "lab_bar",
-     "ratio": 0.58,
-     "along": "lab_bar|teaching_bar",
-     "gap": 5.0,
-     "contrast": 1.3,
-     "first": "wet_labs",
-     "second": "dry_labs",
-     "why": "문장은 실험동이 가로를 '늘어선다'고 말한다. cross로 자르면 가로를 가로지른다. 가로가 낸 그 선을 따라 잘라야 늘어선다."
-    }
-   ],
-   "floor_height_m": 3.6
-  },
-  {
-   "name": "oma_agadir_convention",
-   "primary_language": "carved_body",
-   "secondary_language": "an excavated ground under a plate that never touches it",
-   "formal_principle": "The section is the project: a hollowed-out artificial ground below, a flat inhabited plate above, and the two surfaces meeting only at columns.",
-   "dominant_gesture": "A wide roof plate slid toward the sea over a ground that has been dug out into caves.",
-   "reference_basis": "OMA - Agadir 컨벤션센터·호텔 (모로코, 1990 현상설계 당선, 미건축). 아래는 인공 지반을 파낸 동굴 같은 공용 공간, 위는 객실을 얹은 평평한 판. 물결치는 아래 천장과 평평한 위 천장은 기둥에서만 만나고, 단면이 곧 계획인 프로젝트로 알려져 있다.",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 2,
-     "contrast": 1.25,
-     "height": 0.9,
-     "align": "open",
-     "grow": true,
-     "why": "이 건물은 두 겹이다 - 동굴 같은 공용층 위에 객실 판. 2가 그 두 겹이고 0.9는 두 겹이 이 필지 높이를 나눠 쓰는 값이다. grow는 위가 아래보다 크다는 뜻으로, 아가디르에서 지붕 판은 대지 전체를 덮고 그 아래 동굴은 기둥 사이에만 있다."
-    },
-    {
-     "op": "carve",
-     "size": 0.5,
-     "at": "long",
-     "reach": 0.5,
-     "why": "아래 겹은 채워 만든 것이 아니라 파낸 것이다. 0.5는 아가디르의 공용층이 덩어리가 아니라 동굴들의 연속이라는 뜻이고, 이보다 작게 파면 로비에 홈을 낸 것에 지나지 않는다. reach 0.5로 바다 쪽에 치우쳐 파야 그 동굴이 해변에서 바로 들여다보인다."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.75,
-     "toward": "open",
-     "on": "tier_1",
-     "why": "객실 판은 자기 깊이의 0.28만큼 바다 쪽으로 나가 있어야 모든 객실이 대서양을 보고, 그 내민 그늘이 아래 동굴 입구의 차양이 된다. 두 면이 서로 어긋나 있다는 것이 이 단면의 전부다. (0.28 →0.75: 문법 상한이 열려 이 값을 쓴다 — 이전 값에서는 법규선이 이동을 흡수해 출고물에서 아무 변화도 안 보였다)"
-    }
-   ],
-   "floor_height_m": 4.5
-  },
-  {
-   "name": "oma_snu_museum_of_art",
-   "primary_language": "open_figure",
-   "secondary_language": "two arms reaching off one core on a slope",
-   "formal_principle": "A single concrete core is the only thing in the ground, and the building reaches out from it in two unequal directions to join the campus's upper and lower levels.",
-   "dominant_gesture": "A translucent box with two arms hanging over a slope, the ground running free beneath the longer one.",
-   "reference_basis": "OMA - 서울대학교미술관(MoA), 서울 2005. 연면적 약 4,900 m². 경사진 대지에 콘크리트 코어 하나만 땅에 박히고 상자가 양쪽으로 각각 15m 가까이 내밀어 위 캠퍼스와 아래 진입로를 잇는다. 예산 삭감으로 기둥 대신 단일 코어가 전체를 지탱하며, 외피는 반투명 U자형 채널 유리다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.8,
-     "why": "4개 층 규모의 미술관이다. 0.8이 이 필지에서 그 4개 층이고, 여기서 더 올리면 '땅에 거의 닿지 않는 상자'라는 이 건물의 성격이 사라지고 그냥 탑이 된다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.6,
-     "along": "long",
-     "first": "campus_arm",
-     "second": "valley_arm",
-     "gap": 4.0,
-     "contrast": 1.5,
-     "why": "하나의 코어에서 상자가 양쪽으로 뻗는다. 0.6은 위 캠퍼스 쪽 팔이 아래 진입로 쪽 팔보다 길다는 실제 비대칭이고, gap 4(약 3m)는 두 팔 사이에서 코어와 계단이 서는 폭이다. 1.5는 아래쪽 팔이 낮게 걸린다는 뜻이다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.3,
-     "on": "valley_arm",
-     "why": "아래쪽 팔은 경사면 위로 15m 가까이 내밀어 땅에 닿지 않는다. 0.3은 그 아래로 사람과 차가 지나갈 한 개 층 높이이고, 기둥 없이 코어 하나로 버티는 구조가 이 이상 띄우지 못하게 한다."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.26,
-     "toward": "back",
-     "on": "campus_arm",
-     "why": "위쪽 팔은 자기 길이의 0.26만큼 캠퍼스 상단 쪽으로 더 밀려 나간다. 그래야 위 레벨 보행로에서 계단 없이 바로 전시층으로 들어오고, 두 팔이 코어를 사이에 두고 반대로 뻗는 모습이 성립한다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "oma_blox_copenhagen",
-   "primary_language": "open_figure",
-   "secondary_language": "three interlocking masses with a road passing between them",
-   "formal_principle": "A six-lane road runs through the site, so the building is several bodies from the start and the piece that is raised over the road is the public one.",
-   "dominant_gesture": "A lifted glass mass on the harbour side with the road running under it, facing two smaller blocks held apart on the city side.",
-   "reference_basis": "OMA - BLOX / BLOXHUB (덴마크 건축센터), 코펜하겐 2018. 약 28,000 m². 옛 양조장 부지에서 6차선 크리스티안스 브뤼게 도로를 타고 넘어 항구까지 간다. 사무실·전시·22세대 주거·지하 350대 주차가 서로 어긋나게 물린 유리 볼륨들에 담기고, 도로 위로 들린 광장과 그 아래 낮은 광장이 함께 생긴다.",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.95,
-     "why": "지상 5개 층짜리 건물이지만 이 필지는 4.17층까지만 준다. 0.95는 이 대지가 줄 수 있는 전부이고, BLOX의 부피는 높이가 아니라 도로를 타고 넘는 길이에서 나오므로 그 이상은 필요하지 않다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.64,
-     "along": "cross",
-     "first": "harbour_wing",
-     "second": "city_wing",
-     "gap": 8.0,
-     "contrast": 1.45,
-     "why": "6차선 도로가 대지 한가운데를 지나가므로 이 건물은 처음부터 두 덩어리다. 0.64는 전시와 사무가 들어가는 항구 쪽 덩어리가 주거가 들어가는 도시 쪽보다 크다는 실제 배분이고, gap 8(약 6m)은 그 도로가 지나갈 폭이다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.62,
-     "along": "long",
-     "first": "office_stack",
-     "second": "housing_block",
-     "gap": 8.0,
-     "contrast": 1.75,
-     "why": "도시 쪽도 한 덩어리가 아니다. BLOX는 사무·코워킹과 22세대 주거가 서로 어긋나게 물린 볼륨들이고, 0.62는 22세대 주거가 28,000 m² 안에서 작은 몫이라는 실제 비율이다. gap 8(약 6m)은 주거동이 사무동에 붙지 않고 자기 출입구와 사방 창을 갖는 폭이며, 1.75는 주거동이 사무 볼륨보다 확실히 낮게 앉는다는 뜻이다.",
-     "on": "city_wing"
-    },
-    {
-     "op": "lift",
-     "clearance": 0.3,
-     "on": "harbour_wing",
-     "why": "항구 쪽 덩어리는 들려 있어야 6차선 도로와 부두 산책로가 그 밑을 그대로 통과한다. 0.3은 차가 지나갈 한 개 층 높이이고, 그 아래 비워진 자리가 BLOX의 낮은 광장으로 이어진다. 이 하나의 동작이 이 건물을 '도로를 타고 넘는 건물'로 만든다."
-    }
-   ]
-  },
-  {
-   "name": "oma_de_rotterdam_three_towers_slipped",
-   "primary_language": "stacked_body",
-   "secondary_language": "one plinth, three towers, and the upper halves slid apart",
-   "formal_principle": "Three towers stand shoulder to shoulder in one row, and the middle one is slid out of the row, so what reads from the street is a single block that has come loose.",
-   "dominant_gesture": "A wide grey plinth with three shafts whose tops step sideways out of line.",
-   "reference_basis": "OMA - De Rotterdam, Wilhelminapier Rotterdam (2013): a vertical city of 160,000 m2 in three interconnected towers on a shared 7-storey plinth, the upper blocks offset from the lower ones, 149 m tall",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 1.0,
-     "why": "한 블록에서 시작한다. 세 탑은 별개 건물이 아니라 한 덩어리가 놓아진 것이다. ⚠️ 판정 3라운드 연속 불통(stack판 적층밴드 / 1.06m열 두 탑 / 3.04m열 한 쐐기). 4.2층 필지는 수직도시의 탑 셋을 읽을 높이가 없다 — 강남이 틈 어휘를 말할 수 없는 것과 같은 계급. 게이트는 전부 통과하므로 풀에는 남기되, 판정으로 이길 수 없음을 여기 기록한다."
-    },
-    {
-     "op": "split",
-     "ratio": 0.34,
-     "along": "cross",
-     "gap": 4.0,
-     "contrast": 1.25,
-     "first": "t_west",
-     "second": "t_rest",
-     "why": "첫 탑을 가른다. 판정이 stack판을 '적층 밴드'라 읽었다 — 탑은 위로 쌓는 게 아니라 옆으로 서는 것이라 split이 맞는 동사다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
-    },
-    {
-     "op": "split",
-     "on": "t_rest",
-     "ratio": 0.5,
-     "along": "cross",
-     "gap": 4.0,
-     "contrast": 1.25,
-     "first": "t_mid",
-     "second": "t_east",
-     "why": "나머지를 둘로 — 어깨를 맞댄 세 탑이 된다. contrast 1.12로 높이가 조금씩 달라 한 판으로 안 읽힌다. 틈 1.4(1.06m)는 출고에서 붙어 두 탑으로 읽혔다 — 4.0(3.0m)과 대비 1.25로."
-    },
-    {
-     "op": "shift",
-     "on": "t_mid",
-     "toward": "long",
-     "ratio": 0.4,
-     "why": "가운데 탑이 열에서 미끄러져 나온다. 4층 필지에서 '위 절반이 미끄러진다'는 말은 층이 없어 안 보이므로, 미끄러짐을 탑 단위로 옮겼다 — 놓아진 블록이라는 명제는 그대로다."
-    }
-   ],
-   "floor_height_m": 3.3
-  },
-  {
-   "name": "oma_taipei_performing_arts_three_theatres_plugged",
-   "primary_language": "carved_body",
-   "secondary_language": "a cube with three auditoria pushed into its sides",
-   "formal_principle": "The lobbies and stages are one cube lifted off the ground, and three auditoria are pushed into it from three sides so each keeps its own shape.",
-   "dominant_gesture": "A raised cube with a sphere and two boxes docking into its faces.",
-   "reference_basis": "OMA - Taipei Performing Arts Center, Shilin Taipei (2022): a central cube holding stage and support, with an 800-seat Globe Playhouse, a 1500-seat Grand Theatre and an 800-seat Blue Box plugged into three faces, ground level left open as public passage",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.8,
-     "profile": "faceted",
-     "why": "중앙 큐브. 무대와 지원부가 여기 다 들어간다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.22,
-     "why": "지상층을 공공 통로로 내준다. 이 건물이 시장 한복판에 서는 방식이다."
-    },
-    {
-     "op": "aggregate",
-     "n": 3,
-     "spread": 1.5,
-     "height": 0.5,
-     "tie": 0.0,
-     "turn": 22,
-     "why": "세 극장은 크기도 방향도 달라야 한다. 각자 형태를 지킨 채 큐브에 꽂힌다는 게 문장이고, tie는 0 — 이들은 묶이는 게 아니라 박히는 것이다."
-    }
-   ],
-   "floor_height_m": 4.5
-  },
-  {
-   "name": "oma_casa_da_musica_solid_with_a_hall_cut_through",
-   "primary_language": "carved_body",
-   "secondary_language": "one faceted solid with the hall bored through it",
-   "formal_principle": "A single faceted solid stands alone on its plaza and the main hall is bored straight through it, so the void is the room and everything else is what is left.",
-   "dominant_gesture": "A white faceted block with a rectangular opening passing clean through.",
-   "reference_basis": "OMA - Casa da Musica, Porto (2005): a single faceted concrete solid on an open travertine plaza, the 1300-seat shoebox hall carved through the mass with glazed ends at both faces",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "profile": "faceted",
-     "why": "다면체 단일 덩어리. 이 건물은 광장 위에 하나의 물체로 선다."
-    },
-    {
-     "op": "carve",
-     "size": 0.42,
-     "at": "long",
-     "reach": 0.0,
-     "up_to": 0.55,
-     "through": true,
-     "why": "홀이 덩어리를 관통한다. through로 양 끝이 열려야 뚫렸다가 되고, up_to 0.72는 위쪽에 덩어리를 남겨 구멍이 아니라 관통실이 되게 한다. up_to 0.72→0.55. 판정 2조가 '한 덩어리 관통이 아니라 두 채'라 했다 — 위에 남는 다리가 28%뿐이라 안 읽혔다. 45%(두 층)면 구멍 위가 몸으로 읽힌다."
-    }
-   ],
-   "floor_height_m": 4.5
-  },
-  {
-   "name": "oma_timmerhuis_stepped_field_of_blocks",
-   "primary_language": "porous_field",
-   "secondary_language": "a grid of small blocks stepping back as it rises",
-   "formal_principle": "The building is a grid of equal small blocks and it is the stepping back of that grid, not any outline, that gives the mass its shape.",
-   "dominant_gesture": "A pixelated stack of glass cubes setting back irregularly toward the top.",
-   "reference_basis": "OMA - Timmerhuis, Rotterdam (2015): a modular grid of 7.2 m units stacked and set back irregularly around two atria, joining an existing 1950s municipal block",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 6,
-     "spread": 1.25,
-     "height": 0.55,
-     "tie": 0.14,
-     "why": "동일 모듈의 격자. spread는 최소에 가깝게 — 이 건물은 크기 차이가 아니라 배열로 형태를 만든다."
-    },
-    {
-     "op": "grade",
-     "toward": "cross",
-     "run": 0.55,
-     "steps": 4,
-     "why": "격자가 올라가며 물러선다. 계단은 층이고, 이 건물의 실루엣은 그 물러섬 자체다."
-    }
-   ]
-  }
- ]
+  ]
 }

@@ -1,481 +1,476 @@
 {
- "schemes": [
-  {
-   "name": "a_one_pitch",
-   "primary_language": "solid_body",
-   "formal_principle": "몸 전체가 열린 면을 향해 낮아지는 단 한 장의 경사 단면으로 설명된다.",
-   "dominant_gesture": "멀리서는 도로 쪽으로 미끄러져 내려오는 하나의 긴 지붕선만 보인다.",
-   "floor_height_m": 3.6,
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "height": 0.55,
-     "profile": "trapezoidal"
+      "name": "a_one_pitch",
+      "primary_language": "solid_body",
+      "formal_principle": "몸 전체가 열린 면을 향해 낮아지는 단 한 장의 경사 단면으로 설명된다.",
+      "dominant_gesture": "멀리서는 도로 쪽으로 미끄러져 내려오는 하나의 긴 지붕선만 보인다.",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "profile": "trapezoidal"
+        },
+        {
+          "op": "grade",
+          "run": 0.75,
+          "toward": "open",
+          "steps": 6,
+          "smooth": true
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
     },
     {
-     "op": "grade",
-     "run": 0.75,
-     "toward": "open",
-     "steps": 6,
-     "smooth": true
+      "name": "a_one_bend",
+      "primary_language": "solid_body",
+      "formal_principle": "긴 등뼈가 평면에서 단 한 번 무릎처럼 꺾이고, 낮은 뒤꿈치가 꺾임의 안쪽을 받친다.",
+      "dominant_gesture": "멀리서는 도로의 각을 따라 한 번 꺾인 낮고 긴 등뼈가 보인다.",
+      "floor_height_m": 3.3,
+      "ops": [
+        {
+          "op": "split",
+          "ratio": 0.68,
+          "along": "long",
+          "first": "spine",
+          "second": "heel",
+          "contrast": 1.5
+        },
+        {
+          "op": "bend",
+          "degrees": 38,
+          "segments": 4,
+          "on": "spine"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "a_figure_eight",
+      "primary_language": "open_figure",
+      "formal_principle": "고리 하나가 허리에서 조여져 두 개의 마당을 가진 8자로 닫힌다.",
+      "dominant_gesture": "멀리서는 가운데가 잘록한 낮은 반지 하나가 보인다.",
+      "floor_height_m": 3.0,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.6
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.35
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "a_low_branch",
+      "primary_language": "open_figure",
+      "formal_principle": "두 번 조여진 줄기 하나가 몸통이 되고, 거기서 뻗은 세 개의 낮은 팔이 건물의 전부다.",
+      "dominant_gesture": "멀리서는 등뼈에서 세 갈래로 갈라져 나온 낮은 팔들이 보인다.",
+      "floor_height_m": 3.9,
+      "ops": [
+        {
+          "op": "compress",
+          "ratio": 0.62,
+          "toward": "cross",
+          "why": "팔이 뻗을 자리를 남기려면 몸이 대지를 다 먹어선 안 된다 — 한 번만 누른다. 두 번 곱해(0.28) 실이 되면 팔의 절대 길이가 0이고, 아예 안 누르면 팔이 봉투에 잘린다(실측 0.215→0.000)."
+        },
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "profile": "stadium"
+        },
+        {
+          "op": "branch",
+          "n": 3,
+          "reach": 1.0,
+          "height": 0.6
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "a_slow_turn",
+      "primary_language": "stacked_body",
+      "formal_principle": "두 단으로 앉은 낮은 몸이 바닥에서 지붕까지 30도를 천천히 돈다.",
+      "dominant_gesture": "멀리서는 모서리들이 나선을 그리며 돌아간 낮은 덩어리 하나가 보인다.",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.4,
+          "align": "open",
+          "height": 0.55
+        },
+        {
+          "op": "twist",
+          "degrees": 30
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "a_one_crack",
+      "primary_language": "carved_body",
+      "formal_principle": "하나로 묶인 낮은 판이 단 한 줄의 균열로 어긋나며 둘로 갈라진다.",
+      "dominant_gesture": "멀리서는 번개처럼 한 번 금이 간 낮고 넓은 지붕판이 보인다.",
+      "floor_height_m": 4.2,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.2,
+          "height": 0.45,
+          "tie": 0.4
+        },
+        {
+          "op": "fracture",
+          "n": 1,
+          "slot": 0.12,
+          "degrees": 20,
+          "turn": 25
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_madang_gori",
+      "primary_language": "open_figure",
+      "formal_principle": "고리 한 채가 필지 가운데를 마당으로 비우고, 지붕 전체가 한 장의 경사면이 되어 열린 면을 향해 낮아진다.",
+      "dominant_gesture": "가운데가 뚫린 낮은 고리 지붕이 도로 쪽으로 한 장처럼 미끄러져 내려앉는다.",
+      "floor_height_m": 3.0,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.6
+        },
+        {
+          "op": "grade",
+          "run": 0.75,
+          "toward": "open",
+          "steps": 6,
+          "smooth": true
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_golmok_du_chae",
+      "primary_language": "open_figure",
+      "formal_principle": "몸을 긴축으로 둘로 갈라 사이에 골목을 두고, 바깥채를 세 번 꺾어 골목의 폭이 조였다 풀리게 하며, 안채 발밑을 들어 골목이 안마당까지 스민다.",
+      "dominant_gesture": "나란한 두 낮은 채 사이로 꺾인 골목 하나가 대지를 비스듬히 관통한다.",
+      "floor_height_m": 3.2,
+      "ops": [
+        {
+          "op": "split",
+          "ratio": 0.45,
+          "along": "long",
+          "first": "anchae",
+          "second": "bakkatchae",
+          "gap": 4.5,
+          "contrast": 1.4
+        },
+        {
+          "op": "bend",
+          "degrees": 34,
+          "segments": 3,
+          "on": "bakkatchae"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.25,
+          "on": "anchae"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_moyeo_teulda",
+      "primary_language": "porous_field",
+      "formal_principle": "여덟 채가 낮게 흩어져 사이마다 골목폭의 틈을 남기고, 무리 전체가 한 방향으로 감기며 틈이 마당으로 벌어진다.",
+      "dominant_gesture": "낮은 지붕 무리가 소용돌이처럼 살짝 감겨 있고 채 사이사이가 비어 있다.",
+      "floor_height_m": 2.9,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.7,
+          "height": 0.45,
+          "tie": 0.2,
+          "turn": 12,
+          "unit": "house",
+          "why": "'채'는 지붕이 있어야 채다 — 박공 단위 다섯이 감기며 틈이 마당으로 벌어진다."
+        },
+        {
+          "op": "twist",
+          "degrees": 28
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_gyunyeol_madang",
+      "primary_language": "carved_body",
+      "formal_principle": "모서리를 눅인 낮고 넓은 한 덩어리에 균열 세 줄을 내어 골목으로 삼고, 짧은축으로 속을 관통해 파내어 한가운데 마당을 남긴다.",
+      "dominant_gesture": "넓게 깔린 덩어리가 세 갈래 균열로 벌어지고 그 한복판이 하늘로 뚫려 있다.",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "profile": "chamfered"
+        },
+        {
+          "op": "fracture",
+          "n": 3,
+          "slot": 0.12,
+          "degrees": 18,
+          "turn": 25
+        },
+        {
+          "op": "carve",
+          "size": 0.5,
+          "at": "cross",
+          "reach": 0.6,
+          "up_to": 1.0,
+          "through": true
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_gaji_sai",
+      "primary_language": "open_figure",
+      "formal_principle": "몸을 두 번 조여 긴 줄기 한 채로 세운 뒤 네 팔을 이웃쪽으로 뻗어, 팔과 팔 사이가 저마다 마당으로 남는다.",
+      "dominant_gesture": "낮은 등뼈에서 네 팔이 나란히 뻗은 빗살이 마당들을 하나씩 감싼다.",
+      "floor_height_m": 3.0,
+      "ops": [
+        {
+          "op": "compress",
+          "ratio": 0.5,
+          "toward": "cross"
+        },
+        {
+          "op": "compress",
+          "ratio": 0.7,
+          "toward": "cross"
+        },
+        {
+          "op": "branch",
+          "n": 4,
+          "reach": 1.1,
+          "height": 0.5
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "b_heori_du_madang",
+      "primary_language": "carved_body",
+      "formal_principle": "열린 면에서 속을 깊이 파내어 앞마당을 들이고, 허리를 조여 빈 곳을 앞뒤 두 마당으로 나누며, 조인 허리 발밑을 들어 두 마당이 발밑으로 이어진다.",
+      "dominant_gesture": "가운데 허리가 잘록한 낮은 몸 양쪽에 두 마당이 맞들려 있다.",
+      "floor_height_m": 3.3,
+      "ops": [
+        {
+          "op": "carve",
+          "size": 0.45,
+          "at": "open",
+          "reach": 0.7,
+          "up_to": 1.0
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.35
+        },
+        {
+          "op": "lift",
+          "clearance": 0.2
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_load_tree",
+      "primary_language": "open_figure",
+      "formal_principle": "두 번 조인 줄기 하나가 세 개의 팔을 내밀어, 하중이 땅으로 내려오는 경로가 그대로 평면이 된다.",
+      "dominant_gesture": "가는 수직 줄기에서 세 방향으로 뻗은 낮고 긴 수평 팔들.",
+      "floor_height_m": 3.8,
+      "ops": [
+        {
+          "height": 0.5,
+          "profile": "square",
+          "op": "extrude"
+        },
+        {
+          "ratio": 0.45,
+          "toward": "cross",
+          "op": "compress"
+        },
+        {
+          "ratio": 0.6,
+          "toward": "cross",
+          "op": "compress"
+        },
+        {
+          "n": 3,
+          "reach": 1.1,
+          "height": 0.7,
+          "op": "branch"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_shear_fault",
+      "primary_language": "solid_body",
+      "formal_principle": "한 덩어리가 전단 방향으로 갈라져, 어긋난 두 지괴가 균열면을 사이에 두고 서로를 버틴다.",
+      "dominant_gesture": "비스듬한 균열 두 줄로 어긋난 낮은 지괴들.",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "height": 0.6,
+          "profile": "trapezoidal",
+          "op": "extrude"
+        },
+        {
+          "ratio": 0.62,
+          "toward": "long",
+          "op": "compress"
+        },
+        {
+          "n": 2,
+          "slot": 0.13,
+          "degrees": 16,
+          "turn": -30,
+          "op": "fracture"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_bent_girder",
+      "primary_language": "open_figure",
+      "formal_principle": "받침 덩어리에 걸린 긴 보가 평면에서 세 번 꺾여, 꺾인 마디마다 힘의 방향이 바뀌는 것이 보인다.",
+      "dominant_gesture": "묵직한 받침 위에서 세 번 꺾이며 대지를 가로지르는 낮고 긴 보.",
+      "floor_height_m": 4.2,
+      "ops": [
+        {
+          "height": 0.45,
+          "profile": "stadium",
+          "op": "extrude"
+        },
+        {
+          "ratio": 0.68,
+          "along": "long",
+          "first": "girder",
+          "second": "abutment",
+          "gap": 0,
+          "contrast": 1.6,
+          "op": "split"
+        },
+        {
+          "degrees": 42,
+          "segments": 3,
+          "on": "girder",
+          "op": "bend"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_pinched_ring",
+      "primary_language": "open_figure",
+      "formal_principle": "고리의 허리를 조여 8자로 닫고 전체를 들어올려, 조인 자리가 두 마당 사이에서 하중을 받는 목이 된다.",
+      "dominant_gesture": "허리가 잘록하게 조여 8자가 된, 땅에서 뜬 낮은 고리.",
+      "floor_height_m": 3.3,
+      "ops": [
+        {
+          "bar": 0.3,
+          "height": 0.55,
+          "op": "loop"
+        },
+        {
+          "ratio": 0.35,
+          "op": "pinch"
+        },
+        {
+          "clearance": 0.3,
+          "op": "lift"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_thrust_ramp",
+      "primary_language": "solid_body",
+      "formal_principle": "지붕 전체가 이웃 쪽으로 오르는 한 장의 경사면이 되고, 그 몸통을 비스듬히 관통하는 바 하나가 경사의 미는 힘을 받아낸다.",
+      "dominant_gesture": "이웃 쪽으로 솟는 한 장의 경사면과 그것을 비스듬히 뚫고 나온 바.",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "height": 0.5,
+          "profile": "chamfered",
+          "op": "extrude"
+        },
+        {
+          "run": 0.75,
+          "toward": "back",
+          "steps": 6,
+          "smooth": true,
+          "op": "grade"
+        },
+        {
+          "degrees": 38,
+          "size": 0.22,
+          "climb": 0.4,
+          "level": 0.55,
+          "first": "strut",
+          "op": "intersect"
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+    },
+    {
+      "name": "c_torsion_field",
+      "primary_language": "porous_field",
+      "formal_principle": "다섯 덩이가 한 중심을 물고 돌아앉은 무리 전체가 다시 비틀려, 비틀림이 배치의 질서로 읽힌다.",
+      "dominant_gesture": "중심을 물고 조금씩 돌아앉은 다섯 덩이의 낮은 소용돌이.",
+      "floor_height_m": 2.9,
+      "ops": [
+        {
+          "n": 5,
+          "spread": 1.5,
+          "height": 0.4,
+          "tie": 0.35,
+          "turn": 55,
+          "op": "aggregate",
+          "why": "회전은 배치가 말한다 — 다섯 덩이가 55도씩 서로 어긋나 물리며 비틀림 자체가 배치의 질서가 된다. 사후 twist는 균질해서 안 보였다."
+        }
+      ],
+      "secondary_language": "",
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
     }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "a_one_bend",
-   "primary_language": "solid_body",
-   "formal_principle": "긴 등뼈가 평면에서 단 한 번 무릎처럼 꺾이고, 낮은 뒤꿈치가 꺾임의 안쪽을 받친다.",
-   "dominant_gesture": "멀리서는 도로의 각을 따라 한 번 꺾인 낮고 긴 등뼈가 보인다.",
-   "floor_height_m": 3.3,
-   "ops": [
-    {
-     "op": "split",
-     "ratio": 0.68,
-     "along": "long",
-     "first": "spine",
-     "second": "heel",
-     "contrast": 1.5
-    },
-    {
-     "op": "bend",
-     "degrees": 38,
-     "segments": 4,
-     "on": "spine"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "a_figure_eight",
-   "primary_language": "open_figure",
-   "formal_principle": "고리 하나가 허리에서 조여져 두 개의 마당을 가진 8자로 닫힌다.",
-   "dominant_gesture": "멀리서는 가운데가 잘록한 낮은 반지 하나가 보인다.",
-   "floor_height_m": 3.0,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.6
-    },
-    {
-     "op": "pinch",
-     "ratio": 0.35
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "a_low_branch",
-   "primary_language": "open_figure",
-   "formal_principle": "두 번 조여진 줄기 하나가 몸통이 되고, 거기서 뻗은 세 개의 낮은 팔이 건물의 전부다.",
-   "dominant_gesture": "멀리서는 등뼈에서 세 갈래로 갈라져 나온 낮은 팔들이 보인다.",
-   "floor_height_m": 3.9,
-   "ops": [
-    {
-     "op": "compress",
-     "ratio": 0.4,
-     "toward": "cross"
-    },
-    {
-     "op": "compress",
-     "ratio": 0.7,
-     "toward": "cross"
-    },
-    {
-     "op": "extrude",
-     "height": 0.5,
-     "profile": "stadium"
-    },
-    {
-     "op": "branch",
-     "n": 3,
-     "reach": 1.0,
-     "height": 0.6
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "a_slow_turn",
-   "primary_language": "stacked_body",
-   "formal_principle": "두 단으로 앉은 낮은 몸이 바닥에서 지붕까지 30도를 천천히 돈다.",
-   "dominant_gesture": "멀리서는 모서리들이 나선을 그리며 돌아간 낮은 덩어리 하나가 보인다.",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "n": 2,
-     "contrast": 1.4,
-     "align": "open",
-     "height": 0.55
-    },
-    {
-     "op": "twist",
-     "degrees": 30
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "a_one_crack",
-   "primary_language": "carved_body",
-   "formal_principle": "하나로 묶인 낮은 판이 단 한 줄의 균열로 어긋나며 둘로 갈라진다.",
-   "dominant_gesture": "멀리서는 번개처럼 한 번 금이 간 낮고 넓은 지붕판이 보인다.",
-   "floor_height_m": 4.2,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 2,
-     "spread": 1.2,
-     "height": 0.45,
-     "tie": 0.4
-    },
-    {
-     "op": "fracture",
-     "n": 1,
-     "slot": 0.12,
-     "degrees": 20,
-     "turn": 25
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_madang_gori",
-   "primary_language": "open_figure",
-   "formal_principle": "고리 한 채가 필지 가운데를 마당으로 비우고, 지붕 전체가 한 장의 경사면이 되어 열린 면을 향해 낮아진다.",
-   "dominant_gesture": "가운데가 뚫린 낮은 고리 지붕이 도로 쪽으로 한 장처럼 미끄러져 내려앉는다.",
-   "floor_height_m": 3.0,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.6
-    },
-    {
-     "op": "grade",
-     "run": 0.75,
-     "toward": "open",
-     "steps": 6,
-     "smooth": true
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_golmok_du_chae",
-   "primary_language": "open_figure",
-   "formal_principle": "몸을 긴축으로 둘로 갈라 사이에 골목을 두고, 바깥채를 세 번 꺾어 골목의 폭이 조였다 풀리게 하며, 안채 발밑을 들어 골목이 안마당까지 스민다.",
-   "dominant_gesture": "나란한 두 낮은 채 사이로 꺾인 골목 하나가 대지를 비스듬히 관통한다.",
-   "floor_height_m": 3.2,
-   "ops": [
-    {
-     "op": "split",
-     "ratio": 0.45,
-     "along": "long",
-     "first": "anchae",
-     "second": "bakkatchae",
-     "gap": 4.5,
-     "contrast": 1.4
-    },
-    {
-     "op": "bend",
-     "degrees": 34,
-     "segments": 3,
-     "on": "bakkatchae"
-    },
-    {
-     "op": "lift",
-     "clearance": 0.25,
-     "on": "anchae"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_moyeo_teulda",
-   "primary_language": "porous_field",
-   "formal_principle": "여덟 채가 낮게 흩어져 사이마다 골목폭의 틈을 남기고, 무리 전체가 한 방향으로 감기며 틈이 마당으로 벌어진다.",
-   "dominant_gesture": "낮은 지붕 무리가 소용돌이처럼 살짝 감겨 있고 채 사이사이가 비어 있다.",
-   "floor_height_m": 2.9,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 8,
-     "spread": 1.7,
-     "height": 0.45,
-     "tie": 0.2,
-     "turn": 12
-    },
-    {
-     "op": "twist",
-     "degrees": 28
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_gyunyeol_madang",
-   "primary_language": "carved_body",
-   "formal_principle": "모서리를 눅인 낮고 넓은 한 덩어리에 균열 세 줄을 내어 골목으로 삼고, 짧은축으로 속을 관통해 파내어 한가운데 마당을 남긴다.",
-   "dominant_gesture": "넓게 깔린 덩어리가 세 갈래 균열로 벌어지고 그 한복판이 하늘로 뚫려 있다.",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.45,
-     "profile": "chamfered"
-    },
-    {
-     "op": "fracture",
-     "n": 3,
-     "slot": 0.12,
-     "degrees": 18,
-     "turn": 25
-    },
-    {
-     "op": "carve",
-     "size": 0.5,
-     "at": "cross",
-     "reach": 0.6,
-     "up_to": 1.0,
-     "through": true
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_gaji_sai",
-   "primary_language": "open_figure",
-   "formal_principle": "몸을 두 번 조여 긴 줄기 한 채로 세운 뒤 네 팔을 이웃쪽으로 뻗어, 팔과 팔 사이가 저마다 마당으로 남는다.",
-   "dominant_gesture": "낮은 등뼈에서 네 팔이 나란히 뻗은 빗살이 마당들을 하나씩 감싼다.",
-   "floor_height_m": 3.0,
-   "ops": [
-    {
-     "op": "compress",
-     "ratio": 0.5,
-     "toward": "cross"
-    },
-    {
-     "op": "compress",
-     "ratio": 0.7,
-     "toward": "cross"
-    },
-    {
-     "op": "branch",
-     "n": 4,
-     "reach": 1.1,
-     "height": 0.5
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "b_heori_du_madang",
-   "primary_language": "carved_body",
-   "formal_principle": "열린 면에서 속을 깊이 파내어 앞마당을 들이고, 허리를 조여 빈 곳을 앞뒤 두 마당으로 나누며, 조인 허리 발밑을 들어 두 마당이 발밑으로 이어진다.",
-   "dominant_gesture": "가운데 허리가 잘록한 낮은 몸 양쪽에 두 마당이 맞들려 있다.",
-   "floor_height_m": 3.3,
-   "ops": [
-    {
-     "op": "carve",
-     "size": 0.45,
-     "at": "open",
-     "reach": 0.7,
-     "up_to": 1.0
-    },
-    {
-     "op": "pinch",
-     "ratio": 0.35
-    },
-    {
-     "op": "lift",
-     "clearance": 0.2
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_load_tree",
-   "primary_language": "open_figure",
-   "formal_principle": "두 번 조인 줄기 하나가 세 개의 팔을 내밀어, 하중이 땅으로 내려오는 경로가 그대로 평면이 된다.",
-   "dominant_gesture": "가는 수직 줄기에서 세 방향으로 뻗은 낮고 긴 수평 팔들.",
-   "floor_height_m": 3.8,
-   "ops": [
-    {
-     "height": 0.5,
-     "profile": "square",
-     "op": "extrude"
-    },
-    {
-     "ratio": 0.45,
-     "toward": "cross",
-     "op": "compress"
-    },
-    {
-     "ratio": 0.6,
-     "toward": "cross",
-     "op": "compress"
-    },
-    {
-     "n": 3,
-     "reach": 1.1,
-     "height": 0.7,
-     "op": "branch"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_shear_fault",
-   "primary_language": "solid_body",
-   "formal_principle": "한 덩어리가 전단 방향으로 갈라져, 어긋난 두 지괴가 균열면을 사이에 두고 서로를 버틴다.",
-   "dominant_gesture": "비스듬한 균열 두 줄로 어긋난 낮은 지괴들.",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "height": 0.6,
-     "profile": "trapezoidal",
-     "op": "extrude"
-    },
-    {
-     "ratio": 0.62,
-     "toward": "long",
-     "op": "compress"
-    },
-    {
-     "n": 2,
-     "slot": 0.13,
-     "degrees": 16,
-     "turn": -30,
-     "op": "fracture"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_bent_girder",
-   "primary_language": "open_figure",
-   "formal_principle": "받침 덩어리에 걸린 긴 보가 평면에서 세 번 꺾여, 꺾인 마디마다 힘의 방향이 바뀌는 것이 보인다.",
-   "dominant_gesture": "묵직한 받침 위에서 세 번 꺾이며 대지를 가로지르는 낮고 긴 보.",
-   "floor_height_m": 4.2,
-   "ops": [
-    {
-     "height": 0.45,
-     "profile": "stadium",
-     "op": "extrude"
-    },
-    {
-     "ratio": 0.68,
-     "along": "long",
-     "first": "girder",
-     "second": "abutment",
-     "gap": 0,
-     "contrast": 1.6,
-     "op": "split"
-    },
-    {
-     "degrees": 42,
-     "segments": 3,
-     "on": "girder",
-     "op": "bend"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_pinched_ring",
-   "primary_language": "open_figure",
-   "formal_principle": "고리의 허리를 조여 8자로 닫고 전체를 들어올려, 조인 자리가 두 마당 사이에서 하중을 받는 목이 된다.",
-   "dominant_gesture": "허리가 잘록하게 조여 8자가 된, 땅에서 뜬 낮은 고리.",
-   "floor_height_m": 3.3,
-   "ops": [
-    {
-     "bar": 0.3,
-     "height": 0.55,
-     "op": "loop"
-    },
-    {
-     "ratio": 0.35,
-     "op": "pinch"
-    },
-    {
-     "clearance": 0.3,
-     "op": "lift"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_thrust_ramp",
-   "primary_language": "solid_body",
-   "formal_principle": "지붕 전체가 이웃 쪽으로 오르는 한 장의 경사면이 되고, 그 몸통을 비스듬히 관통하는 바 하나가 경사의 미는 힘을 받아낸다.",
-   "dominant_gesture": "이웃 쪽으로 솟는 한 장의 경사면과 그것을 비스듬히 뚫고 나온 바.",
-   "floor_height_m": 3.6,
-   "ops": [
-    {
-     "height": 0.5,
-     "profile": "chamfered",
-     "op": "extrude"
-    },
-    {
-     "run": 0.75,
-     "toward": "back",
-     "steps": 6,
-     "smooth": true,
-     "op": "grade"
-    },
-    {
-     "degrees": 38,
-     "size": 0.22,
-     "climb": 0.4,
-     "level": 0.55,
-     "first": "strut",
-     "op": "intersect"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  },
-  {
-   "name": "c_torsion_field",
-   "primary_language": "porous_field",
-   "formal_principle": "다섯 덩이가 한 중심을 물고 돌아앉은 무리 전체가 다시 비틀려, 비틀림이 배치의 질서로 읽힌다.",
-   "dominant_gesture": "중심을 물고 조금씩 돌아앉은 다섯 덩이의 낮은 소용돌이.",
-   "floor_height_m": 2.9,
-   "ops": [
-    {
-     "n": 5,
-     "spread": 1.5,
-     "height": 0.4,
-     "tie": 0.2,
-     "turn": 18,
-     "op": "aggregate"
-    },
-    {
-     "degrees": 24,
-     "op": "twist"
-    }
-   ],
-   "secondary_language": "",
-   "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
-  }
- ]
+  ]
 }

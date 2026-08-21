@@ -174,7 +174,12 @@ def twist(frame, op) -> None:
 
     made: list[Placement] = []
     for item in picked:
-        count = _storeys(item, frame.storey, 3, 10)
+        # A turn is only smooth at the resolution it is cut. Capped at ten
+        # bands, a forty-metre tower turned in five-metre slabs and read as a
+        # pile of blocks rather than a twist - the cap, not the verb, was the
+        # blunt thing. One band per storey is the finest cut the storey gate
+        # will still call occupiable.
+        count = _storeys(item, frame.storey, 3, 24)
         pivot = transform_point3(item.matrix, (0.5, 0.5, 0.0))
 
         def shape(index: int, t: float) -> Matrix4:

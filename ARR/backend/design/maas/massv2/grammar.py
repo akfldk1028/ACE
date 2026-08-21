@@ -201,8 +201,47 @@ class Parti:
         }
 
 
+# Words whose value is drawn from a fixed list. An axis slot holding
+# something else is the dangerous case: `_along_is_x` reads anything that is
+# not cross/short/side as "long", so a sentence that wrote a role name where
+# an axis belongs - `along: "west_arm|rest"`, four times in this corpus - was
+# obeyed as "long" and the silence gate passed it, because the word did do
+# something. It did the wrong thing, quietly, which is worse than doing
+# nothing. Unknown verbs were already refused rather than guessed at; the
+# same rule belongs on their arguments.
+_AXIS_WORDS = frozenset({
+    "long", "cross", "short", "side", "corner", "diagonal",
+    "open", "to_open", "off_open", "back", "front",
+})
+_ENUMERATED: dict[str, frozenset[str]] = {
+    "along": _AXIS_WORDS,
+    "toward": _AXIS_WORDS,
+    "method": frozenset({"pack", "stack"}),
+    "unit": frozenset({"slab", "house"}),
+}
+
+
+def mistyped_words(record: dict[str, Any]) -> list[tuple[str, str, str]]:
+    """Arguments outside their fixed list, as (verb, parameter, value)."""
+
+    found: list[tuple[str, str, str]] = []
+    for item in record.get("ops") or ():
+        verb = str(item.get("op") or "").strip()
+        for key, allowed in _ENUMERATED.items():
+            value = item.get(key)
+            if isinstance(value, str) and value.strip().lower() not in allowed:
+                found.append((verb, key, value))
+    return found
+
+
 def parti_from_record(record: dict[str, Any]) -> Parti | None:
     """Read an authored sentence. Unknown verbs are dropped, not guessed at."""
+
+    if mistyped_words(record):
+        # Refused rather than coerced: the delivered mass would not be the
+        # sentence the caller is holding, and every gate downstream would
+        # certify it as one.
+        return None
 
     ops: list[Operation] = []
     for item in record.get("ops") or ():

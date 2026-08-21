@@ -157,7 +157,10 @@ def _gross_floor_area(form: MatrixForm, *, floor_height_m: float, allowed_at=Non
     return gross_floor_area_m2(source, floor_height_m=floor_height_m)
 
 
-def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, float]) -> Placement:
+def _scaled_in_plan(
+    placement: Placement, factor: float, anchor: tuple[float, float],
+    *, carrying: bool = False,
+) -> Placement:
     """Shrink a volume in plan about a shared anchor, leaving its height alone.
 
     건축면적 is a projection, so height cannot pay for it. Scaling about a shared
@@ -199,6 +202,26 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
     # court here, 0.63 to 0.31, in this one line - the courtyard paid for the
     # roof's proportion. Scaling the rise instead costs height, which is free
     # of 건축면적 and is what a smaller house does anyway.
+    if carrying:
+        # Height is only spendable by a volume with nothing standing on it.
+        # Shrinking a house that carries another house shortens the bearing
+        # its neighbour lands on, and the four sentences that stack a gable on
+        # a gable came back at 1.65 to 1.98 of backspan against a limit of
+        # 1.60. A carrier keeps its height and holds its section the older
+        # way; it is not part of a ring, so there is no court to spend.
+        corners = scaled.corners()
+        cx = sum(x for x, _y, _z in corners) / len(corners)
+        cy = sum(y for _x, y, _z in corners) / len(corners)
+        angle = degrees(atan2(ridge[1], ridge[0]))
+        held = compose_matrix4(
+            scaled.matrix,
+            translation_matrix4((-cx, -cy, 0.0)),
+            rotation_matrix4((0.0, 0.0, -angle)),
+            scale_matrix4((1.0, 1.0 / factor, 1.0)),
+            rotation_matrix4((0.0, 0.0, angle)),
+            translation_matrix4((cx, cy, 0.0)),
+        )
+        return replace(scaled, matrix=validate_matrix4(held))
     low, _high = scaled.z_span()
     kept = compose_matrix4(
         scaled.matrix,
@@ -374,12 +397,74 @@ def _scaled_about_own_centre(form: MatrixForm, factor: float) -> MatrixForm:
     # move every result for no measured gain.
     bounds = unary_union([_plan(item) for item in additive]).bounds
     anchor = ((bounds[0] + bounds[2]) / 2.0, (bounds[1] + bounds[3]) / 2.0)
-    return replace(
-        form,
-        placements=tuple(
-            _scaled_in_plan(item, factor, anchor) for item in form.placements
-        ),
+    # A section-holding volume pays the plan scale in height, so whatever was
+    # resting on it has to come down with it - the same rule the 용적률 trim
+    # already follows. Without this the plan scale left upper volumes standing
+    # where the roof used to be, and the structure gate read the gap correctly
+    # as an unsupported cantilever: refusals went 15 to 20 over this corpus,
+    # every one of the extra six that kind.
+    # Height is only spendable by a volume with nothing standing on it, and
+    # only in a composition that has a court to protect. Both conditions were
+    # measured: paying with every volume cost four sentences their bearing,
+    # and deciding it per volume by "does this bar wall a court" measured
+    # worse on the very rings it was for (0.31 to 0.21 on `d_bakgong_madang`),
+    # because a gabled ring bar reads as carrying its own roof band. The
+    # composition either encloses a void or it does not.
+    enclosure = unary_union([_plan(item) for item in additive])
+    has_court = any(
+        len(getattr(part, "interiors", ())) > 0
+        for part in getattr(enclosure, "geoms", [enclosure])
     )
+    carries = set()
+    for index, item in enumerate(form.placements):
+        if item.kind != "additive":
+            continue
+        top = item.z_span()[1]
+        plan = _plan(item)
+        holds_something = any(
+            other.kind == "additive"
+            and abs(other.z_span()[0] - top) <= 1e-3
+            and _plan(other).intersects(plan)
+            for other in form.placements
+        )
+        if holds_something or not has_court:
+            carries.add(index)
+    scaled = [
+        _scaled_in_plan(item, factor, anchor, carrying=(index in carries))
+        for index, item in enumerate(form.placements)
+    ]
+    # Settled against the ORIGINAL supports, bottom upward. `_settled_onto`
+    # decides what is resting on a volume by reading the list it is given, and
+    # after a scale that list has already moved - so a stack of gabled houses
+    # settled one call at a time still left the upper houses in the air, and
+    # the four sentences that stack a house on a house (both VitraHaus, the
+    # crossbeam hamlet, the slipped twins) were refused as unsupported.
+    # Who rests on whom is a fact about the form before it was scaled.
+    order = sorted(
+        (index for index, item in enumerate(form.placements) if item.kind == "additive"),
+        key=lambda index: form.placements[index].z_span()[0],
+    )
+    for index in order:
+        base = form.placements[index].z_span()[0]
+        plan = _plan(form.placements[index])
+        carriers = [
+            other for other in order
+            if other != index
+            and abs(form.placements[other].z_span()[1] - base) <= 1e-3
+            and _plan(form.placements[other]).intersects(plan)
+        ]
+        if not carriers:
+            continue
+        landing = max(scaled[other].z_span()[1] for other in carriers)
+        drop = scaled[index].z_span()[0] - landing
+        if abs(drop) > 1e-6:
+            scaled[index] = replace(
+                scaled[index],
+                matrix=validate_matrix4(compose_matrix4(
+                    scaled[index].matrix, translation_matrix4((0.0, 0.0, -drop)),
+                )),
+            )
+    return replace(form, placements=tuple(scaled))
 
 
 # How much of an imposing scheme has to be legal before the clip is a trim

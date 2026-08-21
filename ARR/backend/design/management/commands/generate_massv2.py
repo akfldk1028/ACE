@@ -28,6 +28,7 @@ from design.maas.massv2 import postcondition
 from design.maas.massv2 import program as programme
 from design.maas.massv2.author import _to_form
 from design.maas.massv2.execute import execute as execute_parti
+from design.maas.massv2 import grammar as grammar_module
 from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.fill import fill_to_site
@@ -362,7 +363,11 @@ class Command(BaseCommand):
                     default=0.0,
                 )
                 return max(base_budget, asked * site.floor_height_m)
+            mistyped = []
             for record in sentences:
+                wrong = grammar_module.mistyped_words(record)
+                if wrong:
+                    mistyped.append((record.get("name"), wrong))
                 parti = parti_from_record(record)
                 if parti is None:
                     continue
@@ -594,6 +599,14 @@ class Command(BaseCommand):
                     }
                 )
             forms.extend(written)
+            if mistyped:
+                self.stdout.write(
+                    f"words outside their fixed list: {len(mistyped)} sentences refused "
+                    "(an axis slot holding a role name is obeyed as \"long\")"
+                )
+                for name, wrong in mistyped[:6]:
+                    said = ", ".join(f"{verb}.{key}={value!r}" for verb, key, value in wrong)
+                    self.stdout.write(f"  mistyped: {name} -> {said}")
             self.stdout.write(
                 f"parti sentences: {len(written)} spoken, {len(mute)} with a silent word"
             )

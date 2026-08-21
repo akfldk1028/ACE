@@ -1,173 +1,172 @@
 {
- "schemes": [
-  {
-   "name": "f_mun",
-   "primary_language": "open_figure",
-   "secondary_language": "two towers carrying one bar across the sky - a gate",
-   "formal_principle": "두 탑이 하늘에서 바 하나를 맞든다 — 문(門). 건물 전체가 한 글자다.",
-   "dominant_gesture": "a portal frame at building scale",
-   "reference_basis": "저작 신작",
-   "ops": [
+  "schemes": [
     {
-     "op": "aggregate",
-     "n": 2,
-     "spread": 1.05,
-     "height": 1.0,
-     "tie": 0.0,
-     "turn": 0,
-     "method": "stack",
-     "storeys": 4,
-     "levels": 1,
-     "why": "문설주가 될 두 탑 — 같은 키로 나란히."
+      "name": "f_mun",
+      "primary_language": "open_figure",
+      "secondary_language": "two towers carrying one bar across the sky - a gate",
+      "formal_principle": "두 탑이 하늘에서 바 하나를 맞든다 — 문(門). 건물 전체가 한 글자다.",
+      "dominant_gesture": "a portal frame at building scale",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.05,
+          "height": 1.0,
+          "tie": 0.0,
+          "turn": 0,
+          "method": "stack",
+          "storeys": 4,
+          "levels": 1,
+          "why": "문설주가 될 두 탑 — 같은 키로 나란히."
+        },
+        {
+          "op": "lodge",
+          "size": 0.5,
+          "over": 0.35,
+          "height": 0.3,
+          "at": 0.5,
+          "why": "인방이 걸린다 — 두 탑을 잇는 순간 둘은 기둥이 되고 전체가 문이 된다."
+        }
+      ]
     },
     {
-     "op": "lodge",
-     "size": 0.5,
-     "over": 0.35,
-     "height": 0.3,
-     "at": 0.5,
-     "why": "인방이 걸린다 — 두 탑을 잇는 순간 둘은 기둥이 되고 전체가 문이 된다."
+      "name": "f_daegak_monolith",
+      "primary_language": "solid_body",
+      "secondary_language": "one prism cut by one continuous diagonal, nothing else",
+      "formal_principle": "프리즘 하나, 대각선 한 칼 — 지붕이자 입면이자 단면인 하나의 사선. 더 말하면 형상이 죽는다.",
+      "dominant_gesture": "a single diagonal through a monolith",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "storeys": 8,
+          "why": "사선이 살려면 몸이 서 있어야 한다 — 여덟 층이 몸이다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.42,
+          "toward": "cross",
+          "why": "모놀리스는 슬래브다. 몸이 넓으면 사선은 지붕이 아니라 언덕이 된다."
+        },
+        {
+          "op": "grade",
+          "run": 0.45,
+          "toward": "corner",
+          "smooth": true,
+          "why": "대각선 한 칼은 몸의 절반에서 멈춘다 — 땅까지 가면 모놀리스가 아니라 램프다. corner는 BIG의 가장 잦은 한 수: 평면은 직교로 두고 한 모서리만 끌어올린다."
+        }
+      ]
+    },
+    {
+      "name": "f_nabimaedeup",
+      "primary_language": "open_figure",
+      "secondary_language": "a ring squeezed to a knot at its waist, two courts breathing on either side",
+      "formal_principle": "고리를 허리에서 조인다 — 매듭 하나로 마당이 둘로 갈리고, 형상은 나비가 된다.",
+      "dominant_gesture": "a bowtie of one continuous bar",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.8,
+          "why": "이어진 한 바퀴 — 매듭을 지을 몸."
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.75,
+          "why": "허리를 강하게 — 조임이 약하면 고리는 그냥 도넛이다."
+        }
+      ]
+    },
+    {
+      "name": "f_gieun_gwan",
+      "primary_language": "solid_body",
+      "secondary_language": "a slender tower twisted as it rises, corners spiralling",
+      "formal_principle": "좁게 세우고 오르며 비튼다 — 모서리가 나선이 되는 순간 탑은 정지가 아니라 회전의 기록이다.",
+      "dominant_gesture": "a twisting slender tower",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "비틀림은 키에서 산다.",
+          "storeys": 9
+        },
+        {
+          "op": "compress",
+          "ratio": 0.35,
+          "toward": "long",
+          "why": "좁을수록 비틀림이 입면 전체가 된다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.5,
+          "toward": "cross",
+          "why": "양방향으로 탑의 단면까지."
+        },
+        {
+          "op": "twist",
+          "degrees": 70,
+          "why": "한 수 — 오르며 70도."
+        }
+      ]
+    },
+    {
+      "name": "f_daegak_gyedan",
+      "primary_language": "solid_body",
+      "secondary_language": "a bar whose storeys slide one way, the profile one clean diagonal",
+      "formal_principle": "층들이 한 방향으로만 미끄러진다 — 실루엣이 대각선 하나로 정리되는 계단 프리즘.",
+      "dominant_gesture": "a one-way stepped diagonal",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "미끄러질 층들.",
+          "storeys": 6
+        },
+        {
+          "op": "compress",
+          "ratio": 0.5,
+          "toward": "cross",
+          "why": "사선이 읽히는 바."
+        },
+        {
+          "op": "shear",
+          "ratio": 0.45,
+          "toward": "long",
+          "why": "한 방향으로만 — 지그재그가 아니라 한 장의 사선."
+        }
+      ]
+    },
+    {
+      "name": "f_gongjung_jungjeong",
+      "primary_language": "carved_body",
+      "secondary_language": "a solid cube with a court inscribed into its roof, walls sheer to the sky",
+      "formal_principle": "정육에 하늘마당 하나 — 밖은 침묵하는 기하, 안은 뚫린 하늘. 형상의 전부가 안팎의 반전이다.",
+      "dominant_gesture": "a mute cube with a sky court",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "침묵할 몸."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.6,
+          "toward": "long",
+          "why": "정육에 가까운 비례."
+        },
+        {
+          "op": "inscribe",
+          "size": 0.45,
+          "depth": 0.5,
+          "why": "지붕에 새긴 마당 — 모서리에 닿지 않는 보이드가 기하를 완성한다."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "f_daegak_monolith",
-   "primary_language": "solid_body",
-   "secondary_language": "one prism cut by one continuous diagonal, nothing else",
-   "formal_principle": "프리즘 하나, 대각선 한 칼 — 지붕이자 입면이자 단면인 하나의 사선. 더 말하면 형상이 죽는다.",
-   "dominant_gesture": "a single diagonal through a monolith",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "사선이 살려면 몸이 서 있어야 한다.",
-     "storeys": 7
-    },
-    {
-     "op": "compress",
-     "ratio": 0.55,
-     "toward": "cross",
-     "why": "한 방향의 사선이 읽히는 비례."
-    },
-    {
-     "op": "grade",
-     "run": 1.0,
-     "toward": "open",
-     "steps": 8,
-     "smooth": true,
-     "why": "꼭대기에서 땅까지 한 번에 — 열린 쪽으로 내려앉는 한 장의 면."
-    }
-   ]
-  },
-  {
-   "name": "f_nabimaedeup",
-   "primary_language": "open_figure",
-   "secondary_language": "a ring squeezed to a knot at its waist, two courts breathing on either side",
-   "formal_principle": "고리를 허리에서 조인다 — 매듭 하나로 마당이 둘로 갈리고, 형상은 나비가 된다.",
-   "dominant_gesture": "a bowtie of one continuous bar",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.22,
-     "height": 0.8,
-     "why": "이어진 한 바퀴 — 매듭을 지을 몸."
-    },
-    {
-     "op": "pinch",
-     "ratio": 0.75,
-     "why": "허리를 강하게 — 조임이 약하면 고리는 그냥 도넛이다."
-    }
-   ]
-  },
-  {
-   "name": "f_gieun_gwan",
-   "primary_language": "solid_body",
-   "secondary_language": "a slender tower twisted as it rises, corners spiralling",
-   "formal_principle": "좁게 세우고 오르며 비튼다 — 모서리가 나선이 되는 순간 탑은 정지가 아니라 회전의 기록이다.",
-   "dominant_gesture": "a twisting slender tower",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 1.0,
-     "why": "비틀림은 키에서 산다.",
-     "storeys": 9
-    },
-    {
-     "op": "compress",
-     "ratio": 0.35,
-     "toward": "long",
-     "why": "좁을수록 비틀림이 입면 전체가 된다."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.5,
-     "toward": "cross",
-     "why": "양방향으로 탑의 단면까지."
-    },
-    {
-     "op": "twist",
-     "degrees": 70,
-     "why": "한 수 — 오르며 70도."
-    }
-   ]
-  },
-  {
-   "name": "f_daegak_gyedan",
-   "primary_language": "solid_body",
-   "secondary_language": "a bar whose storeys slide one way, the profile one clean diagonal",
-   "formal_principle": "층들이 한 방향으로만 미끄러진다 — 실루엣이 대각선 하나로 정리되는 계단 프리즘.",
-   "dominant_gesture": "a one-way stepped diagonal",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.85,
-     "why": "미끄러질 층들.",
-     "storeys": 6
-    },
-    {
-     "op": "compress",
-     "ratio": 0.5,
-     "toward": "cross",
-     "why": "사선이 읽히는 바."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.45,
-     "toward": "long",
-     "why": "한 방향으로만 — 지그재그가 아니라 한 장의 사선."
-    }
-   ]
-  },
-  {
-   "name": "f_gongjung_jungjeong",
-   "primary_language": "carved_body",
-   "secondary_language": "a solid cube with a court inscribed into its roof, walls sheer to the sky",
-   "formal_principle": "정육에 하늘마당 하나 — 밖은 침묵하는 기하, 안은 뚫린 하늘. 형상의 전부가 안팎의 반전이다.",
-   "dominant_gesture": "a mute cube with a sky court",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.8,
-     "why": "침묵할 몸."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.6,
-     "toward": "long",
-     "why": "정육에 가까운 비례."
-    },
-    {
-     "op": "inscribe",
-     "size": 0.45,
-     "depth": 0.5,
-     "why": "지붕에 새긴 마당 — 모서리에 닿지 않는 보이드가 기하를 완성한다."
-    }
-   ]
-  }
- ]
+  ]
 }

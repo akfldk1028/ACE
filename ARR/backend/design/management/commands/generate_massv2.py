@@ -517,6 +517,18 @@ class Command(BaseCommand):
                                 # dishonest drawing the check refused.
                                 **({"spoken_sitings": tuple(spoken_sitings)}
                                    if spoken_sitings else {}),
+                                # A sentence that says storeys is held to
+                                # them at delivery, the way a declared gap
+                                # is: the eight-storey monolith crushed to
+                                # four is not a variant of the sentence, it
+                                # is a different building wearing its name.
+                                **({"declared_storeys": max(
+                                    (float(op.get("storeys") or 0)
+                                     for op in record.get("ops", [])),
+                                    default=0.0,
+                                )} if any(op.get("storeys")
+                                          for op in record.get("ops", []))
+                                   else {}),
                             },
                         }
                     )
@@ -683,6 +695,7 @@ class Command(BaseCommand):
         pool: list[Candidate] = []
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
+        crushed = 0
         implausible = 0
 
         for form in forms:
@@ -777,7 +790,15 @@ class Command(BaseCommand):
                 "ablation": form.extra.get("ablation"),
                 "spoken_force": form.extra.get("spoken_force"),
             })
-            if fit.satisfied:
+            declared = float(form.extra.get("declared_storeys") or 0.0)
+            if (declared > 0.0
+                    and measurement.height_m < (2.0 / 3.0) * declared * form_storey):
+                # Declared stature is held like a declared gap: a sentence
+                # that asked for eight storeys and delivered four is not that
+                # sentence. The variant stays measured and recorded; it just
+                # cannot represent the sentence on the sheet.
+                crushed += 1
+            elif fit.satisfied:
                 # An unlawful mass was being counted and then offered anyway.
                 # `central_beheer_islands` came out at 1.17 of the 건폐율 cap
                 # after the fitter gave up at two passes, and went onto the
@@ -920,6 +941,7 @@ class Command(BaseCommand):
         # compiled count read "compiled 3/1099" on a run that compiled 1,098.
         self.stdout.write(
             f"compiled {compiled_count}/{len(forms)}  delivered {len(renderable)}  "
-            f"unlawful {unlawful}  implausible {implausible}  cells {len(cells)}/16"
+            f"unlawful {unlawful}  implausible {implausible}  "
+            f"crushed {crushed}  cells {len(cells)}/16"
         )
         self.stdout.write(str(sheet))

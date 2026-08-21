@@ -1,204 +1,210 @@
 {
- "schemes": [
-  {
-   "name": "via57_one_corner_drawn_up",
-   "primary_language": "open_figure",
-   "secondary_language": "중정 블록의 한 모서리만 끝까지 끌어올린 것",
-   "formal_principle": "세 모서리는 낮은 둘레로 눌러두고 한 모서리만 극단까지 세워, 마당을 가진 블록이 한 봉우리로 읽힌다.",
-   "dominant_gesture": "낮은 블록에서 돛처럼 일어서는 한 모서리.",
-   "reference_basis": "BIG - VIA 57 West New York 2016. 세 모서리 약 40 m, 북동 모서리 142 m. 한 도형 안에서 높이비 3.5:1",
-   "ops": [
+  "schemes": [
     {
-     "op": "loop",
-     "bar": 0.4,
-     "height": 0.35,
-     "why": "중정을 감싸는 링. bar 0.4는 상한, 세 변을 최대한 낮고 두껍게 원래 문장은 '지붕이 하나의 뒤틀린 사면이 된다'고 주장했다. 이 문법의 SourceVolume은 윗면이 평평한 프리즘이라 기울어진 면을 말할 수 없고, 판정자 넷이 독립적으로 '평평한 상자, 뒤틀린 지붕면 없음, 문장이 아예 안 지어짐'이라 적었다. 실제 VIA 57 West도 뒤틀린 표면이 아니라 낮은 둘레에 한 모서리가 솟은 코트스크레이퍼이고, 그건 loop+stack이 이미 짓고 있다. 매스가 하는 일을 말하도록 고쳤다 — 표현 불가한 표면을 주장하는 것이 아니라."
+      "name": "via57_one_corner_drawn_up",
+      "primary_language": "open_figure",
+      "secondary_language": "중정 블록의 한 모서리만 끝까지 끌어올린 것",
+      "formal_principle": "세 모서리는 낮은 둘레로 눌러두고 한 모서리만 극단까지 세워, 마당을 가진 블록이 한 봉우리로 읽힌다.",
+      "dominant_gesture": "낮은 블록에서 돛처럼 일어서는 한 모서리.",
+      "reference_basis": "BIG - VIA 57 West New York 2016. 세 모서리 약 40 m, 북동 모서리 142 m. 한 도형 안에서 높이비 3.5:1",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.4,
+          "height": 0.35,
+          "why": "중정을 감싸는 링. bar 0.4는 상한, 세 변을 최대한 낮고 두껍게 원래 문장은 '지붕이 하나의 뒤틀린 사면이 된다'고 주장했다. 이 문법의 SourceVolume은 윗면이 평평한 프리즘이라 기울어진 면을 말할 수 없고, 판정자 넷이 독립적으로 '평평한 상자, 뒤틀린 지붕면 없음, 문장이 아예 안 지어짐'이라 적었다. 실제 VIA 57 West도 뒤틀린 표면이 아니라 낮은 둘레에 한 모서리가 솟은 코트스크레이퍼이고, 그건 loop+stack이 이미 짓고 있다. 매스가 하는 일을 말하도록 고쳤다 — 표현 불가한 표면을 주장하는 것이 아니라."
+        },
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 2.0,
+          "grow": true,
+          "align": "open",
+          "on": "bar_n",
+          "height": 1.0,
+          "why": "한 변만 위가 커지는 2단. contrast 2.0은 문법 상한이고, 실제 건물의 3.5:1에는 못 미친다"
+        }
+      ],
+      "floor_height_m": 2.9
     },
     {
-     "op": "stack",
-     "n": 2,
-     "contrast": 2.0,
-     "grow": true,
-     "align": "open",
-     "on": "bar_n",
-     "height": 1.0,
-     "why": "한 변만 위가 커지는 2단. contrast 2.0은 문법 상한이고, 실제 건물의 3.5:1에는 못 미친다"
+      "name": "seattle_platforms_shifted_past_each_other",
+      "primary_language": "carved_body",
+      "secondary_language": "다섯 플랫폼이 서로 밖으로 어긋난 것",
+      "formal_principle": "층이 아니라 플랫폼 다섯이고, 각각이 아래를 지나쳐 밀려 사이가 곧 공간이 된다.",
+      "dominant_gesture": "서로 비껴 나간 판들, 그 틈으로 보이는 대각선.",
+      "reference_basis": "OMA - Seattle Central Library 2004. 다섯 개의 프로그램 플랫폼이 서로 캔틸레버되도록 이동, 이동량 평면의 0.5~0.9",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 5,
+          "contrast": 1.25,
+          "align": "open",
+          "height": 1.0,
+          "why": "다섯 플랫폼. contrast는 하한 — 크기가 아니라 위치가 이 건물의 수다"
+        },
+        {
+          "op": "shear",
+          "ratio": 0.35,
+          "toward": "long",
+          "why": "0.35는 문법 상한. 실제는 0.5~0.9라 여기서 이미 절반도 못 민다"
+        }
+      ]
+    },
+    {
+      "name": "copenhill_one_continuous_slope",
+      "primary_language": "solid_body",
+      "secondary_language": "지붕 전체가 하나의 연속 경사",
+      "formal_principle": "발전소의 볼륨을 높이 순으로 배열해 지붕이 정상에서 지면까지 끊기지 않고 내려온다.",
+      "dominant_gesture": "건물 전체가 하나의 사면.",
+      "reference_basis": "BIG - CopenHill Copenhagen 2019. 41,000 m2, 지붕이 85 m에서 0으로 1:1.5 경사로 연속 하강",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "발전소 한 덩어리에서 출발한다."
+        },
+        {
+          "op": "grade",
+          "toward": "long",
+          "run": 0.9,
+          "steps": 8,
+          "why": "지붕이 정상에서 지면까지 한 방향으로 내려온다. taper는 사방으로 좁아져 지구라트를 만든다. smooth:true — 이 문장은 처음부터 '끊기지 않고'였고 계단은 근사였다. IR에 기울어진 윗면이 생겨 지붕이 한 장으로 내려간다. 법은 여전히 풀 프리즘으로 세므로 언제나 더 엄격하다.",
+          "smooth": true
+        }
+      ]
+    },
+    {
+      "name": "kunsthal_a_ramp_is_the_building",
+      "primary_language": "carved_body",
+      "secondary_language": "램프가 곧 건물인 상자",
+      "formal_principle": "경사로가 단면 전체를 기울여 지면에서 지붕까지 하나로 이어지고, 순환이 곧 형태가 된다.",
+      "dominant_gesture": "기울어진 채 서 있는 상자.",
+      "reference_basis": "OMA - Kunsthal Rotterdam 1992. 제방을 가로지르는 램프가 전시 순환의 축이자 단면 전체를 규정",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "상자 하나 원래 문장은 '경사로가 상자를 관통한다'고 했다. 이 문법에 대각으로 뚫는 동사가 없어 그 말은 검사 없이 통과했다 — verb_fit이 '관통' 대 사용 동사(extrude, skew)로 잡았다. skew가 실제로 짓는 것은 단면 전체가 기울어진 몸이고, 그것이 Kunsthal의 실제 단면이다."
+        },
+        {
+          "op": "skew",
+          "degrees": 30.0,
+          "toward": "long",
+          "why": "30도는 문법 상한. 수직에서 최대로 기울인 것"
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "milstein_a_plate_past_its_supports",
+      "primary_language": "open_figure",
+      "secondary_language": "지지점 밖으로 크게 나간 한 장의 판",
+      "formal_principle": "판 하나가 자기를 받치는 것들보다 훨씬 넓게 뻗어, 아래 지면이 건물을 통과한다.",
+      "dominant_gesture": "공중에 뜬 채 사방으로 나간 판.",
+      "reference_basis": "OMA - Milstein Hall Cornell 2011. 4,300 m2 플레이트가 지지 코어 밖으로 약 15 m 캔틸레버, 자기 스팬의 약 40%",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.35,
+          "why": "한 켜의 판."
+        },
+        {
+          "op": "carve",
+          "size": 0.55,
+          "at": "long",
+          "reach": 0.0,
+          "up_to": 0.55,
+          "why": "판이 받치는 것보다 넓게 뻗는다는 말은, 아래가 비고 지면이 건물을 통과한다는 뜻이다. lift+expand로 쓰니 받침이 안 보이는 큰 판 하나가 됐다."
+        },
+        {
+          "op": "expand",
+          "ratio": 1.35,
+          "toward": "cross",
+          "why": "판이 받침 너머로 나가야 '넘어서 뻗는다'가 보인다."
+        }
+      ],
+      "floor_height_m": 4.2
+    },
+    {
+      "name": "educatorium_the_floor_folds_up",
+      "primary_language": "solid_body",
+      "secondary_language": "바닥판이 접혀 벽이 되고 지붕이 되는 것",
+      "formal_principle": "하나의 판이 접히면서 바닥과 벽과 지붕을 연속으로 수행한다.",
+      "dominant_gesture": "말려 올라간 한 장의 판.",
+      "reference_basis": "OMA - Educatorium Utrecht 1997. 콘크리트 두루마리, 바닥판이 접혀 벽과 지붕이 됨",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "판 하나에서 시작"
+        },
+        {
+          "op": "skew",
+          "degrees": 28.0,
+          "toward": "cross",
+          "why": "문법에 bend가 없어 skew로 근사. 실제는 90도 접힘이다"
+        }
+      ]
+    },
+    {
+      "name": "cctv_a_loop_stood_up",
+      "primary_language": "open_figure",
+      "secondary_language": "바닥에 눕지 않고 서 있는 고리",
+      "formal_principle": "고리가 수평이 아니라 수직으로 서서, 두 다리와 공중의 귀환부가 하나의 회로를 이룬다.",
+      "dominant_gesture": "공중에서 닫히는 고리.",
+      "reference_basis": "OMA - CCTV Beijing 2012. 234 m, 두 타워가 6도 기울어 162 m 높이에서 75 m 캔틸레버로 접합",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "storeys": 8,
+          "why": "고리가 서려면 먼저 한 판이 서 있어야 한다 — 여덟 층 판이다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.38,
+          "toward": "cross",
+          "why": "판이 두꺼우면 구멍은 터널이고, 얇아야 고리다. 선 고리는 슬래브의 사건이다."
+        },
+        {
+          "op": "carve",
+          "size": 0.46,
+          "at": "long",
+          "reach": 0.0,
+          "up_to": 0.68,
+          "why": "가운데 아래를 크게 비우면 남는 건 두 다리와 그 위를 잇는 귀환부다. 개구부가 몸의 3분의 2를 지나야 다리가 다리로 읽힌다."
+        },
+        {
+          "op": "shift",
+          "on": "court",
+          "along": "cross",
+          "ratio": 0.18,
+          "why": "두 다리가 같은 굵기면 문이지 회로가 아니다."
+        }
+      ]
+    },
+    {
+      "name": "eight_house_pinched_at_the_waist",
+      "primary_language": "open_figure",
+      "secondary_language": "허리가 조여 나비넥타이가 된 블록",
+      "formal_principle": "둘레 블록의 한가운데를 지면까지 눌러 두 개의 중정으로 갈라놓는다.",
+      "dominant_gesture": "가운데가 잘록한 하나의 둘레.",
+      "reference_basis": "BIG - 8 House Copenhagen 2010. 25,000 m2 둘레 블록을 중앙에서 눌러 8자, 두 중정을 10 m 통로가 연결",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.35,
+          "height": 1.0,
+          "why": "둘레 블록"
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.85,
+          "why": "허리를 지면까지 눌러 두 중정으로 가른다. 판정 2조가 0.5를 'notch일 뿐'이라 했다 — bow가 생긴 지금 0.85면 안쪽 면이 교차해 고리가 두 마당으로 닫힌다. 8자는 만나는 지점에서 생긴다. `on:bar_n`을 지웠다 — compress 대체 시절의 스코프 잔재로, 한 변만 조여서 재판정 2조가 '한 중정'이라 읽었다. 허리는 고리 전체의 것이다."
+        }
+      ],
+      "floor_height_m": 2.9
     }
-   ],
-   "floor_height_m": 2.9
-  },
-  {
-   "name": "seattle_platforms_shifted_past_each_other",
-   "primary_language": "carved_body",
-   "secondary_language": "다섯 플랫폼이 서로 밖으로 어긋난 것",
-   "formal_principle": "층이 아니라 플랫폼 다섯이고, 각각이 아래를 지나쳐 밀려 사이가 곧 공간이 된다.",
-   "dominant_gesture": "서로 비껴 나간 판들, 그 틈으로 보이는 대각선.",
-   "reference_basis": "OMA - Seattle Central Library 2004. 다섯 개의 프로그램 플랫폼이 서로 캔틸레버되도록 이동, 이동량 평면의 0.5~0.9",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 5,
-     "contrast": 1.25,
-     "align": "open",
-     "height": 1.0,
-     "why": "다섯 플랫폼. contrast는 하한 — 크기가 아니라 위치가 이 건물의 수다"
-    },
-    {
-     "op": "shear",
-     "ratio": 0.35,
-     "toward": "long",
-     "why": "0.35는 문법 상한. 실제는 0.5~0.9라 여기서 이미 절반도 못 민다"
-    }
-   ]
-  },
-  {
-   "name": "copenhill_one_continuous_slope",
-   "primary_language": "solid_body",
-   "secondary_language": "지붕 전체가 하나의 연속 경사",
-   "formal_principle": "발전소의 볼륨을 높이 순으로 배열해 지붕이 정상에서 지면까지 끊기지 않고 내려온다.",
-   "dominant_gesture": "건물 전체가 하나의 사면.",
-   "reference_basis": "BIG - CopenHill Copenhagen 2019. 41,000 m2, 지붕이 85 m에서 0으로 1:1.5 경사로 연속 하강",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 1.0,
-     "why": "발전소 한 덩어리에서 출발한다."
-    },
-    {
-     "op": "grade",
-     "toward": "long",
-     "run": 0.9,
-     "steps": 8,
-     "why": "지붕이 정상에서 지면까지 한 방향으로 내려온다. taper는 사방으로 좁아져 지구라트를 만든다. smooth:true — 이 문장은 처음부터 '끊기지 않고'였고 계단은 근사였다. IR에 기울어진 윗면이 생겨 지붕이 한 장으로 내려간다. 법은 여전히 풀 프리즘으로 세므로 언제나 더 엄격하다.",
-     "smooth": true
-    }
-   ]
-  },
-  {
-   "name": "kunsthal_a_ramp_is_the_building",
-   "primary_language": "carved_body",
-   "secondary_language": "램프가 곧 건물인 상자",
-   "formal_principle": "경사로가 단면 전체를 기울여 지면에서 지붕까지 하나로 이어지고, 순환이 곧 형태가 된다.",
-   "dominant_gesture": "기울어진 채 서 있는 상자.",
-   "reference_basis": "OMA - Kunsthal Rotterdam 1992. 제방을 가로지르는 램프가 전시 순환의 축이자 단면 전체를 규정",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.95,
-     "why": "상자 하나 원래 문장은 '경사로가 상자를 관통한다'고 했다. 이 문법에 대각으로 뚫는 동사가 없어 그 말은 검사 없이 통과했다 — verb_fit이 '관통' 대 사용 동사(extrude, skew)로 잡았다. skew가 실제로 짓는 것은 단면 전체가 기울어진 몸이고, 그것이 Kunsthal의 실제 단면이다."
-    },
-    {
-     "op": "skew",
-     "degrees": 30.0,
-     "toward": "long",
-     "why": "30도는 문법 상한. 수직에서 최대로 기울인 것"
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "milstein_a_plate_past_its_supports",
-   "primary_language": "open_figure",
-   "secondary_language": "지지점 밖으로 크게 나간 한 장의 판",
-   "formal_principle": "판 하나가 자기를 받치는 것들보다 훨씬 넓게 뻗어, 아래 지면이 건물을 통과한다.",
-   "dominant_gesture": "공중에 뜬 채 사방으로 나간 판.",
-   "reference_basis": "OMA - Milstein Hall Cornell 2011. 4,300 m2 플레이트가 지지 코어 밖으로 약 15 m 캔틸레버, 자기 스팬의 약 40%",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.35,
-     "why": "한 켜의 판."
-    },
-    {
-     "op": "carve",
-     "size": 0.55,
-     "at": "long",
-     "reach": 0.0,
-     "up_to": 0.55,
-     "why": "판이 받치는 것보다 넓게 뻗는다는 말은, 아래가 비고 지면이 건물을 통과한다는 뜻이다. lift+expand로 쓰니 받침이 안 보이는 큰 판 하나가 됐다."
-    },
-    {
-     "op": "expand",
-     "ratio": 1.35,
-     "toward": "cross",
-     "why": "판이 받침 너머로 나가야 '넘어서 뻗는다'가 보인다."
-    }
-   ],
-   "floor_height_m": 4.2
-  },
-  {
-   "name": "educatorium_the_floor_folds_up",
-   "primary_language": "solid_body",
-   "secondary_language": "바닥판이 접혀 벽이 되고 지붕이 되는 것",
-   "formal_principle": "하나의 판이 접히면서 바닥과 벽과 지붕을 연속으로 수행한다.",
-   "dominant_gesture": "말려 올라간 한 장의 판.",
-   "reference_basis": "OMA - Educatorium Utrecht 1997. 콘크리트 두루마리, 바닥판이 접혀 벽과 지붕이 됨",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.85,
-     "why": "판 하나에서 시작"
-    },
-    {
-     "op": "skew",
-     "degrees": 28.0,
-     "toward": "cross",
-     "why": "문법에 bend가 없어 skew로 근사. 실제는 90도 접힘이다"
-    }
-   ]
-  },
-  {
-   "name": "cctv_a_loop_stood_up",
-   "primary_language": "open_figure",
-   "secondary_language": "바닥에 눕지 않고 서 있는 고리",
-   "formal_principle": "고리가 수평이 아니라 수직으로 서서, 두 다리와 공중의 귀환부가 하나의 회로를 이룬다.",
-   "dominant_gesture": "공중에서 닫히는 고리.",
-   "reference_basis": "OMA - CCTV Beijing 2012. 234 m, 두 타워가 6도 기울어 162 m 높이에서 75 m 캔틸레버로 접합",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 1.0,
-     "why": "고리가 서려면 먼저 한 판이 서 있어야 한다."
-    },
-    {
-     "op": "carve",
-     "size": 0.42,
-     "at": "long",
-     "reach": 0.0,
-     "up_to": 0.62,
-     "why": "가운데 아래를 비우면 남는 건 두 다리와 그 위를 잇는 귀환부다. 이게 수직으로 선 고리다. loop은 평면에 네 변을 두르는 동사라 눕힌 도넛밖에 못 만들었고, 세 라운드 내내 문장과 반대라고 지적받았다.",
-     "through": true
-    },
-    {
-     "op": "shift",
-     "on": "court",
-     "along": "cross",
-     "ratio": 0.18,
-     "why": "두 다리가 같은 굵기면 문이지 회로가 아니다."
-    }
-   ]
-  },
-  {
-   "name": "eight_house_pinched_at_the_waist",
-   "primary_language": "open_figure",
-   "secondary_language": "허리가 조여 나비넥타이가 된 블록",
-   "formal_principle": "둘레 블록의 한가운데를 지면까지 눌러 두 개의 중정으로 갈라놓는다.",
-   "dominant_gesture": "가운데가 잘록한 하나의 둘레.",
-   "reference_basis": "BIG - 8 House Copenhagen 2010. 25,000 m2 둘레 블록을 중앙에서 눌러 8자, 두 중정을 10 m 통로가 연결",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.35,
-     "height": 1.0,
-     "why": "둘레 블록"
-    },
-    {
-     "op": "pinch",
-     "ratio": 0.85,
-     "why": "허리를 지면까지 눌러 두 중정으로 가른다. 판정 2조가 0.5를 'notch일 뿐'이라 했다 — bow가 생긴 지금 0.85면 안쪽 면이 교차해 고리가 두 마당으로 닫힌다. 8자는 만나는 지점에서 생긴다. `on:bar_n`을 지웠다 — compress 대체 시절의 스코프 잔재로, 한 변만 조여서 재판정 2조가 '한 중정'이라 읽었다. 허리는 고리 전체의 것이다."
-    }
-   ],
-   "floor_height_m": 2.9
-  }
- ]
+  ]
 }

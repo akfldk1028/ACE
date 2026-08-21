@@ -189,17 +189,22 @@ def _scaled_in_plan(placement: Placement, factor: float, anchor: tuple[float, fl
             ridge = (-across[1], across[0])
     if ridge is None or abs(factor - 1.0) < 1e-6 or factor <= 1e-9:
         return scaled
-    corners = scaled.corners()
-    cx = sum(x for x, _y, _z in corners) / len(corners)
-    cy = sum(y for _x, y, _z in corners) / len(corners)
-    angle = degrees(atan2(ridge[1], ridge[0]))
+    # A pitch is a rise over a run, so the section survives a plan scale if the
+    # rise takes the same scale as the run. The first version kept it by
+    # undoing the across-ridge scale about the volume's own centre - the bar
+    # kept its width while the composition shrank around it, and a bar that
+    # keeps its width inside a shrinking ring grows inward. Measured: of the
+    # thirty-four sentences in this corpus that ring, cut or bore a void,
+    # fourteen delivered under half of it, and `d_bakgong_madang` lost its
+    # court here, 0.63 to 0.31, in this one line - the courtyard paid for the
+    # roof's proportion. Scaling the rise instead costs height, which is free
+    # of 건축면적 and is what a smaller house does anyway.
+    low, _high = scaled.z_span()
     kept = compose_matrix4(
         scaled.matrix,
-        translation_matrix4((-cx, -cy, 0.0)),
-        rotation_matrix4((0.0, 0.0, -angle)),
-        scale_matrix4((1.0, 1.0 / factor, 1.0)),
-        rotation_matrix4((0.0, 0.0, angle)),
-        translation_matrix4((cx, cy, 0.0)),
+        translation_matrix4((0.0, 0.0, -low)),
+        scale_matrix4((1.0, 1.0, factor)),
+        translation_matrix4((0.0, 0.0, low)),
     )
     return replace(scaled, matrix=validate_matrix4(kept))
 
@@ -578,17 +583,33 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
             ]
             if not trimmable:
                 break
-            tallest = max(trimmable, key=lambda item: item.z_span()[1] - item.z_span()[0])
-            low, high = tallest.z_span()
-            span = high - low
-            trimmed = _shortened(tallest, (span - floor_height) / span)
-            index = next(
-                position for position, item in enumerate(fitted.placements)
-                if item is tallest
-            )
+            # Everything standing at that height, not one of them. A ring is
+            # four bars of one height, and taking the storey off whichever bar
+            # sorted first left a court open on one side: measured over this
+            # corpus, fourteen of the thirty-four sentences that ring, cut or
+            # bore a void delivered less than half of it, and this pass was
+            # where it went - `d_bakgong_madang` 0.85 to 0.31 in one trim. The
+            # figure is what the sentence is about; a ring is trimmed as a
+            # ring. A stack, whose tiers are deliberately unequal, has one
+            # tallest and is unaffected.
+            spans = {item: item.z_span()[1] - item.z_span()[0] for item in trimmable}
+            tallest_span = max(spans.values())
+            peers = [
+                item for item in trimmable
+                if tallest_span - spans[item] <= floor_height * 0.5
+            ]
             settled = list(fitted.placements)
-            settled[index] = trimmed
-            settled = _settled_onto(settled, index, floor_height)
+            # By index: settling replaces entries in place, so a peer taken
+            # from the pre-trim list is no longer findable by identity once
+            # its neighbour has been brought down.
+            targets = [
+                (position, spans[item])
+                for position, item in enumerate(settled)
+                if item in peers
+            ]
+            for index, span in targets:
+                settled[index] = _shortened(settled[index], (span - floor_height) / span)
+                settled = _settled_onto(settled, index, floor_height)
             fitted = replace(fitted, placements=tuple(settled))
 
     # Height is exhausted when every volume is down to one storey, and a scheme

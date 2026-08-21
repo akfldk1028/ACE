@@ -92,6 +92,11 @@ _LANGUAGE_TARGET: dict[str, float] = {
     "solid_body": 0.85,
     "stacked_body": 0.98,
 }
+# How much of its authored void a scheme may lose in exchange for floor area.
+# Not zero: a court may narrow as the building around it thickens, and the
+# legal clip legitimately takes a slice of one. Past this it has closed, and
+# the sentence that asked for it is no longer the building being delivered.
+_VOID_KEPT = 0.65
 # How much of its articulation a scheme may lose in exchange for floor area.
 # Not zero: growth legitimately rounds a composition off a little. But a step
 # that costs a fifth of the move is buying area with the design.
@@ -122,8 +127,19 @@ class FillResult:
         }
 
 
-def _articulation(form: MatrixForm, *, storey_height_m: float, allowed_at=None) -> float:
-    """The articulation of the building that gets delivered, not of a draft.
+def _kept(form: MatrixForm, *, storey_height_m: float, allowed_at=None) -> tuple[float, float]:
+    """What a growth step is allowed to spend: (articulation, plan void).
+
+    Two readings of one compile, because they are two different ways for a
+    step to buy floor area with the design and the second was not being
+    watched. Measured over this corpus: of thirty-four sentences that cut,
+    ringed or bored a void, fourteen delivered less than half the void they
+    wrote - `d_bakgong_madang` 0.84 to 0.31, the courtscraper 0.21 to 0.01,
+    a court that is simply not there. Articulation did not catch it; it
+    counts the break-up of the whole mass, and a ring whose bars fatten
+    inward until the court closes is still an articulated ring.
+
+    A court is not currency. It is the thing the sentence is about.
 
     Compiled without `allowed_at` this measures a mass nobody receives. Every
     area in `legal_fit` is taken through the clip, and the sheet compiles
@@ -138,7 +154,10 @@ def _articulation(form: MatrixForm, *, storey_height_m: float, allowed_at=None) 
     source = compile_matrix_form(
         form, storey_height_m=storey_height_m, allowed_at=allowed_at
     )
-    return measure_form(source).articulation() if source is not None else 0.0
+    if source is None:
+        return (0.0, 0.0)
+    measured = measure_form(source)
+    return (measured.articulation(), measured.plan_void_ratio)
 
 
 def _taller(form: MatrixForm, factor: float) -> MatrixForm:
@@ -330,8 +349,11 @@ def fill_to_site(
 
     current = best.form
     storey = float(form.floor_height_m or site.floor_height_m)
-    started_at = _articulation(current, storey_height_m=storey, allowed_at=site.plan_at)
+    started_at, started_void = _kept(
+        current, storey_height_m=storey, allowed_at=site.plan_at
+    )
     floor = started_at * _ARTICULATION_KEPT
+    void_floor = started_void * _VOID_KEPT
     taller = wider = 0
     reason = "reached_step_limit"
 
@@ -365,16 +387,17 @@ def fill_to_site(
         Floor area is not the only thing a step can spend. Grown without this,
         CCTV's two legs and high return came back as a slab - lawful, fuller,
         and no longer the move. A step that costs a fifth of the scheme's
-        articulation is buying area with the design.
+        articulation, or a third of its court, is buying area with the design.
         """
 
         if not candidate.satisfied:
             return False
         if candidate.gross_floor_area_m2 <= best.gross_floor_area_m2 + 1.0:
             return False
-        return _articulation(
+        articulation, void = _kept(
             candidate.form, storey_height_m=storey, allowed_at=site.plan_at
-        ) >= floor
+        )
+        return articulation >= floor and void >= void_floor
 
     # How many storeys this parcel's own law implies: the floor area it allows
     # over the ground it allows. On the Uijeongbu parcel that is 2499.7 / 499.9

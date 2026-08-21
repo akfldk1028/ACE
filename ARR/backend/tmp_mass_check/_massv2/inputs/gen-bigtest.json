@@ -8,10 +8,21 @@
       "dominant_gesture": "terraced dwellings on a diagonal cut",
       "reference_basis": "BIG 반복 무브 검증 — terrace-step (Mountain Dwellings 계열, 조사 32작 중 6작)",
       "ops": [
-        {"op": "extrude", "height": 0.9, "profile": "square", "storeys": 8,
-         "why": "입력은 주차 슬래브 위 주거 — 사면이 살려면 몸이 여덟 층으로 서야 한다."},
-        {"op": "grade", "run": 0.75, "toward": "long", "steps": 8, "smooth": false,
-         "why": "여덟 단으로 후퇴시켜 각 단의 지붕이 위 단의 마당이 된다. 연속면이 아니라 계단인 것이 이 무브의 핵심 — smooth면 마당이 사라진다."}
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "profile": "square",
+          "storeys": 8,
+          "why": "입력은 주차 슬래브 위 주거 — 사면이 살려면 몸이 여덟 층으로 서야 한다."
+        },
+        {
+          "op": "grade",
+          "run": 0.75,
+          "toward": "long",
+          "steps": 8,
+          "smooth": false,
+          "why": "여덟 단으로 후퇴시켜 각 단의 지붕이 위 단의 마당이 된다. 연속면이 아니라 계단인 것이 이 무브의 핵심 — smooth면 마당이 사라진다."
+        }
       ]
     },
     {
@@ -22,10 +33,20 @@
       "dominant_gesture": "one continuous slope for a roof",
       "reference_basis": "BIG 반복 무브 검증 — single-slope / 지붕=지면 (CopenHill 계열, 조사 3작)",
       "ops": [
-        {"op": "extrude", "height": 1.0, "profile": "trapezoidal", "storeys": 10,
-         "why": "입력은 설비 높이가 정하는 계단형 몸 — 사다리꼴 평면으로 열 층을 세운다."},
-        {"op": "grade", "run": 0.9, "toward": "long", "smooth": true,
-         "why": "정상에서 지면까지 한 장의 면. 0.9는 걸어 오를 수 있는 최대 낙차이고, 1.0이면 몸이 사라진다."}
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "trapezoidal",
+          "storeys": 10,
+          "why": "입력은 설비 높이가 정하는 계단형 몸 — 사다리꼴 평면으로 열 층을 세운다."
+        },
+        {
+          "op": "grade",
+          "run": 0.9,
+          "toward": "long",
+          "smooth": true,
+          "why": "정상에서 지면까지 한 장의 면. 0.9는 걸어 오를 수 있는 최대 낙차이고, 1.0이면 몸이 사라진다."
+        }
       ]
     },
     {
@@ -36,9 +57,19 @@
       "dominant_gesture": "rotated cubic pixels stacked into peaks",
       "reference_basis": "BIG 반복 무브 검증 — pixel-stack (King Toronto·79&Park 계열, 조사 4작)",
       "ops": [
-        {"op": "aggregate", "n": 9, "spread": 1.15, "height": 0.9, "turn": 45, "tie": 0.1,
-         "method": "stack", "unit": "slab", "storeys": 2, "levels": 3,
-         "why": "입력은 두 층짜리 유닛 아홉과 마당을 남겨야 하는 블록 — 세 켜로 적층하며 45도씩 돌린다. 회전이 만든 어긋남이 봉우리와 마당을 동시에 만든다."}
+        {
+          "op": "aggregate",
+          "n": 9,
+          "spread": 1.15,
+          "height": 0.9,
+          "turn": 45,
+          "tie": 0.1,
+          "method": "stack",
+          "unit": "slab",
+          "storeys": 2,
+          "levels": 3,
+          "why": "입력은 두 층짜리 유닛 아홉과 마당을 남겨야 하는 블록 — 세 켜로 적층하며 45도씩 돌린다. 회전이 만든 어긋남이 봉우리와 마당을 동시에 만든다."
+        }
       ]
     },
     {
@@ -49,10 +80,21 @@
       "dominant_gesture": "a slab pierced so the ground continues",
       "reference_basis": "BIG 반복 무브 검증 — carve-through / 보이드가 주역 (VIA·CapitaSpring 계열, 조사 4작)",
       "ops": [
-        {"op": "extrude", "height": 0.95, "profile": "chamfered", "storeys": 9,
-         "why": "입력은 뚫릴 몸 — 모따기 평면으로 아홉 층. 관통이 다리로 읽히려면 위가 충분히 무거워야 한다."},
-        {"op": "carve", "size": 0.5, "at": "long", "up_to": 0.55, "through": true,
-         "why": "아래 절반을 완전히 관통한다. through가 없으면 홈이지 통과가 아니고, 0.55 위로는 몸이 남아야 다리가 무언가를 든다."}
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "profile": "chamfered",
+          "storeys": 9,
+          "why": "입력은 뚫릴 몸 — 모따기 평면으로 아홉 층. 관통이 다리로 읽히려면 위가 충분히 무거워야 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.5,
+          "at": "long",
+          "up_to": 0.55,
+          "through": true,
+          "why": "아래 절반을 완전히 관통한다. through가 없으면 홈이지 통과가 아니고, 0.55 위로는 몸이 남아야 다리가 무언가를 든다."
+        }
       ]
     },
     {
@@ -63,25 +105,45 @@
       "dominant_gesture": "incremental rotation of a repeated plate",
       "reference_basis": "BIG 반복 무브 검증 — twist (Grove·Kaktus·XI 계열, 조사 6작으로 최빈)",
       "ops": [
-        {"op": "extrude", "height": 1.0, "profile": "hexagon", "storeys": 13,
-         "why": "입력은 열세 층의 좁은 몸 — 육각 평면이라야 회전이 모서리마다 읽힌다."},
-        {"op": "twist", "degrees": 75,
-         "why": "꼭대기까지 75도. 층마다 6도씩이면 발코니가 남을 만큼의 어긋남이고, 90도를 넘으면 코어가 따라오지 못한다."}
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "hexagon",
+          "storeys": 13,
+          "why": "입력은 열세 층의 좁은 몸 — 육각 평면이라야 회전이 모서리마다 읽힌다."
+        },
+        {
+          "op": "twist",
+          "degrees": 75,
+          "why": "꼭대기까지 75도. 층마다 6도씩이면 발코니가 남을 만큼의 어긋남이고, 90도를 넘으면 코어가 따라오지 못한다."
+        }
       ]
     },
     {
       "name": "bt_village_under_one_roof",
       "primary_language": "porous_field",
       "secondary_language": "a field of small boxes gathered under one waving roof",
-      "formal_principle": "거대 프로그램을 작은 채로 흩고 하나의 물결 지붕으로 다시 묶는다 — 스케일은 작게, 읽기는 하나로.",
+      "formal_principle": "거대 프로그램을 작은 채 다섯으로 흩고, 그 위를 하나의 곡면 지붕이 건너 덮는다 — 스케일은 작게, 읽기는 하나로.",
       "dominant_gesture": "small boxes, one continuous roof",
       "reference_basis": "BIG 반복 무브 검증 — 마을화 + 셸 지붕 (Suzhou MoCA·Google Bay View 계열)",
       "ops": [
-        {"op": "aggregate", "n": 6, "spread": 1.4, "height": 0.5, "turn": 0, "tie": 0.15,
-         "method": "pack", "storeys": 2,
-         "why": "입력은 한 몸이면 너무 큰 프로그램 — 두 층짜리 채 여섯으로 흩는다. 사이가 골목이 되도록 spread 1.4."},
-        {"op": "vault", "rise": 0.8, "along": "long",
-         "why": "흩은 채들 위에 곡면 지붕을 얹어 하나로 읽히게 한다. 각진 박공이면 여섯 채가 여섯으로 남고, 호라야 한 장의 리본이 된다."}
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.05,
+          "height": 0.7,
+          "turn": 0,
+          "tie": 0.0,
+          "method": "pack",
+          "storeys": 2,
+          "why": "입력은 한 몸이면 너무 큰 프로그램 — 두 층짜리 채 다섯으로 흩는다. spread 1.05로 붙여 두는 것이 핵심: 1.4로 벌리면 채 하나가 25㎡ 인형집이 되어 방 폭에 미달하고(실측 35%만 도달), 마을이 아니라 모형이 된다."
+        },
+        {
+          "op": "vault",
+          "rise": 0.8,
+          "along": "long",
+          "why": "흩은 채들 위에 곡면 지붕을 얹어 하나로 읽히게 한다. 각진 박공이면 다섯 채가 다섯으로 남고, 호라야 한 장의 리본이 된다. tie(연결 판)는 쓰지 않는다 — 242㎡ 캐노피가 작은 채 위에 얹혀 캔틸레버 6.24배로 기각됐다(한계 1.6). 지붕은 채들이 직접 이어받는다."
+        }
       ]
     },
     {
@@ -92,10 +154,20 @@
       "dominant_gesture": "a ring pinched down to the ground",
       "reference_basis": "BIG 반복 무브 검증 — loop/bowtie (8 House 계열, 조사 3작)",
       "ops": [
-        {"op": "loop", "bar": 0.24, "height": 0.85, "storeys": 7,
-         "why": "입력은 일곱 층의 둘레 블록 — 얇은 바 넷이 마당을 두른다."},
-        {"op": "pinch", "ratio": 0.35, "segments": 6, "toward": "long",
-         "why": "링의 허리를 눌러 8자로 만든다. 0.35까지 눌러야 하나의 마당이 둘로 갈라지고, 더 누르면 링이 끊긴다."}
+        {
+          "op": "loop",
+          "bar": 0.24,
+          "height": 0.85,
+          "storeys": 7,
+          "why": "입력은 일곱 층의 둘레 블록 — 얇은 바 넷이 마당을 두른다."
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.35,
+          "segments": 6,
+          "toward": "long",
+          "why": "링의 허리를 눌러 8자로 만든다. 0.35까지 눌러야 하나의 마당이 둘로 갈라지고, 더 누르면 링이 끊긴다."
+        }
       ]
     },
     {
@@ -106,10 +178,19 @@
       "dominant_gesture": "a bar bent along its length",
       "reference_basis": "BIG 반복 무브 검증 — curve-in-plan (The Smile·Vltava 계열, 조사 3작)",
       "ops": [
-        {"op": "extrude", "height": 0.85, "profile": "square", "storeys": 7,
-         "why": "입력은 일곱 층 판상 바 — 휘려면 먼저 길어야 한다."},
-        {"op": "bend", "degrees": 42, "segments": 6,
-         "why": "여섯 마디로 42도를 나눠 꺾는다. 마디마다 7도면 직선 조각들이 활로 읽히고, 더 꺾으면 두 팔이 서로를 가린다."}
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "profile": "square",
+          "storeys": 7,
+          "why": "입력은 일곱 층 판상 바 — 휘려면 먼저 길어야 한다."
+        },
+        {
+          "op": "bend",
+          "degrees": 42,
+          "segments": 6,
+          "why": "여섯 마디로 42도를 나눠 꺾는다. 마디마다 7도면 직선 조각들이 활로 읽히고, 더 꺾으면 두 팔이 서로를 가린다."
+        }
       ]
     }
   ]

@@ -53,8 +53,12 @@ def main(run: str, per_cell: int = 3) -> int:
     cells = sorted({r["cell"] for r in recs})
     picks = []
     index = 0
+    # One family, one appearance - across the whole gallery, not per cell.
+    # Ranked per cell alone, one strong family's variants filled eight of
+    # forty-four frames, which is a worse offer to the person choosing than
+    # eight families they had not seen.
+    seen = set()
     for cell in cells:
-        seen = set()
         ranked = sorted(
             (r for r in recs if r["cell"] == cell),
             key=lambda r: r.get("spoken_force") or 0.0, reverse=True,

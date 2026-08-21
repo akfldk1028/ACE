@@ -56,7 +56,7 @@
       "name": "i_naneun_maeul",
       "primary_language": "porous_field",
       "secondary_language": "a village of gabled houses whose upper ends fly past their supports",
-      "formal_principle": "집-단면 다섯이 층층이 엇물리고, 위로 갈수록 끝이 허공으로 나간다 — 마을이 쌓이며 처마가 하늘로 뻗는다.",
+      "formal_principle": "집-단면 여섯이 두 켜로 엇물리고, 위 켜의 끝이 아래를 지나 조금 나간다 — 마을이 쌓이며 처마가 허공으로 뻗는다.",
       "dominant_gesture": "stacked house-sections cantilevering outward as they rise",
       "reference_basis": "저작 신작 (unit:house + reach — 어휘가 가졌으나 아무 문장도 쓰지 않던 능력)",
       "ops": [
@@ -70,9 +70,9 @@
           "method": "stack",
           "unit": "house",
           "storeys": 2,
-          "levels": 3,
+          "levels": 2,
           "reach": 0.1,
-          "why": "입력은 두 층짜리 집 여섯 채와 좁은 대지 — 세 켜로 적층하고 32도씩 어긋나게 문다. reach는 0.1까지만: 물리 게이트가 캔틸레버를 뒷심의 1.6배로 제한하는데 0.42는 2.63배, 0.24도 2.45배로 기각됐다. 나는 끝은 회전이 만든 어긋남이 대신 말한다."
+          "why": "입력은 두 층짜리 집 여섯 채와 좁은 대지 — 두 켜로 적층하고 32도씩 어긋나게 문다. 켜가 셋이면 셋째 단의 끝이 아래 어느 집 위에도 놓이지 않아 캔틸레버 2.0~2.3배로 기각된다(reach를 0으로 줄여도 마찬가지 — 원인은 나는 끝이 아니라 켜 수였다). 두 켜에서 reach 0.1은 지지 안에 남는 나는 끝이다."
         },
         {
           "op": "merge",

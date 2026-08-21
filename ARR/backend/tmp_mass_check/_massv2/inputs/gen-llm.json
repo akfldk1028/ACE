@@ -206,13 +206,11 @@
       "ops": [
         {
           "op": "aggregate",
-          "n": 5,
+          "n": 8,
           "spread": 1.7,
           "height": 0.45,
           "tie": 0.2,
-          "turn": 12,
-          "unit": "house",
-          "why": "'채'는 지붕이 있어야 채다 — 박공 단위 다섯이 감기며 틈이 마당으로 벌어진다."
+          "turn": 12
         },
         {
           "op": "twist",
@@ -220,7 +218,8 @@
         }
       ],
       "secondary_language": "",
-      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램",
+      "notes_canon": "blind A/B(2026-08-21): 규범 수술본이 원본에 패배 — 원본 복구. 규범은 가설이고 심판이 판정이다."
     },
     {
       "name": "b_gyunyeol_madang",
@@ -463,14 +462,18 @@
           "n": 5,
           "spread": 1.5,
           "height": 0.4,
-          "tie": 0.35,
-          "turn": 55,
-          "op": "aggregate",
-          "why": "회전은 배치가 말한다 — 다섯 덩이가 55도씩 서로 어긋나 물리며 비틀림 자체가 배치의 질서가 된다. 사후 twist는 균질해서 안 보였다."
+          "tie": 0.2,
+          "turn": 18,
+          "op": "aggregate"
+        },
+        {
+          "degrees": 24,
+          "op": "twist"
         }
       ],
       "secondary_language": "",
-      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램"
+      "reference_basis": "LLM 저작 (서브에이전트 3인, 2026-08-18) — 참조작 없음, 자기 다이어그램",
+      "notes_canon": "blind A/B(2026-08-21): 규범 수술본이 원본에 패배 — 원본 복구. 규범은 가설이고 심판이 판정이다."
     }
   ]
 }

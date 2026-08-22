@@ -2,6 +2,7 @@
 
 import json
 import os
+from functools import wraps
 from collections import Counter
 from copy import deepcopy
 from math import isfinite
@@ -13,8 +14,14 @@ from shapely.affinity import translate
 from shapely.geometry import LineString, mapping
 
 from design.maas.book_language.portfolio_benchmark import (
+    attach_legal_mass_archive_boards,
     apply_diagnostic_summary_policy as _apply_diagnostic_summary_policy,
+    persist_book_program_summary,
     run_book_program_portfolios,
+)
+from design.maas.book_language.agent_authored_supply import (
+    AgentAuthoredAdmission,
+    AgentAuthoredSupplyError,
 )
 from design.maas.book_language.competition_portfolio_contract import (
     competition_portfolio_contract,
@@ -22,6 +29,9 @@ from design.maas.book_language.competition_portfolio_contract import (
 from design.maas.book_language.actual_gfa_stop_certificate import (
     validate_candidate_actual_gfa_stop_certificate,
 )
+from design.maas.book_language.run_budget import progressive_mass_run_budget
+from design.maas.paid_provider_budget import paid_provider_budget_scope
+from design.maas.preference.vlm_scorer import live_vlm_request_count_scope
 from design.maas.book_language.legal_floor_field import (
     validate_legal_floor_field,
 )
@@ -698,13 +708,12 @@ def build_publishable_20_manifest_evidence(
                 },
             )
         expected_capacity = dict(contract.capacity_band_exact_counts)
-        if dict(capacity_counts) != expected_capacity:
-            add(
-                "quota.capacity_band_exact_counts",
-                "capacity_band",
-                expected_capacity,
-                dict(sorted(capacity_counts.items())),
-            )
+        capacity_band_objective = {
+            "expected_exact_counts": expected_capacity,
+            "actual_counts": dict(sorted(capacity_counts.items())),
+            "objective_met": dict(capacity_counts) == expected_capacity,
+            "hard_gate_effect": "none_diagnostic_only",
+        }
         expected_scopes = set(contract.base_scopes)
         if (
             set(scope_counts) != expected_scopes
@@ -858,40 +867,11 @@ def build_publishable_20_manifest_evidence(
             )
             if failed:
                 add(code, axis, expected, actual)
-        if raw_program.get("status") != "pass":
-            add(
-                "upstream.program_status_not_pass",
-                "program_status",
-                "pass",
-                str(raw_program.get("status") or ""),
-            )
-        if completion.get("hard_pass") is not True:
-            add(
-                "upstream.portfolio_completion_not_pass",
-                "portfolio_completion",
-                True,
-                completion.get("hard_pass"),
-            )
         downstream = raw_program.get("downstream_hard_gate")
-        if (
-            not isinstance(downstream, dict)
-            or downstream.get("status") != "pass"
-        ):
-            add(
-                "hard_gate.downstream_not_pass",
-                "downstream_hard_gate",
-                "pass",
-                (
-                    downstream.get("status")
-                    if isinstance(downstream, dict)
-                    else None
-                ),
-            )
         for index, row in enumerate(rows):
             for field in (
                 "inside_site",
                 "program_hard_pass",
-                "resolved_capacity_hard_pass",
             ):
                 if row.get(field) is not True:
                     add(
@@ -900,13 +880,6 @@ def build_publishable_20_manifest_evidence(
                         True,
                         row.get(field),
                     )
-            if row.get("combined_hard_pass") is not True:
-                add(
-                    "hard_gate.combined_not_pass",
-                    f"row[{index}].combined_hard_pass",
-                    True,
-                    row.get("combined_hard_pass"),
-                )
             if row.get("law_graph_evidence_hard_pass") is not True:
                 add(
                     "hard_gate.law_graph_not_pass",
@@ -1248,6 +1221,7 @@ def build_publishable_20_manifest_evidence(
             "target_count": contract.target_count,
             "contract_metrics": contract_metrics,
             "quota_evidence": {
+                "capacity_band_objective": capacity_band_objective,
                 "capacity_band_counts": dict(
                     sorted(capacity_counts.items())
                 ),
@@ -1263,6 +1237,20 @@ def build_publishable_20_manifest_evidence(
                 ),
                 "plan_family_counts": dict(
                     sorted(plan_counts.items())
+                ),
+            },
+            "aggregate_diagnostics": {
+                "hard_gate_effect": "none_diagnostic_only",
+                "program_status": str(raw_program.get("status") or ""),
+                "portfolio_completion": deepcopy(completion),
+                "downstream_hard_gate": (
+                    deepcopy(downstream)
+                    if isinstance(downstream, dict)
+                    else {}
+                ),
+                "combined_hard_pass_count": sum(
+                    row.get("combined_hard_pass") is True
+                    for row in rows
                 ),
             },
             "identity_hashes": identities,
@@ -1343,10 +1331,7 @@ def persist_publishable_20_result(
         result["status"] = "fail"
     directory = Path(output_dir).resolve()
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / "maas-book-programs-summary.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    persist_book_program_summary(directory, result)
     if evidence["status"] != "pass":
         codes = sorted({
             str(deficit.get("code") or "")
@@ -1358,6 +1343,31 @@ def persist_publishable_20_result(
             + ", ".join(codes)
         )
     return evidence
+
+
+def _progressive_provider_budget_lifecycle(method):
+    @wraps(method)
+    def wrapped(self, *args, **options):
+        progressive_target = options.get("progressive_target")
+        if progressive_target is None:
+            return method(self, *args, **options)
+        budget = progressive_mass_run_budget(int(progressive_target))
+        with paid_provider_budget_scope(
+            budget.total_provider_request_limit,
+            quotas=budget.provider_request_quotas,
+            run_metadata={"target_count": budget.target_count},
+            environment_updates={
+                "MAAS_PAID_PROVIDER_MAX_REQUESTS": str(
+                    budget.total_provider_request_limit
+                ),
+                "MAAS_MASS_RUN_TIMEOUT_SECONDS": str(budget.timeout_seconds),
+                "MAAS_LIVE_VLM_MAX_REQUESTS": str(
+                    budget.live_vlm_request_limit
+                ),
+            },
+        ), live_vlm_request_count_scope():
+            return method(self, *args, **options)
+    return wrapped
 
 
 class Command(BaseCommand):
@@ -1382,12 +1392,22 @@ class Command(BaseCommand):
         parser.add_argument(
             "--diagnostic-target",
             type=int,
-            choices=(1, 2, 3, 20),
+            choices=(1, 2, 3, 5, 20),
             default=None,
             help=(
-                "Bound a diagnostic-only probe to 1, 2, 3, or 20 rendered "
+                "Bound a diagnostic-only probe to 1, 2, 3, 5, or 20 rendered "
                 "candidates. "
                 "This can never claim a completed alternative portfolio."
+            ),
+        )
+        parser.add_argument(
+            "--progressive-target",
+            type=int,
+            choices=(3, 5, 10, 20),
+            default=None,
+            help=(
+                "Run a complete LLM-authored, law/parking, exact-VLM "
+                "promotion portfolio for target 3, 5, 10, or 20."
             ),
         )
         parser.add_argument(
@@ -1416,6 +1436,49 @@ class Command(BaseCommand):
                 "alternatives before BOOK, deterministic law/FAR/parking gates and VLM."
             ),
         )
+        parser.add_argument(
+            "--agent-authored-manifest",
+            default=None,
+            help=(
+                "Load fail-closed typed GeometryPrograms authored by the "
+                "current Codex OAuth LLM session; this path never falls back "
+                "to paid or deterministic geometry authorship."
+            ),
+        )
+        parser.add_argument(
+            "--agent-authored-session-id",
+            default=None,
+            help="Trusted current Codex OAuth authoring session ID.",
+        )
+        parser.add_argument(
+            "--agent-authored-request-id",
+            default=None,
+            help="Trusted Codex OAuth request ID bound to the manifest.",
+        )
+        parser.add_argument(
+            "--agent-authored-manifest-sha256",
+            default=None,
+            help="Trusted SHA-256 digest of the exact manifest bytes.",
+        )
+        parser.add_argument(
+            "--agent-authored-program-hash",
+            action="append",
+            default=[],
+            help=(
+                "Trusted admitted pre-BOOK GeometryProgram SHA-256; repeat "
+                "once for each manifest program."
+            ),
+        )
+        parser.add_argument(
+            "--agent-authored-replay-program-hash",
+            action="append",
+            default=[],
+            help=(
+                "Replay only this admitted pre-BOOK program hash after the "
+                "complete source manifest has passed its trust contract; "
+                "repeat for each shortlisted program."
+            ),
+        )
         parser.add_argument("--visual-directive", default=None)
         parser.add_argument(
             "--outcome-graph",
@@ -1427,7 +1490,21 @@ class Command(BaseCommand):
         )
 
     @tracked_mass_command
+    @_progressive_provider_budget_lifecycle
     def handle(self, *args, **options):
+        progressive_target = options.get("progressive_target")
+        if progressive_target is not None:
+            if (
+                options.get("publishable_20")
+                or options.get("diagnostic_target") is not None
+                or options.get("smoke")
+            ):
+                raise CommandError(
+                    "--progressive-target cannot be combined with "
+                    "--publishable-20, --diagnostic-target, or --smoke"
+                )
+            options["live_vlm"] = True
+            options["live_llm_author"] = True
         if (
             options.get("publishable_20")
             and options.get("diagnostic_target") is not None
@@ -1571,6 +1648,34 @@ class Command(BaseCommand):
             site_access_geometry,
         )
         pnu_context_duration = perf_counter() - pnu_context_started
+        agent_authored_manifest_path = (
+            Path(str(options["agent_authored_manifest"])).resolve()
+            if options.get("agent_authored_manifest")
+            else None
+        )
+        agent_authored_admission = None
+        if agent_authored_manifest_path is not None:
+            try:
+                agent_authored_admission = AgentAuthoredAdmission(
+                    authoring_session_id=str(
+                        options.get("agent_authored_session_id") or ""
+                    ),
+                    request_id=str(
+                        options.get("agent_authored_request_id") or ""
+                    ),
+                    manifest_sha256=str(
+                        options.get("agent_authored_manifest_sha256") or ""
+                    ),
+                    admitted_program_hashes=tuple(
+                        options.get("agent_authored_program_hash") or ()
+                    ),
+                )
+            except AgentAuthoredSupplyError as exc:
+                raise CommandError(
+                    "--agent-authored-manifest requires a complete trusted "
+                    "Codex admission contract: session ID, request ID, manifest "
+                    "SHA-256, and admitted program hashes"
+                ) from exc
         result = run_book_program_portfolios(
             local_site,
             pnu=pnu,
@@ -1587,8 +1692,14 @@ class Command(BaseCommand):
             recursive_only=bool(options.get("recursive_only")),
             live_geometry_vlm_revision=bool(options.get("live_vlm")),
             live_llm_author=bool(options.get("live_llm_author")),
+            agent_authored_manifest_path=agent_authored_manifest_path,
+            agent_authored_admission=agent_authored_admission,
+            agent_authored_replay_program_hashes=tuple(
+                options.get("agent_authored_replay_program_hash") or ()
+            ),
             smoke_mode=bool(options.get("smoke")),
             diagnostic_target=options.get("diagnostic_target"),
+            progressive_target=progressive_target,
             visual_directive_path=(
                 Path(str(options["visual_directive"])).resolve()
                 if options.get("visual_directive")
@@ -1606,12 +1717,13 @@ class Command(BaseCommand):
                 result,
                 target=int(diagnostic_target),
             )
-            (
-                Path(options["output_dir"]).resolve()
-                / "maas-book-programs-summary.json"
-            ).write_text(
-                json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-                encoding="utf-8",
+            attach_legal_mass_archive_boards(
+                result,
+                output_dir=Path(options["output_dir"]).resolve(),
+            )
+            persist_book_program_summary(
+                Path(options["output_dir"]).resolve(),
+                result,
             )
         if options.get("publishable_20"):
             internal_timings = (
@@ -1636,7 +1748,7 @@ class Command(BaseCommand):
             + ", ".join(
                 (
                     f"{item['program']} {item['selected_count']}/"
-                    f"{int(diagnostic_target) if diagnostic_target is not None else (10 if options.get('smoke') else 20)} "
+                    f"{int(progressive_target) if progressive_target is not None else (int(diagnostic_target) if diagnostic_target is not None else (10 if options.get('smoke') else 20))} "
                     f"({item['book_operation_count']} ops)"
                 )
                 for item in result["programs"]

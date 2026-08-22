@@ -78,6 +78,10 @@ from design.maas.creative_portfolio_catalog import (
     creative_portfolio_manifest,
     creative_portfolio_render,
 )
+from design.maas.portfolio_evaluation_catalog import (
+    portfolio_evaluation_manifest,
+    portfolio_evaluation_render,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +109,16 @@ def _creative_portfolio_root() -> Path:
     ).resolve()
 
 
+def _portfolio_evaluation_root() -> Path:
+    configured = getattr(settings, "MAAS_PORTFOLIO_EVALUATION_ROOT", "")
+    if configured:
+        return Path(configured).resolve()
+    return (
+        Path(settings.BASE_DIR).resolve().parent
+        / "docs" / "playwright" / "design-route-live-verify"
+    ).resolve()
+
+
 @require_http_methods(["GET"])
 def maas_creative_portfolios(request):
     """Return a validated pre-legal creative archive without type coercion."""
@@ -120,6 +134,44 @@ def maas_creative_portfolios(request):
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
         logger.warning("Invalid creative portfolio request: %s", exc)
         return JsonResponse({"error": "invalid creative portfolio"}, status=400)
+
+
+@require_http_methods(["GET"])
+def maas_portfolio_evaluations(request):
+    run_id = str(request.GET.get("run_id") or "").strip()
+    try:
+        return JsonResponse(portfolio_evaluation_manifest(
+            _portfolio_evaluation_root(),
+            run_id or None,
+        ))
+    except FileNotFoundError as exc:
+        raise Http404("portfolio evaluation not found") from exc
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        logger.warning("Invalid portfolio evaluation request: %s", exc)
+        return JsonResponse(
+            {"error": "invalid portfolio evaluation"},
+            status=400,
+        )
+
+
+@require_http_methods(["GET"])
+def maas_portfolio_evaluation_render(
+    request,
+    run_id,
+    candidate_id,
+):
+    try:
+        output = portfolio_evaluation_render(
+            _portfolio_evaluation_root(),
+            str(run_id),
+            str(candidate_id),
+        )
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise Http404("portfolio evaluation render not found") from exc
+    response = FileResponse(output.open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @require_http_methods(["GET"])

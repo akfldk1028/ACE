@@ -15,11 +15,16 @@ from PIL import Image, ImageDraw
 
 from design.maas.creative_floor_portfolio import (
     build_creative_floor_portfolio,
+    build_creative_floor_portfolio_report,
+)
+from design.maas.creative_author_supply import (
+    collect_creative_author_supply,
 )
 from design.maas.creative_morphology import morphology_distance
 from design.maas.creative_program_author import (
     authored_programs_from_cache_pool,
     authored_programs_from_payload,
+    cached_authored_programs,
 )
 from design.maas.creative_research_bundle import (
     write_creative_mass_research_bundle,
@@ -70,7 +75,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--author-mode",
             required=True,
-            choices=("payload", "llm", "cache_pool", "recipe_fixture"),
+            choices=(
+                "payload",
+                "llm",
+                "cache_pool",
+                "hybrid",
+                "recipe_fixture",
+            ),
             help=(
                 "payload or llm is the production path; recipe_fixture is "
                 "an explicit deterministic regression/demo source"
@@ -79,6 +90,11 @@ class Command(BaseCommand):
         parser.add_argument("--author-payload", default="", type=str)
         parser.add_argument("--author-cache-root", default="", type=str)
         parser.add_argument("--author-model", default="", type=str)
+        parser.add_argument(
+            "--max-fresh-author-requests",
+            default=3,
+            type=int,
+        )
         parser.add_argument(
             "--vlm-pilot",
             action="store_true",
@@ -96,6 +112,23 @@ class Command(BaseCommand):
         pnu = str(options["pnu"] or "").strip()
         if not pnu:
             raise CommandError("--pnu is required")
+        author_mode = str(options["author_mode"])
+        max_fresh_author_requests = int(
+            options.get("max_fresh_author_requests") or 0
+        )
+        if max_fresh_author_requests < 0 or max_fresh_author_requests > 3:
+            raise CommandError(
+                "--max-fresh-author-requests must be between 0 and 3"
+            )
+        if author_mode == "hybrid":
+            if not str(options.get("author_cache_root") or "").strip():
+                raise CommandError(
+                    "--author-cache-root is required for hybrid author mode"
+                )
+            if bool(options.get("vlm_pilot")):
+                raise CommandError(
+                    "--vlm-pilot is unavailable in hybrid pre-legal mode"
+                )
         run_id = str(options.get("run_id") or "").strip() or (
             f"maas-creative-{count}-"
             f"{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
@@ -117,32 +150,93 @@ class Command(BaseCommand):
         candidates_directory.mkdir(parents=True, exist_ok=True)
         renders_directory.mkdir(parents=True, exist_ok=True)
 
+        context = {
+            "pnu": pnu,
+            "capacity_ceiling_m2": float(
+                options["capacity_ceiling_m2"]
+            ),
+            "creative_portfolio_run_id": run_id,
+            "instruction": (
+                "Author materially different executable typed MASS ASTs. "
+                "Do not select or imitate a named family recipe."
+            ),
+        }
+        author_supply = None
+        portfolio_report = None
         try:
-            authored_programs = _resolve_authored_programs(
-                mode=str(options["author_mode"]),
-                payload_path=str(options.get("author_payload") or ""),
-                cache_root=str(options.get("author_cache_root") or ""),
-                model=str(options.get("author_model") or ""),
-                count=count,
-                context={
-                    "pnu": pnu,
-                    "capacity_ceiling_m2": float(
+            if author_mode == "hybrid":
+                cached = cached_authored_programs(
+                    Path(str(options["author_cache_root"]))
+                    .expanduser()
+                    .resolve(),
+                    limit=60,
+                )
+
+                def fresh_author(
+                    requested_count: int,
+                    attempt_index: int,
+                ) -> tuple[GeometryProgram, ...]:
+                    return tuple(author_geometry_programs_with_openai(
+                        {
+                            **context,
+                            "creative_author_batch_index": (
+                                attempt_index - 1
+                            ),
+                        },
+                        target_count=min(20, requested_count),
+                        model=(
+                            str(options.get("author_model") or "")
+                            or None
+                        ),
+                    ))
+
+                def retained_count(programs) -> int:
+                    report = build_creative_floor_portfolio_report(
+                        target_count=count,
+                        capacity_ceiling_m2=float(
+                            options["capacity_ceiling_m2"]
+                        ),
+                        authored_programs=programs,
+                    )
+                    return len(report.candidates)
+
+                author_supply = collect_creative_author_supply(
+                    target_count=count,
+                    cached_programs=cached,
+                    fresh_author=fresh_author,
+                    retained_count=retained_count,
+                    max_fresh_requests=max_fresh_author_requests,
+                )
+                portfolio_report = build_creative_floor_portfolio_report(
+                    target_count=count,
+                    capacity_ceiling_m2=float(
                         options["capacity_ceiling_m2"]
                     ),
-                    "creative_portfolio_run_id": run_id,
-                    "instruction": (
-                        "Author materially different executable typed MASS "
-                        "ASTs. Do not select or imitate a named family recipe."
+                    authored_programs=author_supply.programs,
+                )
+                portfolio = _hybrid_portfolio_payload(
+                    portfolio_report,
+                    capacity_ceiling_m2=float(
+                        options["capacity_ceiling_m2"]
                     ),
-                },
-            )
-            portfolio = build_creative_floor_portfolio(
-                count=count,
-                capacity_ceiling_m2=float(
-                    options["capacity_ceiling_m2"]
-                ),
-                authored_programs=authored_programs,
-            )
+                    author_supply=author_supply.evidence(),
+                )
+            else:
+                authored_programs = _resolve_authored_programs(
+                    mode=author_mode,
+                    payload_path=str(options.get("author_payload") or ""),
+                    cache_root=str(options.get("author_cache_root") or ""),
+                    model=str(options.get("author_model") or ""),
+                    count=count,
+                    context=context,
+                )
+                portfolio = build_creative_floor_portfolio(
+                    count=count,
+                    capacity_ceiling_m2=float(
+                        options["capacity_ceiling_m2"]
+                    ),
+                    authored_programs=authored_programs,
+                )
         except (
             GeometryAuthorError,
             OSError,
@@ -154,7 +248,14 @@ class Command(BaseCommand):
         candidates = portfolio.get("candidates")
         if (
             not isinstance(candidates, list)
-            or len(candidates) != count
+            or (
+                author_mode != "hybrid"
+                and len(candidates) != count
+            )
+            or (
+                author_mode == "hybrid"
+                and len(candidates) > count
+            )
         ):
             raise CommandError(
                 "creative portfolio candidate count does not match request"
@@ -182,7 +283,11 @@ class Command(BaseCommand):
             ))
 
         board_path = run_directory / "maas-creative-board.png"
-        board = _write_board(preview_items, board_path)
+        board = _write_board(
+            preview_items,
+            board_path,
+            target_count=count if author_mode == "hybrid" else None,
+        )
         graph = _frontend_graph(
             persisted_candidates,
             run_id=run_id,
@@ -214,7 +319,7 @@ class Command(BaseCommand):
                 or ""
             )
             for candidate in persisted_candidates
-            if str(options["author_mode"]) == "llm"
+            if author_mode in {"llm", "hybrid"}
             and not bool(
                 (candidate.get("author_evidence") or {}).get(
                     "cache_hit"
@@ -235,7 +340,7 @@ class Command(BaseCommand):
                 if key != "candidates"
             },
             "run_id": run_id,
-            "author_mode": str(options["author_mode"]),
+            "author_mode": author_mode,
             "pnu": pnu,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "candidate_count": len(persisted_candidates),
@@ -267,6 +372,9 @@ class Command(BaseCommand):
             "paid_author_request_count_authority": (
                 "confirmed_noncache_response_ids_in_current_llm_mode"
             ),
+            "acceptance_label": (
+                "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+            ),
             "frontend_graph": graph,
             "filter_facets": _filter_facets(persisted_candidates),
             "artifact_contract": {
@@ -285,8 +393,46 @@ class Command(BaseCommand):
         portfolio_path = (
             run_directory / "maas-creative-portfolio.json"
         )
+        if author_mode == "hybrid":
+            assert portfolio_report is not None
+            assert author_supply is not None
+            ledger = {
+                "schema_version": "arr.maas.prelegal_stage_ledger.v2",
+                "status": portfolio_report.status,
+                "target_count": count,
+                "candidate_count": len(persisted_candidates),
+                "deficit": portfolio_report.deficit,
+                "author_supply": author_supply.evidence(),
+                "stage_counts": dict(portfolio_report.stage_counts),
+                "rejection_counts": dict(
+                    portfolio_report.rejection_counts
+                ),
+                "rejections": [
+                    item.evidence()
+                    for item in portfolio_report.rejections
+                ],
+                "morphology_histograms": _morphology_histograms(
+                    candidates
+                ),
+                "book_language_coverage": deepcopy(
+                    portfolio.get("book_language_coverage") or {}
+                ),
+                "affine_authority_counts": _affine_authority_counts(
+                    persisted_candidates
+                ),
+                "paid_vlm_request_count": 0,
+                "acceptance_scope": "pre_legal_not_evaluated",
+                "acceptance_label": (
+                    "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+                ),
+            }
+            ledger_path = (
+                run_directory / "maas-prelegal-stage-ledger.json"
+            )
+            _write_json_atomic(ledger_path, ledger)
+            payload["stage_ledger"] = ledger_path.name
         _write_json_atomic(portfolio_path, payload)
-        self.stdout.write(json.dumps({
+        summary = {
             "run_id": run_id,
             "run_directory": str(run_directory),
             "candidate_count": len(persisted_candidates),
@@ -297,7 +443,146 @@ class Command(BaseCommand):
             ),
             "paid_author_request_count": paid_author_request_count,
             "legal_review_status": payload["legal_review_status"],
-        }, ensure_ascii=False, sort_keys=True))
+        }
+        if portfolio_report is not None:
+            summary.update(portfolio_report.stage_counts)
+        self.stdout.write(json.dumps(
+            summary,
+            ensure_ascii=False,
+            sort_keys=True,
+        ))
+
+
+def _affine_authority_counts(
+    candidates: list[dict[str, Any]],
+) -> dict[str, int]:
+    """Audit the persisted one-UnitBox/direct-Matrix4 affine contract."""
+
+    shorthand = {"scale", "rotate", "translate", "mirror", "shear"}
+    missing_unitbox_count = 0
+    missing_matrix4_count = 0
+    shorthand_node_count = 0
+    for candidate in candidates:
+        payload = candidate.get("geometry_program")
+        try:
+            program = GeometryProgram.from_dict(payload)
+        except (TypeError, ValueError):
+            missing_unitbox_count += 1
+            missing_matrix4_count += 1
+            continue
+        unitboxes = [
+            node
+            for node in program.nodes
+            if node.kind == "primitive"
+            and node.operator == "box"
+            and bool((node.provenance or {}).get("unitbox_authority"))
+        ]
+        if len(unitboxes) != 1:
+            missing_unitbox_count += 1
+            missing_matrix4_count += 1
+        else:
+            unitbox_id = unitboxes[0].id
+            if not any(
+                node.kind == "transform"
+                and node.operator == "matrix4"
+                and node.inputs == (unitbox_id,)
+                for node in program.nodes
+            ):
+                missing_matrix4_count += 1
+        shorthand_node_count += sum(
+            node.operator in shorthand
+            for node in program.nodes
+        )
+    return {
+        "candidate_count": len(candidates),
+        "missing_unitbox_count": missing_unitbox_count,
+        "missing_matrix4_count": missing_matrix4_count,
+        "shorthand_node_count": shorthand_node_count,
+    }
+
+
+def _hybrid_portfolio_payload(
+    report,
+    *,
+    capacity_ceiling_m2: float,
+    author_supply: dict[str, Any],
+) -> dict[str, Any]:
+    candidates = list(report.candidates)
+    family_counts = Counter(
+        str(candidate["family"]) for candidate in candidates
+    )
+    capacity_counts = Counter(
+        str(candidate["capacity_band"]) for candidate in candidates
+    )
+    return {
+        "schema_version": "arr.maas.creative_floor_portfolio.v1",
+        "author_mode": "hybrid",
+        "status": report.status,
+        "choice_pool": True,
+        "candidate_count": len(candidates),
+        "capacity_ceiling_m2": round(capacity_ceiling_m2, 6),
+        "capacity_authority": "user_supplied_prelegal_target",
+        "family_quotas": dict(family_counts),
+        "capacity_band_quotas": dict(capacity_counts),
+        "legal_review_status": "not_evaluated",
+        "paid_vlm_request_count": 0,
+        "acceptance_scope": "pre_legal_not_evaluated",
+        "acceptance_label": (
+            "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+        ),
+        "author_supply": author_supply,
+        "stage_counts": dict(report.stage_counts),
+        "rejection_counts": dict(report.rejection_counts),
+        "rejections": [item.evidence() for item in report.rejections],
+        "book_language_coverage": deepcopy(report.language_coverage),
+        "morphology_evidence": {
+            "schema_version": "arr.maas.creative_morphology.v1",
+            "decision": report.status,
+            "accepted_count": len(candidates),
+            "rejected_count": sum(report.rejection_counts.values()),
+        },
+        "candidates": candidates,
+    }
+
+
+def _morphology_histograms(
+    candidates: list[dict[str, Any]],
+) -> dict[str, Any]:
+    families = Counter(
+        str(candidate.get("posthoc_family") or candidate.get("family") or "")
+        for candidate in candidates
+    )
+    capacity_bands = Counter(
+        str(candidate.get("capacity_band") or "")
+        for candidate in candidates
+    )
+    visible_stepped = Counter()
+    distances: list[float] = []
+    for candidate in candidates:
+        morphology = candidate.get("morphology_evidence") or {}
+        descriptor = morphology.get("descriptor") or {}
+        stepped = descriptor.get("visible_stepped")
+        visible_stepped[
+            "unknown" if stepped is None else str(bool(stepped)).lower()
+        ] += 1
+        decision = morphology.get("decision") or {}
+        distance = decision.get("nearest_distance")
+        if isinstance(distance, (int, float)):
+            distances.append(float(distance))
+    ordered = sorted(distances)
+    return {
+        "posthoc_family": dict(sorted(families.items())),
+        "capacity_band": dict(sorted(capacity_bands.items())),
+        "visible_stepped": dict(sorted(visible_stepped.items())),
+        "morphology_distance": {
+            "count": len(ordered),
+            "minimum": ordered[0] if ordered else None,
+            "maximum": ordered[-1] if ordered else None,
+            "median": (
+                ordered[len(ordered) // 2] if ordered else None
+            ),
+        },
+    }
 
 
 def _resolve_authored_programs(
@@ -672,6 +957,8 @@ def _filter_facets(
 def _write_board(
     items: list[tuple[str, Path]],
     output_path: Path,
+    *,
+    target_count: int | None = None,
 ) -> dict[str, Any]:
     columns = 5 if len(items) == 20 else _BOARD_COLUMNS
     rows = max(1, (len(items) + columns - 1) // columns)
@@ -682,6 +969,17 @@ def _write_board(
         "#e8eef5",
     )
     draw = ImageDraw.Draw(image)
+    if not items:
+        draw.text(
+            (18, 18),
+            f"PRE-LEGAL PARTIAL 0/{int(target_count or 0)}",
+            fill="#172033",
+        )
+        draw.text(
+            (18, 45),
+            "NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED",
+            fill="#172033",
+        )
     for index, (label, path) in enumerate(items):
         row, column = divmod(index, columns)
         x = column * _BOARD_CARD_WIDTH
@@ -719,6 +1017,10 @@ def _write_board(
         "card_width_px": _BOARD_CARD_WIDTH,
         "card_height_px": card_height,
         "candidate_count": len(items),
+        "target_count": target_count,
+        "acceptance_label": (
+            "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+        ),
     }
 
 

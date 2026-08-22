@@ -28,6 +28,17 @@ from design.maas.massv2.siting import open_side_direction  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 
 
+# `height` does not mean the same thing to every verb. The relational verbs
+# build in their host's own unit cube - `_region(host, ...)` in ops/relational
+# - so their `height` is a multiple of the host, while extrude, loop, stack and
+# aggregate take a share of the site's budget. Dividing one by the other is two
+# reference frames in one sum: ca_ocad reads as "declared 2.86x, built 1.99x"
+# only because 1.0-of-its-host was compared against 0.35-of-the-parcel, and its
+# own text says plainly that the plate should stand as tall as the base it sits
+# on - which is exactly what it built.
+_HOST_RELATIVE = {"merge", "lodge", "overlap", "extract"}
+
+
 def declared_contrast(rec):
     """The height ratio the sentence itself names, or None if it names none."""
 
@@ -37,6 +48,7 @@ def declared_contrast(rec):
     heights = [
         float(op["height"]) for op in rec.get("ops", [])
         if op.get("height") is not None and float(op["height"]) > 0.0
+        and op.get("op") not in _HOST_RELATIVE
     ]
     if len(heights) < 2:
         return None

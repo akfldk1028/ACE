@@ -63,7 +63,6 @@ AG-light/vectors.ndjson
 
 # Local external clones and scratch outputs
 clone/
-docs/ai-session-memory/parking-layout-clones/
 Data25_ACEtmp_resp.json
 test_e2e_stdout.txt
 test_e2e_stderr.txt

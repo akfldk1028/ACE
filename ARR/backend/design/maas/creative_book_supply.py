@@ -9,6 +9,9 @@ from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
 from .book_language.registry import build_book_language_registry
 from .geometry_language.ast import GeometryProgram
+from .geometry_language.affine_normalization import (
+    normalize_affine_basevolume_program,
+)
 from .geometry_language.book_adapter import (
     apply_book_projection_to_geometry_program,
 )
@@ -115,13 +118,14 @@ def project_creative_book_program(
         orientation=assignment.orientation,
     )
     projected = apply_book_projection_to_geometry_program(program, sequence)
-    return replace(
+    assigned = replace(
         projected,
         metadata={
             **projected.metadata,
             "creative_book_assignment": assignment.evidence(),
         },
     )
+    return normalize_affine_basevolume_program(assigned)
 
 
 def creative_book_evidence(

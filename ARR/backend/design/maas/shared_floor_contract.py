@@ -9,7 +9,7 @@ from typing import Any, Sequence
 
 from shapely import intersection
 from shapely.errors import GEOSException
-from shapely.geometry import Polygon, mapping
+from shapely.geometry import MultiPolygon, Polygon, mapping
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass
@@ -59,25 +59,51 @@ def bind_shared_floor_contract_capacity(
     return _seal_contract(payload)
 
 
-def _repair_polygonal(geometry: Any, *, minimum_area: float) -> Polygon | None:
-    """Discard line/point overlay residue and retain the largest valid plate."""
+def _repair_polygonal(
+    geometry: Any,
+    *,
+    minimum_area: float,
+) -> Polygon | MultiPolygon | None:
+    """Repair every polygonal component without filling holes or dropping wings."""
 
-    direct = repair_source_polygon(geometry, minimum_area=minimum_area)
-    if direct is not None:
-        return direct
-    parts = [
-        repaired
-        for part in getattr(geometry, "geoms", ())
-        for repaired in (
-            repair_source_polygon(part, minimum_area=minimum_area),
+    if geometry is None or geometry.is_empty:
+        return None
+    candidate = geometry if geometry.is_valid else geometry.buffer(0)
+    if candidate.is_empty:
+        return None
+    parts: list[Polygon] = []
+
+    def collect(value: Any) -> None:
+        if isinstance(value, Polygon):
+            repaired = repair_source_polygon(
+                value,
+                minimum_area=minimum_area,
+            )
+            if repaired is not None:
+                parts.append(repaired.normalize())
+            return
+        for part in getattr(value, "geoms", ()):
+            collect(part)
+
+    collect(candidate)
+    if not parts:
+        return None
+    merged = unary_union(parts)
+    merged_parts = [
+        part.normalize()
+        for part in (
+            (merged,)
+            if isinstance(merged, Polygon)
+            else getattr(merged, "geoms", ())
         )
-        if repaired is not None
+        if isinstance(part, Polygon)
+        and not part.is_empty
+        and float(part.area) >= minimum_area
     ]
-    return (
-        repair_source_polygon(unary_union(parts), minimum_area=minimum_area)
-        if parts
-        else None
-    )
+    if not merged_parts:
+        return None
+    ordered = sorted(merged_parts, key=lambda part: part.wkb_hex)
+    return ordered[0] if len(ordered) == 1 else MultiPolygon(ordered)
 
 
 def materialize_shared_floor_contract(
@@ -131,7 +157,7 @@ def materialize_shared_floor_contract(
             repaired
             for volume in source.volumes
             for repaired in (
-                repair_source_polygon(volume.footprint, minimum_area=0.01),
+                _repair_polygonal(volume.footprint, minimum_area=0.01),
             )
             if repaired is not None
             if float(volume.bottom_fraction) <= fraction < float(volume.top_fraction)
@@ -142,11 +168,15 @@ def materialize_shared_floor_contract(
             else None
         )
         legal = (
-            repair_source_polygon(raw_legal, minimum_area=0.01)
+            _repair_polygonal(raw_legal, minimum_area=0.01)
             if raw_legal is not None
             else None
         )
-        source_union = unary_union(active) if active else None
+        source_union = (
+            _repair_polygonal(unary_union(active), minimum_area=0.01)
+            if active
+            else None
+        )
         topology_failed = False
         try:
             raw_occupied = (

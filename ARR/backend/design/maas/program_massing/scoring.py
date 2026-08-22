@@ -19,13 +19,37 @@ def _component_failure_reasons(payload: dict[str, Any], fallback: str) -> list[A
     return [fallback]
 
 
+def _semantic_volume_count(
+    volumes: list[Any],
+    *,
+    fallback: int,
+) -> int:
+    """Count typed masses, not repeated legal floor-band proxies."""
+
+    if not volumes:
+        return max(1, int(fallback or 1))
+    if all(
+        isinstance(volume, dict)
+        and str(volume.get("role") or "").strip()
+        for volume in volumes
+    ):
+        return len({
+            str(volume["role"]).strip()
+            for volume in volumes
+        })
+    return len(volumes)
+
+
 def attach_program_massing_evidence(feature: dict[str, Any], *, building_type: str) -> dict[str, Any]:
     props = feature.setdefault("properties", {})
     profile = resolve_program_profile(building_type)
     signature = props.get("source_signature") if isinstance(props.get("source_signature"), dict) else {}
     family = str(signature.get("family") or props.get("operator_family") or props.get("typology_family") or "")
     volumes = props.get("mass_volumes") if isinstance(props.get("mass_volumes"), list) else []
-    volume_count = len(volumes) or int(signature.get("volume_count") or 1)
+    volume_count = _semantic_volume_count(
+        volumes,
+        fallback=int(signature.get("volume_count") or 1),
+    )
     floors = int(props.get("num_floors") or 1)
     volume_min, volume_max = [int(value) for value in profile.get("target_volume_range", [1, 4])]
     floor_min, floor_max = [int(value) for value in profile.get("target_floor_range", [1, 40])]

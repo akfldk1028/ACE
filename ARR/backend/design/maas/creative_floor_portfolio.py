@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import replace
+from dataclasses import dataclass, replace
 import hashlib
 import json
 from math import isfinite, sqrt
@@ -11,6 +11,11 @@ from typing import Any, Iterable
 
 from .creative_family_contract import (
     CreativeRecipeResult,
+)
+from .creative_book_supply import (
+    creative_book_evidence,
+    creative_book_schedule,
+    project_creative_book_program,
 )
 from .creative_family_registry import (
     balanced_family_schedule,
@@ -34,6 +39,7 @@ from .geometry_language.compiler import (
     CompilationResult,
     compile_geometry_program,
 )
+from .geometry_language.book_adapter import BookProjectionFailure
 from .geometry_language.gate import GeometryGatePolicy, compilation_gate
 
 
@@ -56,6 +62,408 @@ CAPACITY_TARGET_RATIOS = {
 _CONNECTED_POLICY = GeometryGatePolicy(maximum_components=1)
 
 
+@dataclass(frozen=True)
+class CreativePortfolioRejection:
+    input_index: int
+    stage: str
+    reason_code: str
+    program_hash: str = ""
+    geometry_hash: str = ""
+    principle_id: str = ""
+    scope_label: str = ""
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "input_index": self.input_index,
+            "stage": self.stage,
+            "reason_code": self.reason_code,
+            "program_hash": self.program_hash,
+            "geometry_hash": self.geometry_hash,
+            "principle_id": self.principle_id,
+            "scope_label": self.scope_label,
+        }
+
+
+@dataclass(frozen=True)
+class CreativeFloorPortfolioReport:
+    status: str
+    target_count: int
+    candidates: tuple[dict[str, Any], ...]
+    stage_counts: dict[str, int]
+    rejection_counts: dict[str, int]
+    rejections: tuple[CreativePortfolioRejection, ...]
+    language_coverage: dict[str, Any]
+
+    @property
+    def deficit(self) -> int:
+        return max(0, self.target_count - len(self.candidates))
+
+    def evidence(self) -> dict[str, Any]:
+        return {
+            "schema_version": (
+                "arr.maas.creative_floor_portfolio_report.v1"
+            ),
+            "status": self.status,
+            "target_count": self.target_count,
+            "candidate_count": len(self.candidates),
+            "deficit": self.deficit,
+            "stage_counts": dict(sorted(self.stage_counts.items())),
+            "rejection_counts": dict(sorted(self.rejection_counts.items())),
+            "rejections": [item.evidence() for item in self.rejections],
+            "language_coverage": dict(self.language_coverage),
+        }
+
+
+def _book_language_coverage(
+    candidates: Iterable[dict[str, Any]],
+) -> dict[str, Any]:
+    evidence_rows = [
+        row.get("book_language_evidence") or {}
+        for row in candidates
+    ]
+    materialized = [
+        row for row in evidence_rows if row.get("materialized") is True
+    ]
+    principle_ids = {
+        str(row.get("principle_id") or "")
+        for row in materialized
+        if str(row.get("principle_id") or "")
+    }
+    principle_ids_by_kind = {
+        kind: {
+            str(row.get("principle_id") or "")
+            for row in materialized
+            if str(row.get("principle_kind") or "") == kind
+            and str(row.get("principle_id") or "")
+        }
+        for kind in ("base_operative", "combination", "aggregation")
+    }
+    expected_ids = {
+        item.principle_id for item in creative_book_schedule(59)
+    }
+    return {
+        "schema_version": "arr.maas.creative_book_coverage.v1",
+        "candidate_count": len(evidence_rows),
+        "materialized_count": len(materialized),
+        "distinct_principle_count": len(principle_ids),
+        "principle_ids": sorted(principle_ids),
+        "base_operative_count": len(
+            principle_ids_by_kind["base_operative"]
+        ),
+        "combination_count": len(
+            principle_ids_by_kind["combination"]
+        ),
+        "aggregation_count": len(
+            principle_ids_by_kind["aggregation"]
+        ),
+        "missing_principle_ids": sorted(expected_ids - principle_ids),
+        "principle_kind_counts": dict(sorted(Counter(
+            str(row.get("principle_kind") or "")
+            for row in materialized
+            if str(row.get("principle_kind") or "")
+        ).items())),
+        "scope_counts": dict(sorted(Counter(
+            str(row.get("scope_label") or "")
+            for row in materialized
+            if str(row.get("scope_label") or "")
+        ).items())),
+    }
+
+
+def _structural_rejection_reason(
+    compilation: CompilationResult,
+) -> str:
+    metrics = compilation.metrics
+    if int(metrics.get("component_count") or 0) != 1:
+        return "disconnected"
+    if metrics.get("watertight") is not True:
+        return "non_watertight"
+    if metrics.get("manifold") is not True:
+        return "non_manifold"
+    if compilation_gate(compilation, _CONNECTED_POLICY):
+        return "geometry_gate"
+    return ""
+
+
+def build_creative_floor_portfolio_report(
+    *,
+    target_count: int,
+    capacity_ceiling_m2: float,
+    authored_programs: Iterable[
+        GeometryProgram | CreativeAuthoredProgram
+    ],
+) -> CreativeFloorPortfolioReport:
+    """Compile oversupplied authored programs and retain up to target_count."""
+
+    target = int(target_count)
+    ceiling = float(capacity_ceiling_m2)
+    if target < 1 or target > 100:
+        raise ValueError("target_count must be between 1 and 100")
+    if not isfinite(ceiling) or ceiling <= 0.0:
+        raise ValueError("capacity_ceiling_m2 must be positive")
+
+    inputs = tuple(authored_programs)
+    stage_counts = {
+        "author_input": len(inputs),
+        "normalized_program": 0,
+        "unique_program_hash": 0,
+        "book_projection_pass": 0,
+        "book_authority_pass": 0,
+        "book_compile_pass": 0,
+        "book_structural_pass": 0,
+        "canonical_compile_pass": 0,
+        "structural_pass": 0,
+        "physical_candidate_pass": 0,
+        "unique_geometry_hash": 0,
+        "unique_normalized_mesh_hash": 0,
+        "morphology_retained": 0,
+    }
+    rejection_counts: Counter[str] = Counter()
+    rejections: list[CreativePortfolioRejection] = []
+    candidates: list[dict[str, Any]] = []
+    program_hashes: set[str] = set()
+    geometry_hashes: set[str] = set()
+    normalized_mesh_hashes: set[str] = set()
+    book_schedule = creative_book_schedule(target)
+
+    def reject(
+        input_index: int,
+        stage: str,
+        reason_code: str,
+        *,
+        program_hash: str = "",
+        geometry_hash: str = "",
+        principle_id: str = "",
+        scope_label: str = "",
+    ) -> None:
+        rejection_counts[reason_code] += 1
+        rejections.append(CreativePortfolioRejection(
+            input_index=input_index,
+            stage=stage,
+            reason_code=reason_code,
+            program_hash=program_hash,
+            geometry_hash=geometry_hash,
+            principle_id=principle_id,
+            scope_label=scope_label,
+        ))
+
+    for input_index, raw_authored in enumerate(inputs):
+        if len(candidates) >= target:
+            break
+        try:
+            authored = normalize_authored_programs((raw_authored,))[0]
+        except (RuntimeError, TypeError, ValueError):
+            reject(input_index, "normalized_program", "normalization_error")
+            continue
+        stage_counts["normalized_program"] += 1
+        source_program_hash = authored.program.program_hash()
+        if source_program_hash in program_hashes:
+            reject(
+                input_index,
+                "unique_program_hash",
+                "duplicate_program_hash",
+                program_hash=source_program_hash,
+            )
+            continue
+        program_hashes.add(source_program_hash)
+        stage_counts["unique_program_hash"] += 1
+
+        try:
+            source_compilation = compile_geometry_program(authored.program)
+        except (RuntimeError, TypeError, ValueError):
+            reject(
+                input_index,
+                "canonical_compile_pass",
+                "compiler_exception",
+                program_hash=source_program_hash,
+            )
+            continue
+        stage_counts["canonical_compile_pass"] += 1
+        source_structural_reason = _structural_rejection_reason(
+            source_compilation
+        )
+        if source_structural_reason:
+            reject(
+                input_index,
+                "structural_pass",
+                source_structural_reason,
+                program_hash=source_program_hash,
+                geometry_hash=source_compilation.geometry_hash,
+            )
+            continue
+        stage_counts["structural_pass"] += 1
+
+        assignment = book_schedule[len(candidates)]
+        try:
+            projected_program = project_creative_book_program(
+                authored.program,
+                assignment,
+            )
+        except BookProjectionFailure as exc:
+            reject(
+                input_index,
+                "book_projection_pass",
+                str(exc.evidence.get("code") or "book_projection_failure"),
+                program_hash=source_program_hash,
+                principle_id=assignment.principle_id,
+                scope_label=assignment.scope_label,
+            )
+            continue
+        except (RuntimeError, TypeError, ValueError):
+            reject(
+                input_index,
+                "book_projection_pass",
+                "book_projection_failure",
+                program_hash=source_program_hash,
+                principle_id=assignment.principle_id,
+                scope_label=assignment.scope_label,
+            )
+            continue
+        stage_counts["book_projection_pass"] += 1
+        book_evidence = creative_book_evidence(projected_program)
+        if not book_evidence:
+            reject(
+                input_index,
+                "book_authority_pass",
+                "book_authority_missing",
+                program_hash=source_program_hash,
+                principle_id=assignment.principle_id,
+                scope_label=assignment.scope_label,
+            )
+            continue
+        stage_counts["book_authority_pass"] += 1
+        authored = replace(authored, program=projected_program)
+        program_hash = authored.program.program_hash()
+
+        try:
+            authored_compilation = compile_geometry_program(authored.program)
+        except (RuntimeError, TypeError, ValueError):
+            reject(
+                input_index,
+                "book_compile_pass",
+                "book_compiler_exception",
+                program_hash=program_hash,
+                principle_id=assignment.principle_id,
+                scope_label=assignment.scope_label,
+            )
+            continue
+        stage_counts["book_compile_pass"] += 1
+        book_structural_reason = _structural_rejection_reason(
+            authored_compilation
+        )
+        if book_structural_reason:
+            reject(
+                input_index,
+                "book_structural_pass",
+                f"book_{book_structural_reason}",
+                program_hash=program_hash,
+                geometry_hash=authored_compilation.geometry_hash,
+                principle_id=assignment.principle_id,
+                scope_label=assignment.scope_label,
+            )
+            continue
+        stage_counts["book_structural_pass"] += 1
+
+        try:
+            family = posthoc_family_label(
+                authored.program,
+                authored_compilation,
+            )
+            candidate = _compile_candidate(
+                authored_program_result(authored),
+                family=family,
+                source_family="llm_authored",
+                family_index=input_index,
+                variation_index=input_index,
+                candidate_index=len(candidates),
+                capacity_band=CAPACITY_BANDS[
+                    input_index % len(CAPACITY_BANDS)
+                ],
+                capacity_ceiling_m2=ceiling,
+                author_evidence=dict(authored.author_evidence),
+            )
+        except (RuntimeError, TypeError, ValueError):
+            candidate = None
+        if candidate is None:
+            reject(
+                input_index,
+                "physical_candidate_pass",
+                "physical_candidate",
+                program_hash=program_hash,
+                geometry_hash=authored_compilation.geometry_hash,
+            )
+            continue
+        stage_counts["physical_candidate_pass"] += 1
+
+        geometry_hash = str(candidate["geometry_hash"])
+        if geometry_hash in geometry_hashes:
+            reject(
+                input_index,
+                "unique_geometry_hash",
+                "duplicate_geometry_hash",
+                program_hash=program_hash,
+                geometry_hash=geometry_hash,
+            )
+            continue
+        geometry_hashes.add(geometry_hash)
+        stage_counts["unique_geometry_hash"] += 1
+
+        normalized_mesh_hash = str(
+            candidate["normalized_authored_mesh_hash"]
+        )
+        if normalized_mesh_hash in normalized_mesh_hashes:
+            reject(
+                input_index,
+                "unique_normalized_mesh_hash",
+                "duplicate_normalized_authored_mesh_hash",
+                program_hash=program_hash,
+                geometry_hash=geometry_hash,
+            )
+            continue
+        normalized_mesh_hashes.add(normalized_mesh_hash)
+        stage_counts["unique_normalized_mesh_hash"] += 1
+
+        morphology_decision = accept_morphology(candidate, candidates)
+        candidate["book_language_evidence"] = book_evidence
+        candidate["morphology_evidence"]["decision"] = (
+            morphology_decision.to_dict()
+        )
+        if not morphology_decision:
+            reject(
+                input_index,
+                "morphology_retained",
+                "morphology_distance",
+                program_hash=program_hash,
+                geometry_hash=geometry_hash,
+            )
+            continue
+        candidates.append(candidate)
+        stage_counts["morphology_retained"] += 1
+
+    language_coverage = _book_language_coverage(candidates)
+    coverage_complete = (
+        target != 20
+        or (
+            language_coverage["distinct_principle_count"] == 20
+            and set(language_coverage["scope_counts"])
+            == {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"}
+        )
+    )
+    return CreativeFloorPortfolioReport(
+        status=(
+            "complete"
+            if len(candidates) >= target and coverage_complete
+            else "partial"
+        ),
+        target_count=target,
+        candidates=tuple(candidates),
+        stage_counts=stage_counts,
+        rejection_counts=dict(rejection_counts),
+        rejections=tuple(rejections),
+        language_coverage=language_coverage,
+    )
+
+
 def build_creative_floor_portfolio(
     *,
     count: int = 100,
@@ -73,107 +481,153 @@ def build_creative_floor_portfolio(
     if not isfinite(ceiling) or ceiling <= 0.0:
         raise ValueError("capacity_ceiling_m2 must be positive")
 
+    if authored_programs is not None:
+        report = build_creative_floor_portfolio_report(
+            target_count=requested_count,
+            capacity_ceiling_m2=ceiling,
+            authored_programs=authored_programs,
+        )
+        if report.status != "complete":
+            raise RuntimeError(
+                "authored creative portfolio incomplete: "
+                f"{len(report.candidates)}/{requested_count}"
+            )
+        return _creative_portfolio_payload(
+            list(report.candidates),
+            capacity_ceiling_m2=ceiling,
+            author_mode="authored_programs",
+        )
+
     program_hashes: set[str] = set()
     geometry_hashes: set[str] = set()
     normalized_authored_mesh_hashes: set[str] = set()
     candidates: list[dict[str, Any]] = []
 
-    if authored_programs is None:
-        schedule = balanced_family_schedule(requested_count)
-        recipes_by_family = {
-            recipe.family_id: recipe
-            for recipe in registered_creative_recipes()
-        }
-        family_order = {
-            recipe.family_id: index
-            for index, recipe in enumerate(registered_creative_recipes())
-        }
-        work_items = []
-        for item in schedule:
-            recipe = recipes_by_family[item.family_id]
-            context = item.context
-            work_items.append({
-                "recipe_result": recipe.builder(context),
-                "family": recipe.family_id,
-                "family_index": family_order[recipe.family_id],
-                "variation_index": context.variation_index,
-                "capacity_band": context.capacity_band,
-                "author_evidence": {
-                    "schema_version": (
-                        "arr.maas.creative_author_evidence.v1"
-                    ),
-                    "source_kind": "recipe_fixture",
-                    "provider": "deterministic_fixture",
-                    "model": "",
-                    "response_id": "",
-                    "cache_hit": True,
-                    "prompt_contract": "",
-                },
-                "diagnostic": (
-                    f"family={recipe.family_id},"
-                    f"recipe={recipe.recipe_id},"
-                    f"variation={context.variation_index},"
-                    f"book_scope={context.book_scope_label},"
-                    f"capacity_band={context.capacity_band}"
-                ),
-            })
-    else:
-        authored = normalize_authored_programs(authored_programs)
-        if len(authored) < requested_count:
-            raise ValueError(
-                "authored_programs contains fewer programs than count"
-            )
-        work_items = []
-        for index, authored_item in enumerate(authored[:requested_count]):
-            authored_compilation = compile_geometry_program(
-                authored_item.program
-            )
-            if not _connected_compilation(authored_compilation):
-                raise RuntimeError(
-                    f"invalid authored creative candidate: index={index}"
-                )
-            family = posthoc_family_label(
-                authored_item.program,
-                authored_compilation,
-            )
-            work_items.append({
-                "recipe_result": authored_program_result(authored_item),
-                "family": family,
-                "family_index": index,
-                "variation_index": index,
-                "capacity_band": CAPACITY_BANDS[
-                    index % len(CAPACITY_BANDS)
-                ],
-                "author_evidence": dict(
-                    authored_item.author_evidence
-                ),
-                "diagnostic": (
-                    f"author=llm,index={index},family={family}"
-                ),
-            })
+    schedule = balanced_family_schedule(requested_count)
+    recipes_by_family = {
+        recipe.family_id: recipe
+        for recipe in registered_creative_recipes()
+    }
+    family_order = {
+        recipe.family_id: index
+        for index, recipe in enumerate(registered_creative_recipes())
+    }
+    book_assignments = creative_book_schedule(requested_count)
+    pair_cache: dict[tuple[int, int], dict[str, Any] | None] = {}
+    pair_failures: dict[tuple[int, int], str] = {}
 
-    for candidate_index, work_item in enumerate(work_items):
-        recipe_result = work_item["recipe_result"]
-        family = str(work_item["family"])
+    def compile_pair(item_index: int, assignment_index: int):
+        key = (item_index, assignment_index)
+        if key in pair_cache:
+            return pair_cache[key]
+        item = schedule[item_index]
+        recipe = recipes_by_family[item.family_id]
+        assignment = book_assignments[assignment_index]
+        context = replace(
+            item.context,
+            book_scope_label=assignment.scope_label,
+            book_principle_id=assignment.principle_id,
+            book_principle_kind=assignment.principle_kind,
+            book_execution_verbs=assignment.execution_verbs,
+            book_aggregation_methods=assignment.aggregation_methods,
+        )
+        try:
+            recipe_result = recipe.builder(context)
+        except BookProjectionFailure as exc:
+            pair_cache[key] = None
+            pair_failures[key] = str(
+                exc.evidence.get("code") or "book_projection_failure"
+            )
+            return None
+        author_evidence = {
+            "schema_version": "arr.maas.creative_author_evidence.v1",
+            "source_kind": "recipe_fixture",
+            "provider": "deterministic_fixture",
+            "model": "",
+            "response_id": "",
+            "cache_hit": True,
+            "prompt_contract": "",
+        }
         candidate = _compile_candidate(
             recipe_result,
-            family=family,
+            family=recipe.family_id,
             source_family=str(
                 recipe_result.recipe_parameters.get("source_family")
-                or family
+                or recipe.family_id
             ),
-            family_index=int(work_item["family_index"]),
-            variation_index=int(work_item["variation_index"]),
-            candidate_index=candidate_index,
-            capacity_band=str(work_item["capacity_band"]),
+            family_index=family_order[recipe.family_id],
+            variation_index=context.variation_index,
+            candidate_index=item_index,
+            capacity_band=context.capacity_band,
             capacity_ceiling_m2=ceiling,
-            author_evidence=dict(work_item["author_evidence"]),
+            author_evidence=author_evidence,
         )
-        diagnostic = str(work_item["diagnostic"])
         if candidate is None:
+            pair_cache[key] = None
+            pair_failures[key] = "physical_candidate"
+            return None
+        book_evidence = creative_book_evidence(recipe_result.program)
+        if not book_evidence:
+            pair_cache[key] = None
+            pair_failures[key] = "book_authority_missing"
+            return None
+        candidate["book_language_evidence"] = book_evidence
+        pair_cache[key] = {
+            "candidate": candidate,
+            "context": context,
+            "recipe_result": recipe_result,
+        }
+        return pair_cache[key]
+
+    assignment_owner: dict[int, int] = {}
+    item_assignment: dict[int, int] = {}
+
+    def augment(item_index: int, visited: set[int]) -> bool:
+        for offset in range(requested_count):
+            assignment_index = (item_index + offset) % requested_count
+            if assignment_index in visited:
+                continue
+            if compile_pair(item_index, assignment_index) is None:
+                continue
+            visited.add(assignment_index)
+            previous_item = assignment_owner.get(assignment_index)
+            if previous_item is not None and not augment(
+                previous_item,
+                visited,
+            ):
+                continue
+            assignment_owner[assignment_index] = item_index
+            item_assignment[item_index] = assignment_index
+            return True
+        return False
+
+    for item_index, item in enumerate(schedule):
+        if not augment(item_index, set()):
+            recipe = recipes_by_family[item.family_id]
+            failures = [
+                (
+                    book_assignments[assignment_index].principle_id,
+                    pair_failures.get(
+                        (item_index, assignment_index),
+                        "assignment_conflict",
+                    ),
+                )
+                for assignment_index in range(requested_count)
+            ]
             raise RuntimeError(
-                f"invalid scheduled creative candidate: {diagnostic}"
+                "invalid scheduled creative candidate: "
+                f"family={recipe.family_id},"
+                f"recipe={recipe.recipe_id},"
+                f"variation={item.context.variation_index},"
+                f"book_scope={item.context.book_scope_label},"
+                f"capacity_band={item.context.capacity_band},"
+                f"failures={failures}"
             )
+
+    for item_index in range(requested_count):
+        selected = compile_pair(item_index, item_assignment[item_index])
+        assert selected is not None
+        candidate = selected["candidate"]
         duplicate_fields = [
             field
             for field, seen in (
@@ -189,7 +643,8 @@ def build_creative_floor_portfolio(
         if duplicate_fields:
             raise RuntimeError(
                 "duplicate scheduled creative candidate: "
-                f"{diagnostic},"
+                f"family={schedule[item_index].family_id},"
+                f"variation={selected['context'].variation_index},"
                 f"duplicate_fields={','.join(duplicate_fields)}"
             )
         morphology_decision = accept_morphology(candidate, candidates)
@@ -199,7 +654,9 @@ def build_creative_floor_portfolio(
         if not morphology_decision:
             raise RuntimeError(
                 "morphology quota exhausted: "
-                f"{diagnostic},{morphology_decision.diagnostic}"
+                f"family={schedule[item_index].family_id},"
+                f"variation={selected['context'].variation_index},"
+                f"{morphology_decision.diagnostic}"
             )
         candidates.append(candidate)
         program_hashes.add(candidate["program_hash"])
@@ -208,6 +665,19 @@ def build_creative_floor_portfolio(
             candidate["normalized_authored_mesh_hash"]
         )
 
+    return _creative_portfolio_payload(
+        candidates,
+        capacity_ceiling_m2=ceiling,
+        author_mode="recipe_fixture",
+    )
+
+
+def _creative_portfolio_payload(
+    candidates: list[dict[str, Any]],
+    *,
+    capacity_ceiling_m2: float,
+    author_mode: str,
+) -> dict[str, Any]:
     family_counts = Counter(row["family"] for row in candidates)
     capacity_counts = Counter(row["capacity_band"] for row in candidates)
     nearest_distances = [
@@ -216,20 +686,17 @@ def build_creative_floor_portfolio(
     ]
     return {
         "schema_version": CREATIVE_FLOOR_PORTFOLIO_SCHEMA,
-        "author_mode": (
-            "authored_programs"
-            if authored_programs is not None
-            else "recipe_fixture"
-        ),
+        "author_mode": author_mode,
         "status": "materialized",
         "choice_pool": True,
         "candidate_count": len(candidates),
-        "capacity_ceiling_m2": round(ceiling, 6),
+        "capacity_ceiling_m2": round(capacity_ceiling_m2, 6),
         "capacity_authority": "user_supplied_prelegal_target",
         "family_quotas": dict(family_counts),
         "capacity_band_quotas": dict(capacity_counts),
         "legal_review_status": "not_evaluated",
         "paid_vlm_request_count": 0,
+        "book_language_coverage": _book_language_coverage(candidates),
         "morphology_evidence": {
             "schema_version": MORPHOLOGY_SCHEMA,
             "decision": "accepted",

@@ -535,7 +535,7 @@ def _repair_templates(strategy: str) -> list[dict[str, Any]]:
 
 def _is_residential_like(building_type: str) -> bool:
     label = building_type or ""
-    return any(token in label for token in ("주택", "공동", "다가구", "다세대", "오피스텔", "생활"))
+    return any(token in label for token in ("주택", "공동", "다가구", "다세대", "오피스텔"))
 
 
 def _float(value: Any) -> float:

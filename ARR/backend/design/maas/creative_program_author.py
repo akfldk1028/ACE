@@ -13,11 +13,11 @@ from .geometry_language.ast import GeometryProgram
 from .geometry_language.compiler import CompilationResult
 from .geometry_language.compiler import compile_geometry_program
 from .geometry_language.gate import GeometryGatePolicy, compilation_gate
+from .geometry_language.affine_normalization import (
+    normalize_affine_basevolume_program,
+)
 from .geometry_language.llm_adapter import (
     geometry_programs_from_author_payload,
-)
-from .geometry_language.unitbox_normalization import (
-    normalize_unitbox_program,
 )
 
 
@@ -37,11 +37,11 @@ def normalize_authored_programs(
     for item in programs:
         if isinstance(item, CreativeAuthoredProgram):
             result.append(CreativeAuthoredProgram(
-                program=normalize_unitbox_program(item.program),
+                program=normalize_affine_basevolume_program(item.program),
                 author_evidence=dict(item.author_evidence),
             ))
         elif isinstance(item, GeometryProgram):
-            normalized = normalize_unitbox_program(item)
+            normalized = normalize_affine_basevolume_program(item)
             result.append(CreativeAuthoredProgram(
                 program=normalized,
                 author_evidence=author_evidence_from_program(normalized),
@@ -88,10 +88,29 @@ def authored_programs_from_cache_pool(
 ) -> tuple[CreativeAuthoredProgram, ...]:
     """Load a deterministic unique prefix of accepted exact LLM programs."""
 
-    root = Path(cache_root).resolve()
     requested = max(1, int(expected_count))
+    selected = cached_authored_programs(cache_root, limit=requested)
+    if len(selected) < requested:
+        raise ValueError(
+            "accepted geometry author cache pool contains fewer unique exact "
+            f"programs than requested: {len(selected)}/{requested}"
+        )
+    return selected
+
+
+def cached_authored_programs(
+    cache_root: Path,
+    *,
+    limit: int,
+) -> tuple[CreativeAuthoredProgram, ...]:
+    """Return up to limit unique compiler-clean accepted cached programs."""
+
+    root = Path(cache_root).resolve()
+    requested = max(0, int(limit))
     if not root.is_dir():
         raise ValueError(f"geometry author cache directory is missing: {root}")
+    if requested == 0:
+        return ()
     selected: list[CreativeAuthoredProgram] = []
     seen_hashes: set[str] = set()
     seen_geometry_hashes: set[str] = set()
@@ -136,7 +155,14 @@ def authored_programs_from_cache_pool(
                     "author_cache_path": str(path),
                 },
             )
-            authored = normalize_authored_programs((decorated,))[0]
+            try:
+                authored = normalize_authored_programs((decorated,))[0]
+            except (RuntimeError, TypeError, ValueError):
+                # Accepted legacy cache records can predate the strict
+                # UnitBox/Matrix4 authority. They are not production supply,
+                # but one stale record must not abort scanning later valid
+                # cached programs.
+                continue
             canonical_bases = tuple(
                 node
                 for node in authored.program.nodes
@@ -169,10 +195,7 @@ def authored_programs_from_cache_pool(
             selected.append(authored)
             if len(selected) >= requested:
                 return tuple(selected)
-    raise ValueError(
-        "accepted geometry author cache pool contains fewer unique exact "
-        f"programs than requested: {len(selected)}/{requested}"
-    )
+    return tuple(selected)
 
 
 def author_evidence_from_program(
@@ -277,6 +300,7 @@ __all__ = [
     "AUTHOR_EVIDENCE_SCHEMA",
     "CreativeAuthoredProgram",
     "authored_program_result",
+    "cached_authored_programs",
     "authored_programs_from_payload",
     "authored_programs_from_cache_pool",
     "author_evidence_from_program",

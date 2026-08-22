@@ -349,18 +349,40 @@ def build_program_semantic_carrier_evidence(
         program_id=program_id,
     )
     failures.extend(scaffold_failures)
-    source_role_origin = _source_role_origin(
+    recomputed_source_role_origin = _source_role_origin(
         scaffold,
         scaffold_provenance,
         program_id=program_id,
     )
-    if not _final_program_has_reachable_source_role_origin(
+    source_role_origin = _resolve_reachable_source_role_origin(
         final_source.metadata.get("geometry_program"),
-        expected_origin=source_role_origin,
-    ):
+        scaffold=scaffold,
+        provenance=scaffold_provenance,
+        program_id=program_id,
+    )
+    if source_role_origin is None:
         failures.append(
             "source_role_scaffold_not_bound_to_reachable_final_ast"
         )
+        source_role_origin = recomputed_source_role_origin
+    else:
+        bound_components = {
+            str(component.get("source_relation") or ""): component
+            for component in source_role_origin.get("source_components") or ()
+            if isinstance(component, dict)
+        }
+        scaffold = [
+            {
+                **record,
+                "source_component_id": str(
+                    bound_components.get(
+                        str(record.get("source_relation") or ""),
+                        {},
+                    ).get("source_component_id") or ""
+                ),
+            }
+            for record in scaffold
+        ]
     scaffold_hash = _canonical_hash({
         "program_contract_hash": contract_hash,
         "provenance": scaffold_provenance,
@@ -815,11 +837,10 @@ def _source_role_scaffold(
     grouped: dict[str, list[Any]] = defaultdict(list)
     for volume in source.volumes:
         raw_role = str(volume.role or "")
-        canonical_role = next((
-            role
-            for role in canonical_roles
-            if raw_role == role or raw_role.startswith(f"{role}__book_")
-        ), "")
+        canonical_role = _canonical_source_component_role(
+            raw_role,
+            canonical_roles,
+        )
         if not canonical_role:
             failures.append(f"untrusted_source_component_role:{raw_role}")
             continue
@@ -839,10 +860,10 @@ def _source_role_scaffold(
     theta = radians(angle)
     origin = source.footprint.centroid
     dominant_area = max(float(dominant_geometry.area), 1e-9)
-    scaffold: list[dict[str, Any]] = []
+    scaffold_by_relation: dict[str, dict[str, Any]] = {}
     for role, volumes in sorted(grouped.items()):
         geometry = unary_union([volume.footprint for volume in volumes])
-        component_id = (
+        component_identity = (
             f"{template_key}:{role}:"
             f"{_canonical_hash([{
                 'role': str(volume.role or ''),
@@ -856,29 +877,61 @@ def _source_role_scaffold(
         dx, dy = center.x - origin.x, center.y - origin.y
         u = 0.5 + (dx * cos(theta) + dy * sin(theta)) / max(width, 1e-9)
         v = 0.5 + (-dx * sin(theta) + dy * cos(theta)) / max(depth, 1e-9)
-        scaffold.append({
-            "semantic_role": role,
-            "source_component_id": component_id,
-            "source_relation": _source_relation(
-                program_id,
-                role,
-                dominant=(role == dominant_role),
-            ),
-            "normalized_center": [round(u, 8), round(v, 8)],
-            "normalized_area_ratio": round(
-                min(1.0, float(geometry.area) / dominant_area),
-                8,
-            ),
-            "bottom_fraction": round(
-                min(float(volume.bottom_fraction) for volume in volumes),
-                8,
-            ),
-            "top_fraction": round(
-                max(float(volume.top_fraction) for volume in volumes),
-                8,
-            ),
-        })
+        for relation in _source_relations(
+            program_id,
+            role,
+            dominant=(role == dominant_role),
+        ):
+            scaffold_by_relation.setdefault(relation, {
+                "semantic_role": role,
+                "source_component_id": (
+                    f"{component_identity}:{relation}"
+                ),
+                "source_relation": relation,
+                "normalized_center": [round(u, 8), round(v, 8)],
+                "normalized_area_ratio": round(
+                    min(1.0, float(geometry.area) / dominant_area),
+                    8,
+                ),
+                "bottom_fraction": round(
+                    min(float(volume.bottom_fraction) for volume in volumes),
+                    8,
+                ),
+                "top_fraction": round(
+                    max(float(volume.top_fraction) for volume in volumes),
+                    8,
+                ),
+            })
+    scaffold = [
+        scaffold_by_relation[relation]
+        for relation in REQUIRED_RELATIONS.get(program_id, ())
+        if relation in scaffold_by_relation
+    ]
     return scaffold, provenance, failures
+
+
+def _canonical_source_component_role(
+    raw_role: str,
+    canonical_roles: set[str],
+) -> str:
+    for canonical_role in sorted(
+        canonical_roles,
+        key=lambda role: (-len(role), role),
+    ):
+        if raw_role == canonical_role:
+            return canonical_role
+        if raw_role.startswith(f"{canonical_role}__book_"):
+            return canonical_role
+        marker = f"{canonical_role}__program_section_band__book_"
+        if not raw_role.startswith(marker):
+            continue
+        lineage = raw_role[len(marker):]
+        if lineage and all(
+            character.isalnum() or character in {"_", "+", "-"}
+            for character in lineage
+        ):
+            return canonical_role
+    return ""
 
 
 def _source_role_origin(
@@ -919,7 +972,21 @@ def _final_program_has_reachable_source_role_origin(
         from design.maas.geometry_language import GeometryProgram
 
         program = GeometryProgram.from_dict(payload)
-        nodes = program.topological_nodes()
+        reachable_ids: set[str] = set()
+        pending = [program.root_id]
+        while pending:
+            node_id = pending.pop()
+            if node_id in reachable_ids:
+                continue
+            node = program.node_map.get(node_id)
+            if node is None:
+                return False
+            reachable_ids.add(node_id)
+            pending.extend(node.inputs)
+        nodes = [
+            node for node in program.topological_nodes()
+            if node.id in reachable_ids
+        ]
     except (TypeError, ValueError):
         return False
     matches = [
@@ -978,6 +1045,63 @@ def _final_program_has_reachable_source_role_origin(
             return False
         observed_relations.add(relation)
     return observed_relations == set(expected_by_relation)
+
+
+def _resolve_reachable_source_role_origin(
+    payload: Any,
+    *,
+    scaffold: list[dict[str, Any]],
+    provenance: dict[str, Any],
+    program_id: str,
+) -> dict[str, Any] | None:
+    if not isinstance(payload, dict) or not payload.get("nodes"):
+        return None
+    candidates = [
+        node.get("parameters", {}).get("source_role_scaffold_origin")
+        for node in payload.get("nodes") or ()
+        if isinstance(node, dict)
+        and node.get("semantic_role") == "source_role_scaffold_origin"
+        and node.get("kind") == "transform"
+        and node.get("operator") == "matrix4"
+    ]
+    candidates = [candidate for candidate in candidates if isinstance(candidate, dict)]
+    if len(candidates) != 1:
+        return None
+    origin = candidates[0]
+    normalized = _normalized_program_id(program_id)
+    if (
+        origin.get("schema_version")
+        != "arr.maas.source_role_scaffold_origin.v1"
+        or str(origin.get("program_id") or "") != normalized
+        or str(origin.get("component_graph_hash") or "")
+        != _canonical_hash(provenance)
+        or str(origin.get("origin_hash") or "")
+        != _canonical_hash({
+            key: value for key, value in origin.items()
+            if key != "origin_hash"
+        })
+        or not _final_program_has_reachable_source_role_origin(
+            payload,
+            expected_origin=origin,
+        )
+    ):
+        return None
+    expected_roles = {
+        str(record.get("source_relation") or ""): str(
+            record.get("semantic_role") or ""
+        )
+        for record in scaffold
+    }
+    bound_roles = {
+        str(component.get("source_relation") or ""): str(
+            component.get("semantic_role") or ""
+        )
+        for component in origin.get("source_components") or ()
+        if isinstance(component, dict)
+    }
+    if bound_roles != expected_roles:
+        return None
+    return dict(origin)
 
 
 def _project_scaffold_to_final_bands(
@@ -1167,33 +1291,40 @@ def _band_key(
     })
 
 
-def _source_relation(program_id: str, role: str, *, dominant: bool) -> str:
+def _source_relations(
+    program_id: str,
+    role: str,
+    *,
+    dominant: bool,
+) -> tuple[str, ...]:
     text = str(role or "").lower()
     if program_id == "gymnasium":
         if dominant and any(token in text for token in ("main", "hall")):
-            return "dominant_hall"
+            return ("dominant_hall",)
         if "service" in text:
-            return "service_support"
+            return ("service_support",)
         if any(token in text for token in ("entry", "daylight", "monitor", "canopy")):
-            return "public_entry_daylight"
+            return ("public_entry_daylight",)
     elif program_id == "cultural":
         if dominant and any(token in text for token in ("gallery", "hall")):
-            return "public_gallery_hall"
+            return ("public_gallery_hall",)
         if any(token in text for token in ("court", "public", "atrium")):
-            return "court_public_space"
+            return ("court_public_space",)
         if any(token in text for token in ("entry", "bridge", "ramp")):
-            return "public_entry_path"
+            return ("public_entry_path",)
     elif program_id == "neighborhood_living":
+        relations = []
         if "primary" in text:
-            return "primary_program_mass"
+            relations.append("primary_program_mass")
         if any(
             token in text
             for token in ("active", "ground", "platform", "podium")
         ):
-            return "active_ground_program"
+            relations.append("active_ground_program")
         if any(token in text for token in ("entry", "canopy", "terrace", "public")):
-            return "public_spatial_gesture"
-    return ""
+            relations.append("public_spatial_gesture")
+        return tuple(relations)
+    return ()
 
 
 def _normalized_program_id(value: str) -> str:

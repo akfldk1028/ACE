@@ -16,6 +16,9 @@ from shapely.geometry import LineString, Polygon, box
 from shapely.ops import polygonize, unary_union
 
 from design.maas.source_geometry.ir import SourceMass
+from design.maas.geometry_language.projected_visual_contract import (
+    has_strict_height_dependent_legal_section_contraction,
+)
 from .geometry_safety import safe_unary_union
 from .visual_silhouette import visual_silhouette_view_variants
 
@@ -497,11 +500,19 @@ def _build_key(source: SourceMass) -> CompetitionGestaltKey:
     legal_seam_stepped = (
         projection_mode == "intentional_floorwise_stepped"
     )
+    legal_contraction = mandatory_legal_contraction(source)
     significant_transitions = sum(
         max(abs(value) for value in transition[:3]) >= 0.08
         for transition in transitions
     )
-    visible_stepped = significant_transitions >= 1
+    visible_stepped = bool(
+        significant_transitions >= 1
+        and (
+            authored_stepped
+            or legal_seam_stepped
+            or not legal_contraction
+        )
+    )
     plan_section = max(
         (section for _height, section in layer_sections),
         key=lambda section: float(section.area),
@@ -523,6 +534,39 @@ def _build_key(source: SourceMass) -> CompetitionGestaltKey:
             else "final_source_mesh"
         ),
     )
+
+
+def mandatory_legal_contraction(source: SourceMass) -> bool:
+    """Identify a measured contraction imposed by certified legal clipping."""
+
+    certificate = source.metadata.get("floorwise_visual_projection") or {}
+    if not isinstance(certificate, dict):
+        return False
+    certified_operation = (
+        str(certificate.get("certification_mode") or ""),
+        str(certificate.get("visible_geometry_operation") or ""),
+    )
+    if not (
+        certificate.get("status") == "certified"
+        and certificate.get("hard_pass") is True
+        and certified_operation in {
+            (
+                "floorwise_profiled_continuous_envelope_clip",
+                "authored_profiled_mesh_continuous_legal_envelope_intersection",
+            ),
+            (
+                "floorwise_profiled_legal_clip",
+                "authored_profiled_mesh_legal_solid_intersection",
+            ),
+            (
+                "floorwise_csg_section_loft",
+                "exact_legal_section_profile_loft",
+            ),
+        }
+        and certificate.get("visible_step_fallback") is False
+    ):
+        return False
+    return has_strict_height_dependent_legal_section_contraction(certificate)
 
 
 def _distance_from_keys(

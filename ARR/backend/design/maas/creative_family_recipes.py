@@ -17,17 +17,16 @@ from .creative_family_contract import (
     CreativeRecipeResult,
 )
 from .geometry_language.affine_matrix import (
-    compose_matrix4,
-    matrix4_for_transform,
     matrix4_to_lists,
     scale_matrix4,
-    translation_matrix4,
+)
+from .geometry_language.affine_normalization import (
+    normalize_affine_basevolume_program,
 )
 from .geometry_language.ast import GeometryNode, GeometryProgram
 from .geometry_language.book_adapter import (
     apply_book_projection_to_geometry_program,
 )
-from .geometry_language.compiler import compile_geometry_program
 from .geometry_language.universal_form_bank import universal_form_programs
 
 
@@ -96,8 +95,9 @@ _LEGACY_RECIPE_CONFIG = {
 _LEGACY_SOURCE_STRIDES = {
     "bent": 11,
     "carved_void": 19,
-    "inflated": 13,
+    "inflated": 20,
     "split_wing": 7,
+    "stepped": 16,
 }
 
 
@@ -183,65 +183,7 @@ def _legacy_supply() -> dict[str, tuple[GeometryProgram, ...]]:
 
 def _matrix4_only(program: GeometryProgram) -> GeometryProgram:
     """Lower every affine transform to its equivalent explicit Matrix4."""
-
-    converted: list[GeometryNode] = []
-    converted_by_id: dict[str, GeometryNode] = {}
-    for node in program.topological_nodes():
-        if node.kind != "transform" or node.operator == "matrix4":
-            converted.append(node)
-            converted_by_id[node.id] = node
-            continue
-        parameters = dict(node.parameters)
-        if str(parameters.get("pivot") or "").lower() in {
-            "center",
-            "centroid",
-        }:
-            ancestor_ids: set[str] = set()
-
-            def collect_ancestors(node_id: str) -> None:
-                if node_id in ancestor_ids:
-                    return
-                ancestor_ids.add(node_id)
-                for input_id in converted_by_id[node_id].inputs:
-                    collect_ancestors(input_id)
-
-            collect_ancestors(node.inputs[0])
-            prefix = GeometryProgram(
-                tuple(
-                    converted_node
-                    for converted_node in converted
-                    if converted_node.id in ancestor_ids
-                ),
-                node.inputs[0],
-                name=f"{program.name}__pivot_probe",
-            )
-            bounds = compile_geometry_program(prefix).metrics.get("bounds")
-            if not bounds or len(bounds) != 2:
-                raise ValueError(f"cannot resolve affine pivot for {node.id}")
-            parameters["pivot"] = tuple(
-                (
-                    float(bounds[0][axis])
-                    + float(bounds[1][axis])
-                )
-                / 2.0
-                for axis in range(3)
-            )
-        matrix = matrix4_for_transform(node.operator, parameters)
-        lowered = replace(
-            node,
-            operator="matrix4",
-            parameters={"matrix4": matrix4_to_lists(matrix)},
-            provenance={
-                **node.provenance,
-                "lowered_affine_operator": node.operator,
-            },
-        )
-        converted.append(lowered)
-        converted_by_id[node.id] = lowered
-    return replace(
-        program,
-        nodes=tuple(converted_by_id[node.id] for node in program.nodes),
-    )
+    return normalize_affine_basevolume_program(program)
 
 
 def _with_material_recipe_variation(
@@ -284,13 +226,27 @@ def _with_book_projection(
     verb: str,
     context: CreativeRecipeContext,
 ) -> GeometryProgram:
-    effective_verb = verb
-    if source_family == "agent_stepped_mass" and (
-        context.book_scope_label == "1/16"
-    ):
-        effective_verb = "taper"
-    sentences = book_sentence_variants((effective_verb,), count=16)
-    operations = sentences[context.variation_index % len(sentences)]
+    scheduled_verbs = tuple(context.book_execution_verbs)
+    if scheduled_verbs:
+        effective_verbs = scheduled_verbs
+        operations = book_sentence_variants(
+            effective_verbs,
+            count=1,
+        )[0]
+        name_suffix = context.book_principle_id.replace(":", "-")
+    else:
+        effective_verb = verb
+        if source_family == "agent_stepped_mass" and (
+            context.book_scope_label == "1/16"
+        ):
+            effective_verb = "taper"
+        effective_verbs = (effective_verb,)
+        sentences = book_sentence_variants(effective_verbs, count=16)
+        operations = sentences[context.variation_index % len(sentences)]
+        name_suffix = (
+            f"{context.book_scope_label.replace('/', '_')}"
+            f"-{effective_verb}"
+        )
     sequence = compose_program_with_book_operations(
         VerbSequence(
             name=f"creative-{source_family}-source",
@@ -298,15 +254,32 @@ def _with_book_projection(
             calls=(VerbCall("base", {}),),
         ),
         operations,
-        name_suffix=(
-            f"{context.book_scope_label.replace('/', '_')}"
-            f"-{effective_verb}"
-        ),
+        name_suffix=name_suffix,
         base_volume_label=context.book_scope_label,
         orientation=BOOK_SCOPE_ORIENTATIONS[context.book_scope_label],
     )
-    return _matrix4_only(
+    projected = _matrix4_only(
         apply_book_projection_to_geometry_program(program, sequence)
+    )
+    if not context.book_principle_id:
+        return projected
+    return replace(
+        projected,
+        metadata={
+            **projected.metadata,
+            "creative_book_assignment": {
+                "principle_id": context.book_principle_id,
+                "principle_kind": context.book_principle_kind,
+                "execution_verbs": list(effective_verbs),
+                "aggregation_methods": list(
+                    context.book_aggregation_methods
+                ),
+                "scope_label": context.book_scope_label,
+                "orientation": BOOK_SCOPE_ORIENTATIONS[
+                    context.book_scope_label
+                ],
+            },
+        },
     )
 
 

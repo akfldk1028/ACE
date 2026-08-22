@@ -798,7 +798,7 @@ def materialize_source_feature_surfaces(
     origin = source.footprint.centroid
     source_surfaces = []
     for surface in source.surfaces:
-        record = surface.signature()
+        record = surface.authority_record()
         record["vertices_world_m"] = [
             [round(float(origin.x) + x, 3), round(float(origin.y) + y, 3), round(height * z, 3)]
             for x, y, z in surface.vertices_m
@@ -810,10 +810,10 @@ def materialize_source_feature_surfaces(
         materialization="eager",
     )
     source_certificate = source.metadata.get("floorwise_visual_projection")
-    if (
-        not isinstance(props.get("floorwise_visual_projection"), dict)
-        and isinstance(source_certificate, dict)
-    ):
+    if isinstance(source_certificate, dict):
+        # The surfaces above were materialized from this exact current source.
+        # Keep their certificate on the same authority instead of retaining a
+        # stale summary-only feature certificate from an earlier BOOK stage.
         props["floorwise_visual_projection"] = dict(source_certificate)
         model = props.get("maas_model")
         if isinstance(model, dict):

@@ -13,6 +13,10 @@ class CreativeRecipeContext:
     variation_index: int
     book_scope_label: str
     capacity_band: str
+    book_principle_id: str = ""
+    book_principle_kind: str = ""
+    book_execution_verbs: tuple[str, ...] = ()
+    book_aggregation_methods: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

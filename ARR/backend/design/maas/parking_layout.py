@@ -183,6 +183,20 @@ def generate_parking_layout_candidate(
         )
         if _layout_rank(grid_candidate) > _layout_rank(candidate):
             candidate = grid_candidate
+    if (
+        accessible_spaces == 0
+        and required_spaces <= SMALL_ATTACHED_PARKING_MAX_SPACES
+        and (candidate["provided_spaces"] < required_spaces or candidate.get("status") != "pass")
+    ):
+        parallel_candidate = _solve_connected_parallel_parking_layout(
+            polygon,
+            drive_polygon=drive_polygon,
+            required_spaces=required_spaces,
+            strategy=strategy,
+            road_context=road_context,
+        )
+        if _layout_rank(parallel_candidate) > _layout_rank(candidate):
+            candidate = parallel_candidate
     candidate["small_attached_parking_relief"] = relief
     _attach_authority_review_check(candidate, relief)
     _attach_basement_ramp_review(candidate, strategy, road_context)
@@ -681,6 +695,228 @@ def _solve_grid_parking_layout(
     if access["method"] == "site_boundary_inferred":
         result["limitations"].append("entrance_edge_inferred_from_site_boundary_without_road_frontage_geometry")
     return result
+
+
+def _solve_connected_parallel_parking_layout(
+    polygon: Polygon,
+    *,
+    drive_polygon: Polygon | None = None,
+    required_spaces: int,
+    strategy: str,
+    road_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Place a compact internal parallel row with its own 3 m aisle."""
+
+    drive_area = drive_polygon or polygon
+    candidates: list[dict[str, Any]] = []
+    for (
+        frame_origin,
+        frame_u,
+        frame_v,
+        frame_length,
+        frame_depth,
+        orientation,
+    ) in _parallel_candidate_frames(polygon, road_context=road_context):
+        for side in (1, -1):
+            row = 1 if side == 1 else 2
+            stall_start_v = (
+                0.0
+                if side == 1
+                else max(0.0, frame_depth - DEFAULT_PARALLEL_STALL_WIDTH_M)
+            )
+            drive_start_v = (
+                DEFAULT_PARALLEL_STALL_WIDTH_M
+                if side == 1
+                else max(
+                    0.0,
+                    stall_start_v - DEFAULT_PARALLEL_AISLE_WIDTH_M,
+                )
+            )
+            cursor = 0.0
+            while cursor + DEFAULT_PARALLEL_STALL_LENGTH_M <= frame_length + 1e-9:
+                stall_polygon = _rect_from_frame(
+                    origin=frame_origin,
+                    u=frame_u,
+                    v=frame_v,
+                    start_u=cursor,
+                    start_v=stall_start_v,
+                    width_u=DEFAULT_PARALLEL_STALL_LENGTH_M,
+                    width_v=DEFAULT_PARALLEL_STALL_WIDTH_M,
+                )
+                aisle_polygon = _rect_from_frame(
+                    origin=frame_origin,
+                    u=frame_u,
+                    v=frame_v,
+                    start_u=cursor,
+                    start_v=drive_start_v,
+                    width_u=DEFAULT_PARALLEL_STALL_LENGTH_M,
+                    width_v=DEFAULT_PARALLEL_AISLE_WIDTH_M,
+                )
+                if (
+                    polygon.buffer(1e-7).contains(stall_polygon)
+                    and drive_area.buffer(1e-7).contains(aisle_polygon)
+                ):
+                    candidates.append({
+                        "type": "standard",
+                        "width_m": DEFAULT_PARALLEL_STALL_WIDTH_M,
+                        "length_m": DEFAULT_PARALLEL_STALL_LENGTH_M,
+                        "row": row,
+                        "orientation": f"parallel_{orientation}",
+                        "start_u": round(cursor, 6),
+                        "start_v": round(stall_start_v, 6),
+                        "stall_polygon": stall_polygon,
+                        "drive_polygon": aisle_polygon,
+                    })
+                cursor += GRID_SOLVER_STEP_M
+
+    access_edges = _road_access_edges(road_context) or _site_boundary_edges(drive_area)
+    selected = _select_compact_grid_candidates(
+        candidates,
+        required_spaces=required_spaces,
+        accessible_spaces=0,
+        access_edges=access_edges,
+    )
+    selected = selected[:required_spaces]
+    drive_cells = [candidate["drive_polygon"] for candidate in selected]
+    stalls = [
+        {
+            "stall_id": f"P{index:02d}",
+            "type": "standard",
+            "width_m": candidate["width_m"],
+            "length_m": candidate["length_m"],
+            "row": candidate["row"],
+            "mode": "grid_connected_parallel",
+            "orientation": candidate["orientation"],
+            "polygon": _polygon_coordinates(candidate["stall_polygon"]),
+        }
+        for index, candidate in enumerate(selected, start=1)
+    ]
+    connected = _drive_components_connected(drive_cells)
+    access = _drive_entrance_access(
+        drive_cells,
+        drive_area,
+        road_context=road_context,
+    )
+    entrance_verified = access["connected"] and access["method"] == "road_frontage_geometry"
+    enough = len(stalls) >= required_spaces
+    status = (
+        "pass"
+        if enough and connected and entrance_verified
+        else "needs_drive_connectivity_review"
+        if enough
+        else "fail"
+    )
+    result = _layout_result(
+        status=status,
+        strategy=strategy,
+        placement_mode="grid_connected_parallel",
+        required_spaces=required_spaces,
+        accessible_spaces=0,
+        stalls=stalls,
+        drive_cells=drive_cells,
+        entrance_access=access,
+        reason=(
+            None
+            if status == "pass"
+            else "parallel_drive_cells_need_entrance_connection_review"
+            if enough
+            else "parallel_solver_insufficient_stall_candidates"
+        ),
+    )
+    result["grid_solver"] = {
+        "schema_version": "arr.maas.parking_grid_solver.v1",
+        "module": "connected_internal_parallel",
+        "cell_step_m": GRID_SOLVER_STEP_M,
+        "candidate_stalls": len(candidates),
+        "selected_stalls": len(stalls),
+        "drive_components_connected": connected,
+        "entrance_connected": access["connected"],
+        "entrance_verified": entrance_verified,
+        "entrance_connection_method": access["method"],
+        "entrance_connection_type": access["connection_type"],
+        "entrance_edge_count": access["edge_count"],
+        "entrance_min_distance_m": access["min_distance_m"],
+        "drive_cells": [_polygon_coordinates(cell) for cell in drive_cells],
+    }
+    return result
+
+
+def _parallel_candidate_frames(
+    polygon: Polygon,
+    *,
+    road_context: dict[str, Any] | None,
+) -> list[
+    tuple[
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+        float,
+        float,
+        str,
+    ]
+]:
+    """Return principal and real-boundary frames for parallel modules."""
+
+    origin, u, v, length, depth = _oriented_frame(polygon)
+    frames = [
+        (origin, u, v, length, depth, "principal_u"),
+        (origin, v, u, depth, length, "principal_v"),
+    ]
+    representative = polygon.representative_point()
+    lines = [*_road_access_edges(road_context)]
+    exterior = tuple(polygon.exterior.coords)
+    lines.extend(
+        LineString((exterior[index], exterior[index + 1]))
+        for index in range(len(exterior) - 1)
+    )
+    seen: set[tuple[float, float, float, float]] = set()
+    all_outer_points = tuple(
+        (float(x), float(y))
+        for x, y in tuple(polygon.exterior.coords)[:-1]
+    )
+    for index, line in enumerate(lines):
+        coordinates = tuple(line.coords)
+        if len(coordinates) < 2:
+            continue
+        p0 = coordinates[0]
+        p1 = coordinates[-1]
+        edge_length = math.dist(p0, p1)
+        if edge_length + 1e-9 < DEFAULT_PARALLEL_STALL_LENGTH_M:
+            continue
+        ux = (float(p1[0]) - float(p0[0])) / edge_length
+        uy = (float(p1[1]) - float(p0[1])) / edge_length
+        vx, vy = -uy, ux
+        toward = (
+            (float(representative.x) - float(p0[0])) * vx
+            + (float(representative.y) - float(p0[1])) * vy
+        )
+        if toward < 0.0:
+            vx, vy = -vx, -vy
+        projected_depth = max(
+            0.0,
+            max(
+                (x - float(p0[0])) * vx + (y - float(p0[1])) * vy
+                for x, y in all_outer_points
+            ),
+        )
+        key = (
+            round(float(p0[0]), 6),
+            round(float(p0[1]), 6),
+            round(ux, 6),
+            round(uy, 6),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        frames.append((
+            (float(p0[0]), float(p0[1])),
+            (ux, uy),
+            (vx, vy),
+            edge_length,
+            projected_depth,
+            f"boundary_{index}",
+        ))
+    return frames
 
 
 def _grid_stall_candidates(
@@ -1414,11 +1650,19 @@ def _layout_result(
     provided_accessible = sum(1 for stall in stalls if stall["type"] == "accessible")
     unmet_accessible = max(0, accessible_spaces - provided_accessible)
     adjacency = _stall_adjacency_metrics(stalls)
+    canonical_drive_cells = []
+    for cell in drive_cells or ():
+        try:
+            canonical_drive_cells.append(
+                Polygon(_polygon_coordinates(cell))
+            )
+        except (TypeError, ValueError):
+            canonical_drive_cells.append(cell)
     operability = _parking_operability_checks(
         stalls,
         strategy=strategy,
         placement_mode=placement_mode,
-        drive_cells=drive_cells,
+        drive_cells=canonical_drive_cells,
         entrance_access=entrance_access,
     )
     result = {
@@ -1613,6 +1857,7 @@ def _mass_stage_parking_summary(layout: dict[str, Any]) -> dict[str, Any]:
         "internal_double_loaded_90",
         "internal_single_loaded_90",
         "grid_connected_90",
+        "grid_connected_parallel",
     }
     turning = layout.get("turning_clearance") if isinstance(layout.get("turning_clearance"), dict) else {}
     row_relief = turning.get("contiguous_row_frontage_relief") if isinstance(turning.get("contiguous_row_frontage_relief"), dict) else {}
@@ -1660,6 +1905,7 @@ def _layout_formula_metadata(placement_mode: str, *, required_spaces: int) -> di
         "internal_double_loaded_90": "double_loaded_90",
         "internal_single_loaded_90": "single_loaded_90",
         "grid_connected_90": "grid_connected_90",
+        "grid_connected_parallel": "grid_connected_parallel",
         "single_row_aisle_review": "single_row_90_requires_aisle_review",
         "road_as_aisle_single_row": "road_as_aisle_single_row",
         "road_as_aisle_tandem": "road_as_aisle_tandem",
@@ -1712,8 +1958,13 @@ def _parking_operability_checks(
         "internal_single_loaded_90",
         "grid_connected_90",
     }
+    exact_parallel_module = placement_mode == "grid_connected_parallel"
     has_drive_cells = drive_cell_count > 0
-    aisle_status = "pass" if exact_90_module else "needs_review"
+    aisle_status = (
+        "pass"
+        if exact_90_module or exact_parallel_module
+        else "needs_review"
+    )
     aisle_source = "generated_drive_cells" if has_drive_cells else "module_formula"
     if placement_mode.startswith("road_as_aisle"):
         aisle_status = "authority_review"
@@ -1723,7 +1974,11 @@ def _parking_operability_checks(
         aisle_source = "single_row_requires_road_or_drive_aisle_confirmation"
 
     row_span = _largest_row_span(stalls)
-    required_depth = DEFAULT_STALL_LENGTH_M + (DEFAULT_AISLE_WIDTH_M if exact_90_module else 0.0)
+    required_depth = (
+        DEFAULT_PARALLEL_STALL_WIDTH_M + DEFAULT_PARALLEL_AISLE_WIDTH_M
+        if exact_parallel_module
+        else DEFAULT_STALL_LENGTH_M + (DEFAULT_AISLE_WIDTH_M if exact_90_module else 0.0)
+    )
     column_clearance = _column_clearance_check(
         stalls,
         strategy=strategy,
@@ -1742,8 +1997,18 @@ def _parking_operability_checks(
         "drive_aisle_clearance": {
             "status": aisle_status,
             "source": aisle_source,
-            "required_width_m": DEFAULT_AISLE_WIDTH_M,
-            "provided_width_m": DEFAULT_AISLE_WIDTH_M if exact_90_module or has_drive_cells else None,
+            "required_width_m": (
+                DEFAULT_PARALLEL_AISLE_WIDTH_M
+                if exact_parallel_module
+                else DEFAULT_AISLE_WIDTH_M
+            ),
+            "provided_width_m": (
+                DEFAULT_PARALLEL_AISLE_WIDTH_M
+                if exact_parallel_module
+                else DEFAULT_AISLE_WIDTH_M
+                if exact_90_module or has_drive_cells
+                else None
+            ),
             "drive_cell_count": drive_cell_count,
         },
         "turning_clearance": turning_clearance,
@@ -1759,7 +2024,11 @@ def _turning_clearance_check(
     entrance_access: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     base = {
-        "required_aisle_width_m": DEFAULT_AISLE_WIDTH_M,
+        "required_aisle_width_m": (
+            DEFAULT_PARALLEL_AISLE_WIDTH_M
+            if placement_mode == "grid_connected_parallel"
+            else DEFAULT_AISLE_WIDTH_M
+        ),
         "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
     }
     if placement_mode.startswith("road_as_aisle"):
@@ -1853,7 +2122,10 @@ def _turning_clearance_check(
     status = "v1_pass" if frontage_ok and entrance_ok else "needs_swept_path_review"
     reason = None
     if not frontage_ok:
-        reason = "One or more stalls do not have enough frontage on the generated 6m drive aisle."
+        reason = (
+            "One or more stalls do not have enough frontage on the generated "
+            f"{base['required_aisle_width_m']:g}m drive aisle."
+        )
     elif not entrance_ok:
         reason = "Generated drive aisle is not connected to a road/frontage entrance."
     result = {
@@ -1880,7 +2152,10 @@ def _contiguous_row_drive_cell_frontage_relief(
     *,
     placement_mode: str,
 ) -> dict[str, Any]:
-    if placement_mode != "grid_connected_90" or len(stalls) <= 1:
+    if placement_mode not in {
+        "grid_connected_90",
+        "grid_connected_parallel",
+    } or len(stalls) <= 1:
         return {"available": False, "reason": "Only grid-connected multi-stall rows use this frontage relief."}
     if len(drive_cells) < len(stalls):
         return {"available": False, "reason": "Generated drive cell count is lower than stall count."}
@@ -1893,7 +2168,7 @@ def _contiguous_row_drive_cell_frontage_relief(
     return {
         "available": row_ok or small_attached_cluster_ok,
         "basis": (
-            "contiguous grid row with one generated 6m drive cell per stall"
+            "contiguous grid row with one generated drive cell per stall"
             if row_ok
             else "small attached parking cluster: adjacent/tandem stalls share a generated 6m drive-cell group"
         ),

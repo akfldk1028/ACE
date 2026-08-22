@@ -1,9 +1,8 @@
-"""Exact legal-solid clipping for authored floorwise profiled meshes.
+"""Continuous legal-envelope clipping for authored profiled meshes.
 
-The authored indexed manifold is tessellated through the existing piecewise
-floor Matrix4 field, then intersected with the union of the matching legal
-floor prisms. Capacity plates remain unchanged and remain the sole GFA
-authority.
+The authored indexed manifold is placed with one global homogeneous Matrix4,
+then intersected once with a closed continuous legal section envelope. Floor
+capacity matrices and plates remain independent validation evidence.
 """
 
 from __future__ import annotations
@@ -21,7 +20,7 @@ from shapely.geometry.polygon import orient
 
 from design.maas.source_geometry.ir import SourceMass, SourceSurface, SourceVolume
 
-from .affine_matrix import Matrix4, validate_matrix4
+from .affine_matrix import Matrix4, transform_point3, validate_matrix4
 from .ast import GeometryProgram
 from .floorwise_visual_projection import (
     FloorwiseVisualProjection,
@@ -29,7 +28,6 @@ from .floorwise_visual_projection import (
     _exact_surface_payload_hash,
     _split_triangle_at_z_breakpoints,
     _stable_visual_hash,
-    _transform_with_matrix_field,
     floorwise_authority_binding_hash,
     profiled_sloped_mesh_evidence,
 )
@@ -38,22 +36,24 @@ from .profiled_mesh_numeric_repair import (
     FLOOR_CENTER_NUMERIC_EQUIVALENCE_SCHEMA,
     MESH_NUMERIC_REPAIR_SCHEMA,
     floor_center_numeric_equivalence as _floor_center_numeric_equivalence,
+    indexed_mesh_component_volumes as _indexed_mesh_component_volumes,
     indexed_mesh_section_polygon as _indexed_mesh_section_polygon,
     indexed_mesh_section_topology as _indexed_mesh_section_topology,
-    repair_profiled_indexed_mesh,
-    revalidated_profiled_mesh as _revalidated_mesh,
+    revalidate_or_repair_profiled_mesh as _revalidated_mesh,
     section_numeric_epsilon_m as _section_numeric_epsilon_m,
 )
 
 
-_MODE = "floorwise_profiled_legal_clip"
-_OPERATION = "authored_profiled_mesh_legal_solid_intersection"
+_MODE = "floorwise_profiled_continuous_envelope_clip"
+_OPERATION = "authored_profiled_mesh_continuous_legal_envelope_intersection"
 _EPSILON = 1e-8
+_NORMALIZED_Z_TRANSPORT_EPSILON = 1e-6
 _BAND_BOUNDARY_EPSILON = 1e-7
 _LEGAL_REVALIDATION_WITNESS_MAXIMUM = 64
 _SECTION_GEOMETRY_BINDING_SCHEMA = (
     "arr.maas.profiled_legal_section_geometry_binding.v1"
 )
+_VISIBLE_SECTION_SCHEMA = "arr.maas.floor_center_visible_section.v1"
 
 
 def _section_geometry_binding(
@@ -244,28 +244,45 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
         )
 
     try:
-        clipped_components = []
-        for floor_index, legal in enumerate(legal_sections):
-            lower = floor_index / floor_count
-            upper = (floor_index + 1) / floor_count
-            for component_index, component in enumerate(_components(legal)):
-                clipped = m3d.Manifold.batch_boolean(
-                    [
-                        projected_authored,
-                        _legal_prism(component, lower_z=lower, upper_z=upper),
-                    ],
-                    m3d.OpType.Intersect,
-                )
-                if clipped.is_empty():
-                    continue
-                if "NoError" not in str(clipped.status()):
-                    raise ValueError(
-                        f"invalid clipped component {floor_index}:{component_index}"
-                    )
-                clipped_components.append(clipped)
-        if not clipped_components:
-            raise ValueError("profiled legal component clips are empty")
-        projected = m3d.Manifold.batch_boolean(clipped_components, m3d.OpType.Add)
+        from .floorwise_section_loft import (
+            build_continuous_legal_envelope_mesh,
+        )
+
+        envelope = build_continuous_legal_envelope_mesh(
+            legal_sections=legal_sections,
+            output_origin=output_origin,
+        )
+        if not envelope.hard_pass:
+            return _failed(
+                envelope.failure_reasons[0],
+                capacity_gfa=capacity_gfa,
+                source_surface_count=len(profiled),
+                legal_sample_count=envelope.legal_sample_count,
+                failure_witness=envelope.failure_witness,
+            )
+        envelope_vertices = np.asarray([
+            (
+                float(x) + float(output_origin[0]),
+                float(y) + float(output_origin[1]),
+                float(z),
+            )
+            for x, y, z in envelope.vertices
+        ], dtype=np.float64)
+        envelope_mesh = m3d.Mesh(
+            envelope_vertices,
+            np.asarray(envelope.triangles, dtype=np.uint32),
+        )
+        envelope_mesh.merge()
+        legal_envelope = m3d.Manifold(envelope_mesh)
+        if (
+            legal_envelope.is_empty()
+            or "NoError" not in str(legal_envelope.status())
+        ):
+            raise ValueError("continuous legal envelope is not a manifold")
+        projected = m3d.Manifold.batch_boolean(
+            [projected_authored, legal_envelope],
+            m3d.OpType.Intersect,
+        )
         final_components = tuple(projected.decompose())
         if (
             projected.is_empty()
@@ -308,47 +325,77 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
     mesh_cleanup_raw_gate_failure_codes: tuple[str, ...] = ()
     mesh_cleanup_clean_indexed_mesh_hash = ""
     mesh_cleanup_clean_gate_hard_pass = False
-    revalidated = _revalidated_mesh(vertices, triangles)
-    if revalidated is None:
-        repair = repair_profiled_indexed_mesh(
-            vertices,
-            triangles,
-            effective_height_m=effective_height_m,
-        )
-        if repair is not None:
-            vertices = repair.vertices
-            triangles = repair.triangles
-            revalidated = _revalidated_mesh(vertices, triangles)
-            surfaces = _surfaces_from_indexed_mesh(
-                vertices,
-                triangles,
-                output_origin=output_origin,
-                volume_role=canonical_capacity_plates[0].role,
-            )
-            mesh_cleanup_schema = MESH_NUMERIC_REPAIR_SCHEMA
-            mesh_cleanup_collapse_threshold_m = (
-                repair.collapse_threshold_m
-            )
-            mesh_cleanup_max_physical_displacement_m = (
-                repair.max_physical_displacement_m
-            )
-            mesh_cleanup_raw_indexed_mesh_hash = (
-                repair.raw_indexed_mesh_hash
-            )
-            mesh_cleanup_raw_gate_failure_codes = (
-                repair.raw_gate_failure_codes
-            )
-            mesh_cleanup_clean_indexed_mesh_hash = (
-                repair.clean_indexed_mesh_hash
-            )
-            mesh_cleanup_clean_gate_hard_pass = (
-                repair.clean_gate_hard_pass
-            )
-    if revalidated is None:
+    revalidation = _revalidated_mesh(
+        vertices,
+        triangles,
+        effective_height_m=effective_height_m,
+    )
+    if not revalidation.hard_pass:
         return _failed(
             "profiled_legal_clip_mesh_revalidation_failed",
             capacity_gfa=capacity_gfa,
             source_surface_count=len(profiled),
+            failure_witness={
+                "profiled_mesh_revalidation": revalidation.evidence(),
+            },
+        )
+    if (
+        revalidation.raw_component_count <= 0
+        or revalidation.post_repair_component_count
+        != revalidation.raw_component_count
+        or revalidation.post_repair_component_count != len(final_components)
+    ):
+        return _failed(
+            "profiled_legal_clip_component_authority_mismatch",
+            capacity_gfa=capacity_gfa,
+            source_surface_count=len(profiled),
+            final_component_count=(
+                revalidation.post_repair_component_count
+            ),
+            failure_witness={
+                "profiled_mesh_revalidation": revalidation.evidence(),
+            },
+        )
+    if revalidation.repair_attempted:
+        assert revalidation.certified_vertices is not None
+        assert revalidation.certified_triangles is not None
+        vertices = revalidation.certified_vertices
+        triangles = revalidation.certified_triangles
+        surfaces = _surfaces_from_indexed_mesh(
+            vertices,
+            triangles,
+            output_origin=output_origin,
+            volume_role=canonical_capacity_plates[0].role,
+        )
+        mesh_cleanup_schema = MESH_NUMERIC_REPAIR_SCHEMA
+        mesh_cleanup_collapse_threshold_m = revalidation.collapse_threshold_m
+        mesh_cleanup_max_physical_displacement_m = (
+            revalidation.max_physical_displacement_m
+        )
+        mesh_cleanup_raw_indexed_mesh_hash = (
+            revalidation.raw_indexed_mesh_hash
+        )
+        mesh_cleanup_raw_gate_failure_codes = revalidation.raw_gate_codes
+        mesh_cleanup_clean_indexed_mesh_hash = (
+            revalidation.clean_indexed_mesh_hash
+        )
+        mesh_cleanup_clean_gate_hard_pass = True
+    emitted_component_volumes_m3 = _indexed_mesh_component_volumes(
+        vertices,
+        triangles,
+    )
+    if (
+        emitted_component_volumes_m3 is None
+        or len(emitted_component_volumes_m3)
+        != revalidation.post_repair_component_count
+    ):
+        return _failed(
+            "profiled_legal_clip_emitted_component_authority_failed",
+            capacity_gfa=capacity_gfa,
+            source_surface_count=len(profiled),
+            failure_witness={
+                "profiled_mesh_revalidation": revalidation.evidence(),
+            },
         )
 
     # Re-measure the emitted indexed payload. Inputs used to build the CSG
@@ -357,13 +404,10 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
     section_numeric_epsilon_m = _section_numeric_epsilon_m(
         mesh_cleanup_max_physical_displacement_m
     )
-    floor_center_schema = (
-        FLOOR_CENTER_NUMERIC_EQUIVALENCE_REPAIR_SCHEMA
-        if mesh_cleanup_max_physical_displacement_m > 0.0
-        else FLOOR_CENTER_NUMERIC_EQUIVALENCE_SCHEMA
-    )
+    floor_center_schema = _VISIBLE_SECTION_SCHEMA
     section_metrics: list[dict[str, Any]] = []
-    for floor_index, expected in enumerate(occupied_sections):
+    actual_section_wkb_hex: list[str] = []
+    for floor_index, _expected in enumerate(occupied_sections):
         measured_evidence = _indexed_mesh_section_topology(
             vertices,
             triangles,
@@ -376,88 +420,60 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
                 source_surface_count=len(profiled),
                 occupied_section_topology=tuple(occupied_topology),
                 legal_section_topology=tuple(legal_topology),
-                final_component_count=len(final_components),
-                final_component_volumes_m3=tuple(
-                    float(component.volume()) for component in final_components
-                ),
+                final_component_count=revalidation.post_repair_component_count,
+                final_component_volumes_m3=emitted_component_volumes_m3,
                 failure_witness={"floor_index": floor_index},
             )
         measured, contour_count, solid_count = measured_evidence
-        metrics = _floor_center_numeric_equivalence(
-            measured,
-            expected,
-            epsilon_m=section_numeric_epsilon_m,
-            contour_count=contour_count,
+        actual_topology, _actual_failure, actual_witness = (
+            _section_topology_certificate(
+                measured,
+                floor_index=floor_index,
+                kind="actual_midplane",
+            )
         )
-        if metrics is None or metrics.get("hard_pass") is not True:
-            expected_topology = occupied_topology[floor_index]
-            actual_topology, _actual_failure, _actual_witness = (
-                _section_topology_certificate(
-                    measured,
-                    floor_index=floor_index,
-                    kind="actual_midplane",
-                )
-            )
-            actual_topology = actual_topology or {}
-            expected_component_count = int(
-                expected_topology.get("component_count") or 0
-            )
-            actual_component_count = int(
-                actual_topology.get("component_count") or solid_count or 0
-            )
-            expected_hole_count = int(
-                expected_topology.get("hole_count") or 0
-            )
-            actual_hole_count = int(
-                actual_topology.get("hole_count") or 0
-            )
-            witness = {
-                "floor_index": floor_index,
-                "floor_number": floor_index + 1,
-                "midplane_section_index": floor_index,
-                "midplane_z_fraction": (floor_index + 0.5) / floor_count,
-                "expected_component_count": expected_component_count,
-                "actual_component_count": actual_component_count,
-                "expected_polygon_count": expected_component_count,
-                "actual_polygon_count": actual_component_count,
-                "expected_ring_count": int(
-                    expected_topology.get("contour_count") or 0
-                ),
-                "actual_ring_count": int(
-                    actual_topology.get("contour_count") or contour_count or 0
-                ),
-                "expected_hole_count": expected_hole_count,
-                "actual_hole_count": actual_hole_count,
-                "expected_area_m2": float(expected.area),
-                "actual_area_m2": float(measured.area),
-                "section_numeric_epsilon_m": float(
-                    section_numeric_epsilon_m
-                ),
-                "area_tolerance_m2": float(
-                    (metrics or {}).get("area_bound_m2") or 0.0
-                ),
-            }
-            if metrics is not None:
-                witness.update(metrics)
-                witness["measured_component_count"] = metrics["component_count"]
-                witness["measured_hole_count"] = metrics["hole_count"]
+        if actual_topology is None:
             return _failed(
-                "profiled_legal_clip_midplane_topology_mismatch",
+                "profiled_legal_clip_midplane_section_invalid",
                 capacity_gfa=capacity_gfa,
                 source_surface_count=len(profiled),
                 occupied_section_topology=tuple(occupied_topology),
                 legal_section_topology=tuple(legal_topology),
-                floor_center_topology_metrics=tuple([
-                    *section_metrics,
-                    *(() if metrics is None else (metrics,)),
-                ]),
-                final_component_count=len(final_components),
-                final_component_volumes_m3=tuple(
-                    float(component.volume()) for component in final_components
-                ),
-                failure_witness=witness,
+                final_component_count=revalidation.post_repair_component_count,
+                final_component_volumes_m3=emitted_component_volumes_m3,
+                failure_witness={
+                    "floor_index": floor_index,
+                    **actual_witness,
+                },
             )
-        section_metrics.append({"floor_index": floor_index, **metrics})
+        metrics = _floor_center_numeric_equivalence(
+            measured,
+            measured,
+            epsilon_m=section_numeric_epsilon_m,
+            contour_count=contour_count,
+        )
+        if metrics is None or metrics.get("hard_pass") is not True:
+            return _failed(
+                "profiled_legal_clip_midplane_section_invalid",
+                capacity_gfa=capacity_gfa,
+                source_surface_count=len(profiled),
+                failure_witness={"floor_index": floor_index},
+            )
+        section_metrics.append({
+            **actual_topology,
+            **metrics,
+            "floor_index": floor_index,
+            "area_m2": float(measured.area),
+            "solid_count": int(solid_count),
+            "authority": "renderer_visible_authored_section",
+        })
+        actual_section_wkb_hex.append(
+            translate(
+                measured,
+                xoff=-output_origin[0],
+                yoff=-output_origin[1],
+            ).normalize().wkb_hex
+        )
 
     max_section_area_delta_m2 = max(
         metric["area_delta_m2"] for metric in section_metrics
@@ -474,9 +490,10 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
 
     legal_sample_count, legal_revalidation_witness = (
         _legal_band_projection_sample_count(
-        vertices,
-        triangles,
-        legal_sections,
+            vertices,
+            triangles,
+            legal_sections,
+            numeric_epsilon_m=section_numeric_epsilon_m,
         )
     )
     if legal_sample_count is None:
@@ -487,10 +504,8 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
             occupied_section_topology=tuple(occupied_topology),
             legal_section_topology=tuple(legal_topology),
             floor_center_topology_metrics=tuple(section_metrics),
-            final_component_count=len(final_components),
-            final_component_volumes_m3=tuple(
-                float(component.volume()) for component in final_components
-            ),
+            final_component_count=revalidation.post_repair_component_count,
+            final_component_volumes_m3=emitted_component_volumes_m3,
             legal_revalidation_witness=legal_revalidation_witness,
             failure_witness=legal_revalidation_witness,
         )
@@ -622,16 +637,15 @@ def clip_profiled_mesh_to_floorwise_legal_solids(
             occupied_section_topology=tuple(occupied_topology),
             legal_section_topology=tuple(legal_topology),
             floor_center_topology_metrics=tuple(section_metrics),
-            final_component_count=len(final_components),
-            final_component_volumes_m3=tuple(
-                float(component.volume()) for component in final_components
-            ),
+            final_component_count=revalidation.post_repair_component_count,
+            final_component_volumes_m3=emitted_component_volumes_m3,
             final_closed_manifold_hard_pass=True,
             legal_revalidation_witness=legal_revalidation_witness,
             section_geometry_binding_schema=_SECTION_GEOMETRY_BINDING_SCHEMA,
             section_geometry_binding_hash=section_geometry_binding_hash,
             occupied_section_wkb_hex=occupied_section_wkb_hex,
             legal_section_wkb_hex=legal_section_wkb_hex,
+            actual_section_wkb_hex=tuple(actual_section_wkb_hex),
             authority_binding_hash=authority_hash,
         ),
     )
@@ -796,23 +810,21 @@ def _source_world_matrix_field_manifold(
     surfaces: Sequence[SourceSurface],
     matrices: tuple[Matrix4, ...],
 ) -> m3d.Manifold:
+    if not matrices:
+        raise ValueError("missing authored global Matrix4")
     origin = source.footprint.centroid
-    breakpoints = tuple(
-        (index + 0.5) / len(matrices)
-        for index in range(len(matrices))
-    )
-    tessellation_levels = tuple(sorted({
-        *breakpoints,
-        *(
-            index / len(matrices)
-            for index in range(1, len(matrices))
-        ),
-    }))
+    # The BOOK/BaseVolume contract owns one homogeneous Matrix4 for the whole
+    # authored solid.  Earlier code interpolated a different capacity-fit
+    # matrix at every floor, which visibly re-authored every otherwise diverse
+    # AST into the same terraced silhouette.  Floor matrices remain legal and
+    # capacity evidence; the visible authored mesh uses the single ground
+    # placement matrix and is clipped once by the continuous legal envelope.
+    global_matrix = matrices[0]
     vertices: list[tuple[float, float, float]] = []
     triangles: list[tuple[int, int, int]] = []
     indices: dict[tuple[float, float, float], int] = {}
     for surface in surfaces:
-        world_triangle = tuple(
+        raw_world_triangle = tuple(
             (
                 float(x) + float(origin.x),
                 float(y) + float(origin.y),
@@ -823,29 +835,26 @@ def _source_world_matrix_field_manifold(
         if (
             not all(
                 all(isfinite(value) for value in vertex)
-                for vertex in world_triangle
-            )
-            or any(
-                vertex[2] < 0.0 or vertex[2] > 1.0
-                for vertex in world_triangle
-            )
-        ):
-            raise ValueError("invalid authored mesh vertex")
-        for piece in _split_triangle_at_z_breakpoints(
-            world_triangle,
-            breakpoints=tessellation_levels,
-        ):
-            triangle = []
-            for point in piece:
-                vertex = _transform_with_matrix_field(
-                    matrices,
-                    point,
-                    breakpoints=breakpoints,
+                    for vertex in raw_world_triangle
                 )
-                triangle.append(indices.setdefault(vertex, len(indices)))
-                if triangle[-1] == len(vertices):
-                    vertices.append(vertex)
-            triangles.append(tuple(triangle))
+                or any(
+                    vertex[2] < -_NORMALIZED_Z_TRANSPORT_EPSILON
+                    or vertex[2] > 1.0 + _NORMALIZED_Z_TRANSPORT_EPSILON
+                    for vertex in raw_world_triangle
+                )
+            ):
+                raise ValueError("invalid authored mesh vertex")
+        world_triangle = tuple(
+            (x, y, min(1.0, max(0.0, z)))
+            for x, y, z in raw_world_triangle
+        )
+        triangle = []
+        for point in world_triangle:
+            vertex = transform_point3(global_matrix, point)
+            triangle.append(indices.setdefault(vertex, len(indices)))
+            if triangle[-1] == len(vertices):
+                vertices.append(vertex)
+        triangles.append(tuple(triangle))
     mesh = m3d.Mesh(
         np.asarray(vertices, dtype=np.float64),
         np.asarray(triangles, dtype=np.uint32),
@@ -886,6 +895,8 @@ def _legal_band_projection_sample_count(
     vertices: Sequence[tuple[float, float, float]],
     triangles: Sequence[tuple[int, int, int]],
     legal_sections: Sequence[Polygon | MultiPolygon],
+    *,
+    numeric_epsilon_m: float = 0.0,
 ) -> tuple[int | None, dict[str, Any]]:
     """Prove whole emitted faces against half-open legal floor bands."""
 
@@ -953,6 +964,7 @@ def _legal_band_projection_sample_count(
                 covered, coverage_mode = _strict_legal_covers(
                     lawful[floor_index],
                     projection,
+                    numeric_epsilon_m=numeric_epsilon_m,
                 )
                 if covered:
                     coverage_modes[floor_index] = coverage_mode
@@ -982,10 +994,18 @@ def _legal_band_projection_sample_count(
                     "face_index": face_index,
                     "piece_index": piece_index,
                     "projected_area_m2": float(projection.area),
+                    "projected_length_m": float(projection.length),
+                    "projected_bounds": [float(value) for value in projection.bounds],
+                    "projected_geometry_type": str(projection.geom_type),
                     "xy_containment_mode": "strict_unbuffered_covers",
+                    "numeric_epsilon_m": float(numeric_epsilon_m),
                     "z_boundary_epsilon": _BAND_BOUNDARY_EPSILON,
                     "adjacent_band_indices": list(candidate_floor_indices),
                     "adjacent_band_failures": adjacent_failures,
+                    "outside_area_m2": min(
+                        float(projection.difference(lawful[index]).area)
+                        for index in candidate_floor_indices
+                    ),
                 }
                 return None, _bounded_legal_revalidation_witness(
                     successful_records,
@@ -1053,13 +1073,38 @@ def _bounded_legal_revalidation_witness(
 def _strict_legal_covers(
     lawful_section: Polygon | MultiPolygon,
     projection: Any,
+    *,
+    numeric_epsilon_m: float = 0.0,
 ) -> tuple[bool, str]:
     if projection.is_empty:
         return False, "strict_unbuffered_covers"
     if lawful_section.covers(projection):
         return True, "strict_unbuffered_covers"
+    epsilon = float(numeric_epsilon_m)
+    if not isfinite(epsilon) or epsilon <= 0.0:
+        return False, "strict_unbuffered_covers"
     if projection.geom_type not in {"Point", "LineString", "Polygon"}:
         return False, "strict_unbuffered_covers"
+    outside_geometry = projection.difference(lawful_section)
+    if projection.geom_type == "Point":
+        if lawful_section.boundary.distance(projection) <= epsilon:
+            return True, "kernel_boundary_numeric_equivalence"
+    elif projection.geom_type == "LineString":
+        if (
+            float(outside_geometry.length)
+            <= epsilon * max(1.0, float(projection.length))
+            or (
+                lawful_section.distance(projection) <= epsilon
+                and lawful_section.boundary.distance(projection) <= epsilon
+            )
+        ):
+            return True, "kernel_boundary_numeric_equivalence"
+    elif (
+        float(outside_geometry.area)
+        <= epsilon * max(1.0, float(projection.length))
+        and lawful_section.distance(projection) <= epsilon
+    ):
+        return True, "kernel_boundary_numeric_equivalence"
     coordinates = (
         ((float(projection.x), float(projection.y)),)
         if projection.geom_type == "Point"
@@ -1084,12 +1129,12 @@ def _strict_legal_covers(
     if (
         outside_points
         and all(
-            lawful_section.boundary.distance(point) <= _EPSILON
+            lawful_section.boundary.distance(point) <= epsilon
             for point in outside_points
         )
-        and outside_area <= _EPSILON * max(1.0, float(projection.length))
+        and outside_area <= epsilon * max(1.0, float(projection.length))
     ):
-        return True, "kernel_boundary_equivalence_1e-8"
+        return True, "kernel_boundary_numeric_equivalence"
     return False, "strict_unbuffered_covers"
 
 
@@ -1185,6 +1230,7 @@ def _failed(
     *,
     capacity_gfa: float,
     source_surface_count: int,
+    legal_sample_count: int = 0,
     occupied_section_topology: tuple[dict[str, Any], ...] = (),
     legal_section_topology: tuple[dict[str, Any], ...] = (),
     floor_center_topology_metrics: tuple[dict[str, Any], ...] = (),
@@ -1200,6 +1246,7 @@ def _failed(
             hard_pass=False,
             failure_reasons=(reason,),
             source_surface_count=source_surface_count,
+            legal_sample_count=legal_sample_count,
             capacity_gfa_m2=capacity_gfa,
             certification_mode=_MODE,
             visible_geometry_operation=_OPERATION,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from hashlib import sha256
 import json
 from math import isfinite
@@ -35,6 +36,246 @@ from .floorwise_visual_projection import (
 
 Point2 = tuple[float, float]
 Point3 = tuple[float, float, float]
+_SECTION_LOFT_NUMERIC_BOUNDARY_EPSILON_M = 1e-5
+
+
+@dataclass(frozen=True)
+class ContinuousLegalEnvelopeMesh:
+    status: str
+    hard_pass: bool
+    failure_reasons: tuple[str, ...] = ()
+    vertices: tuple[Point3, ...] = ()
+    triangles: tuple[tuple[int, int, int], ...] = ()
+    legal_sample_count: int = 0
+    failure_witness: dict[str, Any] | None = None
+
+
+def build_continuous_legal_envelope_mesh(
+    *,
+    legal_sections: Sequence[Any],
+    output_origin: Sequence[float],
+) -> ContinuousLegalEnvelopeMesh:
+    """Build one closed continuous legal mask without floor-band terraces."""
+
+    origin = _validated_output_origin(output_origin)
+    legal = tuple(_single_ring_polygon(item) for item in legal_sections)
+    if origin is None or not legal or any(item is None for item in legal):
+        return _continuous_envelope_failure(
+            "continuous_legal_envelope_topology_incompatible"
+        )
+    legal_polygons = tuple(item for item in legal if item is not None)
+    profile_polygons = tuple(
+        _conservative_continuous_profile(item)
+        for item in legal_polygons
+    )
+    seams: list[Polygon] = []
+    for index in range(len(profile_polygons) - 1):
+        seam = _single_ring_polygon(
+            profile_polygons[index].intersection(profile_polygons[index + 1])
+        )
+        if seam is None:
+            return _continuous_envelope_failure(
+                "continuous_legal_envelope_disjoint_seam"
+            )
+        seams.append(seam)
+
+    floor_count = len(legal_polygons)
+    # Keep one profile per legal band boundary.  Repeating each floor profile
+    # at its midpoint made the envelope alternate between a vertical half
+    # storey and a sloped half storey.  It was manifold and technically had
+    # no horizontal terrace faces, but the rendered silhouette still read as
+    # the same cake-step mass.  Boundary-to-boundary interpolation preserves
+    # the conservative seam proof while producing one continuous taper.
+    raw_profiles: list[tuple[float, tuple[Point2, ...]]] = [
+        (0.0, _ring(profile_polygons[0])),
+    ]
+    for index, seam in enumerate(seams):
+        raw_profiles.append(
+            ((index + 1.0) / floor_count, _ring(seam))
+        )
+    raw_profiles.append((1.0, _ring(profile_polygons[-1])))
+
+    aligned_rings: list[tuple[Point2, ...]] = [raw_profiles[0][1]]
+    for _level, ring in raw_profiles[1:]:
+        aligned_rings.append(_align_ring(aligned_rings[-1], ring))
+    fractions = sorted({
+        round(fraction, 12)
+        for ring in aligned_rings
+        for fraction in _corner_fractions(ring)
+    })
+    if len(fractions) < 3:
+        return _continuous_envelope_failure(
+            "continuous_legal_envelope_degenerate_profile"
+        )
+    profiles = tuple(
+        tuple((
+            *_point_at_fraction(ring, fraction),
+            float(level),
+        ) for fraction in fractions)
+        for (level, _raw_ring), ring in zip(raw_profiles, aligned_rings)
+    )
+    vertices: tuple[Point3, ...] = tuple(
+        (
+            point[0] - origin[0],
+            point[1] - origin[1],
+            point[2],
+        )
+        for profile in profiles
+        for point in profile
+    )
+    ring_size = len(fractions)
+    triangles: list[tuple[int, int, int]] = []
+    for profile_index in range(len(profiles) - 1):
+        lower = profile_index * ring_size
+        upper = (profile_index + 1) * ring_size
+        for index in range(ring_size):
+            following = (index + 1) % ring_size
+            triangles.extend((
+                (lower + index, lower + following, upper + following),
+                (lower + index, upper + following, upper + index),
+            ))
+    bottom_cap = _ear_clip(profiles[0])
+    top_cap = _ear_clip(profiles[-1])
+    if bottom_cap is None or top_cap is None:
+        return _continuous_envelope_failure(
+            "continuous_legal_envelope_degenerate_cap"
+        )
+    triangles.extend(
+        (triangle[0], triangle[2], triangle[1])
+        for triangle in bottom_cap
+    )
+    top_offset = (len(profiles) - 1) * ring_size
+    triangles.extend(
+        tuple(top_offset + index for index in triangle)
+        for triangle in top_cap
+    )
+
+    buffered_legal = _BufferedLegalSections(legal_polygons)
+    legal_sample_count = 0
+    for triangle_index, triangle in enumerate(triangles):
+        world_triangle = tuple((
+            vertices[index][0] + origin[0],
+            vertices[index][1] + origin[1],
+            vertices[index][2],
+        ) for index in triangle)
+        indices = _legal_section_indices_for_triangle(
+            world_triangle,
+            section_count=floor_count,
+        )
+        if not _legal_sections_cover_triangle(
+            world_triangle,
+            legal_sections=buffered_legal,
+            legal_indices=indices,
+        ):
+            return _continuous_envelope_failure(
+                "continuous_legal_envelope_outside_legal_field",
+                legal_sample_count=legal_sample_count + len(indices),
+                failure_witness={
+                    "stage": "triangle_coverage",
+                    "triangle_index": triangle_index,
+                    "legal_indices": list(indices),
+                    "world_triangle": [list(point) for point in world_triangle],
+                },
+            )
+        for point in _section_evidence_points(
+            world_triangle,
+            floor_count=floor_count,
+        ):
+            if not _legal_sections_cover_point(
+                point,
+                legal_sections=buffered_legal,
+            ):
+                return _continuous_envelope_failure(
+                    "continuous_legal_envelope_outside_legal_field",
+                    legal_sample_count=legal_sample_count + 1,
+                    failure_witness={
+                        "stage": "section_evidence_point",
+                        "triangle_index": triangle_index,
+                        "point": list(point),
+                    },
+                )
+            legal_sample_count += 1
+        boundary_count = _boundary_intersection_sample_count(
+            world_triangle,
+            legal_sections=buffered_legal,
+        )
+        if boundary_count is None:
+            return _continuous_envelope_failure(
+                "continuous_legal_envelope_outside_legal_field",
+                legal_sample_count=legal_sample_count + 1,
+                failure_witness={
+                    "stage": "boundary_intersection",
+                    "triangle_index": triangle_index,
+                    "world_triangle": [list(point) for point in world_triangle],
+                },
+            )
+        legal_sample_count += len(indices) + boundary_count
+
+    triangle_tuple = tuple(triangles)
+    revalidated = revalidate_compilation_mesh(CompilationResult(
+        program=GeometryProgram(
+            nodes=(),
+            root_id="",
+            name="continuous_legal_envelope",
+        ),
+        status="compiled",
+        vertices=vertices,
+        triangles=triangle_tuple,
+    ))
+    if (
+        revalidated.status != "compiled"
+        or revalidated.metrics.get("closed_solid") is not True
+        or revalidated.metrics.get("manifold") is not True
+    ):
+        return _continuous_envelope_failure(
+            "continuous_legal_envelope_mesh_revalidation_failed",
+            legal_sample_count=legal_sample_count,
+        )
+    return ContinuousLegalEnvelopeMesh(
+        status="certified",
+        hard_pass=True,
+        vertices=vertices,
+        triangles=triangle_tuple,
+        legal_sample_count=legal_sample_count,
+    )
+
+
+def _continuous_envelope_failure(
+    reason: str,
+    *,
+    legal_sample_count: int = 0,
+    failure_witness: dict[str, Any] | None = None,
+) -> ContinuousLegalEnvelopeMesh:
+    return ContinuousLegalEnvelopeMesh(
+        status="failed",
+        hard_pass=False,
+        failure_reasons=(reason,),
+        legal_sample_count=legal_sample_count,
+        failure_witness=dict(failure_witness or {}),
+    )
+
+
+def _conservative_continuous_profile(polygon: Polygon) -> Polygon:
+    """Remove only microscopic reflex noise without expanding legal area."""
+
+    hull = polygon.convex_hull
+    convex_gap = max(0.0, float(hull.area) - float(polygon.area))
+    numeric_gap_limit = max(1e-4, float(polygon.area) * 1e-6)
+    if convex_gap <= 1e-12 or convex_gap > numeric_gap_limit:
+        return polygon
+    min_x, min_y, max_x, max_y = polygon.bounds
+    span = max(float(max_x - min_x), float(max_y - min_y), 1.0)
+    for factor in (1e-9, 3e-9, 1e-8, 3e-8, 1e-7, 3e-7, 1e-6, 3e-6, 1e-5):
+        inset = polygon.buffer(-span * factor, join_style=2)
+        if inset.is_empty or not isinstance(inset, Polygon):
+            continue
+        candidate = inset.convex_hull
+        if (
+            polygon.covers(candidate)
+            and float(candidate.area) >= float(polygon.area) * 0.9999
+        ):
+            return orient(candidate, sign=1.0)
+    return polygon
 
 
 def loft_floorwise_legal_sections(
@@ -183,9 +424,12 @@ def loft_floorwise_legal_sections(
         for triangle in top_cap
     )
 
-    buffered_legal = _BufferedLegalSections(legal_polygons)
+    buffered_legal = _BufferedLegalSections(
+        legal_polygons,
+        buffer_distance_m=_SECTION_LOFT_NUMERIC_BOUNDARY_EPSILON_M,
+    )
     legal_sample_count = 0
-    for triangle in triangles:
+    for triangle_index, triangle in enumerate(triangles):
         world_triangle = tuple(
             (
                 vertices[index][0] + origin[0],
@@ -203,11 +447,33 @@ def loft_floorwise_legal_sections(
             legal_sections=buffered_legal,
             legal_indices=indices,
         ):
+            projected_triangle = Polygon([
+                (float(x), float(y))
+                for x, y, _z in world_triangle
+            ])
+            excess = tuple(
+                projected_triangle.difference(buffered_legal[index])
+                for index in indices
+            )
             return _failure(
                 "section_loft_outside_legal_envelope",
                 capacity_gfa=capacity_gfa,
                 source_surface_count=len(source.surfaces),
                 legal_sample_count=legal_sample_count + len(indices),
+                failure_witness={
+                    "stage": "triangle_coverage",
+                    "triangle_index": triangle_index,
+                    "legal_indices": list(indices),
+                    "world_triangle": [list(point) for point in world_triangle],
+                    "maximum_outside_area_m2": max(
+                        (float(item.area) for item in excess),
+                        default=0.0,
+                    ),
+                    "maximum_outside_boundary_length_m": max(
+                        (float(item.length) for item in excess),
+                        default=0.0,
+                    ),
+                },
             )
         for point in _section_evidence_points(
             world_triangle,
@@ -222,6 +488,11 @@ def loft_floorwise_legal_sections(
                     capacity_gfa=capacity_gfa,
                     source_surface_count=len(source.surfaces),
                     legal_sample_count=legal_sample_count + 1,
+                    failure_witness={
+                        "stage": "section_evidence_point",
+                        "triangle_index": triangle_index,
+                        "point": list(point),
+                    },
                 )
             legal_sample_count += 1
         boundary_count = _boundary_intersection_sample_count(
@@ -234,6 +505,11 @@ def loft_floorwise_legal_sections(
                 capacity_gfa=capacity_gfa,
                 source_surface_count=len(source.surfaces),
                 legal_sample_count=legal_sample_count + 1,
+                failure_witness={
+                    "stage": "boundary_intersection",
+                    "triangle_index": triangle_index,
+                    "world_triangle": [list(point) for point in world_triangle],
+                },
             )
         legal_sample_count += len(indices) + boundary_count
 
@@ -341,6 +617,9 @@ def loft_floorwise_legal_sections(
             floor_capacity_plan_hash=plan_hash,
             matrix4_stack_hash=matrix_hash,
             authority_binding_hash=authority_hash,
+            section_numeric_epsilon_m=(
+                _SECTION_LOFT_NUMERIC_BOUNDARY_EPSILON_M
+            ),
         ),
     )
 
@@ -711,11 +990,20 @@ def _strict_ear_clip(
 
 def _polygon_payload(polygon: Any) -> Any:
     normalized = _single_ring_polygon(polygon)
-    return (
-        [[round(x, 9), round(y, 9)] for x, y in _ring(normalized)]
-        if normalized is not None
-        else None
-    )
+    if normalized is not None:
+        return [[round(x, 9), round(y, 9)] for x, y in _ring(normalized)]
+    if (
+        getattr(polygon, "geom_type", "") in {"Polygon", "MultiPolygon"}
+        and not getattr(polygon, "is_empty", True)
+        and getattr(polygon, "is_valid", False)
+        and float(getattr(polygon, "area", 0.0)) > 1e-8
+    ):
+        canonical = polygon.normalize()
+        return {
+            "geometry_type": canonical.geom_type,
+            "normalized_wkb_hex": canonical.wkb_hex,
+        }
+    return None
 
 
 def floorwise_authority_component_hashes(
@@ -845,6 +1133,7 @@ def _failure(
     capacity_gfa: float,
     source_surface_count: int,
     legal_sample_count: int = 0,
+    failure_witness: dict[str, Any] | None = None,
 ) -> FloorwiseVisualProjection:
     return FloorwiseVisualProjection(
         surfaces=(),
@@ -858,11 +1147,17 @@ def _failure(
             certification_mode="floorwise_csg_section_loft",
             visible_geometry_operation="exact_legal_section_profile_loft",
             visible_step_fallback=False,
+            section_numeric_epsilon_m=(
+                _SECTION_LOFT_NUMERIC_BOUNDARY_EPSILON_M
+            ),
+            failure_witness=dict(failure_witness or {}),
         ),
     )
 
 
 __all__ = [
+    "ContinuousLegalEnvelopeMesh",
+    "build_continuous_legal_envelope_mesh",
     "floorwise_authority_component_hashes",
     "loft_floorwise_legal_sections",
 ]

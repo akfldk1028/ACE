@@ -35,6 +35,7 @@ from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .gate import GeometryGatePolicy, compilation_gate
 from .mutation import OPERATOR_PARAMETER_CONTRACTS
 from .author_output_schema import author_node_schema as _author_node_schema
+from .legal_envelope import normalized_legal_field_design_context
 from .author_parameter_contract import (
     author_parameter_value_contract as _author_parameter_value_contract,
 )
@@ -1398,90 +1399,6 @@ def _book_composition_path_slice(
     return compact
 
 
-def _normalized_legal_field_design_context(
-    capacity_contract: dict[str, Any],
-) -> dict[str, Any]:
-    """Expose legal shape relations without parcel coordinates or form recipes."""
-
-    raw_sections = capacity_contract.get("candidate_legal_floor_sections")
-    if not isinstance(raw_sections, list) or not raw_sections:
-        legal_field = capacity_contract.get("legal_floor_field")
-        raw_sections = (
-            legal_field.get("legal_floor_sections")
-            if isinstance(legal_field, dict)
-            else None
-        )
-    if not isinstance(raw_sections, list) or not raw_sections:
-        return {}
-    sections: list[Polygon] = []
-    try:
-        for raw in raw_sections:
-            polygon = shape(raw)
-            if (
-                not isinstance(polygon, Polygon)
-                or polygon.is_empty
-                or not polygon.is_valid
-                or float(polygon.area) <= 1e-9
-            ):
-                return {}
-            sections.append(polygon)
-    except (TypeError, ValueError):
-        return {}
-    ground = sections[0]
-    rectangle = list(ground.minimum_rotated_rectangle.exterior.coords)[:4]
-    if len(rectangle) != 4:
-        return {}
-    edges = []
-    for index, left in enumerate(rectangle):
-        right = rectangle[(index + 1) % 4]
-        dx = float(right[0]) - float(left[0])
-        dy = float(right[1]) - float(left[1])
-        edges.append((hypot(dx, dy), degrees(atan2(dy, dx))))
-    _length, principal_angle = max(edges)
-    rotated = tuple(
-        rotate_geometry(section, -principal_angle, origin=ground.centroid)
-        for section in sections
-    )
-    min_x, min_y, max_x, max_y = rotated[0].bounds
-    span_x = max_x - min_x
-    span_y = max_y - min_y
-    if span_x <= 1e-9 or span_y <= 1e-9:
-        return {}
-    ground_area = float(rotated[0].area)
-    bands = []
-    for index, section in enumerate(rotated):
-        low_x, low_y, high_x, high_y = section.bounds
-        bands.append({
-            "band_index": index,
-            "area_ratio_to_ground": round(float(section.area) / ground_area, 6),
-            "long_axis_min": round((low_x - min_x) / span_x, 6),
-            "long_axis_max": round((high_x - min_x) / span_x, 6),
-            "short_axis_min": round((low_y - min_y) / span_y, 6),
-            "short_axis_max": round((high_y - min_y) / span_y, 6),
-            "centroid_long_axis": round(
-                (float(section.centroid.x) - min_x) / span_x,
-                6,
-            ),
-            "centroid_short_axis": round(
-                (float(section.centroid.y) - min_y) / span_y,
-                6,
-            ),
-        })
-    return {
-        "schema_version": "arr.maas.normalized_legal_field_design_context.v1",
-        "authority": "constraint_context_only_not_morphology_recipe",
-        "coordinate_frame": "generation_host_principal_frame_normalized",
-        "absolute_parcel_coordinates_included": False,
-        "floor_band_count": len(bands),
-        "ground_long_to_short_aspect": round(span_x / span_y, 6),
-        "bands": bands,
-        "authorship_instruction": (
-            "Author one continuous architectural section that can survive these "
-            "relations; never replay band boundaries or copy a per-floor profile."
-        ),
-    }
-
-
 def _author_prompt(context: dict[str, Any], count: int) -> str:
     # Source-level graph memory is already bounded and coordinate-free. Keep
     # enough room for transferable post-BOOK repair priors; the previous 12k
@@ -1520,7 +1437,7 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
             )
             if capacity_contract.get(key) is not None
         }
-        legal_design_context = _normalized_legal_field_design_context(
+        legal_design_context = normalized_legal_field_design_context(
             capacity_contract
         )
         if legal_design_context:

@@ -215,7 +215,24 @@ def apply_capacity_composition_to_geometry_program(
     )
 
 
-def apply_book_projection_to_geometry_program(
+class BookProjectionFailure(ValueError):
+    """Typed failure from applying requested BOOK operations to an AST."""
+
+    def __init__(self, evidence: dict[str, Any]):
+        self.evidence = dict(evidence)
+        effect = self.evidence.get("effect")
+        detail = (
+            str(effect.get("failure_detail") or "")
+            if isinstance(effect, dict)
+            else ""
+        )
+        super().__init__(
+            detail
+            or str(self.evidence.get("code") or "book_projection_failed")
+        )
+
+
+def _apply_book_projection_to_geometry_program(
     program: GeometryProgram,
     sequence: VerbSequence,
 ) -> GeometryProgram:
@@ -363,6 +380,59 @@ def apply_book_projection_to_geometry_program(
         name=f"{program.name}__book_{scope.label.replace('/', '_')}_{'_'.join(call.verb for call in calls)}",
         metadata=metadata,
     )
+
+
+def apply_book_projection_to_geometry_program(
+    program: GeometryProgram,
+    sequence: VerbSequence,
+) -> GeometryProgram:
+    """Apply BOOK while preserving bounded typed failure evidence."""
+
+    calls = book_projection_calls(sequence)
+    if not calls:
+        return program
+    scope = book_projection_scope(sequence)
+    verbs = [str(call.verb) for call in calls]
+    root = program.node_map.get(program.root_id)
+    try:
+        return _apply_book_projection_to_geometry_program(program, sequence)
+    except BookProjectionFailure:
+        raise
+    except (TypeError, ValueError) as exc:
+        message = str(exc)
+        code = message.split(":", 1)[0].strip()
+        if not code or any(character.isspace() for character in code):
+            code = "book_projection_application_failed"
+        effects = [
+            str(_BOOK_VERB_CANONICAL_EFFECT.get(verb, verb))
+            for verb in verbs
+        ]
+        raise BookProjectionFailure({
+            "schema_version": "arr.maas.book_projection_failure.v1",
+            "code": code,
+            "scope": {
+                "label": str(scope.label),
+                "requested_fraction": float(scope.requested_fraction),
+            },
+            "verbs": verbs,
+            "chassis": {
+                "root_operator": str(root.operator if root is not None else ""),
+                "family": str(program.metadata.get("family") or ""),
+            },
+            "effect": {
+                "ordered": effects,
+                "failure_detail": message[:240],
+            },
+            "pre_identity": {
+                "program_hash": program.program_hash(),
+                "root_id": str(program.root_id),
+            },
+            "post_identity": {
+                "status": "not_materialized",
+                "program_hash": "",
+                "root_id": "",
+            },
+        }) from exc
 
 
 def recursive_book_projection_evidence(
@@ -598,7 +668,12 @@ def _append_book_call(
         }.get(scope_orientation, axis)
         return add("modifier", "taper", (current,), {
             "axis": taper_axis, "start_scale": [1.0, 1.0],
-            "end_scale": [end_x, end_y], "subdivisions": 3,
+            "end_scale": [end_x, end_y],
+            "lower_floor_fraction": max(
+                0.0,
+                min(0.8, _number(p, "lower_floor_fraction", 0.0)),
+            ),
+            "subdivisions": 3,
         }, verb=verb)
     if verb == "embed":
         embed_axis = {

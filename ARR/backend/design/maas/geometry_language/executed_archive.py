@@ -24,6 +24,10 @@ from .run_state import RUN_STATE_FILENAME
 from .vlm_adapter import retrieve_geometry_reference_matches
 from design.maas.preference.reference_paths import resolve_reference_image_path
 from design.maas.book_language.archive_layout import archive_card_crop_box
+from design.maas.book_language.mass_passport_bridge import (
+    resolve_capacity_band_evidence,
+    resolve_shared_floor_contract_hard_gate,
+)
 from design.maas.mass_product_evidence import (
     floor_capacity_plan_hash,
     serialize_mass_product_evidence,
@@ -323,6 +327,11 @@ def _validated_projected_visual_compilation(
             )
             or ""
         ),
+        expected_section_geometry_binding_hash=str(
+            semantic_anchor.get(
+                "expected_section_geometry_binding_hash"
+            ) or ""
+        ),
     )
     if validated is None:
         return None
@@ -397,6 +406,11 @@ def _summary_semantic_anchor(row: dict[str, Any]) -> dict[str, Any]:
             if audit
             else ""
         ),
+        "expected_section_geometry_binding_hash": str(
+            row.get(
+                "projected_visual_section_geometry_binding_hash"
+            ) or ""
+        ),
     }
 
 
@@ -438,14 +452,34 @@ def _archived_capacity_evidence(artifact: dict[str, Any]) -> dict[str, Any]:
         ),
         {},
     )
-    capacity = {**alternative, **archived_stage, "evaluated": True}
-    if "selectable_capacity_hard_pass" in capacity:
-        capacity["hard_pass"] = bool(
-            capacity.get("selectable_capacity_hard_pass")
-        )
-    else:
-        capacity["hard_pass"] = bool(capacity.get("target_hard_pass"))
-    return capacity
+    capacity = {**alternative, **archived_stage}
+    measurement = _mapping(capacity.get("measurement"))
+    shared_floor_contract = _mapping(capacity.get("shared_floor_contract"))
+    resolution = resolve_capacity_band_evidence(
+        capacity,
+        capacity_measurement=measurement,
+        fallback_requested_hard_pass=bool(capacity.get("target_hard_pass")),
+    )
+    shared_floor_gate = resolve_shared_floor_contract_hard_gate(
+        shared_floor_contract
+    )
+    hard_pass = bool(
+        resolution["resolved_capacity_hard_pass"]
+        and shared_floor_gate["hard_pass"]
+    )
+    return {
+        **capacity,
+        "measurement": measurement,
+        "shared_floor_contract": shared_floor_contract,
+        "shared_floor_contract_hard_pass": shared_floor_gate["hard_pass"],
+        "shared_floor_contract_failure_reasons": list(
+            shared_floor_gate["failure_reasons"]
+        ),
+        "evaluated": bool(alternative or archived_stage),
+        **resolution,
+        "hard_pass": hard_pass,
+        "status": "passed" if hard_pass else "failed",
+    }
 
 
 def materialize_executed_mass_passport(

@@ -35,6 +35,21 @@ class BaseSeedSpec:
         }
 
 
+@dataclass(frozen=True)
+class BaseFormSpec:
+    form_id: str
+    label: str
+    operator: str
+    normalized_volume_relation: str
+
+
+BASE_FORM_SPECS: tuple[BaseFormSpec, ...] = (
+    BaseFormSpec("cube", "CUBE", "", "1/1 unit host"),
+    BaseFormSpec("elliptical", "ELLIPSOID", "ellipsoidize", "less than cube"),
+    BaseFormSpec("tetrahedral", "TETRAHEDRON", "tetrahedralize", "one third of cube"),
+)
+
+
 BASE_SEED_SPECS: tuple[BaseSeedSpec, ...] = (
     BaseSeedSpec("block", "BLOCK", "box", (1.0, 1.0, 1.0), "neutral compact host", "Scale(UnitBox, [1, 1, 1])"),
     BaseSeedSpec("slab", "SLAB", "box", (2.2, 1.45, 0.28), "wide low plate or hall datum", "Scale(UnitBox, [2.2, 1.45, 0.28])"),
@@ -111,6 +126,52 @@ def base_seed_catalog() -> tuple[dict[str, Any], ...]:
     return tuple(spec.to_dict() for spec in BASE_SEED_SPECS)
 
 
+def base_form_program(form_id: str) -> GeometryProgram:
+    """Lower one normalized form capability before one global Matrix4."""
+
+    spec = next((item for item in BASE_FORM_SPECS if item.form_id == form_id), None)
+    if spec is None:
+        raise KeyError(f"unknown base form: {form_id}")
+    provenance = {
+        "source": "normalized_base_form_catalog",
+        "base_form_id": spec.form_id,
+        "not_a_building_template": True,
+    }
+    unit = GeometryNode(
+        "unit_box", "primitive", "box",
+        parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        semantic_role="unitbox", provenance=provenance,
+    )
+    nodes: list[GeometryNode] = [unit]
+    carrier_id = unit.id
+    if spec.operator:
+        form = GeometryNode(
+            "base_form", "modifier", spec.operator, inputs=(unit.id,),
+            parameters={"segments": 24} if spec.operator == "ellipsoidize" else {},
+            semantic_role="base_form", provenance=provenance,
+        )
+        nodes.append(form)
+        carrier_id = form.id
+    matrix = GeometryNode(
+        "global_matrix4", "transform", "matrix4", inputs=(carrier_id,),
+        parameters={"matrix4": matrix4_to_lists(scale_matrix4((1.0, 1.0, 1.0)))},
+        semantic_role="base_volume",
+        provenance={**provenance, "global_matrix4": True},
+    )
+    nodes.append(matrix)
+    return GeometryProgram(
+        tuple(nodes), matrix.id, name=f"base_form_{spec.form_id}",
+        metadata={
+            "language_layer": "architectural_base_form",
+            "base_form_id": spec.form_id,
+            "base_seed": "block",
+            "canonical_root": "1/1 UnitBox",
+            "basevolume_affine_authority": "explicit_matrix4",
+            "not_a_building_template": True,
+        },
+    )
+
+
 def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProgram:
     spec = next((item for item in BASE_SEED_SPECS if item.seed_id == seed_id), None)
     if spec is None:
@@ -180,7 +241,8 @@ def box_derived_base_seed_programs() -> tuple[GeometryProgram, ...]:
 
 
 __all__ = [
-    "BASE_SEED_SPECS", "PROFILED_PRISM_FAMILIES", "BaseSeedSpec", "base_seed_catalog",
+    "BASE_FORM_SPECS", "BASE_SEED_SPECS", "PROFILED_PRISM_FAMILIES",
+    "BaseFormSpec", "BaseSeedSpec", "base_form_program", "base_seed_catalog",
     "base_seed_program", "base_seed_programs", "box_derived_base_seed_programs",
     "profiled_prism_parameters",
 ]

@@ -14,7 +14,7 @@ from .compiler import CompilationResult, compile_geometry_program
 from .floorwise_legal_program import (
     _compiled_manifold,
     _measure_floor_evidence,
-    _valid_request,
+    _valid_legal_context,
 )
 from .gate import GeometryGatePolicy, compilation_gate
 
@@ -30,6 +30,39 @@ class AuthoredLegalPreservationResult:
     final_compilation: CompilationResult
 
 
+def _valid_authored_request(
+    program: GeometryProgram,
+    *,
+    legal_sections: tuple[Polygon, ...],
+    target_floor_areas_m2: tuple[float, ...],
+    floor_capacity_plan_hash: str,
+) -> bool:
+    """Require canonical UnitBox lineage while permitting typed cutters.
+
+    Additional authored primitives are operands in the typed geometry DAG;
+    rejecting them would silently reduce the advertised language to unary
+    UnitBox modifiers.  Exactly one canonical UnitBox remains mandatory.
+    """
+
+    canonical_unitboxes = tuple(
+        node
+        for node in program.nodes
+        if node.kind == "primitive"
+        and node.operator == "box"
+        and node.parameters
+        == {"width": 1.0, "depth": 1.0, "height": 1.0}
+    )
+    return bool(
+        len(canonical_unitboxes) == 1
+        and _valid_legal_context(
+            program,
+            legal_sections=legal_sections,
+            target_floor_areas_m2=target_floor_areas_m2,
+            floor_capacity_plan_hash=floor_capacity_plan_hash,
+        )
+    )
+
+
 def certify_authored_affine_program(
     program: GeometryProgram,
     *,
@@ -40,7 +73,7 @@ def certify_authored_affine_program(
 ) -> AuthoredLegalPreservationResult | None:
     """Return unchanged ``program`` only when its measured final mesh passes."""
 
-    if not _valid_request(
+    if not _valid_authored_request(
         program,
         legal_sections=legal_sections,
         target_floor_areas_m2=target_floor_areas_m2,

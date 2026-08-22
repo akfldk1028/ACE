@@ -24,6 +24,29 @@ def identity_matrix4() -> Matrix4:
 
 
 def validate_matrix4(value: Any) -> Matrix4:
+    # This runs over a million times in one portfolio: the pose search composes
+    # matrices from builders that already emit canonical Matrix4 tuples, and
+    # revalidating them rebuilds every row. Recognise an already-canonical value
+    # and hand it straight back; anything else takes the full path below.
+    if type(value) is tuple and len(value) == 4:
+        for row in value:
+            if type(row) is not tuple or len(row) != 4:
+                break
+            for item in row:
+                if type(item) is not float or not isfinite(item):
+                    break
+            else:
+                continue
+            break
+        else:
+            last = value[3]
+            if (
+                last[0] == 0.0
+                and last[1] == 0.0
+                and last[2] == 0.0
+                and last[3] == 1.0
+            ):
+                return value
     if not isinstance(value, (list, tuple)) or len(value) != 4:
         raise ValueError("matrix4 must contain four rows")
     rows: list[tuple[float, float, float, float]] = []
@@ -41,10 +64,24 @@ def validate_matrix4(value: Any) -> Matrix4:
 
 
 def _multiply(left: Matrix4, right: Matrix4) -> Matrix4:
-    return tuple(tuple(
-        sum(left[row][inner] * right[inner][column] for inner in range(4))
-        for column in range(4)
-    ) for row in range(4))
+    # Unrolled indexing only: the nested generator form issued tens of millions
+    # of frames per portfolio. `sum()` itself must stay, because CPython 3.12+
+    # sums floats with Neumaier compensation - replacing it with plain left-to-
+    # right addition shifts the last digit and moves every program hash.
+    r0, r1, r2, r3 = right
+    r00, r01, r02, r03 = r0
+    r10, r11, r12, r13 = r1
+    r20, r21, r22, r23 = r2
+    r30, r31, r32, r33 = r3
+    out = []
+    for a, b, c, d in left:
+        out.append((
+            sum((a * r00, b * r10, c * r20, d * r30)),
+            sum((a * r01, b * r11, c * r21, d * r31)),
+            sum((a * r02, b * r12, c * r22, d * r32)),
+            sum((a * r03, b * r13, c * r23, d * r33)),
+        ))
+    return tuple(out)
 
 
 def compose_matrix4(*matrices: Sequence[Sequence[float]]) -> Matrix4:

@@ -383,13 +383,32 @@ def _valid_request(
 ) -> bool:
     primitives = tuple(node for node in program.nodes if node.kind == "primitive")
     return bool(
-        floor_capacity_plan_hash.strip()
-        and legal_sections
-        and len(legal_sections) == len(target_floor_areas_m2)
+        _valid_legal_context(
+            program,
+            legal_sections=legal_sections,
+            target_floor_areas_m2=target_floor_areas_m2,
+            floor_capacity_plan_hash=floor_capacity_plan_hash,
+        )
         and len(primitives) == 1
         and primitives[0].operator == "box"
         and primitives[0].parameters
         == {"width": 1.0, "depth": 1.0, "height": 1.0}
+    )
+
+
+def _valid_legal_context(
+    program: GeometryProgram,
+    *,
+    legal_sections: tuple[Polygon, ...],
+    target_floor_areas_m2: tuple[float, ...],
+    floor_capacity_plan_hash: str,
+) -> bool:
+    """Validate law/placement inputs without constraining authored topology."""
+
+    return bool(
+        floor_capacity_plan_hash.strip()
+        and legal_sections
+        and len(legal_sections) == len(target_floor_areas_m2)
         and isinstance(program.metadata.get("site_placement"), dict)
         and all(
             isinstance(section, Polygon)

@@ -76,20 +76,39 @@ def classify_geometry_program(
             "authority": "exact_core_family",
         }
 
+    # A shallow entry notch is an access relation, not the building body.
+    # Preserve tower-scale deformations before the generic carved-monolith
+    # fallback so the terminal threshold cannot erase their chassis identity.
+    if "taper" in operators and seed == "tower":
+        return {
+            "base_seed": seed,
+            "chassis": "tapered_tower",
+            "authority": "exact_source_operator",
+        }
+    if "shear" in operators and seed == "tower":
+        return {
+            "base_seed": seed,
+            "chassis": "sheared_tower",
+            "authority": "exact_source_operator",
+        }
+
     for operator_set, chassis, fallback_seed in (
         ({"radial_array"}, "radial_wings", "bar"),
         ({"cross_mass", "mirror_array", "linear_array"}, "distributed_cross", "bar"),
+        ({"grid_mass"}, "distributed_grid", "bar"),
         ({"split_wing"}, "split_wing", "slab"),
         ({"courtyard"}, "courtyard", "slab"),
         ({"bent_bar", "bend"}, "bent_bar", "bar"),
+        ({"cantilever"}, "cantilevered_bar", "bar"),
+        ({"puncture"}, "perforated_monolith", "block"),
         ({"sweep"}, "curved_bar", "bar"),
         ({"attach"}, "attached_cluster", "block"),
         ({"setback", "terrace", "stepped_mass"}, "terraced_monolith", "block"),
         ({"lift"}, "lifted_spine", "slab"),
-        ({"carve_void", "notch", "cut_corner"}, "carved_monolith", "block"),
         ({"tapered_tower"}, "tapered_tower", "tower"),
         ({"leaning_tower"}, "leaning_tower", "tower"),
         ({"twist"}, "twisted_tower", "tower"),
+        ({"carve_void", "notch", "cut_corner"}, "carved_monolith", "block"),
     ):
         if operators & operator_set:
             return {

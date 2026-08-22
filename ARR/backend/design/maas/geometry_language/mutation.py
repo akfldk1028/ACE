@@ -133,6 +133,8 @@ NUMERIC_BOUNDS: dict[str, tuple[float, float]] = {
     "count": (1.0, 24.0),
     "levels": (2.0, 10.0),
     "subdivisions": (2.0, 7.0),
+    "segments": (8.0, 96.0),
+    "lower_floor_fraction": (0.0, 0.8),
     "width": (0.01, 1000.0),
     "depth": (0.01, 1000.0),
     "height": (0.01, 1000.0),
@@ -152,6 +154,18 @@ VECTOR_LENGTHS: dict[str, tuple[int, ...]] = {
 }
 
 STRING_PARAMETER_VALUES: dict[tuple[str, str], frozenset[str]] = {
+    ("book_base_volume", "label"): frozenset({
+        "1/1", "3/8", "1/2", "1/4", "1/8", "1/16",
+    }),
+    ("book_base_volume", "orientation"): frozenset({
+        "long_axis", "short_axis", "vertical",
+    }),
+    ("lift", "access_side"): frozenset({
+        "closed", "east", "west", "north", "south",
+    }),
+    ("split_wing", "access_side"): frozenset({
+        "closed", "east", "west", "north", "south",
+    }),
     ("twist", "axis"): frozenset({"x", "y", "z"}),
     ("setback", "direction"): frozenset({"x", "y"}),
     ("stepped_mass", "direction"): frozenset({"x", "y"}),
@@ -200,6 +214,7 @@ BOOLEAN_PARAMETERS = frozenset({"center", "bridge", "ground_spine"})
 # critic normally edits operators above an existing base seed.
 OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "box": frozenset({"width", "depth", "height", "center"}),
+    "matrix4": frozenset({"matrix4"}),
     "cylinder": frozenset({"height", "radius", "radius_low", "radius_high", "segments", "center"}),
     "extruded_polygon": frozenset({"points", "holes", "height", "divisions"}),
     "wedge": frozenset({"width", "depth", "start_height", "end_height"}),
@@ -211,10 +226,17 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "mirror": frozenset({"normal", "pivot"}),
     "shear": frozenset({"axis", "direction", "amount", "pivot"}),
     "bend": frozenset({"axis", "angle", "angle_degrees", "subdivisions"}),
-    "taper": frozenset({"axis", "start_scale", "end_scale", "scale_top", "pivot", "subdivisions"}),
+    "taper": frozenset({
+        "axis", "start_scale", "end_scale", "scale_top", "pivot",
+        "lower_floor_fraction", "subdivisions",
+    }),
     "twist": frozenset({"axis", "angle", "angle_degrees", "pivot", "subdivisions"}),
     "pinch": frozenset({"axis", "waist_scale", "waist_ratio", "profile_power", "subdivisions"}),
     "inflate": frozenset({"axis", "middle_scale", "factor", "profile_power", "subdivisions"}),
+    "book_base_volume": frozenset({"label", "orientation"}),
+    "circularize": frozenset({"segments"}),
+    "ellipsoidize": frozenset({"segments"}),
+    "tetrahedralize": frozenset(),
     "slice": frozenset({"normal", "offset", "offset_ratio", "keep_side"}),
     "clip": frozenset({"normal", "offset", "offset_ratio", "keep_side"}),
     "clip_fraction": frozenset({"axis", "fraction", "anchor"}),

@@ -32,7 +32,8 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
     "modifier": frozenset({
         "bend", "taper", "twist", "pinch", "inflate",
         "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",
-        "legal_section_clip", "circularize", "profile_sweep_3d",
+        "legal_section_clip", "circularize", "ellipsoidize",
+        "tetrahedralize", "profile_sweep_3d",
     }),
     "boolean": frozenset({"union", "difference", "intersection"}),
     "pattern": frozenset({
@@ -95,6 +96,30 @@ FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT = {
         "floor_center_section_equivalence_required": True,
     },
 }
+CODEX_BOOK_PATH_EXECUTION_BINDING_SCHEMA = (
+    "arr.maas.codex_book_path_execution_binding.v1"
+)
+
+
+def _valid_codex_book_path_execution_binding(value: Any) -> bool:
+    return bool(
+        isinstance(value, dict)
+        and frozenset(value) == frozenset({
+            "schema_version",
+            "book_composition_path_id",
+            "author_response_sha256",
+        })
+        and value.get("schema_version")
+        == CODEX_BOOK_PATH_EXECUTION_BINDING_SCHEMA
+        and re.fullmatch(
+            r"book:path:[0-9a-f]{64}",
+            str(value.get("book_composition_path_id") or ""),
+        )
+        and re.fullmatch(
+            r"[0-9a-f]{64}",
+            str(value.get("author_response_sha256") or ""),
+        )
+    )
 
 
 @dataclass(frozen=True)
@@ -221,9 +246,14 @@ class GeometryProgram:
 
     def validate(self, *, maximum_nodes: int = 96, maximum_depth: int = 32) -> tuple[GeometryIssue, ...]:
         issues: list[GeometryIssue] = []
-        if self.execution_contract not in (
-            {},
-            FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
+        if (
+            self.execution_contract not in (
+                {},
+                FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
+            )
+            and not _valid_codex_book_path_execution_binding(
+                self.execution_contract
+            )
         ):
             issues.append(GeometryIssue(
                 "invalid_execution_contract",

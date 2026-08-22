@@ -213,13 +213,15 @@ def build_executed_mass_elevation_handoff(*, run_id: str, index: int) -> dict[st
                 is_projected_visual
                 and projected_visual_certificate.get("hard_pass") is True
             ),
-            "capacity_replay_program_visual_authority": not is_projected_visual,
+            "authored_projected_surface_visual_authority": (
+                is_projected_visual
+            ),
             "base_relative_parametric_geometry": not is_projected_visual,
             "facade_may_not_modify_mass_geometry": True,
         },
         "geometry_program": compilation.program.to_dict(),
         "geometry_program_role": (
-            "capacity_replay_metadata_and_provenance"
+            "authored_projected_surface_program_and_provenance"
             if is_projected_visual
             else "executable_geometry"
         ),

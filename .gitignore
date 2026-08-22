@@ -159,3 +159,14 @@ docs/ai-session-memory/maas-service-cache/
 # commit message - both were in public history and should be rotated.
 logs/security/
 AG/AG-Research/logs/security/
+
+# Playwright probe trees: 5.1 GB under docs/ and 2.7 GB under ARR/docs/, all
+# of it screenshots and JSON dumps from live-verify runs. The probe scripts
+# that produce them are kept - hence the whitelist shape rather than a plain
+# directory rule, so a new .cjs still shows up in `git status`.
+docs/playwright/
+!docs/playwright/**/
+!docs/playwright/**/*.cjs
+ARR/docs/playwright/
+!ARR/docs/playwright/**/
+!ARR/docs/playwright/**/*.cjs

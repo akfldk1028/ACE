@@ -91,7 +91,6 @@ ARR/backend/law/relationship_embedding/data/relationship_contexts_with_embedding
 .chrome-cdp-profile/
 ARR/backend/.wrangler/
 ARR/backend/NUL
-ARR/backend/media/maas/aesthetic/references/
 
 # Environment
 .env
@@ -137,3 +136,19 @@ ARR/backend/docs/ai-session-memory/
 ARR/backend/docs/playwright/
 ARR/backend/docs/*.log
 ARR/backend/runtime/
+
+# Root-level corpora, caches and browser profiles. Every path below was checked
+# with `git ls-files <path>` and has zero tracked files, so no rule here can
+# shadow something already in the repository:
+#   GRL/, collected_papers/  - 136 MB and 274 MB of downloaded papers and data
+#   AG-Research/data/iclr2027 - 526 MB of pilot run output
+#   .*-notebooklm-*-profile/ - Chrome and Playwright user-data directories
+GRL/
+collected_papers/
+AG/AG-Research/data/iclr2027/
+.chrome-notebooklm-cdp-profile/
+.playwright-notebooklm-profile/
+docs/ai-session-memory/maas-cache/
+/tmp_mass_check/
+/tmp_mass_bench.py
+/tmp_mass_diagnose.py

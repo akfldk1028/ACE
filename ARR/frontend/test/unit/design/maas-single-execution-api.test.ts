@@ -4,6 +4,7 @@ import {
   executeArchivedMass,
   executeArchivedMassAndLoad,
   getCreativeMassPortfolio,
+  getMassPortfolioEvaluations,
   reviewSingleMassWithVlm,
 } from '../../../src/design/lib/api-client'
 
@@ -97,6 +98,18 @@ describe('executeArchivedMass', () => {
     expect(await getCreativeMassPortfolio('creative-100')).toEqual(payload)
     expect(fetchMock).toHaveBeenCalledWith(
       '/design/maas/creative-portfolios/?run_id=creative-100',
+      { signal: undefined },
+    )
+  })
+
+  it('loads the legal MASS evaluation portfolio by run ID', async () => {
+    const payload = { run_id: 'legal-20', candidate_count: 20 }
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload })
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await getMassPortfolioEvaluations('legal-20')).toEqual(payload)
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/design/maas/portfolio-evaluations/?run_id=legal-20',
       { signal: undefined },
     )
   })

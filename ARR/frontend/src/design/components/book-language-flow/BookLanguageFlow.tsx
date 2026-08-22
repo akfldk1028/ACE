@@ -4,6 +4,7 @@ import { Maximize2, Minimize2, RotateCcw } from 'lucide-react';
 
 import {
   getCreativeMassPortfolio,
+  getMassPortfolioEvaluations,
   getExecutedMassManifest,
   getExecutedMassPassport,
   executeArchivedMassAndLoad,
@@ -18,6 +19,7 @@ import type {
   MassExecutionPassport,
   OutcomeGraphSlice,
 } from '../../lib/language-system-types';
+import type { MassPortfolioManifest } from '../../lib/mass-portfolio-types';
 import { EvidencePanelBoundary } from './EvidencePanelBoundary';
 import { CreativeMassEvidence, ExecutedMassEvidence } from './ExecutedMassEvidence';
 import {
@@ -47,6 +49,7 @@ import {
   filterCreativeMassCards,
   type CreativeMassFilterState,
 } from './CreativeMassFilters';
+import { MassPortfolioView } from './MassPortfolioView';
 import './book-language-flow.css';
 
 interface BookLanguageFlowProps {
@@ -589,6 +592,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
   const [passport, setPassport] = useState<MassExecutionPassport | null>(null);
   const [outcomeGraph, setOutcomeGraph] = useState<OutcomeGraphSlice | null>(null);
   const [creativeManifest, setCreativeManifest] = useState<CreativePortfolioManifest | null>(null);
+  const [massPortfolioManifest, setMassPortfolioManifest] = useState<MassPortfolioManifest | null>(null);
   const [creativeError, setCreativeError] = useState('');
   const [creativeFilters, setCreativeFilters] = useState<CreativeMassFilterState>(EMPTY_CREATIVE_FILTERS);
   const [creativePage, setCreativePage] = useState(1);
@@ -608,6 +612,14 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
     getMaasLanguageSystem(controller.signal)
       .then(setLanguageManifest)
       .catch(() => setLanguageManifest(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getMassPortfolioEvaluations(undefined, controller.signal)
+      .then(setMassPortfolioManifest)
+      .catch(() => setMassPortfolioManifest(null));
     return () => controller.abort();
   }, []);
 
@@ -1073,7 +1085,7 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
             aria-selected={graphView === 'creative'}
             data-selected={graphView === 'creative'}
             onClick={() => changeGraphView('creative')}
-          >CREATIVE 100</button>
+          >MASS PORTFOLIO</button>
         </div>
         <div
           className="maas-language-flow__single-graph-label"
@@ -1086,11 +1098,13 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
                 ? 'SELECTED EXECUTION PASSPORT'
                 : graphView === 'archive'
                   ? 'ACTUAL MASS RESULTS ONLY'
-                  : 'PRE-LEGAL CREATIVE CHOICE POOL'
+                  : massPortfolioManifest
+                    ? 'ALL MASS RESULTS + LEGAL EVALUATION LEDGER'
+                    : 'PRE-LEGAL CREATIVE CHOICE POOL'
           }</span>
           <strong>{
             graphView === 'creative'
-              ? selectedCreativeMass?.candidateId ?? 'LOADING'
+              ? massPortfolioManifest?.run_id ?? selectedCreativeMass?.candidateId ?? 'LOADING'
               : selectedMass?.variant_id ?? 'LOADING'
           }</strong>
         </div>
@@ -1143,13 +1157,16 @@ export function BookLanguageFlow({ compact = false, standalone = false }: BookLa
         <div className="maas-language-flow__state" role="status">실행 MASS 아카이브를 불러오는 중입니다.</div>
       )}
 
-      {graphView === 'creative' && creativeError && (
+      {graphView === 'creative' && !massPortfolioManifest && creativeError && (
         <div className="maas-language-flow__state" role="alert">{creativeError}</div>
       )}
-      {graphView === 'creative' && !creativeError && !creativePortfolio && (
+      {graphView === 'creative' && !massPortfolioManifest && !creativeError && !creativePortfolio && (
         <div className="maas-language-flow__state" role="status">Loading the creative MASS choice pool.</div>
       )}
-      {graphView === 'creative' && creativePortfolio && (
+      {graphView === 'creative' && massPortfolioManifest && (
+        <MassPortfolioView manifest={massPortfolioManifest} compact={compact} />
+      )}
+      {graphView === 'creative' && !massPortfolioManifest && creativePortfolio && (
         <section className="creative-mass-portfolio" aria-label="Creative MASS choice pool">
           <header>
             <div>

@@ -747,6 +747,56 @@
 }
 .maas-language-flow__footer strong { color: #b5b5b5; font-weight: 600; letter-spacing: .08em; }
 
+.mass-portfolio { min-width: 0; border-top: 1px solid var(--hairline); background: #050505; }
+.mass-portfolio > header { display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: 20px; padding: 8px 14px; border-bottom: 1px solid var(--hairline); }
+.mass-portfolio > header span, .mass-portfolio > header strong { display: block; }
+.mass-portfolio > header span { color: #777; font: 700 7px ui-monospace, monospace; letter-spacing: .14em; }
+.mass-portfolio > header strong { margin-top: 5px; color: #ddd; font: 500 9px ui-monospace, monospace; }
+.mass-portfolio > header b { color: #aaa; font: 700 8px ui-monospace, monospace; }
+.mass-portfolio-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; border-bottom: 1px solid var(--hairline); background: var(--hairline); }
+.mass-portfolio-filters label { display: grid; gap: 4px; padding: 7px 10px; background: #080808; }
+.mass-portfolio-filters span { color: #666; font: 700 7px ui-monospace, monospace; text-transform: uppercase; }
+.mass-portfolio-filters select { min-width: 0; border: 1px solid #303030; background: #090909; color: #bbb; font: 8px ui-monospace, monospace; }
+.mass-portfolio__workspace { display: grid; min-height: 370px; grid-template-columns: minmax(0, 1fr) minmax(280px, 22vw); border-bottom: 1px solid var(--hairline); }
+.mass-portfolio__workspace .maas-language-flow__viewport { min-height: 370px; }
+.mass-portfolio-evidence { min-width: 0; overflow: auto; border-left: 1px solid var(--hairline); background: #080808; }
+.mass-portfolio-evidence > header { padding: 12px; border-bottom: 1px solid var(--hairline); }
+.mass-portfolio-evidence > header > span, .mass-portfolio-evidence > header > h3 { display: block; }
+.mass-portfolio-evidence > header > span { color: #666; font: 700 7px ui-monospace, monospace; letter-spacing: .14em; }
+.mass-portfolio-evidence h3 { margin: 6px 0 8px; color: #eee; font-size: 12px; }
+.mass-portfolio-evidence__preview { display: grid; min-height: 150px; place-items: center; border-bottom: 1px solid var(--hairline); background: #030303; }
+.mass-portfolio-evidence__preview img { display: block; width: 100%; max-height: 230px; object-fit: contain; }
+.mass-portfolio-evidence__preview div { color: #555; font: 700 8px ui-monospace, monospace; letter-spacing: .1em; }
+.mass-portfolio-evidence dl { margin: 0; }
+.mass-portfolio-evidence dl > div { display: grid; grid-template-columns: 70px 1fr; padding: 7px 10px; border-bottom: 1px solid #171717; }
+.mass-portfolio-evidence dt { color: #666; font: 7px ui-monospace, monospace; text-transform: uppercase; }
+.mass-portfolio-evidence dd { margin: 0; }
+.mass-portfolio-evidence small { display: block; margin-top: 4px; color: #a88b48; font: 7px ui-monospace, monospace; }
+.mass-portfolio-evidence section, .mass-portfolio-evidence footer { padding: 9px 10px; border-bottom: 1px solid var(--hairline); }
+.mass-portfolio-evidence section span { color: #666; font: 700 7px ui-monospace, monospace; }
+.mass-portfolio-evidence section p { color: #aaa; font: 8px/1.5 ui-monospace, monospace; }
+.mass-portfolio-evidence footer code { display: block; overflow: hidden; margin: 3px 0; color: #505050; font-size: 7px; text-overflow: ellipsis; }
+.mass-status-badge { display: inline-block; padding: 2px 5px; border: 1px solid #4a4a4a; color: #aaa; font: 700 6px ui-monospace, monospace; letter-spacing: .06em; }
+.mass-status-badge[data-status='selected'], .mass-status-badge[data-status='legal_pass'], .mass-status-badge[data-status='pass'] { border-color: #66826c; color: #a9cbae; }
+.mass-status-badge[data-status='failed'] { border-color: #9c6847; color: #e0a170; }
+.mass-status-badge[data-status='not_evaluated'] { color: #666; }
+.mass-portfolio__gallery { display: grid; grid-template-columns: repeat(10, minmax(92px, 1fr)); gap: 1px; padding: 1px; background: #1c1c1c; }
+.mass-portfolio__gallery > button { min-width: 0; padding: 5px; border: 1px solid transparent; background: #070707; color: #aaa; text-align: left; cursor: pointer; }
+.mass-portfolio__gallery > button[data-selected='true'] { border-color: #e5e5e5; background: #111; }
+.mass-portfolio__gallery > button[data-status='failed'] { box-shadow: inset 0 2px #9c6847; }
+.mass-portfolio__gallery > button > div { position: relative; display: grid; height: 76px; place-items: center; overflow: hidden; background: #020202; }
+.mass-portfolio__gallery img { width: 100%; height: 100%; object-fit: contain; }
+.mass-portfolio__gallery i { position: absolute; top: 3px; left: 3px; padding: 2px; background: #000b; color: #aaa; font: 7px ui-monospace, monospace; }
+.mass-portfolio__placeholder { color: #4f4f4f; font: 700 7px ui-monospace, monospace; }
+.mass-portfolio__gallery strong, .mass-portfolio__gallery em { display: block; overflow: hidden; margin-top: 4px; text-overflow: ellipsis; white-space: nowrap; }
+.mass-portfolio__gallery strong { color: #ccc; font: 8px ui-monospace, monospace; }
+.mass-portfolio__gallery em { color: #666; font: 7px ui-monospace, monospace; }
+.mass-portfolio__gallery .mass-status-badge { margin-top: 5px; }
+.mass-portfolio__gallery small { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-top: 5px; }
+.mass-portfolio__gallery small span { display: grid; height: 11px; place-items: center; background: #181818; color: #777; font: 6px ui-monospace, monospace; }
+.mass-portfolio__gallery small span[data-status='pass'] { background: #1e3425; color: #9bc3a3; }
+.mass-portfolio__gallery small span[data-status='failed'] { background: #46271c; color: #e0a170; }
+
 @media (min-width: 901px) and (max-width: 1440px) {
   .maas-language-flow__toolbar--single {
     gap: 9px;
@@ -805,6 +855,10 @@
   .book-language-page { padding: 5px; }
   .creative-mass-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .creative-mass-portfolio__workspace { grid-template-columns: minmax(0, 1fr); }
+  .mass-portfolio-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mass-portfolio__workspace { grid-template-columns: minmax(0, 1fr); }
+  .mass-portfolio-evidence { max-height: 420px; border-top: 1px solid var(--hairline); border-left: 0; }
+  .mass-portfolio__gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .maas-language-flow__header { flex-direction: column; }
   .maas-language-flow__toolbar { align-items: stretch; flex-direction: column; padding: 0 10px 8px; }
   .maas-language-flow__counts { max-width: 100%; overflow-x: auto; }

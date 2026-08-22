@@ -19,6 +19,7 @@ import type {
   OutcomeGraphSlice,
   SingleMassExecutionResponse,
 } from './language-system-types';
+import type { MassPortfolioManifest } from './mass-portfolio-types';
 
 const BASE = '/design';
 const AG_LIGHT_BASE = (((import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_AG_LIGHT_URL)
@@ -163,6 +164,16 @@ export async function getCreativeMassPortfolio(
   if (!res.ok) {
     throw new Error('Creative MASS portfolio fetch failed');
   }
+  return res.json();
+}
+
+export async function getMassPortfolioEvaluations(
+  runId?: string,
+  signal?: AbortSignal,
+): Promise<MassPortfolioManifest> {
+  const query = runId ? `?${new URLSearchParams({ run_id: runId })}` : '';
+  const res = await fetch(`${BASE}/maas/portfolio-evaluations/${query}`, { signal });
+  if (!res.ok) throw new Error('MASS portfolio evaluations fetch failed');
   return res.json();
 }
 

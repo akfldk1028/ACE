@@ -1,6 +1,6 @@
 """
 Global configuration for Multi-Agent Termination Study.
-13 patterns across 4 categories, model settings, paths.
+13 multi-agent topologies plus one solo baseline across six categories.
 """
 
 import os
@@ -39,7 +39,7 @@ REPEAT_COUNT = 1            # v2: no repeats (200 = 8 patterns x 25 tasks)
 REPEAT_COUNT_LEGACY = 3     # v1: 780 = 13 patterns x 20 tasks x 3 repeats
 
 # ========================================
-# 13 Patterns - 4 Categories
+# 14 systems: 13 multi-agent topologies + 1 solo baseline
 # ========================================
 
 # Category S: Single-Agent Baseline

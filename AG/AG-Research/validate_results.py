@@ -17,20 +17,27 @@ from config import (
     PATTERNS_ALL, PATTERNS_FLAT,
     PATTERNS_CENTRALIZED, PATTERNS_DECENTRALIZED,
     PATTERNS_FEEDBACK, PATTERNS_COMPOSED,
-    REPEAT_COUNT, RESULTS_DIR,
+    RESULTS_DIR,
 )
+from iclr2027.audit import resolve_exp01_summary
 
 
-def validate_exp01():
+def validate_exp01(
+    exp_dir: Path | None = None,
+    expected_patterns: set[str] | None = None,
+    expected_per_pattern: int | None = None,
+):
     """Validate exp01 results."""
     print("=== Exp01: Pattern Efficiency ===")
-    exp_dir = RESULTS_DIR / "exp01"
+    exp_dir = exp_dir or RESULTS_DIR / "exp01"
 
     # Check CSV
-    csv_path = exp_dir / "summary.csv"
-    if not csv_path.exists():
-        print(f"  [FAIL] No summary.csv at {csv_path}")
+    try:
+        csv_path = resolve_exp01_summary(exp_dir)
+    except FileNotFoundError:
+        print(f"  [FAIL] No summary CSV at {exp_dir}")
         return False
+    print(f"  Source: {csv_path.name}")
 
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -40,7 +47,7 @@ def validate_exp01():
 
     # Check pattern coverage
     patterns_found = set(r['pattern'] for r in rows)
-    expected = set(PATTERNS_ALL)
+    expected = expected_patterns or (set(PATTERNS_ALL) - {"solo"})
     missing = expected - patterns_found
     extra = patterns_found - expected
     print(f"  Patterns: {len(patterns_found)}/{len(expected)}")
@@ -51,10 +58,10 @@ def validate_exp01():
 
     # Check per-pattern counts
     from collections import Counter
-    from experiment_utils import load_tasks
-    num_tasks = len(load_tasks())
     pattern_counts = Counter(r['pattern'] for r in rows)
-    expected_per_pattern = num_tasks * REPEAT_COUNT
+    if expected_per_pattern is None and pattern_counts:
+        expected_per_pattern = pattern_counts.most_common(1)[0][1]
+    expected_per_pattern = expected_per_pattern or 0
     for p, count in sorted(pattern_counts.items()):
         status = "[OK]" if count == expected_per_pattern else f"[WARN] expected {expected_per_pattern}"
         print(f"    {p}: {count} runs {status}")

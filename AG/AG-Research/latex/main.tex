@@ -36,7 +36,7 @@ Anonymous Institution\\
 \maketitle
 
 \begin{abstract}
-When should multi-agent LLM systems stop working? As multi-agent coordination becomes a primary mechanism for scaling inference-time compute \citep{snell2024scaling,du2024debate}, a critical gap persists: stopping criteria remain topology-agnostic, applying the same fixed turn limits regardless of how agents coordinate, wasting computation on configurations that actively degrade output quality. Through 2,200+ controlled runs across 14 coordination patterns, we establish three results that overturn common assumptions. First, \emph{more agents can cost less}: decentralized routing beats larger sequential chains because topology---not system size---determines cost. Second, \emph{more computation can harm}: multi-agent debate quality degrades after the first round, while our hybrid marginal-utility criterion recovers up to 78\% of wasted tokens with zero quality loss. Third, \emph{difficulty trumps topology} by $7.8\times$: solo agents outperform multi-agent systems on easy tasks across most models, while coordination benefits only capable models on harder tasks. Validated across multiple models and providers---the largest cross-topology termination study to date---these results reveal that the field has been optimizing the wrong variable: task difficulty, not topology, determines when multi-agent coordination helps versus hurts. We release design guidelines and our experimental framework.
+When should multi-agent LLM systems stop working? As multi-agent coordination becomes a primary mechanism for scaling inference-time compute \citep{snell2024scaling,du2024debate}, a critical gap persists: stopping criteria remain topology-agnostic, applying the same fixed turn limits regardless of how agents coordinate, wasting computation on configurations that actively degrade output quality. Through 2,200+ controlled runs across 13 multi-agent topologies and a solo baseline, we establish three results that overturn common assumptions. First, \emph{more agents can cost less}: decentralized routing beats larger sequential chains because topology---not system size---determines cost. Second, \emph{more computation can harm}: multi-agent debate quality degrades after the first round, while our hybrid marginal-utility criterion recovers up to 78\% of wasted tokens with zero quality loss. Third, \emph{difficulty trumps topology} by $7.8\times$: solo agents outperform multi-agent systems on easy tasks across most models, while coordination benefits only capable models on harder tasks. Validated across multiple models and providers, these results show that task difficulty strongly conditions when multi-agent coordination helps versus hurts. We release design guidelines and our experimental framework.
 \end{abstract}
 
 %=========================================================================
@@ -53,7 +53,7 @@ This connects to \emph{inference-time compute scaling} \citep{snell2024scaling}:
 \subsection{Our Approach}
 \vspace{-1mm}
 
-To systematically investigate this problem, we conduct the largest cross-topology termination study to date: 2,200+ controlled runs across 14 coordination patterns in six topology categories, spanning seven experiments that progress from efficiency measurement through quality tracking, convergence detection, error attribution, adaptive stopping, cost prediction, and difficulty interaction. We validate across multiple models from multiple providers, including open-weight models, to ensure generalizability.
+To systematically investigate this problem, we conduct a cross-topology termination study with 2,200+ controlled runs across 13 multi-agent topologies and a solo baseline in six categories, spanning seven experiments that progress from efficiency measurement through quality tracking, convergence detection, error attribution, adaptive stopping, cost prediction, and difficulty interaction. We validate across multiple models from multiple providers, including open-weight models, to test generalization.
 
 \subsection{Research Questions}
 \vspace{-1mm}
@@ -71,7 +71,7 @@ Our experiments address seven questions:
 \vspace{-1mm}
 
 Our study yields seven contributions:
-\textbf{(1)}~The first cross-topology termination study across 14 patterns in six categories; prior work covers $\leq$3 \citep{cemri2025why,hu2025when}.
+\textbf{(1)}~A cross-topology termination study across 13 multi-agent topologies and a solo baseline in six categories; prior work covers $\leq$3 \citep{cemri2025why,hu2025when}.
 \textbf{(2)}~A \emph{termination regret} metric via per-turn G-Eval \citep{liu2023geval} quality trajectories, revealing that regret varies 13$\times$ across topologies.
 \textbf{(3)}~Claim-level convergence detection extending \citet{hu2025when}'s debate-only approach to all topologies via sentence-transformer embeddings \citep{reimers2019sentence}.
 \textbf{(4)}~A pattern-specific error taxonomy linking topology to failure mode.
@@ -89,7 +89,7 @@ Our study yields seven contributions:
 \subsection{Multi-Agent Coordination Topologies}
 \vspace{-1mm}
 
-Grounded in MAS topology theory \citep{masterman2025landscape}, we organize 13 coordination patterns into six categories including a single-agent baseline (Figure~\ref{fig:taxonomy}):
+Grounded in MAS topology theory \citep{masterman2025landscape}, we organize 13 multi-agent coordination patterns plus a solo baseline into six categories (Figure~\ref{fig:taxonomy}):
 \textbf{(A)~Chain}---fixed round-robin cycles (RR-2/3/4);
 \textbf{(B1)~Centralized Star}---coordinator routes to specialists (Sel-3/4);
 \textbf{(B2)~Decentralized Mesh}---agents self-route via tool calls (Swm-3/4);
@@ -101,7 +101,7 @@ Prior frameworks implement subsets: AutoGen \citep{wu2023autogen} (round-robin, 
 \subsection{Stopping Criteria in LLM Systems}
 \vspace{-1mm}
 
-\textbf{Single-agent.} REFRAIN \citep{sun2025refrain} addresses CoT ``overthinking'' via UCB-controlled stop discriminator ($-$20--55\% tokens). \textbf{Multi-agent.} \citet{du2024debate} establish multi-agent debate as an inference-time scaling mechanism; \citet{chen2024more} show majority voting across agents improves with count. For stopping: \citet{hu2025when} propose KS-test stability detection for debate; Aegean \citep{ruan2025reaching} uses quorum-based consensus ($-$1.2--20$\times$ latency); \citet{cemri2025why} identify termination as a failure category; SupervisorAgent \citep{lin2025stop} applies LLM-free context filtering ($-$29\% tokens). \textbf{Gap.} No prior work systematically compares termination dynamics across $>$3 coordination topologies. We bridge this gap with 14 patterns across six categories (Table~\ref{tab:related} in Appendix~\ref{app:related_table}).
+\textbf{Single-agent.} REFRAIN \citep{sun2025refrain} addresses CoT ``overthinking'' via UCB-controlled stop discriminator ($-$20--55\% tokens). \textbf{Multi-agent.} \citet{du2024debate} establish multi-agent debate as an inference-time scaling mechanism; \citet{chen2024more} show majority voting across agents improves with count. For stopping: \citet{hu2025when} propose KS-test stability detection for debate; Aegean \citep{ruan2025reaching} uses quorum-based consensus ($-$1.2--20$\times$ latency); \citet{cemri2025why} identify termination as a failure category; SupervisorAgent \citep{lin2025stop} applies LLM-free context filtering ($-$29\% tokens). \textbf{Scope.} We compare within-topology stopping dynamics under one implementation across 13 multi-agent systems and a separately measured solo baseline (Table~\ref{tab:related} in Appendix~\ref{app:related_table}); this is a controlled empirical scope, not an exhaustive priority claim.
 
 We adopt G-Eval \citep{liu2023geval} as our per-turn quality metric (accuracy, completeness, coherence, usefulness, overall; 1--5 scale), using Claude Sonnet~4.5 as the judge model.
 
@@ -165,7 +165,7 @@ All experiments use AutoGen with Claude Haiku 4.5 as the base model. Cross-model
 \subsection{Seven Experiments}
 \vspace{-1mm}
 
-\textbf{Exp01}: Pattern Efficiency---780 runs (13 patterns $\times$ 20 tasks $\times$ 3 repeats).
+\textbf{Exp01}: Pattern Efficiency---780 multi-agent runs (13 topologies $\times$ 20 tasks $\times$ 3 repeats), with a separately measured solo baseline.
 \textbf{Exp02}: Termination Quality---100 runs (5 patterns $\times$ 20 tasks, 276 turn-level G-Eval scores).
 \textbf{Exp03}: Convergence Detection---Sentence-BERT on 200 runs (8 patterns).
 \textbf{Exp04}: Error Attribution---structural classification from Exp01/02.
@@ -183,7 +183,7 @@ All experiments use AutoGen with Claude Haiku 4.5 as the base model. Cross-model
 \subsection{Experiment 01: Pattern Efficiency (RQ1)}
 \label{sec:exp01}
 
-We executed 780 runs (13 patterns $\times$ 20 tasks $\times$ 3 repeats). The solo baseline (1,287 tokens, 18.7s) establishes a 3.3--6.1$\times$ coordination overhead across all multi-agent categories (Appendix Table~\ref{tab:solo_baseline}).
+We executed 780 multi-agent runs (13 topologies $\times$ 20 tasks $\times$ 3 repeats). The separately measured solo baseline (1,287 tokens, 18.7s) establishes a 3.3--6.1$\times$ coordination overhead across all multi-agent categories (Appendix Table~\ref{tab:solo_baseline}).
 
 \paragraph{Finding 1: Multi-agent coordination incurs 3.3--6.1$\times$ overhead.} Even swm3 (3.26$\times$) consumes $>$3$\times$ solo tokens, anchoring all subsequent comparisons. Table~\ref{tab:cross_category} ranks 12 patterns by cost (rr4 excluded: 71.7\% error rate; Section~\ref{sec:exp04}).
 
@@ -228,7 +228,7 @@ moa & D & 4 & 103.0 & 22,333 & 2,494 & 17.35$\times$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig4_exp01_main.png}
-\caption{Token consumption across 13 patterns by category. The 5.3$\times$ range from swm3 to MoA illustrates topology impact.}
+\caption{Token consumption across 13 multi-agent topologies by category. The 5.3$\times$ range from swm3 to MoA illustrates topology impact.}
 \label{fig:exp01}
 \end{figure}
 
@@ -350,8 +350,8 @@ Our results challenge three widely held assumptions in multi-agent system design
 \begin{enumerate}
 \item \textbf{Model coverage}: six models from four providers (743 runs), including one open-weight model (Grok~3~Mini, Apache~2.0); extension to additional open-weight families (Llama, Mistral) remains future work. Key findings---difficulty dominance ($\eta^2_H$=0.364) and solo optimality on easy tasks---replicate across all six models (Section~\ref{sec:exp07}), and topology cost ordering is preserved under GPT-4o-mini ($\rho$=0.762, $p$=0.028).
 \item \textbf{Task suite}: 25 tasks across 9 domains; excludes interactive and multi-modal tasks. Standard benchmarks (e.g., MMLU, HumanEval) target single-correct-answer evaluation and cannot capture the per-turn quality trajectories central to termination analysis; our suite is designed for this purpose.
-\item \textbf{Quality estimator}: $\kappa_w$=0.244--0.507 with bidirectional bias across providers; single expert evaluator. However, rank-order agreement is significant across all six cross-validators ($r$=0.43--0.66, all $p<$0.01; four exceed moderate threshold $\kappa_w \geq 0.40$), and the bidirectional bias pattern (three lenient, three strict) argues against systematic evaluator bias.
-\item \textbf{Hybrid termination}: validated on six patterns across four categories (150 runs); extension to all 14 patterns remains future work.
+\item \textbf{Turn-quality evaluation}: $\kappa_w$=0.244--0.507 with bidirectional bias across providers. Rank-order agreement is significant across all six model cross-validators ($r$=0.43--0.66, all $p<$0.01; four exceed moderate threshold $\kappa_w \geq 0.40$), and the bidirectional bias pattern (three lenient, three strict) argues against one-direction evaluator bias.
+\item \textbf{Hybrid termination}: validated on six patterns across four categories (150 runs); extension to all 13 multi-agent topologies and the solo baseline remains future work.
 \item \textbf{Cost proxy}: token count ignores latency and dollar costs; per-pattern $n$=25--60.
 \end{enumerate}
 
@@ -362,7 +362,7 @@ Our results challenge three widely held assumptions in multi-agent system design
 \vspace{-1mm}
 %=========================================================================
 
-Through 2,200+ runs across 14 topologies and six models from four providers (including open-weight Grok~3~Mini), we establish five key results. \textbf{(1)~Topology determines termination}: overhead spans 3.3--17.4$\times$ with fundamentally different scaling for centralized vs.\ decentralized routing. \textbf{(2)~More agents can cost less}: swm3 (3 agents) beats rr2 (2 agents) by 12\%. \textbf{(3)~Simple heuristics work---almost}: keyword is near-optimal for 7/8 topologies; hybrid keyword+$\Delta U$ achieves 78\% savings for the exception (150 runs across six patterns, zero max\_messages hits). \textbf{(4)~Difficulty trumps topology}: $\eta^2_H$=0.364 vs.\ 0.046; solo is best on easy tasks for 5/6 models; Refl-2 benefits capable models on medium/hard ($d$=1.26--1.83). \textbf{(5)~Decide \emph{whether} before \emph{which}}: the primary optimization target is not topology selection but the difficulty-conditioned decision of whether to use multi-agent coordination at all. We release our framework and five topology-aware design guidelines.
+Through 2,200+ runs across 13 multi-agent topologies plus a solo baseline and six models from four providers (including open-weight Grok~3~Mini), we establish five key results. \textbf{(1)~Topology determines termination}: overhead spans 3.3--17.4$\times$ with fundamentally different scaling for centralized vs.\ decentralized routing. \textbf{(2)~More agents can cost less}: swm3 (3 agents) beats rr2 (2 agents) by 12\%. \textbf{(3)~Simple heuristics work---almost}: keyword is near-optimal for 7/8 topologies; hybrid keyword+$\Delta U$ achieves 78\% savings for the exception (150 runs across six patterns, zero max\_messages hits). \textbf{(4)~Difficulty trumps topology}: $\eta^2_H$=0.364 vs.\ 0.046; solo is best on easy tasks for 5/6 models; Refl-2 benefits capable models on medium/hard ($d$=1.26--1.83). \textbf{(5)~Decide \emph{whether} before \emph{which}}: the primary optimization target is not topology selection but the difficulty-conditioned decision of whether to use multi-agent coordination at all. We release our framework and five topology-aware design guidelines.
 
 \section*{Reproducibility Statement}
 

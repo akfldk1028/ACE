@@ -73,6 +73,7 @@ agent/**/.venv/
 *_with_key.bat
 *_with_key.ps1
 **/logs/security/
+AG-Research/data/iclr2027/projection_identity.private.json
 
 # Test outputs
 nul

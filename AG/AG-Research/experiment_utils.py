@@ -16,10 +16,11 @@ import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.base import Handoff, TaskResult
+from autogen_agentchat.messages import TextMessage
 from autogen_agentchat.conditions import (
     MaxMessageTermination,
     TextMentionTermination,
@@ -32,8 +33,6 @@ from autogen_agentchat.teams import (
 )
 
 from config import (
-    MODEL,
-    MODEL_SELECTOR,
     PATTERN_AGENT_COUNT,
     PATTERN_CATEGORY,
     PATTERN_MAX_MESSAGES,
@@ -83,7 +82,7 @@ class RunResult:
 
 
 # ========================================
-# B. TeamFactory - 13 Pattern Builder
+# B. TeamFactory - 13 multi-agent topologies + solo baseline
 # ========================================
 
 
@@ -146,7 +145,7 @@ def _make_agent(
 
 
 class TeamFactory:
-    """Build any of the 13 team patterns."""
+    """Build any of the 13 multi-agent topologies or the solo baseline."""
 
     @staticmethod
     def build(pattern: str, max_messages: int | None = None):
@@ -283,7 +282,6 @@ class TeamFactory:
         import config as _cfg
         selector_client = _make_client(_cfg.MODEL_SELECTOR)
 
-        names = ", ".join(a.name for a in agents)
         selector_prompt = (
             "You are in a role play game. The following roles are available:\n{roles}.\n"
             "Read the following conversation. Then select the next role from {participants} to play. "
@@ -588,15 +586,25 @@ def _extract_final_message(result: TaskResult) -> str:
     return ""
 
 
-def _collect_turns(result: TaskResult) -> list[TurnRecord]:
+def _collect_turns(
+    result: TaskResult,
+    content_limit: int | None = 2000,
+    *,
+    substantive_only: bool = False,
+) -> list[TurnRecord]:
     """Convert TaskResult messages to TurnRecord list."""
     turns = []
     for i, msg in enumerate(result.messages):
+        if substantive_only and not isinstance(msg, TextMessage):
+            continue
         usage = getattr(msg, "models_usage", None)
+        content = str(msg.content)
+        if content_limit is not None:
+            content = content[:content_limit]
         turns.append(TurnRecord(
             index=i,
             source=getattr(msg, "source", "unknown"),
-            content=str(msg.content)[:2000],
+            content=content,
             timestamp=datetime.now(timezone.utc).isoformat(),
             tokens_in=usage.prompt_tokens if usage else 0,
             tokens_out=usage.completion_tokens if usage else 0,
@@ -718,6 +726,8 @@ class ExperimentRunner:
         task_id: str,
         pattern: str,
         repeat_index: int = 0,
+        turn_content_limit: int | None = 2000,
+        substantive_turns_only: bool = False,
     ) -> RunResult:
         """Run a single team execution and collect metrics."""
         t0 = time.monotonic()
@@ -738,7 +748,11 @@ class ExperimentRunner:
 
         if result:
             stop_reason = result.stop_reason
-            turns = _collect_turns(result)
+            turns = _collect_turns(
+                result,
+                content_limit=turn_content_limit,
+                substantive_only=substantive_turns_only,
+            )
             for msg in result.messages:
                 source = getattr(msg, "source", "unknown")
                 if source != "user":
@@ -752,7 +766,9 @@ class ExperimentRunner:
         terminated_by = None
         if stop_reason:
             sr = str(stop_reason).lower()
-            if "terminate" in sr or "approved" in sr or "verdict" in sr or "analysis_done" in sr:
+            if "parse-valid terminal architecture review state" in sr:
+                terminated_by = "structured_state"
+            elif "terminate" in sr or "approved" in sr or "verdict" in sr or "analysis_done" in sr:
                 terminated_by = "keyword"
             elif "max" in sr:
                 terminated_by = "max_messages"
@@ -817,6 +833,7 @@ class ExperimentRunner:
         max_messages: int | None = None,
         progress_callback=None,
         checkpoint_dir: Path | None = None,
+        team_builder: Callable[[str, int | None], Any] | None = None,
     ) -> list[RunResult]:
         """Run all pattern × task × repeat combinations sequentially.
 
@@ -848,7 +865,11 @@ class ExperimentRunner:
                     if key in done_keys:
                         continue  # Skip already completed runs
 
-                    team = TeamFactory.build(pattern, max_messages=max_messages)
+                    team = (
+                        team_builder(pattern, max_messages)
+                        if team_builder is not None
+                        else TeamFactory.build(pattern, max_messages=max_messages)
+                    )
 
                     if progress_callback:
                         progress_callback(done, total, pattern, task_meta["id"], rep)

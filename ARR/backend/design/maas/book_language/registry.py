@@ -242,6 +242,14 @@ def principles_for_verbs(verbs: Iterable[str]) -> tuple[str, ...]:
     )
 
 
+def book_composition_registry_summary() -> dict[str, Any]:
+    """Expose the complete path-space contract without embedding all paths."""
+
+    from .composition_lattice import book_composition_lattice_summary
+
+    return book_composition_lattice_summary()
+
+
 __all__ = [
     "AGGREGATIONS",
     "BASE_OPERATIVES",
@@ -250,6 +258,7 @@ __all__ = [
     "CORPUS_ID",
     "SCHEMA_VERSION",
     "book_base_verbs",
+    "book_composition_registry_summary",
     "build_book_language_registry",
     "principles_for_verbs",
 ]

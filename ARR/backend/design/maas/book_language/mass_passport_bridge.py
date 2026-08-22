@@ -392,15 +392,34 @@ def _valid_v2_finalization_capacity_contract(
         or not isfinite(float(certificate_achieved))
     ):
         return False
+    # Underfill against the requested minimum is advisory: FAR is a statutory
+    # ceiling, so a lawful mass may yield less than the requested band. The
+    # utilization floor is therefore only asserted for the accepted-band mode;
+    # every other identity and arithmetic binding below stays mandatory in both.
+    mode = payload.get("capacity_contract_mode")
+    if mode == "advisory_actual_gfa_underfill":
+        advisory = payload.get("capacity_underfill_advisory")
+        if (
+            not isinstance(advisory, dict)
+            or advisory.get("statutory_minimum") is not False
+            or abs(
+                float(advisory.get("achieved_capacity_utilization") or -1.0)
+                - utilization
+            ) > 1e-9
+        ):
+            return False
+    elif mode != "accepted_actual_gfa_minimum_band":
+        return False
     return bool(
-        payload.get("capacity_contract_mode")
-        == "accepted_actual_gfa_minimum_band"
-        and payload.get("candidate_capacity_resolution_hard_pass") is True
+        payload.get("candidate_capacity_resolution_hard_pass") is True
         and actual_target > 0.0
         and requested_target > 0.0
         and feasible > 0.0
         and 0.0 < minimum <= 1.0
-        and utilization + 1e-9 >= minimum
+        and (
+            utilization + 1e-9 >= minimum
+            or mode == "advisory_actual_gfa_underfill"
+        )
         and abs(actual_target - achieved) <= 1e-6
         and abs(float(certificate_target) - actual_target) <= 1e-6
         and abs(float(certificate_achieved) - achieved) <= 1e-6

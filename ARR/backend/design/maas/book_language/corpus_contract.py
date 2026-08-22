@@ -170,6 +170,18 @@ CASE_STUDY_CONTRACTS: tuple[CaseStudyContract, ...] = (
 COMBINATIONS = tuple((item.page, item.first, item.second) for item in COMBINATION_CONTRACTS)
 AGGREGATIONS = tuple((item.page, item.methods, item.operative) for item in AGGREGATION_CONTRACTS)
 CASE_STUDIES = tuple((item.page, item.label, item.verbs) for item in CASE_STUDY_CONTRACTS)
+BOOK_EXECUTABLE_PRINCIPLE_COUNT = (
+    len(BASE_OPERATIVES)
+    + len(COMBINATION_CONTRACTS)
+    + len(AGGREGATION_CONTRACTS)
+    + len(CASE_STUDY_CONTRACTS)
+)
+BOOK_COMPOSITION_PATH_COUNT = (
+    len(BASE_VOLUME_FRACTIONS)
+    * len(BOOK_ORIENTATIONS)
+    * BOOK_VARIATION_COUNT
+    * BOOK_EXECUTABLE_PRINCIPLE_COUNT
+)
 
 
 PAGE_SECTIONS: tuple[tuple[range, str], ...] = (
@@ -198,6 +210,7 @@ def page_section(page: int) -> str:
 
 __all__ = [
     "AGGREGATIONS", "AGGREGATION_CONTRACTS", "BASE_OPERATIVES", "BASE_VOLUME_FRACTIONS",
+    "BOOK_COMPOSITION_PATH_COUNT", "BOOK_EXECUTABLE_PRINCIPLE_COUNT",
     "BOOK_ORIENTATIONS", "BOOK_PAGE_COUNT", "BOOK_VARIATION_COUNT",
     "BaseOperative", "CASE_STUDIES", "CASE_STUDY_CONTRACTS",
     "COMBINATIONS", "COMBINATION_CONTRACTS", "PAGE_SECTIONS", "page_section",

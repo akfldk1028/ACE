@@ -85,15 +85,35 @@ from .capacity_alternatives import (
 from .capacity_contract import measure_source_capacity, recursive_plan_coverage_floor
 from .capacity_routing import build_capacity_review_context
 from .downstream_hard_gate import LegalGenerationContext, generation_site_at_height
-from .final_mesh_floor_evidence import resolve_candidate_finalization_context
+from .final_mesh_floor_evidence import (
+    FinalMeshFloorEvidenceError,
+    resolve_candidate_finalization_context,
+)
 from .portfolio_selection import _select
 from .reference_context import _audited_final_book_references
 from .stage_outcome import StageOutcome, record_stage_outcome
 from .vlm_stage_policy import book_vlm_stage_policy
 
 
+class _RepairParentFinalizationContextMismatch(ValueError):
+    def __init__(self, evidence: dict[str, Any]) -> None:
+        super().__init__("repair_parent_finalization_context_mismatch")
+        self.evidence = evidence
+
+
+def _finalization_context_fingerprint(payload: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(
+        payload,
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+
 def _certified_repair_floor_context_binding(
     parent_metadata: dict[str, Any],
+    *,
+    expected_context: dict[str, Any] | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Copy only a canonically certified parent's immutable floor binding."""
 
@@ -101,27 +121,159 @@ def _certified_repair_floor_context_binding(
     capacity_contract = parent_metadata.get("candidate_capacity_contract")
     semantic_context = parent_metadata.get("final_semantic_projection_context")
     base_capacity_contract = parent_metadata.get("base_capacity_contract")
-    if not all(
-        type(value) is dict
-        for value in (
-            floor_context,
-            capacity_contract,
-            semantic_context,
-            base_capacity_contract,
+    missing_fields = [
+        name
+        for name, value in (
+            ("candidate_floor_context", floor_context),
+            ("candidate_capacity_contract", capacity_contract),
+            ("final_semantic_projection_context", semantic_context),
+            ("base_capacity_contract", base_capacity_contract),
         )
-    ):
-        return {}
+        if type(value) is not dict
+    ]
+    floor_context = floor_context if type(floor_context) is dict else {}
+    capacity_contract = (
+        capacity_contract if type(capacity_contract) is dict else {}
+    )
+    semantic_context = semantic_context if type(semantic_context) is dict else {}
+    base_capacity_contract = (
+        base_capacity_contract if type(base_capacity_contract) is dict else {}
+    )
     trusted_legal_floor_field = base_capacity_contract.get("legal_floor_field")
-    expected_legal_floor_field_hash = str(
+    required_aliases = (
+        (
+            "candidate_floor_context.legal_floor_field_hash",
+            floor_context.get("legal_floor_field_hash"),
+        ),
+        (
+            "candidate_capacity_contract.legal_floor_field_hash",
+            capacity_contract.get("legal_floor_field_hash"),
+        ),
+        (
+            "candidate_capacity_contract.candidate_legal_floor_field_hash",
+            capacity_contract.get("candidate_legal_floor_field_hash"),
+        ),
+        (
+            "candidate_capacity_contract.floor_capacity_plan_hash",
+            capacity_contract.get("floor_capacity_plan_hash"),
+        ),
+        (
+            "final_semantic_projection_context.pnu",
+            semantic_context.get("pnu"),
+        ),
+        (
+            "final_semantic_projection_context.legal_floor_field_hash",
+            semantic_context.get("legal_floor_field_hash"),
+        ),
+        (
+            "final_semantic_projection_context.floor_capacity_plan_hash",
+            semantic_context.get("floor_capacity_plan_hash"),
+        ),
+        (
+            "base_capacity_contract.legal_floor_field",
+            trusted_legal_floor_field,
+        ),
+        (
+            "base_capacity_contract.legal_floor_field.legal_floor_field_hash",
+            (
+                trusted_legal_floor_field.get("legal_floor_field_hash")
+                if type(trusted_legal_floor_field) is dict
+                else None
+            ),
+        ),
+        (
+            "base_capacity_contract.floor_capacity_plan_hash",
+            base_capacity_contract.get("floor_capacity_plan_hash"),
+        ),
+    )
+    missing_fields.extend(
+        path
+        for path, value in required_aliases
+        if value is None or value == ""
+    )
+    missing_fields = list(dict.fromkeys(missing_fields))
+    source_legal_floor_field_hash = str(
         floor_context.get("legal_floor_field_hash") or ""
     )
-    expected_pnu = str(semantic_context.get("pnu") or "")
-    resolve_candidate_finalization_context(
-        parent_metadata,
-        trusted_legal_floor_field=trusted_legal_floor_field,
-        expected_legal_floor_field_hash=expected_legal_floor_field_hash,
-        expected_pnu=expected_pnu,
+    source_pnu = str(semantic_context.get("pnu") or "")
+    source_floor_plan_hash = str(
+        capacity_contract.get("floor_capacity_plan_hash")
+        or semantic_context.get("floor_capacity_plan_hash")
+        or base_capacity_contract.get("floor_capacity_plan_hash")
+        or ""
     )
+    source_context = {
+        "pnu": source_pnu,
+        "legal_floor_field_hashes": sorted({str(value or "") for value in (
+            floor_context.get("legal_floor_field_hash"),
+            capacity_contract.get("legal_floor_field_hash"),
+            capacity_contract.get("candidate_legal_floor_field_hash"),
+            semantic_context.get("legal_floor_field_hash"),
+            (
+                trusted_legal_floor_field.get("legal_floor_field_hash")
+                if isinstance(trusted_legal_floor_field, dict)
+                else ""
+            ),
+        )}),
+        "floor_capacity_plan_hashes": sorted({str(value or "") for value in (
+            capacity_contract.get("floor_capacity_plan_hash"),
+            semantic_context.get("floor_capacity_plan_hash"),
+            base_capacity_contract.get("floor_capacity_plan_hash"),
+        )}),
+    }
+    normalized_expected_context = {
+        "pnu": str((expected_context or {}).get("pnu") or ""),
+        "legal_floor_field_hash": str(
+            (expected_context or {}).get("legal_floor_field_hash") or ""
+        ),
+        "floor_capacity_plan_hash": str(
+            (expected_context or {}).get("floor_capacity_plan_hash") or ""
+        ),
+    }
+    mismatched_fields: list[str] = []
+    if expected_context is not None:
+        if source_pnu != normalized_expected_context["pnu"]:
+            mismatched_fields.append("pnu")
+        if (
+            not normalized_expected_context["legal_floor_field_hash"]
+            or any(
+                value != normalized_expected_context["legal_floor_field_hash"]
+                for value in source_context["legal_floor_field_hashes"]
+            )
+        ):
+            mismatched_fields.append("legal_floor_field_hash")
+        if (
+            not normalized_expected_context["floor_capacity_plan_hash"]
+            or any(
+                value != normalized_expected_context["floor_capacity_plan_hash"]
+                for value in source_context["floor_capacity_plan_hashes"]
+            )
+        ):
+            mismatched_fields.append("floor_capacity_plan_hash")
+    mismatch_evidence = {
+        "source_context_fingerprint": _finalization_context_fingerprint(
+            source_context
+        ),
+        "expected_context_fingerprint": _finalization_context_fingerprint(
+            normalized_expected_context
+        ),
+        "missing_fields": missing_fields,
+        "mismatched_fields": list(dict.fromkeys(mismatched_fields)),
+    }
+    if missing_fields or mismatched_fields:
+        raise _RepairParentFinalizationContextMismatch(mismatch_evidence)
+    try:
+        resolve_candidate_finalization_context(
+            parent_metadata,
+            trusted_legal_floor_field=trusted_legal_floor_field,
+            expected_legal_floor_field_hash=source_legal_floor_field_hash,
+            expected_pnu=source_pnu,
+        )
+    except FinalMeshFloorEvidenceError as exc:
+        raise _RepairParentFinalizationContextMismatch({
+            **mismatch_evidence,
+            "mismatched_fields": [str(exc.code)],
+        }) from exc
     return {
         "candidate_floor_context": deepcopy(floor_context),
         "candidate_capacity_contract": deepcopy(capacity_contract),
@@ -2069,6 +2221,7 @@ def _repair_exact_post_book_candidates_from_vlm(
     site_access_geometry: dict[str, Any] | None,
     base_capacity_contract: dict[str, Any] | None = None,
     capacity_site: Polygon | None = None,
+    expected_finalization_context: dict[str, Any] | None = None,
     repair_budget: int = 32,
     typed_edit_completion_provider: Any = None,
 ) -> tuple[list[_Candidate], dict[str, Any]]:
@@ -2179,6 +2332,56 @@ def _repair_exact_post_book_candidates_from_vlm(
         except (TypeError, ValueError):
             failures["invalid_parent_geometry_program"] += 1
             continue
+        parent_compilation = compile_geometry_program(parent_program)
+        try:
+            certified_floor_binding = _certified_repair_floor_context_binding(
+                candidate.source.metadata,
+                expected_context=expected_finalization_context,
+            )
+        except _RepairParentFinalizationContextMismatch as exc:
+            provenance = (
+                candidate.source.metadata.get("replenishment_provenance")
+                or {}
+            )
+            feature_provenance = (
+                (candidate.feature.get("properties") or {}).get(
+                    "replenishment_provenance"
+                )
+                if isinstance(candidate.feature, dict)
+                else {}
+            ) or {}
+            carried = bool(
+                provenance.get("carried")
+                or feature_provenance.get("carried")
+            )
+            cycle_index = (
+                provenance.get("cycle_index")
+                if provenance.get("cycle_index") is not None
+                else feature_provenance.get("cycle_index")
+            )
+            record_repair_failure(
+                candidate=candidate,
+                critic_record=record,
+                stage="final_vlm_repair_parent_context",
+                reason="repair_parent_finalization_context_mismatch",
+                evidence={
+                    "candidate_program_hash": str(
+                        candidate.source.metadata.get("final_program_hash")
+                        or parent_program.program_hash()
+                    ),
+                    "candidate_geometry_hash": str(
+                        candidate.source.metadata.get("final_geometry_hash")
+                        or parent_compilation.geometry_hash
+                    ),
+                    **deepcopy(exc.evidence),
+                    "carried": carried,
+                    "cycle_index": cycle_index,
+                },
+                legacy_counter=(
+                    "repair_parent_finalization_context_mismatch"
+                ),
+            )
+            continue
         safe_mutation = apply_geometry_edits_compiler_safe(
             parent_program,
             record["geometry_edits"],
@@ -2205,7 +2408,6 @@ def _repair_exact_post_book_candidates_from_vlm(
             })
             continue
         counts["mutation_revised_count"] += 1
-        parent_compilation = compile_geometry_program(parent_program)
         repaired_program = replace(
             mutation.program,
             name=f"{mutation.program.name}__final_vlm_repair",
@@ -2424,9 +2626,7 @@ def _repair_exact_post_book_candidates_from_vlm(
             "capacity_projection_measurement",
         ):
             metadata.pop(stale_authority_key, None)
-        metadata.update(
-            _certified_repair_floor_context_binding(candidate.source.metadata)
-        )
+        metadata.update(certified_floor_binding)
         metadata["program_dimensional_context"] = deepcopy(program_dimensional_context or {})
         metadata["program_context"] = program_context
         metadata["geometry_graph_notes"] = build_geometry_graph_notes(

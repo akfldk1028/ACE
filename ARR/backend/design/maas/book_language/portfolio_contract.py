@@ -51,6 +51,29 @@ def resolve_portfolio_requirement(
     )
 
 
+def resolve_progressive_portfolio_requirement(
+    *,
+    target_count: int,
+    base_volume_scope_count: int,
+) -> PortfolioRequirement:
+    """Return a complete reduced 3/5/10/20 promotion requirement."""
+
+    target = int(target_count)
+    if target not in (3, 5, 10, 20):
+        raise ValueError(
+            "progressive MASS target must be one of 3, 5, 10, or 20"
+        )
+    return PortfolioRequirement(
+        minimum_count=target,
+        selection_target=target,
+        required_scope_count=min(
+            target,
+            max(0, int(base_volume_scope_count)),
+        ),
+        smoke_mode=False,
+    )
+
+
 def evaluate_portfolio_completion(
     requirement: PortfolioRequirement,
     *,
@@ -90,6 +113,13 @@ def evaluate_portfolio_completion(
             failures.append("portfolio_vlm_visual_diversity_hard_gate_failed")
     if require_llm_authored_ast and llm_authored_selected_count < 1:
         failures.append("selected_llm_authored_ast_missing")
+    if (
+        require_llm_authored_ast
+        and llm_authored_selected_count < selected_count
+    ):
+        failures.append(
+            "selected_llm_authored_ast_count_below_selected_count"
+        )
 
     return {
         "schema_version": "arr.maas.portfolio_completion.v1",
@@ -113,4 +143,5 @@ __all__ = [
     "PortfolioRequirement",
     "evaluate_portfolio_completion",
     "resolve_portfolio_requirement",
+    "resolve_progressive_portfolio_requirement",
 ]

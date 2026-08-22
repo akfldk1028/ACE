@@ -41,6 +41,25 @@ def _bounded_final_review_pool(pool: list[_Candidate]) -> list[_Candidate]:
     return list(pool) if len(pool) <= 5 else _bounded_visual_selection_pool(pool)
 
 
+def _expected_repair_finalization_context(
+    base_capacity_contract: dict[str, Any] | None,
+    downstream_context: dict[str, Any],
+) -> dict[str, str]:
+    capacity_contract = base_capacity_contract or {}
+    legal_floor_field = capacity_contract.get("legal_floor_field") or {}
+    return {
+        "pnu": str(downstream_context.get("pnu") or ""),
+        "legal_floor_field_hash": str(
+            legal_floor_field.get("legal_floor_field_hash")
+            or capacity_contract.get("legal_floor_field_hash")
+            or ""
+        ),
+        "floor_capacity_plan_hash": str(
+            capacity_contract.get("floor_capacity_plan_hash") or ""
+        ),
+    }
+
+
 def run_final_vlm_cycle(
     review_pool: list[_Candidate],
     *,
@@ -175,6 +194,12 @@ def run_final_vlm_cycle(
         site_access_geometry=site_access_geometry,
         base_capacity_contract=base_capacity_contract,
         capacity_site=downstream_context.get("site_local_utm"),
+        expected_finalization_context=(
+            _expected_repair_finalization_context(
+                base_capacity_contract,
+                downstream_context,
+            )
+        ),
     )
     repair_hard_gate = None
     repair_selection_pool = list(repair_pool)

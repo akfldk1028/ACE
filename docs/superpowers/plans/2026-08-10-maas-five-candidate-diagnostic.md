@@ -28,13 +28,13 @@
 
 **Interfaces:**
 - Consumes: `diagnostic_generation_budget(target: int | None)` and the Django command parser.
-- Produces: target 5 accepted with `scope_labels` equal to the first five BOOK scopes, `evaluation_cap=60`, `candidate_cap=20`, and `replenishment_cycle_cap=1`.
+- Produces: target 5 accepted with all six BOOK `scope_labels`, `evaluation_cap=60`, `candidate_cap=20`, and `replenishment_cycle_cap=1`.
 
 - [ ] **Step 1: Write failing target-5 budget and CLI parser tests**
 
 ```python
 budget = diagnostic_generation_budget(5)
-self.assertEqual(len(budget["scope_labels"]), 5)
+self.assertEqual(len(budget["scope_labels"]), 6)
 self.assertEqual(budget["evaluation_cap"], 60)
 self.assertEqual(budget["candidate_cap"], 20)
 
@@ -100,4 +100,3 @@ Open the PNG at original resolution. Report visible repetition, stepped count, w
 - [ ] **Step 5: Record C105 evidence**
 
 Append exact counts, duration, hashes, metrics, and PNG path to `09_CURRENT_STATE.md`. Keep publishable target-20 status separate from five-candidate diagnostic evidence.
-

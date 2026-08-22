@@ -1,5 +1,11 @@
 # C173 three-language MASS checkpoint — 2026-08-10
 
+> **CORRECTED 2026-08-10 — read `09_C175_VERIFIED_STATE.md` first.**
+> Two claims below are wrong: all three records are `combined_hard_pass=False`
+> (two fail `invalid_final_mesh_authority`), and the GFA figures are *target*
+> values, not achieved. Both loft candidates report `achieved_gfa_m2 = 0.0`.
+
+
 ## Verified result
 
 - Run: `legal-mass-v31-c173-ridge-terminal-court-wing`

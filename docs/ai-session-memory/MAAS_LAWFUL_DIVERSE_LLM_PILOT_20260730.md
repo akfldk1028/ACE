@@ -1174,3 +1174,40 @@ Recommended next step (non-breaking, diagnostic-only):
 - The final ridge AST repair was semantic ordering: west threshold/notch first, terminal `profiled_hall` last.
 - Output: `ARR/docs/playwright/design-route-live-verify/legal-mass-v31-c173-ridge-terminal-court-wing/maas-book-neighborhood-3.png`.
 - This remains diagnostic-only with VLM not evaluated. Canonical publishable count remains 0/20.
+
+## 2026-08-10 C173 visual regression follow-up (staircase residue confirmed)
+
+- New observed failure: C173 PNG is visually better than before but still reads like a global `stair/terrace` texture in many views.
+- Likely source: final visible surface is still being reconstructed from legal section/floorwise loft artifacts (`floorwise_section_loft` style), not from authored continuous mesh where morphology was accepted by hard gates.
+- This pattern can occur even when all three selected candidates are not rejected at law/capacity/parking/program gates.
+- Immediate diagnostic target for next session: confirm whether each selected candidate’s `final_passport`/feature surface roles reference authored projection (`source_projection`, `authored_projection`) or are being overruled by legal-composite profiles.
+- If authored roles are being replaced, the priority fix is not manifest/tuning but output authority arbitration:
+  - Keep authored geometry (including continuous `profiled_hall`/`lift`/`carve_void`/`court` forms) as the primary visible mesh.
+  - Keep legal floorwise section/overlays as constraint envelopes and capacity evaluators only.
+  - Preserve step-like morphology only when it is authored from explicit step operators (`stepped_mass`, `terrace`, `setback`, `book_grade`) or explicitly approved step morphology.
+- No hardcoding is intended:
+  - Do not add per-PNU geometry constants or fixed roof scripts.
+  - Do not pin operator probabilities in production for single run recovery.
+  - Use only existing generic operators and normal schedule controls.
+- Memory handoff text for next Claude session:
+  - “우선 C173 ISO는 0/20 본격 합격은 아니고 게이트 통과 3/3이자 시각 잔상 문제로 계단형 우세가 남아있다.
+    다음은 렌더/패스포트에서 final visible authority가 authored-continuous인지, legal floorwise loft인지 구분해 확인하고, authored mesh가 살아남도록 출력 우선순위만 수정한다.”
+- Evidence to reopen:
+  - `ARR/docs/playwright/design-route-live-verify/legal-mass-v31-c173-ridge-terminal-court-wing/maas-book-neighborhood-3.png`
+  - `ARR/docs/playwright/design-route-live-verify/legal-mass-v31-c173-ridge-terminal-court-wing/maas-book-neighborhood-0-legal-archive.png`
+  - `docs/ai-session-memory/maas-mass-flow/08_C173_THREE_LANGUAGE_CHECKPOINT.md`
+- Next deterministic step after this memory update: one bounded run aimed at exactly 3 candidates with explicit `authored->legal->render` authority checks before any 20-target expansion.
+
+## 2026-08-10 verified state supersedes the C173 follow-up above
+
+- Read `docs/ai-session-memory/maas-mass-flow/09_C175_VERIFIED_STATE.md`.
+- The C173 handoff line assumed the visible-mesh producer was
+  indistinguishable in persisted evidence. It was not:
+  `section_geometry_binding_hash` is populated only for profiled-clip modes
+  and excluded for `floorwise_csg_section_loft`. It was persisted, never read.
+- Combined hard pass is 0 in C173, C174, C175 and C176. Do not report a
+  selected count as an accepted portfolio.
+- `minimum_aggregate_target_ratio` is a proven dead end: C176 and C175 have
+  byte-identical geometry-hash sets.
+- Never `git stash` in this tree; other sessions hold thousands of
+  uncommitted lines in `source_bridge.py` and `projected_visual_contract.py`.

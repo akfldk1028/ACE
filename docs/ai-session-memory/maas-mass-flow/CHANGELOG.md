@@ -521,3 +521,24 @@
 - Recorded the important provenance distinction: the restored accepted cached
   MASS is procedural+VLM; the only cached live LLM-authored single MASS exists
   but failed its VLM gate.
+
+## 2026-08-10 - measured MASS state, two dead ends, one shared module
+
+- Verified with instrumentation, not inference: 100% of affine-fit failures are
+  `no_screened_alternatives`; 85% of pose attempts fail because the authored
+  body covers only 0.6-0.9 of the required area at maximum scale.
+- Combined hard pass is 0 across C173/C174/C175/C176. Board titles and
+  "SELECTED/WARN" labels are floor+program gates only.
+- Diversity is label-only: voxel-IoU median 0.637, 12/16 masses share one
+  sloped-plane read, 11/16 share one sloped-face normal.
+- Geometry itself is sound: 16/16 closed single-component manifolds, genus
+  metadata consistent with the meshes.
+- Dead end 1: `minimum_aggregate_target_ratio` band threading - C176 and C175
+  are byte-identical (`67c0251bd925c0ce`). Reverted.
+- Dead end 2: assuming the visible-mesh producer was unrecoverable from
+  persisted evidence - `section_geometry_binding_hash` already separated it.
+- Landed `15a983e`: `geometry_language/legal_envelope/` package with the
+  extracted normalized legal-field context plus `envelope_seed_conditioning`.
+  15/15 focused tests; additive only, not wired, no run output change.
+- Real parcel data caught a defect synthetic fixtures could not: a 0.003% axis
+  wobble read as a legal setback. Contraction now judged at 1% of an axis.

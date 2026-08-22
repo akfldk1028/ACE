@@ -1,5 +1,29 @@
 # MAAS MASS Flow Memory
 
+## START HERE - 2026-08-10 verified state (supersedes every section below)
+
+Read `09_C175_VERIFIED_STATE.md` before touching MASS. Agent-neutral; Codex and
+Claude both start there.
+
+Three facts that change how you read everything older in this folder:
+
+1. **Combined hard pass is 0** in C173, C174, C175 and C176. A "selected" count
+   and a board title are not acceptance. Canonical publishable is still 0/20 and
+   VLM is not evaluated. Earlier checkpoints, including
+   `08_C173_THREE_LANGUAGE_CHECKPOINT.md`, overclaim on this and are annotated.
+2. **Diversity is label-only.** 16 distinct concepts and hashes, but voxel-IoU
+   median 0.637 and 12 of 16 masses read as the same sloped-plane cut. Never
+   report metadata variety as shape variety.
+3. **The measured bottleneck** is that the deterministic form supply
+   (`universal_form_programs(variation_page)`) sees no legal field at all, so
+   85% of affine poses fall short of the required area and get rebuilt by
+   floorwise repair into the envelope's own silhouette.
+
+Two things not to retry: `minimum_aggregate_target_ratio` tuning (C175 and C176
+are byte-identical), and `git stash` in this tree (it reverts other sessions'
+uncommitted work).
+
+
 ## Latest progressive target-3 checkpoint - r327, 2026-08-02 KST
 
 Read `checkpoints/2026-08-02-r327-target3-timeout.md` first. r327 reached two

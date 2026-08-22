@@ -154,3 +154,4 @@ docs/ai-session-memory/maas-cache/
 /tmp_mass_check/
 /tmp_mass_bench.py
 /tmp_mass_diagnose.py
+docs/ai-session-memory/maas-service-cache/

@@ -118,3 +118,22 @@ ARR/backend/tmp_mass_check/*/runs/
 ARR/backend/tmp_mass_check/**/*.err
 ARR/backend/runs/
 ARR/backend/wire.txt
+
+# Scratch and caches under ARR/backend. Each of these was verified by hand
+# before the rule was written, and every one of them is either a log, a probe
+# output or a provider cache that the code refetches:
+#   *.txt at the backend root - forty ad-hoc capture files (a_aff, ax2, rk3...)
+#   tmp_mass_check/<run>/      - ninety probe folders, c182 through c253
+#   docs/ai-session-memory/    - 27 MB of VLM and geometry-author response cache
+#   runtime/                   - 41 MB of server logs and Vworld land-use cache
+# The massing corpus (tmp_mass_check/_massv2/inputs, tools) stays tracked.
+ARR/backend/*.txt
+!ARR/backend/requirements.txt
+ARR/backend/tmp_mass_check/*/
+!ARR/backend/tmp_mass_check/_massv2/
+ARR/backend/tmp_mass_check/*.png
+ARR/backend/tmp_mass_check/*.txt
+ARR/backend/docs/ai-session-memory/
+ARR/backend/docs/playwright/
+ARR/backend/docs/*.log
+ARR/backend/runtime/

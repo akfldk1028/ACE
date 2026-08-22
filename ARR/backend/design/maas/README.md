@@ -1,60 +1,127 @@
-# ARR design/maas
+# ARR MAAS
 
-이 폴더는 `clone/MAAS`의 쓸모 있는 구조만 ARR에 맞게 얇게 가져온 **MAAS legal-envelope generator**다.
+## Start here
 
-역할은 명확히 제한한다. 핵심 목표는 export가 아니라 **법규에 맞는 다양한
-mass mesh 후보를 만들고 최적화하는 것**이다. Export는 그 결과를 확인하거나
-외부 도구로 넘기기 위한 부가 산출물이다.
+MAAS turns typed `GeometryProgram` inputs into auditable MASS geometry. Keep
+generation, canonical geometry, legal review, visual review, and selection as
+separate authorities. A rendered image or a semantic family label is never a
+substitute for the compiled indexed mesh.
+
+For the current product contract and unresolved gaps, read:
+
+- `docs/ai-session-memory/maas-mass-flow/00_READ_FIRST.md`
+- `docs/ai-session-memory/maas-mass-flow/03_MODULE_MAP.md`
+- `docs/ai-session-memory/maas-mass-flow/04_VALIDATION_GAPS.md`
+
+## Production paths
+
+There are two different portfolio paths. Do not merge them implicitly.
+
+- Pre-legal creative choice pool: fast geometry/diversity diagnosis without
+  law, parking, capacity, program-fit, or VLM acceptance.
+- Full BOOK legal portfolio: complete PNU-derived generation, law, parking,
+  program, final-VLM, and selection flow.
+
+Single-MASS request-time execution is separately owned by `single_execution/`.
+
+## Pre-legal creative path
 
 ```text
-ARR law constraints / site polygon / sunlight envelope
-→ design.maas.legal_envelope
-→ design.maas.seed_library (legacy 10종은 seed/operator로만 사용)
-→ design.maas morphology / mesh operators
-→ ARR repair / validator 재검증
-→ diverse legal mass candidates
-→ optional OpenSCAD .scad/.stl/.png export
+generate_maas_creative_100
+-> creative_program_author
+-> affine_normalization (one 1/1 UnitBox -> explicit Matrix4 BaseVolume)
+-> creative_book_supply (6 scopes, executable 30/20/9 BOOK schedule)
+-> creative_floor_portfolio
+-> geometry_language.compiler / geometry_language.gate
+-> creative_morphology
+-> immutable candidate JSON + deterministic PNG board
 ```
 
-## 모듈 경계
+Ownership:
 
-- `legal_envelope.py`: 법규 constraint를 buildable/capacity boundary로 변환하는 중심 모듈
-- `seed_library.py`: 기존 ARR 10종/선택 매스를 다양성 seed/operator library로 격하해 쓰는 모듈
-- `morphology_operators.py`: notch, courtyard, stepback, bcr_fill 같은 형상 조작 모음
-- `legal_mesh_optimizer.py`: 후보를 repair하고 BCR/FAR/height/sunlight 검증 후 랭킹하는 orchestrator
-- `geometry_exporter.py`, `openscad_provider.py`: 결과 export adapter
+- `creative_program_author.py`: normalize exact LLM programs and read accepted
+  author-cache entries.
+- `creative_book_supply.py`: assign canonical BOOK principles and prove their
+  materialization from executable AST nodes rather than family metadata.
+- `creative_floor_portfolio.py`: compile physical candidates and require one
+  connected, watertight, manifold mesh. Deterministic `count=100` uses a
+  compatibility matching pass so all 30 base operatives, 20 combinations, and
+  9 aggregations occur before any principle repeats.
+- `creative_morphology.py`: scale-invariant mesh descriptor, pair distance,
+  and near-duplicate decision.
+- `generate_maas_creative_100.py`: CLI options and immutable artifact writing.
+  Hybrid runs write pre-legal ledger v2 with BOOK coverage plus UnitBox,
+  Matrix4, and affine-shorthand audit counts.
 
-## 가져온 MAAS 구조
+This path must label every result `PRE-LEGAL / NOT EVALUATED`. The explicit
+`recipe_fixture` mode is for regression tests and demos only. Production
+authorship uses exact payload, cache, or LLM-authored `GeometryProgram` values.
 
-- compiler-like pipeline: seed/operator → explicit geometry → validator 재검증
-- provider separation: 생성/검증/렌더/export 분리
-- `geometry_exporter.py`: MAAS `coma_render_samples.py`의 polygon extrusion 아이디어를 ARR `mass_geojson`에 맞춘 구현
-- `openscad_provider.py`: MAAS `providers/openscad_provider.py`의 OpenSCAD CLI wrapper
-- `PLANMODE.md`: 다음 AI가 이 기능을 이어받을 때 따라야 할 계획과 금지선
+## Full BOOK legal portfolio path
 
-## 안 가져온 것
+```text
+management/commands/benchmark_maas_book_program_portfolios.py
+-> book_language/portfolio_benchmark.py
+-> book_language/candidate_generation.py
+-> book_language/portfolio_replenishment.py
+-> book_language/downstream_hard_gate.py
+-> book_language/final_vlm_cycle.py
+-> book_language/portfolio_selection.py
+```
 
-- MAAS neural/diffusion pipeline: ARR 법규형 massing의 원본 생성기로 쓰기엔 아직 맞지 않음
-- MAAS verb grammar 전체: 나중에 morphology 후보 생성기로 붙일 수 있지만, 지금은 legal source of truth가 아님
-- PNG 필수 렌더링: 사용자는 상호작용 중 즉시 결과를 봐야 하므로 `.scad` 생성은 가능해야 하고, OpenSCAD 렌더는 설치된 경우만 optional
+The full path owns PNU law, capacity, parking, program-fit, final VLM, and
+selection authority. `book_language/quality_diversity_archive.py` stores full
+BOOK `_Candidate` values; it is not the pre-legal creative archive.
 
-## 원칙
+## Geometry authority
 
-`mass_geojson`이 원본이고 `.scad/.stl/.png`는 파생물이다. LLM이나 MAAS가 만든 geometry는 반드시 ARR evaluator/validator를 다시 통과해야 한다.
+`geometry_language/` owns the only canonical AST, compiler, mesh gate, and
+typed geometry repair path. Admission claims must be derived from the exact
+compiled vertices and triangles. Never accept a MASS from metadata, a PNG, or
+an earlier mesh hash when canonical geometry fails.
 
-## 왜 필요한가
+Every creative MASS starts from exactly one canonical 1/1 UnitBox. Its direct
+BaseVolume authority is an explicit homogeneous `matrix4`; affine shorthand
+(`scale`, `rotate`, `translate`, `mirror`, `shear`) is lowered before the final
+program is admitted. BOOK scope labels are `1/1`, `3/8`, `1/2`, `1/4`, `1/8`,
+and `1/16`. Architectural references such as Qatar National Library are
+capability references only and never recipe names, operators, or quotas.
 
-현재 ARR의 `mass_evaluator.py`는 10개 알고리즘을 제공하지만, 대부분은 사전에
-정한 typology builder와 gene range 조합이다. 이 방식은 알고리즘 이름을 늘릴수록
-후보가 늘어나는 구조라서 다양성이 "노가다식 template 추가"에 묶인다.
+## Generated evidence and memory
 
-따라서 MAAS의 중심은 기존 10종 유지가 아니라 **법규 envelope 기반 generator**다.
-기존 10종은 seed/operator library로 쓸 수는 있지만 용량 산정의 기준이 아니다.
+- `docs/playwright/`: run-scoped PNG/JSON evidence, not executable source.
+- `docs/ai-session-memory/`: reviewed checkpoints and cache evidence, not a
+  place to add production branching.
+- `backend/tmp_mass_check/`: disposable diagnostics only.
 
-MAAS 쪽에서 가져올 핵심은 OpenSCAD export가 아니라 다음 구조다.
+Historical artifacts are immutable. A new run writes a new directory rather
+than overwriting prior evidence.
 
-- verb/morphology vocabulary: `cave`, `notch`, `taper`, `split`, `shift`, `pack`, `stack` 같은 조작 단위
-- compiler-like pipeline: 조작 sequence를 명시적 geometry로 변환
-- provider separation: 생성/검증/렌더를 분리
+## Tests by owner
 
-ARR에서는 이 구조를 `legal_envelope` + `legal morphology operators`로 바꿔야 한다.
+- Author/cache normalization: `design/test_maas_creative_program_author.py`
+- Pre-legal morphology: `design/test_maas_creative_morphology.py`
+- Pre-legal compilation: `design/test_maas_creative_floor_portfolio.py`
+- Pre-legal command/artifacts:
+  `design/test_maas_creative_floor_portfolio_command.py`
+- Full BOOK flow: focused `design/test_maas_*` and task-specific BOOK tests
+  listed in `docs/ai-session-memory/maas-mass-flow/07_FULL_TEST_CONTRACT.md`
+
+## Rules for AI changes
+
+1. Trace the existing entry point and owner before creating a module.
+2. Write a failing focused test before changing behavior.
+3. Report input, compile, structural, uniqueness, morphology, and retained
+   counts separately; do not report only the final number.
+4. Named family labels are diagnostic evidence, never generation quotas.
+5. Never recover a rejected form with a forced stepped replay, cloned mesh,
+   fixture fallback, or weakened gate.
+6. A provider 429 may stop new transport, but cached and already-authored
+   programs must continue through local compilation.
+7. Generated artifacts are not source files and must not be imported by
+   production code.
+8. The full BOOK benchmark is not the pre-legal command; changes must stay in
+   their owning path unless an explicit integration plan says otherwise.
+9. Most current creative source/test files are absent from clean inner `HEAD`.
+   Do not stage whole untracked files or absorb unrelated user work. Build and
+   audit task-only patches against explicit pre-task snapshots.

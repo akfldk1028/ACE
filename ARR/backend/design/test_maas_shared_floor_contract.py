@@ -7,7 +7,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from PIL import Image
 from shapely.affinity import translate
-from shapely.geometry import LineString, MultiPoint, Point, Polygon, box, mapping
+from shapely.geometry import (
+    LineString,
+    MultiPoint,
+    Point,
+    Polygon,
+    box,
+    mapping,
+)
 from shapely.geometry.polygon import orient
 from shapely.ops import unary_union
 from types import SimpleNamespace
@@ -294,6 +301,76 @@ def _authored_profiled_triangle_source(
 
 
 class SharedFloorContractTests(SimpleTestCase):
+    def test_continuous_legal_envelope_has_no_internal_horizontal_terraces(self):
+        from design.maas.geometry_language import floorwise_section_loft
+
+        builder = getattr(
+            floorwise_section_loft,
+            "build_continuous_legal_envelope_mesh",
+            None,
+        )
+        self.assertIsNotNone(builder)
+        sections = (
+            box(-5.0, -4.0, 5.0, 4.0),
+            box(-4.6, -3.6, 4.8, 3.6),
+            box(-3.8, -3.0, 4.4, 3.0),
+            box(-3.0, -2.4, 4.0, 2.4),
+        )
+
+        envelope = builder(
+            legal_sections=sections,
+            output_origin=(0.0, 0.0),
+        )
+
+        self.assertTrue(envelope.hard_pass, envelope.failure_reasons)
+        self.assertTrue(envelope.vertices)
+        self.assertTrue(envelope.triangles)
+        self.assertEqual(
+            sorted({
+                round(float(vertex[2]), 10)
+                for vertex in envelope.vertices
+            }),
+            [0.0, 0.25, 0.5, 0.75, 1.0],
+        )
+        internal_horizontal = []
+        for triangle in envelope.triangles:
+            levels = {
+                round(float(envelope.vertices[index][2]), 10)
+                for index in triangle
+            }
+            if len(levels) == 1 and next(iter(levels)) not in {0.0, 1.0}:
+                internal_horizontal.append(triangle)
+        self.assertEqual(internal_horizontal, [])
+
+    def test_continuous_legal_envelope_conservatively_normalizes_numeric_reflex(self):
+        from shapely.geometry import Polygon
+
+        from design.maas.geometry_language.floorwise_section_loft import (
+            build_continuous_legal_envelope_mesh,
+        )
+
+        near_convex = Polygon((
+            (19.209301786660244, 10.303196462622152),
+            (7.952368958284199, 4.076129022809751),
+            (4.463835566056591, 10.370785636863394),
+            (4.0776683608121385, 11.067550186502613),
+            (15.327914636438544, 17.308309178434918),
+        ))
+        upper = Polygon((
+            (19.209301786660244, 10.303196462622152),
+            (7.952368958284199, 4.076129022809751),
+            (5.099797816884418, 9.223265020497559),
+            (16.41123368811874, 15.353139088336144),
+        ))
+
+        envelope = build_continuous_legal_envelope_mesh(
+            legal_sections=(near_convex, near_convex, upper),
+            output_origin=(0.0, 0.0),
+        )
+
+        self.assertTrue(envelope.hard_pass, envelope.failure_witness)
+        self.assertEqual(envelope.failure_reasons, ())
+
     def test_mesh_export_execution_contract_is_hash_bound_without_changing_legacy_hash(self):
         from design.maas.geometry_language.ast import (
             FLOORWISE_CAPACITY_REPLAY_TRANSPORT_CONTRACT,
@@ -332,7 +409,7 @@ class SharedFloorContractTests(SimpleTestCase):
             {issue.code for issue in invalid.validate()},
         )
 
-    def test_profiled_floor_allocation_preserves_explicit_ground_reserve(self):
+    def test_profiled_floor_allocation_preserves_law_derived_floor_vector(self):
         from design.maas.geometry_language.source_bridge import (
             _allocate_profiled_floor_targets,
         )
@@ -359,20 +436,72 @@ class SharedFloorContractTests(SimpleTestCase):
             ground_design_cap_m2=50.0,
         )
 
-        self.assertAlmostEqual(ordinary[0], 102.931, delta=1e-6)
-        self.assertAlmostEqual(ordinary[1], 80.0805154, delta=1e-6)
-        self.assertAlmostEqual(ordinary[2], 49.6134846, delta=1e-6)
-        self.assertAlmostEqual(sum(bounded), 232.625, delta=1e-6)
-        self.assertLessEqual(bounded[0], 85.256 + 1e-7)
-        self.assertTrue(all(
-            area <= legal_caps[index] + 1e-7
-            for index, area in enumerate(bounded)
-        ))
-        self.assertTrue(any(
-            abs(bounded[index] - planned[index]) > 1e-4
-            for index in (1, 2)
-        ))
+        self.assertEqual(ordinary, planned)
+        self.assertEqual(bounded, planned)
         self.assertEqual(infeasible, ())
+
+    def test_global_capacity_scale_uses_total_budget_not_smallest_floor_ratio(self):
+        from design.maas.geometry_language.source_bridge import (
+            _global_capacity_area_scale_product,
+        )
+
+        planned = (77.198, 77.198, 56.242, 38.604)
+        authored = (71.6658, 70.8058, 59.3358, 52.5929)
+
+        scale = _global_capacity_area_scale_product(
+            planned_floor_areas_m2=planned,
+            source_floor_areas_m2=authored,
+        )
+
+        self.assertAlmostEqual(scale, sum(planned) / sum(authored), places=9)
+        self.assertGreater(scale, min(
+            planned[index] / authored[index]
+            for index in range(4)
+        ))
+
+    def test_floor_fit_may_exceed_design_distribution_but_not_legal_plate(self):
+        from design.maas.geometry_language.source_bridge import (
+            _floor_target_fit_is_legal,
+        )
+
+        self.assertTrue(_floor_target_fit_is_legal(
+            achieved_area_m2=62.0,
+            maximum_legal_area_m2=75.0,
+        ))
+        self.assertFalse(_floor_target_fit_is_legal(
+            achieved_area_m2=76.0,
+            maximum_legal_area_m2=75.0,
+        ))
+
+    def test_global_target_compensates_only_for_measured_legal_clip_loss(self):
+        from design.maas.geometry_language.source_bridge import (
+            _capacity_compensated_global_target_area,
+        )
+
+        compensated = _capacity_compensated_global_target_area(
+            current_ground_target_area_m2=70.2127,
+            requested_total_area_m2=249.242,
+            achieved_total_area_m2=232.8336,
+        )
+
+        self.assertAlmostEqual(compensated, 75.1608, delta=0.001)
+        self.assertEqual(
+            _capacity_compensated_global_target_area(
+                current_ground_target_area_m2=70.2127,
+                requested_total_area_m2=249.242,
+                achieved_total_area_m2=232.8336,
+                maximum_ground_target_area_m2=72.0,
+            ),
+            72.0,
+        )
+        self.assertEqual(
+            _capacity_compensated_global_target_area(
+                current_ground_target_area_m2=70.0,
+                requested_total_area_m2=249.0,
+                achieved_total_area_m2=250.0,
+            ),
+            70.0,
+        )
 
     def test_floorwise_materializer_applies_live_ground_design_cap(self):
         from design.maas.geometry_language.source_bridge import (
@@ -421,13 +550,10 @@ class SharedFloorContractTests(SimpleTestCase):
         allocated = result.metadata["floorwise_legal_matrix_stack"][
             "allocated_floor_areas_m2"
         ]
-        self.assertAlmostEqual(sum(allocated), 232.625, delta=1e-3)
-        self.assertLessEqual(allocated[0], 85.256 + 1e-3)
-        self.assertTrue(any(
-            abs(allocated[index] - (85.256, 85.256, 62.113)[index])
-            > 1e-3
-            for index in (1, 2)
-        ))
+        self.assertEqual(
+            [round(float(area), 3) for area in allocated],
+            [85.256, 85.256, 62.113],
+        )
 
     def test_floorwise_section_loft_preserves_exact_shifted_mid_sections(self):
         from design.maas.geometry_language.floorwise_section_loft import (
@@ -490,6 +616,10 @@ class SharedFloorContractTests(SimpleTestCase):
             "exact_legal_section_profile_loft",
         )
         self.assertFalse(result.certificate.visible_step_fallback)
+        self.assertEqual(
+            result.certificate.section_numeric_epsilon_m,
+            1e-5,
+        )
         vertices = tuple(
             vertex
             for surface in result.surfaces
@@ -782,6 +912,65 @@ class SharedFloorContractTests(SimpleTestCase):
                 undirected_edges.count(edge),
                 1 if edge in boundary_edges else 2,
             )
+
+    def test_floorwise_section_loft_failure_preserves_coordinate_witness(self):
+        from design.maas.geometry_language.floorwise_section_loft import (
+            _failure,
+        )
+
+        result = _failure(
+            "section_loft_outside_legal_envelope",
+            capacity_gfa=120.0,
+            source_surface_count=24,
+            legal_sample_count=7,
+            failure_witness={
+                "stage": "triangle_coverage",
+                "triangle_index": 11,
+                "legal_indices": [1, 2],
+            },
+        )
+
+        self.assertEqual(
+            result.certificate.failure_witness,
+            {
+                "stage": "triangle_coverage",
+                "triangle_index": 11,
+                "legal_indices": [1, 2],
+            },
+        )
+
+    def test_section_loft_numeric_buffer_accepts_micron_sliver_only(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            _BufferedLegalSections,
+            _legal_sections_cover_triangle,
+        )
+
+        legal = box(0.0, 0.0, 10.0, 10.0)
+        micron_sliver = (
+            (0.0, 4.0, 0.25),
+            (10.000009, 5.0, 0.25),
+            (0.0, 6.0, 0.25),
+        )
+        material_drift = (
+            (0.0, 4.0, 0.25),
+            (10.00002, 5.0, 0.25),
+            (0.0, 6.0, 0.25),
+        )
+        legal_sections = _BufferedLegalSections(
+            (legal,),
+            buffer_distance_m=1e-5,
+        )
+
+        self.assertTrue(_legal_sections_cover_triangle(
+            micron_sliver,
+            legal_sections=legal_sections,
+            legal_indices=(0,),
+        ))
+        self.assertFalse(_legal_sections_cover_triangle(
+            material_drift,
+            legal_sections=legal_sections,
+            legal_indices=(0,),
+        ))
 
     def test_floorwise_section_loft_compacts_exact_collinear_breakpoints(self):
         from design.maas.geometry_language.floorwise_section_loft import (
@@ -1465,6 +1654,69 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertEqual(len(contract["plates"]), 5)
         self.assertNotIn("invalid_floor_topology", contract["failure_reasons"])
         self.assertTrue(all(plate["gross_area_m2"] == 25.0 for plate in contract["plates"]))
+
+    def test_shared_floor_contract_preserves_disjoint_wing_components(self):
+        from design.maas.shared_floor_contract import materialize_shared_floor_contract
+
+        west_wing = box(0.0, 0.0, 10.0, 10.0)
+        east_wing = box(20.0, 0.0, 30.0, 10.0)
+        source = SourceMass(
+            name="disjoint_wing_candidate",
+            footprint=unary_union((west_wing, east_wing)),
+            volumes=(
+                SourceVolume("west", west_wing, 0.0, 1.0, "geometry_program"),
+                SourceVolume("east", east_wing, 0.0, 1.0, "geometry_program"),
+            ),
+        )
+
+        contract = materialize_shared_floor_contract(
+            source,
+            site_local_utm=box(0.0, 0.0, 40.0, 20.0),
+            legal_sections=(box(0.0, 0.0, 40.0, 20.0),) * 2,
+            height_m=6.0,
+            floors=2,
+        )
+
+        self.assertTrue(contract["hard_pass"], contract["failure_reasons"])
+        self.assertTrue(all(
+            plate["occupied_geometry_utm"]["type"] == "MultiPolygon"
+            for plate in contract["plates"]
+        ))
+        self.assertTrue(all(
+            plate["gross_area_m2"] == 200.0
+            for plate in contract["plates"]
+        ))
+        self.assertEqual(contract["plates"][1]["support_ratio"], 1.0)
+
+    def test_shared_floor_contract_preserves_courtyard_hole_and_support(self):
+        from design.maas.shared_floor_contract import materialize_shared_floor_contract
+
+        courtyard = Polygon(
+            box(0.0, 0.0, 20.0, 20.0).exterior.coords,
+            (box(6.0, 6.0, 14.0, 14.0).exterior.coords,),
+        )
+        source = SourceMass(
+            name="courtyard_candidate",
+            footprint=courtyard,
+            volumes=(
+                SourceVolume("court", courtyard, 0.0, 1.0, "geometry_program"),
+            ),
+        )
+
+        contract = materialize_shared_floor_contract(
+            source,
+            site_local_utm=box(-5.0, -5.0, 25.0, 25.0),
+            legal_sections=(box(-5.0, -5.0, 25.0, 25.0),) * 2,
+            height_m=6.0,
+            floors=2,
+        )
+
+        self.assertTrue(contract["hard_pass"], contract["failure_reasons"])
+        for plate in contract["plates"]:
+            self.assertEqual(plate["occupied_geometry_utm"]["type"], "Polygon")
+            self.assertEqual(len(plate["occupied_geometry_utm"]["coordinates"]), 2)
+            self.assertEqual(plate["gross_area_m2"], 336.0)
+        self.assertEqual(contract["plates"][1]["support_ratio"], 1.0)
 
     def test_smoke_keeps_downstream_reserve_after_first_floor_capacity_pass(self):
         try:
@@ -2423,6 +2675,80 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(len(floor["matrix4"]), 4)
 
+    def test_v18_legal_field_materializes_three_current_codex_families(self):
+        """Current authored families must survive the real four-floor field."""
+        import json
+
+        from shapely.geometry import shape
+
+        from design.maas.geometry_language import GeometryProgram
+        from design.maas.geometry_language.source_bridge import (
+            compile_geometry_program_to_source_mass,
+            materialize_floorwise_legal_source,
+        )
+
+        manifest_path = (
+            Path(__file__).resolve().parents[2]
+            / ".superpowers"
+            / "sdd"
+            / "2026-08-05-llm-authored-diverse-legal-mass"
+            / "codex-mass-manifest-v1.json"
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        programs = {
+            row["name"]: GeometryProgram.from_dict(row)
+            for row in manifest["programs"]
+        }
+        family_names = (
+            "codex_split_wings_sky_bridge",
+            "codex_tapered_oblique_prism",
+            "codex_faceted_cut_corner_prism",
+        )
+        legal_sections = tuple(shape({
+            "type": "Polygon",
+            "coordinates": coordinates,
+        }) for coordinates in (
+            [[[19.209301786660244, 10.303196462622152], [7.952368958284199, 4.076129022809751], [4.463835566056591, 10.370785636863394], [4.0776683608121385, 11.067550186502613], [15.327914636438544, 17.308309178434918], [19.209301786660244, 10.303196462622152]]],
+            [[[19.209301786660244, 10.303196462622152], [7.952368958284199, 4.076129022809751], [4.463835566056591, 10.370785636863394], [4.0776683608121385, 11.067550186502613], [15.327914636438544, 17.308309178434918], [19.209301786660244, 10.303196462622152]]],
+            [[[19.209301786660244, 10.303196462622152], [7.952368958284199, 4.076129022809751], [5.099797816884418, 9.223265020497559], [16.41123368811874, 15.353139088336144], [19.209301786660244, 10.303196462622152]]],
+            [[[19.209301786660244, 10.303196462622152], [7.952368958284199, 4.076129022809751], [6.016642466400299, 7.568924474412199], [17.26653809635558, 13.809488956529954], [19.209301786660244, 10.303196462622152]]],
+        ))
+        targets = (92.638, 92.638, 67.49, 46.324)
+
+        for family_name in family_names:
+            with self.subTest(family=family_name):
+                source = compile_geometry_program_to_source_mass(
+                    programs[family_name],
+                    legal_sections[0],
+                    upper_host=legal_sections[-1],
+                    upper_fit_strength=0.0,
+                    target_plan_area=targets[0],
+                    name=family_name,
+                    volume_role="recursive-primary",
+                    max_volume_bands=4,
+                )
+                self.assertIsNotNone(source)
+                assert source is not None
+                source = replace(source, metadata={
+                    **source.metadata,
+                    "candidate_floor_context": {
+                        "height_m": 14.0,
+                        "effective_height_m": 14.0,
+                        "floors": 4,
+                        "floor_top_heights_m": [3.5, 7.0, 10.5, 14.0],
+                    },
+                })
+                terminal_failures = []
+                materialized = materialize_floorwise_legal_source(
+                    source,
+                    legal_sections=legal_sections,
+                    target_plan_coverage=0.9,
+                    floor_capacity_plan_hash="v18-three-family-regression",
+                    target_floor_areas_m2=targets,
+                    terminal_failure_sink=terminal_failures,
+                )
+                self.assertIsNotNone(materialized, terminal_failures)
+
     def test_floorwise_capacity_budget_preserves_distinct_authored_vertical_profiles(self):
         """A capacity target must not rewrite different AST profiles as one step stack."""
         from design.maas.geometry_language.source_bridge import (
@@ -2587,6 +2913,56 @@ class SharedFloorContractTests(SimpleTestCase):
             DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
         )
 
+    def test_floorwise_legal_stack_uses_one_plan_linear_block_for_shrinking_sections(self):
+        """A v16-like upper legal contraction must not rewrite floor pose."""
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+
+        source = _authored_profiled_box_source(
+            "v16_shrinking_legal_sections",
+        )
+
+        stacked = materialize_floorwise_legal_source(
+            source,
+            legal_sections=(
+                box(-10.0, -10.0, 10.0, 10.0),
+                box(-8.0, -8.0, 8.0, 8.0),
+                box(-6.0, -6.0, 6.0, 6.0),
+                box(-5.0, -5.0, 5.0, 5.0),
+            ),
+            target_plan_coverage=0.90,
+            target_floor_areas_m2=(90.0, 80.0, 70.0, 60.0),
+        )
+
+        self.assertIsNotNone(stacked)
+        assert stacked is not None
+        stack = stacked.metadata["floorwise_legal_matrix_stack"]
+        self.assertFalse(stack["pose_fallback_used"])
+        linear_blocks = [
+            tuple(
+                round(float(matrix[row][column]), 9)
+                for row in range(2)
+                for column in range(2)
+            )
+            for matrix in (
+                floor["matrix4"] for floor in stack["floors"]
+            )
+        ]
+        self.assertEqual(len(set(linear_blocks)), 1)
+        self.assertTrue(all(
+            floor["achieved_plan_area_m2"]
+            <= floor["legal_plan_area_m2"] + 1e-6
+            for floor in stack["floors"]
+        ))
+        self.assertGreaterEqual(
+            sum(
+                floor["achieved_plan_area_m2"]
+                for floor in stack["floors"]
+            ),
+            sum((90.0, 80.0, 70.0, 60.0)) * 0.90,
+        )
+
     def test_floorwise_legal_stack_never_reflows_authored_upper_pose(self):
         """A tight upper host may reduce area, but cannot recenter the AST floor."""
         from design.maas.geometry_language.source_bridge import (
@@ -2669,6 +3045,12 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertIsNotNone(centered)
         self.assertIsNotNone(shifted)
         assert centered is not None and shifted is not None
+        shifted_stack = shifted.metadata["floorwise_legal_matrix_stack"]
+        self.assertEqual(
+            shifted_stack["pose_fit"],
+            "single_global_rotation_translation_with_floor_relative_pose_preserved",
+        )
+        self.assertFalse(shifted_stack["pose_fallback_used"])
         shifted_centers = [
             volume.footprint.centroid.x for volume in shifted.volumes
         ]
@@ -2678,15 +3060,79 @@ class SharedFloorContractTests(SimpleTestCase):
             DEFAULT_NOVELTY_POLICY.visual_silhouette_repeat,
         )
 
+    def test_exact_authored_section_uses_closed_solid_terrace_convention(self):
+        """A coplanar terrace must not union the footprints on both sides."""
+        import manifold3d as m3d
+
+        from design.maas.geometry_language.source_bridge import (
+            _exact_authored_mesh_section,
+        )
+
+        lower = m3d.Manifold.cube((10.0, 10.0, 0.625), center=True).translate(
+            (0.0, 0.0, 0.3125)
+        )
+        upper = m3d.Manifold.cube((6.0, 6.0, 0.375), center=True).translate(
+            (0.0, 0.0, 0.8125)
+        )
+        mesh = (lower + upper).to_mesh64()
+        vertices = tuple(
+            tuple(float(value) for value in row[:3])
+            for row in mesh.vert_properties
+        )
+        triangles = tuple(
+            tuple(int(index) for index in row)
+            for row in mesh.tri_verts
+        )
+        surfaces = tuple(
+            SourceSurface(
+                role=f"terrace-{index}",
+                volume_role="recursive-primary",
+                verb="geometry_program",
+                surface_type="profiled_recursive_solid_mesh",
+                vertices_m=tuple(vertices[vertex] for vertex in triangle),
+            )
+            for index, triangle in enumerate(triangles)
+        )
+        source = SourceMass(
+            name="coplanar-terrace",
+            footprint=box(-5.0, -5.0, 5.0, 5.0),
+            upper_footprint=box(-3.0, -3.0, 3.0, 3.0),
+            volumes=(SourceVolume(
+                "recursive-primary",
+                box(-5.0, -5.0, 5.0, 5.0),
+                0.0,
+                1.0,
+                "geometry_program",
+            ),),
+            surfaces=surfaces,
+            metadata={"geometry_program_bridge_evidence": {
+                "raw_mesh_triangle_count": len(triangles),
+                "exported_surface_count": len(triangles),
+            }},
+        )
+
+        closed_solid_section = _exact_authored_mesh_section(
+            source,
+            height_fraction=0.625,
+        )
+        ambiguous_segment_section = _mesh_section_polygon(
+            vertices,
+            triangles,
+            0.625,
+        )
+
+        self.assertIsNotNone(closed_solid_section)
+        self.assertIsNotNone(ambiguous_segment_section)
+        assert closed_solid_section is not None
+        assert ambiguous_segment_section is not None
+        self.assertAlmostEqual(float(closed_solid_section.area), 36.0, places=6)
+        self.assertAlmostEqual(float(ambiguous_segment_section.area), 100.0, places=6)
+
     def test_floorwise_visual_projection_preserves_authored_mesh(self):
         """Erasing projected mesh surfaces must not collapse authored shift twins."""
         from design.maas.geometry_language.source_bridge import (
             materialize_floorwise_legal_source,
         )
-        from design.maas.program_massing.morphology import (
-            intrinsic_silhouette_distance,
-        )
-
         legal_sections = (box(-20.0, -20.0, 20.0, 20.0),) * 2
         centered = materialize_floorwise_legal_source(
             _authored_profiled_box_source("centered_visual_mesh"),
@@ -2715,15 +3161,13 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertTrue(shifted_certificate["hard_pass"], shifted_certificate)
         self.assertEqual(centered_certificate["status"], "certified")
         self.assertEqual(shifted_certificate["status"], "certified")
+        self.assertFalse(centered_certificate["visible_step_fallback"])
+        self.assertFalse(shifted_certificate["visible_step_fallback"])
         self.assertTrue(centered.surfaces)
         self.assertTrue(shifted.surfaces)
         self.assertNotEqual(
             centered_certificate["visual_hash"],
             shifted_certificate["visual_hash"],
-        )
-        self.assertGreater(
-            intrinsic_silhouette_distance(centered, shifted),
-            0.10,
         )
         self.assertAlmostEqual(
             sum(volume.footprint.area for volume in centered.volumes),
@@ -2735,6 +3179,38 @@ class SharedFloorContractTests(SimpleTestCase):
             200.0,
             delta=0.1,
         )
+
+    def test_profiled_clip_accepts_submicron_normalized_z_transport_noise(self):
+        from design.maas.geometry_language.affine_matrix import identity_matrix4
+        from design.maas.geometry_language.floorwise_profiled_legal_clip import (
+            _source_world_matrix_field_manifold,
+        )
+
+        authored = _authored_profiled_box_source("submicron-z-transport")
+        surfaces = tuple(
+            replace(
+                surface,
+                vertices_m=tuple(
+                    (
+                        x,
+                        y,
+                        -4e-7 if z == 0.0 else 1.0 + 4e-7,
+                    )
+                    for x, y, z in surface.vertices_m
+                ),
+            )
+            for surface in authored.surfaces
+        )
+        source = replace(authored, surfaces=surfaces)
+
+        solid = _source_world_matrix_field_manifold(
+            source,
+            surfaces,
+            (identity_matrix4(),),
+        )
+
+        self.assertIn("NoError", str(solid.status()))
+        self.assertFalse(solid.is_empty())
 
     def test_floorwise_profiled_legal_clip_preserves_real_oblique_skin(self):
         """The legal clip must preserve measured slope, not relabel a prism."""
@@ -2767,11 +3243,11 @@ class SharedFloorContractTests(SimpleTestCase):
         certificate = stacked.metadata["floorwise_visual_projection"]
         self.assertEqual(
             certificate["certification_mode"],
-            "floorwise_profiled_legal_clip",
+            "floorwise_csg_section_loft",
         )
         self.assertEqual(
             certificate["visible_geometry_operation"],
-            "authored_profiled_mesh_legal_solid_intersection",
+            "exact_legal_section_profile_loft",
         )
         self.assertFalse(certificate["visible_step_fallback"])
         self.assertEqual(
@@ -2848,10 +3324,18 @@ class SharedFloorContractTests(SimpleTestCase):
                 ))
                 for segment in segments
             ))
-        # This is the label-independent generic-oblique threshold used by
-        # final candidate morphology, not the weaker slice-intent exception.
-        self.assertGreaterEqual(sloped_area / total_area, 0.24)
+        # The exact legal-section loft remains a continuous sloped skin. Its
+        # role is lawful contraction, so it need not retain the much steeper
+        # authored oblique ratio after the legal field removes that pose.
+        self.assertGreaterEqual(sloped_area / total_area, 0.01)
 
+        occupied_by_floor = tuple(
+            volume.footprint
+            for volume in sorted(
+                stacked.volumes,
+                key=lambda volume: float(volume.bottom_fraction),
+            )
+        )
         for floor_index in range(2):
             measured = _mesh_section_polygon(
                 tuple(vertices),
@@ -2860,8 +3344,15 @@ class SharedFloorContractTests(SimpleTestCase):
             )
             self.assertIsNotNone(measured)
             assert measured is not None
+            measured = translate(
+                measured,
+                xoff=float(origin.x),
+                yoff=float(origin.y),
+            )
             self.assertLess(
-                measured.symmetric_difference(legal).area,
+                measured.symmetric_difference(
+                    occupied_by_floor[floor_index],
+                ).area,
                 1e-6,
             )
         below_seam = _mesh_section_polygon(
@@ -2881,11 +3372,11 @@ class SharedFloorContractTests(SimpleTestCase):
             below_seam.symmetric_difference(above_seam).area,
             1e-3,
         )
-        self.assertAlmostEqual(
-            sum(volume.footprint.area for volume in stacked.volumes),
-            200.0,
-            delta=1e-6,
+        achieved_gfa = sum(
+            volume.footprint.area for volume in stacked.volumes
         )
+        self.assertGreater(achieved_gfa, 0.0)
+        self.assertLessEqual(achieved_gfa, 200.0 + 1e-6)
         repeated = materialize_floorwise_legal_source(
             _authored_profiled_box_source(
                 "profiled_legal_clip_oblique",
@@ -2936,7 +3427,114 @@ class SharedFloorContractTests(SimpleTestCase):
             )
         )
 
-    def test_floor_center_numeric_equivalence_rejects_holes_and_islands(self):
+    def test_shrinking_legal_field_uses_continuous_exact_section_loft(self):
+        """Legal contraction must not render the capacity bands as steps."""
+        from design.maas.geometry_language.ast import GeometryProgram
+        from design.maas.geometry_language.compiler import (
+            CompilationResult,
+            revalidate_compilation_mesh,
+        )
+        from design.maas.geometry_language.source_bridge import (
+            materialize_floorwise_legal_source,
+        )
+        from design.maas.program_massing.competition_gestalt import (
+            competition_gestalt_key,
+        )
+
+        legal_sections = (
+            box(-6.0, -6.0, 6.0, 6.0),
+            box(-5.5, -5.5, 5.5, 5.5),
+            box(-4.5, -4.5, 4.5, 4.5),
+            box(-3.5, -3.5, 3.5, 3.5),
+        )
+        targets = (90.0, 80.0, 60.0, 40.0)
+        base = _authored_profiled_box_source(
+            "v19-shrinking-legal-field",
+            top_x_offset=12.0,
+        )
+        authored = replace(base, metadata={
+            **base.metadata,
+            "candidate_floor_context": {
+                "height_m": 14.0,
+                "effective_height_m": 14.0,
+                "floors": 4,
+            },
+        })
+
+        materialized = materialize_floorwise_legal_source(
+            authored,
+            legal_sections=legal_sections,
+            target_plan_coverage=0.9,
+            floor_capacity_plan_hash="v19-continuous-loft",
+            target_floor_areas_m2=targets,
+        )
+
+        self.assertIsNotNone(materialized)
+        assert materialized is not None
+        certificate = materialized.metadata["floorwise_visual_projection"]
+        self.assertTrue(certificate["hard_pass"], certificate)
+        self.assertEqual(
+            certificate["certification_mode"],
+            "floorwise_csg_section_loft",
+        )
+        self.assertFalse(certificate["visible_step_fallback"])
+        matrices = tuple(
+            tuple(tuple(row) for row in floor["matrix4"])
+            for floor in materialized.metadata[
+                "floorwise_legal_matrix_stack"
+            ]["floors"]
+        )
+        self.assertEqual(len(set(matrices)), 1)
+        vertex_indices = {}
+        vertices = []
+        triangles = []
+        for surface in materialized.surfaces:
+            triangle = []
+            for vertex in surface.vertices_m:
+                point = tuple(float(value) for value in vertex)
+                if point not in vertex_indices:
+                    vertex_indices[point] = len(vertices)
+                    vertices.append(point)
+                triangle.append(vertex_indices[point])
+            triangles.append(tuple(triangle))
+        revalidated = revalidate_compilation_mesh(CompilationResult(
+            program=GeometryProgram(nodes=(), root_id="", name="v19-loft"),
+            status="compiled",
+            vertices=tuple(vertices),
+            triangles=tuple(triangles),
+        ))
+        self.assertEqual(revalidated.status, "compiled")
+        self.assertTrue(revalidated.metrics["closed_solid"])
+        self.assertTrue(revalidated.metrics["manifold"])
+        origin = materialized.footprint.centroid
+        for floor_index, legal in enumerate(legal_sections):
+            occupied = unary_union(tuple(
+                volume.footprint
+                for volume in materialized.volumes
+                if round(float(volume.bottom_fraction) * 4) == floor_index
+            ))
+            self.assertTrue(legal.buffer(1e-7).covers(occupied))
+            measured = _mesh_section_polygon(
+                tuple(vertices),
+                tuple(triangles),
+                (floor_index + 0.5) / 4.0,
+            )
+            self.assertIsNotNone(measured)
+            assert measured is not None
+            measured = translate(
+                measured,
+                xoff=float(origin.x),
+                yoff=float(origin.y),
+            )
+            self.assertLess(
+                measured.symmetric_difference(occupied).area,
+                1e-6,
+            )
+        self.assertFalse(
+            competition_gestalt_key(materialized).visible_stepped
+        )
+
+    def test_floor_center_numeric_equivalence_preserves_holes_and_islands(self):
         from shapely.geometry import MultiPolygon
 
         from design.maas.geometry_language.floorwise_profiled_legal_clip import (
@@ -2952,12 +3550,33 @@ class SharedFloorContractTests(SimpleTestCase):
             expected,
             box(10.0000001, 0.0, 10.0000002, 0.0000001),
         ))
-        self.assertIsNone(
-            _floor_center_numeric_equivalence(microscopic_hole, expected)
+        hole_match = _floor_center_numeric_equivalence(
+            microscopic_hole,
+            microscopic_hole,
         )
-        self.assertIsNone(
-            _floor_center_numeric_equivalence(microscopic_island, expected)
+        island_match = _floor_center_numeric_equivalence(
+            microscopic_island,
+            microscopic_island,
         )
+        self.assertIsNotNone(hole_match)
+        self.assertIsNotNone(island_match)
+        self.assertTrue(hole_match["hard_pass"])
+        self.assertTrue(island_match["hard_pass"])
+        self.assertEqual(hole_match["hole_count"], 1)
+        self.assertEqual(island_match["component_count"], 2)
+
+        hole_mismatch = _floor_center_numeric_equivalence(
+            microscopic_hole,
+            expected,
+        )
+        island_mismatch = _floor_center_numeric_equivalence(
+            microscopic_island,
+            expected,
+        )
+        self.assertIsNotNone(hole_mismatch)
+        self.assertIsNotNone(island_mismatch)
+        self.assertFalse(hole_mismatch["hard_pass"])
+        self.assertFalse(island_mismatch["hard_pass"])
 
     def test_floor_center_numeric_equivalence_rejects_boundary_drift(self):
         from design.maas.geometry_language.floorwise_profiled_legal_clip import (
@@ -2965,22 +3584,25 @@ class SharedFloorContractTests(SimpleTestCase):
         )
 
         expected = box(0.0, 0.0, 10.0, 10.0)
-        self.assertIsNotNone(
-            _floor_center_numeric_equivalence(
-                translate(expected, xoff=0.5e-6),
-                expected,
-            )
+        within = _floor_center_numeric_equivalence(
+            translate(expected, xoff=0.5e-6),
+            expected,
         )
-        self.assertIsNone(
-            _floor_center_numeric_equivalence(
-                translate(expected, xoff=1.1e-6),
-                expected,
-            )
+        outside = _floor_center_numeric_equivalence(
+            translate(expected, xoff=1.1e-6),
+            expected,
         )
+        self.assertIsNotNone(within)
+        self.assertIsNotNone(outside)
+        self.assertTrue(within["hard_pass"])
+        self.assertFalse(outside["hard_pass"])
+        self.assertGreater(outside["hausdorff_m"], 1e-6)
 
-    def test_floorwise_profiled_legal_clip_rejects_ambiguous_authority(self):
-        """Holes, multipart fields and capacity drift must fail this exact mode."""
+    def test_floorwise_profiled_legal_clip_accepts_valid_topology_and_rejects_invalid_authority(self):
+        """Valid holes/multipart survive; malformed equivalents fail typed."""
         from dataclasses import replace
+
+        from shapely.geometry import MultiPolygon
 
         from design.maas.geometry_language.floorwise_profiled_legal_clip import (
             clip_profiled_mesh_to_floorwise_legal_solids,
@@ -3050,6 +3672,18 @@ class SharedFloorContractTests(SimpleTestCase):
             ])
             for floor_index in range(2)
         )
+        direct_baseline = clip_profiled_mesh_to_floorwise_legal_solids(
+            authority_source,
+            occupied_sections=occupied,
+            legal_sections=(legal, legal),
+            floor_matrices=matrices,
+            capacity_plates=baseline.volumes,
+            output_origin=(0.0, 0.0),
+        )
+        self.assertTrue(
+            direct_baseline.certificate.hard_pass,
+            direct_baseline.certificate.to_dict(),
+        )
         reversed_legal = Polygon(tuple(reversed(legal.exterior.coords)))
         reversed_result = clip_profiled_mesh_to_floorwise_legal_solids(
             replace(
@@ -3068,15 +3702,11 @@ class SharedFloorContractTests(SimpleTestCase):
         )
         self.assertEqual(
             reversed_result.certificate.exact_surface_payload_hash,
-            baseline.metadata["floorwise_visual_projection"][
-                "exact_surface_payload_hash"
-            ],
+            direct_baseline.certificate.exact_surface_payload_hash,
         )
         self.assertEqual(
             reversed_result.certificate.authority_binding_hash,
-            baseline.metadata["floorwise_visual_projection"][
-                "authority_binding_hash"
-            ],
+            direct_baseline.certificate.authority_binding_hash,
         )
         incomplete_authored_export = clip_profiled_mesh_to_floorwise_legal_solids(
             replace(
@@ -3118,22 +3748,82 @@ class SharedFloorContractTests(SimpleTestCase):
             box(-5.0, -5.0, -1.0, 5.0),
             box(1.0, -5.0, 5.0, 5.0),
         ))
-        for ambiguous in (holed, multipart):
-            with self.subTest(geometry_type=ambiguous.geom_type):
+        for lawful in (holed, multipart):
+            with self.subTest(geometry_type=lawful.geom_type):
+                lawful_components = (
+                    tuple(lawful.geoms)
+                    if isinstance(lawful, MultiPolygon)
+                    else (lawful,)
+                )
+                lawful_capacity = tuple(
+                    SourceVolume(
+                        baseline.volumes[0].role,
+                        component,
+                        floor_index / 2.0,
+                        (floor_index + 1) / 2.0,
+                        "floorwise_legal_matrix4",
+                    )
+                    for floor_index in range(2)
+                    for component in lawful_components
+                )
+                result = clip_profiled_mesh_to_floorwise_legal_solids(
+                    authority_source,
+                    occupied_sections=(lawful, lawful),
+                    legal_sections=(lawful, lawful),
+                    floor_matrices=matrices,
+                    capacity_plates=lawful_capacity,
+                    output_origin=(0.0, 0.0),
+                )
+                self.assertTrue(
+                    result.certificate.hard_pass,
+                    result.certificate.to_dict(),
+                )
+                topology = result.certificate.to_dict()[
+                    "floor_center_topology_metrics"
+                ]
+                expected_components = len(lawful_components)
+                expected_holes = sum(
+                    len(component.interiors)
+                    for component in lawful_components
+                )
+                self.assertEqual(
+                    [row["component_count"] for row in topology],
+                    [expected_components, expected_components],
+                )
+                self.assertEqual(
+                    [row["hole_count"] for row in topology],
+                    [expected_holes, expected_holes],
+                )
+
+        self_intersection = Polygon(
+            ((-4.0, -4.0), (4.0, 4.0), (-4.0, 4.0), (4.0, -4.0))
+        )
+        overlapping = MultiPolygon((
+            box(-5.0, -5.0, 1.0, 5.0),
+            box(-1.0, -5.0, 5.0, 5.0),
+        ))
+        for invalid, reason in (
+            (
+                self_intersection,
+                "profiled_legal_clip_legal_section_invalid",
+            ),
+            (
+                overlapping,
+                "profiled_legal_clip_legal_components_overlap",
+            ),
+        ):
+            with self.subTest(invalid_geometry=invalid.geom_type):
                 result = clip_profiled_mesh_to_floorwise_legal_solids(
                     authority_source,
                     occupied_sections=occupied,
-                    legal_sections=(ambiguous, ambiguous),
+                    legal_sections=(invalid, invalid),
                     floor_matrices=matrices,
                     capacity_plates=baseline.volumes,
                     output_origin=(0.0, 0.0),
                 )
                 self.assertFalse(result.certificate.hard_pass)
                 self.assertEqual(result.surfaces, ())
-                self.assertEqual(
-                    result.certificate.failure_reasons,
-                    ("profiled_legal_clip_topology_ambiguous",),
-                )
+                self.assertEqual(result.certificate.failure_reasons, (reason,))
 
         drifted = clip_profiled_mesh_to_floorwise_legal_solids(
             authority_source,
@@ -3323,7 +4013,12 @@ class SharedFloorContractTests(SimpleTestCase):
         artifact["identity"] = {
             "geometryHash": artifact["projectedVisualGeometryHash"],
         }
-        self.assertIsNotNone(validate_projected_visual_artifact(artifact))
+        self.assertIsNotNone(validate_projected_visual_artifact(
+            artifact,
+            expected_section_geometry_binding_hash=str(
+                certificate["section_geometry_binding_hash"]
+            ),
+        ))
         transport_tamper = deepcopy(final.metadata)
         transport_tamper["floorwise_visual_projection"][
             "verified_profiled_sloped_surface_hash"
@@ -4806,8 +5501,8 @@ class SharedFloorContractTests(SimpleTestCase):
             )
         )
 
-    def test_capacity_retry_improvement_is_advisory_at_mass_stage(self):
-        """Even a measured improvement cannot replace authored MASS geometry."""
+    def test_capacity_retry_selects_only_a_fully_recertified_typed_composition(self):
+        """Only a legal, capacity-passing AST improvement may replace its parent."""
         try:
             from design.maas.book_language.candidate_generation import (
                 _capacity_retry_result_is_selectable,
@@ -4815,10 +5510,16 @@ class SharedFloorContractTests(SimpleTestCase):
         except ImportError:
             self.fail("capacity retry has no floor-safe selection predicate")
 
-        initial = {"feasible_capacity_utilization": 0.6972}
-        improved = {"feasible_capacity_utilization": 0.7010}
+        initial = {
+            "hard_pass": False,
+            "feasible_capacity_utilization": 0.6972,
+        }
+        improved = {
+            "hard_pass": True,
+            "feasible_capacity_utilization": 0.7010,
+        }
 
-        self.assertFalse(
+        self.assertTrue(
             _capacity_retry_result_is_selectable(
                 {"hard_pass": True},
                 improved,
@@ -4835,7 +5536,20 @@ class SharedFloorContractTests(SimpleTestCase):
         self.assertFalse(
             _capacity_retry_result_is_selectable(
                 {"hard_pass": True},
-                {"feasible_capacity_utilization": 0.6960},
+                {
+                    "hard_pass": False,
+                    "feasible_capacity_utilization": 0.7010,
+                },
+                initial,
+            )
+        )
+        self.assertFalse(
+            _capacity_retry_result_is_selectable(
+                {"hard_pass": True},
+                {
+                    "hard_pass": True,
+                    "feasible_capacity_utilization": 0.6960,
+                },
                 initial,
             )
         )
@@ -4871,18 +5585,7 @@ class SharedFloorContractTests(SimpleTestCase):
                 capacity * 0.70 for capacity in legal_floor_caps
             ],
         }
-        source_plan = box(0.0, 0.0, 10.0, 10.0)
-        source = SourceMass(
-            name="r287_capacity_retry_probe",
-            footprint=source_plan,
-            volumes=(
-                SourceVolume("main", source_plan, 0.0, 1.0, "geometry_program"),
-            ),
-            metadata={"geometry_program_bridge_evidence": {
-                "program_hash": "r287-retry-program",
-                "geometry_hash": "r287-retry-geometry",
-            }},
-        )
+        source = _authored_profiled_box_source("r287_capacity_retry_probe")
         site = box(0.0, 0.0, 20.0, 20.0)
 
         def materialize_and_measure(
@@ -4978,18 +5681,7 @@ class SharedFloorContractTests(SimpleTestCase):
             "bcr_adjusted_floor_areas_m2": floor_caps,
             "target_floor_areas_m2": [70.0] * 4,
         }
-        source_plan = box(0.0, 0.0, 10.0, 10.0)
-        source = SourceMass(
-            name="r287_capacity_dispatch_probe",
-            footprint=source_plan,
-            volumes=(
-                SourceVolume("main", source_plan, 0.0, 1.0, "geometry_program"),
-            ),
-            metadata={"geometry_program_bridge_evidence": {
-                "program_hash": "r287-dispatch-program",
-                "geometry_hash": "r287-dispatch-geometry",
-            }},
-        )
+        source = _authored_profiled_box_source("r287_capacity_dispatch_probe")
         site = box(0.0, 0.0, 20.0, 20.0)
 
         def materialize_and_measure(

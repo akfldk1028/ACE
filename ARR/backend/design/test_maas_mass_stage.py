@@ -180,7 +180,7 @@ def _authored_affine_export_program(
 
 
 class MaasStageHardContractTests(SimpleTestCase):
-    def test_floorwise_legal_fit_allows_underfill_but_rejects_overfill(self):
+    def test_floorwise_legal_fit_uses_legal_plate_not_design_distribution(self):
         from design.maas.geometry_language.source_bridge import (
             _floor_target_fit_is_legal,
         )
@@ -188,13 +188,19 @@ class MaasStageHardContractTests(SimpleTestCase):
         self.assertTrue(
             _floor_target_fit_is_legal(
                 achieved_area_m2=38.192736,
-                target_area_m2=92.638,
+                maximum_legal_area_m2=100.0,
+            )
+        )
+        self.assertTrue(
+            _floor_target_fit_is_legal(
+                achieved_area_m2=92.639,
+                maximum_legal_area_m2=100.0,
             )
         )
         self.assertFalse(
             _floor_target_fit_is_legal(
-                achieved_area_m2=92.639,
-                target_area_m2=92.638,
+                achieved_area_m2=100.001,
+                maximum_legal_area_m2=100.0,
             )
         )
         from design.maas.geometry_language.source_bridge import (
@@ -213,108 +219,39 @@ class MaasStageHardContractTests(SimpleTestCase):
             )
         )
 
-    def test_floorwise_prism_fallback_carries_verified_authority_binding(self):
-        from design.maas.geometry_language.floorwise_visual_projection import (
-            FloorwiseVisualProjection,
-            FloorwiseVisualProjectionCertificate,
-        )
-        from design.maas.geometry_language.projected_visual_contract import (
-            serialize_certified_projected_visual,
-        )
+    def test_floorwise_materializer_rejects_certified_projection_without_surfaces(self):
         from design.maas.geometry_language.source_bridge import (
             materialize_floorwise_legal_source,
         )
 
-        plan = box(-5.0, -5.0, 5.0, 5.0)
-        source = SourceMass(
-            name="bound-prism-fallback",
-            footprint=plan,
-            volumes=(
-                SourceVolume(
-                    "recursive-primary",
-                    plan,
-                    0.0,
-                    1.0,
-                    "geometry_program",
-                ),
-            ),
-            surfaces=(
-                SourceSurface(
-                    role="invalid-pre-csg",
-                    volume_role="recursive-primary",
-                    verb="geometry_program",
-                    surface_type="profiled_recursive_solid_mesh",
-                    vertices_m=(
-                        (0.0, 0.0, 0.0),
-                        (30.0, 0.0, 0.5),
-                        (0.0, 30.0, 1.0),
-                    ),
-                ),
-            ),
-            metadata={"geometry_program_bridge_evidence": {
-                "program_hash": "fallback-program",
-                "geometry_hash": "fallback-geometry",
-            }},
-        )
-        failed = FloorwiseVisualProjection(
+        source = replace(
+            _authored_profiled_box_source("empty-certified-projection"),
             surfaces=(),
-            certificate=FloorwiseVisualProjectionCertificate(
-                status="failed",
-                hard_pass=False,
-                failure_reasons=("forced_for_fallback_contract",),
-            ),
         )
-        with (
-            patch(
-                "design.maas.geometry_language.floorwise_visual_projection."
-                "project_floorwise_visual_mesh",
-                return_value=failed,
-            ),
-            patch(
-                "design.maas.geometry_language.floorwise_section_loft."
-                "loft_floorwise_legal_sections",
-                return_value=failed,
-            ),
-        ):
-            result = materialize_floorwise_legal_source(
-                source,
-                legal_sections=(
-                    box(-6.0, -5.0, 4.0, 5.0),
-                    box(-4.0, -4.0, 6.0, 4.0),
-                ),
-                target_plan_coverage=0.5,
-                floor_capacity_plan_hash="fallback-plan",
-                target_floor_areas_m2=(50.0, 40.0),
-            )
+        failure_sink = []
+        result = materialize_floorwise_legal_source(
+            source,
+            legal_sections=(box(-10.0, -10.0, 10.0, 10.0),),
+            target_plan_coverage=0.5,
+            floor_capacity_plan_hash="empty-projection-plan",
+            target_floor_areas_m2=(50.0,),
+            terminal_failure_sink=failure_sink,
+        )
 
-        self.assertIsNotNone(result)
-        assert result is not None
-        certificate = result.metadata["floorwise_visual_projection"]
-        self.assertTrue(certificate["visible_step_fallback"])
-        for field in (
-            "section_profile_hash",
-            "capacity_volume_hash",
-            "floor_capacity_plan_hash",
-            "matrix4_stack_hash",
-            "exact_surface_payload_hash",
-            "authority_binding_hash",
-        ):
-            self.assertTrue(certificate[field], field)
-        artifact = serialize_certified_projected_visual(result)
+        self.assertIsNone(result)
         self.assertEqual(
-            artifact["projectedVisualPayloadHash"],
-            certificate["exact_surface_payload_hash"],
+            [{
+                "stage": "authored_visual_authority",
+                "evidence": {
+                    "repair_reason": (
+                        "authored_visual_projection_empty_surface_payload"
+                    ),
+                },
+            }],
+            failure_sink,
         )
-        tampered_metadata = deepcopy(result.metadata)
-        tampered_metadata["floorwise_visual_projection"][
-            "capacity_volume_hash"
-        ] = "c" * 64
-        with self.assertRaisesRegex(ValueError, "authority binding mismatch"):
-            serialize_certified_projected_visual(
-                replace(result, metadata=tampered_metadata)
-            )
 
-    def test_floorwise_materializer_uses_csg_section_loft_before_prism_replay(self):
+    def test_floorwise_legal_section_loft_is_withheld_when_authored_paths_fail(self):
         from design.maas.geometry_language.floorwise_visual_projection import (
             FloorwiseVisualProjection,
             FloorwiseVisualProjectionCertificate,
@@ -363,10 +300,18 @@ class MaasStageHardContractTests(SimpleTestCase):
             ),
         )
 
-        with patch(
-            "design.maas.geometry_language.floorwise_visual_projection."
-            "project_floorwise_visual_mesh",
-            return_value=rejected_projection,
+        failure_sink = []
+        with (
+            patch(
+                "design.maas.geometry_language.floorwise_visual_projection."
+                "project_floorwise_visual_mesh",
+                return_value=rejected_projection,
+            ),
+            patch(
+                "design.maas.geometry_language.floorwise_profiled_legal_clip."
+                "clip_profiled_mesh_to_floorwise_legal_solids",
+                return_value=rejected_projection,
+            ),
         ):
             result = materialize_floorwise_legal_source(
                 source,
@@ -374,21 +319,20 @@ class MaasStageHardContractTests(SimpleTestCase):
                 target_plan_coverage=0.5,
                 floor_capacity_plan_hash="csg-loft-plan",
                 target_floor_areas_m2=(50.0, 40.0, 30.0),
+                terminal_failure_sink=failure_sink,
             )
 
-        self.assertIsNotNone(result)
-        assert result is not None
-        certificate = result.metadata["floorwise_visual_projection"]
+        self.assertIsNone(result)
         self.assertEqual(
-            certificate["certification_mode"],
-            "floorwise_csg_section_loft",
+            [{
+                "stage": "authored_visual_authority",
+                "evidence": {
+                    "repair_reason": "authored_profiled_legal_clip_failed",
+                    "failure_reason": "projected_visual_mesh_outside_legal_section",
+                },
+            }],
+            failure_sink,
         )
-        self.assertEqual(
-            certificate["visible_geometry_operation"],
-            "exact_legal_section_profile_loft",
-        )
-        self.assertFalse(certificate["visible_step_fallback"])
-        self.assertNotIn(stale_outside_surface, result.surfaces)
 
     def test_diagnostic_generation_cap_prefers_exact_evaluation_budget(self):
         reached = candidate_generation._diagnostic_generation_cap_reached
@@ -1611,6 +1555,64 @@ class MaasStageHardContractTests(SimpleTestCase):
             ("unproven_authored_mesh_completeness",),
         )
         self.assertEqual(result.surfaces, ())
+
+    def test_complete_export_accepts_kernel_certified_csg_triangle_soup(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            _profiled_export_completeness_failure,
+        )
+
+        valid = _authored_profiled_box_source("kernel-certified-csg")
+        # Manifold CSG can retain redundant coplanar facets in its transport
+        # mesh. The directed-edge shortcut rejects that representation even
+        # when the authoritative manifold kernel certifies the full export.
+        surfaces = (*valid.surfaces, valid.surfaces[0])
+        bridge = valid.metadata["geometry_program_bridge_evidence"]
+        source = replace(
+            valid,
+            surfaces=surfaces,
+            metadata={
+                **valid.metadata,
+                "geometry_program_bridge_evidence": {
+                    **bridge,
+                    "raw_mesh_triangle_count": len(surfaces),
+                    "exported_surface_count": len(surfaces),
+                },
+            },
+        )
+
+        with patch(
+            "design.maas.geometry_language.floorwise_visual_projection."
+            "revalidated_profiled_mesh",
+            return_value=SimpleNamespace(
+                status="compiled",
+                metrics={"closed_solid": True, "manifold": True},
+            ),
+        ) as revalidate:
+            failure = _profiled_export_completeness_failure(source, surfaces)
+
+        self.assertEqual(failure, "")
+        revalidate.assert_called_once()
+
+    def test_morphology_accepts_the_same_kernel_certified_csg_triangle_soup(self):
+        from design.maas.program_massing.morphology import (
+            authoritative_surface_morphology,
+        )
+
+        valid = _authored_profiled_box_source("kernel-certified-morphology")
+        source = replace(valid, surfaces=(*valid.surfaces, valid.surfaces[0]))
+
+        with patch(
+            "design.maas.geometry_language.floorwise_visual_projection."
+            "revalidated_profiled_mesh",
+            return_value=SimpleNamespace(
+                status="compiled",
+                metrics={"closed_solid": True, "manifold": True},
+            ),
+        ):
+            metrics = authoritative_surface_morphology(source)
+
+        self.assertTrue(metrics["hard_pass"])
+        self.assertTrue(metrics["phenotype"])
 
     def test_authored_visual_certifier_fails_closed_for_malformed_vertices(self):
         from design.maas.geometry_language.floorwise_visual_projection import (

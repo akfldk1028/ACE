@@ -49,14 +49,25 @@ class Task6BDeficitDirectedReplenishmentTest(SimpleTestCase):
                 final_vlm_gate={},
             )
 
+        def program_pool(*_args, **kwargs):
+            reviewed, base_vlm_gate = kwargs["base_review_callback"](
+                [candidate]
+            )
+            return reviewed, {
+                "two_phase_base_vlm": {
+                    "active": True,
+                    "base_vlm_gate": base_vlm_gate,
+                },
+            }
+
         with patch.object(
             portfolio_replenishment,
             "_program_pool",
-            return_value=([candidate], {}),
+            side_effect=program_pool,
         ), patch.object(
             portfolio_replenishment,
             "audit_book_base_stage_with_vlm",
-            return_value=([candidate], {}),
+            return_value=([candidate], {"status": "complete"}),
         ), patch.object(
             portfolio_replenishment,
             "evaluate_accepted_sources_downstream",

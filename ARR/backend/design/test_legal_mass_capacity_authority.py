@@ -322,6 +322,34 @@ class LegalMassCapacityAuthorityTests(SimpleTestCase):
                 )
                 self.assertTrue(candidate.metadata["revision_recommended"])
 
+    def test_retained_candidate_carries_final_capacity_evidence_downstream(self):
+        from design.maas.book_language.candidate_generation import (
+            _retain_candidate_with_legal_capacity_authority,
+        )
+
+        measurement = self._capacity_measurement(0.80)
+        projection = {
+            "alternative_id": "spatial_reserve",
+            "hard_pass": True,
+        }
+
+        candidate = _retain_candidate_with_legal_capacity_authority(
+            _CandidateSource(metadata={"candidate": "measured"}),
+            self._shared_floor_contract(),
+            measurement,
+            self._capacity_contract(),
+            capacity_projection=projection,
+        )
+
+        self.assertEqual(
+            candidate.metadata["source_capacity_measurement"],
+            measurement,
+        )
+        self.assertEqual(
+            candidate.metadata["capacity_alternative_projection"],
+            projection,
+        )
+
     def test_candidate_generation_rejects_illegal_floor_evidence(self):
         from design.maas.book_language.candidate_generation import (
             _retain_candidate_with_legal_capacity_authority,

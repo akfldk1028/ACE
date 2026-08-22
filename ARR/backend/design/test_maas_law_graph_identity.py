@@ -108,6 +108,38 @@ def _accepted_probe_row(
 
 
 class MaasLawGraphIdentityTest(TestCase):
+    def test_source_snapshot_uses_intact_korean_regulation_query(self):
+        from design.maas.agents.law_graph_agent.evidence import (
+            collect_law_source_snapshot,
+        )
+
+        captured = {}
+
+        def searcher(query, limit):
+            captured["query"] = query
+            return {
+                "attempted": True,
+                "available": True,
+                "query": query,
+                "results": [{"hang_id": "hang:capacity"}],
+            }
+
+        collect_law_source_snapshot(
+            {"building_type": "neighborhood"},
+            graph_loader=lambda: {
+                "graph_status": {"attempted": True, "available": True},
+                "articles": [{"id": "article:84"}],
+            },
+            searcher=searcher,
+        )
+
+        query = captured["query"]
+        self.assertIn("\uc6a9\uc801\ub960", query)
+        self.assertIn("\uac74\ud3d0\uc728", query)
+        self.assertIn("\uc8fc\ucc28", query)
+        self.assertNotIn("?", query)
+        self.assertNotIn("\ufffd", query)
+
     def test_three_identities_share_one_source_query_but_get_bound_payloads(self):
         from design.maas.agents.law_graph_agent.evidence import (
             canonical_agent_evidence_hash,

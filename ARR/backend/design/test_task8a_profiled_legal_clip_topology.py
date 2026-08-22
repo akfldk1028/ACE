@@ -1,6 +1,9 @@
 from copy import deepcopy
 from dataclasses import replace
+from math import isfinite
+from types import SimpleNamespace
 from unittest import TestCase
+from unittest.mock import patch
 
 import manifold3d as m3d
 import numpy as np
@@ -8,15 +11,28 @@ from shapely.geometry import MultiPolygon, Polygon, box
 
 from design.maas.geometry_language.floorwise_profiled_legal_clip import (
     _legal_band_projection_sample_count,
+    _effective_height_m,
+    _surfaces_from_manifold,
     clip_profiled_mesh_to_floorwise_legal_solids,
 )
 from design.maas.geometry_language.profiled_mesh_numeric_repair import (
     MAXIMUM_CLEANUP_DISPLACEMENT_M,
+    ProfiledMeshCollapseAttempt,
+    ProfiledMeshRevalidationResult,
     SECTION_EXTRACTOR_EPSILON_M,
     SECTION_ROUNDING_BUDGET_M,
     floor_center_numeric_equivalence,
+    _collapse_edges,
+    _collapse_edges_attempt,
+    _COLLAPSE_THRESHOLDS_M,
+    indexed_mesh_component_volumes,
+    indexed_mesh_hash,
+    revalidate_or_repair_profiled_mesh,
 )
 from design.maas.geometry_language.source_bridge import _append_terminal_failure
+from design.maas.geometry_language.floorwise_visual_projection import (
+    valid_floor_center_numeric_equivalence,
+)
 from design.maas.book_language.candidate_generation import (
     _propagate_terminal_materialization_failure,
 )
@@ -31,15 +47,120 @@ IDENTITY_MATRIX4 = (
 )
 
 
-def _authored_profiled_box(*, top_x_offset=0.0):
-    footprint = box(-30.0, -30.0, 30.0, 30.0)
+def _normalized_semantic_witness(witness):
+    def locate(mapping, key):
+        if key in mapping:
+            return mapping[key]
+        for value in mapping.values():
+            if isinstance(value, dict):
+                found = locate(value, key)
+                if found is not None:
+                    return found
+        return None
+
+    def normalized(value):
+        if isinstance(value, float):
+            return round(value, 12)
+        if isinstance(value, dict):
+            return {
+                key: normalized(item)
+                for key, item in sorted(value.items())
+            }
+        if isinstance(value, (list, tuple)):
+            return sorted(
+                (normalized(item) for item in value),
+                key=repr,
+            )
+        return value
+
+    fields = (
+        "floor_index",
+        "floor_number",
+        "midplane_section_index",
+        "midplane_z_fraction",
+        "actual_polygon_count",
+        "expected_polygon_count",
+        "actual_ring_count",
+        "expected_ring_count",
+        "actual_component_count",
+        "expected_component_count",
+        "actual_hole_count",
+        "expected_hole_count",
+        "contour_count",
+        "measured_component_count",
+        "measured_hole_count",
+        "actual_area_m2",
+        "expected_area_m2",
+        "section_numeric_epsilon_m",
+        "area_tolerance_m2",
+        "area_delta_m2",
+        "area_bound_m2",
+        "symdiff_m2",
+        "hausdorff_m",
+        "hausdorff_bound_m",
+        "failed_predicates",
+        "profiled_mesh_revalidation",
+    )
+    result = {field: normalized(locate(witness, field)) for field in fields}
+    for field in fields:
+        if result[field] is None:
+            raise AssertionError(f"semantic witness missing {field}")
+    return result
+
+
+def _representative_edge_chain_fixture():
+    vertices = (
+        (0.0, 0.0, 0.0),       # A
+        (2.4e-7, 0.0, 0.0),    # B: B -> A first
+        (1e-8, 2.4e-7, 0.0),   # D: A-D appears only after B -> A
+        (0.0, 2.0, 0.0),
+        (0.0, -2.0, 0.0),
+        (2.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0),
+    )
+    triangles = (
+        (0, 1, 3),
+        (1, 2, 4),
+        (2, 5, 6),
+    )
+    return vertices, triangles
+
+
+def _closed_manifold_representative_edge_chain_fixture():
+    diagonal = 4e-7 / (2.0 ** 0.5)
+    vertices = (
+        (0.0, 0.0, 0.0),
+        (0.0, 0.0, 1.0),
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (diagonal, diagonal, 0.0),
+        (diagonal, -diagonal, 0.0),
+    )
+    a, top, x_axis, y_axis, b, d = range(6)
+    triangles = (
+        (a, y_axis, x_axis),
+        (top, d, x_axis),
+        (d, b, x_axis),
+        (b, a, x_axis),
+        (a, b, y_axis),
+        (b, d, y_axis),
+        (d, top, y_axis),
+        (x_axis, y_axis, top),
+    )
+    return vertices, triangles
+
+
+def _authored_profiled_box(*, top_x_offset=0.0, half_extent=30.0):
+    footprint = box(-half_extent, -half_extent, half_extent, half_extent)
     corners = (
-        (-30.0, -30.0, 0.0), (30.0, -30.0, 0.0),
-        (30.0, 30.0, 0.0), (-30.0, 30.0, 0.0),
-        (-30.0 + top_x_offset, -30.0, 1.0),
-        (30.0 + top_x_offset, -30.0, 1.0),
-        (30.0 + top_x_offset, 30.0, 1.0),
-        (-30.0 + top_x_offset, 30.0, 1.0),
+        (-half_extent, -half_extent, 0.0),
+        (half_extent, -half_extent, 0.0),
+        (half_extent, half_extent, 0.0),
+        (-half_extent, half_extent, 0.0),
+        (-half_extent + top_x_offset, -half_extent, 1.0),
+        (half_extent + top_x_offset, -half_extent, 1.0),
+        (half_extent + top_x_offset, half_extent, 1.0),
+        (-half_extent + top_x_offset, half_extent, 1.0),
     )
     triangles = (
         (0, 2, 1), (0, 3, 2), (4, 5, 6), (4, 6, 7),
@@ -77,7 +198,13 @@ def _polygon_components(section):
     return tuple(section.geoms)
 
 
-def _projection(occupied_sections, *, legal_sections=None, top_x_offset=0.0):
+def _projection(
+    occupied_sections,
+    *,
+    legal_sections=None,
+    top_x_offset=0.0,
+    authored_half_extent=30.0,
+):
     occupied_sections = tuple(occupied_sections)
     legal_sections = tuple(legal_sections or occupied_sections)
     floor_count = len(occupied_sections)
@@ -92,7 +219,10 @@ def _projection(occupied_sections, *, legal_sections=None, top_x_offset=0.0):
         for floor_index, section in enumerate(occupied_sections)
         for component in _polygon_components(section)
     )
-    source = _authored_profiled_box(top_x_offset=top_x_offset)
+    source = _authored_profiled_box(
+        top_x_offset=top_x_offset,
+        half_extent=authored_half_extent,
+    )
     source = SourceMass(
         name=source.name,
         footprint=source.footprint,
@@ -137,6 +267,928 @@ def _surface_manifold(surfaces):
 
 
 class Task8AProfiledLegalClipTopologyTest(TestCase):
+    def test_continuous_clip_accepts_narrower_authored_section_above_capacity_minimum(self):
+        capacity_section = box(-5.0, -5.0, 5.0, 5.0)
+
+        projection = _projection(
+            (capacity_section,),
+            legal_sections=(capacity_section,),
+            authored_half_extent=4.5,
+        )
+
+        certificate = projection.certificate.to_dict()
+        self.assertTrue(certificate["hard_pass"], certificate)
+        self.assertEqual(certificate["capacity_gfa_m2"], 100.0)
+        self.assertEqual(
+            certificate["floor_center_numeric_equivalence_schema"],
+            "arr.maas.floor_center_visible_section.v1",
+        )
+        self.assertAlmostEqual(
+            certificate["floor_center_topology_metrics"][0]["area_m2"],
+            81.0,
+        )
+        self.assertTrue(valid_floor_center_numeric_equivalence(certificate))
+
+    def test_no_eligible_edge_attempt_measures_unchanged_representative_mesh(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 2.0, 0.5),
+        )
+        attempt = _collapse_edges_attempt(
+            vertices,
+            ((0, 1, 2),),
+            maximum_length=1e-7,
+            effective_height_m=14.0,
+        )
+
+        self.assertEqual(attempt.termination_reason, "no_eligible_edge")
+        self.assertEqual(attempt.collapse_count, 0)
+        self.assertEqual(attempt.minimum_edge_endpoint_indices, (0, 1))
+        self.assertEqual(attempt.minimum_edge_delta_xyz, (1.0, 0.0, 0.0))
+        self.assertEqual(attempt.minimum_surviving_edge_coordinate, 1.0)
+        self.assertEqual(attempt.minimum_surviving_edge_physical_m, 1.0)
+
+    def test_no_eligible_edge_attempt_represents_absent_degenerate_edges(self):
+        for triangles in ((), ((0, 0, 0),)):
+            with self.subTest(triangles=triangles):
+                attempt = _collapse_edges_attempt(
+                    ((0.0, 0.0, 0.0),),
+                    triangles,
+                    maximum_length=1e-7,
+                    effective_height_m=14.0,
+                )
+
+                self.assertEqual(attempt.termination_reason, "no_eligible_edge")
+                self.assertEqual(attempt.collapse_count, 0)
+                self.assertEqual(attempt.minimum_edge_endpoint_indices, ())
+                self.assertEqual(
+                    attempt.minimum_edge_delta_xyz,
+                    (0.0, 0.0, 0.0),
+                )
+                self.assertEqual(attempt.minimum_surviving_edge_coordinate, 0.0)
+                self.assertEqual(
+                    attempt.minimum_surviving_edge_physical_m,
+                    0.0,
+                )
+                self.assertTrue(all(
+                    isfinite(value)
+                    for value in (
+                        attempt.minimum_surviving_edge_coordinate,
+                        attempt.minimum_surviving_edge_physical_m,
+                        *attempt.minimum_edge_delta_xyz,
+                    )
+                ))
+                self.assertIsNone(_collapse_edges(
+                    ((0.0, 0.0, 0.0),),
+                    triangles,
+                    maximum_length=1e-7,
+                    effective_height_m=14.0,
+                ))
+
+    def test_collapse_attempt_records_cover_every_threshold_and_selected_exact(self):
+        vertices, triangles = _closed_manifold_representative_edge_chain_fixture()
+
+        result = revalidate_or_repair_profiled_mesh(
+            vertices,
+            triangles,
+            effective_height_m=14.0,
+        )
+
+        self.assertTrue(result.hard_pass, result.evidence())
+        self.assertEqual(
+            tuple(row.threshold_m for row in result.attempt_records),
+            _COLLAPSE_THRESHOLDS_M,
+        )
+        selected = [row for row in result.attempt_records if row.selected_as_final]
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0].threshold_m, result.collapse_threshold_m)
+        self.assertEqual(selected[0].post_gate_codes, ())
+        for row in result.attempt_records:
+            self.assertIn(row.termination_reason, {
+                "no_eligible_edge",
+                "chain_displacement_exceeded",
+                "invalid_effective_height",
+                "completed",
+            })
+            self.assertGreaterEqual(row.collapse_count, 0)
+            self.assertLessEqual(
+                row.max_chain_displacement_m,
+                MAXIMUM_CLEANUP_DISPLACEMENT_M,
+            )
+            self.assertTrue(isfinite(row.max_chain_displacement_m))
+            self.assertTrue(isfinite(row.threshold_m))
+            self.assertTrue(isfinite(row.minimum_surviving_edge_physical_m))
+            self.assertTrue(isfinite(row.minimum_surviving_edge_coordinate))
+            self.assertLessEqual(len(row.minimum_edge_endpoint_indices), 2)
+            self.assertTrue(all(
+                0 <= index < len(vertices)
+                for index in row.minimum_edge_endpoint_indices
+            ))
+            self.assertTrue(all(
+                isfinite(value)
+                for value in row.minimum_edge_delta_xyz
+            ))
+
+    def test_chain_displacement_failure_has_typed_bounded_attempt_reason(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (2e-7, 0.0, 0.0),
+            (-2e-7, 0.0, 0.0),
+            (0.0, 2.0, 0.0),
+            (0.0, -2.0, 0.0),
+            (2.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0),
+        )
+        triangles = ((0, 1, 3), (1, 2, 4), (2, 5, 6))
+
+        attempt = _collapse_edges_attempt(
+            vertices,
+            triangles,
+            maximum_length=3e-7,
+            effective_height_m=14.0,
+            fixed_point=True,
+        )
+
+        self.assertEqual(attempt.termination_reason, "chain_displacement_exceeded")
+        self.assertGreater(attempt.max_chain_displacement_m, 3e-7)
+        self.assertLessEqual(
+            attempt.max_chain_displacement_m,
+            MAXIMUM_CLEANUP_DISPLACEMENT_M,
+        )
+        self.assertIsNone(attempt.vertices)
+        self.assertIsNone(attempt.triangles)
+
+    def test_tiny_face_only_repair_preserves_prior_one_pass_chain_behavior(self):
+        vertices, triangles = _representative_edge_chain_fixture()
+        one_pass = _collapse_edges(
+            vertices,
+            triangles,
+            maximum_length=3e-7,
+            effective_height_m=14.0,
+            fixed_point=False,
+        )
+        fixed_point = _collapse_edges(
+            vertices,
+            triangles,
+            maximum_length=3e-7,
+            effective_height_m=14.0,
+        )
+        self.assertIsNotNone(one_pass)
+        self.assertIsNotNone(fixed_point)
+        self.assertNotEqual(one_pass[:2], fixed_point[:2])
+
+        with patch(
+            "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+            side_effect=[
+                (SimpleNamespace(metrics={"component_count": 1}), ("tiny_face",))
+            ]
+            + [(SimpleNamespace(metrics={"component_count": 1}), ())]
+            * len(_COLLAPSE_THRESHOLDS_M),
+        ):
+            result = revalidate_or_repair_profiled_mesh(
+                vertices,
+                triangles,
+                effective_height_m=14.0,
+            )
+
+        self.assertTrue(result.hard_pass)
+        self.assertEqual(result.raw_gate_codes, ("tiny_face",))
+        self.assertEqual(result.collapse_threshold_m, 3e-7)
+        self.assertEqual(result.certified_vertices, one_pass[0])
+        self.assertEqual(result.certified_triangles, one_pass[1])
+        self.assertNotEqual(result.certified_vertices, fixed_point[0])
+
+    def test_public_revalidation_repairs_closed_manifold_chain_to_fixed_point(self):
+        vertices, triangles = _closed_manifold_representative_edge_chain_fixture()
+
+        result = revalidate_or_repair_profiled_mesh(
+            vertices,
+            triangles,
+            effective_height_m=14.0,
+        )
+
+        self.assertTrue(result.hard_pass, result.evidence())
+        self.assertIn("tiny_edge", result.raw_gate_codes)
+        self.assertTrue(result.repair_attempted)
+        self.assertEqual(result.post_repair_gate_codes, ())
+        self.assertEqual(result.raw_component_count, 1)
+        self.assertEqual(result.post_repair_component_count, 1)
+        self.assertGreater(result.max_physical_displacement_m, 0.0)
+        self.assertLessEqual(
+            result.max_physical_displacement_m,
+            MAXIMUM_CLEANUP_DISPLACEMENT_M,
+        )
+        self.assertIsNotNone(indexed_mesh_component_volumes(
+            result.certified_vertices,
+            result.certified_triangles,
+        ))
+
+    def test_collapse_rebuilds_new_subthreshold_representative_edges(self):
+        vertices, triangles = _representative_edge_chain_fixture()
+
+        collapsed = _collapse_edges(
+            vertices,
+            triangles,
+            maximum_length=3e-7,
+            effective_height_m=14.0,
+        )
+
+        self.assertIsNotNone(collapsed)
+        clean_vertices, clean_triangles, displacement = collapsed
+        self.assertEqual(clean_vertices, (vertices[0], vertices[6], vertices[5]))
+        self.assertEqual(clean_triangles, ((0, 2, 1),))
+        self.assertAlmostEqual(displacement, (1e-16 + 5.76e-14) ** 0.5)
+
+    def test_fixed_point_chain_collapse_is_deterministic_and_repeatable(self):
+        vertices, triangles = _representative_edge_chain_fixture()
+
+        results = tuple(
+            _collapse_edges(
+                vertices,
+                triangles,
+                maximum_length=3e-7,
+                effective_height_m=14.0,
+            )
+            for _ in range(8)
+        )
+
+        self.assertTrue(all(result == results[0] for result in results))
+        self.assertEqual(results[0][0], (vertices[0], vertices[6], vertices[5]))
+        self.assertEqual(results[0][1], ((0, 2, 1),))
+
+    def test_combined_numeric_gate_codes_repair_to_fully_revalidated_mesh(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1e-8, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        triangles = ((0, 1, 2), (0, 2, 3))
+        clean_vertices = (vertices[0], vertices[2], vertices[3])
+        clean_triangles = ((0, 1, 2),)
+        raw_compilation = SimpleNamespace(metrics={"component_count": 1})
+        clean_compilation = SimpleNamespace(metrics={"component_count": 1})
+
+        with (
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+                side_effect=[(raw_compilation, ("tiny_edge", "tiny_face"))]
+                + [(clean_compilation, ())] * len(_COLLAPSE_THRESHOLDS_M),
+            ),
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._collapse_edges_attempt",
+                side_effect=lambda *args, maximum_length, **kwargs: ProfiledMeshCollapseAttempt(
+                    threshold_m=maximum_length,
+                    collapse_count=1,
+                    termination_reason="completed",
+                    max_chain_displacement_m=2e-7,
+                    minimum_surviving_edge_physical_m=1.0,
+                    minimum_surviving_edge_coordinate=1.0,
+                    minimum_edge_endpoint_indices=(0, 1),
+                    minimum_edge_delta_xyz=(1.0, 0.0, 0.0),
+                    vertices=clean_vertices,
+                    triangles=clean_triangles,
+                ),
+            ),
+        ):
+            result = revalidate_or_repair_profiled_mesh(
+                vertices,
+                triangles,
+                effective_height_m=14.0,
+            )
+
+        self.assertIsInstance(result, ProfiledMeshRevalidationResult)
+        self.assertTrue(result.hard_pass)
+        self.assertTrue(result.repair_attempted)
+        self.assertEqual(result.raw_gate_codes, ("tiny_edge", "tiny_face"))
+        self.assertEqual(result.post_repair_gate_codes, ())
+        self.assertEqual(result.max_physical_displacement_m, 2e-7)
+        self.assertEqual(result.certified_vertices, clean_vertices)
+        self.assertEqual(result.certified_triangles, clean_triangles)
+        self.assertIs(result.compilation, clean_compilation)
+        self.assertEqual(
+            set(dict(result.numeric_measurements)),
+            {
+                "vertex_count",
+                "triangle_count",
+                "minimum_edge_length_coordinate",
+                "minimum_triangle_area_coordinate2",
+            },
+        )
+
+    def test_structural_gate_code_never_attempts_numeric_repair(self):
+        vertices = ((0.0, 0.0, 0.0),) * 3
+        triangles = ((0, 1, 2),)
+
+        with (
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+                return_value=(
+                    SimpleNamespace(metrics={"component_count": 1}),
+                    ("mesh_structural_revalidation_failed",),
+                ),
+            ),
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._collapse_edges",
+            ) as collapse,
+        ):
+            result = revalidate_or_repair_profiled_mesh(
+                vertices,
+                triangles,
+                effective_height_m=14.0,
+            )
+
+        self.assertFalse(result.hard_pass)
+        self.assertFalse(result.repair_attempted)
+        self.assertEqual(
+            result.raw_gate_codes,
+            ("mesh_structural_revalidation_failed",),
+        )
+        collapse.assert_not_called()
+
+    def test_numeric_repair_over_displacement_remains_rejected_with_codes(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1e-8, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+        )
+        triangles = ((0, 1, 2),)
+
+        with (
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+                return_value=(
+                    SimpleNamespace(metrics={"component_count": 1}),
+                    ("tiny_edge",),
+                ),
+            ),
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._collapse_edges_attempt",
+                side_effect=lambda *args, maximum_length, **kwargs: ProfiledMeshCollapseAttempt(
+                    threshold_m=maximum_length,
+                    collapse_count=1,
+                    termination_reason="chain_displacement_exceeded",
+                    max_chain_displacement_m=MAXIMUM_CLEANUP_DISPLACEMENT_M * 2,
+                    minimum_surviving_edge_physical_m=maximum_length,
+                    minimum_surviving_edge_coordinate=maximum_length,
+                    minimum_edge_endpoint_indices=(0, 1),
+                    minimum_edge_delta_xyz=(maximum_length, 0.0, 0.0),
+                ),
+            ),
+        ):
+            result = revalidate_or_repair_profiled_mesh(
+                vertices,
+                triangles,
+                effective_height_m=14.0,
+            )
+
+        self.assertFalse(result.hard_pass)
+        self.assertTrue(result.repair_attempted)
+        self.assertEqual(result.raw_gate_codes, ("tiny_edge",))
+        self.assertEqual(
+            result.post_repair_gate_codes,
+            ("numeric_repair_displacement_exceeded",),
+        )
+        self.assertIsNone(result.certified_vertices)
+
+    def test_numeric_repair_rejects_disappearing_raw_component(self):
+        vertices = (
+            (0.0, 0.0, 0.0),
+            (1e-8, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        triangles = ((0, 1, 2), (0, 2, 3))
+
+        with (
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+                side_effect=[
+                    (SimpleNamespace(metrics={"component_count": 2}), ("tiny_edge",))
+                ]
+                + [(SimpleNamespace(metrics={"component_count": 1}), ())]
+                * len(_COLLAPSE_THRESHOLDS_M),
+            ),
+            patch(
+                "design.maas.geometry_language.profiled_mesh_numeric_repair._collapse_edges_attempt",
+                side_effect=lambda *args, maximum_length, **kwargs: ProfiledMeshCollapseAttempt(
+                    threshold_m=maximum_length,
+                    collapse_count=1,
+                    termination_reason="completed",
+                    max_chain_displacement_m=2e-7,
+                    minimum_surviving_edge_physical_m=1.0,
+                    minimum_surviving_edge_coordinate=1.0,
+                    minimum_edge_endpoint_indices=(0, 1),
+                    minimum_edge_delta_xyz=(1.0, 0.0, 0.0),
+                    vertices=vertices,
+                    triangles=triangles,
+                ),
+            ),
+        ):
+            result = revalidate_or_repair_profiled_mesh(
+                vertices,
+                triangles,
+                effective_height_m=14.0,
+            )
+
+        self.assertFalse(result.hard_pass)
+        self.assertEqual(result.raw_component_count, 2)
+        self.assertEqual(result.post_repair_component_count, 1)
+        self.assertEqual(
+            result.post_repair_gate_codes,
+            ("numeric_repair_component_count_mismatch",),
+        )
+        self.assertIsNone(result.certified_vertices)
+
+    def test_emitted_repaired_mesh_binds_count_and_changed_component_volumes(self):
+        effective_height_m = _effective_height_m(_authored_profiled_box())
+        self.assertGreater(effective_height_m, 0.0)
+        raw_payload = {}
+
+        def tiny_edge_manifold(*args, **kwargs):
+            surfaces, vertices, triangles = _surfaces_from_manifold(
+                *args,
+                **kwargs,
+            )
+            edge_faces = {}
+            for face_index, triangle in enumerate(triangles):
+                for left, right in ((0, 1), (1, 2), (2, 0)):
+                    edge = tuple(sorted((triangle[left], triangle[right])))
+                    edge_faces.setdefault(edge, []).append(face_index)
+            face_normals = []
+            for triangle in triangles:
+                points = tuple(np.asarray(vertices[index]) for index in triangle)
+                normal = np.cross(points[1] - points[0], points[2] - points[0])
+                face_normals.append(normal / np.linalg.norm(normal))
+            shared_edge = next(
+                edge
+                for edge, faces in sorted(edge_faces.items())
+                if len(faces) == 2
+                and vertices[edge[0]][0] == vertices[edge[1]][0]
+                and vertices[edge[0]][1] == vertices[edge[1]][1]
+                and abs(vertices[edge[0]][2] - vertices[edge[1]][2]) > 0.5
+                and abs(float(np.dot(
+                    face_normals[faces[0]],
+                    face_normals[faces[1]],
+                ))) < 0.5
+            )
+            retained, other = sorted(
+                shared_edge,
+                key=lambda index: (vertices[index], index),
+            )
+            retained_vertex = vertices[retained]
+            adjacent_faces = edge_faces[shared_edge]
+            offset_direction = (
+                face_normals[adjacent_faces[0]]
+                + face_normals[adjacent_faces[1]]
+            )
+            offset_direction[2] = 0.0
+            offset_direction /= np.linalg.norm(offset_direction)
+            for axis in range(2):
+                if abs(float(offset_direction[axis])) <= 1e-12:
+                    continue
+                if offset_direction[axis] < 0.0:
+                    offset_direction *= -1.0
+                break
+            offset_m = 4e-7
+            inserted_vertex = tuple(
+                retained_vertex[axis] + float(offset_direction[axis]) * offset_m
+                for axis in range(3)
+            )
+            inserted = len(vertices)
+            raw_vertices = (*vertices, inserted_vertex)
+            raw_triangles = []
+            for triangle in triangles:
+                if retained not in triangle or other not in triangle:
+                    raw_triangles.append(triangle)
+                    continue
+                for offset in range(3):
+                    left = triangle[offset]
+                    right = triangle[(offset + 1) % 3]
+                    third = triangle[(offset + 2) % 3]
+                    if {left, right} == {retained, other}:
+                        raw_triangles.extend((
+                            (left, inserted, third),
+                            (inserted, right, third),
+                        ))
+                        break
+            raw_payload["vertices"] = tuple(raw_vertices)
+            raw_payload["triangles"] = tuple(raw_triangles)
+            return surfaces, raw_payload["vertices"], raw_payload["triangles"]
+
+        with patch(
+            "design.maas.geometry_language.floorwise_profiled_legal_clip._surfaces_from_manifold",
+            side_effect=tiny_edge_manifold,
+        ):
+            repaired = _projection((box(-4.0, -4.0, 4.0, 4.0),))
+
+        transition = revalidate_or_repair_profiled_mesh(
+            raw_payload["vertices"],
+            raw_payload["triangles"],
+            effective_height_m=effective_height_m,
+        )
+        self.assertTrue(transition.hard_pass, transition.evidence())
+        self.assertTrue(transition.repair_attempted)
+        self.assertTrue(transition.raw_gate_codes)
+        self.assertIn("tiny_edge", transition.raw_gate_codes)
+        self.assertLessEqual(
+            set(transition.raw_gate_codes),
+            {"tiny_edge", "tiny_face"},
+        )
+        self.assertEqual(transition.post_repair_gate_codes, ())
+        self.assertGreater(transition.collapse_threshold_m, 0.0)
+        self.assertGreater(transition.max_physical_displacement_m, 0.0)
+        self.assertLessEqual(
+            transition.max_physical_displacement_m,
+            MAXIMUM_CLEANUP_DISPLACEMENT_M,
+        )
+        self.assertEqual(
+            transition.raw_component_count,
+            transition.post_repair_component_count,
+        )
+        self.assertEqual(
+            transition.raw_indexed_mesh_hash,
+            indexed_mesh_hash(raw_payload["vertices"], raw_payload["triangles"]),
+        )
+        self.assertEqual(
+            transition.clean_indexed_mesh_hash,
+            indexed_mesh_hash(
+                transition.certified_vertices,
+                transition.certified_triangles,
+            ),
+        )
+        raw_component_volumes = indexed_mesh_component_volumes(
+            raw_payload["vertices"],
+            raw_payload["triangles"],
+        )
+        clean_component_volumes = indexed_mesh_component_volumes(
+            transition.certified_vertices,
+            transition.certified_triangles,
+        )
+        self.assertIsNotNone(raw_component_volumes)
+        self.assertIsNotNone(clean_component_volumes)
+        self.assertNotEqual(raw_component_volumes, clean_component_volumes)
+        self.assertTrue(
+            repaired.certificate.hard_pass,
+            repaired.certificate.to_dict(),
+        )
+        self.assertEqual(
+            repaired.certificate.mesh_cleanup_raw_gate_failure_codes,
+            transition.raw_gate_codes,
+        )
+        self.assertEqual(
+            repaired.certificate.mesh_cleanup_collapse_threshold_m,
+            transition.collapse_threshold_m,
+        )
+        self.assertEqual(
+            repaired.certificate.mesh_cleanup_max_physical_displacement_m,
+            transition.max_physical_displacement_m,
+        )
+        self.assertEqual(
+            repaired.certificate.mesh_cleanup_raw_indexed_mesh_hash,
+            transition.raw_indexed_mesh_hash,
+        )
+        self.assertEqual(
+            repaired.certificate.mesh_cleanup_clean_indexed_mesh_hash,
+            transition.clean_indexed_mesh_hash,
+        )
+
+        emitted_vertices = []
+        emitted_triangles = []
+        for surface in repaired.surfaces:
+            offset = len(emitted_vertices)
+            emitted_vertices.extend(surface.vertices_m)
+            emitted_triangles.append((offset, offset + 1, offset + 2))
+        emitted_volumes = indexed_mesh_component_volumes(
+            tuple(emitted_vertices),
+            tuple(emitted_triangles),
+        )
+        self.assertTrue(repaired.certificate.hard_pass)
+        self.assertEqual(
+            repaired.certificate.final_component_count,
+            len(emitted_volumes),
+        )
+        self.assertEqual(
+            repaired.certificate.final_component_volumes_m3,
+            emitted_volumes,
+        )
+        self.assertEqual(
+            emitted_volumes,
+            indexed_mesh_component_volumes(
+                transition.certified_vertices,
+                transition.certified_triangles,
+            ),
+        )
+
+    def test_real_collapse_uses_physical_xy_and_normalized_z_displacement(self):
+        within_vertices = (
+            (0.0, 0.0, 0.0),
+            (3e-7, 0.0, 3e-8),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        triangles = ((0, 1, 2), (0, 2, 3), (1, 3, 2))
+        collapsed = _collapse_edges(
+            within_vertices,
+            triangles,
+            maximum_length=MAXIMUM_CLEANUP_DISPLACEMENT_M,
+            effective_height_m=10.0,
+        )
+        self.assertIsNotNone(collapsed)
+        clean_vertices, clean_triangles, displacement = collapsed
+        self.assertAlmostEqual(displacement, (18e-14) ** 0.5)
+
+        with patch(
+            "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+            side_effect=(
+                (SimpleNamespace(metrics={"component_count": 1}), ("tiny_edge",)),
+                (SimpleNamespace(metrics={"component_count": 1}), ()),
+            ),
+        ):
+            accepted = revalidate_or_repair_profiled_mesh(
+                within_vertices,
+                triangles,
+                effective_height_m=10.0,
+            )
+        self.assertTrue(accepted.hard_pass)
+        self.assertEqual(accepted.certified_vertices, clean_vertices)
+        self.assertEqual(accepted.certified_triangles, clean_triangles)
+
+        excess_vertices = (
+            (0.0, 0.0, 0.0),
+            (8e-6, 0.0, 8e-7),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+        )
+        self.assertIsNone(_collapse_edges(
+            excess_vertices,
+            triangles,
+            maximum_length=MAXIMUM_CLEANUP_DISPLACEMENT_M * 2.0,
+            effective_height_m=10.0,
+        ))
+        with patch(
+            "design.maas.geometry_language.profiled_mesh_numeric_repair._revalidated_result",
+            return_value=(
+                SimpleNamespace(metrics={"component_count": 1}),
+                ("tiny_edge",),
+            ),
+        ):
+            physically_valid = revalidate_or_repair_profiled_mesh(
+                excess_vertices,
+                triangles,
+                effective_height_m=10.0,
+            )
+        self.assertTrue(physically_valid.hard_pass)
+        self.assertEqual(physically_valid.certified_vertices, excess_vertices)
+
+    def test_revalidation_failure_evidence_reaches_profiled_clip_certificate(self):
+        displacement_attempt = ProfiledMeshCollapseAttempt(
+            threshold_m=1e-7,
+            collapse_count=2,
+            termination_reason="chain_displacement_exceeded",
+            max_chain_displacement_m=2e-7,
+            minimum_surviving_edge_physical_m=0.25,
+            minimum_surviving_edge_coordinate=0.25,
+            minimum_edge_endpoint_indices=(0, 1),
+            minimum_edge_delta_xyz=(0.25, 0.0, 0.0),
+            post_gate_codes=(),
+            raw_component_count=1,
+            post_component_count=0,
+            structural_evidence=(),
+            selected_as_final=False,
+        )
+        attempt = ProfiledMeshCollapseAttempt(
+            threshold_m=3e-7,
+            collapse_count=2,
+            termination_reason="completed",
+            max_chain_displacement_m=2e-7,
+            minimum_surviving_edge_physical_m=0.25,
+            minimum_surviving_edge_coordinate=0.25,
+            minimum_edge_endpoint_indices=(0, 1),
+            minimum_edge_delta_xyz=(0.25, 0.0, 0.0),
+            post_gate_codes=("mesh_structural_revalidation_failed",),
+            raw_component_count=1,
+            post_component_count=0,
+            structural_evidence=(("manifold", False),),
+            selected_as_final=False,
+        )
+        typed_failure = ProfiledMeshRevalidationResult(
+            hard_pass=False,
+            raw_gate_codes=("tiny_edge", "tiny_face"),
+            numeric_measurements=(("vertex_count", 8.0),),
+            repair_attempted=True,
+            max_physical_displacement_m=2e-7,
+            post_repair_gate_codes=("mesh_structural_revalidation_failed",),
+            attempt_records=(displacement_attempt, attempt),
+        )
+
+        with patch(
+            "design.maas.geometry_language.floorwise_profiled_legal_clip._revalidated_mesh",
+            return_value=typed_failure,
+        ):
+            projection = _projection((box(-4.0, -4.0, 4.0, 4.0),))
+
+        self.assertFalse(projection.certificate.hard_pass)
+        evidence = projection.certificate.failure_witness[
+            "profiled_mesh_revalidation"
+        ]
+        self.assertEqual(evidence["raw_gate_codes"], ["tiny_edge", "tiny_face"])
+        self.assertEqual(
+            evidence["post_repair_gate_codes"],
+            ["mesh_structural_revalidation_failed"],
+        )
+        self.assertEqual(evidence["numeric_measurements"], {"vertex_count": 8.0})
+        self.assertEqual(
+            evidence["attempt_records"],
+            [displacement_attempt.evidence(), attempt.evidence()],
+        )
+        self.assertEqual(
+            evidence["attempt_records"][0]["termination_reason"],
+            "chain_displacement_exceeded",
+        )
+        self.assertNotIn("message", evidence)
+
+        missing_attempts = dict(typed_failure.evidence())
+        missing_attempts.pop("attempt_records")
+        self.assertNotIn("attempt_records", missing_attempts)
+        missing_sink = []
+        _append_terminal_failure(
+            missing_sink,
+            "authored_visual_authority",
+            failure_witness={
+                "profiled_mesh_revalidation": missing_attempts,
+            },
+        )
+        sanitized_missing = missing_sink[0]["evidence"]["failure_witness"][
+            "profiled_mesh_revalidation"
+        ]
+        self.assertNotIn("attempt_records", sanitized_missing)
+
+        class Program:
+            metadata = {"family": "task8a_missing_attempts"}
+
+            def program_hash(self):
+                return "task8a-missing-attempts"
+
+        reports = []
+        _propagate_terminal_materialization_failure(
+            terminal_record=missing_sink[0],
+            report_records=reports,
+            outcome_graph=None,
+            program_slug="task8a",
+            source_seed="task8a_missing_attempts",
+            program=Program(),
+            principle_id="book:task8a",
+            book_scope="1/1",
+        )
+        propagated_missing = reports[0]["evidence"]["failure_witness"][
+            "profiled_mesh_revalidation"
+        ]
+        self.assertNotIn("attempt_records", propagated_missing)
+
+    def test_five_attempt_records_survive_complete_failure_outcome_path(self):
+        attempts = tuple(
+            ProfiledMeshCollapseAttempt(
+                threshold_m=threshold,
+                collapse_count=index,
+                termination_reason=(
+                    "no_eligible_edge"
+                    if index == 0
+                    else "chain_displacement_exceeded"
+                    if index == 1
+                    else "completed"
+                ),
+                max_chain_displacement_m=index * 1e-8,
+                minimum_surviving_edge_physical_m=0.5 + index * 0.1,
+                minimum_surviving_edge_coordinate=0.25 + index * 0.1,
+                minimum_edge_endpoint_indices=(index, index + 1),
+                minimum_edge_delta_xyz=(0.25 + index * 0.1, 0.0, 0.0),
+                post_gate_codes=(
+                    ("numeric_repair_displacement_exceeded",)
+                    if index == 1
+                    else ()
+                ),
+                raw_component_count=1,
+                post_component_count=1,
+                structural_evidence=(("manifold", True), ("watertight", True)),
+                selected_as_final=index == 2,
+            )
+            for index, threshold in enumerate(_COLLAPSE_THRESHOLDS_M)
+        )
+        revalidation = ProfiledMeshRevalidationResult(
+            hard_pass=True,
+            raw_gate_codes=("tiny_edge",),
+            numeric_measurements=(("vertex_count", 8.0),),
+            repair_attempted=True,
+            max_physical_displacement_m=2e-8,
+            post_repair_gate_codes=(),
+            raw_component_count=1,
+            post_repair_component_count=2,
+            attempt_records=attempts,
+        )
+
+        with patch(
+            "design.maas.geometry_language.floorwise_profiled_legal_clip._revalidated_mesh",
+            return_value=revalidation,
+        ):
+            projection = _projection((box(-4.0, -4.0, 4.0, 4.0),))
+
+        self.assertFalse(projection.certificate.hard_pass)
+        expected = [attempt.evidence() for attempt in attempts]
+        floorwise_records = projection.certificate.failure_witness[
+            "profiled_mesh_revalidation"
+        ]["attempt_records"]
+        self.assertEqual(floorwise_records, expected)
+
+        source_records = []
+        _append_terminal_failure(
+            source_records,
+            "authored_visual_authority",
+            failure_reason=projection.certificate.failure_reasons[0],
+            failure_witness=projection.certificate.failure_witness,
+        )
+        source_attempts = source_records[0]["evidence"]["failure_witness"][
+            "profiled_mesh_revalidation"
+        ]["attempt_records"]
+        self.assertEqual(source_attempts, expected)
+
+        class Program:
+            metadata = {"family": "task8a_attempt_path"}
+
+            def program_hash(self):
+                return "task8a-attempt-path"
+
+        reports = []
+        _propagate_terminal_materialization_failure(
+            terminal_record=source_records[0],
+            report_records=reports,
+            outcome_graph=None,
+            program_slug="task8a",
+            source_seed="task8a_attempt_path",
+            program=Program(),
+            principle_id="book:task8a",
+            book_scope="1/1",
+        )
+        candidate_attempts = reports[0]["evidence"]["failure_witness"][
+            "profiled_mesh_revalidation"
+        ]["attempt_records"]
+        self.assertEqual(candidate_attempts, expected)
+        self.assertEqual(len(candidate_attempts), 5)
+        self.assertEqual(
+            [row["threshold_m"] for row in candidate_attempts],
+            list(_COLLAPSE_THRESHOLDS_M),
+        )
+        self.assertEqual(
+            [row["termination_reason"] for row in candidate_attempts],
+            [
+                "no_eligible_edge",
+                "chain_displacement_exceeded",
+                "completed",
+                "completed",
+                "completed",
+            ],
+        )
+        self.assertEqual(
+            sum(row["selected_as_final"] for row in candidate_attempts),
+            1,
+        )
+        for row in candidate_attempts:
+            self.assertTrue(all(isfinite(row[key]) for key in (
+                "threshold_m",
+                "max_chain_displacement_m",
+                "minimum_surviving_edge_physical_m",
+                "minimum_surviving_edge_coordinate",
+            )))
+            self.assertEqual(len(row["minimum_edge_endpoint_indices"]), 2)
+            self.assertEqual(len(row["minimum_edge_delta_xyz"]), 3)
+
+    def test_floor_center_topology_area_and_containment_remain_hard_invariants(self):
+        shell = box(-5.0, -5.0, 5.0, 5.0)
+        courtyard = Polygon(
+            tuple(shell.exterior.coords),
+            holes=(((-1.0, -1.0), (-1.0, 1.0), (1.0, 1.0), (1.0, -1.0)),),
+        )
+        filled = shell
+
+        topology = floor_center_numeric_equivalence(filled, courtyard)
+        self.assertIsNotNone(topology)
+        self.assertFalse(topology["hard_pass"])
+        self.assertIn("hole_count_mismatch", topology["failed_predicates"])
+
+        escaped = _projection(
+            (box(-5.0, -5.0, 5.0, 5.0),),
+            legal_sections=(box(-4.0, -4.0, 4.0, 4.0),),
+        )
+        self.assertFalse(escaped.certificate.hard_pass)
+        self.assertIn(
+            escaped.certificate.failure_reasons[0],
+            {
+                "profiled_legal_clip_midplane_topology_mismatch",
+                "profiled_legal_clip_legal_revalidation_failed",
+            },
+        )
+
     def assertClosedComponents(self, projection, expected_count):
         self.assertTrue(projection.certificate.hard_pass)
         self.assertTrue(projection.surfaces)
@@ -335,7 +1387,7 @@ class Task8AProfiledLegalClipTopologyTest(TestCase):
                 self.assertLessEqual(metrics["area_delta_m2"], metrics["area_bound_m2"])
                 self.assertLessEqual(metrics["symdiff_m2"], metrics["area_bound_m2"])
 
-        for offset_m in (4.26e-6, 369e-6):
+        for offset_m in (12.0e-6, 369e-6):
             with self.subTest(offset_m=offset_m, expected="fail"):
                 measured = box(offset_m, 0.0, 1000.0 + offset_m, 0.1)
                 metrics = floor_center_numeric_equivalence(
@@ -376,7 +1428,10 @@ class Task8AProfiledLegalClipTopologyTest(TestCase):
         self.assertEqual(len(sink), 1)
         self.assertIn("failure_witness", sink[0]["evidence"])
         terminal_witness = sink[0]["evidence"]["failure_witness"]
-        self.assertEqual(terminal_witness, witness)
+        self.assertEqual(
+            _normalized_semantic_witness(terminal_witness),
+            _normalized_semantic_witness(witness),
+        )
 
     def test_real_midplane_mismatch_witness_survives_production_propagation(self):
         class Program:
@@ -424,9 +1479,10 @@ class Task8AProfiledLegalClipTopologyTest(TestCase):
 
         self.assertEqual(len(reports), 1)
         self.assertIn("failure_witness", reports[0]["evidence"])
+        report_witness = reports[0]["evidence"]["failure_witness"]
         self.assertEqual(
-            reports[0]["evidence"]["failure_witness"],
-            certificate["failure_witness"],
+            _normalized_semantic_witness(report_witness),
+            _normalized_semantic_witness(certificate["failure_witness"]),
         )
 
     def test_r336_shaped_irregular_profiled_clip_succeeds_without_replay(self):

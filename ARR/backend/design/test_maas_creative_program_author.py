@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
+from design.maas import creative_program_author
 from design.maas.creative_floor_portfolio import (
     build_creative_floor_portfolio,
 )
 from design.maas.creative_program_author import (
+    CreativeAuthoredProgram,
     authored_programs_from_payload,
+    normalize_authored_programs,
 )
 from design.maas.geometry_language.programs import GeometryProgramBuilder
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
@@ -36,6 +42,144 @@ def _authored_unitbox_program():
 
 
 class CreativeProgramAuthorTests(SimpleTestCase):
+    def test_cached_authored_program_lowers_affine_shorthands(self):
+        program = GeometryProgram(
+            nodes=(
+                GeometryNode(
+                    "unit",
+                    "primitive",
+                    "box",
+                    parameters={
+                        "width": 1.0,
+                        "depth": 1.0,
+                        "height": 1.0,
+                    },
+                ),
+                GeometryNode(
+                    "bar",
+                    "transform",
+                    "scale",
+                    inputs=("unit",),
+                    parameters={"vector": [2.8, 0.62, 0.48]},
+                    semantic_role="base_seed",
+                ),
+            ),
+            root_id="bar",
+            name="cached_affine_shorthand",
+        )
+        cached = CreativeAuthoredProgram(
+            program=program,
+            author_evidence={"cache_hit": True},
+        )
+
+        normalized = normalize_authored_programs((cached,))[0]
+
+        self.assertEqual(normalized.author_evidence, {"cache_hit": True})
+        self.assertEqual(
+            [node.operator for node in normalized.program.topological_nodes()],
+            ["box", "matrix4"],
+        )
+        self.assertEqual(
+            normalized.program.metadata["affine_authority"],
+            "explicit_matrix4",
+        )
+
+    def _accepted_cache_programs(
+        self,
+    ) -> tuple[GeometryProgram, GeometryProgram]:
+        first = _authored_unitbox_program()
+        second_builder = GeometryProgramBuilder(
+            "llm_authored_cut_corner_mass"
+        )
+        second_body = second_builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        second_root = second_builder.add(
+            "macro",
+            "cut_corner",
+            inputs=(second_body,),
+            parameters={"corner": "ne", "ratio": 0.24},
+        )
+        second = second_builder.build(
+            second_root,
+            author_provider="test_structured_llm",
+            author_model="test-model",
+            author_response_id="response-002",
+            author_prompt_contract="typed_ast_test",
+        )
+        return first, second
+
+    def _write_accepted_cache(
+        self,
+        cache_root: Path,
+        programs: tuple[GeometryProgram, ...],
+    ) -> None:
+        cache_root.mkdir(parents=True, exist_ok=True)
+        (cache_root / "accepted.json").write_text(
+            json.dumps({
+                "cache_schema_version": (
+                    "arr.maas.geometry_llm_author_cache.v3"
+                ),
+                "validation_status": "accepted",
+                "model": "cache-pool-model",
+                "response_id": "resp-cache-pool",
+                "compiled_programs": [
+                    program.to_dict() for program in programs
+                ],
+            }),
+            encoding="utf-8",
+        )
+
+    def test_cache_scan_returns_available_unique_programs_without_exact_count(
+        self,
+    ):
+        with TemporaryDirectory() as temporary:
+            cache_root = Path(temporary)
+            first, second = self._accepted_cache_programs()
+            self._write_accepted_cache(
+                cache_root,
+                (first, second),
+            )
+
+            programs = creative_program_author.cached_authored_programs(
+                cache_root,
+                limit=20,
+            )
+
+        self.assertEqual(len(programs), 2)
+        self.assertTrue(
+            all(item.author_evidence["cache_hit"] for item in programs)
+        )
+
+    def test_cache_scan_skips_legacy_program_without_unitbox_authority(self):
+        legacy = GeometryProgram(
+            nodes=(GeometryNode(
+                "legacy_cylinder",
+                "primitive",
+                "cylinder",
+                parameters={"radius": 1.0, "height": 1.0},
+            ),),
+            root_id="legacy_cylinder",
+            name="legacy_non_unitbox_cache_record",
+        )
+        accepted = _authored_unitbox_program()
+        with TemporaryDirectory() as temporary:
+            cache_root = Path(temporary)
+            self._write_accepted_cache(cache_root, (legacy, accepted))
+
+            programs = creative_program_author.cached_authored_programs(
+                cache_root,
+                limit=20,
+            )
+
+        self.assertEqual(len(programs), 1)
+        self.assertEqual(
+            programs[0].program.metadata["base_volume_authority"],
+            "1/1 UnitBox",
+        )
+
     def test_exact_geometry_program_document_is_a_replayable_author_payload(
         self,
     ):

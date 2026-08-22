@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import replace
 import importlib
 import importlib.util
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -12,8 +13,14 @@ from design.maas.creative_family_registry import (
     balanced_family_schedule,
     registered_creative_recipes,
 )
+from design.maas.creative_book_supply import creative_book_schedule
+from design.maas.creative_program_author import (
+    CreativeAuthoredProgram,
+    cached_authored_programs,
+)
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.programs import GeometryProgramBuilder
 
 
 MODULE = "design.maas.creative_floor_portfolio"
@@ -91,7 +98,7 @@ class CreativeFloorSetIdentityTests(unittest.TestCase):
 
 
 class CreativePortfolioScheduleAuthorityTests(unittest.TestCase):
-    def test_each_scheduled_context_is_built_exactly_once_and_materialized(self):
+    def test_each_scheduled_item_materializes_one_compatible_book_assignment(self):
         module = importlib.import_module(MODULE)
         schedule = balanced_family_schedule(15)
         calls: dict[str, list[CreativeRecipeContext]] = {
@@ -118,8 +125,15 @@ class CreativePortfolioScheduleAuthorityTests(unittest.TestCase):
             )
 
         for item, candidate in zip(schedule, portfolio["candidates"]):
-            self.assertEqual(calls[item.family_id], [item.context])
-        for item, candidate in zip(schedule, portfolio["candidates"]):
+            evidence = candidate["book_language_evidence"]
+            self.assertTrue(evidence["materialized"])
+            self.assertTrue(any(
+                context.variation_index == item.context.variation_index
+                and context.capacity_band == item.context.capacity_band
+                and context.book_principle_id == evidence["principle_id"]
+                and context.book_scope_label == evidence["scope_label"]
+                for context in calls[item.family_id]
+            ))
             self.assertEqual(
                 candidate["variation_index"],
                 item.context.variation_index,
@@ -260,6 +274,198 @@ class ThinDiscPortfolioRegressionTests(unittest.TestCase):
         )
 
 
+class CreativeFloorPortfolioReportTests(unittest.TestCase):
+    @staticmethod
+    def _author_evidence(label: str) -> dict:
+        return {
+            "schema_version": "arr.maas.creative_author_evidence.v1",
+            "source_kind": "llm_authored_geometry_program",
+            "provider": "test_structured_llm",
+            "model": "test-model",
+            "response_id": f"response-{label}",
+            "cache_hit": False,
+            "prompt_contract": "typed_ast_test",
+        }
+
+    def valid_authored(self, label: str) -> CreativeAuthoredProgram:
+        ratios = {"first": 0.18, "second": 0.32, "only": 0.24}
+        builder = GeometryProgramBuilder(f"valid_authored_{label}")
+        body = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        root = builder.add(
+            "macro",
+            "cut_corner",
+            inputs=(body,),
+            parameters={"corner": "ne", "ratio": ratios[label]},
+        )
+        return CreativeAuthoredProgram(
+            program=builder.build(root),
+            author_evidence=self._author_evidence(label),
+        )
+
+    def disconnected_authored(self, label: str) -> CreativeAuthoredProgram:
+        builder = GeometryProgramBuilder(f"disconnected_authored_{label}")
+        body = builder.add(
+            "primitive",
+            "box",
+            parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+        )
+        root = builder.add(
+            "pattern",
+            "linear_array",
+            inputs=(body,),
+            parameters={"count": 2, "vector": [3.0, 0.0, 0.0]},
+        )
+        return CreativeAuthoredProgram(
+            program=builder.build(root),
+            author_evidence=self._author_evidence(label),
+        )
+
+    def same_mesh_different_metadata_programs(
+        self,
+    ) -> tuple[CreativeAuthoredProgram, CreativeAuthoredProgram]:
+        first = self.valid_authored("only")
+        identity = GeometryNode(
+            "metadata_only_identity",
+            "transform",
+            "matrix4",
+            inputs=(first.program.root_id,),
+            parameters={
+                "matrix4": [
+                    [1.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0],
+                ],
+            },
+        )
+        second_program = replace(
+            first.program,
+            nodes=(*first.program.nodes, identity),
+            root_id=identity.id,
+            name="same_mesh_different_family",
+            metadata={
+                **first.program.metadata,
+                "family": "metadata_only_family",
+            },
+        )
+        return first, CreativeAuthoredProgram(
+            program=second_program,
+            author_evidence=self._author_evidence("metadata"),
+        )
+
+    def test_report_counts_each_stage_and_retains_valid_candidates_after_rejections(
+        self,
+    ):
+        module = importlib.import_module(MODULE)
+        report = module.build_creative_floor_portfolio_report(
+            target_count=2,
+            capacity_ceiling_m2=332.322,
+            authored_programs=(
+                self.valid_authored("first"),
+                self.disconnected_authored("invalid"),
+                self.valid_authored("first"),
+                self.valid_authored("second"),
+            ),
+        )
+
+        self.assertEqual(report.status, "complete")
+        self.assertEqual(report.stage_counts["author_input"], 4)
+        self.assertEqual(report.stage_counts["unique_program_hash"], 3)
+        self.assertEqual(report.stage_counts["canonical_compile_pass"], 3)
+        self.assertEqual(report.stage_counts["structural_pass"], 2)
+        self.assertEqual(report.rejection_counts["duplicate_program_hash"], 1)
+        self.assertEqual(report.stage_counts["morphology_retained"], 2)
+        self.assertEqual(len(report.candidates), 2)
+        self.assertEqual(
+            [
+                row["book_language_evidence"]["principle_id"]
+                for row in report.candidates
+            ],
+            [
+                item.principle_id
+                for item in creative_book_schedule(2)
+            ],
+        )
+
+    def test_cached_target_twenty_materializes_distinct_book_lineage(self):
+        module = importlib.import_module(MODULE)
+        cache_root = (
+            Path(__file__).resolve().parents[3]
+            / "docs"
+            / "ai-session-memory"
+            / "reference-corpus"
+            / "geometry-author-cache"
+        )
+        authored = cached_authored_programs(cache_root, limit=60)
+        self.assertGreaterEqual(len(authored), 20)
+
+        report = module.build_creative_floor_portfolio_report(
+            target_count=20,
+            capacity_ceiling_m2=332.322,
+            authored_programs=authored,
+        )
+
+        self.assertEqual(report.status, "complete")
+        self.assertEqual(len(report.candidates), 20)
+        self.assertEqual(
+            report.language_coverage["distinct_principle_count"],
+            20,
+        )
+        self.assertEqual(
+            set(report.language_coverage["scope_counts"]),
+            {"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"},
+        )
+        self.assertTrue(all(
+            row["book_language_evidence"]["materialized"]
+            for row in report.candidates
+        ))
+
+    def test_report_returns_partial_instead_of_raising_when_supply_is_short(
+        self,
+    ):
+        module = importlib.import_module(MODULE)
+        report = module.build_creative_floor_portfolio_report(
+            target_count=3,
+            capacity_ceiling_m2=332.322,
+            authored_programs=(self.valid_authored("only"),),
+        )
+
+        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.stage_counts["morphology_retained"], 1)
+        self.assertEqual(report.deficit, 2)
+
+    def test_distinct_book_principles_materially_separate_same_source_mesh(
+        self,
+    ):
+        module = importlib.import_module(MODULE)
+        report = module.build_creative_floor_portfolio_report(
+            target_count=2,
+            capacity_ceiling_m2=332.322,
+            authored_programs=self.same_mesh_different_metadata_programs(),
+        )
+
+        self.assertEqual(report.status, "complete")
+        self.assertEqual(len(report.candidates), 2)
+        self.assertEqual(
+            len({
+                row["normalized_authored_mesh_hash"]
+                for row in report.candidates
+            }),
+            2,
+        )
+        self.assertEqual(
+            len({
+                row["book_language_evidence"]["principle_id"]
+                for row in report.candidates
+            }),
+            2,
+        )
+
+
 class CreativeFloorPortfolioTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -295,6 +501,32 @@ class CreativeFloorPortfolioTests(unittest.TestCase):
             len({row["geometry_hash"] for row in candidates}),
             100,
         )
+
+    def test_count_hundred_covers_complete_executable_book_grammar(self):
+        assert self.portfolio is not None
+        coverage = self.portfolio["book_language_coverage"]
+
+        self.assertEqual(coverage["base_operative_count"], 30)
+        self.assertEqual(coverage["combination_count"], 20)
+        self.assertEqual(coverage["aggregation_count"], 9)
+        self.assertEqual(coverage["missing_principle_ids"], [])
+        for row in self._candidates():
+            operators = {
+                node["operator"]
+                for node in row["geometry_program"]["nodes"]
+            }
+            self.assertEqual(
+                sum(
+                    node["kind"] == "primitive"
+                    and node["operator"] == "box"
+                    for node in row["geometry_program"]["nodes"]
+                ),
+                1,
+            )
+            self.assertFalse(
+                {"scale", "rotate", "translate", "mirror", "shear"}
+                & operators
+            )
 
     def test_fifteen_named_families_have_balanced_quotas(self):
         family_counts = Counter(row["family"] for row in self._candidates())
@@ -395,25 +627,25 @@ class CreativeFloorPortfolioTests(unittest.TestCase):
                 1,
             )
 
-    def test_every_source_receives_active_book_projection_and_scope_cycle(self):
-        for index, row in enumerate(self._candidates()):
+    def test_every_source_receives_active_book_projection_and_balanced_scopes(self):
+        candidates = self._candidates()
+        scope_counts = Counter()
+        for row in candidates:
             program = row["geometry_program"]
             projection = program["metadata"]["book_recursive_projection"]
             operators = {node["operator"] for node in program["nodes"]}
 
             self.assertIs(projection["active"], True, row["candidate_id"])
             self.assertTrue(projection["ordered_verbs"], row["candidate_id"])
-            self.assertEqual(
-                projection["scope_label"],
-                EXPECTED_BOOK_SCOPES[index % len(EXPECTED_BOOK_SCOPES)],
-                row["candidate_id"],
-            )
+            scope_counts[projection["scope_label"]] += 1
+            evidence = row["book_language_evidence"]
+            self.assertTrue(evidence["materialized"], row["candidate_id"])
+            self.assertTrue(evidence["projected_node_ids"], row["candidate_id"])
             if row["family"] == "stepped":
                 self.assertIn("stepped_mass", operators)
-            else:
-                self.assertNotIn("stack", projection["ordered_verbs"])
-                self.assertNotIn("stack", operators)
-                self.assertNotIn("stepped_mass", operators)
+
+        self.assertEqual(set(scope_counts), set(EXPECTED_BOOK_SCOPES))
+        self.assertLessEqual(max(scope_counts.values()) - min(scope_counts.values()), 1)
 
     def test_every_compiled_mesh_is_connected_watertight_and_manifold(self):
         for row in self._candidates():

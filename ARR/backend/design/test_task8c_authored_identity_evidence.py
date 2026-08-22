@@ -134,7 +134,7 @@ class Task8CAuthoredIdentityEvidenceTests(TestCase):
             terminal_record={
                 "stage": "authored_identity_collapse",
                 "evidence": {
-                    "failure_reason": identity["diagnostic_reasons"][0],
+                    "failure_reason": identity["failure_reasons"][0],
                     "identity_evidence": identity,
                     # Simulate contradictory later diagnostics. These must not
                     # replace the exact-pair decision record.
@@ -155,7 +155,10 @@ class Task8CAuthoredIdentityEvidenceTests(TestCase):
         certified = reports[0]["terminal_certificate_evidence"]["frozen_identity_evidence"]
         self.assertEqual(recorded, frozen)
         self.assertEqual(certified, frozen)
-        self.assertEqual(certified["predicate_version"], "arr.maas.authored_projection_identity_predicate.v3")
+        self.assertEqual(
+            certified["predicate_version"],
+            "arr.maas.authored_projection_identity_predicate.v6_bounded_legal_csg_distortion",
+        )
 
     def test_plural_missing_surfaces_normalizes_to_empty_typed_subreason(self):
         subreason = _authored_visual_authority_subreason(

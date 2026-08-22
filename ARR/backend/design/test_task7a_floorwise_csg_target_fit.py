@@ -11,6 +11,9 @@ from design.maas.geometry_language.source_bridge import (
     materialize_floorwise_legal_source,
 )
 from design.maas.geometry_language.programs import architectural_shape_programs
+from design.maas.geometry_language.floorwise_visual_projection import (
+    FloorwiseVisualProjectionCertificate,
+)
 from design.maas.book_language.candidate_generation import (
     _propagate_terminal_materialization_failure,
 )
@@ -48,7 +51,7 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
         self.assertLessEqual(occupied.area, 80.0)
         self.assertTrue(_floor_target_fit_is_legal(
             achieved_area_m2=occupied.area,
-            target_area_m2=80.0,
+            maximum_legal_area_m2=float(self.irregular_host.area),
         ))
         self.assertTrue(self.irregular_host.buffer(1e-7).covers(occupied))
         self.assertEqual(evidence["fit_mode"], "legal_csg_maximum_lower")
@@ -86,7 +89,7 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
         occupied, _matrix = fitted
         self.assertTrue(_floor_target_fit_is_legal(
             achieved_area_m2=occupied.area,
-            target_area_m2=64.0,
+            maximum_legal_area_m2=float(legal_host.area),
         ))
         self.assertLessEqual(occupied.area, 64.0)
         self.assertTrue(legal_host.buffer(1e-7).covers(occupied))
@@ -143,7 +146,11 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
         self.assertTrue(self.irregular_host.buffer(1e-7).covers(occupied))
         self.assertEqual(evidence["fit_mode"], "legal_csg_maximum_lower")
         self.assertAlmostEqual(evidence["lower_area_m2"], occupied.area)
-        self.assertAlmostEqual(evidence["lower_scale"], 8.0)
+        self.assertLess(evidence["lower_scale"], 8.0)
+        self.assertAlmostEqual(
+            evidence["best_sampled_lower_area_m2"],
+            occupied.area,
+        )
 
     def test_multifloor_materialization_never_overfills_target_total(self):
         targets = (90.0, 72.0)
@@ -190,16 +197,11 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
             (0.0, 0.0, 1.0, 0.0),
             (0.0, 0.0, 0.0, 1.0),
         )
-        certificate = SimpleNamespace(
+        certificate = FloorwiseVisualProjectionCertificate(
             hard_pass=True,
             status="certified",
             certification_mode="matrix4_authored_surface",
             failure_reasons=(),
-            to_dict=lambda: {
-                "hard_pass": True,
-                "status": "certified",
-                "certification_mode": "matrix4_authored_surface",
-            },
         )
         projection = SimpleNamespace(
             certificate=certificate,
@@ -284,24 +286,11 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
             name="task7a-valid-upper-taper",
         )
         self.assertIsNotNone(source)
-        ground = box(1.0, 1.0, 3.0, 2.0)
-        upper = box(1.0, 1.0, 2.0, 1.5)
-        identity_matrix = (
-            (1.0, 0.0, 0.0, 0.0),
-            (0.0, 1.0, 0.0, 0.0),
-            (0.0, 0.0, 1.0, 0.0),
-            (0.0, 0.0, 0.0, 1.0),
-        )
-        certificate = SimpleNamespace(
+        certificate = FloorwiseVisualProjectionCertificate(
             hard_pass=True,
             status="certified",
             certification_mode="matrix4_authored_surface",
             failure_reasons=(),
-            to_dict=lambda: {
-                "hard_pass": True,
-                "status": "certified",
-                "certification_mode": "matrix4_authored_surface",
-            },
         )
         projection = SimpleNamespace(
             certificate=certificate,
@@ -312,9 +301,6 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
         with patch(
             "design.maas.geometry_language.source_bridge._exact_authored_mesh_section",
             return_value=source.footprint,
-        ), patch(
-            "design.maas.geometry_language.source_bridge._matrix_fit_polygon_to_host",
-            side_effect=((ground, identity_matrix), (upper, identity_matrix)),
         ), patch(
             "design.maas.geometry_language.floorwise_visual_projection.project_floorwise_visual_mesh",
             return_value=projection,
@@ -655,11 +641,21 @@ class FloorwiseCsgTargetFitContractTest(SimpleTestCase):
             book_scope="1/4",
         )
 
-        self.assertEqual(report_records, [terminal])
+        self.assertEqual(report_records[0]["stage"], terminal["stage"])
+        bounded_evidence = {
+            "failure_reason": "no_positive_lower_projection",
+            "floor_index": 2,
+        }
+        self.assertEqual(report_records[0]["evidence"], bounded_evidence)
+        self.assertTrue(
+            report_records[0]["terminal_certificate_evidence"][
+                "hard_fail_closed"
+            ] is False
+        )
         observation = graph.observations[0]
         self.assertEqual(
             observation["terminal_materialization_evidence"],
-            terminal["evidence"],
+            bounded_evidence,
         )
         self.assertIsInstance(
             observation["terminal_materialization_evidence"],

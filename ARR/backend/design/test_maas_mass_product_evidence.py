@@ -331,6 +331,23 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
         self.assertEqual(budget["candidate_cap"], 12)
         self.assertEqual(budget["replenishment_cycle_cap"], 1)
 
+    def test_diagnostic_target_five_searches_all_book_scopes_with_bounded_budget(self):
+        from design.maas.book_language.portfolio_benchmark import (
+            diagnostic_generation_budget,
+        )
+
+        budget = diagnostic_generation_budget(5)
+
+        self.assertEqual(
+            budget["scope_labels"],
+            ("1/1", "3/8", "1/2", "1/4", "1/8", "1/16"),
+        )
+        self.assertEqual(budget["parent_variant_indices"], (0,))
+        self.assertEqual(budget["book_probe_count"], 1)
+        self.assertEqual(budget["evaluation_cap"], 60)
+        self.assertEqual(budget["candidate_cap"], 20)
+        self.assertEqual(budget["replenishment_cycle_cap"], 1)
+
     def test_diagnostic_generation_progress_persists_evaluated_and_compiled_counts(self):
         from design.maas.book_language.portfolio_benchmark import (
             persist_diagnostic_generation_progress,
@@ -479,7 +496,9 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
             ),
             surfaces=surfaces,
             metadata={
-                "geometry_authority": "final_floorwise_legal_geometry_program",
+                "geometry_authority": "authored_projected_surface_payload",
+                "legal_proxy_role": "analysis_only_gfa_parking_containment",
+                "floorwise_visual_replay_allowed": False,
                 "geometry_program_bridge_evidence": {
                     "program_hash": self._task3_final_program_hash,
                     "geometry_hash": self._task3_final_geometry_hash,
@@ -1461,7 +1480,7 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
                 self.assertFalse(audit["hard_pass"])
                 self.assertNotEqual(audit.get("status"), "not_required")
                 self.assertIn(
-                    "final_floorwise_legal_geometry_authority_required",
+                    "authored_surface_geometry_authority_required",
                     audit["failures"],
                 )
 
@@ -2066,7 +2085,7 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
             )
         self.assertEqual(
             artifact["projectedVisualCertificate"]["certification_mode"],
-            "final_floorwise_legal_geometry_authority",
+            "authored_projected_surface_authority",
         )
         self.assertEqual(
             artifact["projectedVisualMesh"]["coordinateSpace"],
@@ -2147,7 +2166,7 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
             with self.subTest(artifact_certificate_field=field):
                 with self.assertRaisesRegex(
                     ValueError,
-                    "final floorwise visual authority",
+                    "authored projected surface authority",
                 ):
                     validate_projected_visual_artifact(
                         certificate_tamper,
@@ -2282,7 +2301,7 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
         )
         with self.assertRaisesRegex(
             ValueError,
-            "final floorwise visual authority identity audit failed",
+            "authored projected surface authority identity audit failed",
         ):
             serialize_certified_projected_visual(
                 certified_source,
@@ -2335,7 +2354,7 @@ class MaasMassProductEvidenceTest(SimpleTestCase):
                 )
                 with self.assertRaisesRegex(
                     ValueError,
-                    "final floorwise visual authority identity audit failed",
+                    "authored projected surface authority identity audit failed",
                 ):
                     serialize_certified_projected_visual(
                         source,

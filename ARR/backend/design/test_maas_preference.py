@@ -145,6 +145,52 @@ class MaasPreferenceDistillationTest(TestCase):
             self.assertTrue(output.exists())
             self.assertGreater(output.stat().st_size, 0)
 
+    def test_preview_certifies_complete_mixed_surface_payload(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            projected_surface_visual_hash,
+        )
+        from design.maas.source_geometry.ir import SourceSurface
+
+        feature = self._profiled_preview_feature()
+        feature["properties"]["source_surfaces"].append({
+            "role": "wall:01",
+            "volume_role": "recursive_solid_primary",
+            "verb": "geometry_program",
+            "surface_type": "wall",
+            "vertices_m": [
+                [-5.0, -4.0, 0.0],
+                [5.0, -4.0, 0.0],
+                [5.0, -4.0, 1.0],
+            ],
+            "operator": "extrude",
+            "semantic_patch_id": "wall:01",
+        })
+        surfaces = tuple(
+            SourceSurface(
+                role=record["role"],
+                volume_role=record["volume_role"],
+                verb=record["verb"],
+                surface_type=record["surface_type"],
+                vertices_m=tuple(tuple(vertex) for vertex in record["vertices_m"]),
+                operator=record["operator"],
+                semantic_patch_id=record["semantic_patch_id"],
+            )
+            for record in feature["properties"]["source_surfaces"]
+        )
+        feature["properties"]["floorwise_visual_projection"] = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": projected_surface_visual_hash(surfaces),
+            "projected_surface_count": len(surfaces),
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = feature_preview_png(feature, Path(temp_dir))
+
+            self.assertTrue(output.exists())
+            self.assertGreater(output.stat().st_size, 0)
+
     def test_surface_materialization_preserves_certified_floorwise_projection(self):
         feature = self._profiled_preview_feature()
         certified_surfaces = list(feature["properties"]["source_surfaces"])
@@ -203,6 +249,95 @@ class MaasPreferenceDistillationTest(TestCase):
             feature["properties"]["floorwise_visual_projection"],
             certificate,
         )
+
+    def test_surface_materialization_replaces_stale_summary_certificate(self):
+        feature = self._profiled_preview_feature()
+        feature["properties"].pop("source_surfaces", None)
+        feature["properties"]["floorwise_visual_projection"] = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": "stale-summary-certificate",
+            "projected_surface_count": 999,
+        }
+        source = compile_sequence_to_source_mass(
+            box(0, 0, 30, 18),
+            VerbSequence(
+                "source",
+                "source",
+                (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62})),
+            ),
+        )
+        certificate = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": "current-source-certificate",
+            "projected_surface_count": len(source.surfaces),
+        }
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "floorwise_visual_projection": certificate,
+            },
+        )
+
+        materialize_source_feature_surfaces(feature, source, height=6.0)
+
+        self.assertEqual(
+            feature["properties"]["floorwise_visual_projection"],
+            certificate,
+        )
+
+    def test_surface_materialization_preserves_exact_visual_hash_coordinates(self):
+        from design.maas.geometry_language.floorwise_visual_projection import (
+            projected_surface_visual_hash,
+        )
+
+        feature = self._profiled_preview_feature()
+        feature["properties"].pop("source_surfaces", None)
+        source = compile_sequence_to_source_mass(
+            box(0, 0, 30, 18),
+            VerbSequence(
+                "source",
+                "source",
+                (VerbCall("base", {}), VerbCall("bar", {"axis": "x", "factor": 0.62})),
+            ),
+        )
+        exact_surface = replace(
+            source.surfaces[0],
+            vertices_m=(
+                (0.12345678, 0.23456789, 0.0),
+                (1.12345678, 0.23456789, 0.0),
+                (0.12345678, 1.23456789, 1.0),
+            ),
+        )
+        source = replace(source, surfaces=(exact_surface,))
+        certificate = {
+            "schema_version": "arr.maas.floorwise_visual_projection.v1",
+            "status": "certified",
+            "hard_pass": True,
+            "visual_hash": projected_surface_visual_hash(source.surfaces),
+            "projected_surface_count": 1,
+        }
+        source = replace(
+            source,
+            metadata={
+                **source.metadata,
+                "floorwise_visual_projection": certificate,
+            },
+        )
+
+        materialize_source_feature_surfaces(feature, source, height=6.0)
+
+        self.assertEqual(
+            feature["properties"]["source_surfaces"][0]["vertices_m"][0],
+            [0.12345678, 0.23456789, 0.0],
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = feature_preview_png(feature, Path(temp_dir))
+            self.assertTrue(output.exists())
 
     def test_profiled_program_and_recursive_surfaces_share_opaque_preview_material(self):
         gable_roof = [[0.0, 0.0, 0.5], [5.0, 0.0, 1.0], [5.0, 8.0, 1.0], [0.0, 8.0, 0.5]]

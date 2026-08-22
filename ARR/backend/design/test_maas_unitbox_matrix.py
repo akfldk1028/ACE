@@ -19,6 +19,9 @@ from design.maas.geometry_language.affine_matrix import (
 )
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
+from design.maas.geometry_language.affine_normalization import (
+    normalize_affine_basevolume_program,
+)
 from design.maas.geometry_language.execution_passport import build_mass_execution_passport
 from design.maas.geometry_language.programs import architectural_shape_programs
 from design.maas.geometry_language.source_bridge import (
@@ -43,6 +46,79 @@ def _maximum_vertex_delta(
 
 
 class UnitBoxMatrixContractTest(SimpleTestCase):
+    def test_authored_affine_chain_normalizes_to_explicit_matrix4(self):
+        program = GeometryProgram(
+            nodes=(
+                GeometryNode(
+                    "authored_box",
+                    "primitive",
+                    "box",
+                    parameters={
+                        "width": 1.0,
+                        "depth": 1.0,
+                        "height": 1.0,
+                        "center": True,
+                    },
+                    semantic_role="base_authority",
+                ),
+                GeometryNode(
+                    "authored_scale",
+                    "transform",
+                    "scale",
+                    inputs=("authored_box",),
+                    parameters={"vector": [2.8, 0.62, 0.48]},
+                    semantic_role="base_seed",
+                ),
+                GeometryNode(
+                    "authored_rotate",
+                    "transform",
+                    "rotate",
+                    inputs=("authored_scale",),
+                    parameters={"axis": "z", "angle_degrees": 17.0},
+                    semantic_role="base_orientation",
+                ),
+                GeometryNode(
+                    "authored_bend",
+                    "modifier",
+                    "bend",
+                    inputs=("authored_rotate",),
+                    parameters={
+                        "axis": "y",
+                        "angle_degrees": 18.0,
+                        "subdivisions": 4,
+                    },
+                    semantic_role="architectural_modifier",
+                ),
+            ),
+            root_id="authored_bend",
+            name="authored_affine_chain",
+        )
+
+        expected = compile_geometry_program(program)
+        normalized = normalize_affine_basevolume_program(program)
+        actual = compile_geometry_program(normalized)
+        operators = [node.operator for node in normalized.topological_nodes()]
+
+        self.assertEqual(operators.count("box"), 1)
+        self.assertFalse(
+            {"scale", "rotate", "translate", "mirror", "shear"}
+            & set(operators)
+        )
+        unitbox = next(
+            node for node in normalized.nodes
+            if node.kind == "primitive" and node.operator == "box"
+        )
+        basevolume = next(
+            node for node in normalized.nodes
+            if node.inputs == (unitbox.id,)
+        )
+        self.assertEqual(basevolume.operator, "matrix4")
+        self.assertEqual(
+            basevolume.provenance["composed_matrix4_node_ids"],
+            ["authored_box_matrix4", "authored_scale", "authored_rotate"],
+        )
+        self.assertEqual(actual.geometry_hash, expected.geometry_hash)
+
     def test_affine_inverse_round_trips_and_rejects_singular_matrices(self):
         matrix = compose_matrix4(
             matrix4_for_transform("scale", {"vector": [2.0, 3.0, 4.0]}),

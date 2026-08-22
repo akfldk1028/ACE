@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+from io import StringIO
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -12,6 +13,7 @@ from django.test import SimpleTestCase
 from PIL import Image, ImageChops
 
 from design.maas.geometry_language.programs import GeometryProgramBuilder
+from design.maas.geometry_language.llm_adapter import GeometryAuthorError
 from design.maas import creative_program_author
 from design.maas.agents.elevation_agent.projection import (
     render_mesh_views as render_research_views,
@@ -19,6 +21,147 @@ from design.maas.agents.elevation_agent.projection import (
 
 
 class CreativeFloorPortfolioCommandTests(SimpleTestCase):
+    @staticmethod
+    def write_valid_cache(root: Path, *, count: int) -> Path:
+        programs = []
+        for index in range(count):
+            builder = GeometryProgramBuilder(f"hybrid_cache_{index}")
+            body = builder.add(
+                "primitive",
+                "box",
+                parameters={"width": 1.0, "depth": 1.0, "height": 1.0},
+            )
+            root_id = (
+                builder.add(
+                    "macro",
+                    "cut_corner",
+                    inputs=(body,),
+                    parameters={
+                        "corner": "ne" if index % 2 == 0 else "sw",
+                        "ratio": 0.16 + index * 0.20,
+                    },
+                )
+                if index
+                else body
+            )
+            programs.append(builder.build(root_id))
+        root.mkdir(parents=True, exist_ok=True)
+        (root / "accepted.json").write_text(
+            json.dumps({
+                "cache_schema_version": (
+                    "arr.maas.geometry_llm_author_cache.v3"
+                ),
+                "validation_status": "accepted",
+                "model": "hybrid-cache-model",
+                "response_id": "resp-hybrid-cache",
+                "compiled_programs": [
+                    program.to_dict() for program in programs
+                ],
+            }),
+            encoding="utf-8",
+        )
+        return root
+
+    @staticmethod
+    def geometry_author_429() -> GeometryAuthorError:
+        return GeometryAuthorError(
+            "provider rate limit",
+            diagnostics={
+                "provider_error": {
+                    "category": "rate_limited",
+                    "http_status": 429,
+                },
+            },
+        )
+
+    def test_hybrid_mode_writes_partial_board_and_stage_ledger_after_429(
+        self,
+    ):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cache_root = self.write_valid_cache(root / "cache", count=2)
+            with patch(
+                "design.management.commands.generate_maas_creative_100."
+                "author_geometry_programs_with_openai",
+                side_effect=self.geometry_author_429(),
+            ):
+                call_command(
+                    "generate_maas_creative_100",
+                    count=20,
+                    pnu="1168011800104170004",
+                    output_root=str(root / "out"),
+                    run_id="hybrid-429",
+                    author_mode="hybrid",
+                    author_cache_root=str(cache_root),
+                    max_fresh_author_requests=3,
+                )
+            payload = json.loads(
+                (
+                    root
+                    / "out"
+                    / "hybrid-429"
+                    / "maas-creative-portfolio.json"
+                ).read_text(encoding="utf-8")
+            )
+            ledger = json.loads(
+                (
+                    root
+                    / "out"
+                    / "hybrid-429"
+                    / "maas-prelegal-stage-ledger.json"
+                ).read_text(encoding="utf-8")
+            )
+
+        self.assertEqual(payload["status"], "partial")
+        self.assertEqual(payload["candidate_count"], 2)
+        self.assertEqual(payload["author_supply"]["counts"]["http_429"], 1)
+        self.assertEqual(
+            payload["author_supply"]["counts"][
+                "fresh_transport_deferred"
+            ],
+            2,
+        )
+        self.assertEqual(payload["paid_vlm_request_count"], 0)
+        self.assertEqual(
+            ledger["schema_version"],
+            "arr.maas.prelegal_stage_ledger.v2",
+        )
+        self.assertEqual(
+            ledger["book_language_coverage"]["distinct_principle_count"],
+            2,
+        )
+        self.assertEqual(
+            ledger["affine_authority_counts"],
+            {
+                "candidate_count": 2,
+                "missing_unitbox_count": 0,
+                "missing_matrix4_count": 0,
+                "shorthand_node_count": 0,
+            },
+        )
+
+    def test_hybrid_mode_prints_exact_stage_pass_counts(self):
+        output = StringIO()
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cache_root = self.write_valid_cache(root / "cache", count=2)
+            call_command(
+                "generate_maas_creative_100",
+                count=2,
+                pnu="1168011800104170004",
+                output_root=str(root / "out"),
+                run_id="hybrid-complete",
+                author_mode="hybrid",
+                author_cache_root=str(cache_root),
+                max_fresh_author_requests=3,
+                stdout=output,
+            )
+
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["author_input"], 2)
+        self.assertEqual(result["morphology_retained"], 2)
+        self.assertEqual(result["candidate_count"], 2)
+
     def test_cache_pool_reads_only_unique_accepted_exact_llm_programs(self):
         first_builder = GeometryProgramBuilder("cache_pool_first")
         first_root = first_builder.add(

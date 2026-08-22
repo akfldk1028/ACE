@@ -1587,6 +1587,25 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(layout["provided_accessible_spaces"], 1)
         self.assertEqual(layout["unmet_spaces"], 0)
 
+    def test_parking_layout_candidate_uses_connected_internal_parallel_module(self):
+        layout = generate_parking_layout_candidate(
+            box(0, 0, 14, 5),
+            required_spaces=2,
+            accessible_spaces=0,
+            strategy="ground_surface",
+            road_context={"sharedEdge": [[0, 0], [0, 5]]},
+        )
+
+        self.assertEqual(layout["status"], "pass")
+        self.assertEqual(layout["placement_mode"], "grid_connected_parallel")
+        self.assertEqual(layout["provided_spaces"], 2)
+        self.assertEqual(layout["drive_aisle_clearance"]["required_width_m"], 3.0)
+        self.assertTrue(layout["turning_clearance"]["entrance_connected"])
+        self.assertEqual(
+            layout["turning_clearance"]["frontage_connected_stalls"],
+            2,
+        )
+
     def test_parking_layout_grid_solver_places_connected_drive_cells(self):
         layout = _solve_grid_parking_layout(
             box(0, 0, 14, 11.5),
@@ -1784,6 +1803,24 @@ class MaasLegalVariantsTest(TestCase):
         self.assertIn("parking_envelope_wgs84", strategy)
         self.assertIn("polygon_wgs84", strategy["layout_candidate"]["stalls"][0])
         self.assertEqual(len(strategy["layout_candidate"]["stalls"][0]["polygon_wgs84"][0]), 2)
+
+    def test_parking_strategy_does_not_classify_neighborhood_living_as_residential(self):
+        strategy = infer_parking_strategy(
+            {
+                "footprint_area": 77.0,
+                "floor_area": 249.0,
+                "num_floors": 4,
+                "bcr": 29.0,
+                "required_parking_spaces": 2,
+            },
+            site_area_m2=264.0,
+            building_type="근린생활시설",
+            footprint_utm=box(0, 0, 11, 7),
+            site_utm=box(0, 0, 22, 12),
+        )
+
+        self.assertFalse(strategy["basis"]["residential_like"])
+        self.assertNotIn("mechanical", strategy["strategy_candidates"])
 
     def test_mechanical_parking_unlocks_high_far_mass_stage_without_final_pass(self):
         strategy = infer_parking_strategy(

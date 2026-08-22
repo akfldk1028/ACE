@@ -81,3 +81,62 @@ class ProgramMassingScoringObservabilityTests(TestCase):
             ["circulation_path_disconnected"],
         )
         self.assertEqual(evidence["failure_reasons"], ["circulation_path_disconnected"])
+
+    def test_floorwise_proxy_bands_with_one_role_count_as_one_mass(self) -> None:
+        feature = {
+            "properties": {
+                "num_floors": 4,
+                "mass_volumes": [
+                    {
+                        "role": "neighborhood_primary_active_bar",
+                        "bottom_height": index * 3.5,
+                        "top_height": (index + 1) * 3.5,
+                    }
+                    for index in range(4)
+                ] + [
+                    {
+                        "role": "neighborhood_primary_active_bar",
+                        "bottom_height": 7.0,
+                        "top_height": 10.5,
+                    },
+                    {
+                        "role": "neighborhood_primary_active_bar",
+                        "bottom_height": 10.5,
+                        "top_height": 14.0,
+                    },
+                ],
+                "source_signature": {
+                    "family": "void_notch",
+                    "volume_count": 6,
+                    "coherence_evidence": {
+                        "score": 1.0,
+                        "hard_pass": True,
+                    },
+                },
+            }
+        }
+        profile = {
+            "id": "neighborhood_living",
+            "design_intent": "one connected street building",
+            "target_volume_range": [1, 4],
+            "target_floor_range": [2, 8],
+            "preferred_families": ["void_notch"],
+        }
+        with (
+            patch(
+                "design.maas.program_massing.scoring.resolve_program_profile",
+                return_value=profile,
+            ),
+            patch(
+                "design.maas.program_massing.scoring.attach_program_spatial_evidence",
+                return_value={"architectural_score": 1.0, "hard_pass": True},
+            ),
+        ):
+            evidence = attach_program_massing_evidence(
+                feature,
+                building_type="neighborhood living",
+            )
+
+        self.assertEqual(evidence["volume_count"], 1)
+        self.assertTrue(evidence["volume_hard_pass"])
+        self.assertTrue(evidence["hard_pass"])

@@ -101,7 +101,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
         self.assertEqual(target_three.base_parent_review_budget, 3)
         self.assertEqual(target_three.exact_acceptance_opportunities, 9)
         self.assertEqual(target_three.portfolio_board_reserve, 1)
-        self.assertEqual(target_three.total_provider_request_limit, 16)
+        self.assertEqual(target_three.total_provider_request_limit, 18)
 
     def test_target_five_budget_is_bounded_and_partitioned(self):
         target_three = progressive_mass_run_budget(3)
@@ -119,7 +119,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
             target_five.provider_request_quotas,
             {
                 "author_initial": 3,
-                "author_replenishment": 1,
+                "author_replenishment": 5,
                 "base_candidate": 7,
                 "exact_candidate": 15,
                 "portfolio_board": 1,
@@ -127,7 +127,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
                 "retry": 0,
             },
         )
-        self.assertEqual(target_five.total_provider_request_limit, 27)
+        self.assertEqual(target_five.total_provider_request_limit, 31)
         self.assertEqual(target_five.live_vlm_request_limit, 23)
         self.assertLess(
             target_three.total_provider_request_limit,
@@ -249,7 +249,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
             budget.provider_request_quotas,
             {
                 "author_initial": 2,
-                "author_replenishment": 1,
+                "author_replenishment": 3,
                 "base_candidate": 3,
                 "exact_candidate": 9,
                 "portfolio_board": 1,
@@ -257,7 +257,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
                 "retry": 0,
             },
         )
-        self.assertEqual(budget.total_provider_request_limit, 16)
+        self.assertEqual(budget.total_provider_request_limit, 18)
 
     def test_base_parent_budget_is_bounded_by_configured_top_k(self):
         budget = MassRunBudget(
@@ -282,7 +282,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
                 target_ten.portfolio_board_reserve,
                 target_ten.total_provider_request_limit,
             ),
-            (4, 8, 30, 1, 44),
+            (4, 8, 30, 1, 51),
         )
         self.assertEqual(
             (
@@ -292,7 +292,7 @@ class ProgressiveMassRunBudgetTests(SimpleTestCase):
                 target_twenty.portfolio_board_reserve,
                 target_twenty.total_provider_request_limit,
             ),
-            (7, 8, 60, 1, 77),
+            (7, 8, 60, 1, 84),
         )
 
     def test_replenishment_needs_sixty_percent_runtime_reserve(self):

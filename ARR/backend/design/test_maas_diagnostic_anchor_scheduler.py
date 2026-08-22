@@ -138,6 +138,13 @@ class DiagnosticAnchorSchedulerTests(SimpleTestCase):
         self.assertFalse(
             diagnostic_anchor_schedule_active(target_count=20, **common)
         )
+        self.assertFalse(
+            diagnostic_anchor_schedule_active(
+                target_count=3,
+                llm_author_only=True,
+                **common,
+            )
+        )
 
     def test_only_typed_anchors_select_spatial_reserve_schedule_index(self):
         scheduled = schedule_diagnostic_anchor_parents(self._parents())

@@ -216,6 +216,94 @@ def _finalization_metadata(field, *, floors, target, target_areas):
 
 
 class FinalMeshFloorEvidenceTests(SimpleTestCase):
+    def test_physical_meter_visual_mesh_uses_candidate_height_contract(self):
+        field = _field()
+        program = _program()
+        identity = _identity(program)
+        vertices, triangles = _prism_mesh(z_max=9.0)
+        compilation = CompilationResult(
+            program=program,
+            status="compiled",
+            vertices=vertices,
+            triangles=triangles,
+            metrics={
+                "coordinate_space": "source_footprint_centroid_local_xyz_m",
+                "geometry_authority": "certified_projected_visual_mesh",
+            },
+            geometry_hash=identity["visual_hash"],
+        )
+        certificate = {
+            "status": "certified",
+            "hard_pass": True,
+            "certification_mode": "authored_projected_surface_authority",
+            "projected_surface_coordinate_frame": (
+                "source_footprint_centroid_local_xyz_m"
+            ),
+            "physical_height_m": 9.0,
+            "source_footprint_centroid_utm": [5.0, 5.0],
+            "final_program_hash": identity["program_hash"],
+            "final_geometry_hash": identity["final_geometry_hash"],
+            "visual_hash": identity["visual_hash"],
+        }
+
+        evidence = measure_final_mesh_floor_evidence(
+            certified_compilation=compilation,
+            projected_visual_certificate=certificate,
+            legal_floor_field=field,
+            expected_legal_floor_field_hash=field["legal_floor_field_hash"],
+            candidate_height_m=9.0,
+            candidate_floor_count=3,
+            expected_identity=identity,
+        )
+
+        self.assertEqual(evidence.actual_floor_areas_m2[:3], (100.0,) * 3)
+
+    def test_physical_meter_mesh_accepts_submicron_overlay_without_expanding_area(self):
+        field = _field()
+        program = _program()
+        identity = _identity(program)
+        vertices, triangles = _prism_mesh(
+            x_min=-4.9999994,
+            x_max=5.0000006,
+            z_max=9.0,
+        )
+        compilation = CompilationResult(
+            program=program,
+            status="compiled",
+            vertices=vertices,
+            triangles=triangles,
+            metrics={
+                "coordinate_space": "source_footprint_centroid_local_xyz_m",
+                "geometry_authority": "certified_projected_visual_mesh",
+            },
+            geometry_hash=identity["visual_hash"],
+        )
+        certificate = {
+            "status": "certified",
+            "hard_pass": True,
+            "certification_mode": "authored_projected_surface_authority",
+            "projected_surface_coordinate_frame": (
+                "source_footprint_centroid_local_xyz_m"
+            ),
+            "physical_height_m": 9.0,
+            "source_footprint_centroid_utm": [5.0, 5.0],
+            "final_program_hash": identity["program_hash"],
+            "final_geometry_hash": identity["final_geometry_hash"],
+            "visual_hash": identity["visual_hash"],
+        }
+
+        evidence = measure_final_mesh_floor_evidence(
+            certified_compilation=compilation,
+            projected_visual_certificate=certificate,
+            legal_floor_field=field,
+            expected_legal_floor_field_hash=field["legal_floor_field_hash"],
+            candidate_height_m=9.0,
+            candidate_floor_count=3,
+            expected_identity=identity,
+        )
+
+        self.assertEqual(evidence.actual_floor_areas_m2[:3], (100.0,) * 3)
+
     def test_floor_section_ignores_coplanar_tessellation_faces(self):
         from design.maas.book_language.final_mesh_floor_evidence import (
             _mesh_section_segments,
@@ -844,6 +932,147 @@ class FinalMeshFloorEvidenceTests(SimpleTestCase):
             record["candidate_actual_gfa_stop_certificate"][
                 "candidate_actual_gfa_stop_hash"
             ],
+        )
+
+    def test_final_mesh_stop_preserves_requested_target_but_certifies_accepted_actual_gfa(self):
+        field = _field()
+        program = _program()
+        identity = _identity(program)
+        vertices, triangles = _prism_mesh(z_max=9.0)
+        compilation = CompilationResult(
+            program=program,
+            status="compiled",
+            vertices=vertices,
+            triangles=triangles,
+            metrics={
+                "coordinate_space": (
+                    "source_footprint_centroid_local_xyz_m"
+                ),
+                "geometry_authority": (
+                    "certified_projected_visual_mesh"
+                ),
+            },
+            geometry_hash=identity["visual_hash"],
+        )
+        projected = {
+            "status": "certified",
+            "hard_pass": True,
+            "certification_mode": "authored_projected_surface_authority",
+            "projected_surface_coordinate_frame": (
+                "source_footprint_centroid_local_xyz_m"
+            ),
+            "source_footprint_centroid_utm": [5.0, 5.0],
+            "final_program_hash": identity["program_hash"],
+            "final_geometry_hash": identity["final_geometry_hash"],
+            "visual_hash": identity["visual_hash"],
+            "candidate_floor_count": 3,
+        }
+
+        record = certify_final_mesh_actual_gfa_stop(
+            certified_compilation=compilation,
+            projected_visual_certificate=projected,
+            legal_floor_field=field,
+            expected_legal_floor_field_hash=field[
+                "legal_floor_field_hash"
+            ],
+            expected_pnu=PNU,
+            candidate_height_m=9.0,
+            candidate_floor_count=3,
+            candidate_target_gfa_m2=315.0,
+            candidate_feasible_maximum_gfa_m2=400.0,
+            candidate_minimum_capacity_utilization=0.7,
+            candidate_capacity_resolution_hard_pass=True,
+            expected_identity=identity,
+        )
+
+        self.assertTrue(record["hard_pass"])
+        self.assertEqual(
+            record["requested_candidate_target_gfa_m2"],
+            315.0,
+        )
+        self.assertAlmostEqual(record["achieved_gfa_m2"], 300.0)
+        self.assertAlmostEqual(
+            record["achieved_capacity_utilization"],
+            0.75,
+        )
+        self.assertEqual(
+            record["candidate_actual_gfa_stop_certificate"][
+                "target_gfa_m2"
+            ],
+            record["achieved_gfa_m2"],
+        )
+
+    def test_capacity_underfill_is_advisory_and_fully_evidenced(self):
+        field = _field()
+        program = _program()
+        identity = _identity(program)
+        vertices, triangles = _prism_mesh(z_max=9.0)
+        compilation = CompilationResult(
+            program=program,
+            status="compiled",
+            vertices=vertices,
+            triangles=triangles,
+            metrics={
+                "coordinate_space": (
+                    "source_footprint_centroid_local_xyz_m"
+                ),
+                "geometry_authority": (
+                    "certified_projected_visual_mesh"
+                ),
+            },
+            geometry_hash=identity["visual_hash"],
+        )
+        projected = {
+            "status": "certified",
+            "hard_pass": True,
+            "certification_mode": "authored_projected_surface_authority",
+            "projected_surface_coordinate_frame": (
+                "source_footprint_centroid_local_xyz_m"
+            ),
+            "source_footprint_centroid_utm": [5.0, 5.0],
+            "final_program_hash": identity["program_hash"],
+            "final_geometry_hash": identity["final_geometry_hash"],
+            "visual_hash": identity["visual_hash"],
+            "candidate_floor_count": 3,
+        }
+
+        evidence = certify_final_mesh_actual_gfa_stop(
+            certified_compilation=compilation,
+            projected_visual_certificate=projected,
+            legal_floor_field=field,
+            expected_legal_floor_field_hash=field[
+                    "legal_floor_field_hash"
+                ],
+            expected_pnu=PNU,
+            candidate_height_m=9.0,
+            candidate_floor_count=3,
+            candidate_target_gfa_m2=450.0,
+            candidate_feasible_maximum_gfa_m2=500.0,
+            candidate_minimum_capacity_utilization=0.7,
+            candidate_capacity_resolution_hard_pass=True,
+            expected_identity=identity,
+            )
+
+        # FAR is a statutory ceiling, so yielding less than the requested
+        # capacity band is lawful and must not reject the mass. It may never
+        # pass silently either: the shortfall is carried as evidence, and every
+        # legal maximum stays a hard gate elsewhere.
+        self.assertEqual(
+            evidence["capacity_contract_mode"],
+            "advisory_actual_gfa_underfill",
+        )
+        advisory = evidence["capacity_underfill_advisory"]
+        self.assertIs(advisory["statutory_minimum"], False)
+        self.assertAlmostEqual(
+            advisory["achieved_capacity_utilization"], 0.6
+        )
+        self.assertLess(
+            advisory["achieved_capacity_utilization"],
+            advisory["candidate_minimum_capacity_utilization"],
+        )
+        self.assertEqual(
+            advisory["achieved_gfa_m2"],
+            evidence["achieved_gfa_m2"],
         )
 
     def test_final_mesh_stop_record_rejects_uncertified_target_with_certificate_evidence(self):

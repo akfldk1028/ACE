@@ -11,19 +11,39 @@ from design.maas.book_language.authorship_policy import (
 
 
 class MaasPortfolioContractTests(SimpleTestCase):
-    def test_live_llm_authorship_is_one_bounded_typed_ast_request(self):
+    def test_live_llm_authorship_is_bounded_typed_ast_batches(self):
         requests = bounded_live_llm_synthesis_requests(
             "neighborhood living",
             source_seed_names=("seed_a", "seed_b"),
             target_count=10,
         )
 
-        self.assertEqual(len(requests), 1)
+        self.assertEqual(sum(item["candidate_count"] for item in requests), 90)
+        self.assertTrue(all(item["candidate_count"] <= 24 for item in requests))
         self.assertEqual(requests[0]["source_seed"], "seed_a")
         self.assertTrue(requests[0]["live_llm_author"])
         self.assertTrue(requests[0]["llm_author_only"])
         self.assertFalse(requests[0]["live_vlm_revision"])
-        self.assertEqual(requests[0]["llm_author_count"], 10)
+        required = set(requests[0]["required_architectural_strategies"])
+        self.assertTrue({
+            "interlock",
+            "courtyard",
+            "void_notch",
+            "wing",
+            "terrace_link",
+        }.issubset(required))
+        self.assertEqual(
+            requests[0]["authorship_completion_policy"],
+            "all_selected_llm_authored",
+        )
+        self.assertEqual(
+            requests[0]["legal_authority"],
+            "deterministic_only",
+        )
+        self.assertEqual(
+            requests[0]["shape_reference_policy"],
+            "capability_not_template",
+        )
 
     def test_smoke_reduces_cost_not_alternative_design_minimum(self):
         requirement = resolve_portfolio_requirement(

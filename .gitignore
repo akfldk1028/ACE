@@ -109,3 +109,12 @@ AG/README_INDEX.md
 AG/AG-Research/When_Should_Multi_Agent_Teams_Stop__A_Systematic_Study_of_Termination_Dynamics_Across_14_Coordination_Topologies (5).pdf
 # AG-ACE-BRIDGE removed (2026-02-06, replaced by AG/Auto-Claude)
 Calculator
+
+# Massing run outputs. Every grid writes a folder of PNGs, JSON summaries and
+# error logs under these paths - 6 MB and 169 files at the time this rule was
+# written, all of it reproducible by re-running the command that made it. The
+# corpus (inputs/) and the tools that read these folders stay tracked.
+ARR/backend/tmp_mass_check/*/runs/
+ARR/backend/tmp_mass_check/**/*.err
+ARR/backend/runs/
+ARR/backend/wire.txt

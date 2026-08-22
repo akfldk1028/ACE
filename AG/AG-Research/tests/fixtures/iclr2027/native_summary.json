@@ -1,0 +1,74 @@
+{
+  "schema_version": "arr.maas.book_program_portfolios.v1",
+  "status": "diagnostic_only",
+  "pnu": "1168011800104170004",
+  "site_area_m2": 264.126,
+  "programs": [
+    {
+      "program": "근린생활시설",
+      "slug": "neighborhood",
+      "rows": [
+        {
+          "variant_id": "maas_01",
+          "score": 0.91,
+          "inside_site": true,
+          "program_hard_pass": true,
+          "combined_hard_pass": true,
+          "selected_execution_id": "book:neighborhood:maas_01",
+          "final_legal_program_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "final_legal_geometry_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "candidate_finalization_evidence": {
+            "status": "certified",
+            "hard_pass": true,
+            "candidate_floor_count": 4,
+            "candidate_target_gfa_m2": 232.625,
+            "achieved_gfa_m2": 232.625
+          },
+          "legal_projection": {
+            "evaluated": true,
+            "hard_pass": true,
+            "failure_reasons": [],
+            "volume_retention": 1.0,
+            "geometry_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "law_graph_agent_evidence": {
+            "evidence_id": "evidence:law_graph_agent",
+            "agent": "law_graph_agent",
+            "status": "passed",
+            "summary": "legal evidence bound to PNU and hashes",
+            "identity": {
+              "execution_id": "book:neighborhood:maas_01",
+              "program_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "geometry_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "pnu": "1168011800104170004"
+            },
+            "evidence": {
+              "pnu": "1168011800104170004",
+              "numeric_preflight": {"evaluated": true, "hard_pass": true},
+              "neo4j": {"available": true, "resolved_count": 6, "missing_count": 0}
+            }
+          },
+          "parking_hard_gate": {
+            "evaluated": true,
+            "hard_pass": true,
+            "failure_reasons": [],
+            "required_spaces": 2,
+            "provided_spaces": 2,
+            "geometry_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "semantic_projection_hard_gate": {
+            "hard_pass": true,
+            "accepted_carrier_count": 7,
+            "failures": []
+          },
+          "mass_execution_passport": {
+            "schema_version": "arr.maas.mass_execution_passport.v1",
+            "program_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "final_legal_geometry_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "floor_capacity_plan_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ]
+    }
+  ]
+}

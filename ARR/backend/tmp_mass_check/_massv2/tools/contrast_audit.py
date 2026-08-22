@@ -87,26 +87,30 @@ def main(run: str) -> int:
         rec = corpus.get(scheme_of(p["name"]))
         if rec is None:
             continue
-        src = rebuild(p["name"], corpus, site, buildable, axis, height)
-        if src is None:
-            continue
-        got, n = delivered_contrast(src)
-        # What this sentence could reach at all. The pressed-down part cannot
-        # go below one storey - `box` holds every occupiable volume to one -
-        # so on a budget of B metres with a storey of s, the deepest contrast
-        # any sentence can express is B/s. via57 asks for 6.25x on a 12 m
-        # budget where the ceiling is 4.14x, and nothing tells it so: the ring
-        # is quietly raised from 1.92 m to 2.90 m and the sail becomes a box.
+        # The budget the grid itself would hand this sentence. Passing the
+        # parcel's own four-storey budget here instead read every
+        # storeys-declaring scheme at a third of its height, so the delivered
+        # column did not move when the sentences were re-authored - the
+        # measurement was reading a figure the pipeline never built.
         asked_storeys = max((float(op.get("storeys") or 0)
                              for op in rec.get("ops", [])), default=0.0)
         storey = float(rec.get("floor_height_m") or site.floor_height_m)
         budget = max(height, asked_storeys * site.floor_height_m)
-        # The same figure before any coverage or siting variant touched it.
-        # The picked variant is one of many the grid spread the sentence
-        # across, and spreading a tower over more ground shortens it - which
-        # is the axis working, until it shortens the tower past the ratio the
-        # sentence was about. Reading base against delivered separates "the
-        # machine could not say it" from "a variant said it and then undid it".
+        src = rebuild(p["name"], corpus, site, buildable, axis, budget)
+        if src is None:
+            continue
+        got, n = delivered_contrast(src)
+        # `ceiling` below is what the sentence could reach at all. The
+        # pressed-down part cannot go under one storey - `box` holds every
+        # occupiable volume to one - so on a budget of B metres with a storey
+        # of s, the deepest contrast anything can express here is B/s. A
+        # sentence naming no storeys gets the parcel's own four, and 0.16 of
+        # 12 m is quietly raised from 1.92 m to 2.90 m: six-to-one becomes
+        # four-to-one before a single gate has run.
+        #
+        # `base` is the same figure before any coverage or siting variant
+        # touched it. Reading base against delivered separates "the machine
+        # could not say it" from "a variant said it and then undid it".
         base = None
         parti = parti_from_record(rec)
         if parti is not None:

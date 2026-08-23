@@ -1,0 +1,54 @@
+{
+  "schemes": [
+    {
+      "name": "j_dol_sail",
+      "primary_language": "solid_body",
+      "secondary_language": "한 장의 지붕이 대각으로 일어서 한 모서리에서 돛이 된다",
+      "formal_principle": "직교 평면은 그대로 두고 윗면만 대각선을 따라 기울여, 세 모서리는 낮게 눌리고 한 모서리만 하늘로 올라간다 - 평면을 비틀지 않고 얻는 봉우리.",
+      "dominant_gesture": "대각으로 기운 한 장의 윗면.",
+      "reference_basis": "BIG 반복 무브 - corner pull. 조사 16작 중 5작(VIA 57·Vancouver House·Kaktus 계열)의 공통 무브를 우리 어휘로 다시 쓴 것이지 복제가 아니다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "square",
+          "storeys": 4,
+          "why": "입력은 네 층의 직교 몸이다. 층수를 이보다 높이 선언하면 fill이 '작은 접지면에 타워는 틀린 답'이라는 규칙으로 되돌린다 - 대각 윗면은 자세가 아니라 지붕의 말이므로, 여기서는 네 층으로 서고 윗면이 말한다."
+        },
+        {
+          "op": "grade",
+          "run": 0.72,
+          "toward": "corner",
+          "smooth": true,
+          "why": "윗면을 대각선을 따라 기울인다. 0.72는 낮은 모서리가 한 층 남는 낙차이고, smooth라야 계단이 아니라 한 장의 면이 된다. toward corner는 이제 세계 대각선을 뜻한다 - 이전에는 모든 동사에서 조용히 long으로 읽혔다."
+        }
+      ],
+      "floor_height_m": 3.0
+    },
+    {
+      "name": "j_sail_over_court",
+      "primary_language": "open_figure",
+      "secondary_language": "마당을 두른 링의 윗면이 대각으로 일어선다",
+      "formal_principle": "마당을 두른 네 짝의 윗면을 하나의 대각 사면으로 덮어, 링이 네 개의 바가 아니라 한 장의 기운 판으로 읽힌다.",
+      "dominant_gesture": "링 전체를 가로지르는 하나의 대각 경사.",
+      "reference_basis": "저작 - 대각 윗면(corner pull)을 마당 도형에 얹으면 무엇이 되는지, 우리 어휘 안에서 시험한 문장.",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.26,
+          "height": 1.0,
+          "storeys": 4,
+          "why": "네 층 둘레가 마당을 먼저 확정한다. 바 0.26이라야 안쪽에 방 깊이가 남는 마당이 생기고, 네 층이라야 대각 사면이 링을 되돌리지 않고 덮는다."
+        },
+        {
+          "op": "grade",
+          "run": 0.66,
+          "toward": "diagonal",
+          "smooth": true,
+          "why": "네 짝의 윗면을 하나의 대각 사면으로 자른다 - 바마다 다른 키가 되어 링이 한 몸으로 읽히고, 마당은 한쪽이 열린 하늘을 얻는다."
+        }
+      ],
+      "floor_height_m": 3.0
+    }
+  ]
+}

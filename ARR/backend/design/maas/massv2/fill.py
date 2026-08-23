@@ -370,13 +370,33 @@ def fill_to_site(
         용적률 divided by 건폐율 again - the same number that bounds slenderness
         and stops the growth loop. Uijeongbu affords 4.2 storeys, so a volume
         past 12.5 m is going up where the parcel asked it to go out.
+
+        Height alone was the wrong reading of that. It is a proxy for stick,
+        and it caught bodies that are the opposite of one: a single 30 m volume
+        whose narrower plan side is 28 m has a slenderness of 1.1 against this
+        parcel's limit of 4.2, and it was still scaled back to 17 m - which
+        then failed the declared-storeys gate and retired the sentence. The
+        rule now asks the question it means: is this piece going up *instead of*
+        out. A volume only counts against the ceiling when it is also slender
+        by the parcel's own limit, which is the same number.
         """
 
         ceiling = storeys_allowed * storey * _VOLUME_HEIGHT_SLACK
-        tallest = max(
-            (item.z_span()[1] - item.z_span()[0] for item in form.additive()),
-            default=0.0,
-        )
+        tallest = 0.0
+        for item in form.additive():
+            low, high = item.z_span()
+            span = high - low
+            if span <= 1e-6:
+                continue
+            m = item.matrix
+            # The unit cube's two plan edges after this volume's own matrix -
+            # exact for a parallelogram, which every placement is.
+            u = (m[0][0] ** 2 + m[1][0] ** 2) ** 0.5
+            v = (m[0][1] ** 2 + m[1][1] ** 2) ** 0.5
+            narrow = min(u, v)
+            if narrow > 1e-6 and span / narrow <= storeys_allowed:
+                continue
+            tallest = max(tallest, span)
         if tallest <= ceiling or tallest <= 1e-6:
             return form
         return _taller(form, ceiling / tallest)

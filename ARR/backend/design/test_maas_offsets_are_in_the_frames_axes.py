@@ -26,7 +26,7 @@ from django.test import SimpleTestCase
 from shapely.geometry import Polygon
 
 from design.maas.massv2.compile import _plan
-from design.maas.massv2.execute import _Frame, execute
+from design.maas.massv2.execute import _Frame, _direction, execute
 from design.maas.massv2.grammar import JOINT_CLEARANCE_M, parti_from_record
 
 
@@ -161,3 +161,64 @@ class VerbsThatPlaceAbsolutelyStayOnTheParcelTests(SimpleTestCase):
                         plan.intersection(plot).area, 0.5 * plan.area,
                         msg=f"{verb} at {degrees} deg put {item.role} off the plot",
                     )
+
+
+class TheDiagonalAxisWordsMeanTheDiagonalTests(SimpleTestCase):
+    """"corner" and "diagonal" were accepted, validated, and did nothing.
+
+    `grammar._AXIS_WORDS` has admitted both since the enumeration was written,
+    and `_direction` had no branch for either - so every verb but `grade`, which
+    carried a private diagonal branch of its own, aimed them along the length.
+    A word that is accepted and then does something else cannot be caught by the
+    silence gate, because the sentence does change the form.
+    """
+
+    def test_corner_and_diagonal_are_not_the_long_axis(self):
+        for degrees in BEARINGS:
+            frame = _Frame(_square(60.0), _axis(degrees), height_m=12.0)
+            long_axis = _direction(frame, "long")
+            for word in ("corner", "diagonal"):
+                aimed = _direction(frame, word)
+                self.assertAlmostEqual(
+                    1.0, math.hypot(*aimed), places=9,
+                    msg=f"{word} at {degrees} is not a unit vector",
+                )
+                self.assertAlmostEqual(
+                    aimed[0], aimed[1], places=9,
+                    msg=f"{word} at {degrees} is not on the diagonal",
+                )
+                self.assertNotAlmostEqual(
+                    long_axis[0], aimed[0], places=3,
+                    msg=f"{word} at {degrees} still aims along the length",
+                )
+
+    def test_grade_toward_a_corner_tilts_toward_that_corner(self):
+        """The vector `grade` produced from its own branch, from the shared one.
+
+        `frame.out` is a pure rotation, so normalising after it makes (1, 1)
+        and the unit diagonal the same direction - this pins that, because the
+        private branch is gone and only `_direction` decides now.
+        """
+
+        sentence = parti_from_record({
+            "name": "one_tilt",
+            "primary_language": "solid_body",
+            "ops": [
+                {"op": "extrude", "height": 1.0},
+                {"op": "grade", "run": 0.6, "toward": "corner", "smooth": True},
+            ],
+        })
+        for degrees in BEARINGS:
+            form = execute(
+                sentence, buildable=_square(60.0), axis=_axis(degrees),
+                height_m=12.0, storey_height_m=3.0,
+            )
+            self.assertIsNotNone(form, msg=str(degrees))
+            aimed = {p.drop_toward for p in form.placements if p.drop_toward}
+            self.assertEqual(1, len(aimed), msg=str(degrees))
+            got = aimed.pop()
+            frame = _Frame(_square(60.0), _axis(degrees), height_m=12.0)
+            was = frame.out(1.0, 1.0)
+            length = math.hypot(*was) or 1.0
+            self.assertAlmostEqual(was[0] / length, got[0], places=9, msg=str(degrees))
+            self.assertAlmostEqual(was[1] / length, got[1], places=9, msg=str(degrees))

@@ -230,11 +230,7 @@ def grade(frame, op) -> None:
         # most frequent single move (the survey counted corner pull five times
         # in sixteen works) is one corner drawn up while the plan stays
         # orthogonal, and a planar top through the diagonal is exactly that.
-        named = str(op.params.get("toward") or "long").lower()
-        if named in ("corner", "diagonal"):
-            fx, fy = 1.0, 1.0
-        else:
-            fx, fy = frame.direction(op.params.get("toward"))
+        fx, fy = frame.direction(op.params.get("toward"))
         direction = frame.out(fx, fy)
         length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5 or 1.0
         unit = (direction[0] / length, direction[1] / length)

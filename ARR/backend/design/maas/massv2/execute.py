@@ -81,6 +81,8 @@ HOUSE_ASPECT = 0.9
 # metres for the same reason - the person walking under is the same size on
 # every site.
 MAX_UNDERCROFT_STOREYS = 2.0
+# The unit diagonal, for the axis words "corner" and "diagonal".
+_SQRT_HALF = math.sqrt(0.5)
 
 
 @dataclass(frozen=True)
@@ -292,6 +294,14 @@ def _direction(frame: _Frame, toward: Any) -> tuple[float, float]:
         return (0.0, 1.0)
     if name in ("back", "away", "off_open"):
         return (-1.0, 0.0)
+    # The grammar has admitted "corner" and "diagonal" as axis words since the
+    # enumeration was written, and every verb but `grade` quietly aimed them
+    # along the length instead - a word accepted, validated, and doing
+    # something else, which no gate can catch because the sentence does change
+    # the form. `grade` carried its own diagonal branch; the meaning belongs
+    # here, where every verb reads it.
+    if name in ("corner", "diagonal"):
+        return (_SQRT_HALF, _SQRT_HALF)
     return (1.0, 0.0)
 
 

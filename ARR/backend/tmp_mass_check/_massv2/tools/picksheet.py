@@ -30,10 +30,17 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     out = ROOT / "runs" / f"{run}-pick"
     out.mkdir(parents=True, exist_ok=True)
     summary = json.loads((folder / "massv2-summary.json").read_text(encoding="utf-8"))
+    # The floor on 용적률 use belongs to the overseas edition, where the form
+    # decides its own size and one that used a third of the cap has left the
+    # site unbuilt. On the korea edition the size comes from a 실별 소요면적표
+    # and 용적률 answers "was the brief met", so the same floor threw away
+    # 2,148 of 2,160 lawful masses on the 효돈동 schedule - the exact confusion
+    # `--track` was written to prevent.
+    korea = (summary.get("provenance") or {}).get("track") == "korea"
     recs = [
         r for r in summary["records"]
-        if "plausibility" in r
-        and r["plausibility"]["occupiable"] and r["far_utilization"] >= 0.375
+        if "plausibility" in r and r["plausibility"]["occupiable"]
+        and (korea or r["far_utilization"] >= 0.375)
     ]
     parcel = float(summary["site"]["parcel_area_m2"])
     far_ratio = float(summary["site"]["far_capacity_m2"]) / parcel

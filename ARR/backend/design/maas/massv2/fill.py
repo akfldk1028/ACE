@@ -439,7 +439,17 @@ def fill_to_site(
     # scheme hanging over the boundary was dividing a cut floor area by an
     # uncut footprint, reading short, and being told it had storeys to spare.
     standing = best.gross_floor_area_m2 / max(best.ground_area_m2, 1.0)
-    if standing > storeys_allowed:
+    # A sentence that says how many storeys it is has already answered this
+    # question, and the pipeline honours that answer everywhere else: the
+    # height budget is raised to what it asked for, and the delivery gate
+    # retires it if it comes back short. Holding it to the parcel's *average*
+    # storeys as well says the average is a law, which it is not - the legal
+    # fit is the law and it has already passed. The rule below still governs
+    # every sentence that says nothing about its own stature, which is the
+    # case it was written for: those were the low-coverage cells that all came
+    # back as towers when nothing else decided their height.
+    declared_stature = float(form.extra.get("declared_storeys") or 0.0) > 0.0
+    if standing > storeys_allowed and not declared_stature:
         settled = fit_to_site(_taller(current, storeys_allowed / standing), site)
         if settled.satisfied and settled.gross_floor_area_m2 > 0.0:
             best, current = settled, settled.form
@@ -490,7 +500,14 @@ def fill_to_site(
             break
 
         standing = best.gross_floor_area_m2 / max(best.ground_area_m2, 1.0)
-        if standing >= storeys_allowed:
+        # Same exemption as the settle above, and it has to be both or neither.
+        # Exempting only the settle stopped two sentences from growing into the
+        # floor area they were allowed - cctv_a_loop_stood_up and
+        # f_daegak_monolith came out 1.9 m and 1.6 m shorter than when they
+        # were cut here and grew back - because the cut is what left them room
+        # to grow. A sentence that declared its stature keeps growing until the
+        # capacity check above stops it, which is 용적률, or until the fit does.
+        if standing >= storeys_allowed and not declared_stature:
             if not allow_plan_growth:
                 reason = "parcel_storey_ceiling_reached"
                 break

@@ -16,6 +16,7 @@ cell. (QD-LLMs, GECCO 2026: vision-language evaluation in the loop.)
 
 import json
 import shutil
+from dataclasses import replace
 import sys
 from pathlib import Path
 
@@ -63,6 +64,16 @@ def rebuild(name: str, corpus, site, buildable, axis, height):
     )
     if form is None:
         return None
+    # The grid stamps the declared storey count onto the form and the growth
+    # loop reads it - a sentence that says how tall it is is not held to the
+    # parcel's average. Rebuilding without the stamp grew every tile as if it
+    # had said nothing, so the sheet drew one building beside another
+    # building's numbers: i_bakgong_gori was measured at 48.6 m and drawn at
+    # 11.5 m. Same stamp, same shape.
+    asked = max((float(op.get("storeys") or 0) for op in rec.get("ops", [])),
+                default=0.0)
+    if asked > 0.0:
+        form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
     candidates = [form]
     candidates += spread_across_coverage(
         form,
@@ -76,7 +87,6 @@ def rebuild(name: str, corpus, site, buildable, axis, height):
         for siting in sitings:
             moved = place_on_site(base, buildable, siting, open_side=open_side)
             if moved is not None:
-                from dataclasses import replace
                 candidates.append(replace(
                     moved, name=f"{base.name}^{siting.siting_id}",
                 ))

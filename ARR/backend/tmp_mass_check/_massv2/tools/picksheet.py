@@ -73,12 +73,21 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
             if len(row) >= per_cell:
                 break
         for r in row:
-            src = rebuild(r["name"], corpus, site, buildable, axis, height)
+            rec = corpus[scheme_of(r["name"])]
+            # The budget the grid handed this sentence, not the parcel's own.
+            # `generate_massv2._height_budget` raises it to whatever `storeys`
+            # the sentence declares, and passing the parcel's four-storey
+            # default here drew a different, shorter building than the row's
+            # numbers describe: i_bakgong_gori was measured at 48.6 m and drawn
+            # at 11.5 m, on a sheet whose whole purpose is to be looked at.
+            asked = max((float(op.get("storeys") or 0)
+                         for op in rec.get("ops", [])), default=0.0)
+            budget = max(height, asked * site.floor_height_m)
+            src = rebuild(r["name"], corpus, site, buildable, axis, budget)
             if src is None:
                 continue
             index += 1
             png = out / f"pick-{index:02d}.png"
-            rec = corpus[scheme_of(r["name"])]
             render_masses(
                 [(r["name"], src, {"thesis": rec.get("formal_principle", "")})],
                 png, site_ring=ring, columns=1, tile=(900, 760), style=style,

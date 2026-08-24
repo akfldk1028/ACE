@@ -13,6 +13,7 @@ from alone.
 
 import json
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 from finalists import PNU, rebuild, scheme_of  # noqa: E402  (django setup inside)
@@ -53,22 +54,38 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     cells = sorted({r["cell"] for r in recs})
     picks = []
     index = 0
-    # One family, one appearance - across the whole gallery, not per cell.
-    # Ranked per cell alone, one strong family's variants filled eight of
-    # forty-four frames, which is a worse offer to the person choosing than
-    # eight families they had not seen.
+    # One family, one appearance *per stature band* - not once in the whole
+    # gallery. Ranked per cell alone, one strong family filled eight of
+    # forty-four frames and the sheet was a worse offer than eight families
+    # nobody had seen; deduped globally instead, a family that wins a seated
+    # cell can never appear as the tower it also has, and the growth work that
+    # raised twenty-seven families showed up on five tiles. A village at 8 m
+    # and the same village at 40 m are two different offers to the person
+    # choosing. Stature is the axis, so it is the unit of variety too, and a
+    # family can still appear at most four times.
+    # A family already on the sheet somewhere takes a slot only when no family
+    # nobody has seen can fill it: fresh first, repeats after. Without that,
+    # per-band dedup alone spent forty-six frames on thirty-two families.
     seen = set()
+    families: dict[str, int] = defaultdict(int)
     for cell in cells:
+        band = cell.split("|")[0]
         ranked = sorted(
             (r for r in recs if r["cell"] == cell),
             key=lambda r: r.get("spoken_force") or 0.0, reverse=True,
         )
         row = []
         for r in ranked:
-            fam = scheme_of(r["name"])
-            if fam in seen:
+            name = scheme_of(r["name"])
+            fam = (name, band)
+            # A family may show at two statures, never three. Ordering by
+            # freshness instead was tried and does nothing here: there are
+            # always enough unseen families to fill every slot, so no second
+            # stature ever gets one and the sheet stays what it was.
+            if fam in seen or families[name] >= 2:
                 continue
             seen.add(fam)
+            families[name] += 1
             row.append(r)
             if len(row) >= per_cell:
                 break

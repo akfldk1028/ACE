@@ -20,6 +20,7 @@ from django.test import SimpleTestCase
 from shapely.geometry import Polygon
 
 from design.maas.massv2 import MatrixForm, compile_matrix_form, place
+from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.legal_fit import _gross_floor_area, fit_to_site
 from design.maas.massv2.measure import gross_floor_area_m2, storeys_in
 from design.maas.massv2.variations import spread_across_coverage
@@ -262,3 +263,54 @@ class CoverageCopiesHoldOnlyALawfulProgrammeTests(SimpleTestCase):
                 self.assertTrue(fit.satisfied)
                 self.assertLessEqual(fit.ground_area_m2, site.ground_capacity_m2 + 1e-6)
                 self.assertLessEqual(fit.gross_floor_area_m2, site.far_capacity_m2 + 1e-6)
+
+
+class DeclaredStatureIsNotHeldToTheAverageTests(SimpleTestCase):
+    """The growth loop holds a scheme to 용적률÷건폐율 storeys - unless it said.
+
+    That average is not a law. 용적률 is, and `fit_to_site` enforces it; the
+    average was standing in for a decision nobody was making, back when nothing
+    else decided height. A sentence that declares `storeys` has decided, and
+    the rest of the pipeline already honours that - the height budget is raised
+    to it and the delivery gate retires the scheme if it comes back short.
+
+    Both places or neither: exempting the pre-settle alone leaves a scheme
+    shorter than being cut and grown back, because the cut is what makes room
+    for the loop to grow.
+    """
+
+    # 2,500 m² of floor over 500 m² of ground: five storeys on average. The
+    # scheme stands on 250 m² - half the ground it is allowed - so ten storeys
+    # of it is exactly the 용적률 and not a metre more. The average says five,
+    # the law says ten, and which of the two binds is the whole question.
+    SITE = dict(ground_capacity=500.0, far_capacity=2500.0, floor_height=3.0)
+
+    def _grown(self, *, declared: float | None):
+        extra = {"declared_storeys": declared} if declared else {}
+        form = _form(
+            place("body", size=(25.0, 10.0, 30.0)),
+            extra=extra,
+        )
+        return fill_to_site(form, _site(**self.SITE))
+
+    def test_a_scheme_that_says_nothing_is_held_to_the_parcel_average(self):
+        grown = self._grown(declared=None)
+        storeys = grown.fit.gross_floor_area_m2 / max(grown.fit.ground_area_m2, 1.0)
+
+        self.assertLessEqual(storeys, 5.0 + 1e-6)
+
+    def test_a_scheme_that_declares_its_storeys_may_pass_the_average(self):
+        grown = self._grown(declared=10.0)
+        storeys = grown.fit.gross_floor_area_m2 / max(grown.fit.ground_area_m2, 1.0)
+
+        self.assertGreater(storeys, 5.0 + 1e-6)
+
+    def test_the_declaration_does_not_buy_more_floor_area_than_the_law_allows(self):
+        """용적률 is still the ceiling - the exemption moves height, not law."""
+
+        grown = self._grown(declared=10.0)
+
+        self.assertTrue(grown.fit.satisfied)
+        self.assertLessEqual(
+            grown.fit.gross_floor_area_m2, self.SITE["far_capacity"] * 1.001
+        )

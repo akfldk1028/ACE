@@ -448,6 +448,13 @@ def fill_to_site(
     # every sentence that says nothing about its own stature, which is the
     # case it was written for: those were the low-coverage cells that all came
     # back as towers when nothing else decided their height.
+    # `storeys` is a count on one operation - the height of the piece that word
+    # makes - not the building's total. Tried as a ceiling it capped exactly the
+    # sentences the exemption was for: vitrahaus, e_dollin and pixel_peaks each
+    # declare two, meaning two-storey units, and holding the whole composition
+    # to two storeys took back all of +10.2 m, +9.4 m and +7.6 m. So the
+    # declaration opens the ceiling; it does not become one. 용적률 and the fit
+    # are what stop the growth, as they do for every other scheme.
     declared_stature = float(form.extra.get("declared_storeys") or 0.0) > 0.0
     if standing > storeys_allowed and not declared_stature:
         settled = fit_to_site(_taller(current, storeys_allowed / standing), site)

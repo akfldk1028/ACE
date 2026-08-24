@@ -89,6 +89,12 @@ class Schedule:
     rooms: tuple[Room, ...]
     building_type: str = "제1종근린생활시설"
     notes: tuple[str, ...] = field(default_factory=tuple)
+    # What the brief itself says the shared part must be, as a share of 연면적.
+    # 효돈동, 만수6동, 용당동 and 고전면 all write it - "공용부는 최소 30% 이상",
+    # "연면적의 35% 내외" - and it is the number that decides how much building
+    # a schedule of net rooms actually asks for. None means the brief is silent
+    # and GROSS_UP stands in.
+    shared_share_of_gross: float | None = None
 
     @property
     def net_m2(self) -> float:
@@ -96,8 +102,18 @@ class Schedule:
 
     @property
     def gross_m2(self) -> float:
-        """연면적 the schedule implies once circulation and structure are in."""
+        """연면적 the schedule implies once circulation and structure are in.
 
+        GROSS_UP is 1.35, which is a shared part of 25.9% of the gross - under
+        the 30% minimum these briefs mandate. Where the brief states its own
+        share, that share decides: 효돈동's 1,042 m² of net rooms asks for
+        1,489 m² at 30%, not the 1,407 m² a flat 1.35 produces, and the
+        difference is a storey of this building.
+        """
+
+        share = self.shared_share_of_gross
+        if share is not None and 0.0 < share < 0.9:
+            return self.net_m2 / (1.0 - share)
         return self.net_m2 * GROSS_UP
 
     def of_kind(self, kind: RoomKind) -> tuple[Room, ...]:
@@ -143,8 +159,25 @@ class Schedule:
         }
 
 
-def schedule_from_record(record: dict[str, Any]) -> Schedule | None:
-    """Read a 소요면적표 as issued. Unknown room kinds are normal rooms."""
+def schedule_from_record(
+    record: dict[str, Any], *, shared_share_of_gross: float | None = None,
+) -> Schedule | None:
+    """Read a 소요면적표 as issued. Unknown room kinds are normal rooms.
+
+    `shared_share_of_gross` is the book-level rule, passed in because the
+    briefs state it once for the whole set rather than per schedule; a
+    schedule may override it with its own value.
+    """
+
+    shared_share = record.get("shared_area_share_of_gross", shared_share_of_gross)
+    if isinstance(shared_share, dict):
+        # Written as a range - "최소 30% 이상", "35% 내외". Take the minimum: it
+        # is the number the brief makes mandatory, and the rest is latitude.
+        shared_share = shared_share.get("min")
+    try:
+        shared_share = float(shared_share) if shared_share is not None else None
+    except (TypeError, ValueError):
+        shared_share = None
 
     rooms: list[Room] = []
     for item in record.get("rooms") or ():
@@ -171,6 +204,7 @@ def schedule_from_record(record: dict[str, Any]) -> Schedule | None:
         rooms=tuple(rooms),
         building_type=str(record.get("building_type") or "제1종근린생활시설"),
         notes=tuple(str(n) for n in (record.get("notes") or ())),
+        shared_share_of_gross=shared_share,
     )
 
 

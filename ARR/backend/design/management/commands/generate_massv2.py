@@ -312,9 +312,13 @@ class Command(BaseCommand):
         if options["program_json"]:
             book = json.loads(Path(options["program_json"]).read_text(encoding="utf-8"))
             wanted = options["program_name"]
+            # The shared-area rule is stated once for the whole book.
+            book_share = book.get("shared_area_share_of_gross")
             for record in book.get("schedules") or ():
                 if wanted is None or record.get("name") == wanted:
-                    schedule = programme.schedule_from_record(record)
+                    schedule = programme.schedule_from_record(
+                        record, shared_share_of_gross=book_share,
+                    )
                     break
             if schedule is None:
                 raise CommandError("no schedule matched")

@@ -49,9 +49,20 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
         building. 482 of this run's 2,160 lawful masses are inside, from 59
         families across all sixteen cells, so this selects rather than starves.
         """
-        height = (r.get("measurement") or {}).get("height_m") or 0.0
+        measured = r.get("measurement") or {}
+        height = measured.get("height_m") or 0.0
         ground = (r.get("legal_fit") or {}).get("ground_area_m2") or 0.0
-        return 10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
+        # And a court on the ground. Counting the subjects of fifteen winning
+        # 설계설명 gives 마당·틈·골목·데크 over the mass itself every time, and
+        # a void eight floors up is a light well, not a 마당. Measured on this
+        # run's envelope: the pool's ground band is 34.7% open at the median
+        # and 92% of it clears 5%, while the sheet was selecting down to 20.7%
+        # with a quarter of its tiles at nothing. Gate, not objective - the
+        # ranking inside a cell is still the language's.
+        bands = measured.get("band_profile") or []
+        at_grade = bands[0][1] if bands else 0.0
+        return (10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
+                and at_grade >= 0.05)
 
     recs = [
         r for r in summary["records"]

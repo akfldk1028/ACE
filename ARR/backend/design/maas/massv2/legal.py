@@ -139,7 +139,17 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
                 geojson_to_polygon(boundary), to_utm=wgs84_to_utm
             )
         except zone_geometry.ZoneGeometryUnavailable as error:
-            logger.warning("zone split unavailable for %s: %s", pnu, error)
+            # 국토계획법 제84조 apportions a parcel that straddles zones by the
+            # area in each. Without the split there is no lawful way to combine
+            # them, and carrying on took the permissive side: with the Vworld
+            # key expired this parcel came back as 2,000 m2 of 건폐 and 32,496
+            # m2 of 용적 against its real 1,498 and 6,242, and every mass built
+            # on that would have been certified lawful against a site that does
+            # not exist. Missing zoning is missing, like the boundary above.
+            raise LegalSiteUnavailable(
+                f"{pnu} straddles {len(zones)} zones and the area split is "
+                f"unavailable ({error}); 제84조 needs the areas"
+            ) from error
     limits = zoning_mapper.resolve_limits(zones, areas) if zones else {}
     zone_names = [
         item["zone_name"] if isinstance(item, dict) else str(item)

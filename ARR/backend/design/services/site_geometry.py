@@ -138,8 +138,14 @@ def fetch_parcel_boundary(pnu: str) -> dict | None:
 
         response = data.get("response", {})
         if response.get("status") != "OK":
-            logger.warning("Vworld Data API error for PNU %s: %s", pnu, response.get("status"))
-            return None
+            # An error status is a failed live call like any other, and this
+            # was the one path that did not consult the cache the docstring
+            # above exists for. An expired key answers HTTP 200 with
+            # status ERROR / EXPIRE_KEY, so the whole massing pipeline stopped
+            # on a parcel whose real boundary was already on disk.
+            error = (response.get("error") or {}).get("code") or response.get("status")
+            logger.warning("Vworld Data API error for PNU %s: %s", pnu, error)
+            return _load_parcel_boundary(pnu)
 
         features = (
             response

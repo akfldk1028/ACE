@@ -37,10 +37,26 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     # 2,148 of 2,160 lawful masses on the 효돈동 schedule - the exact confusion
     # `--track` was written to prevent.
     korea = (summary.get("provenance") or {}).get("track") == "korea"
+
+    def in_winners_envelope(r) -> bool:
+        """Where fifteen surveyed Korean public winners actually sit.
+
+        Height 10-20 m and a footprint of 400-800 m2 - not a preference but
+        arithmetic: on a 700-2,600 m2 site, statutory landscaping, parking and
+        an entry court leave one footprint of that size, and the 30-35% shared
+        area those briefs mandate ties it to a single core. A mass outside it
+        is not a low-scoring Korean competition mass, it is a different kind of
+        building. 482 of this run's 2,160 lawful masses are inside, from 59
+        families across all sixteen cells, so this selects rather than starves.
+        """
+        height = (r.get("measurement") or {}).get("height_m") or 0.0
+        ground = (r.get("legal_fit") or {}).get("ground_area_m2") or 0.0
+        return 10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
+
     recs = [
         r for r in summary["records"]
         if "plausibility" in r and r["plausibility"]["occupiable"]
-        and (korea or r["far_utilization"] >= 0.375)
+        and (in_winners_envelope(r) if korea else r["far_utilization"] >= 0.375)
     ]
     parcel = float(summary["site"]["parcel_area_m2"])
     far_ratio = float(summary["site"]["far_capacity_m2"]) / parcel

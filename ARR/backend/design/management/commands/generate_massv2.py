@@ -331,6 +331,16 @@ class Command(BaseCommand):
                 f"fits FAR: {schedule.fits(far_capacity_m2=site.far_capacity_m2)}"
             )
 
+        # The refusal ledger is written whatever happens, including a run with no
+        # sentences at all - which is the run most in need of it. Defined only
+        # inside the branch below, a run given the wrong flag died on an
+        # UnboundLocalError after printing "nothing survived to draw", and the
+        # summary that would have said so was never written.
+        mistyped: list = []
+        mute: list = []
+        clipped: list = []
+        idle: list = []
+        closed: list = []
         if options["parti_json"] or options["sample"]:
             buildable = site.plan_at(0.0)
             axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
@@ -346,10 +356,6 @@ class Command(BaseCommand):
                 sentences.extend(drawn)
                 self.stdout.write(f"sampled sentences: {len(drawn)}")
             written = []
-            mute = []
-            clipped = []
-            idle = []
-            closed = []
             pending_force = []
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
@@ -367,7 +373,6 @@ class Command(BaseCommand):
                     default=0.0,
                 )
                 return max(base_budget, asked * site.floor_height_m)
-            mistyped = []
             for record in sentences:
                 wrong = grammar_module.mistyped_words(record)
                 if wrong:

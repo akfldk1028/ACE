@@ -104,8 +104,28 @@ def _banded(
 
 
 def _storeys(item: Placement, storey_m: float, low: int, high: int) -> int:
+    """How many bands to cut this piece into, none of them under a storey.
+
+    The floor used to be taken literally: `taper` asked for at least two bands
+    and `twist` for at least three, so a one-storey object was cut in half or
+    in thirds whatever its height. On the 의정부 sheet that is where the trays
+    came from - nishizawa_nishinoyama is an aggregate of one-storey houses and
+    a taper turned it into 52 volumes, 31 of them between 0.50 and 0.90 m, and
+    the drawing reads as a stack of paper rather than the ten low houses its
+    sentence describes. `plausibility` did not catch it because
+    `viable_band_share` asks whether a band's *plan* is wide enough to be a
+    room and never whether it is tall enough to be one.
+
+    A band under a storey is not a floor of anything, so the request is capped
+    by how many whole storeys the piece actually holds. A short piece comes
+    back as one band, which means the verb has nothing to say about it - and
+    the silence gate is the right place for that to surface, not the renderer.
+    """
+
     z0, z1 = item.z_span()
-    return int(_clamp(round((z1 - z0) / max(storey_m, 1.0)), low, high))
+    deep = z1 - z0
+    fits = max(1, int(deep / max(storey_m, 1e-6)))
+    return int(_clamp(round(deep / max(storey_m, 1.0)), min(low, fits), min(high, fits)))
 
 
 def _span_along_unit_axis(item: Placement, axis: int) -> float:
@@ -241,10 +261,12 @@ def grade(frame, op) -> None:
 
     made: list[Placement] = []
     for item in picked:
-        count = int(_clamp(
-            _storeys(item, frame.storey, 2, 8),
-            2, int(_clamp(float(op.params.get("steps", 6)), 2, 8)),
-        ))
+        # `steps` is a ceiling on how many terraces the author wants, not a
+        # floor under how thin they may be: clamping up to two here put the
+        # storey rule in `_storeys` back where it started, and timmerhuis kept
+        # a five-metre plate cut into 2.5 m treads.
+        asked = int(_clamp(float(op.params.get("steps", 6)), 2, 8))
+        count = min(_storeys(item, frame.storey, 2, 8), asked)
         full = _span_along_unit_axis(item, axis)
         across = _span_along_unit_axis(item, 1 - axis)
 

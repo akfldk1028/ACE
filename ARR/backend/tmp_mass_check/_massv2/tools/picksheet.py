@@ -156,23 +156,35 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
             pool_verbs[verb] += 1
     reserved: dict[str, list] = defaultdict(list)
     spoken: set[str] = set()
-    for verb, _count in sorted(pool_verbs.items(), key=lambda kv: kv[1]):
-        if verb in spoken:
-            continue
+
+    def seat(verb: str, per_cell_cap: int) -> bool:
         carriers = sorted(
             (r for r in recs if verb in verbs_of(r)),
             key=lambda r: r.get("spoken_force") or 0.0, reverse=True,
         )
         for carrier in carriers:
-            cell = carrier["cell"]
-            if len(reserved[cell]) >= max(1, per_cell - 1):
+            if len(reserved[carrier["cell"]]) >= per_cell_cap:
                 continue
             if any(scheme_of(x["name"]) == scheme_of(carrier["name"])
                    for xs in reserved.values() for x in xs):
                 continue
-            reserved[cell].append(carrier)
-            spoken |= verbs_of(carrier)
-            break
+            reserved[carrier["cell"]].append(carrier)
+            spoken.update(verbs_of(carrier))
+            return True
+        return False
+
+    # Two passes, one seat per cell in the first. Filling to per_cell - 1 in a
+    # single pass let the verbs that come early - the rare ones - take two
+    # seats in the same cell, and by the time a verb with many carriers was
+    # reached every cell those carriers sit in was full: twist had thirty
+    # candidates and all thirty were refused a seat. Spreading first, then
+    # widening, seats the same rare verbs and leaves room for the rest.
+    order = sorted(pool_verbs.items(), key=lambda kv: kv[1])
+    for cap in (1, max(1, per_cell - 1)):
+        for verb, _count in order:
+            if verb in spoken:
+                continue
+            seat(verb, cap)
 
     seen = set()
     for cell in cells:

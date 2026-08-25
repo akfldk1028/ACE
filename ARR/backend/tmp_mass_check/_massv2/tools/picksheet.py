@@ -82,9 +82,7 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
         # a light well eight floors up still counts here. That is the looser
         # reading, and the honest one until the grade-level court is measured
         # from geometry rather than from an array whose indexing I guessed.
-        court = measured.get("plan_void_ratio") or 0.0
-        return (10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
-                and court >= 0.05)
+        return 10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
 
     recs = [
         r for r in summary["records"]
@@ -185,6 +183,33 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
             if verb in spoken:
                 continue
             seat(verb, cap)
+
+    # A seat per cell for a scheme that actually opens a court.
+    #
+    # This was a filter on the whole pool and it was the largest single loss on
+    # the sheet: thirteen sentences were held by it, and the list is 마을,
+    # 박공열, 돌린 판, 비트는 탑 - none of which make a courtyard, and none of
+    # which were ever going to. The survey of fifteen winners says the 마당 is
+    # the subject of the winning descriptions; it does not say every scheme
+    # carries one. Requiring it of the sheet rather than of each tile keeps the
+    # court present in every cell and lets a village be a village.
+    def court_of(record) -> float:
+        return (record.get("measurement") or {}).get("plan_void_ratio") or 0.0
+
+    for cell in {r["cell"] for r in recs}:
+        if any(court_of(x) >= 0.05 for x in reserved.get(cell) or []):
+            continue
+        if len(reserved[cell]) >= max(1, per_cell - 1):
+            continue
+        for carrier in sorted((r for r in recs if r["cell"] == cell
+                               and court_of(r) >= 0.05),
+                              key=lambda r: r.get("spoken_force") or 0.0,
+                              reverse=True):
+            if any(scheme_of(x["name"]) == scheme_of(carrier["name"])
+                   for xs in reserved.values() for x in xs):
+                continue
+            reserved[cell].append(carrier)
+            break
 
     seen = set()
     for cell in cells:

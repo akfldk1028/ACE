@@ -908,7 +908,16 @@ class Command(BaseCommand):
         }
 
         site_ring = [(float(x), float(y)) for x, y in site.site_local_utm.exterior.coords[:-1]]
-        sheet = render_masses(renderable, output / "massv2-sheet.png", site_ring=site_ring)
+        # A run where every sentence was refused has nothing to draw, and
+        # raising there threw away the summary too - which is the one artifact
+        # that says *why* they were refused. The drawing is optional; the
+        # record is not.
+        sheet = None
+        if renderable:
+            sheet = render_masses(
+                renderable, output / "massv2-sheet.png", site_ring=site_ring)
+        else:
+            self.stdout.write("nothing survived to draw; writing the record only")
 
         if options["alt_png"]:
             # A contact sheet is for comparing; one drawing per alternative is
@@ -950,6 +959,33 @@ class Command(BaseCommand):
             "implausible": implausible,
             "occupied_cells": len(cells),
             "cells": dict(sorted(cells.items())),
+            # Why a sentence never became a record. These four refusals were
+            # printed to stdout and kept nowhere else, so a reader of the
+            # summary saw 125 families out of 141 and no reason for the other
+            # sixteen - which is exactly what happened here for three sessions
+            # while I looked for the cause in the gates downstream. The counts
+            # are the funnel; the names are so the next question is answerable
+            # without re-running the grid.
+            "refused": {
+                "mistyped": [
+                    {"name": name, "words": list(words)} for name, words in mistyped
+                ],
+                "silent": [
+                    {"name": name, "words": list(spoken.silent)} for name, spoken in mute
+                ],
+                "clipped_by_law": [
+                    {"name": name, "words": [
+                        verb for verb, changed in zip(spoken.declared, spoken.changed)
+                        if changed < postcondition.MIN_CHANGED_SHARE
+                    ]}
+                    for name, spoken, _unclipped in clipped
+                ],
+                "gap_closed": [
+                    {"name": name, "declared_m": round(float(declared), 2),
+                     "built_m": round(float(built), 2)}
+                    for name, declared, built in closed
+                ],
+            },
             "selection": selection,
             "records": records,
         }
@@ -964,4 +1000,4 @@ class Command(BaseCommand):
             f"unlawful {unlawful}  implausible {implausible}  "
             f"crushed {crushed}  cells {len(cells)}/16"
         )
-        self.stdout.write(str(sheet))
+        self.stdout.write(str(sheet) if sheet else str(output))

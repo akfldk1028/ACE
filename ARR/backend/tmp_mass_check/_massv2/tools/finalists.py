@@ -75,6 +75,17 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
                 default=0.0)
     if asked > 0.0:
         form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
+    # Before the variants, exactly where the grid does it: the command sizes a
+    # scheme to its 실별 소요면적표 and only then spreads it across coverage
+    # bands and sitings. Applying the brief afterwards instead reshaped a
+    # figure the variant had already settled, and the tile came out on either
+    # side of its row - big_gammel_hellerup_yard 52% over, b_madang_gori 18%
+    # under.
+    if schedule is not None:
+        from design.maas.massv2 import program as programme
+        form = programme.resized_to(
+            form, schedule, weight=programme_weight, storey_height_m=storey,
+        )
     candidates = [form]
     candidates += spread_across_coverage(
         form,
@@ -100,13 +111,7 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     # its record reports, because the brief never shrank it. Same rule, same
     # function, two answers - the tenth time in this package that one building
     # was measured twice.
-    wanted = None
-    if schedule is not None:
-        from design.maas.massv2 import program as programme
-        target = programme.resized_to(
-            target, schedule, weight=programme_weight, storey_height_m=storey,
-        )
-        wanted = target.extra.get("programme_target")
+    wanted = target.extra.get("programme_target")
     # `resized_to` only redistributes plan between volumes; what holds the whole
     # scheme to the brief is the growth loop's target, and the grid passes it as
     # a share of the parcel's cap. Rebuilding without it grew every tile to the

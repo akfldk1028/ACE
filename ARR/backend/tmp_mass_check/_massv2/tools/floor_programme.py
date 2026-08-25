@@ -61,6 +61,23 @@ def allocate(schedule, *, areas_m2: list[float], shared_share: float):
     def fits(level, area):
         return plan[level]["used_m2"] + area <= plan[level]["usable_m2"] + 1e-6
 
+    def tightest(area, levels=None):
+        """The floor this room fits on with the least left over.
+
+        First-fit put every room on the lowest floor that could take it, so a
+        village with uneven plates - 207, 523, 114, 218 m2 - spent its big
+        floor on rooms that would have fitted anywhere and then reported four
+        small rooms, 69 m2 together, as not fitting. That is the allocator
+        being greedy, not the mass being too small.
+        """
+
+        candidates = [n for n in (levels if levels is not None else range(len(plan)))
+                      if fits(n, area)]
+        if not candidates:
+            return None
+        return min(candidates,
+                   key=lambda n: plan[n]["usable_m2"] - plan[n]["used_m2"] - area)
+
     basement, unplaced = [], []
     rooms = sorted(schedule.rooms, key=lambda r: -r.total_m2)
 
@@ -78,6 +95,8 @@ def allocate(schedule, *, areas_m2: list[float], shared_share: float):
             rooms.remove(room)
     for room in list(rooms):
         if room.kind == "large_span":
+            # The hall still goes as low as it can - 「다중이 모이는 공간은
+            # 피난층과 인접」 - so this one keeps first-fit on purpose.
             level = next((n for n in range(len(plan)) if fits(n, room.total_m2)), None)
             if level is None:
                 unplaced.append({"name": room.name, "area_m2": round(room.total_m2, 1),
@@ -87,7 +106,7 @@ def allocate(schedule, *, areas_m2: list[float], shared_share: float):
             rooms.remove(room)
 
     for room in rooms:
-        level = next((n for n in range(len(plan)) if fits(n, room.total_m2)), None)
+        level = tightest(room.total_m2)
         if level is None:
             unplaced.append({"name": room.name, "area_m2": round(room.total_m2, 1),
                              "why": "남은 층 면적 부족"})

@@ -896,6 +896,23 @@ class Command(BaseCommand):
                 for path in (options["authored_json"] or []) + (options["parti_json"] or [])
             ),
             "sampled": options["sample"] or 0,
+            # Which ground plane the envelope stood on. §119 datum is opt-in and
+            # falls back to a flat 0 m whenever no elevation answers, which is
+            # indistinguishable in the drawing from a parcel that is flat. The
+            # Uijeongbu parcel is 25.5 km north of the only DEM on this machine,
+            # so every grid to date ran on the fallback with the flag reading on
+            # and the summary saying nothing either way.
+            "datum": (
+                {
+                    "measured": site.datum_is_measured,
+                    "case": site.datum.get("case"),
+                    "basis": site.datum.get("basis"),
+                    "elevation_source": site.datum.get("elevation_source"),
+                }
+                if site.datum
+                else {"measured": False, "case": None, "basis": "datum_disabled",
+                      "elevation_source": None}
+            ),
             "brief": (
                 {
                     "name": schedule.name,

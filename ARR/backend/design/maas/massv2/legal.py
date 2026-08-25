@@ -59,6 +59,20 @@ class LegalSite:
     # there, so every gate downstream judged a 근린생활시설 by rules written
     # for a dwelling - see `plausibility.daylight_is_required_for`.
     building_type: str = "제1종근린생활시설"
+    # Which ground plane the envelope was measured from. The datum computation
+    # falls back to a flat 0 m when it cannot read an elevation, and the run
+    # sheet had no way to tell that apart from a parcel that is genuinely flat:
+    # the Uijeongbu parcel sits 25.5 km north of the only DEM on this machine,
+    # so every grid so far was measured on the fallback while the flag read on.
+    datum: dict[str, Any] | None = None
+
+    @property
+    def datum_is_measured(self) -> bool:
+        """Did an elevation source actually answer for this parcel."""
+
+        return bool(self.datum) and self.datum.get("elevation_source") not in (
+            None, "failed",
+        )
 
     @property
     def parcel_area_m2(self) -> float:
@@ -222,4 +236,5 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
         floor_field=floor_field,
         shared_edges=shared,
         building_type=building_type,
+        datum=setback_lines.get("datum_result"),
     )

@@ -1,284 +1,284 @@
 {
- "schemes": [
-  {
-   "name": "d_bakgong_umul",
-   "primary_language": "porous_field",
-   "secondary_language": "gabled bars locked at right angles, level over level, like a log crib",
-   "formal_principle": "박공 바 네 짝이 직교로 물린 두 켜 — 아래 켜가 침목처럼 깔리고 위 켜가 45도 어긋나 짜인다. 더미가 아니라 짜임.",
-   "dominant_gesture": "orthogonal log-crib of house sections",
-   "reference_basis": "저작 신작",
-   "ops": [
+  "schemes": [
     {
-     "op": "aggregate",
-     "n": 8,
-     "spread": 1.1,
-     "height": 0.9,
-     "tie": 0.0,
-     "turn": 45,
-     "method": "stack",
-     "unit": "house",
-     "storeys": 2,
-     "levels": 2,
-     "why": "쌓는 방법 자체가 안이다 — 같은 집-단면을 90도 직교로 물리면 더미가 아니라 짜임이 된다."
+      "name": "d_bakgong_umul",
+      "primary_language": "porous_field",
+      "secondary_language": "gabled bars locked at right angles, level over level, like a log crib",
+      "formal_principle": "박공 바 네 짝이 직교로 물린 두 켜 — 아래 켜가 침목처럼 깔리고 위 켜가 45도 어긋나 짜인다. 더미가 아니라 짜임.",
+      "dominant_gesture": "orthogonal log-crib of house sections",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 8,
+          "spread": 1.1,
+          "height": 0.9,
+          "tie": 0.0,
+          "turn": 45,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "levels": 2,
+          "why": "쌓는 방법 자체가 안이다 — 같은 집-단면을 90도 직교로 물리면 더미가 아니라 짜임이 된다."
+        }
+      ]
+    },
+    {
+      "name": "d_bakgong_dari",
+      "primary_language": "open_figure",
+      "secondary_language": "two houses apart, a third gabled bar lodged across the gap",
+      "formal_principle": "두 집 사이에 세 번째 집이 걸린다 — 다리이자 문이고, 셋 다 같은 박공 단면을 쓴다. 사이 공간 위에 지붕이 떠 있다.",
+      "dominant_gesture": "a gabled house bridging two houses",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.05,
+          "height": 0.6,
+          "tie": 0.0,
+          "turn": 0,
+          "unit": "house",
+          "method": "stack",
+          "storeys": 2,
+          "levels": 1,
+          "why": "기둥이 될 두 채 — 나란히, 사이를 남기고."
+        },
+        {
+          "op": "lodge",
+          "size": 0.42,
+          "over": 0.45,
+          "height": 0.5,
+          "at": 0.5,
+          "why": "세 번째가 둘 위에 걸친다 — 잇는 것이 논지다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.9,
+          "along": "long",
+          "why": "셋이 한 혈통 — 걸친 것까지 같은 단면을 쓴다."
+        }
+      ]
+    },
+    {
+      "name": "d_bakgong_madang",
+      "primary_language": "carved_body",
+      "secondary_language": "four pitched bars ringing an open court, ridges facing in",
+      "formal_principle": "박공이 마당을 두른다 — 네 바의 용마루가 안마당을 향해 도열하고, 비는 마당으로 모인다. 지붕의 안쪽 면이 곧 마당의 벽이다.",
+      "dominant_gesture": "a court ringed by roofs",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.28,
+          "height": 0.5,
+          "why": "마당은 남기는 게 아니라 두르는 것이다 — 네 바가 먼저 마당을 정의한다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.9,
+          "along": "long",
+          "why": "두른 바에 단면을 준다 — 용마루가 마당을 향해 도열할 때 마당은 골목이 아니라 안마당이 된다."
+        }
+      ]
+    },
+    {
+      "name": "d_tobtni_deul",
+      "primary_language": "solid_body",
+      "secondary_language": "a low mat wearing five parallel ridges, a field of teeth",
+      "formal_principle": "낮은 매트 하나가 능선 다섯을 입는다 — 집 다섯 채가 아니라 지붕 다섯 골의 한 몸. 단위는 볼륨이 아니라 능선이다.",
+      "dominant_gesture": "sawtooth field over one body",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "why": "들판이 되려면 먼저 낮고 넓게 눕는다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.6,
+          "toward": "cross",
+          "why": "능선이 달릴 방향을 정한다 — 골은 긴 축을 따라 달려야 들이 된다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.8,
+          "bays": 5,
+          "along": "long",
+          "why": "한 몸에 능선 다섯 — 쌓지 않고도 지붕이 풍경이 되는 법."
+        }
+      ]
+    },
+    {
+      "name": "d_v_wa_san",
+      "primary_language": "open_figure",
+      "secondary_language": "two rows across a lane: one row falls to a valley, the other rises to a ridge",
+      "formal_principle": "골목을 사이에 두고 V와 산이 마주 본다 — 한 줄은 안으로 떨어지고 한 줄은 밖으로 솟는다. 지붕의 방향이 두 줄의 관계를 말한다.",
+      "dominant_gesture": "valley row facing ridge row",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "why": "두 줄이 될 한 몸."
+        },
+        {
+          "op": "split",
+          "ratio": 0.5,
+          "along": "cross",
+          "gap": 6,
+          "first": "v_row",
+          "second": "san_row",
+          "why": "골목이 먼저다 — 관계는 사이가 있어야 생긴다."
+        },
+        {
+          "op": "butterfly",
+          "on": "v_row",
+          "pitch": 0.8,
+          "at": 0.5,
+          "why": "한 줄은 하늘을 향해 열린다 — 처마가 올라가 골목 쪽으로 눈을 든다."
+        },
+        {
+          "op": "gable",
+          "on": "san_row",
+          "pitch": 0.9,
+          "along": "long",
+          "why": "다른 줄은 산이 된다 — V의 골과 산의 능선이 골목 위에서 교대한다."
+        }
+      ]
+    },
+    {
+      "name": "d_heulleo_jibdeul",
+      "primary_language": "porous_field",
+      "secondary_language": "houses sliding off the pile in alternating directions, a landslide of roofs",
+      "formal_principle": "쌓되 미끄러뜨린다 — 레벨이 오를수록 집들이 교대로 반대편으로 흘러내려, 더미가 아니라 산사태의 정지 화면이 된다.",
+      "dominant_gesture": "an arrested landslide of houses",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.15,
+          "height": 0.9,
+          "tie": 0.0,
+          "turn": 15,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "levels": 3,
+          "reach": 0.15,
+          "why": "엇쌓기의 정적을 깬다 — 끝이 날면 더미는 움직임의 기록이 된다."
+        }
+      ]
+    },
+    {
+      "name": "d_ddeun_jibung_arae",
+      "primary_language": "porous_field",
+      "secondary_language": "gabled pavilions scattered under one thin floating roof",
+      "formal_principle": "뜬 평지붕 하나 아래 박공 파빌리온들이 흩어진다 — 큰 지붕은 하늘을 막고, 작은 지붕들은 저마다의 하늘을 만든다. 지붕 아래의 지붕.",
+      "dominant_gesture": "roofs under a roof",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.4,
+          "height": 0.55,
+          "tie": 0.28,
+          "turn": 20,
+          "why": "흩어진 다섯을 얇은 캐노피 하나가 묶는다 — 닿지 않고 묶는 법."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.7,
+          "toward": "long",
+          "on": "field_plate",
+          "why": "캐노피는 군집만 덮는다 — 필지가 아니라 다섯 채의 하늘."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.75,
+          "toward": "cross",
+          "on": "field_plate",
+          "why": "양방향으로 군집 크기까지."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.14,
+          "on": "field_plate",
+          "why": "캐노피는 가는 기둥들 위에 뜬다 — 닿지 않고 묶는 지붕의 실물 문법."
+        },
+        {
+          "op": "gable",
+          "on": "object_",
+          "pitch": 1.0,
+          "along": "long",
+          "why": "캐노피 아래에서 각 채가 제 지붕을 세운다 — 큰 지붕과 작은 지붕의 긴장이 이 안의 전부다."
+        }
+      ]
+    },
+    {
+      "name": "d_saltbox_haengryeol",
+      "primary_language": "porous_field",
+      "secondary_language": "a field of saltboxes all leaning the same way, like grass in wind",
+      "formal_principle": "비대칭 지붕이 전부 같은 쪽으로 눕는다 — 바람 맞은 풀밭처럼, 마을 전체가 한 방향을 기억한다.",
+      "dominant_gesture": "a field leaning one way",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.3,
+          "height": 0.6,
+          "tie": 0.0,
+          "turn": 0,
+          "why": "같은 방향이 논지라서 회전은 없다 — 여섯이 한 몸처럼 기운다."
+        },
+        {
+          "op": "gable",
+          "on": "object_",
+          "pitch": 0.5,
+          "at": 0.3,
+          "along": "long",
+          "why": "용마루를 0.3에 두면 지붕이 눕는 방향이 생긴다 — 마을의 바람."
+        }
+      ]
+    },
+    {
+      "name": "d_ppaenaen_jib",
+      "primary_language": "carved_body",
+      "secondary_language": "a gabled block with one house pulled out, standing beside its own socket",
+      "formal_principle": "박공 몸에서 집 한 채를 뽑아 소켓 옆에 세운다 — 보이드와 조각이 한 쌍이고, 둘 다 같은 단면을 쓴다.",
+      "dominant_gesture": "a piece and its socket, both gabled",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "뽑힐 몸."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.5,
+          "toward": "cross",
+          "why": "단면이 읽히는 바가 된다."
+        },
+        {
+          "op": "extract",
+          "size": 0.4,
+          "gap": 0.45,
+          "height": 1.0,
+          "level": 0,
+          "why": "뽑아낸 집과 남은 몸 사이를 넉넉히 벌린다. 0.2로 선언한 틈은 배달 시점에 0.15m로 닫혀 사라졌다 — 방 깊이에 못 미치는 틈은 틈이 아니다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.9,
+          "along": "long",
+          "why": "몸과 조각이 같은 지붕을 쓴다 — 한 혈통 두 몸."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "d_bakgong_dari",
-   "primary_language": "open_figure",
-   "secondary_language": "two houses apart, a third gabled bar lodged across the gap",
-   "formal_principle": "두 집 사이에 세 번째 집이 걸린다 — 다리이자 문이고, 셋 다 같은 박공 단면을 쓴다. 사이 공간 위에 지붕이 떠 있다.",
-   "dominant_gesture": "a gabled house bridging two houses",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 2,
-     "spread": 1.05,
-     "height": 0.6,
-     "tie": 0.0,
-     "turn": 0,
-     "unit": "house",
-     "method": "stack",
-     "storeys": 2,
-     "levels": 1,
-     "why": "기둥이 될 두 채 — 나란히, 사이를 남기고."
-    },
-    {
-     "op": "lodge",
-     "size": 0.42,
-     "over": 0.45,
-     "height": 0.5,
-     "at": 0.5,
-     "why": "세 번째가 둘 위에 걸친다 — 잇는 것이 논지다."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.9,
-     "along": "long",
-     "why": "셋이 한 혈통 — 걸친 것까지 같은 단면을 쓴다."
-    }
-   ]
-  },
-  {
-   "name": "d_bakgong_madang",
-   "primary_language": "carved_body",
-   "secondary_language": "four pitched bars ringing an open court, ridges facing in",
-   "formal_principle": "박공이 마당을 두른다 — 네 바의 용마루가 안마당을 향해 도열하고, 비는 마당으로 모인다. 지붕의 안쪽 면이 곧 마당의 벽이다.",
-   "dominant_gesture": "a court ringed by roofs",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.28,
-     "height": 0.5,
-     "why": "마당은 남기는 게 아니라 두르는 것이다 — 네 바가 먼저 마당을 정의한다."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.9,
-     "along": "long",
-     "why": "두른 바에 단면을 준다 — 용마루가 마당을 향해 도열할 때 마당은 골목이 아니라 안마당이 된다."
-    }
-   ]
-  },
-  {
-   "name": "d_tobtni_deul",
-   "primary_language": "solid_body",
-   "secondary_language": "a low mat wearing five parallel ridges, a field of teeth",
-   "formal_principle": "낮은 매트 하나가 능선 다섯을 입는다 — 집 다섯 채가 아니라 지붕 다섯 골의 한 몸. 단위는 볼륨이 아니라 능선이다.",
-   "dominant_gesture": "sawtooth field over one body",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.45,
-     "why": "들판이 되려면 먼저 낮고 넓게 눕는다."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.6,
-     "toward": "cross",
-     "why": "능선이 달릴 방향을 정한다 — 골은 긴 축을 따라 달려야 들이 된다."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.8,
-     "bays": 5,
-     "along": "long",
-     "why": "한 몸에 능선 다섯 — 쌓지 않고도 지붕이 풍경이 되는 법."
-    }
-   ]
-  },
-  {
-   "name": "d_v_wa_san",
-   "primary_language": "open_figure",
-   "secondary_language": "two rows across a lane: one row falls to a valley, the other rises to a ridge",
-   "formal_principle": "골목을 사이에 두고 V와 산이 마주 본다 — 한 줄은 안으로 떨어지고 한 줄은 밖으로 솟는다. 지붕의 방향이 두 줄의 관계를 말한다.",
-   "dominant_gesture": "valley row facing ridge row",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.4,
-     "why": "두 줄이 될 한 몸."
-    },
-    {
-     "op": "split",
-     "ratio": 0.5,
-     "along": "cross",
-     "gap": 6,
-     "first": "v_row",
-     "second": "san_row",
-     "why": "골목이 먼저다 — 관계는 사이가 있어야 생긴다."
-    },
-    {
-     "op": "butterfly",
-     "on": "v_row",
-     "pitch": 0.8,
-     "at": 0.5,
-     "why": "한 줄은 하늘을 향해 열린다 — 처마가 올라가 골목 쪽으로 눈을 든다."
-    },
-    {
-     "op": "gable",
-     "on": "san_row",
-     "pitch": 0.9,
-     "along": "long",
-     "why": "다른 줄은 산이 된다 — V의 골과 산의 능선이 골목 위에서 교대한다."
-    }
-   ]
-  },
-  {
-   "name": "d_heulleo_jibdeul",
-   "primary_language": "porous_field",
-   "secondary_language": "houses sliding off the pile in alternating directions, a landslide of roofs",
-   "formal_principle": "쌓되 미끄러뜨린다 — 레벨이 오를수록 집들이 교대로 반대편으로 흘러내려, 더미가 아니라 산사태의 정지 화면이 된다.",
-   "dominant_gesture": "an arrested landslide of houses",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 6,
-     "spread": 1.15,
-     "height": 0.9,
-     "tie": 0.0,
-     "turn": 15,
-     "method": "stack",
-     "unit": "house",
-     "storeys": 2,
-     "levels": 3,
-     "reach": 0.15,
-     "why": "엇쌓기의 정적을 깬다 — 끝이 날면 더미는 움직임의 기록이 된다."
-    }
-   ]
-  },
-  {
-   "name": "d_ddeun_jibung_arae",
-   "primary_language": "porous_field",
-   "secondary_language": "gabled pavilions scattered under one thin floating roof",
-   "formal_principle": "뜬 평지붕 하나 아래 박공 파빌리온들이 흩어진다 — 큰 지붕은 하늘을 막고, 작은 지붕들은 저마다의 하늘을 만든다. 지붕 아래의 지붕.",
-   "dominant_gesture": "roofs under a roof",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 5,
-     "spread": 1.4,
-     "height": 0.55,
-     "tie": 0.28,
-     "turn": 20,
-     "why": "흩어진 다섯을 얇은 캐노피 하나가 묶는다 — 닿지 않고 묶는 법."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.7,
-     "toward": "long",
-     "on": "field_plate",
-     "why": "캐노피는 군집만 덮는다 — 필지가 아니라 다섯 채의 하늘."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.75,
-     "toward": "cross",
-     "on": "field_plate",
-     "why": "양방향으로 군집 크기까지."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.14,
-     "on": "field_plate",
-     "why": "캐노피는 가는 기둥들 위에 뜬다 — 닿지 않고 묶는 지붕의 실물 문법."
-    },
-    {
-     "op": "gable",
-     "on": "object_",
-     "pitch": 1.0,
-     "along": "long",
-     "why": "캐노피 아래에서 각 채가 제 지붕을 세운다 — 큰 지붕과 작은 지붕의 긴장이 이 안의 전부다."
-    }
-   ]
-  },
-  {
-   "name": "d_saltbox_haengryeol",
-   "primary_language": "porous_field",
-   "secondary_language": "a field of saltboxes all leaning the same way, like grass in wind",
-   "formal_principle": "비대칭 지붕이 전부 같은 쪽으로 눕는다 — 바람 맞은 풀밭처럼, 마을 전체가 한 방향을 기억한다.",
-   "dominant_gesture": "a field leaning one way",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 5,
-     "spread": 1.3,
-     "height": 0.6,
-     "tie": 0.0,
-     "turn": 0,
-     "why": "같은 방향이 논지라서 회전은 없다 — 여섯이 한 몸처럼 기운다."
-    },
-    {
-     "op": "gable",
-     "on": "object_",
-     "pitch": 0.5,
-     "at": 0.3,
-     "along": "long",
-     "why": "용마루를 0.3에 두면 지붕이 눕는 방향이 생긴다 — 마을의 바람."
-    }
-   ]
-  },
-  {
-   "name": "d_ppaenaen_jib",
-   "primary_language": "carved_body",
-   "secondary_language": "a gabled block with one house pulled out, standing beside its own socket",
-   "formal_principle": "박공 몸에서 집 한 채를 뽑아 소켓 옆에 세운다 — 보이드와 조각이 한 쌍이고, 둘 다 같은 단면을 쓴다.",
-   "dominant_gesture": "a piece and its socket, both gabled",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "extrude",
-     "height": 0.5,
-     "why": "뽑힐 몸."
-    },
-    {
-     "op": "compress",
-     "ratio": 0.5,
-     "toward": "cross",
-     "why": "단면이 읽히는 바가 된다."
-    },
-    {
-     "op": "extract",
-     "size": 0.32,
-     "gap": 0.2,
-     "height": 1.0,
-     "level": 0,
-     "why": "빼냄이 논지다 — 조각이 나간 자리가 문이 되고 조각은 별채가 된다."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.9,
-     "along": "long",
-     "why": "몸과 조각이 같은 지붕을 쓴다 — 한 혈통 두 몸."
-    }
-   ]
-  }
- ]
+  ]
 }

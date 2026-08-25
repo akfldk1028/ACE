@@ -17,7 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 HEIGHT = (10.0, 20.0)      # 당선작 15건이 앉은 높이 대역
 GROUND = (400.0, 800.0)    # 같은 조사의 footprint 대역
-VOID = 0.05                # 시트가 요구하는 최소 비움
+# 비움은 더 이상 봉투 조건이 아니다 - 시트가 셀마다 한 자리를 마당에 예약할
+# 뿐이라, 여기서 요구하면 통과할 문장을 막힌 것으로 보고하게 된다.
+VOID = 0.0
 
 
 def family(name: str) -> str:
@@ -68,7 +70,7 @@ def main(run: str, pattern: str = "") -> int:
 
         inside = [r for r in standing
                   if HEIGHT[0] <= height(r) <= HEIGHT[1]
-                  and GROUND[0] <= ground(r) <= GROUND[1] and void(r) >= VOID]
+                  and GROUND[0] <= ground(r) <= GROUND[1]]
         if inside:
             rows.append((name, len(records), len(standing), "통과",
                          f"봉투 안 {len(inside)}"))
@@ -80,7 +82,7 @@ def main(run: str, pattern: str = "") -> int:
             h, g, v = height(r), ground(r), void(r)
             dh = max(HEIGHT[0] - h, h - HEIGHT[1], 0.0) / HEIGHT[1]
             dg = max(GROUND[0] - g, g - GROUND[1], 0.0) / GROUND[1]
-            dv = max(VOID - v, 0.0) / VOID
+            dv = 0.0
             return dh + dg + dv, (h, g, v, dh, dg, dv)
 
         best = min(standing, key=lambda r: miss(r)[0])

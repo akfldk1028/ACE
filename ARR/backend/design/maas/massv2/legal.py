@@ -27,6 +27,7 @@ from design.maas.book_language.downstream_hard_gate import (
 )
 from design.maas.book_language.legal_floor_field import materialize_legal_floor_field
 from design.services.constraint_bridge import regulations_to_constraints
+from land import config as land_config
 from design.services.site_geometry import (
     fetch_parcel_boundary,
     geojson_to_polygon,
@@ -174,7 +175,13 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
     setback_lines = compute_setback_lines(
         boundary,
         regulation,
-        compute_datum=False,
+        # §119 datum, on when the deployment has an elevation source. The web
+        # path already reads this flag; the mass path hardcoded False, so every
+        # scheme was measured from a flat ground whatever the site did. On a
+        # 15 m 기복 parcel that is not a rounding difference, it is the wrong
+        # ground plane. Where no elevation is available the datum computation
+        # reports its own failure and the envelope falls back as before.
+        compute_datum=land_config.ENABLE_DATUM_ELEVATION,
         road_frontages=(roads.get("roads") or []) if isinstance(roads, dict) else [],
         neighbor_parcels=(neighbors.get("neighbors") or []) if isinstance(neighbors, dict) else [],
     )

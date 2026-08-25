@@ -428,9 +428,11 @@
       "floor_height_m": 3.6,
       "ops": [
         {
-          "height": 0.5,
+          "height": 0.9,
           "profile": "chamfered",
-          "op": "extrude"
+          "op": "extrude",
+          "storeys": 5,
+          "why": "다섯 층의 모따기 몸. 0.5로 두면 8m에 바닥 242㎡라 높이도 바닥도 문턱 아래였다 — 경사와 교차가 읽히려면 먼저 설 만큼 서야 한다."
         },
         {
           "run": 0.75,

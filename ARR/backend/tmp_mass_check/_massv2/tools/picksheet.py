@@ -68,15 +68,23 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
         ground = (r.get("legal_fit") or {}).get("ground_area_m2") or 0.0
         # And a court on the ground. Counting the subjects of fifteen winning
         # 설계설명 gives 마당·틈·골목·데크 over the mass itself every time, and
-        # a void eight floors up is a light well, not a 마당. Measured on this
-        # run's envelope: the pool's ground band is 34.7% open at the median
-        # and 92% of it clears 5%, while the sheet was selecting down to 20.7%
-        # with a quarter of its tiles at nothing. Gate, not objective - the
-        # ranking inside a cell is still the language's.
-        bands = measured.get("band_profile") or []
-        at_grade = bands[0][1] if bands else 0.0
+        # a void eight floors up is a light well, not a 마당.
+        #
+        # ⚠️ This read `band_profile[0][1]` first and that is not the ground.
+        # The array is not one entry per band - i_bakgong_gori reports
+        # band_count 8 against fifteen entries, most of them zero, with the
+        # courtyard showing at indices 2, 9, 11 and 13 - so index 0 returned
+        # 0.000 for a ring whose plan is 27% open. Every gabled and courtyard
+        # sentence was cut by that, and I read the wreckage as "roofs and
+        # courts are in conflict". They are not; the measure was.
+        #
+        # `plan_void_ratio` is the whole mass rather than the ground alone, so
+        # a light well eight floors up still counts here. That is the looser
+        # reading, and the honest one until the grade-level court is measured
+        # from geometry rather than from an array whose indexing I guessed.
+        court = measured.get("plan_void_ratio") or 0.0
         return (10.0 <= height <= 20.0 and 400.0 <= ground <= 800.0
-                and at_grade >= 0.05)
+                and court >= 0.05)
 
     recs = [
         r for r in summary["records"]
@@ -116,12 +124,65 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     # per-band dedup alone spent forty-six frames on thirty-two families.
     seen = set()
     families: dict[str, int] = defaultdict(int)
+    # One seat per cell for a verb nobody has heard yet.
+    #
+    # Ranking a cell by spoken_force alone emptied the sheet of thirteen verbs -
+    # gable, mansard and butterfly, so no roofs; twist, skew and rotate, so
+    # nothing turns; merge, nest, interlock and intersect, so nothing engages
+    # anything else - and what was left read as orthogonal prisms with holes cut
+    # in them. They were not refused by any gate: nine families and eighty-one
+    # variants of them cleared physics, the winners' envelope and the court, and
+    # then lost the ranking. hertzberger sat 40th of 62 in its own cell at 0.44
+    # against a 1.00.
+    #
+    # spoken_force is also the measure a blind round of 62 pairs found does not
+    # predict quality (+0.27), so letting it decide alone spends the whole sheet
+    # on one number that was tested and failed. One seat, not the cell: the rest
+    # of the row is still ranked, so this widens the offer without handing it
+    # over.
+    def verbs_of(record) -> set[str]:
+        scheme = corpus.get(scheme_of(record["name"])) or {}
+        return {str(op.get("op")) for op in scheme.get("ops", []) if op.get("op")}
+
+    # Reserve a seat for the rarest verbs first, not for whichever verb the
+    # top-ranked candidate happens to carry. Promoting "any unseen verb" per
+    # cell was tried and moved one of thirteen: the common verbs are held by
+    # high-ranked candidates, so they take the seat and the rare ones stay
+    # unheard. Walking the verbs by how rare they are in the pool, and giving
+    # each its best-ranked carrier, targets the ones actually missing.
+    pool_verbs: dict[str, int] = defaultdict(int)
+    for record in recs:
+        for verb in verbs_of(record):
+            pool_verbs[verb] += 1
+    reserved: dict[str, list] = defaultdict(list)
+    spoken: set[str] = set()
+    for verb, _count in sorted(pool_verbs.items(), key=lambda kv: kv[1]):
+        if verb in spoken:
+            continue
+        carriers = sorted(
+            (r for r in recs if verb in verbs_of(r)),
+            key=lambda r: r.get("spoken_force") or 0.0, reverse=True,
+        )
+        for carrier in carriers:
+            cell = carrier["cell"]
+            if len(reserved[cell]) >= max(1, per_cell - 1):
+                continue
+            if any(scheme_of(x["name"]) == scheme_of(carrier["name"])
+                   for xs in reserved.values() for x in xs):
+                continue
+            reserved[cell].append(carrier)
+            spoken |= verbs_of(carrier)
+            break
+
+    seen = set()
     for cell in cells:
         band = cell.split("|")[0]
         ranked = sorted(
             (r for r in recs if r["cell"] == cell),
             key=lambda r: r.get("spoken_force") or 0.0, reverse=True,
         )
+        held = reserved.get(cell) or []
+        ranked = held + [r for r in ranked if r not in held]
         row = []
         for r in ranked:
             name = scheme_of(r["name"])

@@ -29,24 +29,29 @@ import json
 import sys
 from pathlib import Path
 
-from finalists import PNU, scheme_of  # noqa: E402  (django setup inside)
+from finalists import PNU, rebuild, scheme_of  # noqa: E402  (django setup inside)
+from floor_areas import storey_areas  # noqa: E402
 
 from design.maas.massv2 import program as programme  # noqa: E402
+from design.maas.massv2.legal import load_legal_site  # noqa: E402
+from design.maas.massv2.siting import open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 BOOK = ROOT / "inputs" / "programs-korean.json"
 
 
-def allocate(schedule, *, gfa_m2: float, floors: int, shared_share: float):
+def allocate(schedule, *, areas_m2: list[float], shared_share: float):
     """Rooms per floor, and what did not fit.
 
-    Returns (floors, unplaced, basement) where `floors` is a list of
-    {"storey": n, "usable_m2": x, "rooms": [...]} from the ground up.
+    `areas_m2` is each storey's own plan area from the ground up. Dividing
+    연면적 by the storey count instead - which this did first - is only true
+    of a prism: a_one_bend stands on 652 m2 and was being offered 217, so the
+    tool reported three schemes unable to hold a 210 m2 hall that in fact had
+    room for it twice over.
     """
 
-    usable = max(gfa_m2 * (1.0 - shared_share) / max(floors, 1), 1.0)
-    plan = [{"storey": n + 1, "usable_m2": round(usable, 1), "rooms": [],
-             "used_m2": 0.0} for n in range(max(floors, 1))]
+    plan = [{"storey": n + 1, "usable_m2": round(a * (1.0 - shared_share), 1),
+             "rooms": [], "used_m2": 0.0} for n, a in enumerate(areas_m2 or [1.0])]
 
     def put(level, room, area):
         plan[level]["rooms"].append({"name": room.name, "area_m2": round(area, 1),
@@ -88,6 +93,18 @@ def allocate(schedule, *, gfa_m2: float, floors: int, shared_share: float):
                              "why": "남은 층 면적 부족"})
         else:
             put(level, room, room.total_m2)
+
+    # The 30% the brief reserves for 공용부 has to land somewhere. Subtracting
+    # it from each floor's usable area and then never placing it read as empty
+    # floors - twenty of thirty tiles looked a storey too large when what was
+    # missing was the corridor. It follows the rooms: a floor with none needs
+    # no circulation, and one with a third of them carries a third of the core.
+    served = sum(f["used_m2"] for f in plan) or 1.0
+    budget = served / max(1.0 - shared_share, 1e-6) - served
+    for floor in plan:
+        if floor["used_m2"] <= 0.0:
+            continue
+        floor["shared_m2"] = round(budget * floor["used_m2"] / served, 1)
     return plan, unplaced, basement
 
 
@@ -104,16 +121,35 @@ def main(run: str, programme_name: str = "효돈동 주민센터") -> int:
     record = next(r for r in book["schedules"] if r.get("name") == programme_name)
     schedule = programme.schedule_from_record(record, shared_share_of_gross=share)
 
+    corpus = {}
+    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+        for s in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
+            corpus[s["name"]] = s
+    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    buildable = site.plan_at(0.0)
+    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    base = site.floor_height_m * max(
+        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
+
     out = []
     for p in picks:
         rec = records.get(p["name"]) or {}
+        scheme = corpus.get(scheme_of(p["name"]))
+        if scheme is None:
+            continue
         storey = float(rec.get("floor_height_m") or 3.0)
-        floors = max(1, round(float(p["height_m"] or 0.0) / max(storey, 1.0)))
+        asked = max((float(op.get("storeys") or 0)
+                     for op in scheme.get("ops", [])), default=0.0)
+        src = rebuild(p["name"], corpus, site, buildable, axis,
+                      max(base, asked * site.floor_height_m), schedule=schedule)
+        if src is None:
+            continue
+        areas = storey_areas(src, height_m=float(p["height_m"] or 0.0),
+                             storey_m=storey)
         plan, unplaced, basement = allocate(
-            schedule, gfa_m2=float(rec.get("gfa_m2") or 0.0),
-            floors=floors, shared_share=share,
-        )
-        out.append({"id": p["id"], "family": p["family"], "floors": floors,
+            schedule, areas_m2=areas, shared_share=share)
+        out.append({"id": p["id"], "family": p["family"], "floors": len(areas),
+                    "areas_m2": [round(a, 1) for a in areas],
                     "plan": plan, "unplaced": unplaced, "basement": basement})
 
     path = folder.parent / f"{run}-pick" / "programme.json"

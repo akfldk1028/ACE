@@ -888,6 +888,9 @@ class Command(BaseCommand):
         # typed. A sheet nobody can trace back to its inputs is not evidence.
         provenance = {
             "track": track,
+            # Which 소요면적표 sized these masses. The sheet has to rebuild
+            # through the same brief or it draws a different building.
+            "programme": schedule.name if schedule is not None else None,
             "corpus": sorted(
                 Path(path).name
                 for path in (options["authored_json"] or []) + (options["parti_json"] or [])

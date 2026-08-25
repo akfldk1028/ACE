@@ -48,7 +48,8 @@ def scheme_of(name: str) -> str:
     return name.split("~")[0].split("^")[0]
 
 
-def rebuild(name: str, corpus, site, buildable, axis, height):
+def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
+            programme_weight: float = 1.0):
     """One variant's delivered geometry, down the same path the grid walked."""
 
     rec = corpus.get(scheme_of(name))
@@ -93,7 +94,29 @@ def rebuild(name: str, corpus, site, buildable, axis, height):
     target = next((c for c in candidates if c.name == name), None)
     if target is None:
         return None
-    grown = fill_to_site(target, site).fit.form
+    # The korea edition sizes a scheme to its 실별 소요면적표 before it grows,
+    # and rebuilding without that step drew a different building beside the
+    # row's numbers: a_one_bend's tile measured 3,059 m2 against the 1,547 m2
+    # its record reports, because the brief never shrank it. Same rule, same
+    # function, two answers - the tenth time in this package that one building
+    # was measured twice.
+    wanted = None
+    if schedule is not None:
+        from design.maas.massv2 import program as programme
+        target = programme.resized_to(
+            target, schedule, weight=programme_weight, storey_height_m=storey,
+        )
+        wanted = target.extra.get("programme_target")
+    # `resized_to` only redistributes plan between volumes; what holds the whole
+    # scheme to the brief is the growth loop's target, and the grid passes it as
+    # a share of the parcel's cap. Rebuilding without it grew every tile to the
+    # language default instead - 0.85 of 6,242 m2 against a 1,546 m2 brief, so
+    # a_one_bend was drawn at 4,127 m2 beside a row saying 1,547.
+    grown = fill_to_site(
+        target, site,
+        target_utilization=(float(wanted) / max(site.far_capacity_m2, 1e-9)
+                            if wanted else None),
+    ).fit.form
     return compile_matrix_form(
         grown, storey_height_m=storey, allowed_at=site.plan_at,
     )

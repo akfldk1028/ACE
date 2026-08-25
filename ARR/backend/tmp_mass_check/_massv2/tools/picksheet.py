@@ -37,6 +37,20 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
     # 2,148 of 2,160 lawful masses on the 효돈동 schedule - the exact confusion
     # `--track` was written to prevent.
     korea = (summary.get("provenance") or {}).get("track") == "korea"
+    # The same schedule the grid sized these masses to, so the tile is the
+    # building its row describes rather than the one the parcel alone would
+    # have grown.
+    schedule = None
+    brief = (summary.get("provenance") or {}).get("programme")
+    if korea and brief:
+        from design.maas.massv2 import program as programme
+        book = json.loads((ROOT / "inputs" / "programs-korean.json")
+                          .read_text(encoding="utf-8"))
+        share = book.get("shared_area_share_of_gross")
+        record = next((r for r in book["schedules"] if r.get("name") == brief), None)
+        if record is not None:
+            schedule = programme.schedule_from_record(
+                record, shared_share_of_gross=share)
 
     def in_winners_envelope(r) -> bool:
         """Where fifteen surveyed Korean public winners actually sit.
@@ -134,7 +148,8 @@ def main(run: str, per_cell: int = 3, style: str = "massing") -> int:
             asked = max((float(op.get("storeys") or 0)
                          for op in rec.get("ops", [])), default=0.0)
             budget = max(height, asked * site.floor_height_m)
-            src = rebuild(r["name"], corpus, site, buildable, axis, budget)
+            src = rebuild(r["name"], corpus, site, buildable, axis, budget,
+                          schedule=schedule)
             if src is None:
                 continue
             index += 1

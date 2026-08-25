@@ -7,25 +7,42 @@ on the floor that can take it, and the average hides that in both directions.
 
 import json, sys
 from pathlib import Path
-from shapely.ops import unary_union
 from finalists import PNU, rebuild, scheme_of
 from design.maas.massv2.legal import load_legal_site
+from design.maas.massv2.measure import storeys_in
 from design.maas.massv2.siting import open_side_direction
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def storey_areas(src, *, height_m: float, storey_m: float) -> list[float]:
-    """Plan area at the middle of each storey, from the ground up."""
+    """How much floor each storey holds, from the ground up.
+
+    Sampling the plan at mid-storey was the first version and it undercounts a
+    scattered mass badly: a piece sitting between two sample heights is missed
+    whole, so i_naneun_maeul's four storeys summed to 1,062 m2 against a
+    recorded 연면적 of 1,264 and the village was reported unable to hold a
+    brief it may well hold.
+
+    Each volume now contributes to every storey band it overlaps, in
+    proportion to how much of that band it occupies - which is the same rule
+    `measure.gross_floor_area_m2` uses, so the storeys sum to the 연면적
+    rather than to a set of sections through it.
+    """
 
     floors = max(1, round(height_m / max(storey_m, 1e-6)))
-    out = []
-    for n in range(floors):
-        z = (n + 0.5) * storey_m / max(height_m, 1e-6)
-        plans = [v.footprint for v in src.volumes
-                 if v.footprint is not None
-                 and v.bottom_fraction - 1e-9 <= z <= v.top_fraction + 1e-9]
-        out.append(float(unary_union(plans).area) if plans else 0.0)
+    out = [0.0] * floors
+    for v in src.volumes:
+        if v.footprint is None:
+            continue
+        deep = (float(v.top_fraction) - float(v.bottom_fraction)) * height_m
+        held = storeys_in(deep, floor_height_m=storey_m)
+        if held <= 0:
+            continue
+        base = int((float(v.bottom_fraction) * height_m) // max(storey_m, 1e-6))
+        for n in range(int(round(held))):
+            level = min(base + n, floors - 1)
+            out[level] += float(v.footprint.area)
     return out
 
 

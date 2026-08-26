@@ -272,6 +272,14 @@ def inscribe(frame, op) -> None:
     A notch reaches an edge and a puncture goes through; an inscription is
     contained on every side and shallow by definition. In massing terms it is
     the sunken court read from above.
+
+    `at` and `across` place it, in the host's own plan, the way `lodge` places
+    what it hangs. Without them the cut was always centred, so a sentence that
+    inscribes twice cut the same hole twice: `sanaa_kanazawa_engraved_disc`
+    declares 0.22 and then 0.24, and the second - the larger one - redrew 0.5%
+    of the mass against the first's 2.5%, because all it could reach was a 1%
+    ring around a hole that was already there. Both default to 0.5, which is the
+    centred cut this made before.
     """
 
     picked, rest = frame.pick(op)
@@ -280,12 +288,15 @@ def inscribe(frame, op) -> None:
         return
     size = _clamp(float(op.params.get("size", 0.35)), 0.15, 0.6)
     depth = _clamp(float(op.params.get("depth", 0.25)), 0.1, 0.5)
+    at = _clamp(float(op.params.get("at", 0.5)), 0.0, 1.0)
+    across = _clamp(float(op.params.get("across", 0.5)), 0.0, 1.0)
     made: list[Placement] = []
     for host in hosts:
-        centre = 0.5 - size / 2.0
+        x0 = at * (1.0 - size)
+        y0 = across * (1.0 - size)
         cut = _region(
             host, f"{host.role}_inscribed",
-            (centre, centre, 1.0 - depth), (centre + size, centre + size, 1.0 + _GRIP),
+            (x0, y0, 1.0 - depth), (x0 + size, y0 + size, 1.0 + _GRIP),
         )
         made.append(replace(cut, kind="subtractive", occupiable=False))
     frame.placements = rest + picked + made

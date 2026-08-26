@@ -16,7 +16,6 @@ distance is a fact rather than an assumption.
 
 import math
 import sys
-from pathlib import Path
 
 from band_probe import corpus  # noqa: E402  (django setup inside)
 from finalists import PNU  # noqa: E402
@@ -112,25 +111,42 @@ def main(pattern: str = "") -> int:
             height_m=max(base, asked * site.floor_height_m), storey_height_m=storey)
         if form is None:
             continue
-        built = [s for s in (delivered_slope(p) for p in form.placements) if s]
-        if not built:
-            rows.append((name, declared[0][0], declared[0][1], None))
+        steepest = None
+        for item in form.placements:
+            slope = delivered_slope(item)
+            if slope is None:
+                continue
+            corners = item.corners()
+            body = max(c[2] for c in corners) - min(c[2] for c in corners)
+            if steepest is None or slope > steepest[0]:
+                steepest = (slope, body, item.top_drop * body)
+        if steepest is None:
+            rows.append((name, declared[0][0], declared[0][1], None, ""))
             continue
-        rows.append((name, declared[0][0], declared[0][1], max(built)))
-
-    print(f"{'문장':<44}{'동사':<10}{'선언':>7}{'배달':>7}{'선언도':>8}{'배달도':>8}  비고")
-    kept = 0
-    for name, verb, want, got in rows:
-        if got is None:
-            print(f"{name[:44]:<44}{verb:<10}{want:>7.2f}{'-':>7}{'':>8}{'':>8}  지붕 없음")
-            continue
-        note = ""
-        if got < want * 0.7:
-            note = f"{100 * (1 - got / want):.0f}% 완만해짐"
+        slope, body, drop = steepest
+        # Which of the two ceilings the roof stopped at, so a shallow delivery
+        # reads as a reason rather than as an alarm.
+        cap_m = 1.5 * storey
+        if slope >= declared[0][1] * 0.98:
+            why = ""
+        elif abs(drop - cap_m) < 0.2:
+            why = f"지붕 상한 {cap_m:.1f} m"
+        elif drop > 0.9 * body:
+            why = f"몸이 {body:.1f} m뿐 (한 층)"
         else:
+            why = ""
+        rows.append((name, declared[0][0], declared[0][1], slope, why))
+
+    print(f"{'문장':<38}{'동사':<10}{'선언도':>8}{'배달도':>8}  {'멈춘 이유'}")
+    kept = 0
+    for name, verb, want, got, why in rows:
+        if got is None:
+            print(f"{name[:38]:<38}{verb:<10}{math.degrees(math.atan(want)):>8.1f}{'-':>8}  지붕 없음")
+            continue
+        if got >= want * 0.7:
             kept += 1
-        print(f"{name[:44]:<44}{verb:<10}{want:>7.2f}{got:>7.2f}"
-              f"{math.degrees(math.atan(want)):>8.1f}{math.degrees(math.atan(got)):>8.1f}  {note}")
+        print(f"{name[:38]:<38}{verb:<10}{math.degrees(math.atan(want)):>8.1f}"
+              f"{math.degrees(math.atan(got)):>8.1f}  {why}")
     print(f"\n{kept}/{len(rows)} 문장이 선언 경사의 70% 이상을 배달")
     return 0
 

@@ -1,0 +1,312 @@
+{
+  "schemes": [
+    {
+      "name": "kahn_kimbell_cycloid_vaults",
+      "primary_language": "solid_body",
+      "secondary_language": "같은 볼트를 몇 번 놓아 만든 방들",
+      "formal_principle": "단면이 곧 방의 단위다. 하나의 볼트가 하나의 갤러리이고, 건물은 그것을 옆으로 되풀이한 결과다.",
+      "dominant_gesture": "좁은 바 위에 얹힌 연속 배럴.",
+      "reference_basis": "Louis Kahn - Kimbell Art Museum, Fort Worth 1972. 사이클로이드 볼트 여섯 개, 각 볼트가 하나의 방이고 정점에 빛 슬릿",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.42,
+          "profile": "square",
+          "why": "볼트를 얹을 몸을 낮게 세운다. 볼트는 한두 층이므로 몸이 높으면 지붕이 몸을 못 이긴다"
+        },
+        {
+          "op": "compress",
+          "ratio": 0.62,
+          "toward": "cross",
+          "why": "가로를 좁혀 바로 만든다. 볼트 낙차는 폭의 절반에 경사를 곱한 값이라, 폭이 넓으면 상한에 걸려 평평해진다"
+        },
+        {
+          "op": "vault",
+          "rise": 1.1,
+          "bays": 4,
+          "along": "long",
+          "why": "네 칸의 배럴. bays가 볼륨을 능선 직각으로 나누므로 칸마다 제 볼트를 갖는다 — 하나의 큰 볼트가 아니라 되풀이가 논지다"
+        }
+      ]
+    },
+    {
+      "name": "sawtooth_north_light_shed",
+      "primary_language": "solid_body",
+      "secondary_language": "북쪽만 보는 톱니",
+      "formal_principle": "지붕이 한 방향으로만 빛을 들이려 톱니가 된다. 단면의 비대칭이 곧 방위의 선언이다.",
+      "dominant_gesture": "낮고 넓은 몸 위의 톱니.",
+      "reference_basis": "19-20세기 공장 sawtooth. 북측 수직창으로 직사광 없이 균질한 빛을 들이는 단면",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.3,
+          "profile": "square",
+          "why": "한 층짜리 넓은 작업면. 톱니는 높은 몸이 아니라 넓은 바닥 위에 온다"
+        },
+        {
+          "op": "fold",
+          "folds": 3,
+          "pitch": 0.9,
+          "along": "cross",
+          "why": "세 번 접는다. 접힘이 셋이면 프로파일이 일곱 점이고, 렌더가 이음선을 그리는 한도 안이라 톱니로 읽힌다"
+        }
+      ]
+    },
+    {
+      "name": "folded_plate_over_one_room",
+      "primary_language": "solid_body",
+      "secondary_language": "한 장을 접어 만든 지붕",
+      "formal_principle": "지붕은 판 하나다. 접혀서 스스로 서고, 접힌 선이 곧 구조선이다.",
+      "dominant_gesture": "한 방 위를 덮는 접힌 콘크리트 판.",
+      "reference_basis": "1950-60년대 folded plate 구조. 얇은 판이 접힘만으로 강성을 얻어 기둥 없이 스팬을 넘는 단면",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.36,
+          "profile": "square",
+          "why": "덮을 방 하나를 세운다"
+        },
+        {
+          "op": "compress",
+          "ratio": 0.66,
+          "toward": "cross",
+          "why": "판이 접히려면 스팬이 있어야 하고, 넓은 바닥에서는 접힘 낙차가 상한에 눌린다"
+        },
+        {
+          "op": "fold",
+          "folds": 2,
+          "pitch": 1.15,
+          "along": "cross",
+          "why": "두 번 접어 M을 만든다. 골이 하나뿐이면 박공이고, 둘이면 판이 접힌 것으로 읽힌다"
+        }
+      ]
+    },
+    {
+      "name": "vitrahaus_houses_reach_out",
+      "primary_language": "stacked_body",
+      "secondary_language": "쌓인 집들이 서로 다른 방향으로 나간다",
+      "formal_principle": "집 하나를 쌓되 층마다 다른 쪽으로 내밀어, 쌓임 자체가 방향의 선언이 된다.",
+      "dominant_gesture": "포개진 박공집들이 공중으로 나감.",
+      "reference_basis": "BIG - VitraHaus, Weil am Rhein 2010. 박공집 열두 채를 다섯 켜로 쌓고 최대 15m 내밈",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.5,
+          "height": 0.72,
+          "tie": 0.0,
+          "turn": 12,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "why": "집 셋을 쌓는다. 다섯은 각 집이 얇아져 종이 더미가 됐다 — 쌓임이 읽히려면 단위가 방이어야 한다"
+        },
+        {
+          "op": "cantilever",
+          "reach": 0.28,
+          "levels": 3,
+          "toward": "long",
+          "why": "쌓인 집이 아래를 넘어 나간다. 0.28은 성장 뒤에도 배달되는 값으로 실측된 몫이다"
+        }
+      ]
+    },
+    {
+      "name": "balancing_barn_half_in_the_air",
+      "primary_language": "solid_body",
+      "secondary_language": "절반이 땅을 떠난 바",
+      "formal_principle": "하나의 바가 제 길이의 절반을 공중에 둔다. 내밈이 장식이 아니라 건물의 전부다.",
+      "dominant_gesture": "시소처럼 한쪽으로 뻗은 몸.",
+      "reference_basis": "MVRDV - Balancing Barn, Suffolk 2010. 30m 바의 절반이 지형 위로 캔틸레버, 무게로 균형",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.78,
+          "profile": "square",
+          "why": "몸을 세 켜로 세운다. split의 contrast가 작은 조각의 높이를 나누므로, 자른 뒤에도 내밀 켜가 둘은 남아야 한다 — 두 켜가 안 되면 내밈은 할 말이 없다",
+          "storeys": 3
+        },
+        {
+          "op": "split",
+          "ratio": 0.38,
+          "along": "cross",
+          "first": "barn",
+          "second": "meadow",
+          "gap": 6.0,
+          "contrast": 1.35,
+          "why": "바를 만든다. compress는 최소 0.6이라 55m 씨앗을 35m까지밖에 못 줄이고, 지붕 낙차는 1.5층에서 잘리므로 35m 폭 위의 곡면은 1:8 — 둥근 상자로 읽힌다. 자르는 것이 좁히는 것보다 정직하다"
+        },
+        {
+          "op": "cantilever",
+          "reach": 0.4,
+          "levels": 2,
+          "toward": "long",
+          "on": "barn",
+          "why": "위 절반이 아래를 넘어 난다. 0.4는 구조 게이트 1.6을 역산한 천장이다"
+        }
+      ]
+    },
+    {
+      "name": "milstein_plate_over_the_court",
+      "primary_language": "carved_body",
+      "secondary_language": "마당 위를 지나가는 판",
+      "formal_principle": "판이 마당을 덮되 닿지 않는다. 그 아래가 비어 있다는 사실이 단면의 논지다.",
+      "dominant_gesture": "파낸 마당 위로 지나가는 한 켜.",
+      "reference_basis": "OMA - Milstein Hall, Cornell 2011. 스튜디오 판이 도로와 마당 위를 15m 건너 두 기존 건물을 잇는다",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "profile": "square",
+          "why": "판과 그 아래를 함께 가질 몸"
+        },
+        {
+          "op": "carve",
+          "size": 0.42,
+          "at": "cross",
+          "reach": 0.0,
+          "why": "마당을 먼저 판다. 지나갈 것이 있어야 지나가는 것이 보인다"
+        },
+        {
+          "op": "cantilever",
+          "reach": 0.36,
+          "levels": 2,
+          "toward": "cross",
+          "why": "위 켜가 파낸 쪽으로 나간다. 마당이 여유를 만들어 내밈이 봉투에 안 먹힌다"
+        }
+      ]
+    },
+    {
+      "name": "one_hall_under_one_vault",
+      "primary_language": "solid_body",
+      "secondary_language": "방 하나에 지붕 하나",
+      "formal_principle": "큰 방 하나를 하나의 곡면이 덮는다. 볼트의 폭이 곧 방의 폭이고, 그 밖에는 아무것도 없다.",
+      "dominant_gesture": "단일 배럴.",
+      "reference_basis": "Kahn - Kimbell의 단일 베이 원형. 하나의 볼트가 하나의 방이라는 관계를 가장 짧게 말한 형태",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "profile": "square",
+          "storeys": 2,
+          "why": "대회의실 하나가 들어갈 몸. 선언한 층수는 대지 평균에 눌리지 않는다"
+        },
+        {
+          "op": "split",
+          "ratio": 0.42,
+          "along": "cross",
+          "first": "hall",
+          "second": "forecourt",
+          "gap": 5.0,
+          "contrast": 1.35,
+          "why": "바를 만든다. compress는 최소 0.6이라 55m 씨앗을 35m까지밖에 못 줄이고, 지붕 낙차는 1.5층에서 잘리므로 35m 폭 위의 곡면은 1:8 — 둥근 상자로 읽힌다. 자르는 것이 좁히는 것보다 정직하다"
+        },
+        {
+          "op": "vault",
+          "rise": 1.2,
+          "along": "long",
+          "on": "hall",
+          "why": "자른 바 위에 볼트 하나. bays 없이 — 되풀이가 아니라 단일성이 논지다"
+        }
+      ]
+    },
+    {
+      "name": "deep_eave_over_the_approach",
+      "primary_language": "solid_body",
+      "secondary_language": "처마가 만드는 그늘 아래로 들어간다",
+      "formal_principle": "지붕이 몸보다 멀리 나가 접근로를 덮는다. 들어가는 경험이 단면에서 결정된다.",
+      "dominant_gesture": "한쪽으로 길게 나온 처마.",
+      "reference_basis": "한옥의 깊은 처마, 그리고 그것을 근대적으로 옮긴 김수근 계열 공공건축의 진입 그늘",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.78,
+          "profile": "square",
+          "why": "몸을 세 켜로 세운다. split의 contrast가 작은 조각의 높이를 나누므로, 자른 뒤에도 내밀 켜가 둘은 남아야 한다 — 두 켜가 안 되면 내밈은 할 말이 없다",
+          "storeys": 3
+        },
+        {
+          "op": "split",
+          "ratio": 0.42,
+          "along": "cross",
+          "first": "wing",
+          "second": "approach",
+          "contrast": 1.35,
+          "why": "바를 만든다. 틈은 선언하지 않는다 — 이 문장의 논지는 처마이지 골목이 아니고, 말하지 않은 틈은 닫혀도 거짓이 되지 않는다"
+        },
+        {
+          "op": "cantilever",
+          "reach": 0.3,
+          "levels": 2,
+          "toward": "cross",
+          "on": "wing",
+          "why": "위 켜가 진입 쪽으로 나가 그늘을 만든다. 자른 자리가 여유라 일조선이 내밈을 안 먹는다"
+        },
+        {
+          "op": "gable",
+          "pitch": 1.0,
+          "along": "long",
+          "on": "wing",
+          "why": "나간 켜에 경사를 준다. 처마는 평지붕의 끝이 아니라 경사면의 끝이다"
+        }
+      ]
+    },
+    {
+      "name": "terraces_step_toward_the_south",
+      "primary_language": "carved_body",
+      "secondary_language": "남으로 내려앉는 계단",
+      "formal_principle": "단면 전체가 남쪽으로 계단이 되어 모든 층이 제 하늘을 갖는다.",
+      "dominant_gesture": "한 방향으로 물러나는 테라스.",
+      "reference_basis": "Moshe Safdie - Habitat 67, 그리고 BIG - Mountain Dwellings. 계단 단면이 각 세대에 옥외를 주는 형",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.75,
+          "profile": "square",
+          "storeys": 5,
+          "why": "계단이 될 만큼의 켜를 먼저 세운다"
+        },
+        {
+          "op": "grade",
+          "run": 0.62,
+          "steps": 5,
+          "toward": "cross",
+          "why": "다섯 단으로 물러난다. 여기에 fold를 더해 각 단에 지붕을 주려 했더니 이미 밴드로 나뉜 볼륨마다 지붕이 생겨 23개 변형 전부가 캔틸레버 초과로 걸렸다 — 계단 자체가 이 문장의 단면이고, 그 위에 또 단면을 얹을 자리는 없다"
+        }
+      ]
+    },
+    {
+      "name": "fold_over_a_lifted_ground",
+      "primary_language": "open_figure",
+      "secondary_language": "들린 바닥 위에 접힌 지붕",
+      "formal_principle": "바닥은 들리고 지붕은 접힌다. 사이에 낀 층 하나가 건물의 전부이고, 위아래가 모두 사건이다.",
+      "dominant_gesture": "떠 있는 판과 접힌 덮개 사이의 한 켜.",
+      "reference_basis": "SANAA의 들린 바닥과 folded plate 지붕 전통의 교차. 두 단면 사건이 한 켜를 사이에 두고 마주 보는 구성",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.44,
+          "profile": "square",
+          "why": "한 켜짜리 몸"
+        },
+        {
+          "op": "compress",
+          "ratio": 0.7,
+          "toward": "cross",
+          "why": "들림과 접힘 둘 다 폭이 좁아야 읽힌다"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.22,
+          "why": "바닥을 들어 지면이 아래로 지나가게 한다"
+        },
+        {
+          "op": "fold",
+          "folds": 3,
+          "pitch": 1.0,
+          "along": "cross",
+          "why": "덮개를 세 번 접는다. 들린 판의 수평과 접힌 지붕의 지그재그가 한 단면 안에서 맞선다"
+        }
+      ]
+    }
+  ]
+}

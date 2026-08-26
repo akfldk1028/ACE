@@ -32,6 +32,7 @@ from design.maas.massv2 import grammar as grammar_module
 from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.fill import fill_to_site
+from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.sampler import read_facts, sample_sentences
 from design.maas.massv2.render import render_masses
 from design.maas.massv2.select import Candidate, choose, summary as selection_summary
@@ -388,13 +389,26 @@ class Command(BaseCommand):
                 # Judge the sentence, not its variants: a word that redraws
                 # nothing at the size it was written redraws nothing at any
                 # coverage or siting derived from it.
+                # The delivered mass is fitted, not clipped, and the difference
+                # decides the sentence. `allowed_at` cuts every band to the
+                # envelope, so two masses that differ only inside it come out
+                # identical and the word between them reads as silent: measured
+                # on the six sentences this refused, `twist` scores 0.3145
+                # unclipped, 0.0148 clipped and 0.3339 through `fit_to_site` -
+                # which is the function the pipeline actually uses, and which
+                # scales a scheme down to fit rather than shaving it flush.
+                # `interlock` goes 0.0000 to 0.5123 the same way.
+                def _delivered_form(form, _site=site):
+                    return fit_to_site(form, _site).form
+
                 spoken = postcondition.check_sentence(
                     parti,
                     buildable=buildable,
                     axis=axis,
                     height_m=authored_height,
-                    allowed_at=site.plan_at,
+                    allowed_at=None,
                     storey_height_m=storey,
+                    place=_delivered_form,
                 )
                 spoken_sitings: list[str] = []
                 if not spoken.honest:
@@ -431,10 +445,12 @@ class Command(BaseCommand):
                     for siting in sitings:
                         placed = postcondition.check_sentence(
                             parti, buildable=buildable, axis=axis,
-                            height_m=authored_height, allowed_at=site.plan_at,
+                            height_m=authored_height, allowed_at=None,
                             storey_height_m=storey,
-                            place=lambda f, s=siting: place_on_site(
-                                f, buildable, s, open_side=open_side
+                            # Placed, then fitted - the same two steps the grid
+                            # takes before it draws anything.
+                            place=lambda f, s=siting: _delivered_form(
+                                place_on_site(f, buildable, s, open_side=open_side) or f
                             ),
                         )
                         if placed.honest:

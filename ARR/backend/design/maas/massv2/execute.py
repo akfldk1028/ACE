@@ -372,6 +372,37 @@ def _bounds_of(
     return (offset[0], offset[1], max(us) - min(us), max(vs) - min(vs))
 
 
+def _own_plan(item: Placement, frame: "_Frame") -> tuple[float, float, float]:
+    """A volume's plan span on its OWN axes, and how far it is turned off the frame's.
+
+    `_bounds_of` measures on the frame's axes, which is right for a volume posed
+    at the parcel's bearing and wrong for one a `turn` or a `rotate` has moved
+    off it. The frame-aligned box around a turned rectangle is larger than the
+    rectangle, so a verb rebuilding from those numbers inflates the volume - and
+    rebuilding through `box` without the turn also stands it square again.
+
+    Measured on `big_lego_house_interlocking_bricks_over_a_square`: `aggregate`
+    turns its five objects to -171.5, -163.9, -162.7, -161.5 and -176.3 degrees,
+    `stack` keeps them, and `lift` rewrote every one of them to the parcel's own
+    -168.3. The 8-degree turn the sentence declares was not in the drawing.
+    """
+
+    matrix = item.matrix
+    bearing = math.degrees(math.atan2(matrix[1][0], matrix[0][0]))
+    radians = math.radians(bearing)
+    along = (math.cos(radians), math.sin(radians))
+    across = (-along[1], along[0])
+    corners = item.corners()
+
+    def span(unit: tuple[float, float]) -> float:
+        return max(
+            abs((one[0] - two[0]) * unit[0] + (one[1] - two[1]) * unit[1])
+            for one in corners for two in corners
+        )
+
+    return span(along), span(across), bearing - frame.rotation
+
+
 def _plan_shrink(item: Placement, span_x: float, span_y: float) -> float:
     """How much a rebuilt box must shrink to hold no more plan than it had.
 
@@ -770,15 +801,19 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # to 0.95, and the supports were innocent: measured, all four sit at
         # least 1.66 m from the other apartment and two of them entirely inside
         # the volume they hold up.
-        centre_x, centre_y, span_x, span_y = _bounds_of([item], frame)
-        # Raising a volume does not widen it. Rebuilt at its bounding box a
-        # parcel-shaped piece grows on every side, and on `oma_villa_dall_ava`
-        # that swallowed the 3.05 m the `split` before it had opened.
+        centre_x, centre_y, _frame_x, _frame_y = _bounds_of([item], frame)
+        # On the volume's own axes, and put back at its own bearing. Raising a
+        # volume does not widen it and does not straighten it either: rebuilt
+        # from the frame-aligned bounds a parcel-shaped piece grows on every
+        # side - on `oma_villa_dall_ava` that swallowed the 3.05 m the `split`
+        # before it had opened - and rebuilt without the turn it forgets what
+        # an `aggregate` or a `rotate` did to it.
+        span_x, span_y, turn = _own_plan(item, frame)
         shrink = _plan_shrink(item, span_x, span_y)
         raised.append(
             frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
                       z=low + clearance, h=high - low,
-                      dx=centre_x, dy=centre_y,
+                      dx=centre_x, dy=centre_y, turn=turn,
                       kind=item.kind, plan=item.plan, occupiable=item.occupiable)
         )
     # Four supports, a third of the plan each, so what is raised spans between

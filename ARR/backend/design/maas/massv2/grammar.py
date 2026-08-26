@@ -95,6 +95,8 @@ PLOT_MODES: dict[str, PlotMode] = {
     "extrude": "inherit",
     "stack": "inherit",
     "shear": "inherit",
+    # 내밈. A slide inside a mass that still takes the plot's outline.
+    "cantilever": "inherit",
     "taper": "inherit",
     # The book's Bend (연결을 유지하며 방향을 꺾음) and Pinch (중앙 양측을 깎아
     # 좁힘). Both transform what is standing rather than imposing a shape, so
@@ -121,6 +123,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     # 볼트. A polyline with enough vertices is a curve, so the barrel needed
     # the word rather than a new primitive.
     "vault": "inherit",
+    # 접힌 판. The same polyline with its breaks left in rather than sampled
+    # away - a concertina is a vault that admits it has corners.
+    "fold": "inherit",
     "embed": "inherit",
     # The book's volume-to-volume family (BOOK 045/046/052/055/056/068/069),
     # said in the host's own unit space like branch and embed, so they inherit

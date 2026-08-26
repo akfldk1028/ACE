@@ -32,6 +32,7 @@ from dataclasses import replace
 from typing import Callable
 
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
+from design.maas.source_geometry.ir import MAX_CREASED_PROFILE_POINTS
 from design.maas.geometry_language.affine_matrix import (
     Matrix4,
     compose_matrix4,
@@ -47,6 +48,12 @@ from ..form import Placement
 
 def _clamp(value: float, low: float, high: float) -> float:
     return low if value < low else high if value > high else value
+
+
+# How many times a top may fold and still be drawn as folds. A fold profile
+# takes 2n+1 points and the renderer reads anything past the crease limit as a
+# sampled curve, so a fourth fold would be drawn as a barrel vault.
+_MAX_FOLD_PEAKS = max(1, (MAX_CREASED_PROFILE_POINTS - 1) // 2)
 
 
 def _slab(index: int, count: int, axis: int = 2) -> Matrix4:
@@ -141,6 +148,26 @@ def _span_along_unit_axis(item: Placement, axis: int) -> float:
     step[axis] = 1.0
     tip = transform_point3(item.matrix, tuple(step))
     return sum((a - b) ** 2 for a, b in zip(tip, origin)) ** 0.5
+
+
+def _primaries(picked: list[Placement]) -> list[Placement]:
+    """The volumes a verb is really aimed at, without their attachments.
+
+    A verb's derived bodies carry the scope's role as a prefix - a lift's legs
+    are `plate_support`, a gable's bays are `bar_bay0` - and they are not
+    tiers of the thing they belong to. `shear` records what counts them as
+    such: Maison Bordeaux's four legs took stair indices 0-3, each slid a
+    different amount, and the plate slid off all of them. 3 of 22 occupiable
+    fell to 0 of 18 the day the legs learned to follow.
+    """
+
+    return [
+        item for item in picked
+        if not any(
+            other is not item and item.role.startswith(other.role + "_")
+            for other in picked
+        )
+    ]
 
 
 def _along_is_x(params: dict) -> bool:
@@ -309,13 +336,7 @@ def shear(frame, op) -> None:
     # amount, and the plate slid off all of them: 3 of 22 occupiable fell to
     # 0 of 18 the day the legs learned to follow. An attachment rides its
     # owner rigidly - the grading is over owners alone.
-    primary = [
-        item for item in picked
-        if not any(
-            other is not item and item.role.startswith(other.role + "_")
-            for other in picked
-        )
-    ]
+    primary = _primaries(picked)
     primary_ids = {id(item) for item in primary}
     ordered = sorted(primary, key=lambda item: item.z_span()[0])
     levels = {round(item.z_span()[0], 3) for item in ordered}
@@ -807,6 +828,146 @@ def vault(frame, op) -> None:
     frame.placements = rest + made
 
 
+def cantilever(frame, op) -> None:
+    """An upper body reaching out past the one that holds it.
+
+    The section language cannot say this. `top_profile` is a height across the
+    volume's own plan, so it can tilt a top and never push one past a wall -
+    which is why this is a banding verb like `shear` rather than a roof verb
+    like `gable`. Bands are slices of the volume's own unit cube, and the
+    flight is a world translation composed onto the matrix each band already
+    carries, so a volume keeps where it stood.
+
+    The heel holds still. `aggregate`'s `reach` records why - a flight needs
+    something under it - and every band steps the same amount past the one
+    below, so the ratio the structure gate reads is constant however many
+    levels are asked for.
+
+    `reach` is bounded by the gate, not by taste. `structure` refuses a
+    cantilever past `CANTILEVER_BACKSPAN_RATIO` of its backspan, which inverts
+    to a step of r/(1+r) of the run; the ceiling here is two thirds of that,
+    because the gate judges the *delivered* mass and the growth loop moves it.
+    Measured on `aggregate`'s own `reach`: 0.28 came through delivery clean and
+    0.35 measured 1.61 after growth, against a limit of 1.60.
+
+    A second bound, on the composition rather than the member: n bands each
+    stepping s put the centre of mass s*(n-1)/2 of the plan past its middle,
+    and the ground contact reaches half a plan, so s*(n-1) must stay under 1.
+
+    The flying band stays a room. Marked structure it would fall out of
+    `plausibility`'s room count and into its holding weight, and a scheme whose
+    upper half is a cantilever would be refused for being mostly structure -
+    which is the one thing the word is for. VitraHaus, the Balancing Barn and
+    Milstein Hall all put rooms in the air.
+    """
+
+    from ..grammar import MIN_OFFSET_RATIO
+    from ..structure import CANTILEVER_BACKSPAN_RATIO
+
+    ceiling = 0.65 * CANTILEVER_BACKSPAN_RATIO / (1.0 + CANTILEVER_BACKSPAN_RATIO)
+    asked_reach = _clamp(
+        float(op.params.get("reach", 0.28)), MIN_OFFSET_RATIO, ceiling
+    )
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    fx, fy = frame.direction(op.params.get("toward"))
+    ux, uy = frame.out(fx, fy)
+    length = (ux * ux + uy * uy) ** 0.5 or 1.0
+    ux, uy = ux / length, uy / length
+    asked = int(_clamp(float(op.params.get("levels", 2)), 2, 4))
+    primary_ids = {id(item) for item in _primaries(picked)}
+
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive" or id(item) not in primary_ids:
+            made.append(item)
+            continue
+        count = min(_storeys(item, frame.storey, 2, 4), asked)
+        if count < 2:
+            # Too short to hold two floors, so there is nothing to fly. The
+            # silence gate is the right place for that to surface.
+            made.append(item)
+            continue
+        axis = 0 if abs(ux) >= abs(uy) else 1
+        run = _span_along_unit_axis(item, axis)
+        step = min(asked_reach, 0.7 / (count - 1))
+
+        def shape(_index: int, _t: float) -> Matrix4:
+            return compose_matrix4()
+
+        for index, band in enumerate(_banded(item, count, shape)):
+            if index == 0:
+                made.append(band)
+                continue
+            flight = step * run * index
+            made.append(replace(band, matrix=validate_matrix4(compose_matrix4(
+                band.matrix,
+                translation_matrix4((ux * flight, uy * flight, 0.0)),
+            ))))
+    frame.placements = rest + made
+
+
+def fold(frame, op) -> None:
+    """A folded plate: one top that runs down and up again across the body.
+
+    The sawtooth, the concertina, the folded slab. It is the same primitive the
+    gable and the mansard are - a piecewise-linear top across one axis - with
+    more breaks in it, so it costs no new geometry either.
+
+    One volume, not a row of them. `gable`'s `bays` cuts the body into separate
+    strips with a ridge each, which is a different building: strips have gaps
+    between them and a plate has creases in it. `gabled_halves` records what
+    splitting a section costs - the coverage retarget scales each volume about
+    its own centre and pulls the pieces apart.
+
+    `folds` is capped by the drawing, not by taste. A profile with more points
+    than `MAX_CREASED_PROFILE_POINTS` is read as a sampled curve and drawn
+    without its seams, which is right for the vault's sixteen samples and would
+    turn a concertina into a barrel. Folds take 2n+1 points, so the cap is what
+    the renderer will still crease.
+
+    The declared pitch is one facet's slope, so a body that folds three times
+    does not get a roof three times as deep - the run per facet shrinks with
+    the count, which is what a real folded plate does.
+    """
+
+    pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 1.2)
+    folds = int(_clamp(float(op.params.get("folds", 2)), 1, _MAX_FOLD_PEAKS))
+    picked, rest = frame.pick(op)
+    if not picked:
+        return
+    long_named = _along_is_x({"along": op.params.get("along", "long")})
+    made: list[Placement] = []
+    for item in picked:
+        if item.kind != "additive":
+            made.append(item)
+            continue
+        _rx, across, unit, body = _profile_axes(item, long_named)
+        facets = 2 * folds
+        # The same cap the gable and the mansard hold: a roof is a storey or
+        # two, never the building.
+        depth = _clamp(
+            min(pitch * across / facets, 1.5 * frame.storey) / body, 0.15, 0.95
+        )
+        made.append(replace(
+            item,
+            top_drop=depth,
+            drop_toward=None,
+            ridge_along=None,
+            # Valleys at the eaves and at every even station, ridges between,
+            # so the volume's own top is reached (`max` is exactly 1.0) and
+            # `top_drop` is exactly 1 - min, which is what compile re-reads the
+            # profile against when it cuts the roof band.
+            top_profile=tuple(
+                (index / facets, 1.0 if index % 2 else 1.0 - depth)
+                for index in range(facets + 1)
+            ),
+            profile_across=unit,
+        ))
+    frame.placements = rest + made
+
+
 def gabled_halves(frame, item, pitch: float, *, ridge_x: bool = True) -> list:
     """A volume as the archetypal house: ONE volume whose top is a ridge.
 
@@ -844,12 +1005,14 @@ SWEPT_VERBS: dict[str, Callable] = {
     "twist": twist,
     "grade": grade,
     "shear": shear,
+    "cantilever": cantilever,
     "bend": bend,
     "pinch": pinch,
     "gable": gable,
     "butterfly": butterfly,
     "mansard": mansard,
     "vault": vault,
+    "fold": fold,
 }
 
 

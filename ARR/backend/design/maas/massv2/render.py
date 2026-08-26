@@ -19,7 +19,11 @@ from typing import Any, Iterable, Sequence
 
 from PIL import Image, ImageDraw, ImageFont
 
-from design.maas.source_geometry.ir import SourceMass, profile_height
+from design.maas.source_geometry.ir import (
+    MAX_CREASED_PROFILE_POINTS,
+    SourceMass,
+    profile_height,
+)
 
 
 _YAW = math.radians(-35.0)
@@ -73,9 +77,8 @@ _MASSING = _Palette(
 )
 _STYLES = {"clay": _CLAY, "massing": _MASSING}
 
-# A top profile with more vertices than this is a sampled curve, not a set of
-# folds, and its segment boundaries are sampling artefacts rather than creases.
-_CREASE_LIMIT = 6
+# One owner, in the IR beside the `top_profile` contract it is a term of.
+_CREASE_LIMIT = MAX_CREASED_PROFILE_POINTS
 
 # The active palette. Swapped for the duration of one render call rather than
 # threaded through fifteen signatures; the drawing functions are pure readers.

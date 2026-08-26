@@ -10,6 +10,18 @@ from typing import Any
 from shapely.geometry import Polygon, mapping
 
 
+# A top profile with more vertices than this is a sampled curve, not a set of
+# folds, and its segment boundaries are sampling artefacts rather than creases.
+#
+# It lives here rather than in the renderer because it is a term of the
+# `top_profile` contract below, and both sides need it: the renderer to decide
+# whether to draw the seams, and a verb that folds a top to decide how many
+# folds it may say. The renderer imports PIL at module level, so a verb cannot
+# read the constant from there - and two copies of a number that must agree is
+# how a folded plate quietly becomes a barrel vault.
+MAX_CREASED_PROFILE_POINTS = 8
+
+
 @dataclass(frozen=True)
 class VerbTrace:
     verb: str

@@ -11,7 +11,7 @@ anything.
 from __future__ import annotations
 
 from dataclasses import replace
-from math import cos, radians, sin
+from math import cos, radians, sin, tan
 from typing import Callable
 
 from design.maas.geometry_language.affine_matrix import (
@@ -189,11 +189,13 @@ AFFINE_VERBS: dict[str, Callable] = {
     "skew": _verb("shear", lambda p, span: {
         "axis": "y" if str(p.get("toward", "long")).lower() in ("cross", "short", "side") else "x",
         "direction": "z",
-        # Scaled so the parameter reads as the degrees an architect would
-        # say. A lean of 12 degrees over one storey is a detail; over a
-        # whole volume it is the move, and scoped to a half of a split it
-        # measured 0.038 against a 0.05 gate at the old default.
-        "amount": _clamp(float(p.get("degrees", 20.0)), -30.0, 30.0) / 30.0,
+        # The shear matrix takes the tangent of the lean, so this is the lean
+        # itself. It used to be `degrees / 30`, under a comment claiming the
+        # parameter "reads as the degrees an architect would say" - it did not:
+        # Kunsthal wrote 24 and leaned 38.7, the Educatorium wrote 22 and
+        # leaned 36.3. Both sentences are re-authored at the angle they were
+        # already building, so the delivered masses do not move.
+        "amount": tan(radians(_clamp(float(p.get("degrees", 20.0)), -45.0, 45.0))),
     }),
     # Grow or shrink it in plan. `expand` and `compress` are the book's pair and
     # they are one scale with the ratio either side of one; `inflate` is the

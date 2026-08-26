@@ -459,7 +459,16 @@ def _split(frame: _Frame, op: Operation) -> None:
     made: list[Placement] = []
     for item in picked:
         low, high = item.z_span()
-        cx, cy, span_x, span_y = _bounds_of([item], frame)
+        cx, cy, _frame_x, _frame_y = _bounds_of([item], frame)
+        # On the volume's own axes, and the pieces go back at its own bearing.
+        # Cutting a turned volume on the frame's axes measures it across its
+        # diagonal and stands both halves square: measured on
+        # `sejima_inujima_art_houses`, `aggregate` puts its seven houses at seven
+        # bearings and the `split` after it returned twelve pieces at one. The
+        # sentences this happens to are the fields - Inujima, Towada,
+        # Nishinoyama, Sydney Modern - whose whole subject is that the pieces sit
+        # at different angles.
+        span_x, span_y, turn = _own_plan(item, frame)
         along = span_x if abs(ux) >= abs(uy) else span_y
         # Cutting cannot make the building bigger. The pieces are rectangles
         # spanning the bounding box, so a plan that is not a rectangle - the
@@ -495,6 +504,16 @@ def _split(frame: _Frame, op: Operation) -> None:
             if size <= DEFAULT_MINIMUM_CLEAR_DEPTH_M or across <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
                 continue
             shift = side * (along - size) / 2.0
+            # The two halves step apart along the volume's own axis, which is
+            # the frame's turned by `turn`. Offsetting on the frame's axes
+            # instead slid them off the cut line by the sine of that angle.
+            radians = math.radians(turn)
+            if abs(ux) >= abs(uy):
+                unit = (math.copysign(1.0, ux or 1.0), 0.0)
+            else:
+                unit = (0.0, math.copysign(1.0, uy or 1.0))
+            off_x = (unit[0] * math.cos(radians) - unit[1] * math.sin(radians)) * shift
+            off_y = (unit[0] * math.sin(radians) + unit[1] * math.cos(radians)) * shift
             tall = (high - low) if size >= along / 2.0 else (high - low) / contrast
             made.append(
                 frame.box(
@@ -502,8 +521,9 @@ def _split(frame: _Frame, op: Operation) -> None:
                     w=size if abs(ux) >= abs(uy) else across,
                     d=across if abs(ux) >= abs(uy) else size,
                     z=low, h=tall,
-                    dx=cx + (ux * shift if abs(ux) >= abs(uy) else 0.0),
-                    dy=cy + (uy * shift if abs(uy) > abs(ux) else 0.0),
+                    dx=cx + off_x,
+                    dy=cy + off_y,
+                    turn=turn,
                     kind=item.kind,
                     # A piece cut from a plan is not a copy of that plan. Cut a
                     # circular museum in two and you get two half-circles, not

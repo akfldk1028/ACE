@@ -372,6 +372,14 @@ def _bounds_of(
     return (offset[0], offset[1], max(us) - min(us), max(vs) - min(vs))
 
 
+def _turned(x: float, y: float, degrees: float) -> tuple[float, float]:
+    """An offset in a volume's own axes, read in the frame's."""
+
+    radians = math.radians(degrees)
+    cos_t, sin_t = math.cos(radians), math.sin(radians)
+    return (x * cos_t - y * sin_t, x * sin_t + y * cos_t)
+
+
 def _own_plan(item: Placement, frame: "_Frame") -> tuple[float, float, float]:
     """A volume's plan span on its OWN axes, and how far it is turned off the frame's.
 
@@ -862,9 +870,17 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # apartment and a leg stood 1.66 m from it.
     # Solids only here too, for the same reason: a cutter rebuilt alongside the
     # plate would size and place the legs to a void.
-    base_x, base_y, base_w, base_d = _bounds_of(
-        [item for item in raised if item.kind == "additive"] or raised, frame
-    )
+    solids = [item for item in raised if item.kind == "additive"] or raised
+    base_x, base_y, base_w, base_d = _bounds_of(solids, frame)
+    base_turn = 0.0
+    # Sized and turned to the plate when there is one plate. `_bounds_of`
+    # measures on the frame's axes, so once `lift` began keeping a volume's own
+    # bearing the legs were handed a box bigger than the plate they hold:
+    # measured on `oma_qatar_national_library`, the four supports grew from
+    # 128.5 m2 to 172.5 and 6.1 m2 of them stood outside it. Several volumes
+    # raised together have no single bearing, and those keep the frame's.
+    if len(solids) == 1:
+        base_w, base_d, base_turn = _own_plan(solids[0], frame)
     # The legs belong to whatever this lift was aimed at. Named plain
     # "support" they answered to no later word: Villa dall'Ava's shift moved
     # the raised apartment and left its four legs standing where the building
@@ -895,9 +911,15 @@ def _lift(frame: _Frame, op: Operation) -> None:
                   # the slab cut a sliver band whose depth was 5% of the leg,
                   # and the raised plate then measured 540 times its own depth
                   # across that sliver - a span rule reading a rounding error.
-                  z=stood_at, h=clearance,
-                  dx=base_x + sx * base_w * (0.5 - leg / 2.0) * 0.78,
-                  dy=base_y + sy * base_d * (0.5 - leg / 2.0) * 0.78)
+                  z=stood_at, h=clearance, turn=base_turn,
+                  # The corners step out on the plate's axes, so they are
+                  # turned with it before they become frame offsets.
+                  dx=base_x + _turned(sx * base_w * (0.5 - leg / 2.0) * 0.78,
+                                      sy * base_d * (0.5 - leg / 2.0) * 0.78,
+                                      base_turn)[0],
+                  dy=base_y + _turned(sx * base_w * (0.5 - leg / 2.0) * 0.78,
+                                      sy * base_d * (0.5 - leg / 2.0) * 0.78,
+                                      base_turn)[1])
         for sx, sy in ((-1, -1), (1, 1), (1, -1), (-1, 1))
     ]
 

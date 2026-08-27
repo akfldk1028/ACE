@@ -23,6 +23,7 @@ from dataclasses import dataclass, replace
 from math import ceil, sqrt
 from typing import Any
 
+from shapely import affinity
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
@@ -880,12 +881,32 @@ def _align(frame: _Frame, op: Operation) -> None:
     # the body to sit across the line rather than up against it.
     far = str(op.params.get("face") or "near").strip().lower() == "far"
 
+    # Every other standing volume, so a slide can be checked against what it
+    # would run into. Sliding is only alignment while the parts stay parts:
+    # sent to a line that crosses their row rather than runs along it, three
+    # towers pile into one lump and the gaps the sentence declared are gone.
+    # Measured, the first version without this guard: `gap_closed` refusals 7
+    # to 12, and `isbjerget` and `lab_city_saclay` refused outright, having
+    # earned their higher regulating score by closing themselves up. The gate
+    # caught what the measure rewarded, which is the gate working - but a verb
+    # should not need to be caught, so it declines the move itself.
+    others = [
+        _plan(other) for other in frame.placements
+        if other.kind == "additive" and other is not None
+    ]
+
     moved: list[Placement] = []
     for item in picked:
         plan = _plan(item)
         if item.kind != "additive" or plan.is_empty:
             moved.append(item)
             continue
+        standing = [
+            shape for shape in others
+            if not shape.is_empty and not shape.equals(plan)
+        ]
+        clear_now = min(
+            (plan.distance(shape) for shape in standing), default=float("inf"))
         # Off-axis volumes are not this word's business.
         minx, miny, maxx, maxy = plan.bounds
         reachable = max(maxx - minx, maxy - miny)
@@ -907,6 +928,15 @@ def _align(frame: _Frame, op: Operation) -> None:
         if abs(travel) < 1e-9 or abs(travel) > reachable * 4.0:
             # Already there, or so far off that sliding would be a different
             # composition rather than an alignment.
+            moved.append(item)
+            continue
+        slid = affinity.translate(plan, nx * travel, ny * travel)
+        clear_after = min(
+            (slid.distance(shape) for shape in standing), default=float("inf"))
+        if clear_after < min(clear_now, JOINT_CLEARANCE_M) - 1e-6:
+            # The slide would take this volume into a neighbour, or into the
+            # gap it was keeping from one. That is a different composition, not
+            # an alignment, and the sentence has other words for it.
             moved.append(item)
             continue
         moved.append(replace(item, matrix=validate_matrix4(compose_matrix4(

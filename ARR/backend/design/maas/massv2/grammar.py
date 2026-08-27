@@ -140,6 +140,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     "inscribe": "impose",
     "carve": "impose",
     "lift": "impose",
+    # 정렬. A slide onto a line the composition already holds, so the mass still
+    # takes the plot's outline - the line is the composition's, not a new shape.
+    "align": "inherit",
     "loop": "impose",
     "aggregate": "impose",
     # The ten below were added to the executor and never added here, so the

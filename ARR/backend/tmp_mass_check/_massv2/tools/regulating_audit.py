@@ -63,11 +63,11 @@ def _edges(polygon):
         yield bearing, offset, length
 
 
-def _lines_of(bodies) -> dict[tuple[int, int], set[int]]:
-    """Candidate regulating lines, each with the bodies that lie on it."""
+def _lines_of(parts) -> dict[tuple[int, int], set[int]]:
+    """Candidate regulating lines, each with the parts that lie on one."""
 
     lines: dict[tuple[int, int], set[int]] = collections.defaultdict(set)
-    for index, (_low, _high, plan) in enumerate(bodies):
+    for index, plan in enumerate(parts):
         for bearing, offset, _length in _edges(plan):
             key = (int(round(bearing / _SAME_BEARING_DEG)),
                    int(round(offset / _SAME_OFFSET_M)))
@@ -75,13 +75,43 @@ def _lines_of(bodies) -> dict[tuple[int, int], set[int]]:
     return lines
 
 
-def regulating_ratio(bodies) -> tuple[int, int]:
-    """(bodies, lines needed to touch them all), greedily covered."""
+def distinct_parts(source) -> list:
+    """A mass's part-plans, one per distinct footprint.
 
-    if len(bodies) < 2:
-        return len(bodies), 0
-    lines = _lines_of(bodies)
-    uncovered = set(range(len(bodies)))
+    `source.volumes` is a band per storey, so an eight-storey tower arrives as
+    eight volumes carrying the same plan. Eight copies of one wall all sit on
+    the same line and would score 8.00 - a single tower read as the most
+    composed thing in the corpus. A part is a footprint, however many bands are
+    stacked on it.
+    """
+
+    seen: dict[str, object] = {}
+    for volume in source.volumes:
+        plan = volume.footprint
+        if plan is None or plan.is_empty:
+            continue
+        centre = plan.centroid
+        key = (f"{centre.x:.1f}|{centre.y:.1f}|{plan.area:.1f}|"
+               f"{plan.length:.1f}")
+        seen.setdefault(key, plan)
+    return list(seen.values())
+
+
+def regulating_ratio(parts) -> tuple[int, int]:
+    """(parts, lines needed to touch them all), greedily covered.
+
+    Parts, not merged bodies. The first version counted `structure.bodies_of`,
+    which unions volumes that touch - so aligning four objects onto one axis
+    made them meet, merged them into two bodies, and the ratio *fell* from 2.00
+    to 1.00 for a composition that had just become regulated. The test this
+    implements asks whether a small set of lines explains the placement of every
+    part-mass, and a part is what the sentence placed.
+    """
+
+    if len(parts) < 2:
+        return len(parts), 0
+    lines = _lines_of(parts)
+    uncovered = set(range(len(parts)))
     used = 0
     while uncovered:
         best = max(lines.values(), key=lambda held: len(held & uncovered),
@@ -93,7 +123,7 @@ def regulating_ratio(bodies) -> tuple[int, int]:
             break
         uncovered -= gained
         used += 1
-    return len(bodies), used
+    return len(parts), used
 
 
 def main(run: str, sample: str = "120") -> int:
@@ -126,7 +156,7 @@ def main(run: str, sample: str = "120") -> int:
                          max(base, asked * site.floor_height_m), schedule=schedule)
         if source is None:
             continue
-        count, lines = regulating_ratio(structure.bodies_of(source))
+        count, lines = regulating_ratio(distinct_parts(source))
         if lines:
             rows.append((family, count, lines, count / lines))
 

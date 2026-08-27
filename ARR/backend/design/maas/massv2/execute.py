@@ -27,6 +27,11 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
+from design.maas.geometry_language.affine_matrix import (
+    compose_matrix4,
+    translation_matrix4,
+    validate_matrix4,
+)
 from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY
 
 from .compile import _plan
@@ -83,6 +88,10 @@ HOUSE_ASPECT = 0.9
 MAX_UNDERCROFT_STOREYS = 2.0
 # The unit diagonal, for the axis words "corner" and "diagonal".
 _SQRT_HALF = math.sqrt(0.5)
+# How far off a regulating line a volume may run and still be alignable to it.
+# Past this the two are not parallel and sliding would put a corner on the line
+# rather than a face, which is a touch and not an alignment.
+_ALIGN_PARALLEL_DEG = 8.0
 
 
 @dataclass(frozen=True)
@@ -827,6 +836,85 @@ def _puncture(frame: _Frame, op: Operation) -> None:
 
 
 
+def _align(frame: _Frame, op: Operation) -> None:
+    """Put a face of what this picks onto a line the composition already holds.
+
+    Akin & Moustapha watched six architects mass a building and found the one
+    mechanism structuring all of it: regulating elements - axes, centres,
+    alignment lines - which let masses be added and removed while the structure
+    underneath survives. This language had half of that. `_Frame.regulates`
+    stores the lines, the site gives `spine`, `cross` and `street`, a `split`
+    registers its own cut and a `carve` its court - and the only reader used a
+    named element as the **pivot of one operation**. A shared pivot is not a
+    shared alignment, and measured over the corpus it showed: 118 masses of two
+    or more bodies, median 1.00 bodies per line, not one reaching three. Every
+    part sat on its own line, which is the definition of a pile.
+
+    This is the missing half. It slides, it does not turn: a volume already
+    running within `_ALIGN_PARALLEL_DEG` of the line is brought until its
+    nearest face lies on it, and one that runs across the line is left exactly
+    where it stood. Turning it would be a different word - the sentence can say
+    `rotate about:` for that - and a verb that quietly reorients what it was
+    asked to align is the class of surprise this package keeps removing.
+
+    A volume that cannot be aligned is left alone rather than approximated, so
+    the silence gate is what reports it. Same rule `cantilever` follows when a
+    body is too short to fly.
+    """
+
+    picked, rest = _scope(frame, op)
+    named = str(op.params.get("to") or op.params.get("about") or "").strip()
+    line = frame.lines.get(named)
+    if not picked or line is None:
+        return
+    dx, dy = line.direction
+    length = (dx * dx + dy * dy) ** 0.5
+    if length < 1e-9:
+        return
+    ux, uy = dx / length, dy / length
+    # The line's own normal, which is the only direction a face can travel to
+    # arrive on it without changing what the volume is.
+    nx, ny = -uy, ux
+    ox, oy = line.origin
+    # Which face: the near one by default, the far one when the sentence wants
+    # the body to sit across the line rather than up against it.
+    far = str(op.params.get("face") or "near").strip().lower() == "far"
+
+    moved: list[Placement] = []
+    for item in picked:
+        plan = _plan(item)
+        if item.kind != "additive" or plan.is_empty:
+            moved.append(item)
+            continue
+        # Off-axis volumes are not this word's business.
+        minx, miny, maxx, maxy = plan.bounds
+        reachable = max(maxx - minx, maxy - miny)
+        bearing = math.degrees(math.atan2(item.matrix[1][0], item.matrix[0][0]))
+        offset = abs((bearing - math.degrees(math.atan2(uy, ux))) % 90.0)
+        if min(offset, 90.0 - offset) > _ALIGN_PARALLEL_DEG:
+            moved.append(item)
+            continue
+        reach = [
+            (x - ox) * nx + (y - oy) * ny
+            for x, y in plan.exterior.coords
+        ]
+        if not reach:
+            moved.append(item)
+            continue
+        # Slide by the signed distance of the chosen face, so that face lands
+        # on the line and the volume keeps its size, its bearing and its height.
+        travel = -(max(reach, key=abs) if far else min(reach, key=abs))
+        if abs(travel) < 1e-9 or abs(travel) > reachable * 4.0:
+            # Already there, or so far off that sliding would be a different
+            # composition rather than an alignment.
+            moved.append(item)
+            continue
+        moved.append(replace(item, matrix=validate_matrix4(compose_matrix4(
+            item.matrix, translation_matrix4((nx * travel, ny * travel, 0.0)),
+        ))))
+    frame.placements = rest + moved
+
+
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -1223,6 +1311,7 @@ _VERBS = {
     
     "carve": _carve,
     "lift": _lift,
+    "align": _align,
     "loop": _loop,
     "aggregate": _aggregate,
     # The book's own operation list runs to thirty and this grammar spoke nine

@@ -1195,7 +1195,19 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
             frame.box(
                 f"object_{index}",
                 w=w, d=d, z=0.0,
-                h=frame.height * share * (0.55 + 0.45 * scale),
+                # A storey is the floor, not a fraction of the tallest. The
+                # comment above records why a floor exists at all - an old
+                # divisor put the ninth object at a quarter of the first and
+                # the storey gate refused it - but `0.55 + 0.45 * scale` caps
+                # the height spread at 1/0.55 = 1.82 however far the sentence
+                # fans the field, and delivered a median of 1.12 across the
+                # corpus. Across thirty-two works by BIG, OMA and SANAA the
+                # repeated volumes of a field spread 2 to 4 in height, and
+                # Nishizawa refused identical units at Moriyama in as many
+                # words: they "looked like a barracks". So the size fan runs
+                # all the way and the storey rule stops it, which is the same
+                # discipline `_storeys` holds one file over.
+                h=max(frame.height * share * scale, frame.storey),
                 dx=(column + 0.5 + drift) * cell_w - frame.width / 2.0,
                 dy=(row + 0.5 - drift) * cell_d - frame.depth / 2.0,
                 turn=turn,

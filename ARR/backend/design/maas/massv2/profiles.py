@@ -45,6 +45,74 @@ UNIT_PLANS: dict[str, UnitPlan] = {
 }
 
 
+def cut_plan(parent: str, *, along_x: bool, low: float, high: float) -> str:
+    """The piece of a plan between two stations on one axis, as a plan name.
+
+    `split` used to hand every piece a rectangle, and said why: a piece cut from
+    a plan is not a copy of that plan - halve a circular museum and you get two
+    half-circles, not two circles - and this vocabulary had no half-circle, so
+    the rectangle was the honest piece. The vocabulary can have one. A ring
+    clipped and re-normalized is the half-circle, and it costs a name rather
+    than a new primitive, because everything downstream reads a plan by name.
+
+    Registered under a name derived from the cut, so the same cut asked for
+    twice is the same plan and the table does not grow with the corpus.
+    Falls back to the parent when the piece is degenerate or when the parent is
+    already a square, where a piece of it is a square and a new name would say
+    nothing.
+    """
+
+    if parent == "square" or high - low <= 1e-6:
+        return parent
+    key = f"{parent}|{'x' if along_x else 'y'}|{low:.4f}|{high:.4f}"
+    if key in UNIT_PLANS:
+        return key
+    ring = UNIT_PLANS.get(parent)
+    if not ring:
+        return parent
+    from shapely.geometry import Polygon, box
+
+    try:
+        whole = Polygon(ring)
+        if not whole.is_valid:
+            whole = whole.buffer(0)
+        window = box(low, 0.0, high, 1.0) if along_x else box(0.0, low, 1.0, high)
+        piece = whole.intersection(window)
+    except Exception:
+        return parent
+    if piece.is_empty or piece.geom_type != "Polygon" or piece.area <= 1e-6:
+        return parent
+    UNIT_PLANS[key] = _normalized(tuple(piece.exterior.coords)[:-1])
+    # What the clip actually took, as a share of the parent's own unit square.
+    # The caller needs it because `_normalized` stretches the piece's bounding
+    # box back out to [0, 1]^2 - which is what makes every profile scale the
+    # same way - and that stretch throws away how much of the parent this piece
+    # was. Without the number a half-oval is rebuilt at the size of a whole one.
+    _CUT_AREAS[key] = float(piece.area)
+    return key
+
+
+_CUT_AREAS: dict[str, float] = {}
+
+
+def cut_area(name: str) -> float | None:
+    """The unit area a `cut_plan` piece took from its parent, or None."""
+
+    return _CUT_AREAS.get(name)
+
+
+def plan_fill(name: str) -> float:
+    """How much of its own unit square a plan's ring covers."""
+
+    ring = UNIT_PLANS.get(name)
+    if not ring or len(ring) < 3:
+        return 1.0
+    total = 0.0
+    for (x0, y0), (x1, y1) in zip(ring, ring[1:] + (ring[0],)):
+        total += x0 * y1 - x1 * y0
+    return max(abs(total) / 2.0, 1e-9)
+
+
 def unit_plan(name: str) -> UnitPlan:
     """The named plan, or the square - an unknown name is not worth a crash."""
 

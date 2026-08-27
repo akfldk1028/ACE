@@ -36,7 +36,7 @@ from .ops.relational import RELATIONAL_VERBS
 from .ops.swept import SWEPT_VERBS, gabled_halves
 from .ops.piercing import PIERCING_VERBS
 from .ops.grafting import GRAFTING_VERBS
-from .profiles import plan_names
+from .profiles import cut_area, cut_plan, plan_fill, plan_names
 from .grammar import (
     JOINT_CLEARANCE_M,
     MAX_OFFSET_RATIO,
@@ -486,16 +486,30 @@ def _split(frame: _Frame, op: Operation) -> None:
         # believed it was dividing a settlement. So the cross dimension is
         # whatever holds the plan area it was cut from, not the bounding box.
         # For a rectangle the two are the same and nothing changes.
-        across_span = span_y if abs(ux) >= abs(uy) else span_x
-        plan_area = float(_plan(item).area)
-        across = (
-            min(across_span, plan_area / along)
-            if along > 1e-9 and plan_area > 1e-9
-            else across_span
-        )
+        # The piece is as wide as the parent's bounding span, because its own
+        # outline now carries the shape. This used to be capped at
+        # `plan_area / along` - the area the parent actually held, spread over
+        # the cut length - because a rectangle standing in for a non-rectangular
+        # plan is bigger than the plan it replaced, and Central Beheer's three
+        # splits took 3,342 m2 to 5,815 that way. With `cut_plan` the piece is
+        # the clipped ring and holds the right area by construction, so keeping
+        # the cap charged for the same inflation twice: measured over the corpus
+        # it took eighteen sentences down by a median 9.8% and one by 47.8%.
+        # For a square parent the two readings are identical, which is why the
+        # cap could be dropped rather than made conditional.
+        across = span_y if abs(ux) >= abs(uy) else span_x
         first = along * ratio - gap / 2.0
         second = along * (1.0 - ratio) - gap / 2.0
-        for name, size, side in ((names[0], first, -1.0), (names[1], second, 1.0)):
+        # Where each piece sits on the cut axis, in the parent's own unit terms,
+        # so it can carry the parent's outline between those stations rather
+        # than a rectangle standing in for it.
+        stations = (
+            (0.0, max(0.0, min(1.0, first / max(along, 1e-9)))),
+            (max(0.0, min(1.0, 1.0 - second / max(along, 1e-9))), 1.0),
+        )
+        for (name, size, side), window in zip(
+            ((names[0], first, -1.0), (names[1], second, 1.0)), stations
+        ):
             # A piece narrower than a room is not a piece of a building. The
             # floor used to be half a metre, which is a wall, and on a 264 m²
             # parcel in Gangnam `kr_hoeryong_nursery_three_low_wings` came out
@@ -523,29 +537,55 @@ def _split(frame: _Frame, op: Operation) -> None:
             off_x = (unit[0] * math.cos(radians) - unit[1] * math.sin(radians)) * shift
             off_y = (unit[0] * math.sin(radians) + unit[1] * math.cos(radians)) * shift
             tall = (high - low) if size >= along / 2.0 else (high - low) / contrast
+            # The piece's own outline, and the width that makes it hold the
+            # area the cut actually took. `_normalized` stretches a clipped ring
+            # back out to fill [0, 1]^2 - that is what lets one scale mean the
+            # same thing for every profile - so the stretch has to be undone
+            # here or a half-oval is rebuilt at the size of a whole one.
+            # Measured both ways before this: keeping the old cap took eighteen
+            # sentences down a median 9.8%, dropping it took twenty up a median
+            # 2.9% and one 39.4%. Solving for the area is neither.
+            piece_plan = cut_plan(
+                item.plan, along_x=abs(ux) >= abs(uy),
+                low=window[0], high=window[1],
+            )
+            piece_width = across
+            taken = cut_area(piece_plan)
+            if taken is not None and size > 1e-9:
+                wanted = taken * along * across
+                piece_width = _clamp(
+                    wanted / (size * plan_fill(piece_plan)), 0.0, across
+                )
+            if piece_width <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
+                continue
             made.append(
                 frame.box(
                     name,
-                    w=size if abs(ux) >= abs(uy) else across,
-                    d=across if abs(ux) >= abs(uy) else size,
+                    w=size if abs(ux) >= abs(uy) else piece_width,
+                    d=piece_width if abs(ux) >= abs(uy) else size,
                     z=low, h=tall,
                     dx=cx + off_x,
                     dy=cy + off_y,
                     turn=turn,
                     kind=item.kind,
-                    # A piece cut from a plan is not a copy of that plan. Cut a
-                    # circular museum in two and you get two half-circles, not
-                    # two circles - and this vocabulary has no half-circle, so
-                    # the honest piece is the rectangle.
-                    #
-                    # Copying it was worse than either: a profile is normalized
-                    # into the unit square and then scaled by each volume's own
-                    # width and depth, so the same trapezoid came out at a
-                    # different splay in every part. Lab City's three volumes
-                    # measured 2.07, 1.64 and 2.33 to one, which drew three
+                    # A piece cut from a plan is not a copy of that plan - halve
+                    # a circular museum and you get two half-circles - and it is
+                    # not a rectangle either. Copying the parent's name was the
+                    # first attempt and measured worse than the rectangle: a
+                    # profile is normalized into the unit square and then scaled
+                    # by each volume's own width and depth, so the same trapezoid
+                    # came out at a different splay in every part - Lab City's
+                    # three volumes measured 2.07, 1.64 and 2.33 to one, three
                     # unrelated wedges where the building is one block with a
                     # diagonal street cut through it.
-                    plan="square",
+                    #
+                    # The piece's own outline is neither. `cut_plan` clips the
+                    # parent's ring at this piece's stations and registers the
+                    # result under a name derived from the cut, so a half is a
+                    # half and the vocabulary grows by a name rather than by a
+                    # primitive. A square cut in two is a square, and that case
+                    # returns the parent unchanged.
+                    plan=piece_plan,
                     occupiable=item.occupiable,
                 )
             )

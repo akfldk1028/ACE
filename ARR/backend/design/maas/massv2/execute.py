@@ -164,6 +164,13 @@ class _Frame:
             "street": Line((cx, cy), axis, "site"),
         }
         self.centres: dict[str, Centre] = {"site": Centre((cx, cy), "site")}
+        # Which volumes were sent to which line, kept so the alignment can be
+        # re-asserted on the delivered mass. Measured, without this: a sentence
+        # aligned at 4.00 parts per line arrives at 2.00, and at 1.00 once the
+        # `dispersed` variant has had it - the growth loop, the coverage and
+        # siting variants and the legal clip all move parts after the sentence
+        # has finished, and none of them knows a line was named.
+        self.alignments: list[dict] = []
 
     def regulates(self, name: str, element) -> None:
         """Record an axis or a centre an operation just brought into being.
@@ -868,18 +875,41 @@ def _align(frame: _Frame, op: Operation) -> None:
     line = frame.lines.get(named)
     if not picked or line is None:
         return
+    # Which face: the near one by default, the far one when the sentence wants
+    # the body to sit across the line rather than up against it.
+    far = str(op.params.get("face") or "near").strip().lower() == "far"
+    moved = _slide_onto(line, picked, frame.placements, far=far)
+    if moved is None:
+        return
+    frame.placements = rest + moved
+    # Kept so delivery can put them back. The roles rather than the placements,
+    # because by the time the mass is delivered the growth loop has replaced
+    # every one of these objects with a larger copy of itself.
+    frame.alignments.append({
+        "origin": tuple(line.origin),
+        "direction": tuple(line.direction),
+        "far": far,
+        "roles": tuple(item.role for item in moved),
+    })
+
+
+def _slide_onto(line, picked, standing_all, *, far: bool):
+    """Move each picked volume until a face of it lies on the line.
+
+    Shared by the verb and by the delivery pass, so what a sentence says at
+    execute and what the mass does at the end are the same rule rather than two
+    that drift.
+    """
+
     dx, dy = line.direction
     length = (dx * dx + dy * dy) ** 0.5
     if length < 1e-9:
-        return
+        return None
     ux, uy = dx / length, dy / length
     # The line's own normal, which is the only direction a face can travel to
     # arrive on it without changing what the volume is.
     nx, ny = -uy, ux
     ox, oy = line.origin
-    # Which face: the near one by default, the far one when the sentence wants
-    # the body to sit across the line rather than up against it.
-    far = str(op.params.get("face") or "near").strip().lower() == "far"
 
     # Every other standing volume, so a slide can be checked against what it
     # would run into. Sliding is only alignment while the parts stay parts:
@@ -891,8 +921,8 @@ def _align(frame: _Frame, op: Operation) -> None:
     # caught what the measure rewarded, which is the gate working - but a verb
     # should not need to be caught, so it declines the move itself.
     others = [
-        _plan(other) for other in frame.placements
-        if other.kind == "additive" and other is not None
+        _plan(other) for other in standing_all
+        if other is not None and other.kind == "additive"
     ]
 
     moved: list[Placement] = []
@@ -942,7 +972,46 @@ def _align(frame: _Frame, op: Operation) -> None:
         moved.append(replace(item, matrix=validate_matrix4(compose_matrix4(
             item.matrix, translation_matrix4((nx * travel, ny * travel, 0.0)),
         ))))
-    frame.placements = rest + moved
+    return moved
+
+
+def realign(form: MatrixForm) -> MatrixForm:
+    """Put the sentence's alignments back on the mass that is about to ship.
+
+    A sentence that says `align` is obeyed at execute and then disobeyed by
+    everything after it: the growth loop widens each volume from its own
+    centre, the coverage and siting variants move the composition, and the
+    legal clip takes bites out of whatever crosses a setback. Measured, one
+    sentence: 4.00 parts per line when the words finished, 2.00 by delivery,
+    1.00 once the `dispersed` variant had it. The corpus median did not move at
+    all when six sentences were authored with the verb.
+
+    So the line survives as an intent rather than as a position. The same slide
+    runs again here, on the grown and fitted volumes, under the same guard - a
+    volume that would now have to shove a neighbour to reach the line stays
+    where the growth left it, because by then the reason it cannot reach is
+    that the building got bigger, and that is the law's answer, not a failure
+    of the sentence.
+    """
+
+    alignments = (form.extra or {}).get("alignments") or ()
+    if not alignments:
+        return form
+    placements = list(form.placements)
+    for record in alignments:
+        wanted = set(record.get("roles") or ())
+        picked = [item for item in placements if item.role in wanted]
+        if not picked:
+            continue
+        rest = [item for item in placements if item.role not in wanted]
+        moved = _slide_onto(
+            Line(tuple(record["origin"]), tuple(record["direction"]), "site"),
+            picked, placements, far=bool(record.get("far")),
+        )
+        if moved is None:
+            continue
+        placements = rest + moved
+    return replace(form, placements=tuple(placements))
 
 
 def _lift(frame: _Frame, op: Operation) -> None:
@@ -1455,6 +1524,10 @@ def _form_from(frame: _Frame, parti: Parti) -> MatrixForm | None:
             # plinth, which is what they did. If a field cannot fill its 용적률
             # lying down, the honest answer is that it does not fill it.
             "growth": "plan" if any(op.verb == "aggregate" for op in parti.ops) else "both",
+            # Which volumes were sent to which line. `realign` reads it just
+            # before the mass is compiled, so what the sentence said survives
+            # the growth loop, the variants and the clip.
+            "alignments": tuple(frame.alignments),
         },
     )
 

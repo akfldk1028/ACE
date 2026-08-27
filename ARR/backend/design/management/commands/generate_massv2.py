@@ -31,6 +31,7 @@ from design.maas.massv2.execute import execute as execute_parti
 from design.maas.massv2 import grammar as grammar_module
 from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
+from design.maas.massv2.execute import realign
 from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.sampler import read_facts, sample_sentences
@@ -756,8 +757,12 @@ class Command(BaseCommand):
             form_storey = float(
                 getattr(form, "floor_height_m", None) or site.floor_height_m
             )
+            # A named line is an intent, not a position: the growth loop widened
+            # every volume from its own centre and the variants moved the
+            # composition, so a sentence obeyed at execute arrives disobeyed.
+            # Re-asserted here, under the same guard, on the grown mass.
             source = compile_matrix_form(
-                fit.form,
+                realign(fit.form),
                 storey_height_m=form_storey,
                 allowed_at=site.plan_at,
             )

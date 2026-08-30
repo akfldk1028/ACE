@@ -15,6 +15,7 @@ from __future__ import annotations
 import bisect
 import collections
 import json
+from math import ceil
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
@@ -469,6 +470,29 @@ class Command(BaseCommand):
             authored_height = site.floor_height_m * max(
                 1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
             )
+            if schedule is not None:
+                # Under a brief the parcel's own ratio is the wrong number. It
+                # is 용적률 over 건폐율 - what the *law* would allow if the plot
+                # were filled to both ceilings - and on 의정부 that is 4.2
+                # storeys. The brief asks for 1,546 m2 on a plot that may cover
+                # 1,498, which is 1.03 storeys' worth of building.
+                #
+                # Handing every sentence 4.2 and letting the schedule shrink the
+                # plan afterwards is what produced the sheet: 63% of the
+                # standing pool at 10-19% 건폐율, and fourteen of fifteen picks
+                # between four and nine storeys - a 1,546 m2 주민센터 on a
+                # 275 m2 footprint, which is a tower on an empty plot. A
+                # 주민센터 is two to four storeys and covers its ground.
+                #
+                # So the brief sets the budget when there is one: the storeys it
+                # needs at the coverage the law allows, rounded up, never under
+                # two - one storey leaves no section for a sentence to work in.
+                # A sentence naming `storeys` still overrides it below, which is
+                # how a scheme that wants to stand tall and give ground back -
+                # the 청년문화센터 at 7.88% this package cites - still can.
+                needed = schedule.storeys_needed(
+                    ground_capacity_m2=site.ground_capacity_m2)
+                authored_height = site.floor_height_m * max(2, ceil(needed))
             # The parcel's average storeys, handed to every sentence, was a
             # silent flatness budget: a tower, a portal, a twist could never
             # even ask for height - the law admits sixteen sections somewhere
@@ -685,6 +709,9 @@ class Command(BaseCommand):
                                 "extra": {
                                     **dict(built.extra),
                                     "far_capacity_m2": site.far_capacity_m2,
+                                    # And the ground, so an objective can ask
+                                    # how many storeys a coverage implies.
+                                    "ground_capacity_m2": site.ground_capacity_m2,
                                 },
                             }
                         )

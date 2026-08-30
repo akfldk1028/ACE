@@ -26,6 +26,7 @@ Three rules, in order:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import ceil
 from typing import Any, Iterable
 
 from design.maas.source_geometry.ir import SourceMass
@@ -291,6 +292,12 @@ def _far_capacity(item: Candidate) -> float:
     return float(item.form.extra.get("far_capacity_m2") or 0.0)
 
 
+def _ground_capacity(item: Candidate) -> float:
+    """The ground the law allows, which is what `ground_take` is a share of."""
+
+    return float(item.form.extra.get("ground_capacity_m2") or 0.0)
+
+
 def _ground_released(item: Candidate) -> float:
     """How much of the ground the building gave back.
 
@@ -300,9 +307,46 @@ def _ground_released(item: Candidate) -> float:
     "1층의 비워놓기 공간 계획" - and winners include a 청년문화센터 at 7.88%
     건폐율 and a 커뮤니티센터 at 6.94%. Articulation is not what they are
     scoring; how little ground the building takes is closer to it.
+
+    ⚠️ But under a brief it has to become a target, and the first two attempts
+    got that wrong in opposite ways.
+
+    Unbounded, it is not an objective about the ground at all. With 연면적 fixed,
+    건폐율 is 연면적 over storeys over parcel, so `1 - ground_take` is monotone in
+    storey count - "build taller" written in the other direction. The sheet
+    showed exactly that: a 1,546 m2 주민센터 on a 275 m2 footprint at 5.8
+    storeys, and one pick at 6.8% and 9.1. The two winners cited above are
+    buildings whose 연면적 was not pinned to 62% of a 2,500 m2 plot; theirs is a
+    low building on a large site, which is the opposite reading.
+
+    Saturating it below a floor did nothing, and measurably: eight of the
+    fifteen picks fell under the floor and *tied* there, so the ordering was
+    decided by whatever came first and the sheet came back identical. A ceiling
+    on the reward is not a preference.
+
+    So it is a distance from a target, which is the shape `_piece_distance`
+    already uses against `CORPUS_PIECES` in this module. The target is the
+    coverage that delivers this brief in the storeys the brief itself needs -
+    `Schedule.storeys_needed` rounded up, never under two, the same number the
+    run now hands the sentences as their height budget. On 효돈동 that is 1,546
+    over two storeys over a 1,498 m2 allowance: 52% of the ground the law
+    allows, 31% of the parcel. A 주민센터 covering a third of its plot in two or
+    three storeys, rather than a stick covering a ninth in six.
+
+    Both directions cost: over the target the building is taking ground it does
+    not need, under it the building is going up instead of out.
     """
 
-    return 1.0 - min(1.0, max(0.0, item.ground_take))
+    take = min(1.0, max(0.0, item.ground_take))
+    target = item.form.extra.get("programme_target")
+    ground = _ground_capacity(item)
+    if not target or ground <= 0.0:
+        return 1.0 - take
+    storeys = max(2.0, ceil(float(target) / ground))
+    wanted = min(1.0, float(target) / storeys / ground)
+    if wanted <= 1e-9:
+        return 1.0 - take
+    return max(0.0, 1.0 - abs(take - wanted) / wanted)
 
 
 # What a scheme is asked to be good at once a brief says how large it is. The

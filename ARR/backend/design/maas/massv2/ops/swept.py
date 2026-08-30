@@ -228,6 +228,21 @@ def twist(frame, op) -> None:
         # blunt thing. One band per storey is the finest cut the storey gate
         # will still call occupiable.
         count = _storeys(item, frame.storey, 3, 24)
+        if count < 2:
+            # One band is not a twist. `_storeys` caps the request by the whole
+            # storeys the piece holds, so a volume under two storeys comes back
+            # as a single band - and turning a single band about its own centre
+            # is `rotate`, uniformly, by half the angle asked for. Two blind
+            # judges caught `big_the_twist` declaring ninety degrees and
+            # delivering a placement bearing of exactly 제1종, and the ablation
+            # check passed it because `changed_share` reads 0.33: something was
+            # done, just not the thing the word names.
+            #
+            # So it says nothing rather than saying a different word, and the
+            # silence gate reports it. Same rule `cantilever` follows for a body
+            # too short to fly, and `align` for a volume standing askew.
+            made.append(item)
+            continue
         pivot = transform_point3(item.matrix, (0.5, 0.5, 0.0))
 
         def shape(index: int, t: float) -> Matrix4:

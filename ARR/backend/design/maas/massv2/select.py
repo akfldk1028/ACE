@@ -505,5 +505,10 @@ def summary(chosen: list[Candidate], *, considered: int) -> dict[str, Any]:
         "considered": considered,
         "distinct_compositions": len({composition_signature(item.form) for item in chosen}),
         "chosen": len(chosen),
+        # Which ones, not just how many. The run recorded the count and the
+        # cells and nothing else, so asking "did any sentence using this verb
+        # get picked" meant re-running the whole grid. An unauditable choice is
+        # the one place this package has no instrument.
+        "chosen_names": [item.form.name for item in chosen],
         "cells": sorted({item.cell for item in chosen}),
     }

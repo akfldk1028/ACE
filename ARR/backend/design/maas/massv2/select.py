@@ -396,6 +396,16 @@ BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("brief_fit", _brief_fit),
     ("ground_released", _ground_released),
     ("turned", _turned_against_each_other),
+    # Restored. It was dropped from the briefed set by argument - "the mass a
+    # Korean jury rewards is the plain one with a good yard, which shape_work
+    # scores down by construction" - and the measurement offered alongside it
+    # was about `_shape_work`, a different function, not this one. `_shape_read`
+    # is the only objective in this module that carries a two-round judged
+    # correlation against an unselected sample (+0.237, +0.234), which is the
+    # bar this module sets for an axis, and the briefed sheet had nothing that
+    # cleared it. A sheet chosen with no eye-scored axis is what produced the
+    # boxes.
+    ("shape_read", _shape_read),
 )
 
 

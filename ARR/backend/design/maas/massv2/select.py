@@ -26,7 +26,7 @@ Three rules, in order:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import ceil
+from math import atan2, ceil, degrees
 from typing import Any, Iterable
 
 from design.maas.source_geometry.ir import SourceMass
@@ -356,9 +356,46 @@ def _ground_released(item: Candidate) -> float:
 # corpus, the Korean sentences average 0.317 articulation against 0.407 for the
 # international ones and were selected once in ten deliveries despite a 100%
 # survival rate - the selector was refusing what the research says wins.
+def _turned_against_each_other(item: Candidate) -> float:
+    """How many bearings the composition holds, as a share of its volumes.
+
+    The complaint this answers is "it comes out like Lego", and it is measured
+    rather than impressionistic: every one of the fifteen selected masses had
+    all of its volumes on a single bearing, while ninety-one sentences stood at
+    the coverage the brief wants and seventeen of those turn their volumes
+    against one another - `b_moyeo_teulda` on seven bearings, `c_torsion_field`
+    on six. The supply is there and the sheet never showed it.
+
+    It never showed it because under a brief there was effectively one axis.
+    Every scheme is resized to the same 연면적, so `brief_fit` barely varies,
+    and a balance criterion over one objective is arbitrary tie-breaking - among
+    schemes at the same coverage the order fell to whatever came first, and
+    boxes are more numerous.
+
+    A volume turned about its own centre is a crooked box; volumes turned
+    against each other are a composition that faces more than one way. So this
+    counts distinct bearings, not rotation: `rotate about:` a shared centre and
+    `aggregate turn` both register, and a whole mass spun on the parcel does
+    not.
+
+    Saturating at three. Two bearings is a building that has turned to address
+    something; three is a field. Past that it is a pile, and the number stops
+    saying anything a jury reads.
+    """
+
+    bearings = set()
+    for placement in item.form.additive():
+        matrix = placement.matrix
+        bearing = degrees(atan2(matrix[1][0], matrix[0][0])) % 180.0
+        # Three degrees is finer than any bearing this language sets.
+        bearings.add(round(bearing / 3.0))
+    return min(1.0, max(0, len(bearings) - 1) / 2.0)
+
+
 BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("brief_fit", _brief_fit),
     ("ground_released", _ground_released),
+    ("turned", _turned_against_each_other),
 )
 
 

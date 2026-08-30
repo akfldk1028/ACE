@@ -138,6 +138,106 @@ def _sentence_of(item) -> str:
     return str(item.form.name).split("~")[0].split("^")[0]
 
 
+# What the author aimed a move at. Magnitude is geometric and belongs to the
+# executor; direction is programmatic and is the only thing the author states.
+_AIM_KEYS = ("on", "at", "toward", "align", "to")
+
+
+def _sequence_sheet(item, *, book, site, buildable, axis, out_dir):
+    """One sheet for one scheme, a frame per word of its sentence.
+
+    The grid this command writes is a workbench: forty-two tiles, one scheme per
+    cell of the coverage x void space, each shown only as the thing it finally
+    became. `massing-study/` records that this is not how the work is published.
+    A Korean 매스 다이어그램 is one sheet per scheme carrying its operation
+    sequence, and BIG, OMA and SANAA publish the same way - the argument is the
+    order of the moves, and only the last one was ever drawn.
+
+    Nothing here is new. `execute_steps` has returned the form after every word
+    since the sequence was first wanted, `render_sequence` draws them on one
+    shared scale, and `render_parti_sequence` has been a separate command all
+    along. The run simply never called them, so a drawing it could already make
+    was being thrown away every time.
+    """
+
+    from design.maas.massv2.execute import execute_steps
+    from design.maas.massv2.render import render_sequence
+
+    record = book.get(_sentence_of(item))
+    if record is None:
+        return None
+    parti = parti_from_record(record)
+    storey = float(parti.floor_height_m or site.floor_height_m)
+    asked = max((float(op.params.get("storeys") or 0.0) for op in parti.ops), default=0.0)
+    height = max(
+        site.floor_height_m * max(
+            1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
+        asked * storey,
+    )
+    steps = execute_steps(
+        parti, buildable=buildable, axis=axis, height_m=height, storey_height_m=storey,
+    )
+    if not steps:
+        return None
+
+    frames = []
+    for op, form in steps:
+        # Through the same clip the delivered mass is measured through: a parti
+        # that reads as lawful only until its last frame is not the argument.
+        source = compile_matrix_form(
+            form, storey_height_m=storey, allowed_at=site.plan_at)
+        if source is None:
+            continue
+        frames.append({
+            "source": source,
+            "verb": op.verb,
+            "aim": " · ".join(
+                f"{key}: {op.params[key]}" for key in _AIM_KEYS if op.params.get(key)),
+            "why": op.why,
+        })
+    if not frames:
+        return None
+
+    # The delivered mass last. The jump from the final authored move to this one
+    # is the law and the capacity acting, which is the part of the argument that
+    # belongs to this package rather than to the sentence.
+    delivered = compile_matrix_form(
+        realign(item.form), storey_height_m=storey, allowed_at=site.plan_at)
+    if delivered is not None:
+        measurement = measure_form(delivered)
+        gfa = gross_floor_area_m2(delivered, floor_height_m=storey)
+        frames.append({
+            "source": delivered,
+            "verb": "법정 한도까지",
+            "aim": item.cell,
+            "why": (
+                "문장은 비례만 정한다. 치수는 이 필지가 정한다 — 법규선이 매스를 "
+                "자르고, 건폐율과 용적률 중 먼저 닿는 쪽에서 멈춘다."
+            ),
+            "numbers": (
+                f"건폐율 {item.ground_take * site.ground_capacity_m2 / site.parcel_area_m2 * 100:.0f}%  "
+                f"용적률 {gfa / site.parcel_area_m2 * 100:.0f}%  "
+                f"높이 {measurement.height_m:.1f}m"
+            ),
+        })
+
+    target = Path(out_dir) / f"parti-{_sentence_of(item)}.png"
+    try:
+        # A drawing is not worth losing a run over: the grid, the summary and
+        # every gate reading are already computed by the time this is called.
+        render_sequence(
+            frames, target,
+            site_ring=list(site.plan_at(0.0).exterior.coords),
+            party_edges=site.shared_edges,
+            heading=_sentence_of(item).replace("_", " "),
+            subheading=" · ".join(
+                part for part in (parti.formal_principle, parti.reference_basis) if part),
+        )
+    except Exception:
+        return None
+    return target
+
+
 class Command(BaseCommand):
     help = "Generate matrix-form masses on a live parcel and report the grid."
 
@@ -343,6 +443,9 @@ class Command(BaseCommand):
         clipped: list = []
         idle: list = []
         closed: list = []
+        # Every sentence as written, by name, so the shortlist can be re-run
+        # word by word for its sequence sheet.
+        parti_book: dict[str, dict] = {}
         if options["parti_json"] or options["sample"]:
             buildable = site.plan_at(0.0)
             axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
@@ -351,6 +454,10 @@ class Command(BaseCommand):
                 sentences.extend(
                     json.loads(Path(path).read_text(encoding="utf-8")).get("schemes") or ()
                 )
+            parti_book.update({
+                str(record.get("name")): record for record in sentences
+                if record.get("name")
+            })
             if options["sample"]:
                 facts = read_facts(site)
                 self.stdout.write(json.dumps(facts.evidence(), ensure_ascii=False))
@@ -907,6 +1014,25 @@ class Command(BaseCommand):
                 f"shortlist {len(shortlist)} for the sheet, "
                 f"recommended: {shortlist[0].form.name if shortlist else '-'}"
             )
+            # And the same schemes in the format Korean practice publishes.
+            # `massing-study/` records the difference: a 매스 다이어그램 there is
+            # one sheet per scheme showing its operation sequence, one frame per
+            # move, while the 42-tile grid this command has always written is
+            # the workbench behind that sheet. The renderer and the step-wise
+            # executor both already existed - `render_parti_sequence` has been a
+            # separate command since the sequence was first drawn - so the run
+            # was throwing away a drawing it could make.
+            for item in shortlist:
+                try:
+                    written = _sequence_sheet(
+                        item, book=parti_book, site=site, buildable=buildable,
+                        axis=axis, out_dir=output,
+                    )
+                except Exception as error:  # noqa: BLE001 - a drawing, not a gate
+                    self.stdout.write(f"sequence sheet skipped: {error}")
+                    continue
+                if written is not None:
+                    self.stdout.write(str(written))
 
         # Which edition, off which vocabulary, against which brief. Two runs of
         # this command produced 용적률 110-229% and 58-60% and nothing in either

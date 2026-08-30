@@ -773,6 +773,29 @@ def _carve(frame: _Frame, op: Operation) -> None:
             "carve",
         ),
     )
+    # And its two long sides as lines, so the rest of the sentence can stand
+    # *against* the court rather than only turn about it. A `Centre` has one
+    # reader, `rotate about:`, and turning a volume about a courtyard is not
+    # what makes a courtyard - the building coming up to its edge is. Three
+    # blind judges wrote the same criticism of this corpus: no court organises
+    # the site. The machinery was half there - `carve` has registered the
+    # centre since courts were first cut, and `align` can now bring a face onto
+    # a named line - so this is the missing half of the pair rather than a new
+    # mechanism.
+    court_x = frame.cx + frame.out(ux * reach, uy * reach)[0]
+    court_y = frame.cy + frame.out(ux * reach, uy * reach)[1]
+    along = frame.out(1.0, 0.0)
+    across = frame.out(0.0, 1.0)
+    for name, sign in (("court_side", 1.0), ("court_side_far", -1.0)):
+        frame.regulates(
+            name,
+            Line(
+                (court_x + across[0] * sign * d / 2.0,
+                 court_y + across[1] * sign * d / 2.0),
+                along,
+                "carve",
+            ),
+        )
     frame.placements.append(
         frame.box(
             "court",

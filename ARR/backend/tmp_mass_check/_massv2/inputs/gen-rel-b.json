@@ -86,7 +86,7 @@
           "along": "cross",
           "first": "house_solid",
           "second": "court_plinth",
-          "gap": 4,
+          "gap": 6.0,
           "contrast": 1.8,
           "why": "집의 원형을 지킬 몸과 파냄을 받을 낮은 기단을 먼저 갈라야 하며, contrast 1.8로 기단이 담장 높이까지 내려앉아야 박공 실루엣이 홀로 선다."
         },

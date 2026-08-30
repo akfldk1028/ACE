@@ -31,6 +31,8 @@ import math
 from dataclasses import replace
 from typing import Callable
 
+from shapely import affinity
+
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.source_geometry.ir import MAX_CREASED_PROFILE_POINTS
 from design.maas.geometry_language.affine_matrix import (
@@ -325,6 +327,75 @@ def grade(frame, op) -> None:
     frame.placements = rest + made
 
 
+def _slid_no_further_than_the_gap(frame, op, picked, rest, ratio, clearance):
+    """Per volume, the largest share of the asked slide that keeps its gap.
+
+    `shear` slides a volume sideways and had no idea what stood beside it.
+    Measured, `kr_anseong_bathhouse_makes_the_mass`: its two splits open the
+    2.43 m the sentence declares, then the shear on the bathhouse pushes it
+    into the assembly hall and the gap is 0.00. `big_sluishuis_amsterdam` is
+    the same fault - a 5.32 m gap opened by a split and shut by the next line.
+    Both sentences stood refused for `gap_closed`, and raising the declared gap
+    does not help: at 4.86 m and 7.60 m the shear still closes it entirely.
+
+    Only volumes that share a height band are counted. A stack slipping past
+    the tier below is what this verb is *for*, and those two overlap in plan
+    whatever it does; the gate reads a gap the same way, level by level.
+
+    The slide is shortened rather than refused. A shear that cannot travel its
+    whole distance has still done what it says - the volume is displaced, just
+    as far as there is room for - and refusing it would silence a sentence for
+    a neighbour it was never told about.
+    """
+
+    from ...massv2.compile import _plan
+
+    others = [item for item in rest if item.kind == "additive"]
+    movers = [item for item in picked if item.kind == "additive"]
+    shares: dict[str, float] = {}
+    if not others or not movers or ratio <= 0.0:
+        return shares
+
+    ux, uy = frame.out(*frame.direction(op.params.get("toward")))
+    axis = 0 if abs(ux) >= abs(uy) else 1
+    plans_other = [(item.z_span(), _plan(item)) for item in others]
+
+    for item in movers:
+        span = item.z_span()
+        plan = _plan(item)
+        beside = [
+            other for (low, high), other in plans_other
+            # Shares a storey, and was standing clear of this one.
+            if not (high <= span[0] + 1e-6 or low >= span[1] - 1e-6)
+            and plan.distance(other) > 1e-6
+        ]
+        if not beside:
+            continue
+        kept = min(plan.distance(other) for other in beside)
+        floor = min(kept, clearance)
+        width = _span_along_unit_axis(item, axis)
+
+        def clear_at(share: float) -> float:
+            reach = share * ratio * width
+            slid = affinity.translate(plan, ux * reach, uy * reach)
+            return min(slid.distance(other) for other in beside)
+
+        if clear_at(1.0) >= floor - 1e-6:
+            continue
+        # Per volume, not one share for the whole verb. Clamping the verb as a
+        # whole shortens the slides that were *opening* a gap alongside the one
+        # that was closing it: `big_noma_refshaleoen` lost all 22 of its
+        # standing masses that way, its own declared 4.56 m falling to 2.18.
+        best = 0.0
+        for step in range(1, 21):
+            if clear_at(step / 20.0) >= floor - 1e-6:
+                best = step / 20.0
+            else:
+                break
+        shares[item.role] = best
+    return shares
+
+
 def shear(frame, op) -> None:
     """Displace the upper volumes, each by a step of its own dimension.
 
@@ -342,6 +413,12 @@ def shear(frame, op) -> None:
     picked, rest = frame.pick(op)
     if not picked:
         return
+    # A space, not a joint. `ablation.GAP_IS_A_SPACE_M` is this same number and
+    # says why: a gap narrower than a room is not a street, a lane or a court,
+    # it is the line where two volumes failed to touch. What this verb must not
+    # do is turn a space into that line.
+    held = _slid_no_further_than_the_gap(frame, op, picked, rest, ratio,
+                                         DEFAULT_MINIMUM_CLEAR_DEPTH_M)
     ux, uy = frame.out(*frame.direction(op.params.get("toward")))
     # A derived body is not a tier. Verbs name what they make after the volume
     # they made it for - `tier_2_support`, `bar_nested` - and the scope brings
@@ -365,7 +442,8 @@ def shear(frame, op) -> None:
             slides.setdefault(item.role, (0.0, 0.0))
             continue
         axis = 0 if abs(ux) >= abs(uy) else 1
-        reach = ratio * _span_along_unit_axis(item, axis) * (index - anchored)
+        reach = (ratio * held.get(item.role, 1.0)
+                 * _span_along_unit_axis(item, axis) * (index - anchored))
         slides.setdefault(item.role, (ux * reach, uy * reach))
         slide = translation_matrix4((ux * reach, uy * reach, 0.0))
         moved.append(replace(

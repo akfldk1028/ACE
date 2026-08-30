@@ -858,12 +858,18 @@ def _align(frame: _Frame, op: Operation) -> None:
     or more bodies, median 1.00 bodies per line, not one reaching three. Every
     part sat on its own line, which is the definition of a pile.
 
-    This is the missing half. It slides, it does not turn: a volume already
-    running within `_ALIGN_PARALLEL_DEG` of the line is brought until its
-    nearest face lies on it, and one that runs across the line is left exactly
-    where it stood. Turning it would be a different word - the sentence can say
-    `rotate about:` for that - and a verb that quietly reorients what it was
-    asked to align is the class of surprise this package keeps removing.
+    This is the missing half. It slides, it does not turn: a volume with a face
+    running within `_ALIGN_PARALLEL_DEG` of the line is brought until that face
+    lies on it, and one standing askew to the line is left exactly where it
+    stood. Turning it would be a different word - the sentence can say `rotate
+    about:` for that - and a verb that quietly reorients what it was asked to
+    align is the class of surprise this package keeps removing.
+
+    The test is the bearing modulo ninety degrees, not modulo one-eighty, and
+    that is deliberate: a volume square-on to the line has faces parallel to it
+    at both ends, so a bar lying across a street still has a street-facing end
+    to bring up to the kerb. What it excludes is the volume at forty-five
+    degrees, which has no face to offer and would have to be turned.
 
     A volume that cannot be aligned is left alone rather than approximated, so
     the silence gate is what reports it. Same rule `cantilever` follows when a

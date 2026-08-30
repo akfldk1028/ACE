@@ -392,8 +392,18 @@ def _turned_against_each_other(item: Candidate) -> float:
     return min(1.0, max(0, len(bearings) - 1) / 2.0)
 
 
+# The law and the brief are gates; every axis here is a design decision.
+#
+# `brief_fit` used to be the first of these and it is gone, because `choose`
+# already refuses anything outside the 연면적 tolerance the 지침서 states. Among
+# the 1,666 masses that survive that gate, `brief_fit` spans 0.9501 to 0.9999 -
+# a 5% band by construction - and `_balance_keys` normalises every objective
+# across the pool, which stretches that band over the full range. So a scheme
+# 0.1% off the brief outranked a better mass 3% off, and both are inside what
+# the brief itself calls acceptable. Where a document says ±5% is fine,
+# precision within it is not a virtue, and scoring it spends a design axis on
+# compliance that was already decided at the door.
 BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
-    ("brief_fit", _brief_fit),
     ("ground_released", _ground_released),
     ("turned", _turned_against_each_other),
     # Restored. It was dropped from the briefed set by argument - "the mass a

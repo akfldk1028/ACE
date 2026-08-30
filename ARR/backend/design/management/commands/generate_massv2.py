@@ -500,12 +500,39 @@ class Command(BaseCommand):
             # four. A sentence that says storeys gets the height it asked
             # for; whether that height is lawful stays the clip's question.
             base_budget = authored_height
+            brief_storeys = (
+                max(2, ceil(schedule.storeys_needed(
+                    ground_capacity_m2=site.ground_capacity_m2)))
+                if schedule is not None else 0
+            )
+
             def _height_budget(record) -> float:
                 asked = max(
                     (float(op.get("storeys") or 0) for op in record.get("ops", [])),
                     default=0.0,
                 )
-                return max(base_budget, asked * site.floor_height_m)
+                budget = base_budget
+                if brief_storeys:
+                    # The budget is a ceiling the sentence takes a share of, not
+                    # a height it stands at. A sentence writing `height: 0.4`
+                    # against a two-storey budget stands 2.4 m - under one floor
+                    # - and the 소요면적표 then spreads its whole 연면적 across
+                    # that one floor, which puts the footprint over the 건폐율
+                    # cap. Four sentences went unlawful exactly there, all of
+                    # them single volumes: ratios 0.85, 0.55, 0.4, 0.4.
+                    #
+                    # So the budget is divided by the share the sentence takes,
+                    # and the sentence's own proportion lands on the storeys the
+                    # brief needs. A scheme writing 0.4 gets a 15 m budget and
+                    # stands at 6 m, the same two storeys as one writing 1.0.
+                    share = max(
+                        (float(op.get("height") or 0.0)
+                         for op in record.get("ops", [])),
+                        default=0.0,
+                    )
+                    share = min(1.0, share) if share > 0.2 else 1.0
+                    budget = site.floor_height_m * brief_storeys / share
+                return max(budget, asked * site.floor_height_m)
             for record in sentences:
                 wrong = grammar_module.mistyped_words(record)
                 if wrong:

@@ -1110,8 +1110,15 @@ class Command(BaseCommand):
         # record is not.
         sheet = None
         if renderable:
+            # White model, not clay. `picksheet` has been passing `massing` all
+            # along and the difference is not decoration: the same mass reads as
+            # a composition in line and as a lump in shaded orange. Looking at
+            # forty-four of them side by side is what settled it - the pool is
+            # full of masses that read as one move, and the contact sheet was
+            # making every one of them look like the same brown block.
             sheet = render_masses(
-                renderable, output / "massv2-sheet.png", site_ring=site_ring)
+                renderable, output / "massv2-sheet.png", site_ring=site_ring,
+                style="massing", tile=(560, 620))
         else:
             self.stdout.write("nothing survived to draw; writing the record only")
 
@@ -1125,6 +1132,7 @@ class Command(BaseCommand):
                     site_ring=site_ring,
                     columns=1,
                     tile=(900, 760),
+                    style="massing",
                 )
             (output / "alts.json").write_text(
                 json.dumps(

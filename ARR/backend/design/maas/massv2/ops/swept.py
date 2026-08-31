@@ -349,6 +349,45 @@ def grade(frame, op) -> None:
         direction = frame.out(fx, fy)
         length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5 or 1.0
         unit = (direction[0] / length, direction[1] / length)
+        additive = [item for item in picked if item.kind == "additive"]
+        if len(additive) > 1:
+            # One plane over the whole figure, not one per volume. Stamped
+            # per volume, each body renormalized the drop over its OWN
+            # extent - so a courtyard ring's four bars wore four different
+            # planes that crossed over the corners they share, and the
+            # audit read a roof slicing the court. The global incline is
+            # computed once over the union's extent; each volume carries the
+            # two-point profile of ITS slice of that plane, so the surfaces
+            # meet where the bodies do.
+            stations = [
+                (min(x * unit[0] + y * unit[1] for x, y, _z in item.corners()),
+                 max(x * unit[0] + y * unit[1] for x, y, _z in item.corners()),
+                 item)
+                for item in picked
+            ]
+            lo = min(a for a, _b, _i in stations)
+            hi = max(b for _a, b, _i in stations)
+            span = max(hi - lo, 1e-9)
+
+            def plane(s: float) -> float:
+                return 1.0 - run * (s - lo) / span
+
+            shaped = []
+            for a, b, item in stations:
+                if item.kind != "additive":
+                    shaped.append(item)
+                    continue
+                ha, hb = plane(a), plane(b)
+                shaped.append(replace(
+                    item,
+                    top_drop=1.0 - min(ha, hb),
+                    drop_toward=None,
+                    ridge_along=None,
+                    top_profile=((0.0, ha), (1.0, hb)),
+                    profile_across=unit,
+                ))
+            frame.placements = rest + shaped
+            return
         frame.placements = rest + [
             replace(item, top_drop=run, drop_toward=unit) for item in picked
         ]

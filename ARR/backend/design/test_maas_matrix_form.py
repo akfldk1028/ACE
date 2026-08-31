@@ -259,6 +259,70 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
             item = replace(item, form=form)
         return item
 
+    def test_every_objective_actually_varies(self):
+        """An axis that returns the same number for everything is not an axis.
+
+        This is the check that was missing, and the day it was missing cost six
+        defects of one kind. A new objective reads a field off the candidate,
+        and if it reads the wrong key it returns a constant - `_has_a_way_in`
+        looked for `parti["ops"][*]["op"]` where `Parti.evidence` writes
+        `parti["operations"][*]["verb"]`, so it scored every scheme zero while
+        looking like it scored something. Thirty-seven tests passed. The same
+        shape hid a saturating objective that tied eight of fifteen picks and
+        left the sheet byte-identical.
+
+        So: build candidates that differ on everything an objective could
+        plausibly read, and require each one to return more than a single value
+        across them. A constant axis contributes nothing to `_balance_keys`
+        except the appearance of contributing.
+        """
+
+        from design.maas.massv2.grammar import parti_from_record
+
+        def with_parti(name, ops, **kw):
+            item = self._candidate_at(name, **kw)
+            form = item.form
+            form = form.__class__(**{
+                **form.__dict__,
+                "extra": {
+                    **dict(form.extra),
+                    "parti": parti_from_record({"name": name, "ops": ops}).evidence(),
+                    "programme_target": 1545.0,
+                    "far_capacity_m2": 6242.0,
+                    "ground_capacity_m2": 1498.0,
+                },
+            })
+            return replace(item, form=form)
+
+        pool = [
+            with_parti("plain", [{"op": "extrude", "height": 0.5}],
+                       far=0.25, convexity=0.0, section=0.0, spoken=0.05),
+            with_parti("shaped", [{"op": "extrude", "height": 0.5},
+                                  {"op": "taper", "ratio": 0.6}],
+                       far=0.62, convexity=0.6, section=0.7, spoken=0.6),
+            with_parti("entered", [{"op": "extrude", "height": 0.5},
+                                   {"op": "approach", "width": 0.4}],
+                       far=0.62, convexity=0.3, section=0.2, spoken=0.3,
+                       # Two bearings, so `turned` has something to read. A pool
+                       # whose every volume is square-on cannot tell an axis
+                       # that counts bearings from one that returns zero.
+                       placements=[
+                           place("a", size=(18.0, 10.0, 8.0)),
+                           place("b", size=(18.0, 10.0, 8.0), at=(24.0, 0.0, 0.0),
+                                 rotation_degrees=35.0),
+                       ]),
+        ]
+        for tuple_name, objectives in (("OBJECTIVES", OBJECTIVES),
+                                       ("BRIEFED_OBJECTIVES", BRIEFED_OBJECTIVES)):
+            for name, read in objectives:
+                values = {round(read(item), 6) for item in pool}
+                self.assertGreater(
+                    len(values), 1,
+                    f"{tuple_name}.{name} returned {values} for every candidate - "
+                    "an objective that cannot tell these three apart is reading "
+                    "the wrong field or has saturated",
+                )
+
     def test_no_objective_reads_either_grid_coordinate(self):
         """Ground take and plan void say where a scheme sits, not how good it is."""
 

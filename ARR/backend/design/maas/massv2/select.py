@@ -389,6 +389,40 @@ def _storeys_for_the_brief(item: Candidate) -> float:
     return max(0.0, 1.0 - abs(storeys - wanted) / wanted)
 
 
+def _has_a_way_in(item: Candidate) -> float:
+    """Whether the mass shows where it is entered from the street.
+
+    The one axis in this module put in by judges rather than by argument. Three
+    blind rounds and six judges wrote the same criticism of this corpus - the
+    way in is not in the drawing, "주소·마당·현관 같은 대지와의 접점이 캡션으로만
+    존재한다" - and when `approach` was built and five sentences using it were
+    mixed blind with seven of this selector's own picks, two judges who were
+    told nothing about which was which read it straight off the drawings:
+
+        approach 5장   기존선발 7장
+        심판 D  3.45      2.79       진입 보임  4/5   0/7
+        심판 E  3.37      2.44       진입 보임  5/5   0/7
+
+    Neither saw an entrance in a single one of the seven the selector chose.
+    Same sign, same size, two rounds, on a sample the objective did not select -
+    which is the bar this module sets, and no other axis here was ever put to
+    exactly this test.
+
+    It reads the sentence rather than the geometry, and that is deliberate: an
+    approach is a recess at a particular edge for a particular reason, and a
+    recess of the same shape cut anywhere else is not one. `postcondition`
+    already refuses a word that did not redraw the mass, so a sentence that says
+    `approach` and delivers nothing never reaches here.
+    """
+
+    # `Parti.evidence` writes `operations`, and each entry names the word under
+    # `verb`. Reading `ops`/`op` - which is what the authored JSON uses - gave
+    # an empty list and a constant zero, an objective that scores nothing while
+    # looking like it scores something.
+    ops = ((item.form.extra.get("parti") or {}).get("operations")) or ()
+    return 1.0 if any(str(op.get("verb")) == "approach" for op in ops) else 0.0
+
+
 def _turned_against_each_other(item: Candidate) -> float:
     """How many bearings the composition holds, as a share of its volumes.
 
@@ -452,6 +486,7 @@ BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
     # an open one; that spread is the grid's job, and it was being undone by an
     # objective that graded it.
     ("storeys_for_the_brief", _storeys_for_the_brief),
+    ("way_in", _has_a_way_in),
     ("turned", _turned_against_each_other),
     # Restored. It was dropped from the briefed set by argument - "the mass a
     # Korean jury rewards is the plain one with a good yard, which shape_work

@@ -1,0 +1,260 @@
+{
+ "schemes": [
+  {
+   "name": "kr_valley_opens_to_the_entry",
+   "primary_language": "open_figure",
+   "formal_principle": "주민센터의 전부는 하나의 계곡이다 — 두 낮은 벽 사이의 빈 골이 정문을 향해 벌어지며, 넓어지는 그 끝이 곧 현관이다. 지은 것은 계곡이 필요로 하는 두 면뿐이다.",
+   "dominant_gesture": "A low valley that funnels open toward the street, its widening mouth becoming the entry.",
+   "reference_basis": "이화여대 ECC(도미니크 페로) — 계곡 자체가 건물이라는 명제. 단 ECC의 지하 계곡을 지상 2층의 저층 계곡으로 뒤집었다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "profile": "trapezoidal",
+     "storeys": 2,
+     "why": "1,546㎡는 2층이면 바닥 773㎡, 건폐 31%로 상한 60%의 절반에서 끝난다 — 남는 1,700㎡가 계곡의 재료다. trapezoidal은 두 벽이 애초에 나란하지 않다는 뜻이고, 걸어 들어가는 동안 계곡 폭이 변해야 골목이 아니라 계곡이 된다. 0.5는 벽이 두 층에서 멈춰 하늘이 골 바닥까지 닿는 키다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.58,
+     "along": "long",
+     "first": "minwon_wing",
+     "second": "office_wing",
+     "gap": 11,
+     "contrast": 1.4,
+     "why": "gap 11은 약 8.4m — 유모차와 노인이 마주 지나고 양쪽 벽이 서로의 빛을 가리지 않는 폭이다. 0.58은 두 벽이 대칭이 아니라는 뜻으로, 넓은 켜가 민원실 150㎡와 대회의실을, 얇은 켜가 사무를 진다. contrast 1.4로 사무 켜가 낮게 앉아 계곡 안에서 하늘이 남쪽으로 열린다."
+    },
+    {
+     "op": "approach",
+     "width": 0.5,
+     "depth": 0.3,
+     "storeys": 1,
+     "why": "계곡이 벌어진 입이 가로에 닿는 자리에서 전면을 한 층 물린다 — 민원실은 이 처마 밑 마당에서 문턱 없이 들어가고, 계곡의 넓은 끝과 진입마당이 하나의 바닥으로 이어진다."
+    }
+   ]
+  },
+  {
+   "name": "kr_sawtooth_carries_the_north_light",
+   "primary_language": "solid_body",
+   "formal_principle": "지붕의 톱니가 건물의 단면이자 입면이다 — 다섯 개의 접힌 면이 전부 북쪽으로 열려, 민원 창구와 사무의 깊은 켜가 하루 종일 그림자 없는 빛을 받는다.",
+   "dominant_gesture": "One low body under a folded sawtooth roof, every tooth facing north.",
+   "reference_basis": "북측광 톱니지붕 공장 유형 + 사나 가나자와의 균질광 — 공공 창구 업무는 직사광이 아니라 균질광이 필요하다는 단면 논리.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.45,
+     "profile": "square",
+     "storeys": 2,
+     "why": "민원실 150㎡와 사무를 2층 한 몸에 담는다. 0.45는 톱니가 올라앉을 어깨를 사람 눈높이 두 층에서 멈추는 키 — 지붕이 낮아야 톱니의 리듬이 가로에서 읽힌다."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.72,
+     "toward": "long",
+     "why": "몸이 필지에 꽉 차면 톱니는 지붕 무늬로만 남는다. 장변 방향으로 조여 남쪽에 마당을 비워야, 톱니의 남측 경사면이 받은 비가 그 마당으로 떨어지고 낮은 몸 너머로 지붕 전체가 보인다."
+    },
+    {
+     "op": "fold",
+     "facets": 5,
+     "why": "다섯 면의 접힌 판 — 수직면은 전부 북쪽을 본다. 창구에서 서류를 읽는 손과 사무의 모니터에는 정남광이 아니라 균질한 북측광이 맞고, 대회의실은 접힌 판의 골 하나를 통째로 얻어 6m 천장이 톱니 한 칸의 단면 그 자체가 된다."
+    }
+   ]
+  },
+  {
+   "name": "kr_three_ranges_one_tall_vault",
+   "primary_language": "porous_field",
+   "formal_principle": "세 열의 볼트가 나란히 서되 한 열만 키가 다르다 — 대회의실의 6m 천장이 만드는 그 한 단의 차이가, 균질한 리듬 속에서 공공의 방이 어디인지 실루엣으로 말한다.",
+   "dominant_gesture": "Three parallel vaulted ranges with light slots between, one range standing taller than its siblings.",
+   "reference_basis": "킴벨미술관(칸)의 볼트 리듬 — 단 킴벨의 균질 반복에 위계 하나를 넣었다. 나란함은 결함이 아니라 명제다: 볼트가 리듬이 되려면 열이 나란해야 한다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.55,
+     "profile": "square",
+     "storeys": 2,
+     "why": "출발은 2층 긴 몸 — 마름모 필지를 상속하면 열이 조각나므로 profile을 직사각으로 못 박는다. 0.55는 볼트 어깨가 두 층에서 서는 키다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.38,
+     "along": "long",
+     "first": "hall_range",
+     "second": "rest",
+     "gap": 8,
+     "contrast": 1.7,
+     "why": "대회의실 210㎡의 열을 먼저 떼어낸다. contrast 1.7은 6.0m 천장을 3.4m 층고 위에 세우는 몫(6.0/3.4=1.76)이고, gap 8(약 6.1m)은 빛과 진입 동선이 함께 지나는 틈이다."
+    },
+    {
+     "op": "split",
+     "on": "rest",
+     "ratio": 0.52,
+     "along": "long",
+     "first": "minwon_range",
+     "second": "office_range",
+     "gap": 8,
+     "contrast": 1.15,
+     "why": "나머지를 민원 열과 사무 열로 — 같은 축, 같은 틈. 두 번째 틈이 첫 번째와 같아야 세 열이 리듬으로 읽히고, 각 열의 폭이 12m 안쪽이라 양면 채광이 열의 심장까지 닿는다."
+    },
+    {
+     "op": "vault",
+     "rise": 0.85,
+     "along": "long",
+     "why": "세 열의 윗면이 전부 호가 된다 — 각이 아니라 곡면이라야 정수리로 들어온 빛이 벽으로 흘러내리고, 대회의실 열에서는 볼트 정점이 6m 천장의 마지막 한 뼘을 만든다. 비는 호를 타고 양쪽 틈으로만 떨어진다."
+    }
+   ]
+  },
+  {
+   "name": "kr_terraces_step_down_to_the_madang",
+   "primary_language": "carved_body",
+   "formal_principle": "건물이 마당을 향해 앉는다 — 뒤가 3층, 앞이 1층으로 내려앉는 계단 단면에서 각 단의 지붕이 아랫단의 마당이 되고, 가장 낮은 단이 곧 민원실의 처마다.",
+   "dominant_gesture": "A stepped wedge descending storey by storey toward the entry court, each roof a terrace for the floor behind.",
+   "reference_basis": "사리넨 이후의 테라스하우스 단면 + 한국 관공서의 뒷마당을 앞으로 뒤집은 배치 — 스칸디나비아 시청사(새보크 등)의 '시민 쪽이 낮다' 원칙.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.6,
+     "profile": "square",
+     "storeys": 3,
+     "why": "1,546㎡를 계단으로 흘리려면 뒤가 3층까지 올라야 앞이 1층까지 내려온다. 0.6은 그 뒷단 3층의 키 — 필지 허용치(용적 250%면 평균 4층 이상)에 한참 못 미치게 멈추는 것이 이 안의 자세다."
+    },
+    {
+     "op": "approach",
+     "width": 0.6,
+     "depth": 0.35,
+     "storeys": 1,
+     "why": "가로에서 전면을 한 층 깊이로 물려 진입마당을 판다 — 민원실 150㎡는 이 마당에 면한 가장 낮은 단이고, 마당의 폭 0.6은 대회의실 방청 인원이 쏟아져 나와 머무는 넓이다."
+    },
+    {
+     "op": "grade",
+     "steps": 3,
+     "toward": "open",
+     "why": "3-2-1층으로 열린 변(가로) 쪽으로 내려앉는다 — 시민이 만나는 첫 단이 가장 낮아야 관청이 아니라 마을회관의 스케일이 되고, 2층 사무의 지붕이 3층 회의실의 남향 테라스, 1층 민원실의 지붕이 2층의 마당이 된다. 계단 단면이라 정북일조는 애초에 문제가 되지 않는다. (toward는 고정 낱말이라 street가 아니라 open — 열린 변이 곧 가로다.)"
+    }
+   ]
+  },
+  {
+   "name": "kr_light_slot_turns_sixteen_degrees",
+   "primary_language": "open_figure",
+   "formal_principle": "두 바 사이의 틈이 평행하기를 거부한다 — 한 바가 16도 몸을 틀어, 골이 한끝에서 골목이고 반대끝에서 마당인 빛의 쐐기가 된다.",
+   "dominant_gesture": "Two low bars whose slot wedges open, one bar turned against the other.",
+   "reference_basis": "홀의 키아스마가 격자에 15도를 튼 것과 같은 최소의 각 — 나란한 두 바는 방위 다양성 0점이라는 이 코퍼스 자체의 판정을 형태 명제로 삼았다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "profile": "square",
+     "storeys": 2,
+     "why": "2층 저층 — 바닥 773㎡, 건폐 31%. 낮아야 튼 바의 각이 지붕선이 아니라 몸 전체의 방향으로 읽힌다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "long",
+     "first": "civic_bar",
+     "second": "office_bar",
+     "gap": 11,
+     "contrast": 1.35,
+     "why": "넓은 바가 민원실과 대회의실, 좁은 바가 사무. gap 11(약 8.4m)로 넉넉히 벌리는 이유는 다음 수가 이 틈을 한끝에서 좁히기 때문이다 — 회전을 견디고도 남는 폭으로 선언한다."
+    },
+    {
+     "op": "rotate",
+     "on": "office_bar",
+     "degrees": 16,
+     "why": "작은 바만 16도 튼다 — 쐐기의 좁은 끝은 그늘진 뒷골목으로 사무 서비스가 들고, 벌어진 끝은 남향 마당으로 민원 대기열이 넘친다. 두 바가 나란했으면 이 틈은 방위 없는 골목이었다. 16도는 두 축의 긴장이 평면에 남는 최소의 각이다."
+    }
+   ]
+  },
+  {
+   "name": "kr_butterfly_pair_shares_a_water_court",
+   "primary_language": "porous_field",
+   "formal_principle": "두 지붕이 서로를 향해 접힌다 — 나비 단면 한 쌍이 안쪽으로 기울어 두 몸의 비가 전부 사이의 물마당 한 곳으로 모이고, 그 배수의 기하가 곧 배치의 근거다.",
+   "dominant_gesture": "Two bars folding their roofs inward toward the shared court where all the rain lands.",
+   "reference_basis": "우쓰노미야·무레 같은 일본 소청사의 나비지붕 쌍 + 한옥 마당의 집수 논리 — 나란함이 결함이 아닌 이유는 킴벨과 같다: 두 단면이 마주 접혀야 물마당이 성립한다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.45,
+     "profile": "square",
+     "storeys": 2,
+     "why": "0.45 — 나비지붕의 처마가 바깥에서 눈높이 두 층에 걸리는 키. 지붕이 낮아야 안으로 접힌 골이 마당에 서서 보인다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.56,
+     "along": "long",
+     "first": "hall_wing",
+     "second": "office_wing",
+     "gap": 10,
+     "contrast": 1.5,
+     "why": "gap 10은 약 7.6m — 두 처마에서 떨어진 빗물이 튀지 않고 모이는 물마당의 폭이자, 여름에 두 몸이 서로 그늘을 던지는 간격이다. contrast 1.5로 회의동이 반 층 높아 대회의실 6m 천장이 나비의 높은 날개 밑에 들어간다."
+    },
+    {
+     "op": "butterfly",
+     "along": "long",
+     "why": "두 몸의 지붕이 각각 안쪽으로 접힌다 — 바깥 처마가 높고 골이 마당 쪽이라, 빗물은 남김없이 물마당으로 흐르고 높아진 바깥 처마 밑으로 민원실의 긴 고측창이 열린다. 배수 단면이 곧 채광 단면이다."
+    }
+   ]
+  },
+  {
+   "name": "kr_wedge_rises_street_to_back",
+   "primary_language": "solid_body",
+   "formal_principle": "하나의 사선 윗면이 건물의 전부다 — 가로에서 한 층으로 시작해 뒤로 세 층까지 오르는 쐐기에서, 낮은 앞날이 민원의 문턱이고 높은 뒷날이 사무의 층이다.",
+   "dominant_gesture": "One wedge, low blade to the street, rising in a single diagonal to the back.",
+   "reference_basis": "BIG의 코너 당김 계열 사선 지붕 — 단 상업의 전망이 아니라 관청의 겸손이 근거다: 시민이 닿는 면이 가장 낮다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.6,
+     "profile": "square",
+     "storeys": 3,
+     "why": "쐐기의 높은 날은 3층 — 0.6은 사선이 뒤에서 닿는 키이고, 앞날은 사선이 깎아 한 층으로 내려온다. 뒷집 일조를 막지 않으려면 높은 쪽이 필지 안쪽이 아니라 도로 반대편이어야 하는데, 이 대지에서는 그 방향이 곧 북쪽 등이다."
+    },
+    {
+     "op": "approach",
+     "width": 0.55,
+     "depth": 0.3,
+     "storeys": 1,
+     "why": "쐐기의 낮은 앞날을 한 층 물려 진입 처마를 만든다 — 민원실 150㎡가 이 처마 밑에서 가로와 같은 바닥으로 이어지고, 물린 깊이가 비 오는 날의 대기 공간이 된다."
+    },
+    {
+     "op": "skew",
+     "why": "윗면 전체가 하나의 사선이 된다 — 층을 쌓아 만든 계단이 아니라 한 번의 기울임이라, 내부에서는 앞의 민원 홀이 낮고 아늑하며 사선이 오르는 만큼 뒤의 사무와 대회의실이 높은 천장을 얻는다. 6m가 필요한 회의실은 사선이 두 층을 넘는 지점에 앉는다."
+    }
+   ]
+  },
+  {
+   "name": "kr_noon_slot_cuts_across",
+   "primary_language": "open_figure",
+   "formal_principle": "계곡이 장변이 아니라 단변을 지른다 — 시민의 앞 몸과 행정의 뒷 몸 사이를 가로지르는 남향 틈 하나가, 정오의 빛을 두 몸의 가장 깊은 켜까지 밀어 넣는다.",
+   "dominant_gesture": "A single transverse light slot separating the civic front body from the office back body.",
+   "reference_basis": "알바로 시자의 갈리시아 현대미술관 두 몸 사이 톱라이트 골목 — 계곡 계열에서 유일하게 장변 평행이 아니라 횡단이 명제인 안.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "profile": "trapezoidal",
+     "storeys": 2,
+     "why": "trapezoidal — 몸이 애초에 직사각이 아니어야 가로로 잘린 두 토막이 나란한 상자 쌍이 되지 않는다. 잘린 단면의 폭이 서로 달라, 틈의 두 벽은 마주 보되 평행하지 않다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.45,
+     "along": "cross",
+     "first": "civic_front",
+     "second": "office_back",
+     "gap": 8,
+     "contrast": 1.6,
+     "why": "앞 몸(민원실 150㎡ + 대회의실)과 뒷 몸(사무 + 공용 30%)을 단변 방향으로 가른다. gap 8은 약 6.1m — 남중고도의 정오 빛이 두 층 벽을 타고 틈 바닥까지 내려오는 최소 폭이다. contrast 1.6으로 앞 몸이 낮고 뒷 몸이 높아, 낮은 앞 너머로 틈의 빛이 가로에서도 읽힌다. 이 틈이 곧 두 몸을 잇는 유일한 외부 복도이자, 민원을 마친 시민이 빠져나가는 뒷마당으로의 통로다."
+    }
+   ]
+  }
+ ]
+}

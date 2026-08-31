@@ -1,0 +1,270 @@
+{
+ "schemes": [
+  {
+   "name": "kr_entry_forecourt_two_wings_one_turns",
+   "primary_language": "open_figure",
+   "secondary_language": "the street face steps back, the body splits into two wings on that line, and the hall alone turns to face the court",
+   "formal_principle": "물러선 가로면이 앞마당과 선 하나를 남기고, 두 날개가 그 선에 서되 대회의동만 몸을 틀어 마당을 향한다 — 진입은 틈이 아니라 두 몸이 함께 바라보는 자리다.",
+   "dominant_gesture": "앞마당을 사이에 두고 선 두 낮은 날개, 그중 하나가 마당 쪽으로 몸을 튼 형국.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. 눈먼 채점 세 라운드에서 심판 여섯이 공통으로 남긴 지적 — \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\" — 에 답하는 진입 계열 문장. 물러섬으로 마당을 만들고, 정렬과 회전으로 그 마당이 배치를 설명하게 한다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "why": "두 층의 낮은 몸. 1,546㎡를 두 층에 담으면 바닥 약 770㎡, 건폐 31% — 대지 2,500㎡의 남는 땅을 앞으로 몰아줄 여유가 이미 수에 있다."
+    },
+    {
+     "op": "approach",
+     "width": 0.5,
+     "depth": 0.3,
+     "storeys": 1,
+     "why": "가로면을 한 층 깊이로 물려 앞마당을 만들고 `entry` 선을 등록한다. 유모차와 우산이 문 앞에서 멈추는 자리 — 위층이 그 위를 계속 지나가 비를 긋는다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.6,
+     "along": "long",
+     "first": "minwon",
+     "second": "hall",
+     "gap": 4.4,
+     "contrast": 1.4,
+     "why": "민원동과 대회의동을 가른다. 큰 몫이 지상 민원실 150㎡와 사무를 들고, 작은 몫이 contrast 1.4로 높아져 6m 천장의 대회의실 210㎡가 선다. 틈 4.4(3.3m)는 두 동 사이의 서비스 골목."
+    },
+    {
+     "op": "align",
+     "to": "entry",
+     "why": "두 날개를 물러선 진입선 위에 세운다. 앞마당을 낸 것과 그 앞마당이 배치를 설명하는 것은 다른 일이고, 이 줄이 뒤의 것이다."
+    },
+    {
+     "op": "rotate",
+     "on": "hall",
+     "degrees": 18,
+     "why": "대회의동만 몸을 틀어 앞마당을 향한다. split 직후의 회전은 틈을 닫을 수 있으므로 회전이 마당 쪽으로 벌어지는 방향임을 확인하고 건다 — 틈은 등 뒤에 있고 몸은 앞으로 연다. 두 날개가 평행하면 방위 다양성이 0이 되는 것도 이 한 번의 틀림이 고친다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_porch_through_the_street_bar",
+   "primary_language": "carved_body",
+   "secondary_language": "a thin bar on the street with a porch cut through it, so the yard behind shows from the pavement",
+   "formal_principle": "가로에 얇은 바 하나를 세우고 그 배에 한 층 포치를 뚫는다 — 담장이자 문인 몸. 보도에 선 사람에게 뒤 안마당이 포치 너머로 먼저 보이고, 들어간다는 것은 그 그림 속으로 걸어가는 일이다.",
+   "dominant_gesture": "가로의 낮은 바에 뚫린 그늘 한 칸, 그 너머로 비치는 안마당과 뒤채.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 마당을 앞에 내놓는 대신 뒤에 숨기고, 포치가 그것을 가로에 예고하게 한다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.4,
+     "why": "계열에서 가장 낮은 몸 — 주민센터가 가로에 담장 높이로 앉는다. 민원실은 지상에 있어야 하는 시설이라 낮음이 손해가 아니라 전제다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.3,
+     "along": "cross",
+     "first": "street_bar",
+     "second": "yard_body",
+     "gap": 12,
+     "contrast": 1.3,
+     "why": "가로에 얇은 바를 떼어 세우고 나머지를 뒤로 물린다. 틈 12(9.1m)가 그 사이의 안마당 — 민원 대기가 흘러나와 앉는 땅이다. 뒤 몸이 contrast 1.3으로 높아져 6m 대회의실을 든다."
+    },
+    {
+     "op": "approach",
+     "width": 0.35,
+     "depth": 0.45,
+     "storeys": 1,
+     "why": "가로 바의 배에 한 층 포치를 뚫는다. 바가 얇아 depth 0.45의 물림이 사실상 관통 — 보도에서 안마당이 보인다. 지붕 아래로 드는 길이라 비 오는 날 유모차가 마당까지 마른 채 가고, 이 줄이 `entry` 선을 등록한다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_under_the_lifted_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "the hall rises one storey off the ground and the way in is the shadow underneath it",
+   "formal_principle": "대회의동이 한 층 들려 가로에 몸을 내밀고, 그 아래 빈 한 층이 주출입이다 — 문으로 들어가는 것이 아니라 건물 밑으로 들어간다. 들린 방의 6m 천장은 어차피 두 층 상당이라, 들림은 사치가 아니라 단면의 정합이다.",
+   "dominant_gesture": "낮은 사무동 곁에서 한 층 들려 가로로 내민 대회의동, 그 밑의 깊은 그늘.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 물러섬 대신 들림 — 진입 마당이 건물 아래에 있다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.55,
+     "why": "낮은 계열에서 가장 높은 0.55 — 대회의실이 들리려면 아래 한 층의 공허와 위 6m의 방이 함께 서야 하므로, 세 층 예산이 필요하다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.6,
+     "along": "long",
+     "first": "office",
+     "second": "hall",
+     "gap": 4.4,
+     "contrast": 1.2,
+     "why": "일하는 몸과 모이는 몸을 가른다. 큰 몫이 지상 민원실 150㎡와 사무, 작은 몫이 대회의실 210㎡. 틈 4.4(3.3m)는 두 몸을 잇는 복도가 다리로 읽히는 최소 폭."
+    },
+    {
+     "op": "lift",
+     "on": "hall",
+     "clearance": 1.0,
+     "why": "대회의동만 한 층 들어 올린다. 그 아래 빈 한 층이 주출입이자 비 긋는 앞마당 — 우천의 행사 날, 사람들이 젖지 않고 모이는 유일한 바깥이다. 6m 천장은 두 층 상당이라 들린 몸 안에서 층고 손해가 없다."
+    },
+    {
+     "op": "align",
+     "to": "street",
+     "why": "들린 대회의동을 가로선까지 내민다. 필로티의 그늘이 골목에서 바로 보여야 '저 밑이 입구'라는 문장이 도면 없이 읽힌다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_ground_steps_to_the_street",
+   "primary_language": "carved_body",
+   "secondary_language": "the section itself descends to the street in three steps and the lowest tread is the way in",
+   "formal_principle": "몸이 가로를 향해 세 단으로 낮아진다 — 계단은 장식이 아니라 단면 그 자체다. 가장 낮은 단의 지붕이 마당이자 관람석이고, 가장 높은 단이 뒤에서 6m 대회의실을 든다. 진입은 그 내리막의 끝, 땅과 건물이 같은 높이가 되는 자리다.",
+   "dominant_gesture": "가로를 향해 낮아지는 세 단의 지붕, 그 끝에 물러선 한 칸의 그늘.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 마당을 파는 대신 땅 자체를 진입으로 만든다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "why": "두 층 남짓의 몸에서 시작한다 — 민원실은 지상, 사무는 위, 대회의실은 뒤의 가장 높은 단."
+    },
+    {
+     "op": "grade",
+     "steps": 3,
+     "toward": "open",
+     "why": "몸이 열린 변(가로) 쪽으로 세 단으로 낮아진다. 앞 단은 한 층으로 민원실 150㎡의 키이고, 뒷 단이 6m 대회의실의 키다 — 프로그램의 단면 요구가 그대로 실루엣이 되어, 지나는 사람이 건물의 쓰임을 계단으로 읽는다. (toward는 고정 낱말이라 street가 아니라 open — 열린 변이 곧 가로다.)"
+    },
+    {
+     "op": "approach",
+     "width": 0.5,
+     "depth": 0.25,
+     "storeys": 1,
+     "why": "가장 낮은 단의 가로면을 얕게 물려 `entry`를 등록한다. 단은 방향을 말하고 물림은 문을 말한다 — 둘이 겹치는 자리가 주출입이고, 얕은 depth 0.25로도 위 단이 처마가 되어 비를 긋는다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_corner_l_holds_a_forecourt",
+   "primary_language": "solid_body",
+   "secondary_language": "an L grips the corner and everything it does not occupy is the forecourt it faces",
+   "formal_principle": "ㄱ자 한 몸이 모퉁이를 쥐고, 오목한 안쪽이 남는 땅 전부를 앞마당으로 연다 — 짓는 쪽이 아니라 비운 쪽이 주인공이다. 건폐 60% 한도에서 31%만 쓰는 시설이라, 여는 쪽이 항상 더 크다.",
+   "dominant_gesture": "모퉁이를 쥔 ㄱ자와 그 품에 안긴 앞마당, 팔 하나의 배에 물러선 문.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 두 가로가 만나는 모퉁이 대지의 정석 — 쥐는 것과 여는 것을 한 몸이 동시에 한다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "profile": "concave_l",
+     "why": "몸이 처음부터 ㄱ자다. 두 팔이 모퉁이의 두 가로에 각각 답하고, 오목한 안쪽이 열린 쪽 골목을 향해 앞마당으로 벌어진다. 두 층 — 민원실은 지상, 사무는 위."
+    },
+    {
+     "op": "approach",
+     "width": 0.4,
+     "depth": 0.3,
+     "storeys": 1,
+     "why": "팔 하나의 가로면을 한 층 물려 문을 낸다. 마당은 '어디로 들어가는가'까지 말하지 못하므로, 이 물림이 입구를 못 박고 `entry` 선을 등록한다 — 위층이 이어져 유모차와 우산의 비 긋는 처마가 된다."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.6,
+     "along": "long",
+     "why": "한 몸이라 발이 넓어져도 닫힐 틈이 없다 — gable이 안전한 유일한 자리다. 용마루가 긴 팔을 따라 앉아 모퉁이를 쥔 몸이 관사가 아니라 마을회관의 지붕으로 읽히고, 처마가 마당 쪽으로 나와 비 그을 깊이를 더한다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_colonnade_of_small_bays",
+   "primary_language": "porous_field",
+   "secondary_language": "five small bays stand along the street tied by one low band, and every gap between them is a way in",
+   "formal_principle": "한 덩어리 대신 작은 베이 다섯이 가로를 따라 서고, 낮은 띠 하나가 그들의 가로면을 잇는다 — 주랑(柱廊)의 주민센터. 문이 하나가 아니라 사이가 전부 문이라, 진입은 선택이 아니라 리듬이다.",
+   "dominant_gesture": "가로를 따라 선 다섯 채의 작은 집과 그 발치를 잇는 한 겹의 띠, 띠 아래의 그늘들.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 하나의 큰 문 대신 여러 개의 작은 문 — 관청이 아니라 장터의 진입 방식이다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 0.5,
+     "height": 0.45,
+     "tie": 0.25,
+     "why": "작은 베이 다섯이 가로를 따라 선다. 각 베이가 방 하나의 폭 — 민원, 상담, 회의가 각자의 집을 갖고, 사이의 틈이 전부 드나드는 길이다. tie 0.25의 낮은 띠가 다섯 가로면을 한 겹으로 이어 주랑이자 캐노피가 되고, 어느 틈으로 들어와도 비를 긋는다. 6m 대회의실은 가장 큰 베이 하나가 통으로 든다."
+    },
+    {
+     "op": "align",
+     "to": "street",
+     "why": "다섯 베이를 가로선에 세운다. 주랑은 물러서면 정원의 파빌리온이 되고, 가로에 붙어야 공공의 처마가 된다 — 골목을 걷는 사람의 어깨 옆이 곧 건물의 얼굴이다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_slot_between_two_roofs",
+   "primary_language": "open_figure",
+   "secondary_language": "two roofed houses stand apart and the slot of sky between them is the way in",
+   "formal_principle": "몸을 갈라 두 집을 만들고, 그 사이 틈이 주출입이다 — 골목에서 보면 두 지붕 사이의 하늘이 먼저 보이고, 들어간다는 것은 그 하늘 아래로 걷는 일이다. 지붕은 몸 안에서 접혀 틈을 건드리지 않는다.",
+   "dominant_gesture": "나란한 두 채와 그 사이 6m의 슬롯, 슬롯 어귀의 물러선 그늘.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 마당도 물림도 아닌 세 번째 답 — 진입이 두 몸 사이의 선형 공극이다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "why": "두 층의 낮은 몸 — 이 문장의 주제는 높이가 아니라 그 몸을 가르는 하나의 틈이다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.55,
+     "along": "cross",
+     "first": "minwon_house",
+     "second": "hall_house",
+     "gap": 8,
+     "contrast": 1.35,
+     "why": "몸을 갈라 두 집을 세운다. 틈 8(6.1m)은 한 무리가 나란히 걸어 드는 폭이자 양쪽 방이 서로의 빛을 가리지 않는 폭. 작은 집이 contrast 1.35로 높아져 6m 대회의실이 서고, 낮은 집 지상이 민원실 150㎡다."
+    },
+    {
+     "op": "approach",
+     "width": 0.3,
+     "depth": 0.25,
+     "storeys": 1,
+     "why": "틈이 가로와 만나는 면을 얕게 물려 `entry`를 등록한다 — 슬롯은 형태고 물림은 초대다. 물러선 한 칸의 그늘이 '저 틈이 길'임을 골목에 말한다."
+    },
+    {
+     "op": "butterfly",
+     "along": "long",
+     "why": "두 집의 지붕이 각자 몸 안에서 접혀 빗물을 제 골로 모은다. 발이 넓어지는 박공과 달리 발자국이 그대로라 6.1m 슬롯이 배달까지 산다 — 가로 실루엣은 두 개의 V, 그 사이의 틈이 세 번째 획이다."
+    }
+   ]
+  },
+  {
+   "name": "kr_entry_civic_room_takes_the_street",
+   "primary_language": "solid_body",
+   "secondary_language": "the civic room is pushed forward onto the street edge and everything else stands taller behind it",
+   "formal_principle": "물러서는 대신 내민다 — 민원의 방을 몸에서 떼어 가로선까지 밀어붙이고, 나머지 전부는 그 뒤에 높이 선다. 보도에 붙은 낮은 전각의 유리가 곧 주출입이고, 뒤로 물러난 만큼이 뒤편의 조용한 마당이 된다.",
+   "dominant_gesture": "가로에 바짝 붙은 한 층 전각과 그 등 뒤로 물러나 높이 선 본채.",
+   "reference_basis": "유형 기반, 특정 당선작 아님. \"주출입·전면 마당·민원 동선이 매스에서 전혀 읽히지 않는다\"는 여섯 심판의 공통 지적에 답하는 진입 계열 문장. 계열의 다른 문장들이 전부 물러서는데, 이 하나는 나아간다 — 진입이 겸양이 아니라 환대일 수도 있다.",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.5,
+     "why": "두 층의 몸. 민원실은 하루 수백 명이 드나드는 방이라, 이 문장은 그 방을 어디에 두는가만 말한다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.35,
+     "along": "cross",
+     "first": "civic_front",
+     "second": "back_body",
+     "gap": 4.4,
+     "contrast": 1.5,
+     "why": "민원의 방을 몸에서 떼어낸다. 앞 몫은 낮은 전각으로 민원실 150㎡와 대기가 들고, 뒤 몫이 contrast 1.5로 높아져 사무와 6m 대회의실을 든다. 틈 4.4(3.3m)는 앞뒤를 잇는 지붕 낮은 목 — 열린 쪽 골목에서도 이 목으로 든다."
+    },
+    {
+     "op": "align",
+     "to": "street",
+     "why": "낮은 전각을 가로선까지 내민다. 민원실 유리가 보도에 바로 붙어 지나가는 사람이 창 너머 번호표 기계를 보고, 문턱 없는 지상 진입이라 유모차가 그대로 든다 — 큰 몸이 물러난 만큼이 뒤편 직원 마당이 된다."
+    }
+   ]
+  }
+ ]
+}

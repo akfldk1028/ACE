@@ -550,8 +550,19 @@ def choose(
     *,
     require_occupiable: bool = True,
     per_cell: int = 1,
+    composition_family: dict[str, str] | None = None,
 ) -> list[Candidate]:
-    """Drop what cannot be occupied, then fill each cell with its best occupant."""
+    """Drop what cannot be occupied, then fill each cell with its best occupant.
+
+    `composition_family` maps a sentence name to its family tag (see
+    `family.family_tag`): the name quota below cannot see that six
+    differently-named plinth-and-turned-tower schemes are one building, and
+    on the audited sheet that family took six of thirty-two seats. The tag
+    quota is softer than the name quota on purpose - same principle is still
+    a different drawing - so a family past its two seats steps aside only
+    while some other family can hold the cell, and a cell never goes empty
+    over it.
+    """
 
     pool = [
         candidate
@@ -605,7 +616,14 @@ def choose(
 
     taken: set[str] = set()
     times: dict[str, int] = {}
+    taken_tags: set[str] = set()
+    tag_times: dict[str, int] = {}
     chosen: list[Candidate] = []
+
+    def tag_of(item: Candidate) -> str:
+        if not composition_family:
+            return ""
+        return composition_family.get(family_of(item), "")
     for cell in order:
         # A family that has already had its two outings is out of the running,
         # not merely sorted below. Preferring the unseen is what `taken` does,
@@ -620,6 +638,15 @@ def choose(
             item for item in by_cell[cell].values()
             if times.get(family_of(item), 0) < MAX_TILES_PER_FAMILY
         ]
+        if composition_family:
+            fresh = [
+                item for item in available
+                if tag_times.get(
+                    composition_family.get(family_of(item), ""), 0,
+                ) < MAX_TILES_PER_FAMILY
+            ]
+            if fresh:
+                available = fresh
         if not available:
             # The cell goes empty rather than take a third copy. Measured on the
             # 의정부 sheet, four cells had exactly one sentence able to occupy
@@ -641,6 +668,7 @@ def choose(
             # it only speaks when the difference is whole volumes.
             key=lambda item: (
                 family_of(item) not in taken,
+                bool(tag_of(item)) and tag_of(item) not in taken_tags,
                 -_piece_distance(item),
                 rank(item),
             ),
@@ -650,6 +678,10 @@ def choose(
             family = family_of(candidate)
             taken.add(family)
             times[family] = times.get(family, 0) + 1
+            tag = tag_of(candidate)
+            if tag:
+                taken_tags.add(tag)
+                tag_times[tag] = tag_times.get(tag, 0) + 1
             chosen.append(candidate)
     return chosen
 

@@ -467,6 +467,67 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
 
         self.assertEqual([item.form.name for item in chosen], ["one_sentence~full_ground"])
 
+    def test_a_composition_family_steps_aside_while_another_can_hold_the_cell(self):
+        """Six differently-named plinth-and-turned-towers are one building.
+
+        The name quota cannot see it - each name is fresh - and on the audited
+        sheet that family took six of thirty-two seats. With the family map,
+        the second cell prefers the unseen family even when the seated one
+        ranks higher; and the quota stays soft: a cell whose only occupants
+        are a capped family is still filled, never left empty over principle.
+        """
+
+        families = {
+            "plinth_a": "extrude/relational/low",
+            "plinth_b": "extrude/relational/low",
+            "comb_c": "extrude/cut/low",
+        }
+        plinth_a = replace(
+            self._candidate_at("plinth_a~held_ground", far=0.9),
+            cell="held_ground|solid_body",
+        )
+        plinth_b = replace(
+            self._candidate_at("plinth_b~full_ground", far=0.9),
+            cell="full_ground|solid_body",
+        )
+        comb_c = replace(
+            self._candidate_at("comb_c~full_ground", far=0.5, placements=[
+                place("west", size=(8.0, 20.0, 12.0), at=(0.0, 0.0, 0.0)),
+                place("east", size=(8.0, 20.0, 12.0), at=(12.0, 0.0, 0.0)),
+            ]),
+            cell="full_ground|solid_body",
+        )
+
+        blind = choose([plinth_a, plinth_b, comb_c], per_cell=1)
+        self.assertEqual(
+            sorted(item.form.name for item in blind),
+            ["plinth_a~held_ground", "plinth_b~full_ground"],
+        )
+
+        seeing = choose(
+            [plinth_a, plinth_b, comb_c], per_cell=1,
+            composition_family=families,
+        )
+        self.assertEqual(
+            sorted(item.form.name for item in seeing),
+            ["comb_c~full_ground", "plinth_a~held_ground"],
+        )
+
+        # Soft cap: three cells, one family, third cell still gets its tile.
+        only = {
+            f"plinth_{letter}": "extrude/relational/low"
+            for letter in ("a", "b", "c")
+        }
+        third = replace(
+            self._candidate_at("plinth_c~worked_ground", far=0.7),
+            cell="worked_ground|solid_body",
+        )
+        packed = choose(
+            [plinth_a, plinth_b, third], per_cell=1,
+            composition_family=only,
+        )
+        self.assertEqual(len(packed), 3)
+
 
 class StandingUpIsAGateNotAScoreTests(SimpleTestCase):
     """The physics the sheet's numbers could not see.

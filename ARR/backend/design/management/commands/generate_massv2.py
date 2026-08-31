@@ -1028,7 +1028,15 @@ class Command(BaseCommand):
         selection = None
         compiled_count = len(renderable)
         if options["per_cell"] > 0:
-            chosen = choose(pool, per_cell=options["per_cell"])
+            from design.maas.massv2.family import family_tag
+            chosen = choose(
+                pool,
+                per_cell=options["per_cell"],
+                composition_family={
+                    name: family_tag(scheme)
+                    for name, scheme in parti_book.items()
+                },
+            )
             selection = selection_summary(chosen, considered=len(pool))
             shortlist = _shortlist(chosen, options["shortlist"])
             renderable = [

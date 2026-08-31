@@ -542,7 +542,19 @@ def fill_to_site(
             reason = "height_exhausted"
             break
 
-        headroom = site.ground_capacity_m2 / max(best.ground_area_m2, 1.0)
+        # Headroom read on the UNCLIPPED projection: `best.ground_area_m2`
+        # is taken through the legal clip, so once a widening field runs past
+        # the boundary the clipped number stops rising and the loop keeps
+        # widening forever - each step fusing the lanes the clip cuts back to
+        # the same edge. The audit's scattered village dissolving into one
+        # plate at exactly the parcel line is this loop. What the scheme
+        # actually occupies, clip or no clip, is the honest brake.
+        from .legal_fit import projected_ground_area
+
+        unclipped = projected_ground_area(current)
+        headroom = site.ground_capacity_m2 / max(
+            best.ground_area_m2, unclipped, 1.0
+        )
         if headroom <= 1.01:
             reason = "both_ceilings_reached"
             break

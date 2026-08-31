@@ -235,6 +235,10 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
                 piece.buffer(_CONTACT_TOLERANCE_M * 2.0).intersection(support)
             )
             if len(contacts) >= 2:
+                # Two separated seats make a span, and a seat may honestly be
+                # a line - volumes in this IR abut flush, and a bar bridging
+                # two towers touches each on an edge. The span-to-depth rule
+                # is the judge of whether that bridge is credible.
                 depth = max(0.0, high - low) * height_m
                 slenderness = _span_to_depth(piece, contacts, depth)
                 worst_slenderness = max(worst_slenderness, slenderness)
@@ -253,6 +257,14 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
                 continue
             direction = (dx / length, dy / length)
             carried = plan.intersection(support)
+            # The knife edge: `_extent_along` reads the bearing's LENGTH in
+            # the overhang direction and never its width across it, so a
+            # sliver contact long the right way graded as a full backspan.
+            # An unbuffered bearing with no erosion core is a line, and a
+            # plate on a line is floating, whatever the line's length.
+            if (float(carried.area) < _MEANINGFUL_OVERHANG_M2
+                    or carried.buffer(-_CONTACT_TOLERANCE_M).is_empty):
+                return float("inf"), reach, worst_slenderness
             backspan = _extent_along(carried, direction)
             if backspan <= 1e-6:
                 # Nothing of this band sits on the one below: it is not a

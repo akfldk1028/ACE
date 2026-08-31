@@ -222,9 +222,23 @@ def lodge(frame, op) -> None:
     made: list[Placement] = []
     for host in hosts:
         x0 = at * (1.0 - width)
+        # The bar lies ACROSS the host's long axis - which axis that is
+        # belongs to the host, not to this verb. Assuming unit-x was the
+        # length inverted the roles on a loop's side bars (unit-x is their
+        # narrow width) and delivered `size` as a sliver of the bar's own
+        # thinness stretched 1.7 sites long: the audit's paper-thin parallel
+        # fins. Same lesson as `pinch`: direction cannot tell the bars apart,
+        # proportion can - so the long axis is read off the matrix.
+        length_x = (host.matrix[0][0] ** 2 + host.matrix[1][0] ** 2) ** 0.5
+        length_y = (host.matrix[0][1] ** 2 + host.matrix[1][1] ** 2) ** 0.5
+        if length_x >= length_y:
+            low_corner = (x0, -over, 1.0 - _GRIP)
+            high_corner = (x0 + width, 1.0 + over, 1.0 - _GRIP + share)
+        else:
+            low_corner = (-over, x0, 1.0 - _GRIP)
+            high_corner = (1.0 + over, x0 + width, 1.0 - _GRIP + share)
         made.append(_region(
-            host, f"{host.role}_lodged",
-            (x0, -over, 1.0 - _GRIP), (x0 + width, 1.0 + over, 1.0 - _GRIP + share),
+            host, f"{host.role}_lodged", low_corner, high_corner,
         ))
     frame.placements = rest + picked + made
 
@@ -345,8 +359,18 @@ def canopy(frame, op) -> None:
         return
     reach = _clamp(float(op.params.get("reach", 0.3)), 0.1, 0.45)
     at = _clamp(float(op.params.get("at", 1.0)), 0.3, 1.0)
-    fx, fy = frame.direction(op.params.get("toward"))
-    turn = degrees(atan2(fy, fx)) - frame.rotation
+    # `direction` answers in the FRAME's axes and the host's corners are in
+    # the WORLD's - the exact mix-up `_Frame.out` exists to prevent, and the
+    # first build of this verb made it anyway: the plate projected along
+    # world east, the push-out too, and the turn subtracted frame.rotation
+    # that `frame.box` adds right back - so on a merged full-parcel host the
+    # whole plate landed outside the envelope and the legal clip deleted it.
+    # The eave read as silent when it was in fact built, aimed at nothing.
+    ffx, ffy = frame.direction(op.params.get("toward"))
+    turn = degrees(atan2(ffy, ffx))  # frame-relative; frame.box adds rotation
+    wx, wy = frame.out(ffx, ffy)
+    norm = (wx * wx + wy * wy) ** 0.5 or 1.0
+    fx, fy = wx / norm, wy / norm  # world unit vector for world corners
     thickness_share = 0.35  # of a storey - visibly a plate, never a floor
     made: list[Placement] = []
     for host in hosts:

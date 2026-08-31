@@ -375,6 +375,55 @@ def assess(
     if held_share > 0.5:
         reasons.append(f"{held_share:.0%}_of_the_mass_is_structure_rather_than_room")
 
+    # A mass is a building only if it delivers at least the one plate this
+    # gate already demands at grade. Nothing here measured how much building
+    # arrived: eleven audited variants stood six to nine metres tall with a
+    # gross floor area of exactly zero - crushed to sub-storey bands - and
+    # every plan test passed, because every test was a plan test. Same
+    # threshold as the ground rule, one storey up the same derivation.
+    if floor_height_m > 0.0:
+        from .measure import gross_floor_area_m2
+
+        gross = gross_floor_area_m2(source, floor_height_m=floor_height_m)
+        if gross < minimum_usable_floor_area_m2(parcel_area_m2):
+            reasons.append(
+                f"delivers_{gross:.0f}m2_below_the_minimum_usable_plate"
+            )
+
+    # A body that claims to be rooms and arrives as a blade. The bulk-weighted
+    # shares above deliberately let one thin terrace ride among wide plates,
+    # which also lets a paper fin taller than two storeys ride among them -
+    # three percent of the mass cannot move a fifty percent threshold. So the
+    # question is asked of each body alone: nothing occupiable may stand
+    # taller than two storeys while narrower everywhere than a storey's own
+    # width. Declared thinness is exempt the way it always was - a body made
+    # of structural bands (a lift's legs, a canopy's plate) is judged by the
+    # structure gate, not by this.
+    if floor_height_m > 0.0:
+        structural_extents = [
+            (bands[i].footprint, bands[i].bottom_fraction, bands[i].top_fraction)
+            for i in structural
+            if i < len(bands)
+        ]
+        for low, high, plan in bodies_of(source):
+            span_m = max(0.0, high - low) * height
+            if span_m <= 2.0 * floor_height_m:
+                continue
+            if _min_dimension(plan) >= MINIMUM_STOREY_WIDTH_M:
+                continue
+            declared = any(
+                b0 <= low + 1e-6 and high <= b1 + 1e-6
+                and fp.intersection(plan).area >= 0.8 * plan.area
+                for fp, b0, b1 in structural_extents
+            )
+            if declared:
+                continue
+            reasons.append(
+                f"thin_element_{span_m:.1f}m_tall_under_"
+                f"{MINIMUM_STOREY_WIDTH_M:.1f}m_wide"
+            )
+            break
+
     # A plate can satisfy both ceilings and still have a middle no window
     # reaches. Nothing else in this gate was asking how deep a storey is, so a
     # forty-metre-across slab passed as readily as a bar - and on a wide parcel

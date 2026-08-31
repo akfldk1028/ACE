@@ -21,7 +21,7 @@ cannot say.
 from __future__ import annotations
 
 from dataclasses import replace
-from math import cos, radians, sin, tan
+from math import asin, cos, degrees, radians, sin, tan
 from typing import Callable
 
 from design.maas.geometry_language.affine_matrix import (
@@ -29,6 +29,8 @@ from design.maas.geometry_language.affine_matrix import (
     translation_matrix4,
     validate_matrix4,
 )
+
+from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 
 from ..form import Placement
 from .swept import _banded, _clamp
@@ -147,11 +149,26 @@ def fracture(frame, op) -> None:
     )
 
     dx0, dy0 = frame.local(centre_x, centre_y)
+    # Fissures wander; they do not converge. The old form alternated the SIGN
+    # of the whole angle, so adjacent cracks turned toward each other - +30
+    # then -21 is a 51-degree scissor closing inside the body, and the audit's
+    # razor shards are the space between its blades. A fracture field is
+    # sub-parallel: one base direction, a bounded wobble. The bound is
+    # geometric, from constants that already exist - over a slat's own half
+    # length, two neighbouring cracks may close by no more than their spacing
+    # less one clear room's depth, so a shard between them is never thinner
+    # than a room.
+    spacing = run / (count + 1.0)
+    half_len = 0.8 * breadth
+    allowance = max(0.0, spacing - DEFAULT_MINIMUM_CLEAR_DEPTH_M)
+    max_wobble = degrees(asin(_clamp(allowance / max(half_len, 1e-6), 0.0, 1.0)))
     made: list[Placement] = []
     for index in range(count):
         # Spread along the run, off-centre on purpose; alternate the wander.
         station = (index + 1.0) / (count + 1.0) - 0.5
-        turn = (turn0 + 9.0 * index) * (1 if index % 2 else -1)
+        wobble = (9.0 * index) * (1 if index % 2 else -1)
+        wobble = max(-max_wobble / 2.0, min(max_wobble / 2.0, wobble))
+        turn = turn0 + wobble
         lean = tilt * (1 if index % 2 else -1)
         slat = frame.box(
             f"fissure_{index}",

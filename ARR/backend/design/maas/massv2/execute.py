@@ -323,6 +323,13 @@ def _direction(frame: _Frame, toward: Any) -> tuple[float, float]:
     # here, where every verb reads it.
     if name in ("corner", "diagonal"):
         return (_SQRT_HALF, _SQRT_HALF)
+    # The frame is posed on the open side (`seed_rectangle`: "the bearing is
+    # the open side - the street"), so +x IS toward the open ground. These
+    # three words were grammar-legal and rode the fallback by luck; a word
+    # whose meaning is an accident of the default is one default-change away
+    # from aiming somewhere else, so they are said explicitly.
+    if name in ("open", "to_open", "front"):
+        return (1.0, 0.0)
     return (1.0, 0.0)
 
 
@@ -1653,7 +1660,18 @@ def _form_from(frame: _Frame, parti: Parti) -> MatrixForm | None:
             # area with height and they come back as a bundle of sticks on a
             # plinth, which is what they did. If a field cannot fill its 용적률
             # lying down, the honest answer is that it does not fill it.
-            "growth": "plan" if any(op.verb == "aggregate" for op in parti.ops) else "both",
+            "growth": "plan"
+            if any(
+                op.verb == "aggregate"
+                and str(op.params.get("method") or "pack") != "stack"
+                for op in parti.ops
+            )
+            else "both",
+            # A stacked aggregation grows by rising - that is what stacking
+            # IS - and labelling every aggregate "plan" locked the vitrahaus
+            # pile out of height growth while the coverage lift crushed it:
+            # eleven delivered variants at zero storeys. pack stays plan-
+            # bound for the reason above; stack earns "both".
             # Which volumes were sent to which line. `realign` reads it just
             # before the mass is compiled, so what the sentence said survives
             # the growth loop, the variants and the clip.

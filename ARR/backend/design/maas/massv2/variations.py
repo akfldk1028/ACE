@@ -78,6 +78,19 @@ def retarget_ground_take(
     )
 
 
+def _height_span(form: MatrixForm) -> tuple[float, float]:
+    """The composition's own z-extent, off its additive corners."""
+
+    zs = [
+        corner[2]
+        for item in form.additive()
+        for corner in item.corners()
+    ]
+    if not zs:
+        return (0.0, 0.0)
+    return (min(zs), max(zs))
+
+
 def _stretched(placement, lift: float):
     """Scale a volume's height about the ground, so compositions settle.
 
@@ -128,7 +141,15 @@ def _programme_lift(
     scaled = current * factor * factor
     if scaled <= 1e-9:
         return inverse
-    return max(0.05, min(inverse, far_capacity_m2 / scaled))
+    # The floor was a bare 0.05 - a composition could legally be crushed to
+    # five percent of its height, which is how six-metre house piles arrived
+    # at zero storeys. The floor a lift may never go under is the one the
+    # executor already enforces at birth: the shortest unit still holds one
+    # storey. Derived, not chosen.
+    low, high = _height_span(form)
+    body = max(high - low, 1e-9)
+    floor = min(1.0, floor_height_m / body) if floor_height_m > 0 else 0.05
+    return max(floor, min(inverse, far_capacity_m2 / scaled))
 
 
 def spread_across_coverage(

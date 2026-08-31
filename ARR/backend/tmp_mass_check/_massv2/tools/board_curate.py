@@ -1,0 +1,97 @@
+"""The selection board, assembled from the ledgers instead of by hand.
+
+The board was curated manually three times in one evening, and each time a
+family of near-identical partis slipped through in a different way. This
+tool owns the whole path now: it collects every juried result (both tracks,
+every round), computes each passer's composition family from its sentence,
+keeps the best-scored member per family per track, and emits the board key.
+Rendering and publishing read that key; nobody picks tiles by eye again.
+
+    python tools/board_curate.py          # writes runs/board/board-key.json + ledger
+"""
+
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from family_key import family_key, one_per_family  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Every juried round, its track, and where its scores live. Anchor entries
+# re-judged in later rounds keep their latest score (rounds listed newest
+# last override).
+ROUNDS = [
+    ("K", "runs/judge-24/final-ranking.json", "final"),
+    ("O", "runs/judge-ovs/vlm-shortlist.json", "shortlist"),
+    ("O", "runs/judge-void-ovs/vlm-shortlist.json", "shortlist"),
+    ("K", "runs/judge-void-kor/vlm-shortlist.json", "shortlist"),
+    ("O", "runs/judge-refix/vlm-shortlist.json", "corrected"),
+    ("O", "runs/judge-ovs2/vlm-shortlist.json", "shortlist"),
+]
+# The anchor-corrected pass thresholds recorded per round live in the
+# shortlists as `pass`; the korea final ranking predates that format.
+KOREA_FINAL_PASS = 3.5 - 0.5  # anchor-corrected cut of that round
+
+
+def corpus() -> dict:
+    book = {}
+    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+        for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
+            book[scheme["name"]] = scheme
+    return book
+
+
+def main() -> int:
+    book = corpus()
+    ledger: dict[tuple, dict] = {}
+    for track, rel, kind in ROUNDS:
+        path = ROOT / rel
+        if not path.exists():
+            continue
+        for row in json.loads(path.read_text(encoding="utf-8")):
+            name = row["name"]
+            score = float(row.get("corrected") or row.get("score") or 0.0)
+            passed = bool(row.get("pass")) if "pass" in row else score >= KOREA_FINAL_PASS
+            ledger[(track, name)] = {
+                "track": track, "name": name, "score": round(score, 2),
+                "pass": passed, "round": rel.split("/")[1],
+            }
+    passers = [item for item in ledger.values() if item["pass"]]
+
+    def key_of(item):
+        family = item["name"].split("~")[0].split("^")[0]
+        scheme = book.get(family)
+        return (item["track"],) + (family_key(scheme) if scheme else (family,))
+
+    curated = one_per_family(passers, key_of=key_of,
+                             score_of=lambda item: item["score"])
+    board = []
+    counters = {"K": 0, "O": 0}
+    for track in ("K", "O"):
+        for item in curated:
+            if item["track"] != track:
+                continue
+            counters[track] += 1
+            board.append({"label": f"{track}{counters[track]}",
+                          "name": item["name"], "score": item["score"],
+                          "round": item["round"]})
+    out = ROOT / "runs" / "board"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "ledger.json").write_text(
+        json.dumps(sorted(ledger.values(), key=lambda r: (-r["score"], r["name"])),
+                   ensure_ascii=False, indent=1), encoding="utf-8")
+    (out / "board-key.json").write_text(
+        json.dumps(board, ensure_ascii=False, indent=1), encoding="utf-8")
+    kept = {"K": counters["K"], "O": counters["O"]}
+    print(f"ledger {len(ledger)} entries, passers {len(passers)}, "
+          f"board K{kept['K']} + O{kept['O']} (one per family)")
+    for row in board:
+        print(f"  {row['label']:>4} {row['score']:.2f} {row['name'][:52]}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.exit(main())

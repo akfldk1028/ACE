@@ -20,7 +20,7 @@ scale). Neither uses CSG at massing scale.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from math import radians, tan
 from typing import Any, Iterable, Literal
@@ -151,6 +151,24 @@ class Placement:
             "z_high": round(high, 4),
             "matrix4": [list(row) for row in self.matrix],
         }
+
+
+def section_held_through_height_scale(item: Placement, factor: float) -> Placement:
+    """The section's metres survive a z-scale; its share may not.
+
+    `top_drop` is a SHARE of the volume's own height, so every pure height
+    scale silently multiplies the roof's metres by the same factor - the
+    growth loop alone re-inflated an authored 5.1 m fold past its cap. The
+    fields live here, so the correction lives here: whoever scales a
+    placement's height calls this with the same factor, and the share is
+    divided back so drop_m = share * height stays what the author wrote.
+    Capped at 0.95 like every roof share - a shrink may not turn the whole
+    body into roof.
+    """
+
+    if factor <= 0.0 or abs(factor - 1.0) < 1e-9 or item.top_drop <= 0.0:
+        return item
+    return replace(item, top_drop=min(0.95, item.top_drop / factor))
 
 
 @dataclass(frozen=True)

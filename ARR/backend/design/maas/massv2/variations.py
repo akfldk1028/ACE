@@ -27,7 +27,7 @@ from design.maas.geometry_language.affine_matrix import (
 )
 
 from .compile import _plan
-from .form import MatrixForm
+from .form import MatrixForm, section_held_through_height_scale
 from .legal_fit import _gross_floor_area, _scaled_in_plan, projected_ground_area
 
 
@@ -95,7 +95,8 @@ def _stretched(placement, lift: float):
         placement.matrix,
         scale_matrix4((1.0, 1.0, max(1e-3, lift))),
     )
-    return replace(placement, matrix=validate_matrix4(matrix))
+    return section_held_through_height_scale(
+        replace(placement, matrix=validate_matrix4(matrix)), max(1e-3, lift))
 
 
 def _programme_lift(

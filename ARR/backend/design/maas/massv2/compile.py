@@ -406,12 +406,17 @@ def compile_matrix_form(
                 roof_lo <= z0 + 1e-9 and low - 1e-6 <= z0 < high - 1e-6
             ):
                 # A profile's heights are shares of the whole volume; the roof
-                # band is only its top `share`, so the profile is re-read in
-                # the band's own terms - the eaves at 0, the crest at 1.
+                # band is only its top slice, so the profile is re-read in the
+                # band's own terms - the eaves at 0, the crest at 1. Divided by
+                # the band the piece ACTUALLY spans, not by `share`: when
+                # `_MINIMUM_BAND_M` wins the max above, the two differ, and a
+                # profile normalized against one band and drawn over another
+                # was stretched by the ratio.
                 profile = getattr(item, "top_profile", None)
-                if profile is not None and share > 1e-9:
+                band_share = (z1 - roof_lo) / max(z1 - z0, 1e-9)
+                if profile is not None and band_share > 1e-9:
                     profile = tuple(
-                        (u, min(1.0, max(0.0, (h - (1.0 - share)) / share)))
+                        (u, min(1.0, max(0.0, (h - (1.0 - band_share)) / band_share)))
                         for u, h in profile
                     )
                 emitted |= _tilted_piece(

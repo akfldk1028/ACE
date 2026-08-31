@@ -37,7 +37,7 @@ from design.maas.geometry_language.affine_matrix import (
 )
 
 from .compile import _plan, compile_matrix_form
-from .form import MatrixForm, Placement
+from .form import MatrixForm, Placement, section_held_through_height_scale
 from .legal import LegalSite
 from .measure import gross_floor_area_m2, storeys_in
 
@@ -229,7 +229,8 @@ def _scaled_in_plan(
         scale_matrix4((1.0, 1.0, factor)),
         translation_matrix4((0.0, 0.0, low)),
     )
-    return replace(scaled, matrix=validate_matrix4(kept))
+    return section_held_through_height_scale(
+        replace(scaled, matrix=validate_matrix4(kept)), factor)
 
 
 def _shortened(placement: Placement, factor: float) -> Placement:
@@ -242,7 +243,8 @@ def _shortened(placement: Placement, factor: float) -> Placement:
         scale_matrix4((1.0, 1.0, max(1e-3, factor))),
         translation_matrix4((0.0, 0.0, low)),
     )
-    return replace(placement, matrix=validate_matrix4(matrix))
+    return section_held_through_height_scale(
+        replace(placement, matrix=validate_matrix4(matrix)), max(1e-3, factor))
 
 
 def _dropped(placement: Placement, distance: float) -> Placement:

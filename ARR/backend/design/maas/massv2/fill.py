@@ -32,7 +32,7 @@ from design.maas.geometry_language.affine_matrix import (
     validate_matrix4,
 )
 
-from .form import MatrixForm, Placement
+from .form import MatrixForm, Placement, section_held_through_height_scale
 from .legal import LegalSite
 from .measure import measure_form
 from .legal_fit import (
@@ -253,7 +253,7 @@ def _taller(form: MatrixForm, factor: float) -> MatrixForm:
 def _stretched_about_ground(item: Placement, factor: float) -> Placement:
     """Scale a volume's height about z = 0 rather than its own base."""
 
-    return replace(
+    return section_held_through_height_scale(replace(
         item,
         matrix=validate_matrix4(compose_matrix4(
             item.matrix,
@@ -264,7 +264,7 @@ def _stretched_about_ground(item: Placement, factor: float) -> Placement:
                 (0.0, 0.0, 0.0, 1.0),
             ),
         )),
-    )
+    ), float(factor))
 
 
 def _wider(form: MatrixForm, factor: float) -> MatrixForm:

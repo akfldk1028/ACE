@@ -864,3 +864,50 @@ class EveryVerbTheExecutorKnowsCanBeWrittenTests(SimpleTestCase):
             sorted(PLOT_MODES),
             "add the verb to PLOT_MODES as well, or the parser drops it",
         )
+
+
+class ARoofIsNeverDeeperThanItsCapTests(SimpleTestCase):
+    """The share floor may never override the metre cap.
+
+    clamp(min(m, cap)/body, 0.15, 0.95) applied the cap in metres and the
+    floor in share-of-body, and the floor ran last: on any body wider than
+    cap/0.15 an authored 5.1 m fold arrived 6.88 m deep, and the audited
+    family of bodiless sails follows from that one line, hand-copied into
+    five verbs. The floor now yields to the cap; this pins it.
+    """
+
+    def test_the_floor_yields_to_the_cap_on_a_wide_body(self):
+        from design.maas.massv2.ops.swept import ROOF_CAP_STOREYS, _roof_share
+
+        storey = 3.4
+        cap = ROOF_CAP_STOREYS * storey
+        for body in (10.0, 34.0, 45.87, 90.0):
+            for asked in (1.0, cap, cap * 3):
+                delivered = _roof_share(asked, body, storey) * body
+                # The cap always holds - this is the inflation bug's pin.
+                self.assertLessEqual(
+                    delivered, cap + 1e-6,
+                    f"body {body}: delivered {delivered:.2f} m past the cap",
+                )
+                # The floor may lift a tiny ask to the readable minimum, but
+                # never past the cap and never past a generous ask.
+                floor_m = min(0.15 * body, cap)
+                self.assertLessEqual(
+                    delivered, max(asked, floor_m) + 1e-6,
+                    f"body {body}, asked {asked:.2f}: delivered "
+                    f"{delivered:.2f} m from nowhere",
+                )
+
+    def test_a_height_scale_keeps_the_sections_metres(self):
+        from design.maas.massv2.form import (
+            place,
+            section_held_through_height_scale,
+        )
+
+        item = place("bar", size=(30.0, 10.0, 4.0), at=(0.0, 0.0, 0.0))
+        from dataclasses import replace as _replace
+        roofed = _replace(item, top_drop=0.5)
+        grown = section_held_through_height_scale(roofed, 2.0)
+        self.assertAlmostEqual(grown.top_drop, 0.25, places=9)
+        shrunk = section_held_through_height_scale(roofed, 0.5)
+        self.assertAlmostEqual(shrunk.top_drop, 0.95, places=9)

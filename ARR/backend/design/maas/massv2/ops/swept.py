@@ -57,6 +57,29 @@ def _clamp(value: float, low: float, high: float) -> float:
 # sampled curve, so a fourth fold would be drawn as a barrel vault.
 _MAX_FOLD_PEAKS = max(1, (MAX_CREASED_PROFILE_POINTS - 1) // 2)
 
+# A roof is a storey or two, never the building. One owner: this number was
+# hand-copied into five verbs, and a cap applied in five places is a cap
+# applied in one of them.
+ROOF_CAP_STOREYS = 1.5
+
+
+def _roof_share(drop_m: float, body_m: float, storey_m: float) -> float:
+    """An authored drop as a share of its body, with the cap kept in charge.
+
+    The old form - clamp(min(drop, cap_m)/body, 0.15, 0.95) - applied the cap
+    in METRES and then a floor in SHARE, and the floor ran last. On any body
+    wider than cap/0.15 (34 m at a 3.4 m storey) the floor silently overrode
+    the cap: an authored 5.1 m fold arrived 6.88 m deep, +35%, and the whole
+    audited family of bodiless sails follows from it. The floor's purpose -
+    a roof too shallow to read is not worth drawing - survives, but it may
+    never exceed what the cap allows.
+    """
+
+    body = max(body_m, 1e-6)
+    cap_m = ROOF_CAP_STOREYS * storey_m
+    floor = min(0.15, cap_m / body)
+    return _clamp(min(drop_m, cap_m) / body, floor, 0.95)
+
 
 def _slab(index: int, count: int, axis: int = 2) -> Matrix4:
     """The i-th of n equal bands of the unit cube along one axis, in unit space.
@@ -686,9 +709,9 @@ def gable(frame, op) -> None:
         # eight metres of roof and leaves one metre of wall - a tent, not a
         # house. The slope yields to the eave when they conflict; a body that
         # wide should be saying `bays`.
-        cap_m = 1.5 * frame.storey
+        cap_m = ROOF_CAP_STOREYS * frame.storey
         if abs(at - 0.5) < 1e-6:
-            share = _clamp(min((across_w / 2.0) * pitch, cap_m) / body, 0.15, 0.95)
+            share = _roof_share((across_w / 2.0) * pitch, body, frame.storey)
             return gabled_halves(frame, volume, share, ridge_x=ridge_x)
         origin = transform_point3(volume.matrix, (0.0, 0.0, 0.0))
         tip = transform_point3(
@@ -792,10 +815,7 @@ def butterfly(frame, op) -> None:
         # One valley has one depth: the shorter run sets it, so the declared
         # pitch is the steeper side's and the longer side lies back. Capped
         # like the mansard and the gable - a roof is never half the building.
-        depth = _clamp(
-            min(pitch * min(at, 1.0 - at) * across, 1.5 * frame.storey) / body,
-            0.15, 0.95,
-        )
+        depth = _roof_share(pitch * min(at, 1.0 - at) * across, body, frame.storey)
         made.append(replace(
             item,
             top_drop=depth,
@@ -832,8 +852,7 @@ def mansard(frame, op) -> None:
         # width is tens of metres of run, and the crown collapsed to a tent -
         # so the drop is capped at two storeys and the shoulder is re-read
         # from the declared pitch, which the steep face actually keeps.
-        drop_m = min(pitch * shoulder * across, 1.5 * frame.storey)
-        share = _clamp(drop_m / body, 0.15, 0.95)
+        share = _roof_share(pitch * shoulder * across, body, frame.storey)
         shoulder_u = min(0.45, max(0.02, (share * body / pitch) / max(across, 1e-6)))
         made.append(replace(
             item,
@@ -874,8 +893,7 @@ def vault(frame, op) -> None:
     steps = 16
 
     def _arched(item, across_w: float, body: float, unit) -> list:
-        drop_m = min(rise * across_w / 2.0, 1.5 * frame.storey)
-        share = _clamp(drop_m / body, 0.15, 0.95)
+        share = _roof_share(rise * across_w / 2.0, body, frame.storey)
         points = tuple(
             (
                 index / steps,
@@ -1040,9 +1058,7 @@ def fold(frame, op) -> None:
         facets = 2 * folds
         # The same cap the gable and the mansard hold: a roof is a storey or
         # two, never the building.
-        depth = _clamp(
-            min(pitch * across / facets, 1.5 * frame.storey) / body, 0.15, 0.95
-        )
+        depth = _roof_share(pitch * across / facets, body, frame.storey)
         made.append(replace(
             item,
             top_drop=depth,

@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PER_SHEET = 48
 
 
-def main(run: str, out_name: str = "") -> int:
+def main(run: str, out_name: str = "", mode: str = "") -> int:
+    heroes = mode == "--heroes"
     summary = json.loads((ROOT / "runs" / run / "massv2-summary.json")
                          .read_text(encoding="utf-8"))
     book = corpus()
@@ -48,6 +49,32 @@ def main(run: str, out_name: str = "") -> int:
         storeys = gross / ground if ground > 1e-6 else 0.0
         rows.append((storeys, gross, record["name"]))
     rows.sort(reverse=True)  # tall first - the under-served end leads
+
+    variants: dict[str, int] = {}
+    family_tag: dict[str, str] = {}
+    if heroes:
+        # One tile per sentence, its tallest variant standing for the rest.
+        # 94% of the pool is coverage/siting re-tags, and rank order lays a
+        # sentence's ~21 near-identical tags side by side - a browsing surface
+        # that looks like duplication whatever the corpus holds. Grouping by
+        # composition family also makes authoring convergence visible: same
+        # family, adjacent tiles, no caption reading needed.
+        from family_key import family_key  # noqa: E402
+        best: dict[str, tuple[float, float, str]] = {}
+        for storeys, gross, name in rows:
+            sentence = name.split("~")[0].split("^")[0]
+            variants[sentence] = variants.get(sentence, 0) + 1
+            if sentence not in best:
+                best[sentence] = (storeys, gross, name)
+        for sentence in best:
+            if sentence in book:
+                opener, moves, stature = family_key(book[sentence])
+                family_tag[sentence] = (
+                    f"{opener}/{next(iter(moves), '-')}/{stature}")
+        rows = sorted(
+            (best[s] for s in best if s in book),
+            key=lambda item: (
+                family_tag[item[2].split("~")[0].split("^")[0]], -item[0]))
 
     out = ROOT / "runs" / (out_name or f"pool-{run}")
     out.mkdir(parents=True, exist_ok=True)
@@ -72,10 +99,14 @@ def main(run: str, out_name: str = "") -> int:
             failed += 1
             continue
         drawn += 1
-        batch.append((f"#{index}", source, {
+        meta = {
             "층": f"{storeys:.1f}", "용적": f"{gross / parcel * 100:.0f}%",
             "": family[:24],
-        }))
+        }
+        if heroes:
+            meta["안"] = str(variants.get(family, 1))
+            meta[""] = f"{family_tag.get(family, '?')[:20]} {family[:16]}"
+        batch.append((f"#{index}", source, meta))
         if len(batch) == PER_SHEET:
             sheet += 1
             render_masses(batch, out / f"pool{sheet:03d}.png",
@@ -94,4 +125,4 @@ def main(run: str, out_name: str = "") -> int:
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    sys.exit(main(*sys.argv[1:3]))
+    sys.exit(main(*sys.argv[1:4]))

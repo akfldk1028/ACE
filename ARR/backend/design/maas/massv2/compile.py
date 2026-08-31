@@ -342,10 +342,17 @@ def compile_matrix_form(
         emitted = bool(parts)
 
         def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward,
-                          ridge=None, profile=None, across=None) -> bool:
+                          ridge=None, profile=None, across=None,
+                          clip_at: float | None = None) -> bool:
             plan = _plan_between(item, lo, hi)
             if allowed_at is not None:
-                allowed = allowed_at((lo + hi) / 2.0)
+                # The roof is cut where its BODY is cut, not at its own
+                # midpoint: the sunlight envelope shrinks with height, so a
+                # roof sampled 3.4 m above the storeys under it survived
+                # where no body did - the audit's shells lying loose beside
+                # the building. The caller says which height the pair share.
+                allowed = allowed_at(clip_at if clip_at is not None
+                                     else (lo + hi) / 2.0)
                 if allowed is None or allowed.is_empty:
                     return False
                 plan = plan.intersection(allowed)
@@ -364,6 +371,17 @@ def compile_matrix_form(
             for piece in pieces:
                 if not isinstance(piece, Polygon) or piece.area < _MINIMUM_BAND_AREA_M2:
                     continue
+                if profile is not None or ridge is not None or drop > 0.0:
+                    # A sliver cannot wear a section. Every consumer re-reads
+                    # the profile's stations off the fragment's own footprint,
+                    # so a 0.2 m ribbon left by the clip carried a whole
+                    # sixteen-station arc compressed across itself - the
+                    # audit's flame wisps. Morphological opening, the same
+                    # erosion the room rule uses: thinner than the package's
+                    # own build floor everywhere means it is not a roof, it
+                    # is a leftover.
+                    if piece.buffer(-_MINIMUM_BAND_M / 2.0).is_empty:
+                        continue
                 made = True
                 volumes.append(SourceVolume(
                     role=item.role,
@@ -424,6 +442,10 @@ def compile_matrix_form(
                     ridge=getattr(item, "ridge_along", None),
                     profile=profile,
                     across=getattr(item, "profile_across", None),
+                    # Cut where the shoulders are cut: the roof and the body
+                    # under it must survive or vanish together.
+                    clip_at=(max(low, z0) + roof_lo) / 2.0
+                    if body_hi - max(low, z0) > 1e-6 else None,
                 )
         if not emitted:
             dropped_bands += 1

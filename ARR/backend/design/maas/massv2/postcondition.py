@@ -130,8 +130,12 @@ def _sliced_by_tilt(volume, z: float, height: float):
         ux, uy = across
         norm = (ux * ux + uy * uy) ** 0.5 or 1.0
         ux, uy = ux / norm, uy / norm
-        values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
-        lo_p, hi_p = min(values), max(values)
+        span_held = getattr(volume, "profile_span", None)
+        if span_held is not None:
+            lo_p, hi_p = span_held
+        else:
+            values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
+            lo_p, hi_p = min(values), max(values)
         span = max(hi_p - lo_p, 1e-9)
         # Walk the segments collecting where h crosses rel.
         kept: list[tuple[float, float]] = []

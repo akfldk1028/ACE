@@ -267,6 +267,12 @@ def _slope_of(volume, low: float, high: float):
         ux, uy = across
         norm = math.hypot(ux, uy) or 1.0
         ux, uy = ux / norm, uy / norm
+        # The authored span when the volume remembers it: a clip fragment
+        # re-deriving the range from its own footprint wore the whole arc
+        # compressed across its leftover width.
+        span = getattr(volume, "profile_span", None)
+        if span is not None:
+            return ("P", high - low, ux, uy, span[0], span[1], tuple(points))
         values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
         return ("P", high - low, ux, uy, min(values), max(values), tuple(points))
     ridge = getattr(volume, "ridge_along", None)

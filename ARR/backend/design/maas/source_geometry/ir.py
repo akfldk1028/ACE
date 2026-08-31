@@ -77,6 +77,14 @@ class SourceVolume:
     # shapes - hips, vaults - are still outside this primitive.
     top_profile: tuple[tuple[float, float], ...] | None = None
     profile_across: tuple[float, float] | None = None
+    # The stations' AUTHORED extent along `profile_across`, as (lo, hi) world
+    # scalars. Every consumer used to re-derive this range from the volume's
+    # own footprint - honest for the whole volume, and a lie for any clip
+    # fragment of it, which then wore the entire arc compressed across its
+    # leftover width. Carried from compile so a fragment shows the SLICE of
+    # the profile it actually occupies; None keeps the old footprint-derived
+    # reading for anything that predates the field.
+    profile_span: tuple[float, float] | None = None
 
     def signature(self) -> dict[str, Any]:
         data = {

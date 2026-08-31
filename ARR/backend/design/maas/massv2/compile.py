@@ -345,6 +345,14 @@ def compile_matrix_form(
                           ridge=None, profile=None, across=None,
                           clip_at: float | None = None) -> bool:
             plan = _plan_between(item, lo, hi)
+            # The profile's authored range, read off the UNCLIPPED plan: a
+            # fragment must remember where its stations came from or it draws
+            # the whole arc across its own leftover width.
+            span = None
+            if profile is not None and across is not None and not plan.is_empty:
+                ux, uy = across
+                stations = [x * ux + y * uy for x, y in plan.exterior.coords]
+                span = (min(stations), max(stations))
             if allowed_at is not None:
                 # The roof is cut where its BODY is cut, not at its own
                 # midpoint: the sunlight envelope shrinks with height, so a
@@ -394,6 +402,7 @@ def compile_matrix_form(
                     ridge_along=ridge,
                     top_profile=profile,
                     profile_across=across,
+                    profile_span=span,
                 ))
             return made
 

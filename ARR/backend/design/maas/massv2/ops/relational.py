@@ -144,8 +144,28 @@ def nest(frame, op) -> None:
         return
     size = _clamp(float(op.params.get("size", 0.35)), 0.15, 0.6)
     proud = _clamp(float(op.params.get("proud", 0.35)), 0.1, 1.0)
+    # A nested body may stand turned inside its case - the tower that faces
+    # the open side while the plinth keeps the street. Said here rather than
+    # with a rotate after, because a region turned inside a non-square host's
+    # unit space shears; the turned body is built in world space instead.
+    turn = _clamp(float(op.params.get("turn", 0.0)), -60.0, 60.0)
     made: list[Placement] = []
     for host in hosts:
+        if abs(turn) > 1e-6:
+            corners = host.corners()
+            xs = [x for x, _y, _z in corners]
+            ys = [y for _x, y, _z in corners]
+            zs = [z for _x, _y, z in corners]
+            side = size * min(max(xs) - min(xs), max(ys) - min(ys))
+            base, crest = min(zs), max(zs)
+            dx, dy = frame.local((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+            made.append(frame.box(
+                f"{host.role}_nested", w=side, d=side,
+                z=base + (crest - base) * _GRIP,
+                h=(crest - base) * (1.0 - _GRIP + proud),
+                dx=dx, dy=dy, turn=turn,
+            ))
+            continue
         centre = 0.5 - size / 2.0
         made.append(_region(
             host, f"{host.role}_nested",

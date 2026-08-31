@@ -223,13 +223,32 @@ def _clip_halfplane(ring, px, py, centre, side):
     return out if len(out) >= 3 else None
 
 
+def _depth(x: float, y: float) -> float:
+    """How near a plan point sits to the viewer, on the projection's own axis.
+
+    The projected screen-y is sy*sin(PITCH) - z*cos(PITCH) with
+    sy = x*sin(YAW) + y*cos(YAW), so at equal height a larger sy draws lower
+    on the tile - in front. Painting in ascending sy is the painter's
+    algorithm for this camera.
+    """
+
+    return x * math.sin(_YAW) + y * math.cos(_YAW)
+
+
 def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=None):
+    # Sorted far-to-near rather than emitted in ring order: ring order painted
+    # a rotated body's rear wall over its front wall, and every rotated family
+    # - the clasped arms, the turning petals, the winding stack - rendered as
+    # a see-through frame the judges rightly refused to believe would stand.
+    quads = []
     for (x0, y0), (x1, y1) in zip(ring, list(ring[1:]) + [ring[0]]):
-        yield [
+        quads.append((_depth((x0 + x1) / 2.0, (y0 + y1) / 2.0), [
             _project(x0, y0, low), _project(x1, y1, low),
             _project(x1, y1, _top_at(x1, y1, high, slope)),
             _project(x0, y0, _top_at(x0, y0, high, slope)),
-        ], _PAL.wall, True
+        ]))
+    for _d, quad in sorted(quads, key=lambda item: item[0]):
+        yield quad, _PAL.wall, True
 
 
 def _slope_of(volume, low: float, high: float):
@@ -639,7 +658,10 @@ def _render_one(
     # within a band the lower one first, so an upper volume overlaps the one
     # holding it up rather than the other way round.
     ordered = sorted(_merged_runs(source.volumes),
-                     key=lambda item: (item[0], -item[2].centroid.y))
+                     key=lambda item: (
+                         item[0],
+                         _depth(item[2].centroid.x, item[2].centroid.y),
+                     ))
     for low_fraction, high_fraction, footprint, tilted in ordered:
         low = low_fraction * height
         high = high_fraction * height

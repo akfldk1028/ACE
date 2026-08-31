@@ -1445,7 +1445,18 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
                 # Neighbours in a level stand side by side across the pile's
                 # cross axis; the level itself drifts as it rises, gently
                 # enough that its centre stays over the level below.
-                row = (j - (in_level - 1) / 2.0) * d * 1.35
+                # Room for the unit as TURNED, not as drawn: a bar of length
+                # w rotated th needs w*|sin th| of cross-axis air, and spacing
+                # computed on the untumed depth alone is why the jackstraw
+                # piles crossed. The pack branch already spaces on clearance;
+                # the stack branch now owes the same debt.
+                rad_level = math.radians(turn)
+                cross_extent = (
+                    d * abs(math.cos(rad_level)) + w * abs(math.sin(rad_level))
+                )
+                row = (j - (in_level - 1) / 2.0) * (
+                    cross_extent + JOINT_CLEARANCE_M
+                )
                 drift_x = 0.10 * frame.width * rise * (1 if lvl % 2 else -1)
                 drift_y = row + 0.06 * frame.depth * rise * (1 if (lvl // 2) % 2 else -1)
                 # The slide is along the unit's own turned axis, ground level

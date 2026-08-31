@@ -1075,3 +1075,20 @@ D가 e09만 `no`로 봤고 이유가 정확하다: *"앞마당은 생기나 어�
    `legal_fit` 키를 `[:9]`로 잘라 보고 `satisfied`가 없다고 단정한 것이 오늘 있었다.
 2. 바뀌었다고 말하기 전에 **그림을 본다.** 마당 문장이 축당 부분 4.00을 받고
    렌더에 마당이 없었다.
+
+
+## 보이드·필로티 저작 사이클 (2026-08-31)
+
+사용자 판정 "창의적인 게 없다" + "제대로 된 플로우로" → 정본 5단계 재진입.
+저작 3렌즈(SANAA·OMA·BIG)×8문장(`inputs/gen-void-*.json`, 커밋 d6f0bf4) → 오타 0 →
+두 트랙 격자(void-ovs·void-kor, 각 21/24 물리) → 기준 5안 섞은 눈먼 심판 2×2 →
+기준-보정 컷 → 보드 36안(K18+O18).
+
+- 해외 신작 통과 8: canyon 4.25 · one_roof_proud_rooms 4.25 · locked_arms_gate 4.05 ·
+  tilted_plate_promenade 3.80 · proud_hall 3.70 · sunken_court 3.60 · courtscraper 3.55 ·
+  hovering_court_ring 3.55. 드리프트 −0.007.
+- 한국 신작 통과 6 (컷 3.40, 드리프트 −0.103): plinth_tower · chain_of_turned_rooms ·
+  ring_on_air · proud_hall · one_roof_proud_rooms · prow_over_open.
+- 같은 문장 반대 운명: canyon 4.25/2.83 — 두 심사가 실제로 다른 것을 잰다.
+- 미결: ①하부 와이어프레임 렌더 결함(회전 적층 3차 낙방의 공범, kiasma와 동일 증상)
+  ②vault×trapezoid 렌더 ③선언-렌더 불일치(nest proud·intersect climb이 그림에 안 보임).

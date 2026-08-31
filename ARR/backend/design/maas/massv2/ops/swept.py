@@ -45,7 +45,7 @@ from design.maas.geometry_language.affine_matrix import (
     validate_matrix4,
 )
 
-from ..form import Placement
+from ..form import MAXIMUM_ROOF_SHARE, Placement
 
 
 def _clamp(value: float, low: float, high: float) -> float:
@@ -78,7 +78,7 @@ def _roof_share(drop_m: float, body_m: float, storey_m: float) -> float:
     body = max(body_m, 1e-6)
     cap_m = ROOF_CAP_STOREYS * storey_m
     floor = min(0.15, cap_m / body)
-    return _clamp(min(drop_m, cap_m) / body, floor, 0.95)
+    return _clamp(min(drop_m, cap_m) / body, floor, MAXIMUM_ROOF_SHARE)
 
 
 def _slab(index: int, count: int, axis: int = 2) -> Matrix4:
@@ -786,8 +786,11 @@ def gable(frame, op) -> None:
         )
         ax, ay = tip[0] - origin[0], tip[1] - origin[1]
         norm = (ax * ax + ay * ay) ** 0.5 or 1.0
-        left = _clamp(min(pitch * at * across_w, cap_m) / body, 0.0, 0.95)
-        right = _clamp(min(pitch * (1.0 - at) * across_w, cap_m) / body, 0.0, 0.95)
+        left = _clamp(
+            min(pitch * at * across_w, cap_m) / body, 0.0, MAXIMUM_ROOF_SHARE)
+        right = _clamp(
+            min(pitch * (1.0 - at) * across_w, cap_m) / body,
+            0.0, MAXIMUM_ROOF_SHARE)
         return [replace(
             volume,
             top_drop=max(left, right),

@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from band_probe import corpus, schedule_of  # noqa: E402
 from finalists import PNU, rebuild  # noqa: E402
+from pool_sheets import COLUMNS, PER_SHEET, TILE  # noqa: E402
 
 from PIL import Image  # noqa: E402
 
@@ -22,9 +23,6 @@ from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-TILE = (300, 270)
-COLUMNS = 8
-PER_SHEET = 48
 
 
 def main(pool_dir: str, out_path: str, *names: str) -> int:

@@ -41,6 +41,13 @@ from design.maas.geometry_language.affine_matrix import (
 
 PlacementKind = Literal["additive", "subtractive"]
 
+# The most of a body a roof may claim, as a share of its own height. A section
+# is a field on the primitive, so its one invariant lives beside the fields:
+# every verb that writes top_drop and every scale that corrects it clamps here,
+# and a shrink may not turn the whole body into roof. Was hand-copied at four
+# sites before it had a name.
+MAXIMUM_ROOF_SHARE = 0.95
+
 # The unit cube this language places, corners in the order the affine sees them.
 UNIT_BOX_CORNERS: tuple[tuple[float, float, float], ...] = (
     (0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 1.0, 0.0), (0.0, 1.0, 0.0),
@@ -178,7 +185,9 @@ def section_held_through_height_scale(item: Placement, factor: float) -> Placeme
             (u, min(1.0, max(0.0, 1.0 - (1.0 - h) / factor))) for u, h in profile
         )
     return replace(
-        item, top_drop=min(0.95, item.top_drop / factor), top_profile=profile,
+        item,
+        top_drop=min(MAXIMUM_ROOF_SHARE, item.top_drop / factor),
+        top_profile=profile,
     )
 
 

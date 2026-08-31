@@ -23,7 +23,11 @@ from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
+# The sheet's geometry in one place: anyone cropping a tile back out of a
+# rendered sheet (probe_pair) reads these, so they may never drift apart.
 PER_SHEET = 48
+COLUMNS = 8
+TILE = (300, 270)
 
 
 def main(run: str, out_name: str = "", mode: str = "") -> int:
@@ -111,14 +115,14 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
             sheet += 1
             render_masses(batch, out / f"pool{sheet:03d}.png",
                           site_ring=list(buildable.exterior.coords),
-                          columns=8, tile=(300, 270), style="massing")
+                          columns=COLUMNS, tile=TILE, style="massing")
             print(f"pool{sheet:03d}.png  ({drawn}/{len(rows)})", flush=True)
             batch = []
     if batch:
         sheet += 1
         render_masses(batch, out / f"pool{sheet:03d}.png",
                       site_ring=list(buildable.exterior.coords),
-                      columns=8, tile=(300, 270), style="massing")
+                      columns=COLUMNS, tile=TILE, style="massing")
     print(f"done: {drawn} drawn, {failed} rebuild-failed, {sheet} sheets -> {out}")
     return 0
 

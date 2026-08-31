@@ -138,6 +138,7 @@ PLOT_MODES: dict[str, PlotMode] = {
     "overlap": "inherit",
     "extract": "inherit",
     "inscribe": "impose",
+    "canopy": "inherit",
     "carve": "impose",
     "lift": "impose",
     # 정렬. A slide onto a line the composition already holds, so the mass still

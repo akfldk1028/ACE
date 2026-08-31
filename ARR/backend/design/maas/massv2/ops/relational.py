@@ -322,6 +322,62 @@ def inscribe(frame, op) -> None:
     frame.placements = rest + picked + made
 
 
+def canopy(frame, op) -> None:
+    """A thin plate the body wears past its edge - the eave, the marquee.
+
+    The one element the language could not say below a storey: plausibility
+    holds every occupiable volume to a 2.4 m clear room, so a SANAA roof or a
+    deep eave over an approach was refused as a wall. This plate declares
+    itself unoccupiable and lands in the structural bands the gates already
+    exempt - the same channel `lift`'s legs ride. The structure gate still
+    judges the overhang, which is why `reach` stops where `cantilever`'s does.
+
+    `at` places it on the host's height (1.0 = the roof edge, lower is a
+    marquee over a door); the plate grips the host a little and reaches out
+    along `toward`, full width across.
+    """
+
+    from math import atan2, degrees
+
+    picked, rest = frame.pick(op)
+    hosts = _hosts(picked)
+    if not hosts:
+        return
+    reach = _clamp(float(op.params.get("reach", 0.3)), 0.1, 0.45)
+    at = _clamp(float(op.params.get("at", 1.0)), 0.3, 1.0)
+    fx, fy = frame.direction(op.params.get("toward"))
+    turn = degrees(atan2(fy, fx)) - frame.rotation
+    thickness_share = 0.35  # of a storey - visibly a plate, never a floor
+    made: list[Placement] = []
+    for host in hosts:
+        corners = host.corners()
+        xs = [x for x, _y, _z in corners]
+        ys = [y for _x, y, _z in corners]
+        zs = [z for _x, _y, z in corners]
+        along = [x * fx + y * fy for x, y in zip(xs, ys)]
+        span_t = max(along) - min(along)
+        span_a = max(
+            (x * -fy + y * fx) for x, y in zip(xs, ys)
+        ) - min((x * -fy + y * fx) for x, y in zip(xs, ys))
+        if span_t < 1e-6 or span_a < 1e-6:
+            continue
+        grip = 0.15 * span_t
+        length = grip + reach * span_t
+        # Centre sits so the plate covers the host's leading edge by `grip`
+        # and reaches `reach` of the host's own span beyond it.
+        cx = (min(xs) + max(xs)) / 2.0 + fx * (span_t / 2.0 - grip + length / 2.0)
+        cy = (min(ys) + max(ys)) / 2.0 + fy * (span_t / 2.0 - grip + length / 2.0)
+        base, crest = min(zs), max(zs)
+        thin = thickness_share * frame.storey
+        z = base + at * (crest - base) - thin
+        dx, dy = frame.local(cx, cy)
+        made.append(frame.box(
+            f"{host.role}_canopy", w=length, d=span_a, z=z, h=thin,
+            dx=dx, dy=dy, turn=turn, occupiable=False,
+        ))
+    frame.placements = rest + picked + made
+
+
 RELATIONAL_VERBS: dict[str, Callable] = {
     "merge": merge,
     "nest": nest,
@@ -330,4 +386,5 @@ RELATIONAL_VERBS: dict[str, Callable] = {
     "overlap": overlap,
     "extract": extract,
     "inscribe": inscribe,
+    "canopy": canopy,
 }

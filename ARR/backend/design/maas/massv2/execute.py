@@ -1436,27 +1436,42 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
             turn = float(op.params.get("turn", 0.0)) * (1 if lvl % 2 else -1)
             rise = lvl / max(levels - 1, 1)
             h = max(level, frame.storey)
+            # Neighbours in a level stand side by side across the pile's
+            # cross axis; the level itself drifts as it rises, gently
+            # enough that its centre stays over the level below.
+            # Room for the unit as TURNED, not as drawn: a bar of length
+            # w rotated th needs w*|sin th| of cross-axis air, and spacing
+            # computed on the untumed depth alone is why the jackstraw
+            # piles crossed. The pack branch already spaces on clearance;
+            # the stack branch now owes the same debt. And the debt is paid
+            # cumulatively: the size fan shrinks each unit, so slot-index
+            # times own-extent left uneven gaps and units 3+ interpenetrated.
+            rad_level = math.radians(turn)
+            dims: list[tuple[float, float, float]] = []
             for j in range(in_level):
-                scale = 1.0 / (spread ** (index / max(count - 1, 1)))
+                scale = 1.0 / (spread ** ((index + j) / max(count - 1, 1)))
                 w = frame.width * 0.62 * scale
                 d = frame.depth * 0.62 * scale
                 if unit_kind == "house":
                     d = min(d, HOUSE_ASPECT * h)
-                # Neighbours in a level stand side by side across the pile's
-                # cross axis; the level itself drifts as it rises, gently
-                # enough that its centre stays over the level below.
-                # Room for the unit as TURNED, not as drawn: a bar of length
-                # w rotated th needs w*|sin th| of cross-axis air, and spacing
-                # computed on the untumed depth alone is why the jackstraw
-                # piles crossed. The pack branch already spaces on clearance;
-                # the stack branch now owes the same debt.
-                rad_level = math.radians(turn)
                 cross_extent = (
                     d * abs(math.cos(rad_level)) + w * abs(math.sin(rad_level))
                 )
-                row = (j - (in_level - 1) / 2.0) * (
-                    cross_extent + JOINT_CLEARANCE_M
+                dims.append((w, d, cross_extent))
+            rows: list[float] = [0.0]
+            for j in range(1, in_level):
+                rows.append(
+                    rows[-1]
+                    + (dims[j - 1][2] + dims[j][2]) / 2.0
+                    + JOINT_CLEARANCE_M
                 )
+            middle = (
+                (rows[0] - dims[0][2] / 2.0 + rows[-1] + dims[-1][2] / 2.0)
+                / 2.0
+            )
+            for j in range(in_level):
+                w, d, _cross = dims[j]
+                row = rows[j] - middle
                 drift_x = 0.10 * frame.width * rise * (1 if lvl % 2 else -1)
                 drift_y = row + 0.06 * frame.depth * rise * (1 if (lvl // 2) % 2 else -1)
                 # The slide is along the unit's own turned axis, ground level

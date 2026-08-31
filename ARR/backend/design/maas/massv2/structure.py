@@ -385,6 +385,11 @@ def band_parts(source: SourceMass) -> list[tuple[float, float, Polygon]]:
     return sorted(out, key=lambda item: (item[0], item[1]))
 
 
+# The rounding above quantises every fraction a body is built from; anyone
+# comparing a body's edge against an unrounded band edge owes this much slack.
+BAND_FRACTION_STEP = 1e-4
+
+
 def _touching(a: tuple[float, float, Polygon], b: tuple[float, float, Polygon]) -> bool:
     """Do these two pieces share material - overlapping in plan and in height."""
 

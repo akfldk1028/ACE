@@ -35,7 +35,7 @@ from design.maas.floor_viability import (
 )
 from design.maas.source_geometry.ir import SourceMass
 
-from .structure import Standing, assess_standing, bodies_of
+from .structure import BAND_FRACTION_STEP, Standing, assess_standing, bodies_of
 
 
 AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
@@ -405,18 +405,30 @@ def assess(
             for i in structural
             if i < len(bands)
         ]
-        for low, high, plan in bodies_of(source):
+        # `bodies` is the floor-filtered list from the slenderness pass above:
+        # a boolean-cut sliver is not a body there and is not one here either.
+        for low, high, plan in bodies:
             span_m = max(0.0, high - low) * height
             if span_m <= 2.0 * floor_height_m:
                 continue
             if _min_dimension(plan) >= MINIMUM_STOREY_WIDTH_M:
                 continue
-            declared = any(
-                b0 <= low + 1e-6 and high <= b1 + 1e-6
-                and fp.intersection(plan).area >= 0.8 * plan.area
+            # Declared thinness may arrive as several stacked structural bands
+            # (band edges cut wherever any placement starts or stops), and the
+            # body's own fractions arrive rounded - so the exemption asks
+            # whether structural extents over this plan jointly cover the
+            # body's run, with the rounding step as slack.
+            covering = sorted(
+                (b0, b1)
                 for fp, b0, b1 in structural_extents
+                if fp.intersection(plan).area >= 0.8 * plan.area
             )
-            if declared:
+            cursor = low
+            for b0, b1 in covering:
+                if b0 > cursor + BAND_FRACTION_STEP:
+                    break
+                cursor = max(cursor, b1)
+            if cursor >= high - BAND_FRACTION_STEP:
                 continue
             reasons.append(
                 f"thin_element_{span_m:.1f}m_tall_under_"

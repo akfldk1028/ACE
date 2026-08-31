@@ -28,7 +28,7 @@ from design.maas.geometry_language.affine_matrix import (
 
 from .compile import _plan
 from .form import MatrixForm, section_held_through_height_scale
-from .legal_fit import _gross_floor_area, _scaled_in_plan, projected_ground_area
+from .legal_fit import _gross_floor_area, _scaled_composition, projected_ground_area
 
 
 def retarget_ground_take(
@@ -68,12 +68,12 @@ def retarget_ground_take(
         if hold_programme
         else 1.0
     )
+    scaled = _scaled_composition(form, factor, anchor)
     return replace(
-        form,
+        scaled,
         name=f"{form.name}@{int(round(target_area_m2))}",
         placements=tuple(
-            _stretched(_scaled_in_plan(item, factor, anchor), lift)
-            for item in form.placements
+            _stretched(item, lift) for item in scaled.placements
         ),
     )
 

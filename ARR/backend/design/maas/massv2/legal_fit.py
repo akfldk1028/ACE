@@ -377,6 +377,72 @@ def _pulled_inside(
     return None
 
 
+def _scaled_composition(form: MatrixForm, factor: float,
+                        anchor: tuple[float, float]) -> MatrixForm:
+    """Scale a composition in plan with the carrying invariant enforced.
+
+    The invariant - a section-holding volume pays the plan scale in height,
+    and whatever rested on it settles back down against the ORIGINAL
+    supports - lived inside `_scaled_about_own_centre` alone, while four
+    other callers scaled placements one at a time and got neither rule.
+    That is what an invariant enforced at one call site out of five does:
+    growth buried a stacked house 5.8 m inside its carriers, and a shrink
+    opened the same gap into floating ends. One owner now; every plan scale
+    of a whole composition comes through here.
+    """
+
+    if abs(factor - 1.0) < 1e-9:
+        return form
+    enclosure = unary_union([_plan(item) for item in form.additive()])
+    has_court = any(
+        len(getattr(part, "interiors", ())) > 0
+        for part in getattr(enclosure, "geoms", [enclosure])
+    )
+    carries = set()
+    for index, item in enumerate(form.placements):
+        if item.kind != "additive":
+            continue
+        top = item.z_span()[1]
+        plan = _plan(item)
+        holds_something = any(
+            other.kind == "additive"
+            and abs(other.z_span()[0] - top) <= 1e-3
+            and _plan(other).intersects(plan)
+            for other in form.placements
+        )
+        if holds_something or not has_court:
+            carries.add(index)
+    scaled = [
+        _scaled_in_plan(item, factor, anchor, carrying=(index in carries))
+        for index, item in enumerate(form.placements)
+    ]
+    order = sorted(
+        (index for index, item in enumerate(form.placements) if item.kind == "additive"),
+        key=lambda index: form.placements[index].z_span()[0],
+    )
+    for index in order:
+        base = form.placements[index].z_span()[0]
+        plan = _plan(form.placements[index])
+        carriers = [
+            other for other in order
+            if other != index
+            and abs(form.placements[other].z_span()[1] - base) <= 1e-3
+            and _plan(form.placements[other]).intersects(plan)
+        ]
+        if not carriers:
+            continue
+        landing = max(scaled[other].z_span()[1] for other in carriers)
+        drop = scaled[index].z_span()[0] - landing
+        if abs(drop) > 1e-6:
+            scaled[index] = replace(
+                scaled[index],
+                matrix=validate_matrix4(compose_matrix4(
+                    scaled[index].matrix, translation_matrix4((0.0, 0.0, -drop)),
+                )),
+            )
+    return replace(form, placements=tuple(scaled))
+
+
 def _scaled_about_own_centre(form: MatrixForm, factor: float) -> MatrixForm:
     """Scale the whole composition in plan about its own centre.
 
@@ -412,61 +478,7 @@ def _scaled_about_own_centre(form: MatrixForm, factor: float) -> MatrixForm:
     # worse on the very rings it was for (0.31 to 0.21 on `d_bakgong_madang`),
     # because a gabled ring bar reads as carrying its own roof band. The
     # composition either encloses a void or it does not.
-    enclosure = unary_union([_plan(item) for item in additive])
-    has_court = any(
-        len(getattr(part, "interiors", ())) > 0
-        for part in getattr(enclosure, "geoms", [enclosure])
-    )
-    carries = set()
-    for index, item in enumerate(form.placements):
-        if item.kind != "additive":
-            continue
-        top = item.z_span()[1]
-        plan = _plan(item)
-        holds_something = any(
-            other.kind == "additive"
-            and abs(other.z_span()[0] - top) <= 1e-3
-            and _plan(other).intersects(plan)
-            for other in form.placements
-        )
-        if holds_something or not has_court:
-            carries.add(index)
-    scaled = [
-        _scaled_in_plan(item, factor, anchor, carrying=(index in carries))
-        for index, item in enumerate(form.placements)
-    ]
-    # Settled against the ORIGINAL supports, bottom upward. `_settled_onto`
-    # decides what is resting on a volume by reading the list it is given, and
-    # after a scale that list has already moved - so a stack of gabled houses
-    # settled one call at a time still left the upper houses in the air, and
-    # the four sentences that stack a house on a house (both VitraHaus, the
-    # crossbeam hamlet, the slipped twins) were refused as unsupported.
-    # Who rests on whom is a fact about the form before it was scaled.
-    order = sorted(
-        (index for index, item in enumerate(form.placements) if item.kind == "additive"),
-        key=lambda index: form.placements[index].z_span()[0],
-    )
-    for index in order:
-        base = form.placements[index].z_span()[0]
-        plan = _plan(form.placements[index])
-        carriers = [
-            other for other in order
-            if other != index
-            and abs(form.placements[other].z_span()[1] - base) <= 1e-3
-            and _plan(form.placements[other]).intersects(plan)
-        ]
-        if not carriers:
-            continue
-        landing = max(scaled[other].z_span()[1] for other in carriers)
-        drop = scaled[index].z_span()[0] - landing
-        if abs(drop) > 1e-6:
-            scaled[index] = replace(
-                scaled[index],
-                matrix=validate_matrix4(compose_matrix4(
-                    scaled[index].matrix, translation_matrix4((0.0, 0.0, -drop)),
-                )),
-            )
-    return replace(form, placements=tuple(scaled))
+    return _scaled_composition(form, factor, anchor)
 
 
 # How much of an imposing scheme has to be legal before the clip is a trim

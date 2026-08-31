@@ -38,7 +38,7 @@ from .measure import measure_form
 from .legal_fit import (
     LegalFitResult,
     _gross_floor_area,
-    _scaled_in_plan,
+    _scaled_composition,
     fit_to_site,
 )
 from .variations import _stretched
@@ -276,10 +276,7 @@ def _wider(form: MatrixForm, factor: float) -> MatrixForm:
         (min(x for x, _y, _z in corners) + max(x for x, _y, _z in corners)) / 2.0,
         (min(y for _x, y, _z in corners) + max(y for _x, y, _z in corners)) / 2.0,
     )
-    return replace(
-        form,
-        placements=tuple(_scaled_in_plan(item, factor, anchor) for item in form.placements),
-    )
+    return _scaled_composition(form, factor, anchor)
 
 
 def fill_to_site(

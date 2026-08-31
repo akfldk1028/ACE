@@ -131,7 +131,35 @@ def _banded(
         if shaping is None:
             break
         matrix = compose_matrix4(_slab(index, count, axis), shaping, item.matrix)
-        made.append(replace(item, matrix=validate_matrix4(matrix)))
+        banded = replace(item, matrix=validate_matrix4(matrix))
+        # A section belongs to the TOP slice alone. `replace` copied the
+        # gable onto every band, so a cantilevered house grew a ridge at
+        # every storey - the compiler then emitted a body+roof pair per band
+        # and the sub-storey fragments behind the audit's zero-floor piles.
+        # The top slice keeps the roof, re-read in its own terms the way the
+        # relational splitter already does; the slices under it are storeys.
+        if axis == 2 and count > 1 and index < count - 1:
+            banded = replace(
+                banded, top_drop=0.0, drop_toward=None,
+                ridge_along=None, top_profile=None, profile_across=None,
+            )
+        elif axis == 2 and count > 1 and index == count - 1:
+            drop = float(banded.top_drop or 0.0)
+            if drop > 0.0:
+                kept = 1.0 / count
+                profile = banded.top_profile
+                if profile is not None:
+                    window = 1.0 - kept
+                    profile = tuple(
+                        (u, min(1.0, max(0.0, (h - window) / kept)))
+                        for u, h in profile
+                    )
+                banded = replace(
+                    banded,
+                    top_drop=min(1.0, drop / kept),
+                    top_profile=profile,
+                )
+        made.append(banded)
     return made
 
 

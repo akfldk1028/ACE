@@ -335,15 +335,38 @@ def render_masses(
     entries = list(items)
     if not entries:
         raise ValueError("nothing to render")
+    # A grid that fills. Six masses in four columns leaves a row of two beside
+    # two tiles of blank paper, which is the first thing the eye reads on the
+    # sheet and it says the drawing ran out rather than that six were chosen.
+    # The widest divisor no larger than the column count squares it off - six
+    # into 3x2, eight into 4x2 - and a count with no divisor keeps the ragged
+    # last row rather than stretching to a shape it does not have.
+    fitted = max(
+        (n for n in range(2, columns + 1) if len(entries) % n == 0),
+        default=columns,
+    )
+    if len(entries) > columns:
+        columns = fitted
     global _PAL
     previous, _PAL = _PAL, _STYLES.get(style, _CLAY)
     try:
         rows = math.ceil(len(entries) / columns)
-        sheet = Image.new("RGB", (columns * tile[0], rows * tile[1]), _PAL.background)
+        # Tiles that touch read as one continuous drawing. A margin the width of
+        # the caption's own indent is enough to say these are separate proposals
+        # without spacing them out into a catalogue.
+        pad = 10 if tile[0] >= 400 else 0
+        sheet = Image.new(
+            "RGB",
+            (columns * tile[0] + pad * (columns + 1),
+             rows * tile[1] + pad * (rows + 1)),
+            _PAL.background,
+        )
 
         for index, (title, source, caption) in enumerate(entries):
             panel = _render_one(source, tile, site_ring=site_ring, title=title, caption=caption)
-            sheet.paste(panel, ((index % columns) * tile[0], (index // columns) * tile[1]))
+            column, row = index % columns, index // columns
+            sheet.paste(panel, (pad + column * (tile[0] + pad),
+                                pad + row * (tile[1] + pad)))
     finally:
         _PAL = previous
 
@@ -668,9 +691,16 @@ def _render_one(
     # and OMA gives every option a name for exactly this reason. The sentence
     # was already being carried on the form as `formal_principle` and thrown
     # away at the tile.
+    # A hairline between the drawing and what is said about it. Without it the
+    # thesis reads as a caption floating in the same field as the mass, and on
+    # a sheet of eight the eye has nothing telling it where one tile ends.
     y = tile[1] - reserve + 8
+    draw.line([(10, y - 9), (tile[0] - 10, y - 9)], fill=_PAL.party_wall, width=1)
+    # The palette, not two hardcoded greys. These were clay values written into
+    # the tile, so the white-model sheet drew its captions in warm brown - the
+    # one thing on the page that was not the drawing's own ink.
     for text in thesis_lines:
-        draw.text((10, y), text, font=body, fill=(52, 52, 58))
+        draw.text((10, y), text, font=body, fill=_PAL.ink)
         y += 13
-    draw.text((10, y + 1), _elide(numbers, body, tile[0] - 20), font=body, fill=(120, 120, 128))
+    draw.text((10, y + 1), _elide(numbers, body, tile[0] - 20), font=body, fill=_PAL.muted)
     return panel

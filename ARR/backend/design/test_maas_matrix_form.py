@@ -30,6 +30,7 @@ from design.maas.massv2.plausibility import (
     unlit_share,
 )
 from design.maas.massv2.select import (
+    BRIEFED_OBJECTIVES,
     CORPUS_PIECES,
     OBJECTIVES,
     Candidate,
@@ -261,11 +262,17 @@ class RankingIgnoresTheCellsOwnCoordinateTests(SimpleTestCase):
     def test_no_objective_reads_either_grid_coordinate(self):
         """Ground take and plan void say where a scheme sits, not how good it is."""
 
-        reads = [read(self._candidate_at("probe", far=0.5, void=0.99))
-                 for _name, read in OBJECTIVES]
+        # Both tuples. Walking only `OBJECTIVES` is why the briefed sheet
+        # carried `ground_released` - 건폐율, a grid axis - for as long as it
+        # existed, and the fifteen it chose stopped at 33.6% while the pool
+        # reached 59.9%.
+        probe = self._candidate_at("probe", far=0.5, void=0.99)
+        reads = [read(probe) for _name, read in OBJECTIVES]
+        reads += [read(probe) for _name, read in BRIEFED_OBJECTIVES]
 
         self.assertNotIn(0.99, reads)
         self.assertNotIn(0.9, reads)  # ground_take on the fixture
+        self.assertNotIn(0.1, reads)  # 1 - ground_take, the same axis inverted
 
     def test_the_sentence_that_did_more_work_wins_its_cell(self):
         """What the selector is for, after the objectives were measured.

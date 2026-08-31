@@ -356,6 +356,39 @@ def _ground_released(item: Candidate) -> float:
 # corpus, the Korean sentences average 0.317 articulation against 0.407 for the
 # international ones and were selected once in ten deliveries despite a 100%
 # survival rate - the selector was refusing what the research says wins.
+def _storeys_for_the_brief(item: Candidate) -> float:
+    """How near the delivered storey count is to the one the brief implies.
+
+    Type, not coverage. `ground_released` used to carry this and could not: 건폐율
+    is a grid axis and an objective may not read one, which is this module's own
+    rule and now its test. Dropping it was right and cost the reading it was
+    standing in for - the fifteen chosen went from a 2.5-storey median to 3.5,
+    which on a 1,546 m2 주민센터 is the difference between a building and a stack.
+
+    Storeys are not an axis. Neither grid coordinate is recoverable from this:
+    the same storey count occurs at every coverage the brief allows, because
+    with 연면적 fixed the two are the same number seen twice - 1,546 over one
+    storey is 61.8% and unlawful, over two is 30.9%, over four is 15.5%. What
+    the brief actually implies is `Schedule.storeys_needed` rounded up, never
+    under two, the same number the run hands each sentence as its height
+    budget, and a scheme is scored on how near it lands.
+
+    Both directions cost. Under the target the building is spreading further
+    than its programme needs; over it, it is going up instead of out.
+    """
+
+    target = item.form.extra.get("programme_target")
+    ground = _ground_capacity(item)
+    capacity = _far_capacity(item)
+    if not target or ground <= 0.0 or capacity <= 0.0:
+        return 0.0
+    delivered_area = item.far_utilization * capacity
+    footprint = max(item.ground_take * ground, 1e-9)
+    storeys = delivered_area / footprint
+    wanted = max(2.0, ceil(float(target) / ground))
+    return max(0.0, 1.0 - abs(storeys - wanted) / wanted)
+
+
 def _turned_against_each_other(item: Candidate) -> float:
     """How many bearings the composition holds, as a share of its volumes.
 
@@ -404,7 +437,21 @@ def _turned_against_each_other(item: Candidate) -> float:
 # precision within it is not a virtue, and scoring it spends a design axis on
 # compliance that was already decided at the door.
 BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
-    ("ground_released", _ground_released),
+    # `ground_released` was here and it should never have been: 건폐율 is one of
+    # the grid's two axes, and this module's own rule - stated twice above and
+    # enforced by `test_no_objective_reads_either_grid_coordinate` - is that an
+    # objective may not read a grid coordinate, because scoring the axis scores
+    # the thing every occupant of a cell already has in common. The test only
+    # ever walked `OBJECTIVES`, so the briefed tuple carried one for as long as
+    # it has existed.
+    #
+    # What it cost is visible on the sheet. The pool reaches 59.9% 건폐율 and a
+    # tenth of it stands above 34.5%, and the fifteen chosen stop at 33.6% -
+    # scoring distance from a coverage target flattens exactly the axis the
+    # cells exist to spread. An alternatives sheet owes a compact scheme next to
+    # an open one; that spread is the grid's job, and it was being undone by an
+    # objective that graded it.
+    ("storeys_for_the_brief", _storeys_for_the_brief),
     ("turned", _turned_against_each_other),
     # Restored. It was dropped from the briefed set by argument - "the mass a
     # Korean jury rewards is the plain one with a good yard, which shape_work

@@ -137,6 +137,10 @@ class _Frame:
         storey_m: float = 0.0,
     ):
         cx, cy, width, depth, rotation = seed_rectangle(buildable, axis)
+        # Which edge faces the lane. `siting` computes it and the frame threw it
+        # away, so `approach` - the one verb whose whole subject is the street -
+        # had no way to ask.
+        self.axis = axis
         self.cx, self.cy = cx, cy
         self.width, self.depth = width, depth
         self.rotation = rotation
@@ -1043,6 +1047,102 @@ def realign(form: MatrixForm) -> MatrixForm:
     return replace(form, placements=tuple(placements))
 
 
+def _approach(frame: _Frame, op: Operation) -> None:
+    """Set the street face back so the ground floor has somewhere to be entered from.
+
+    Three rounds of blind judging, six judges, and every one of them wrote the
+    same sentence about this corpus: the masses are objects rather than sites,
+    and the way in is not in the drawing. *"주출입·전면 마당·민원 동선이 매스에서
+    전혀 읽히지 않는다"*, *"진입·전면 마당·민원실의 지상 접근이 어느 타일에도
+    그려져 있지 않다"*, *"주소·마당·현관 같은 대지와의 접점이 캡션으로만 존재한다."*
+    Nothing in this language could say it.
+
+    `carve` cuts a court, which is inboard and held by the building on every
+    side. `notch` declines a corner. Neither is an approach. What a 주민센터 owes
+    is a piece of ground at the street that the building steps back from and
+    then addresses - a forecourt, open on the street face, deep enough to stand
+    in, and low, because it belongs to the ground floor and the storeys above it
+    carry on over.
+
+    So the cut is at the open side rather than aimed by name: `siting` already
+    computes which edge of this parcel faces the lane, and the entrance is not a
+    thing an author chooses independently of that. It runs the full depth of the
+    volume it bites into so the recess opens to the street rather than being a
+    pocket, and it stops after `storeys` floors - one by default - so what
+    stands over the forecourt is building rather than sky.
+
+    The face left behind is registered as `entry`, which makes it something the
+    rest of the sentence can work with: `align to: entry` brings the other
+    volumes onto the line the approach cut, which is how a forecourt becomes the
+    thing the composition is arranged around rather than a bite out of one side.
+    """
+
+    picked, rest = _scope(frame, op)
+    standing = [item for item in (picked or frame.placements) if item.kind == "additive"]
+    if not standing:
+        return
+    # How much of the street face steps back, and how far in.
+    width = _clamp(float(op.params.get("width", 0.4)), 0.2, 0.7)
+    depth = _clamp(float(op.params.get("depth", 0.3)), 0.15, 0.5)
+    # A forecourt is a ground-floor room without a ceiling of its own. One
+    # storey by default: cut higher and the building loses its front instead of
+    # opening it.
+    storeys = _clamp(float(op.params.get("storeys", 1.0)), 1.0, 3.0)
+    high = min(frame.storey * storeys, frame.height)
+
+    # The street, as the site already knows it - but said in the frame's own
+    # axes. `frame.axis` is a world vector and `box` offsets in frame terms, and
+    # adding one to the other is the fault this package has written down twice:
+    # the forecourt came out as a hole in the middle of the roof because the
+    # offset was measured on the wrong pair of axes.
+    radians = math.radians(frame.rotation)
+    along = (math.cos(radians), math.sin(radians))
+    across_world = (-along[1], along[0])
+    world_x, world_y = frame.axis
+    length = (world_x * world_x + world_y * world_y) ** 0.5 or 1.0
+    world_x, world_y = world_x / length, world_y / length
+    # The street direction, in frame coordinates.
+    fx = world_x * along[0] + world_y * along[1]
+    fy = world_x * across_world[0] + world_y * across_world[1]
+    on_long = abs(fx) >= abs(fy)
+    cut_w = frame.width * (depth if on_long else width)
+    cut_d = frame.depth * (width if on_long else depth)
+    # Metres, not a fraction. `box` offsets in the frame's axes but in real
+    # dimensions - `carve` computes `(frame.width - w) / 2 * reach` for exactly
+    # this - and passing a 0..1 share moved the recess by a third of a metre, so
+    # the forecourt came out as a skylight in the middle of the roof twice.
+    span = (frame.width - cut_w) if on_long else (frame.depth - cut_d)
+    step = (1.0 if (fx if on_long else fy) >= 0.0 else -1.0) * span / 2.0
+
+    frame.placements.append(
+        frame.box(
+            "approach",
+            # Deep along the street's own direction, wide across it.
+            w=cut_w,
+            d=cut_d,
+            z=-frame.storey,
+            # Up from below the ground so the cut reaches it, and no further
+            # than the storeys the sentence gave it.
+            h=frame.storey + high,
+            dx=step if on_long else 0.0,
+            dy=0.0 if on_long else step,
+            kind="subtractive",
+            occupiable=False,
+        )
+    )
+    # The inner face of the recess, so the composition can be arranged on it.
+    inner = step - (cut_w * 0.5 if on_long else cut_d * 0.5) * (1.0 if step >= 0 else -1.0)
+    origin = frame.out(inner if on_long else 0.0, 0.0 if on_long else inner)
+    frame.regulates(
+        "entry",
+        Line(
+            (frame.cx + origin[0], frame.cy + origin[1]),
+            frame.out(0.0, 1.0) if on_long else frame.out(1.0, 0.0),
+            "approach",
+        ),
+    )
+
+
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -1438,6 +1538,7 @@ _VERBS = {
     
     
     "carve": _carve,
+    "approach": _approach,
     "lift": _lift,
     "align": _align,
     "loop": _loop,

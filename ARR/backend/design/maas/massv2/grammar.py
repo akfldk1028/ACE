@@ -161,6 +161,9 @@ PLOT_MODES: dict[str, PlotMode] = {
     # and `taper` on one side and `carve` on the other.
     "grade": "impose",
     "notch": "impose",
+    # The forecourt at the street. Judged three rounds running as the thing this
+    # language could not say.
+    "approach": "impose",
     "puncture": "impose",
     "twist": "impose",
     "rotate": "impose",

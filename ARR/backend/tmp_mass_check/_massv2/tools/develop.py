@@ -156,6 +156,47 @@ def main(run: str, variant: str, count: str = "24") -> int:
     return 0
 
 
+def score(family_dir: str, verdict_paths: list[str]) -> int:
+    """Aggregate blind pairwise verdicts; a child wins only unanimously.
+
+    Ties and splits go to the parent - the incumbent rule, because a
+    development step that cannot convince every judge is not an improvement,
+    it is drift. Writes champion.json naming the winning child (the one with
+    the most decisive support), ready for the next development round.
+    """
+
+    import re
+
+    out = ROOT / "runs" / family_dir
+    record = json.loads((out / "mutants.json").read_text(encoding="utf-8"))
+    votes: dict[str, list[str]] = {}
+    for path in verdict_paths:
+        for pair, choice in re.findall(r"PAIR\s+(p\d+):\s*([AB])",
+                                       Path(path).read_text(encoding="utf-8")):
+            votes.setdefault(pair, []).append(choice)
+    winners = []
+    for child in record["children"]:
+        if not child.get("delivered"):
+            continue
+        pair = child["pair"].removesuffix(".png")
+        cast = votes.get(pair, [])
+        if cast and all(vote == "B" for vote in cast):
+            winners.append(child["name"])
+        child["votes"] = "".join(cast)
+    record["unanimous_children"] = winners
+    record["champion"] = winners[0] if winners else None
+    (out / "champion.json").write_text(
+        json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"pairs judged {len(votes)}, unanimous child wins {len(winners)}")
+    for name in winners:
+        print("  WIN", name.split("__")[-1])
+    print("champion:", record["champion"] or "parent holds (no unanimous win)")
+    return 0
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
+    if "--score" in sys.argv:
+        i = sys.argv.index("--score")
+        sys.exit(score(sys.argv[1], sys.argv[i + 1:]))
     sys.exit(main(*sys.argv[1:4]))

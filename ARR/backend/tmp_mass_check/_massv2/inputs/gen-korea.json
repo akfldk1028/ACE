@@ -450,6 +450,50 @@
           "why": "두 날개를 진입면에 세운다. 앞마당을 낸 것과 그 앞마당이 배치를 설명하는 것은 다른 일이고, 이 줄이 뒤의 것이다."
         }
       ]
+    },
+    {
+      "name": "kr_center_entry_court_with_a_turned_hall",
+      "primary_language": "open_figure",
+      "secondary_language": "the street face steps back, both wings stand on the line it cut, and the hall turns to face the court",
+      "formal_principle": "물러선 가로면이 선을 남기고 두 몸이 그 선에 서는데, 대회의동만 마당을 향해 틀어진다 — 앞마당은 두 몸이 나란히 낀 틈이 아니라 한 몸이 몸을 돌려 바라보는 자리가 된다.",
+      "dominant_gesture": "가로면이 물러나 앞마당이 생기고, 민원동은 가로와 나란한데 대회의동만 틀어져 마당을 향한다.",
+      "reference_basis": "유형 기반. 심판 여섯이 세 라운드에 걸쳐 지적한 진입에 답하되, leximin 선택기가 약한 축 하나로 후보를 떨어뜨린다는 실측(§37)에 맞춰 쓴 문장이다 — 앞선 진입 문장 둘은 `turned` 0.00이라 진입 1.00이 비교될 차례가 오지 않았다. 실측: 방위 0.50 · 형태 0.94 · 건폐 51.3%.",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "두 층 남짓한 낮은 몸."
+        },
+        {
+          "op": "approach",
+          "width": 0.45,
+          "depth": 0.32,
+          "storeys": 1.0,
+          "why": "가로면을 한 층 깊이로 물려 앞마당을 낸다. 그 위로는 하늘이 아니라 건물이 지나간다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.55,
+          "along": "long",
+          "first": "civil",
+          "second": "hall",
+          "gap": 4.4,
+          "contrast": 1.3,
+          "why": "민원부와 대회의실을 가른다. 틈 4.4는 3.34m — 배관이 22~39%를 깎아도 방 최소 깊이가 남는 수다."
+        },
+        {
+          "op": "align",
+          "to": "entry",
+          "why": "두 몸을 진입면에 세운다. 앞마당을 내는 것과 그 앞마당이 배치를 설명하는 것은 다른 일이다."
+        },
+        {
+          "op": "rotate",
+          "on": "hall",
+          "degrees": 18,
+          "why": "대회의동만 튼다. 두 몸이 나란하면 앞마당은 낀 틈이고, 한 몸이 돌아서야 바라보는 자리가 된다. 그리고 실측상 나란한 진입 문장은 `turned` 0.00이라 선택기가 첫 비교에서 떨어뜨린다. ⚠️ 박공을 함께 얹었다가 뺐다 — 지붕이 발자국을 넓혀 선언한 3.34m 틈을 0.00으로 닫았고 `gap_closed`로 거부됐다. 실측: 전부 0.00 · 박공만 뺌 3.49 · 회전만 뺌 0.00 · 둘 다 뺌 8.19. 형태 점수는 0.94→0.19로 내려가지만 leximin은 최악값이 결정하므로 0.19가 0.00보다 낫다."
+        }
+      ]
     }
   ]
 }

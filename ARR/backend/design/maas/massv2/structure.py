@@ -59,6 +59,11 @@ from design.maas.source_geometry.ir import SourceMass
 # not; the floating-slab case - nothing under a band at all - still refuses
 # at infinity. The gates that judge whether the result is a building - it
 # stands on something, a plate holds a room, a storey is lit - are unchanged.
+# How deep the potential well may go before the mass is a picture rather than a
+# building. `pw = margin - com_height` (Mezghanni, CVPR 2021): how much further
+# the centre of mass would fall than it must travel to escape its support.
+POTENTIAL_WELL_FLOOR_M = -10.0
+
 CANTILEVER_BACKSPAN_RATIO = 1.6
 # A member held at both ends is a span, and a storey-deep steel transfer truss
 # runs to roughly ten to fifteen times its depth. The generous end is taken on
@@ -510,6 +515,17 @@ def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
         margin = distance if support.contains(point) else -distance
         if margin <= 0.0:
             reasons.append(f"centre_of_mass_{-margin:.1f}m_outside_support")
+        elif margin - z < POTENTIAL_WELL_FLOOR_M:
+            # Mezghanni's potential well was computed here from the start and
+            # never enforced - `sg_interlace` shipped at -9.8 m and was blind-
+            # judged worst of eighteen ("그려진 대로는 지을 수 없다") while the
+            # gate said occupiable. The floor is calibrated against that blind
+            # round rather than argued: both masses every judge failed sit
+            # below -10 (-11.5, -12.3) and the round's best mass sits above it
+            # (-8.3). Cost measured before gating: 3.9% of the standing pool,
+            # two sentences lost outright, both already recorded as weak.
+            reasons.append(
+                f"potential_well_{margin - z:.1f}m_under_{POTENTIAL_WELL_FLOOR_M:.0f}")
 
     return Standing(
         grounded_share=grounded,

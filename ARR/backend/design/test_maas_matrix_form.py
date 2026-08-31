@@ -911,3 +911,31 @@ class ARoofIsNeverDeeperThanItsCapTests(SimpleTestCase):
         self.assertAlmostEqual(grown.top_drop, 0.25, places=9)
         shrunk = section_held_through_height_scale(roofed, 0.5)
         self.assertAlmostEqual(shrunk.top_drop, 0.95, places=9)
+
+    def test_a_height_scale_keeps_a_profile_stations_metres(self):
+        from design.maas.massv2.form import (
+            place,
+            section_held_through_height_scale,
+        )
+        from dataclasses import replace as _replace
+
+        # A butterfly on a 10 m body: valley 3 m below the crown (h = 0.7).
+        item = _replace(
+            place("bar", size=(30.0, 10.0, 10.0), at=(0.0, 0.0, 0.0)),
+            top_drop=0.3,
+            top_profile=((0.0, 1.0), (0.5, 0.7), (1.0, 1.0)),
+        )
+        for factor in (1.5, 0.7):
+            held = section_held_through_height_scale(item, factor)
+            new_height = 10.0 * factor
+            valley = held.top_profile[1][1]
+            # The valley's metres below the crown survive the scale.
+            self.assertAlmostEqual(
+                (1.0 - valley) * new_height, 3.0, places=6,
+                msg=f"factor {factor}: valley moved",
+            )
+            # And it still sits exactly on the corrected band's floor.
+            self.assertAlmostEqual(
+                held.top_drop * new_height, 3.0, places=6,
+                msg=f"factor {factor}: band floor moved",
+            )

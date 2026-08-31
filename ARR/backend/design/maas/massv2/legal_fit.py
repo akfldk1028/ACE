@@ -229,8 +229,11 @@ def _scaled_in_plan(
         scale_matrix4((1.0, 1.0, factor)),
         translation_matrix4((0.0, 0.0, low)),
     )
-    return section_held_through_height_scale(
-        replace(scaled, matrix=validate_matrix4(kept)), factor)
+    # No section_held here, alone of the z-scales: this branch scales the rise
+    # BECAUSE the run scaled, so the share must ride along - that is the pitch
+    # surviving. Dividing the share back holds the roof's metres while the
+    # walls shrink, and at factor 0.7 a 1.2-pitch gable delivers 1.7.
+    return replace(scaled, matrix=validate_matrix4(kept))
 
 
 def _shortened(placement: Placement, factor: float) -> Placement:

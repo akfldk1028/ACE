@@ -168,7 +168,18 @@ def section_held_through_height_scale(item: Placement, factor: float) -> Placeme
 
     if factor <= 0.0 or abs(factor - 1.0) < 1e-9 or item.top_drop <= 0.0:
         return item
-    return replace(item, top_drop=min(0.95, item.top_drop / factor))
+    # A profile station's h is a share of the same height the drop is, so its
+    # distance below the crown scales with the body unless divided back too -
+    # correcting only `top_drop` re-deepens every creased surface (butterfly's
+    # valley, a vault's arc) by the factor while its band stays honest.
+    profile = item.top_profile
+    if profile:
+        profile = tuple(
+            (u, min(1.0, max(0.0, 1.0 - (1.0 - h) / factor))) for u, h in profile
+        )
+    return replace(
+        item, top_drop=min(0.95, item.top_drop / factor), top_profile=profile,
+    )
 
 
 @dataclass(frozen=True)

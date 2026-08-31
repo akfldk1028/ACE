@@ -24,6 +24,7 @@ from typing import Any, Iterable
 
 from .form import MatrixForm, place
 from .llm import LlmUnavailable, structured_call
+from .profiles import plan_names
 
 
 _SYSTEM = (
@@ -65,10 +66,10 @@ _PLACEMENT_SCHEMA: dict[str, Any] = {
         "lean_axis": {"type": "string", "enum": ["x", "y"]},
         "plan": {
             "type": "string",
-            "enum": [
-                "square", "triangular", "trapezoidal", "chamfered", "kite",
-                "oval", "stadium", "concave_l", "hexagon", "faceted",
-            ],
+            # One owner: the executor's own plan table. A hand-copied list here
+            # agreed with it by luck; the day they diverge, the model is offered
+            # a shape the machine cannot build - or never offered one it can.
+            "enum": sorted(plan_names()),
             "description": "the volume's base plan; a wedge or a folded plate is a base shape, not a transform",
         },
     },

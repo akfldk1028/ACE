@@ -1,0 +1,105 @@
+{"schemes":[
+{
+"name":"vaulted_gallery_bays",
+"primary_language":"solid_body",
+"secondary_language":"a low hall whose repeated vault section is the plan itself",
+"formal_principle":"단면 하나(빛의 볼트)를 네 번 반복하면 그것이 곧 평면 조직이 된다 — 낮음은 반복의 자를 눕히기 위한 논지다.",
+"dominant_gesture":"킴벨의 자 — 반복되는 볼트 베이",
+"reference_basis":"Kimbell Art Museum — Louis Kahn, Fort Worth, Texas, 1972",
+"floor_height_m":4.5,
+"ops":[
+{"op":"extrude","height":0.3,"storeys":2,"why":"균질한 톱라이트 전시 프로그램(입력)→extrude→두 층의 낮은 프리즘→낮음이 논지: 단면의 반복이 평면 조직이 되도록 몸을 수평으로 눕힌다→높이 예산 0.3에서 멈춘다"},
+{"op":"vault","rise":0.8,"bays":4,"along":"long","why":"넓은 몸 위 한 볼트는 1:8로 뭉개진다(입력)→vault bays 4→능선 직각 네 스트립으로 나눠 면당 run을 1/4로 줄이고 각 베이가 제 호를 가진다→각 볼트가 빛의 단면이자 전시 한 켜(기능)→낙차는 1.5층 캡 안에서 정확히 그려진다"},
+{"op":"canopy","reach":0.35,"at":1.0,"toward":"open","why":"진입면(입력)→canopy→층고보다 얇은 판이 처마(at 1.0)로 내밀어 마지막 볼트 단면을 밖으로 연장→포치가 단면의 마침표가 되어 열린면에 답한다(기능)→방 아님을 선언해 방 게이트 면제, 내밈은 구조 상한 0.45 아래 0.35에서 멈춘다"}
+]},
+{
+"name":"canyon_twin_wedges",
+"primary_language":"carved_body",
+"secondary_language":"two climbing wedges flanking a canyon that drains to the open face",
+"formal_principle":"협곡의 벽 자체가 걸어 오르는 지붕이다 — 틈이 대지를 관통하고 두 경사가 그 틈을 향해 함께 오른다.",
+"dominant_gesture":"열린면으로 빠지는 오르는 협곡",
+"reference_basis":"저작 신작",
+"floor_height_m":3.5,
+"ops":[
+{"op":"extrude","height":0.7,"storeys":4,"why":"가파른 단면을 원하면 몸부터 세워야 한다(입력: 낙차는 몸 높이 안 캡)→extrude→4층 몸→경사가 살 수직 예산을 먼저 확보(기능)→0.7에서 멈춰 협곡 벽의 스케일을 남긴다"},
+{"op":"split","along":"long","gap":8,"contrast":1.2,"storeys":4,"why":"협곡이 이 문장의 논지(입력)→split→긴 축을 따라 두 바, 틈 8을 선언(배관이 22~39% 깎아도 문턱 2.4 위 생존)→틈이 대지를 관통해 열린면으로 빠지는 공공 통로(기능)→contrast 1.2로 두 벽에 약한 위계만 주고 동급 경쟁을 피한다"},
+{"op":"grade","smooth":true,"toward":"open","why":"협곡 어귀가 낮으면 문이 아니다(입력)→grade smooth→두 바의 지붕이 열린면을 향해 연속으로 걸어 오르는 쐐기→진입 쪽은 낮게 앉고 협곡 어귀에서 가장 높아 정면·반대편 두 시점 모두에서 방향이 읽힌다(기능)→낙차는 4층 몸 높이 안에서 캡된다"}
+]},
+{
+"name":"climbing_court_ring",
+"primary_language":"open_figure",
+"secondary_language":"a courtyard ring whose roof spirals up toward the open face",
+"formal_principle":"경사가 마당을 두른다 — 링의 지붕이 마당을 한 바퀴 돌며 열린면을 향해 오르고, 최고점의 처마가 그 오름을 끝맺는다.",
+"dominant_gesture":"마당을 두르고 오르는 한 장의 지붕",
+"reference_basis":"저작 신작",
+"floor_height_m":3.5,
+"ops":[
+{"op":"loop","bar":0.25,"height":0.5,"why":"마당이 필요한 프로그램(입력)→loop→마당을 도는 네 바의 링, bar 0.25로 얇은 켜→마당이 조직의 중심이 되고 링이 파르셀 가장자리를 잡는다(기능)→height 0.5에서 멈춰 오름의 예산을 남긴다"},
+{"op":"grade","smooth":true,"toward":"open","why":"링이 평지붕이면 잔여물이다(입력)→grade smooth→링 지붕이 열린면을 향해 연속 경사로 오른다→걸어 오르는 지붕이 마당을 두르며 어느 시점에서 봐도 오름의 방향이 실루엣으로 읽힌다(기능)→낙차는 몸 높이 안 캡, 계단 아닌 연속면이라 밴드를 만들지 않는다"},
+{"op":"canopy","reach":0.25,"at":1.0,"toward":"open","why":"오름의 끝(입력)→canopy→최고점 처마가 열린면으로 내밀어 경사의 마지막 면을 공중으로 연장→오름의 마침표이자 진입의 표지(기능)→얇은 판이라 방 게이트 면제, reach 0.25로 구조 상한 안"}
+]},
+{
+"name":"plinth_turned_tower_s",
+"primary_language":"solid_body",
+"secondary_language":"a street-holding plinth pierced by a tower that turns to face the open",
+"formal_principle":"플린스가 가로의 축을 잡고, 그 안에서 돌아선 탑이 열린면의 축을 잡는다 — 두 축의 어긋남이 한 단어로 선다.",
+"dominant_gesture":"플린스 위 돌아선 탑",
+"reference_basis":"저작 신작",
+"floor_height_m":4.0,
+"ops":[
+{"op":"extrude","height":0.22,"storeys":2,"why":"가로 연속성(입력)→extrude→두 층 플린스→낮음은 논지: 탑을 세우기 위한 받침이자 가로벽(기능)→0.22에서 멈춰 수직 예산 전부를 탑에 넘긴다"},
+{"op":"nest","size":0.3,"proud":1.0,"turn":40,"why":"열린면이 필지 축과 어긋난 대지(입력)→nest turn→케이스 안에서 40° 돌아선 몸이 플린스 지붕 위로 온전히(proud 1.0) 솟는다→플린스는 가로에, 탑은 열린면에 각자 답해 정면·반대편 어느 시점에서도 어긋난 두 축이 읽힌다(기능)→turn은 ±60° 안, 월드 공간 직립이라 전단 없음"},
+{"op":"canopy","reach":0.3,"at":0.4,"toward":"open","why":"진입(입력)→canopy→플린스 몸통 중간(at 0.4)에 마퀴가 내민다→탑의 수직에 맞서는 수평의 마침표로 진입을 표시(기능)→얇은 판 선언으로 방 게이트 면제, reach 0.3"}
+]},
+{
+"name":"vault_hall_turned_mast",
+"primary_language":"solid_body",
+"secondary_language":"a rhythm of three vaults broken once by a turned mast rising through the ridge",
+"formal_principle":"반복의 자에 예외는 하나면 충분하다 — 세 볼트의 리듬을 돌아선 좁은 몸 하나가 뚫고 서서 리듬을 증명한다.",
+"dominant_gesture":"볼트 리듬을 뚫는 돌아선 마스트",
+"reference_basis":"저작 신작",
+"floor_height_m":4.5,
+"ops":[
+{"op":"extrude","height":0.4,"storeys":3,"why":"홀 프로그램(입력)→extrude→세 층 몸→볼트의 낙차(1.5층 캡)가 몸 높이 안에서 살도록 먼저 세운다(기능)→0.4에서 멈춘다"},
+{"op":"vault","rise":0.7,"bays":3,"along":"long","why":"넓은 몸 위 한 볼트는 둥근 상자다(입력)→vault bays 3→세 스트립 각자의 호로 면당 run을 줄인다→반복 단면이 홀의 자(기능)→낙차 1.5층 캡 안"},
+{"op":"nest","size":0.2,"proud":0.9,"turn":-30,"why":"균질한 반복은 방향이 없다(입력)→nest→케이스 안에서 -30° 돌아선 좁은 몸이 능선 위로(proud 0.9) 솟는다→하나의 예외가 리듬을 세고 열린면을 가리키며, 두 시점 모두에서 볼트 실루엣 위의 이물로 읽힌다(기능)→size 0.2로 주 볼륨의 지배를 침범하지 않는다"}
+]},
+{
+"name":"ring_and_turned_hall",
+"primary_language":"open_figure",
+"secondary_language":"a low ring holding the block, a turned hall rising from its court",
+"formal_principle":"링이 파르셀의 네 가장자리를 잡는 동안 마당의 홀은 돌아서서 열린면 하나에만 답한다 — 두르는 것과 향하는 것의 분업.",
+"dominant_gesture":"링 마당 속 돌아선 홀",
+"reference_basis":"저작 신작",
+"floor_height_m":3.5,
+"ops":[
+{"op":"loop","bar":0.22,"height":0.35,"why":"가장자리 전부에 답해야 하는 파르셀(입력)→loop→마당을 도는 낮은 링, bar 0.22→링이 스케일과 가로를 잡는 케이스가 된다(기능)→0.35에서 낮게 멈춰 홀의 솟음을 돋보이게 한다"},
+{"op":"nest","size":0.4,"proud":0.8,"turn":45,"why":"마당 중심의 홀(입력)→nest turn→링 케이스 안에서 45° 돌아선 몸이 링 지붕 위로(proud 0.8) 솟는다→링은 두르고 홀은 향한다: 정면에서는 링 위의 모서리, 반대편에서는 면으로, 두 시점이 서로 다른 같은 홀을 읽는다(기능)→turn ±60° 안, 링의 위계를 지키도록 proud 0.8에서 멈춘다"}
+]},
+{
+"name":"butterfly_saltbox_pair",
+"primary_language":"open_figure",
+"secondary_language":"two bars facing each other with opposite sections — one sheds outward, one folds inward",
+"formal_principle":"단면의 대비가 곧 배치다 — 볼록한 saltbox와 오목한 butterfly가 마주 보며 사이 공간의 하늘을 두 번 자른다.",
+"dominant_gesture":"볼록과 오목이 마주 보는 두 지붕",
+"reference_basis":"butterfly 단면의 근거는 Marcel Breuer, Geller House, Long Island, 1945 — 쌍으로의 배치는 저작 신작",
+"floor_height_m":3.5,
+"ops":[
+{"op":"aggregate","n":2,"spread":1.3,"height":0.55,"tie":0.15,"storeys":3,"method":"pack","why":"마주 보는 두 켜의 프로그램(입력)→aggregate n 2→나란한 두 바, storeys 3으로 사람 크기 선언→사이 공간이 공유 마당(기능)→spread 1.3에서 멈춰 두 지붕이 서로 보이는 거리를 유지한다"},
+{"op":"gable","pitch":0.6,"at":0.2,"along":"long","on":"object_0","why":"한 바는 바깥을 향해 물을 흘린다(입력)→gable at 0.2→saltbox: 용마루가 바깥쪽으로 밀려 긴 경사가 마당 쪽으로 낮게 닿는다→마당에 낮은 처마의 스케일을 준다(기능)→틈을 선언하지 않았으므로 발자국 확장이 거짓이 되지 않는다"},
+{"op":"butterfly","pitch":0.6,"at":0.5,"along":"long","on":"object_1","why":"맞은편 바는 안으로 접힌다(입력)→butterfly→두 면이 안쪽 골짜기로 떨어지는 V→saltbox의 볼록에 맞서는 오목, 정면과 반대편 두 시점에서 각각 다른 단면 실루엣이 서고 쌍으로만 완성된다(기능)→골 깊이는 1.5층 캡 안"}
+]},
+{
+"name":"folded_plate_bar",
+"primary_language":"solid_body",
+"secondary_language":"a narrowed bar under a three-fold concertina plate",
+"formal_principle":"접힌 판은 좁은 몸 위에서만 판이다 — split이 만든 진짜 바 위에서 세 번의 접힘이 톱니 실루엣으로 선다.",
+"dominant_gesture":"바 위의 콘체르티나 지붕",
+"reference_basis":"저작 신작",
+"floor_height_m":3.5,
+"ops":[
+{"op":"extrude","height":0.5,"storeys":3,"why":"접힘의 낙차가 살 몸(입력)→extrude→세 층 몸→낙차 캡(1.5층)이 온전히 그려질 수직 예산 확보(기능)→0.5에서 멈춘다"},
+{"op":"split","along":"long","contrast":1.4,"storeys":3,"why":"넓은 몸 위 접힌 판은 뭉개진다(입력)→split→긴 축으로 나눈 진짜 바 둘, contrast 1.4로 주·보조 위계→면당 run이 줄어 접힘이 경사를 얻는다(기능)→틈은 이 문장의 논지가 아니므로 선언하지 않는다 — 말하지 않은 틈은 닫혀도 거짓이 아니다"},
+{"op":"fold","folds":3,"pitch":0.35,"along":"long","why":"평지붕 바는 잔여물(입력)→fold 3→한 축을 오르내리는 접힌 판, 톱니 단면→북측광 셰드이자 두 시점 모두에서 읽히는 실루엣 상단(기능)→배달에서 낙차가 +35% 부풀 수 있어 pitch 0.35로 얕게 선언, folds 3이 렌더 이음선 상한(넷째 접힘은 볼트로 보인다)"}
+]}
+]}

@@ -1,0 +1,78 @@
+"""Assemble an author brief from its owners - no hand-typed numbers, no
+hand-picked exemplars.
+
+The brief is derived, per the one-owner rule: trap numbers come from
+trap_ledger (which reads the gate constants), the vocabulary and canon are
+included verbatim from their files, and the board section lists the current
+board's sentences from the curator's own key - so the "differ from all of
+these at the level of formal principle" demand (NoveltyBench's best-in-class
+regeneration, canon §10) always names today's board, not a remembered one.
+
+    python tools/make_brief.py <track> <out.md> [assignment-text-file]
+"""
+
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def board_section(track: str) -> str:
+    key = json.loads((ROOT / "runs" / "board" / "board-key.json")
+                     .read_text(encoding="utf-8"))
+    book = {}
+    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+        for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
+            book[scheme["name"]] = scheme
+    lines = ["## 현재 보드 (전량) — 아래 전부와 **형태 원리 수준에서** 달라야 한다",
+             "(같은 원리의 변주는 보드에 못 오른다 — 가족당 1석, 큐레이터가 계산함)", ""]
+    for row in key:
+        if not row["label"].startswith(track):
+            continue
+        family = row["name"].split("~")[0].split("^")[0]
+        scheme = book.get(family) or {}
+        line = (scheme.get("secondary_language")
+                or scheme.get("formal_principle") or family)
+        lines.append(f"- {row['label']} ({row['score']:.2f}): {line}")
+    return "\n".join(lines)
+
+
+def main(track: str, out_path: str, assignment: str = "") -> int:
+    from trap_ledger import ledger  # django setup inside
+
+    parts = [
+        "# 저작 브리프 — 소유자들에게서 조립됨 (tools/make_brief.py)",
+        "",
+        "출력은 {\"schemes\":[...]} JSON 하나뿐이다. 정확히 8문장. 각 scheme 키: name,",
+        "primary_language, secondary_language, formal_principle(한국어 한 문장),",
+        "dominant_gesture, reference_basis(사실만 또는 \"저작 신작\"), floor_height_m,",
+        "ops(각 {\"op\":..., 파라미터, \"why\": 입력→연산자→변형→기능→한계}).",
+        "모든 파라미터는 비율. 첫 op는 extrude|loop|aggregate|stack.",
+        "",
+        "## 사고 절차 (CoT — 문장마다 이 순서로 why를 전개하라)",
+        "1) 이 대지·프로그램의 실제 갈등/질문 하나를 명시한다",
+        "2) 그 답이 되는 형태 원리를 한 문장으로 선언한다",
+        "3) 보드의 어떤 안과도 그 원리가 다른지 확인한다 (아래 보드 절 참조)",
+        "4) 원리를 동사 열로 번역한다 — 각 단어의 한계까지",
+        "",
+    ]
+    if assignment:
+        parts += ["## 이 저자의 칸 (앵커)", assignment.strip(), ""]
+    parts += [ledger(), "", board_section(track), "",
+              "---", "",
+              (ROOT / "inputs" / "VOCABULARY.md").read_text(encoding="utf-8"),
+              "", "---", "",
+              (ROOT / "inputs" / "AUTHORING-CANON.md").read_text(encoding="utf-8")]
+    Path(out_path).write_text("\n".join(parts), encoding="utf-8")
+    print(f"brief -> {out_path} ({Path(out_path).stat().st_size} bytes)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    track = sys.argv[1] if len(sys.argv) > 1 else "O"
+    out = sys.argv[2] if len(sys.argv) > 2 else "brief.md"
+    text = Path(sys.argv[3]).read_text(encoding="utf-8") if len(sys.argv) > 3 else ""
+    sys.exit(main(track, out, text))

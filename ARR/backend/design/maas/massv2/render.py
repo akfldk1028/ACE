@@ -356,8 +356,27 @@ def render_masses(
     columns: int = 4,
     tile: tuple[int, int] = (330, 300),
     style: str = "clay",
+    yaw_degrees: float | None = None,
 ) -> Path:
-    """Contact sheet, one compiled mass per tile, captioned with its numbers."""
+    """Contact sheet, one compiled mass per tile, captioned with its numbers.
+
+    `yaw_degrees` turns the camera for this call only. One fixed viewpoint
+    was a single point of failure for the judges - a move aimed away from the
+    default yaw could hide entirely - so a judging round renders each mass
+    twice, the second time from the other side.
+    """
+
+    global _YAW
+    if yaw_degrees is not None:
+        prior = _YAW
+        _YAW = math.radians(yaw_degrees)
+        try:
+            return render_masses(
+                items, output, site_ring=site_ring, columns=columns,
+                tile=tile, style=style,
+            )
+        finally:
+            _YAW = prior
 
     entries = list(items)
     if not entries:

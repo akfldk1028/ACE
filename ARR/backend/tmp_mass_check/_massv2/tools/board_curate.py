@@ -40,6 +40,7 @@ ROUNDS = [
     # partners still holding old-rubric numbers - two scales, one contest,
     # and the board flipped. One ruler over the whole passing ledger:
     ("O", "runs/vlm-o-full-rejudge/vlm-shortlist.json", "corrected"),
+    ("O", "runs/vlm-ovs11-new/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

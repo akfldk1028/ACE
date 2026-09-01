@@ -598,8 +598,12 @@ def resized_to(form, schedule: Schedule, *, weight: float, storey_height_m: floa
         now = _centre(placements[index])
         dx, dy = wanted_centre[0] - now[0], wanted_centre[1] - now[1]
         if abs(dx) > 1e-6 or abs(dy) > 1e-6:
+            # compose_matrix4 runs in program order (first argument first), so
+            # the volume's own matrix goes first and the WORLD translation
+            # second - the other order fed dx into the volume's local axes and
+            # the matrix's tens-of-metres scale flung a terrace 400 m off site.
             moved = compose_matrix4(
-                translation_matrix4((dx, dy, 0.0)), placements[index].matrix)
+                placements[index].matrix, translation_matrix4((dx, dy, 0.0)))
             placements[index] = _replace(
                 placements[index], matrix=validate_matrix4(moved))
 

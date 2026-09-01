@@ -120,8 +120,12 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
         if ops and str(ops[0].get("op")) not in MAKING_VERBS:
             faults.append(f"{name}: opens with {ops[0].get('op')!r}, which needs a "
                           f"volume to act on - start with one of {sorted(MAKING_VERBS)}")
-        if not 2 <= len(ops) <= 6:
-            faults.append(f"{name}: {len(ops)} ops, wanted 2..6")
+        # The floor was 2 and it outlawed the canon: a pure cylinder or a
+        # single wide slab IS one statement, and demanding a second verb is
+        # how every mass in the pool grew at least one extra move - the
+        # client's "정갈하지 않다" traced back to this line.
+        if not 1 <= len(ops) <= 6:
+            faults.append(f"{name}: {len(ops)} ops, wanted 1..6")
 
         # what names exist for a later verb to aim at
         available: set[str] = set()

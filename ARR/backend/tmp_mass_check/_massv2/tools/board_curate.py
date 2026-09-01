@@ -44,6 +44,9 @@ ROUNDS = [
     # First anchor-corrected round: three seated entries rode anonymously and
     # --score removed the session's measured -0.36 drift before recording.
     ("O", "runs/vlm-ovs14-r2/vlm-shortlist.json", "shortlist"),
+    # First English-authored round (the prompt-language probe): same brief,
+    # instructions and whys in English. Anchor-corrected like every round.
+    ("O", "runs/vlm-ovs15-en/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

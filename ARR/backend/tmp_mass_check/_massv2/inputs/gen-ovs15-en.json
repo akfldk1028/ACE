@@ -1,0 +1,171 @@
+{
+ "schemes": [
+  {
+   "name": "one_twin_is_a_clasp",
+   "primary_language": "open_figure",
+   "secondary_language": "two equal four-storey bodies standing apart; the street twin is remade as two meshed arms, one seated low, one held high, protruding at opposite ends",
+   "formal_principle": "The program has two natures of equal rank, so the parcel gets two equal bodies - but equality is not silence: the street twin is not a block but a clasp, two half-height arms sliding past each other, one seated on the ground, one held toward the sky, meshed only across the middle band.",
+   "dominant_gesture": "two arms clasped inside one twin",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 2,
+     "spread": 1.7,
+     "height": 0.55,
+     "tie": 0,
+     "profile": "square",
+     "storeys": 4,
+     "why": "Input: the brief splits into two natures of equal rank - public rooms that live off the street and quiet offices that live off the garden - and neither will sit on top of the other, so the pull for hierarchy is refused. Aggregate(n 2, spread 1.7, square) stands two equal four-storey bodies apart on the parcel; the gap between them is left undeclared because it is not the thesis, so if delivery narrows it nothing was promised. Each body gets four-sided light and its own address, and the ground between them stays the site's. Limit: height 0.55 declares mid, clear of both the 0.42 and 0.72 stature thresholds; tie 0 promises no binding plate, so the field is two bodies and nothing else - no crumbs at their feet."
+    },
+    {
+     "op": "interlock",
+     "on": "object_0",
+     "bite": 0.55,
+     "size": 0.4,
+     "reach": 0.3,
+     "why": "Input: inside the street twin the two natures pull apart in section - the shared hall pulls toward the ground, the quiet rooms pull toward the sky - and a polite floor stack would silence that fight. Interlock(bite 0.55, size 0.4, reach 0.3) remakes the body as two meshed arms: a low arm holding the lower band and running out past one end, a high arm holding the upper band and running out past the opposite end, each entering past the other's reach so they overlap only across the middle band. The section becomes the event: the hall keeps a ground end lit from its own face, the upper rooms keep a sky end, and the two protruding tabs write the clasp into the silhouette at two different heights. Limit: reach 0.3 keeps each overhang at about half its own bite backspan (0.55), well inside the structure gate's 1.6 backspan ratio; the host is an aggregate unit with declared slack around it, so the tabs land inside the parcel instead of feeding the daylight envelope - the full-parcel-body trap this verb must never be said on."
+    }
+   ]
+  },
+  {
+   "name": "hall_out_of_its_socket",
+   "primary_language": "carved_body",
+   "secondary_language": "a two-band chamfered body whose crown band has lost one full-height piece - the hall - which stands beside its own socket on the podium roof",
+   "formal_principle": "The hall does not fit the crown band's office depth, so it steps out of the band onto the podium roof and stands beside its own socket - the void and the piece explain each other, and the terrace between them is the room the move paid for.",
+   "dominant_gesture": "a socket of sky and the piece that left it",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.8,
+     "height": 0.55,
+     "profile": "chamfered",
+     "why": "Input: the program is mostly repeating office floors plus one 210 m2 hall that repeats nothing, so the body must first sort the repeatable from the exceptional. Stack(n 2, contrast 1.8, chamfered) raises a podium band and a smaller crown band; the crown steps in on every side - centred here for a stated reason: the step-back must leave podium roof all the way around, because the next word needs ground up there to stand a room on. The podium takes the deep public floors, the crown takes the daylit office band. Limit: contrast 1.8 sits mid-range in 1.2..3.5 so the crown stays a body rather than a parapet; height 0.55 declares mid, clear of both stature thresholds."
+    },
+    {
+     "op": "extract",
+     "on": "tier_1",
+     "size": 0.35,
+     "gap": 0.3,
+     "height": 0.7,
+     "level": 0.0,
+     "why": "Input: the hall's span and 6 m height would break the crown band's office grid from inside - the oversized room pushes, and the band yields it whole. Extract(size 0.35, gap 0.3, height 0.7, level 0) pulls that piece out of the crown and stands it beside its own socket on the podium roof: the crown keeps a full-height notch of sky where the hall refused to fit, the hall becomes a freestanding room bearing directly on the podium structure, and the strip between socket and piece is the terrace that serves both. The pair reads as one sentence - void and piece explaining each other - not a pavilion dropped on a plinth. Limit: gap 0.3 is in this verb's own coordinate, a share of the crown's width rather than metres (the two-coordinate trap), which with the crown's roughly 30 m width lands the standoff far above the 2.4 m gate; size 0.35 is inside 0.15..0.5, and level 0 seats the piece at the band's base so its load path is the podium, not air."
+    }
+   ]
+  },
+  {
+   "name": "three_folds_carry_north_light",
+   "primary_language": "solid_body",
+   "secondary_language": "a low deep two-storey prism whose roof breaks into a concertina of three ridges - the only event is the folded skyline",
+   "formal_principle": "A two-storey body deep enough to bank the whole program has a dark middle third, so the roof stops being a lid and breaks into three folds - every deep bay gets its own high edge of sky, and the section's one conflict, depth against light, is worn as the skyline.",
+   "dominant_gesture": "a roof folded three times over a deep floor",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "trapezoidal",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: three neighbour edges press the height down, so the program refuses to rise and banks flat instead - a deep two-storey body. Extrude(trapezoidal) raises a low prism whose plan already tapers toward the open face rather than being born a mute rectangle. The two deep plates take the whole area without asking the neighbours for sky. Limit: height 0.3 declares low, clear of the 0.42 threshold, and storeys 2 gives the plates human scale; the cost of this depth is a dark middle third - the debt the next word exists to pay."
+    },
+    {
+     "op": "fold",
+     "folds": 3,
+     "pitch": 0.4,
+     "along": "long",
+     "why": "Input: the middle third of a plate this deep sees no facade, and no wall verb can reach it - only the roof can. Fold(folds 3, pitch 0.4, along long) breaks the roof into a concertina of three ridges running the long axis, each facet short enough that its rise stays honest. Every deep bay now owns a high edge where clerestory light can enter, and the silhouette becomes three strokes instead of one flat line - the conflict of depth against light is settled by the roof alone, with no second body and no crumbs. Limit: pitch is declared at 0.4 because the delivered drop has measured up to 35% past the declaration (the fold inflation trap), which keeps the built fall inside the 1.5-storey cap; folds stop at 3 because the renderer draws creases only up to 8 profile points - a fourth fold would read as a vault."
+    }
+   ]
+  },
+  {
+   "name": "street_bar_wears_the_valley",
+   "primary_language": "solid_body",
+   "secondary_language": "a mid office body behind, a lower full-width bar at the street whose roof falls inward to an off-centre valley - eaves up at both room edges",
+   "formal_principle": "Every roof on the board rises at its middle; the street bar's falls - the rooms at its two long edges want the height and the light, the middle holds only the passage, so the section inverts into a valley and the eaves lift toward street and court alike.",
+   "dominant_gesture": "a valley roof over the street bar",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.55,
+     "storeys": 4,
+     "why": "Input: the program wants a quiet office depth at the back and one public bar touching the street - two roles one body cannot yet tell apart. Extrude(square) raises a mid four-storey body filling the parcel evenly: homogeneous floors, no front. Limit: height 0.55 declares mid, away from both the 0.42 and 0.72 thresholds; this body is deliberately mute - naming its two roles is the next word's work."
+    },
+    {
+     "op": "split",
+     "along": "open",
+     "ratio": 0.65,
+     "first": "back_body",
+     "second": "street_bar",
+     "contrast": 1.4,
+     "why": "Input: the public rooms must touch the street, not the middle of the plan - the open face pulls, and one edge of the body answers. Split(along open, ratio 0.65, contrast 1.4) parts the body along the open axis: the larger piece keeps the office depth behind, the smaller becomes a full-width bar at the street, a step lower by contrast 1.4 so the tall back reads as ground and the low front as figure. No gap is declared - the seam is not the thesis, so if it closes nothing was promised. Limit: ratio 0.65 leaves the bar about 17 m deep, a daylit two-room depth, and contrast 1.4 keeps the bar two storeys - still a body, not a fringe."
+    },
+    {
+     "op": "butterfly",
+     "on": "street_bar",
+     "pitch": 0.7,
+     "at": 0.35,
+     "along": "long",
+     "why": "Input: in the bar's section the two long edges - street side and court side - hold the rooms and want the height, while the middle holds only circulation; the room edges push up, the passage concedes. Butterfly(pitch 0.7, at 0.35, along long) drops both roof planes to an inner valley set off-centre, so the eaves rise at exactly the two lines where the rooms live. The silhouette inverts the expected gable - high at the edges, low in the middle - and the off-centre valley keeps the move from being the centred non-answer. Limit: on the roughly 17 m bar the short run is about 6 m, so pitch 0.7 delivers a true 1:1.4 slope whose fall stays inside the 1.5-storey cap - declared on the narrow piece after the cut, never on the 50 m body where it would flatten to 1:8 and read as a rounded box."
+    }
+   ]
+  },
+  {
+   "name": "triplet_fused_at_the_ground",
+   "primary_language": "solid_body",
+   "secondary_language": "three equal six-storey oval stems that fuse into one continuous ground body for their lowest two storeys, then separate into open sky",
+   "formal_principle": "No tower is the main tower - three equal oval stems keep every office floor shallow and daylit, and the hierarchy lives below, where the three fuse into the one shared ground body that holds the hall and every entrance.",
+   "dominant_gesture": "one root body, three free stems",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "spread": 1.4,
+     "height": 0.8,
+     "tie": 0,
+     "profile": "oval",
+     "storeys": 6,
+     "why": "Input: 250% on 2,500 m2 invites one deep mid-rise whose floors would be dark at the core - density pushes toward the deep plate, and the program refuses it by going up as slender stems instead. Aggregate(n 3, spread 1.4, oval, storeys 6) stands three equal six-storey ovals apart: every office floor becomes shallow and daylit on its full perimeter, and no stem outranks another - the equality is the point, hierarchy is saved for the ground. Limit: height 0.8 declares tall with margin above the 0.72 threshold, and storeys 6 stamps declared stature so no site average can crush it later; tie 0 promises no binding plate - the joining will be said as a body by the next word, not as a slab."
+    },
+    {
+     "op": "merge",
+     "height": 0.3,
+     "why": "Input: the shared program - the 210 m2 hall, the lobby, every entrance - belongs to all three stems at once, and three separate front doors would deny it. Merge(height 0.3) fuses the standing stems into one continuous ground body through their lowest 0.3 of height - the single declared union in the language. Below the join line the three plans run together into one big room where the hall spans between the stems' cores; above it the stems separate and the sky passes between them, so the silhouette says the whole parti in one line: one root, three free stems. Limit: the fusion stops at 0.3 - roughly the hall's two-storey height - because any higher and the stems would read as one fat tower, which is exactly the deep dark plate the first word refused."
+    }
+   ]
+  },
+  {
+   "name": "one_body_pinched_to_two_courts",
+   "primary_language": "solid_body",
+   "secondary_language": "a low two-storey stadium plate cinched at mid-length into a figure-eight - a forecourt held in one concave flank, a garden in the other",
+   "formal_principle": "The parcel needs two grounds - a street forecourt and a quiet back garden - and one low body makes both with a single move: the two open rooms press into its flanks from opposite sides and the plan cinches to a waist, a figure-eight said as one continuous building.",
+   "dominant_gesture": "a waist that makes two courts",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "stadium",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: three neighbour edges press the height down, so the body banks low and wide. Extrude(stadium) raises a two-storey prism whose rounded ends already turn the parcel's corners softly, and the whole program sits in two deep plates. Limit: height 0.3 declares low, clear of the 0.42 threshold, and storeys 2 gives the plates human scale; at full width this body would wall the street off from the back of the parcel - that fault is the next word's subject."
+    },
+    {
+     "op": "pinch",
+     "ratio": 0.55,
+     "segments": 6,
+     "why": "Input: the street pushes a forecourt into one flank and the back neighbours push a garden into the other - two outdoor rooms wanting the same middle of the parcel from opposite sides. Pinch(ratio 0.55, segments 6) draws both long flanks inward at mid-length, curving over six segments so the waist is a drawn curve rather than a notch. The plan becomes a figure-eight: two full-depth lobes joined by a narrow middle, the forecourt and the garden each held in a concave flank, and the building stays one continuous floor plate throughout - the two grounds are made by the same move that keeps the building whole. Limit: ratio 0.55 leaves the waist roughly 20 m wide, still several rooms deep and far above the 2.4 m effective-depth gate; the move only pulls inward, so nothing is offered to the daylight envelope or the parcel line."
+    }
+   ]
+  }
+ ]
+}

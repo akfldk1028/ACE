@@ -371,7 +371,11 @@ def canopy(frame, op) -> None:
     wx, wy = frame.out(ffx, ffy)
     norm = (wx * wx + wy * wy) ** 0.5 or 1.0
     fx, fy = wx / norm, wy / norm  # world unit vector for world corners
-    thickness_share = 0.35  # of a storey - visibly a plate, never a floor
+    # Of a storey - visibly a plate, never a floor. Authorable down to a true
+    # roof thickness (0.1 of 3.4 m is 34 cm): three office lenses read the
+    # same fault - not one plane on nineteen tiles thinner than a storey -
+    # and the habitable slab can never legally be that plane; this one can.
+    thickness_share = _clamp(float(op.params.get("thin", 0.35)), 0.1, 0.35)
     made: list[Placement] = []
     for host in hosts:
         corners = host.corners()

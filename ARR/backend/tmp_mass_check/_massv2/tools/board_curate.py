@@ -41,6 +41,9 @@ ROUNDS = [
     # and the board flipped. One ruler over the whole passing ledger:
     ("O", "runs/vlm-o-full-rejudge/vlm-shortlist.json", "corrected"),
     ("O", "runs/vlm-ovs11-new/vlm-shortlist.json", "shortlist"),
+    # First anchor-corrected round: three seated entries rode anonymously and
+    # --score removed the session's measured -0.36 drift before recording.
+    ("O", "runs/vlm-ovs14-r2/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

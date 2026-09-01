@@ -1,0 +1,246 @@
+{
+ "schemes": [
+  {
+   "name": "field_under_one_thin_roof",
+   "primary_language": "porous_field",
+   "secondary_language": "six equal one-storey pavilions with room-wide gaps, all standing under the reach of one thin roof sheet",
+   "formal_principle": "세 변의 이웃이 밀어 몸은 방폭 틈을 둔 등가의 방 여섯으로 흩어지고, 그 전부를 층고 0.12짜리 얇은 처마 한 장이 잇는다 — 벽은 여섯 번 끊기지만 지붕은 한 번만 말해, 대지가 방과 방 사이로 흐르는 채로 건물은 하나로 읽힌다.",
+   "dominant_gesture": "얇은 지붕 한 장 아래의 산개한 방들",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 2.0,
+     "height": 0.3,
+     "tie": 0,
+     "profile": "oval",
+     "why": "입력: 세 변의 이웃(정북 일조의 빚 포함)이 큰 몸을 밀고 → 몸이 1층 등가 방 여섯으로 물러선다 → aggregate(n 6, spread 2.0, oval)가 방폭만큼의 틈을 두고 둥근 파빌리온을 편다 — 틈은 이 문장의 논지라서 spread로 선언하며(방 하나 폭, 게이트 역산 3.9m를 훌쩍 넘는다), 틈마다 대지와 하늘이 통과해 이웃의 어느 변도 벽을 마주하지 않는다 → 등가의 방들이라 프로그램 위계가 배치가 아니라 쓰임으로 정해진다 → 한계: 높이 0.3은 low 선언(문턱 0.42 아래), tie 0으로 지상을 묶는 판이 없고 volume은 방 여섯뿐 — 부스러기 없음, rotate 없음(선언한 틈을 지킨다)."
+    },
+    {
+     "op": "canopy",
+     "on": "object",
+     "reach": 0.28,
+     "at": 1.0,
+     "thin": 0.12,
+     "why": "입력: 남서 열린면의 가로가 당기고 → 흩어진 방들이 한 건물로 응답해야 한다 → canopy(thin 0.12, at 1.0, reach 0.28)가 모든 방의 처마선에서 틈 위로 낢아 지붕 그림자를 잇는다 → 방은 끊겨도 지붕은 이어져 밭 전체가 한 장 아래 놓이고, 두께 0.12층의 판이라 방이 아니라 공기를 덮는 막으로 읽힌다(§12-3: 두께는 역할을 따른다, occupiable=False로 방 게이트 면제) → 한계: reach 0.28은 구조 게이트 실측 통과값(상한 0.40의 안쪽) — 방폭 틈의 한가운데 하늘 한 줄은 정직하게 열린 채 남는다."
+    }
+   ]
+  },
+  {
+   "name": "open_scatter_field",
+   "primary_language": "porous_field",
+   "secondary_language": "six equal square rooms scattered with room-wide gaps and no roof at all - the dispersal itself is the sentence",
+   "formal_principle": "과밀 상한이 부르는 높이에 이 과업은 응할 이유가 없다 — 몸은 지붕 없는 1층 방 여섯의 밭으로 물러서고, 밭 전체가 남서 열린면으로 치우쳐 북쪽 이웃에게는 마당을, 가로에는 방들의 앞면을 내준다: 산개 그 자체가 문장이다.",
+   "dominant_gesture": "열린면으로 치우친 지붕 없는 산개",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 2.0,
+     "height": 0.3,
+     "tie": 0,
+     "profile": "square",
+     "why": "입력: 2,500㎡ 위 250% 상한이 과밀을 밀고 → 이 과업(약 1,546㎡)은 그 초대를 거절하며 몸이 1층 등가 방 여섯의 낮은 밭으로 물러선다 → aggregate(n 6, spread 2.0, square)가 방폭만큼의 틈(논지라서 선언 — 게이트 역산 3.9m 위)을 두고 정방 방들을 편다 → 모든 실이 네 면 채광을 얻고 틈은 골목이 된다 → 한계: 높이 0.3은 low 선언, tie 0, 덮는 단어 없음 — 지붕의 침묵이 이 문장의 논지다."
+    },
+    {
+     "op": "shift",
+     "toward": "open",
+     "ratio": 0.2,
+     "why": "입력: 정북 일조는 북쪽 이웃에게 진 빚 — 북쪽 이웃이 밀고 → 밭 전체가 남서 열린면 쪽으로 물러선다 → shift(toward open, 0.2)가 배열을 가로 쪽으로 치우치게 한다(치우침이 곧 화살표 — 동심 배열 금지의 이행) → 북쪽에 이웃과 나누는 넓은 마당이 남고 방들의 앞줄이 가로에 닿는다 → 한계: 0.2는 침묵 바닥 0.15 위, 법규선 안의 이동이라 방은 무손상이다."
+    }
+   ]
+  },
+  {
+   "name": "two_storey_rooms_low_eave",
+   "primary_language": "porous_field",
+   "secondary_language": "five equal two-storey stadium rooms under a low eave line, the widest gap facing the open front",
+   "formal_principle": "방이 두 켜로 서면 처마는 낮게 내려와야 한다 — 2층 등가 방 다섯의 허리(1층 상단)에 얇은 처마선 하나가 둘려 밭의 눈높이를 지상에 붙들고, 남서 열린면 쪽 틈만 가장 넓게 벌어져 어디로 들어서는지 실루엣이 말한다.",
+   "dominant_gesture": "낮은 처마선 아래의 2층 방들",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 2.0,
+     "height": 0.5,
+     "tie": 0,
+     "profile": "stadium",
+     "why": "입력: 210㎡ 대회의실을 포함한 과업이 1층 밭보다 깊은 단면을 밀고 → 방들이 2층 몸으로 서되 수는 다섯으로 줄어 물러선다 → aggregate(n 5, spread 2.0, stadium)가 양끝 둥근 2층 등가 방들을 방폭 틈(논지라서 선언 — 게이트 역산 3.9m 위)으로 편다 → 깊어진 한 방의 저층이 대회의실 한 판을 받고 나머지는 등가의 사무 방이다 → 한계: 높이 0.5는 mid 선언(0.42·0.72 양쪽 문턱에서 멀다), tie 0, volume은 방 다섯뿐."
+    },
+    {
+     "op": "shift",
+     "toward": "open",
+     "ratio": 0.25,
+     "on": "object_0",
+     "why": "입력: 남서 열린면의 가로·조망이 당기고 → 앞줄의 방 하나가 가로 쪽으로 미끄러져 나머지와의 틈을 연다 → shift(toward open, 0.25, on object_0)로 열린면 쪽 틈이 밭에서 가장 넓어진다 → 그 가장 넓은 틈이 선언 없는 진입 마당이 되고 치우침이 압력의 화살표다 → 한계: 0.25는 침묵 바닥 0.15 위, 한 방만 움직여 밭의 격자는 성하다."
+    },
+    {
+     "op": "canopy",
+     "on": "object",
+     "reach": 0.25,
+     "at": 0.5,
+     "thin": 0.15,
+     "why": "입력: 2층으로 선 방들이 저층 이웃 스케일을 누르는 문제 — 이웃의 낮음이 밀고 → 건물의 눈높이가 1층으로 내려온다 → canopy(thin 0.15, at 0.5, reach 0.25)가 모든 방의 허리(1층 상단)에서 낮은 처마로 낢는다 → 보행자는 2층 몸이 아니라 낮은 처마선을 먼저 읽고, 얇은 판이라 지붕이 아니라 띠로 읽힌다(방 게이트 면제) → 한계: reach 0.25는 실측 통과값 안쪽, at 0.5라 처마 위 한 켜가 그대로 드러나 2층임은 숨기지 않는다."
+    }
+   ]
+  },
+  {
+   "name": "open_ring_four_bars",
+   "primary_language": "open_figure",
+   "secondary_language": "a courtyard ring pulled apart into four bars, the corner gaps open to the ground, one thin eave line re-joining them",
+   "formal_principle": "링은 세 이웃에게 닫히고 네 모서리에서 열린다 — 마당을 도는 네 바가 모서리마다 방폭으로 벌어져 대지가 마당으로 흘러들고, 벌어진 네 틈 위를 얇은 처마선 하나가 건너 링의 도형은 지붕에서만 완성된다.",
+   "dominant_gesture": "처마선으로만 닫히는 열린 링",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.3,
+     "profile": "chamfered",
+     "why": "입력: 세 변의 이웃이 밀고 → 방들이 바깥으로 등을 대고 마당을 안는 링으로 물러선다 → loop(bar 0.3, chamfered)가 마당을 도는 낮은 네 바를 세운다 → 모든 실이 마당과 바깥 양면 채광을 얻고 긴 바 하나의 저층이 210㎡ 대회의실 한 판을 받는다 → 한계: 높이 0.3은 low 선언, 닫힌 링은 아직 대지를 마당에서 끊고 있다 — 그 결핍이 다음 두 단어의 이유다."
+    },
+    {
+     "op": "split",
+     "along": "long",
+     "gap": 0.2,
+     "why": "입력: 남서 열린면의 가로가 마당을 향해 당기고 → 링이 긴 축의 두 자리에서 벌어진다 → split(along long, gap 0.2)이 링을 끊어 방폭 틈(논지라서 선언 — 비율 0.2는 게이트 역산 3.9m 위)을 연다 → 대지가 가로에서 마당으로 걸어 들어온다 → 한계: gap 0.2는 침묵 바닥 0.15 위, rotate 없음(선언한 틈을 지킨다)."
+    },
+    {
+     "op": "split",
+     "along": "cross",
+     "gap": 0.2,
+     "why": "입력: 한 축만 끊긴 링은 두 개의 C일 뿐 네 바가 아니다 — 링의 도형 자체가 남은 두 모서리를 밀고 → 직교 축에서도 벌어진다 → split(along cross, gap 0.2)이 나머지 두 모서리를 열어 네 바가 완성된다 → 네 틈이 마당의 네 진입이 되고 바람이 관통한다 → 한계: 직교 재분할은 블록 다지기가 되기 쉬우나 여기서는 링의 모서리를 여는 유일한 말이다 — 두 번째 split은 첫 split이 못 다한 말만 한다."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.2,
+     "at": 1.0,
+     "thin": 0.15,
+     "why": "입력: 벌어진 네 바는 이제 링으로 안 읽힐 위험 — 도형의 판독이 밀고 → 지붕이 틈 위로 손을 뻗는다 → canopy(thin 0.15, at 1.0, reach 0.2)가 네 바의 처마선에서 틈 쪽으로 낢아 링의 윤곽을 공중에서 잇는다 → 지상은 네 곳에서 열린 채 실루엣은 하나의 링으로 닫힌다(두께는 역할을 따른다 — 0.15층의 막) → 한계: reach 0.2는 실측 통과값 안쪽이라 틈의 하늘 가운데는 열려 있다 — 잇는 것은 선이지 덮개가 아니다."
+    }
+   ]
+  },
+  {
+   "name": "hexagon_corner_chain",
+   "primary_language": "porous_field",
+   "secondary_language": "one-storey hexagonal rooms linked only where their corners kiss - a chain laid across the ground, nothing stacked",
+   "formal_principle": "방과 방은 모서리로만 악수한다 — 육각 방들이 변이 아니라 꼭짓점에서만 닿는 사슬로 이어져, 닿는 자리마다 문 하나 폭의 관계가 생기고 나머지 변 전부는 대지와 하늘에 열린다: 적층 0, 관계가 곧 평면이다.",
+   "dominant_gesture": "모서리로만 이어진 육각 사슬",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.15,
+     "height": 0.3,
+     "tie": 0,
+     "turn": 15,
+     "profile": "hexagon",
+     "why": "입력: 세 변의 이웃과 정북의 빚이 높이를 밀고 → 몸이 적층 0의 1층 사슬로 물러선다 → aggregate(n 5, spread 1.15, turn 15, hexagon)가 육각 방들을 거의 닿는 간격으로 펴고 교대로 튼다 → 방들이 변을 나란히 대는 대신 꼭짓점을 서로에게 내밀어, 등가의 방 다섯이 위계 없는 사슬이 된다 → 한계: 높이 0.3은 low 선언, tie 0, 틈은 논지가 아니라서 선언하지 않는다(닿음이 논지다) — 닫혀도 거짓이 없다."
+    },
+    {
+     "op": "overlap",
+     "on": "object_0",
+     "bite": 0.15,
+     "slip": 0.4,
+     "height": 1.0,
+     "why": "입력: 남서 열린면이 사슬의 끝을 가로 쪽으로 당기고 → 첫 방이 자기 쌍둥이를 가로 방향으로 밀어낸다 → overlap(bite 0.15, slip 0.4, on object_0)이 등가의 쌍둥이 방을 평면 최소한만 물리게 겹친다 → 사슬의 고리 하나가 암시가 아니라 동사로 발화되고, 물린 한 뼘이 방과 방 사이의 실내 문지방이 된다 → 한계: bite 0.15는 이 단어의 하한이자 침묵 바닥 — 모서리 악수 이상으로 겹치면 사슬이 덩어리가 된다; 같은 높이(1.0)라 적층 0은 지켜진다."
+    }
+   ]
+  },
+  {
+   "name": "kite_court_thin_lid",
+   "primary_language": "porous_field",
+   "secondary_language": "equal kite-plan rooms drawn back against the three neighbour edges, their shared court opening south-west under one thin lid",
+   "formal_principle": "방들은 이웃 쪽으로 물러서고 마당은 열린면으로 열린다 — 연 평면의 등가 방들이 세 변을 등지고 둘러앉아 남은 가운데가 마당이 되며, 얇은 판 한 장이 방이 아니라 그 마당만 덮어 비어 있는 자리가 이 밭의 지붕 있는 유일한 방이 된다.",
+   "dominant_gesture": "마당만 덮는 얇은 판",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.6,
+     "height": 0.3,
+     "tie": 0,
+     "profile": "kite",
+     "why": "입력: 세 변의 이웃이 밀고 → 방들이 그 세 변 쪽으로 물러나 둘러앉으며 가운데를 비운다 → aggregate(n 5, spread 1.6, kite)가 연 평면의 1층 등가 방들을 마당 하나를 사이에 두고 편다 → 연 도형의 뾰족한 꼭짓점들이 마당 쪽을 향해 비어 있는 가운데가 도형으로 읽히고, 남서 열린면 쪽 자리만 방 없이 남아 마당이 가로로 트인다 → 한계: 높이 0.3은 low 선언, tie 0, volume은 방 다섯뿐 — 마당은 방들이 남긴 자리라 선언한 틈이 아니다."
+    },
+    {
+     "op": "canopy",
+     "on": "object_0",
+     "reach": 0.3,
+     "at": 1.0,
+     "thin": 0.12,
+     "toward": "open",
+     "why": "입력: 남서 열린면의 해와 비가 마당을 밀고 → 마당 위에만 그늘이 응답한다 → canopy(thin 0.12, at 1.0, reach 0.3, toward open, on object_0)가 마당 뒤편 방의 처마선에서 열린면 방향으로만 낢아 마당 위를 건넌다 → 방들은 하늘 아래 그대로이고 비어 있는 마당만 얇은 판 하나를 얻어, 덮인 곳과 덮이지 않은 곳의 구분이 프로그램이 아니라 공기의 구분이 된다(0.12층의 막 — 두께는 역할을 따른다) → 한계: reach 0.3은 상한 0.40 안쪽·실측 통과값 근방이고 toward open이라 내밈이 압력을 정확히 가리킨다 — 동심의 덮개가 아니다."
+    }
+   ]
+  },
+  {
+   "name": "low_disc_long_awning",
+   "primary_language": "solid_body",
+   "secondary_language": "a low two-storey oval disc with one paper-thin awning pushed out towards the open front only",
+   "formal_principle": "몸은 낮은 원반으로 이웃에게 답하고, 차양은 열린면에게만 답한다 — 두 켜의 둥근 몸이 세 변의 이웃 스케일에 눌리지 않게 낮게 앉고, 층고 0.1짜리 종이 같은 판 하나가 남서 가로 쪽으로만 길게 내밀어 건물의 방향을 두께가 아니라 그림자로 말한다.",
+   "dominant_gesture": "열린면으로만 내민 얇은 차양",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "입력: 세 변의 이웃(정북 일조의 빚 포함)이 높이를 밀고 → 몸이 2켜의 낮은 원반으로 물러선다 → extrude(oval, storeys 2)가 모서리 없는 둥근 몸으로 태어난다 → 무주 원형 평면의 저층에 210㎡ 대회의실이 부채꼴 없이 한 판으로 담기고, 원이라 세 이웃 어느 쪽에도 등을 보이지 않는다 → 한계: 높이 0.3은 low 선언(문턱 0.42 아래), storeys 2가 사람 크기를 선언한다 — 몸의 사건은 도형이 아니라 다음 단어의 차양이다."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.35,
+     "at": 1.0,
+     "thin": 0.1,
+     "toward": "open",
+     "why": "입력: 남서 열린면의 가로·조망이 당기고 → 몸 대신 지붕이 그쪽으로만 나간다 → canopy(thin 0.1, at 1.0, reach 0.35, toward open)가 원반의 처마선에서 가로 방향으로만 몸의 3분의 1을 더 낢는다 → 건물은 어디서나 같은 원이되 그림자는 한 방향으로만 길어, 정면이 입면이 아니라 차양의 방향으로 선언된다(0.1층은 이 언어가 말할 수 있는 가장 얇은 판 — 두께는 역할을 따른다) → 한계: reach 0.35는 구조 게이트 상한 0.40의 안쪽이고 toward open 한 방향뿐이라 동심 확장이 아니다 — 이웃 세 변 쪽으로는 한 뼘도 내밀지 않는다."
+    }
+   ]
+  },
+  {
+   "name": "half_lifted_field",
+   "primary_language": "porous_field",
+   "secondary_language": "four equal square rooms, the two on the street rank lifted clear so the ground passes beneath towards the open front",
+   "formal_principle": "밭의 절반이 발을 든다 — 등가의 방 넷 중 남서 열린면 쪽 두 방만 기둥 위로 들려 대지가 그 아래로 가로까지 흘러 나가고, 뒤편 두 방은 땅에 앉아 이웃의 낮음에 답한다: 들림은 장식이 아니라 열린면이 당긴 방향 그 자체다.",
+   "dominant_gesture": "열린면 쪽 절반만 들린 밭",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.8,
+     "height": 0.35,
+     "tie": 0,
+     "profile": "square",
+     "why": "입력: 세 변의 이웃이 큰 몸을 밀고 → 몸이 2켜 등가 방 넷의 밭으로 물러선다 → aggregate(n 4, spread 1.8, square)가 정방 방들을 넉넉한 간격으로 편다 → 방 하나의 저층이 210㎡ 대회의실 한 판을 받고 나머지는 등가의 사무 방이다 → 한계: 높이 0.35는 low 선언(문턱 0.42 아래), tie 0, volume은 방 넷뿐 — 틈은 논지가 아니라서 선언하지 않는다(들림이 논지다)."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "on": "object_0",
+     "why": "입력: 남서 열린면의 가로가 지상을 당기고 → 앞줄(그리드 정착의 남서 첫 자리) 방이 발을 든다 → lift(clearance 0.4, on object_0)가 방 전체를 기둥 위로 든다 → 방 아래가 담 없는 그늘이 되어 대지가 밭 안쪽에서 가로까지 통과한다 → 한계: clearance 0.4는 이 몫의 상한이자 침묵 바닥 0.15 위 — 2켜 몸 아래 보이는 다리를 세운다(극세 필로티 기각 전례의 반대), 위 방의 단면은 무손상이다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "on": "object_1",
+     "why": "입력: 한 방만 들리면 예외이지 방향이 아니다 — 열린면의 당김이 앞줄 전체를 밀고 → 남서 앞줄의 둘째 방도 같은 높이로 든다 → lift(clearance 0.4, on object_1)로 들린 두 방이 하나의 열린 지반을 이룬다 → 밭의 절반이 공중, 절반이 지상이라는 단면 하나로 열린면과 이웃면의 차이가 실루엣에 새겨진다 → 한계: 들림은 앞줄 두 방에서 멈춘다 — 뒤편 두 방은 땅에 앉아야 들림이 방향으로 읽힌다(전부 들면 다시 동심이다)."
+    }
+   ]
+  }
+ ]
+}

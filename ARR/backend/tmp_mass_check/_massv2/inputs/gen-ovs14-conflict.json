@@ -1,0 +1,242 @@
+{
+ "schemes": [
+  {
+   "name": "street_hall_swells_the_roof",
+   "primary_language": "solid_body",
+   "secondary_language": "a flat mid-rise body whose street-edge bar alone wears a swollen vault - the 6m hall read as the only curve in the silhouette",
+   "formal_principle": "6m 홀이 지붕을 민다 — 몸의 가로변 한 켜만 홀에게 내주고, 그 켜의 지붕만 볼트로 부풀어 나머지 평지붕 몸과의 차이가 홀의 위치를 실루엣으로 말한다.",
+   "dominant_gesture": "가로변 바 하나만 부푼 볼트",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.55,
+     "storeys": 4,
+     "why": "입력(압력): 210㎡·6m 홀 하나가 균질한 사무 몸을 안에서 민다 — 홀이 밀고, 몸의 한 켜가 물러나 홀에게 자리를 내준다 → extrude(square)가 대지형 4켜 몸으로 태어난다 → 균질한 사무 켜가 쌓인 찬 몸 → 이 몸은 아직 홀을 모른다 — 그 결핍이 다음 두 단어의 이유다 → 한계: 높이 0.55는 mid 선언으로 0.42·0.72 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 선언한다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.65,
+     "along": "open",
+     "first": "offices",
+     "second": "hall",
+     "contrast": 1.3,
+     "why": "입력: 홀은 몸 가운데가 아니라 열린면(가로)에 닿아야 한다는 압력 → split(along open, ratio 0.65)이 몸을 열린면 축으로 갈라 큰 조각(offices)을 뒤에, 작은 조각(hall, 0.35)을 가로변에 세운다 → 홀이 몸 한쪽 끝의 전폭 바가 된다 — 동심이 아니라 열린면으로 치우친 위치 → 사무 몸은 뒤에서 높이를 지키고 홀 바는 contrast 1.3으로 낮아져 한 방의 켜가 된다 → 한계: ratio 0.65는 0.3·0.75 안쪽이고 gap은 선언하지 않는다 — 틈은 이 문장의 논지가 아니므로 닫혀도 거짓이 없다(단면 규칙 5)."
+    },
+    {
+     "op": "vault",
+     "on": "hall",
+     "rise": 0.4,
+     "bays": 1,
+     "why": "입력: 홀의 6m 천장은 평지붕 켜가 줄 수 없는 높이다 → vault(rise 0.4, bays 1)가 홀 바의 지붕만 배럴로 부풀린다 → 열린면의 좁은 바(폭 약 0.35W)를 가로질러 능선이 바의 긴 축을 달리고, 실루엣은 평평한 몸 곁의 곡면 한 줄이 된다 → 홀의 스팬이 무주로 덮이고 지붕의 부풂이 홀의 위치를 밖에서 읽게 한다 → 한계: rise 0.4는 좁은 바 위라 1:2대의 진짜 곡선으로 읽힌다(35m 폭 위의 1:8 함정 회피 — 자르고 나서 말했다) — 낙차는 1.5층 캡 안."
+    }
+   ]
+  },
+  {
+   "name": "summit_hall_holds_the_ridge",
+   "primary_language": "solid_body",
+   "secondary_language": "a tall stadium bar whose gable lives only at the summit, its ridge running out toward the open face and standing off-centre over the top hall",
+   "formal_principle": "최상부 큰 방이 지붕을 결정한다 — 탑의 몸은 침묵하고 정상의 박공 한 겹만 홀의 스팬을 말하며, 능선은 열린면을 겨눠 치우쳐 서서 홀이 어느 켠에 있는지 실루엣이 답한다.",
+   "dominant_gesture": "정상만 접힌 오프셋 능선",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "stadium",
+     "height": 0.8,
+     "storeys": 6,
+     "why": "입력(압력): 최상층에 놓인 210㎡ 대회의실의 스팬이 탑의 정상을 안에서 민다 — 꼭대기 방이 밀고, 지붕이 물러나 접힌다 → extrude(stadium)가 양끝 반원의 6켜 높은 바로 태어난다 → 직선 장변에 사무 켜가 줄 서고 반원 끝이 좁은 면을 곡면으로 끝낸다 → 무주 스팬이 필요한 방은 맨 위가 가장 싸다 — 그 위로 아무것도 나르지 않기 때문 → 한계: 높이 0.8은 tall 문턱 0.72에서 여유 있게 위이고 storeys 6이 켜당 볼륨을 층수 상한 안에 둔다(규범 9)."
+    },
+    {
+     "op": "gable",
+     "pitch": 1.1,
+     "at": 0.2,
+     "along": "long",
+     "why": "입력: 꼭대기 홀은 탑 단면의 한 켠에 몰려 있다 — 방이 한쪽을 밀고, 능선이 그쪽으로 물러나 선다 → gable(pitch 1.1, at 0.2, along long)이 정상에 용마루를 세우되 몸의 긴 축(열린면을 겨누는 축)을 따라 달리게 하고, at 0.2로 능선을 한 장변 쪽으로 바짝 치운다 — 짧은 면의 주행이 줄어 같은 낙차 캡 안에서도 급경사면이 급경사로 읽힌다 → 짧은 급경사면이 홀의 폭을 덮고 긴 완경사면이 이웃 쪽으로 낮게 흘러내리는 saltbox 정상 → 박공 끝면이 가로에서 정면으로 읽혀 탑의 얼굴이 된다 → 한계: 낙차는 1.5층 캡이라 지붕은 정상 한두 켜에 머물고(지붕은 몸이 아니다), at 0.2는 하한 0.15 안쪽이되 중심 0.5에서 더 멀다 — 동심(0.5) 금지의 정확한 반대말."
+    }
+   ]
+  },
+  {
+   "name": "wedged_hall_bulges_the_stack",
+   "primary_language": "solid_body",
+   "secondary_language": "a three-tier bar flush to the street whose middle tier alone swells past the pile - the hall wedged mid-stack, read as a belly in the cross-section",
+   "formal_principle": "더미 중간에 낀 큰 방은 제 층만 밖으로 배부르게 한다 — 가로면에 붙은 세 단의 바에서 가운데 단 하나가 양옆으로 불거지고, 위 단은 뒤로 물러나며 지붕을 가로 쪽으로 기울여 눌린 순서를 단면이 그대로 보여준다.",
+   "dominant_gesture": "가운데 단만 배부른 바",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.3,
+     "height": 0.55,
+     "profile": "square",
+     "align": "open",
+     "why": "입력(압력): 210㎡ 홀이 더미의 중간 켜에 낀다 — 낀 방이 제 단을 밀고, 위아래 단이 물러난다; 동시에 북쪽 이웃에게 진 일조 빚이 위 단을 뒤로 민다 → stack(n 3, contrast 1.3, align open)이 세 단을 열린면에 플러시로 세운다 → 가로 쪽은 한 장의 수직면, 물러섬은 전부 북쪽 이웃 쪽에서 일어난다 — 동심 웨딩케이크가 아니라 압력 쪽으로 치우친 켜 → 아래 단이 로비·기단, 가운데가 홀의 단, 위가 사무의 관 → 한계: contrast 1.3은 하한 1.25 위, n 3은 §9의 켜당 층수 상한 안이고, 가운데 단의 배부름은 이 단어가 아니라 다음 두 단어의 몫이다."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.72,
+     "toward": "cross",
+     "why": "입력: 배부름이 보이려면 더미가 먼저 대지보다 홀쭉해야 한다 — 대지를 꽉 채운 밑단 위에선 어떤 불거짐도 법규선이 먹는다(함정 7의 이유와 같다) → compress(ratio 0.72, toward cross)가 더미 전체의 짧은 축만 좁혀 바로 만든다 → 양 옆에 마당의 여유가 생기고 단면 깊이가 양면 채광 깊이로 든다 → 이 여유가 다음 단어의 불거짐이 설 자리다 → 한계: 0.72는 하한 0.6에서 멀고 한 축만 좁혀 긴 변은 무손상 — 교정 동사는 이렇게 다음 형상 동사의 자리를 여는 데만 쓴다."
+    },
+    {
+     "op": "expand",
+     "on": "tier_1",
+     "ratio": 1.55,
+     "toward": "cross",
+     "why": "입력: 낀 홀의 스팬이 가운데 단의 벽을 안에서 민다 — 방이 밀고, 그 단의 두 옆면만 물러나며 불거진다 → expand(on tier_1, ratio 1.55, toward cross)가 가운데 단의 짧은 축만 키운다 → 좁힌 바(0.72)의 가운데 단이 아래 단보다 옆으로 약 3m씩 더 나가 단면이 배부른 몸이 된다 → 홀의 폭이 실제로 넓어지고, 그 배부름이 홀의 층을 밖에서 짚게 한다 → 한계: 1.55는 상한 1.6 아래이고 불거진 폭은 여전히 대지 안이라 법규선이 먹지 않는다; 내밈은 밑단 폭 대비 한 자릿수 %라 구조 게이트의 backspan 비 안이다."
+    },
+    {
+     "op": "grade",
+     "on": "tier_2",
+     "smooth": true,
+     "toward": "open",
+     "run": 0.4,
+     "why": "입력: 홀에게 높이를 내준 위 단은 일조선 아래 눌린 관이다 — 빛의 빚이 누르고, 관의 지붕이 가로 쪽으로 기울며 물러난다 → grade(smooth, toward open, run 0.4)가 맨 위 단의 윗면만 열린면 쪽으로 연속 경사로 떨어뜨린다 → 실루엣 상단이 평평한 잔여물이 아니라 눌림의 방향을 가진 한 줄이 된다(규범 7) → 배부른 단면의 이야기가 지붕에서 끝맺는다 → 한계: toward는 열거형이라 open만 산다(함정 3), run 0.4는 위 단의 몸 안에서 끝나는 얕은 기울임이다."
+    }
+   ]
+  },
+  {
+   "name": "sky_well_against_the_full_body",
+   "primary_language": "carved_body",
+   "secondary_language": "a tall body filled to the 250% ceiling, pierced by one inboard sky well pushed toward its deep back half - density against light, the fight left visible",
+   "formal_principle": "250%를 다 쓴 몸은 제 깊이에 빛을 빚진다 — 상한까지 찬 유일한 몸통의 가장 어두운 뒤쪽 깊이에 하늘 구멍 하나를 관통시켜, 과밀과 채광의 싸움이 지워지지 않고 형태로 남는다.",
+   "dominant_gesture": "뒤로 치우친 하늘 구멍 하나",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.85,
+     "storeys": 7,
+     "why": "입력(압력): 2,500㎡ 위 250% 상한이 부르는 과밀 그 자체 — 6,250㎡의 과업이 몸을 밀어 봉투를 채운다 → extrude(square)가 상한 가까이 찬 7켜의 대지형 몸으로 태어난다 → 나눌 수 없는 하나의 찬 몸, 균질한 깊은 켜 → 밀도를 조각으로 흩지 않고 한 몸으로 받는다(정갈함의 법: 볼륨 하나) → 한계: 높이 0.85는 tall 문턱 0.72에서 멀고, 이 깊이의 켜는 가운데가 어둡다 — 그 결함이 다음 단어의 이유다."
+    },
+    {
+     "op": "carve",
+     "size": 0.3,
+     "at": "back",
+     "reach": 0.5,
+     "why": "입력: 찬 몸의 뒤쪽 절반은 열린면에서 가장 멀어 빛이 닿지 않는다 — 어둠이 밀고, 몸이 제 뒤쪽 깊이에서 물러나 구멍을 연다 → carve(size 0.3, at back, reach 0.5)가 몸의 뒤쪽으로 치우친 자리에 사방이 건물로 둘러싸인 수직 보이드를 바닥부터 지붕까지 관통시킨다 → 가장자리 어디에도 닿지 않는 안쪽 구멍이라 파사드의 홈이 아니라 하늘이 보이는 우물로 읽힌다 → 깊은 켜 전부가 이 우물에서 두 번째 빛을 얻고, 과밀의 몸이 제 값(잃은 면적)을 형태로 지불한다 → 한계: at back은 동심 금지의 답 — 구멍은 몸의 기하 중심이 아니라 빛이 가장 궁한 쪽에 선다; size 0.3은 0.15·0.6 안쪽이고 보이드 가장자리는 대지 경계에서 떨어져 있어 법규선과 다투지 않는다."
+    }
+   ]
+  },
+  {
+   "name": "one_bar_carries_the_vault",
+   "primary_language": "open_figure",
+   "secondary_language": "a court-ring of four bars where only the street-front bar is the hall and wears the only vault - an asymmetric crown, the rest flat and a step lower toward the back",
+   "formal_principle": "링의 네 바는 등가가 아니다 — 홀인 한 바(가로변)만 볼트를 이고 나머지는 평지붕으로 낮게 물러나, 왕관의 비대칭이 프로그램의 비대칭을 그대로 실루엣에 옮긴다.",
+   "dominant_gesture": "한 바만 볼트를 인 비대칭 링",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.28,
+     "height": 0.55,
+     "step": 0.7,
+     "why": "입력(압력): 프로그램의 대부분은 마당을 도는 균질한 실이지만 210㎡ 홀 하나만 다르다 — 홀이 제 바를 밀고, 링의 나머지가 낮게 물러난다 → loop(bar 0.28, height 0.55, step 0.7)가 마당을 도는 네 바를 세우되 뒤쪽·옆쪽의 두 바를 0.7로 낮춘다 → 링이 등가의 반지가 아니라 가로 쪽으로 높아지는 위계를 얻고, 마당은 낮아진 뒤 바 위로 오후 해를 받는다 → 한계: bar 0.28은 0.15·0.4 안쪽의 채광 가능한 바 깊이이고 step 0.7은 0.4·1.0 안쪽 — 낮춤은 소멸이 아니라 한 단이다; 홀이 어느 바인지는 다음 단어가 답한다."
+    },
+    {
+     "op": "vault",
+     "on": "bar_e",
+     "rise": 1.0,
+     "bays": 1,
+     "why": "입력: 홀 바의 스팬이 제 지붕을 민다 — 방이 밀고, 그 바의 지붕만 부풀어 물러난다 → vault(on bar_e, rise 1.0, bays 1)가 열린면(+x, 가로) 쪽 바 하나에만 배럴을 씌운다 → 능선이 바의 긴 축을 달리고 좁은 바 폭을 가로지르는 진짜 곡선(약 1:2)이 되며, 나머지 세 바의 평지붕이 그 곡선을 왕관으로 읽게 한다 → 홀의 위치가 캡션 없이 실루엣에서 짚인다 → 한계: 볼트는 대상 바에만 말하고(on의 접두 매칭) 낙차는 1.5층 캡 안 — 지붕이 바를 삼키지 않는다; 링의 틈은 선언하지 않았으므로 코너의 만남은 거짓이 아니다."
+    }
+   ]
+  },
+  {
+   "name": "ground_hall_keeps_the_belly",
+   "primary_language": "solid_body",
+   "secondary_language": "a chamfered mid-rise body whose full plan survives only at the ground hall - above it the mass steps back once and rises straight, the belly left at the street",
+   "formal_principle": "지상 홀이 배를 지킨다 — 모따기 몸의 전평면은 홀이 있는 아래 켜에만 남고 위 몸은 한 번 물러나 곧게 서서, 부푼 배와 곧은 몸의 단차 하나가 홀의 자리를 단면으로 선언한다.",
+   "dominant_gesture": "지상만 남은 전폭의 배",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "chamfered",
+     "height": 0.55,
+     "storeys": 4,
+     "why": "입력(압력): 지상층의 210㎡ 홀이 몸의 발치를 안에서 민다 — 홀이 지상에서 밀고, 위 몸이 물러날 채비를 한다 → extrude(chamfered)가 모서리를 접은 대지형 4켜 몸으로 태어난다 → 모따기 평면이 가로 모퉁이를 부드럽게 돌고 균질한 켜가 쌓인다 → 전평면의 지상 켜가 홀의 무주 판이 된다 → 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고, 이 몸은 아직 위아래가 같다 — 홀의 자리는 다음 단어가 새긴다."
+    },
+    {
+     "op": "grade",
+     "steps": 2,
+     "run": 0.4,
+     "why": "입력: 위 켜들은 홀의 스팬이 필요 없다 — 홀이 지상의 폭을 쥐고, 위 몸이 가로면에서 물러난다 → grade(steps 2, run 0.4, along long)가 몸을 두 단으로 갈라 아래 단은 전평면으로 남기고 위 단만 긴 축의 40%를 덜어낸다 → 뒤쪽 면은 붙박이로 서고 물러섬은 열린면 쪽에서만 일어나 지상 홀의 지붕이 가로를 향한 테라스로 남는다 — 동심 셋백이 아니라 한쪽으로 치우친 단차 → 배(지상)와 몸(위)의 경계가 곧 홀의 천장선이다 → 한계: 물러섬은 한 번이다 — 단이 여럿이면 배가 아니라 계단이 된다(belted_oval_pile의 감점 사유의 반대편); run 0.4는 0.2·0.9 안쪽. (along→toward: grade의 방향 인자는 toward다)",
+     "toward": "back"
+    }
+   ]
+  },
+  {
+   "name": "vaulted_crown_on_honest_boxes",
+   "primary_language": "solid_body",
+   "secondary_language": "a pile of faceted boxes stacked with alternating turns, plain-roofed below - only the top unit, the big room, wears a vault",
+   "formal_principle": "더미의 꼭대기 방이 크다 — 엇놓아 쌓인 정직한 상자들은 평지붕으로 침묵하고 최상 단위 하나만 볼트를 이어, 큰 방이 어디 얹혔는지 왕관이 답하고 받침은 받침으로 남는다.",
+   "dominant_gesture": "꼭대기 상자만 인 볼트",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "method": "stack",
+     "storeys": 2,
+     "turn": 8,
+     "spread": 1.3,
+     "tie": 0,
+     "height": 0.55,
+     "profile": "faceted",
+     "why": "입력(압력): 큰 방 하나가 더미의 꼭대기를 요구한다 — 그 위로 아무것도 나르지 않는 자리는 정상뿐이라, 방이 위로 밀고 작은 단위들이 아래로 물러나 받침이 된다 → aggregate(n 3, method stack, storeys 2, turn 8, spread 1.3)가 두 상자를 지상에 놓고 셋째를 엇놓아 얹는다 → 층마다 부호가 바뀌는 8도의 턴이 더미를 정면 없는 엇쌓기로 만들고, spread 1.3의 크기 부채꼴이 위로 갈수록 몸을 줄이되 꼭대기 단위가 판이 아니라 상자로 남을 만큼만 줄인다 → 지상 두 상자에 사무·교실, 꼭대기 상자에 큰 방 → 한계: storeys 2로 단위가 사람 크기를 갖고 tie 0은 판을 두지 않는다는 선언 — 상자 사이 지상이 끝까지 열린다; reach는 말하지 않아 끝은 날지 않는다 — 나는 끝은 이 문장의 논지가 아니다."
+    },
+    {
+     "op": "vault",
+     "on": "object_2",
+     "rise": 0.7,
+     "bays": 1,
+     "why": "입력: 꼭대기 방의 스팬이 제 지붕을 민다 — 방이 밀고, 최상 단위의 지붕만 부풀어 물러난다 → vault(on object_2, rise 0.7, bays 1)가 더미의 맨 위 단위에만 배럴을 씌운다 → 받침 상자들의 평지붕과 왕관의 곡선이 한 실루엣에서 갈리고, 엇놓인 턴 위의 곡면이라 왕관은 동심의 정점이 아니라 밀려 앉은 정점이 된다 → 큰 방의 무주 천장이 형태의 결론이 된다 → 한계: rise 0.7은 단위 폭 기준 1:3대의 배럴로 낙차가 단위 몸 안에서 끝나 받침 위 부유가 없고(vault_crowned_stack이 걸친 볼트로 낙제한 것의 반대), 받침에는 어떤 지붕 단어도 쓰지 않는다 — 정직한 상자는 정직하게 평평하다."
+    }
+   ]
+  },
+  {
+   "name": "daylight_twists_the_full_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "a tall body filled to the FAR ceiling that twists as it rises, drawing in and leaning street-ward off the northern daylight line - density pressed into a turned, offset taper",
+   "formal_principle": "과밀이 비튼다 — 상한까지 찬 몸이 북쪽 일조선에 눌려 오르며 좁아지고 돌며 가로 쪽으로 기울어, 규제의 압력이 잘려나간 자국이 아니라 몸 전체의 회전으로 남는다.",
+   "dominant_gesture": "눌려서 돌며 기우는 테이퍼",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.85,
+     "storeys": 7,
+     "why": "입력(압력): 250% 상한을 다 쓰려는 과업이 몸을 수직으로 민다 — 밀도가 밀고, 몸이 봉투 끝까지 차오른다 → extrude(square)가 상한 가까이 찬 7켜의 대지형 몸으로 태어난다 → 균질하게 찬 관 → 이 몸은 아직 일조선의 존재를 모른다 — 눌림은 다음 세 단어가 만든다 → 한계: 높이 0.85는 tall 문턱 0.72에서 멀고 storeys 7이 밴드 동사들에게 자를 켜를 준다(밴드 하나는 비틂이 아니다 — 켜 수가 곧 이 문장의 어휘다)."
+    },
+    {
+     "op": "twist",
+     "degrees": 42,
+     "why": "입력: 북쪽 이웃에게 진 일조 빚이 찬 몸의 위쪽을 민다 — 규제선이 밀고, 몸이 오르며 돌아서 물러난다 → twist(degrees 42)가 몸을 층 켜로 갈라 위로 갈수록 크게 돌린다 → 찬 몸의 모서리들이 나선의 능선이 되고, 어느 입면도 같은 얼굴이 아니게 된다 → 일조선이 깎는 자리를 몸이 먼저 돌아서 내주므로 규제의 잘림이 임의의 흉터가 아니라 회전의 일부로 읽힌다 → 한계: 42도는 5·90 안쪽이고, 비틂이 먼저다 — 테이퍼 뒤에 말하면 켜가 한 층 아래로 얇아져 이 단어가 침묵한다."
+    },
+    {
+     "op": "taper",
+     "ratio": 0.5,
+     "why": "입력: 일조선의 눌림은 위로 갈수록 세다 — 선이 누르고, 평면이 오르며 좁아진다 → taper(ratio 0.5)가 돌아가는 켜들을 높이에 비례해 절반까지 줄인다 → 찬 발치와 좁은 정상 사이의 원뿔형 나선 → 줄어든 상부가 돌 자리를 벌어 회전한 켜의 모서리가 대지 안에 남고, 용적의 무게는 빛이 허락하는 발치에 실린다 → 한계: 0.5는 0.3·0.95 안쪽의 극단에 가까운 값 — 미지근한 테이퍼는 잔여물로 읽힌다(BIG의 극단화); 정상은 반폭이라 관이 아니라 몸으로 남는다."
+    },
+    {
+     "op": "skew",
+     "degrees": 12,
+     "why": "입력: 일조선은 북쪽 한 방향에서만 민다 — 뒤가 밀고, 몸이 통째로 가로(열린면) 쪽으로 기운다 → skew(degrees 12)가 좁아지며 도는 몸을 수직에서 열린면 쪽으로 눕힌다 → 테이퍼가 동심의 원뿔이기를 그치고 축이 치우친 오프셋 테이퍼가 된다 — 동심 금지의 답이 이 기울기다 → 눌림의 방향(북에서 남서로)이 실루엣 한 줄에 남는다 → 한계: 12도는 ±45 안쪽의 얕은 기울기로, 기운 상부는 테이퍼가 벌어둔 대지 안 여유에 머물러 법규선이 먹지 않는다 — 발치는 서 있고 기울기는 위에서만 읽힌다."
+    }
+   ]
+  }
+ ]
+}

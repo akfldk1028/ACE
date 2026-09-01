@@ -187,15 +187,23 @@ def main() -> int:
     # sentence: rebuilding a base name fits the unspread form to the full
     # footprint and the cylinder bakes as a squat drum. The latest canon run
     # is the owner of which variant shows each type.
-    CANON_RUN = "ovs13-v2"
+    CANON_RUN = "ovs13-v4"
     canon_pick: dict[str, str] = {}
     canon_summary = ROOT / "runs" / CANON_RUN / "massv2-summary.json"
     if canon_summary.exists():
-        chosen = (json.loads(canon_summary.read_text(encoding="utf-8"))
-                  .get("selection") or {}).get("chosen_names") or []
-        for name in chosen:
-            sentence = name.split("~")[0].split("^")[0]
-            canon_pick.setdefault(sentence, name)
+        # Fallback only - the real representative is the eye's pick below.
+        # (The v3 detour proved the band IS the type's proportion: exempting
+        # the canon from coverage bands locked every exemplar to its plan-wide
+        # seed and the ridge flattened. Bands are back; the eye chooses which
+        # band reads as the type, stature-honest.)
+        for row in json.loads(canon_summary.read_text(encoding="utf-8"))["records"]:
+            if row.get("status") != "compiled" or                     (row.get("plausibility") or {}).get("reasons"):
+                continue
+            sentence = row["name"].split("~")[0].split("^")[0]
+            held = canon_pick.get(sentence)
+            if held is None or (row["name"].endswith("^centred")
+                                and not held.endswith("^centred")):
+                canon_pick[sentence] = row["name"]
     # Eye/typology overrides: the run's cell picks optimise coverage spread,
     # but a canon tile's job is to READ as its type - the tallest honest
     # cylinder, the steepest honest ridge. Recorded per sentence, stature-

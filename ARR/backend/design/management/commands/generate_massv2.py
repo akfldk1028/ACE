@@ -837,6 +837,13 @@ class Command(BaseCommand):
             # A composition is one thing; the ground it claims is another. Carry
             # each authored composition across the coverage axis so the grid
             # fills from the vocabulary rather than from more hand authoring.
+            # Canon sentences ride the coverage axis like everyone else: the
+            # sentences are born plan-wide by design ("대지형으로 태어난다") and
+            # the band is what buys the type its proportion - the standing
+            # cylinder was a 35%-band variant. Exempting the canon from bands
+            # locked every exemplar to the plan-wide seed and the ridge
+            # flattened; which band represents the type is the curator's rule,
+            # not the generator's.
             spread = [
                 variant
                 for form in list(forms)

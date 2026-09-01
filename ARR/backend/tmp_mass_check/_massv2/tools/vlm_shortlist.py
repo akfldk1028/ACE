@@ -35,7 +35,15 @@ def stage(run: str, count: int) -> int:
     out_name = f"vlm-{run}"
     make_tiles(run, str(count), out_name)
     out = ROOT / "runs" / out_name
-    prompt = json.loads((out / "prompts.json").read_text(encoding="utf-8"))["rubric"]
+    # The rubric matches the track: overseas rounds were being judged against
+    # the Korean 과업 and every verdict said 규모 과대 about a track that has
+    # no brief. Korea keeps "rubric"; overseas rounds use "rubric_overseas".
+    track = (json.loads((ROOT / "runs" / run / "massv2-summary.json")
+                        .read_text(encoding="utf-8"))
+             .get("provenance") or {}).get("track")
+    prompts = json.loads((out / "prompts.json").read_text(encoding="utf-8"))
+    prompt = prompts.get("rubric_overseas") if track != "korea" else None
+    prompt = prompt or prompts["rubric"]
     (out / "PROMPT.txt").write_text(
         "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
         + prompt, encoding="utf-8")

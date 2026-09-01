@@ -53,6 +53,9 @@ ROUNDS = [
     # Pilotis + wide-slab round (closed-loop r2): the lifted court ring
     # and the punched mat, seats won by jury after the canon row left.
     ("O", "runs/vlm-ovs17-en/vlm-shortlist.json", "shortlist"),
+    # The first round authored, revised and juried by massagent itself -
+    # three independent juror processes, anchor-corrected (drift -1.02).
+    ("O", "runs/vlm-agent01/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

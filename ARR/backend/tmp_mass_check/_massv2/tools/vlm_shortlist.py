@@ -118,13 +118,29 @@ def score(run: str, paths: list[str]) -> int:
     # curator already prefers `corrected` over `score`.
     deltas = [s - float(key[t]["anchor"])
               for s, t in ranked if key[t].get("anchor") is not None]
-    drift = statistics.mean(deltas) if deltas else 0.0
+    # Median, not mean: one wild anchor (a jury that simply dislikes one
+    # seated scheme) must not drag every candidate's correction with it -
+    # the mean once pushed a candidate to 5.04 on a 5-point scale.
+    drift = statistics.median(deltas) if deltas else 0.0
+    spread = (max(deltas) - min(deltas)) if deltas else 0.0
     if deltas:
-        print(f"   anchors {len(deltas)}, session drift {drift:+.2f}")
+        print(f"   anchors {len(deltas)}, session drift {drift:+.2f} (median), "
+              f"delta spread {spread:.2f}")
+    if spread > 1.0:
+        # No constant shift fits this jury. Applying one anyway once crowned a
+        # candidate at 5.04/5 over a champion the jury simply disliked. When
+        # the anchors cannot agree, do not shift: record raw (a harsh jury
+        # underrates everyone equally - conservative for seating) and flag the
+        # round so the curator and the next reader know the ruler slipped.
+        print("   WARNING: anchors disagree beyond any constant shift "
+              f"(spread {spread:.2f}) - recording RAW scores, no correction; "
+              "an eye check should confirm any board-top change.")
+        drift = 0.0
     result = [{
         "tile": t, "score": round(s, 2),
-        "corrected": round(s - drift, 2),
+        "corrected": round(min(5.0, max(1.0, s - drift)), 2),
         "pass": (s - drift) >= 3.0,
+        **({"anchor_spread": round(spread, 2)} if spread > 1.0 else {}),
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
         # Anchors calibrate the session; they are not contestants. Without
         # this flag the curator re-recorded each anchor's ride-corrected

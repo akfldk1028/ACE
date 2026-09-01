@@ -68,6 +68,39 @@ def main() -> int:
 
     curated = one_per_family(passers, key_of=key_of,
                              score_of=lambda item: item["score"])
+    # The family key is a partition of the LANGUAGE - opener, dominant verb,
+    # stature - and two sentences built from different words can still be one
+    # drawing: three court rings held three seats through three different
+    # openers. The eye pass records who reads as whom (a blind judge, tiles
+    # only, written to visual-groups.json as sentence names), and within a
+    # visual group only the best score keeps its seat. The doctrine is old:
+    # the cell final is judged by eyes.
+    visual = ROOT / "runs" / "board" / "visual-groups.json"
+    if visual.exists():
+        groups = json.loads(visual.read_text(encoding="utf-8"))["groups"]
+        group_of = {}
+        for i, names in enumerate(groups):
+            for name in names:
+                group_of[name.split("~")[0].split("^")[0]] = i
+        best_in_group: dict[tuple, dict] = {}
+        for item in curated:
+            sentence = item["name"].split("~")[0].split("^")[0]
+            gid = group_of.get(sentence)
+            if gid is None:
+                continue
+            key = (item["track"], gid)
+            held = best_in_group.get(key)
+            if held is None or item["score"] > held["score"]:
+                best_in_group[key] = item
+        kept_ids = {id(v) for v in best_in_group.values()}
+        dropped = [
+            item for item in curated
+            if group_of.get(item["name"].split("~")[0].split("^")[0]) is not None
+            and id(item) not in kept_ids
+        ]
+        for item in dropped:
+            print(f"  eye-merged out: {item['name'][:48]} ({item['score']:.2f})")
+        curated = [item for item in curated if id(item) not in {id(d) for d in dropped}]
     board = []
     counters = {"K": 0, "O": 0}
     for track in ("K", "O"):

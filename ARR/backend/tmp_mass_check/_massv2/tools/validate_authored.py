@@ -4,36 +4,60 @@ A generator plus a sound verifier is the part of LLM-Modulo that pays; the
 critique loop is the part that does not. So this refuses, it does not advise.
 """
 
+import inspect
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
 
-VERBS = {
-    "extrude":   {"height", "profile"},
-    "split":     {"ratio", "along", "first", "second", "contrast", "gap", "on", "profile"},
-    "stack":     {"n", "contrast", "align", "height", "grow", "on", "profile"},
-    "aggregate": {"n", "spread", "height", "tie", "on", "profile"},
-    "loop":      {"bar", "height", "step", "on", "profile"},
-    "shear":     {"ratio", "toward", "on"},
-    "taper":     {"ratio", "on"},
-    "lift":      {"clearance", "on"},
-    "carve":     {"size", "at", "reach", "on"},
-    # The book's operations that arrived with `ops/affine.py` and the executor's
-    # subtractive and swept families. Kept in step with `execute._VERBS` by the
-    # test below - they had drifted once already, which is how an authoring
-    # agent hit a `tie` floor the executor no longer had.
-    "notch":     {"size", "at", "on"},
-    "puncture":  {"size", "n", "on"},
-    "rotate":    {"degrees", "on"},
-    "skew":      {"degrees", "toward", "on"},
-    "twist":     {"degrees", "on"},
-    "shift":     {"ratio", "toward", "on"},
-    "offset":    {"ratio", "toward", "on"},
-    "expand":    {"ratio", "toward", "on"},
-    "compress":  {"ratio", "toward", "on"},
-    "inflate":   {"ratio", "on"},
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
+# The verb list drifted from the executor twice: once an authoring agent hit
+# a `tie` floor the executor no longer had, and once this file refused seven
+# real words (gable, vault, canopy, lodge, nest, branch, mansard) and the
+# whole stack-method parameter set - a hand-copied enumeration is exactly
+# what the one-owner rule exists to prevent. So the owner answers directly:
+# verbs come from `execute._VERBS`, and each verb's parameters are read out
+# of its own source (`op.params.get("...")`). The old hand table survives
+# only as a union for helpers this scan cannot see into.
+_HAND_PARAMS = {
+    "extrude":   {"height"},
+    "split":     {"ratio", "along", "first", "second", "contrast", "gap"},
+    "stack":     {"n", "contrast", "align", "height", "grow"},
+    "aggregate": {"n", "spread", "height", "tie"},
+    "loop":      {"bar", "height", "step"},
+    "shear":     {"ratio", "toward"},
+    "taper":     {"ratio"},
+    "lift":      {"clearance"},
+    "carve":     {"size", "at", "reach"},
+    "notch":     {"size", "at"},
+    "puncture":  {"size", "n"},
+    "rotate":    {"degrees"}, "skew": {"degrees", "toward"},
+    "twist":     {"degrees"}, "shift": {"ratio", "toward"},
+    "offset":    {"ratio", "toward"}, "expand": {"ratio", "toward"},
+    "compress":  {"ratio", "toward"}, "inflate": {"ratio"},
 }
+# Read by the frame, the parser or the grid on ANY op: target, regulating
+# pivot, plan family, declared stature (the grid stamps `storeys` as
+# declared stature whatever the verb - the declared-storeys exemption).
+_UNIVERSAL = {"on", "about", "profile", "storeys"}
+
+
+def _derived_verbs() -> dict:
+    from design.maas.massv2.execute import _VERBS
+    table = {}
+    for verb, fn in _VERBS.items():
+        try:
+            source = inspect.getsource(fn)
+        except (OSError, TypeError):
+            source = ""
+        params = set(re.findall(r'params\.get\(\s*"([a-z_]+)"', source))
+        table[verb] = params | _HAND_PARAMS.get(verb, set()) | _UNIVERSAL
+    return table
+
+
+VERBS = _derived_verbs()
 PROFILES = {"square", "oval", "stadium", "hexagon", "chamfered", "faceted",
             "trapezoidal", "triangular", "kite", "concave_l"}
 LANGUAGES = {"solid_body", "carved_body", "open_figure", "porous_field"}
@@ -44,7 +68,7 @@ RANGES = {
     # Inujima Art Houses have none, and the executor allows it since the
     # field cap was lifted. The validator was still refusing it.
     "tie": (0.0, 0.4), "step": (0.4, 1.0),
-    "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.05, 0.4),
+    "size": (0.1, 0.7), "reach": (0.0, 1.0), "clearance": (0.1, 0.4),
     "degrees": (-90.0, 90.0),
     # `gap` is a multiplier of JOINT_CLEARANCE_M (0.76 m) and the executor
     # does not clamp it. 9 is 6.8 m, which is a courtyard between two bodies
@@ -115,6 +139,12 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
             for key, (lo, hi) in RANGES.items():
                 if key in op and isinstance(op[key], (int, float)):
                     lo, hi = PER_VERB_RANGES.get((verb, key), (lo, hi))
+                    if (verb, key) == ("aggregate", "spread") and \
+                            str(op.get("method") or "") == "stack":
+                        # The stack branch uses spread as its size fan and
+                        # 1.0 (no fan) is legal there; the 1.05 floor is the
+                        # pack branch's spacing rule.
+                        lo = 1.0
                     if not lo <= op[key] <= hi:
                         faults.append(f"{name} op{index} ({verb}): {key}={op[key]} "
                                       f"outside {lo}..{hi}")

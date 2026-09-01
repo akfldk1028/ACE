@@ -1,0 +1,212 @@
+{
+  "schemes": [
+    {
+      "name": "oval_ring_one_risen_hall",
+      "primary_language": "open_figure",
+      "secondary_language": "a tall oval circuit of rooms around one court, with a single hall nested in the open-face bar rising turned above the crown",
+      "formal_principle": "높은 타원 회로는 모든 층을 마당에 등가로 묶지만, 열린면 바에 포갠 홀 하나만 관 위로 솟아 돌아서 — 회로의 위계는 높이가 아니라 그 하나의 솟음으로 읽힌다.",
+      "dominant_gesture": "타원 회로 위로 솟은 돌아선 홀",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "oval",
+          "bar": 0.24,
+          "height": 0.85,
+          "storeys": 8,
+          "why": "입력: 반복 프로그램(객실·연구실)을 마당 하나에 감아올리는 요구 → loop(oval, bar 0.24)가 타원 궤도를 도는 네 바를 0.85 높이로 세운다 → 마당이 바닥이 아니라 회로 전체의 중심이 되는 높은 링 → 모든 층이 마당과 바깥을 동시에 얻는 등가의 단면 → 한계: bar 0.24로 채광 두 겹 깊이에서 멈추고, 높이 0.85는 tall 선언으로 문턱 0.72에서 여유 있게 떨어져 있다."
+        },
+        {
+          "op": "nest",
+          "on": "bar_n",
+          "size": 0.4,
+          "proud": 0.4,
+          "turn": 18,
+          "why": "입력: 등가 회로에 필요한 단 하나의 위계(공용 홀)와 열린면의 축 → nest(on bar_n)가 열린면 쪽 바 안에 포갠 홀을 관 위로 0.4만큼 밀어 올리고 18° 돌려 세운다 → 균질한 타원 실루엣 위에 사건이 하나 생겨 링의 어디가 도시를 향하는지 정수리가 말한다 → 홀이 마당과 도시 양쪽을 향한 회로의 머리가 된다 → 한계: proud 0.4로 링이 주인으로 남고, 관계 비율은 전부 침묵 바닥 0.15 위(트랩 11), 지배 무브는 이 관계 하나뿐이다."
+        }
+      ]
+    },
+    {
+      "name": "cut_open_cloister",
+      "primary_language": "open_figure",
+      "secondary_language": "a low concave-L cloister ring whose street-facing bar is severed full-height, the court spilling out as a public yard",
+      "formal_principle": "낮은 회랑은 마당을 돌아 소유하지만, 자름 하나가 열린면 바를 전 높이로 끊어 회로가 C자가 된다 — 마당의 개방은 들림도 틈도 아닌 절단으로 이루어진다.",
+      "dominant_gesture": "한 바가 끊긴 회랑",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "concave_l",
+          "bar": 0.26,
+          "height": 0.3,
+          "step": 0.8,
+          "storeys": 2,
+          "why": "입력: 저층 마당형 공공 프로그램(도서·복지)과 요철진 필지 → loop(concave_l)가 오목한 L 궤도를 도는 2층 회랑으로 태어난다 → 마당이 평면의 중심 사건이 되고 오목부가 진입 마당의 예비가 된다 → 모든 실이 마당과 바깥 양쪽을 본다 → 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있고, step 0.8로 두 바가 낮아져 절단 전부터 실루엣이 비대칭이다."
+        },
+        {
+          "op": "carve",
+          "at": "open",
+          "size": 0.35,
+          "reach": 0.85,
+          "why": "입력: 닫힌 중정의 사유화 우려와 열린면 가로 → carve(at open, reach 0.85)가 열린면 쪽 바 하나를 전 높이로 끊는다 → 링이 평면에서 C자가 되어 마당이 도시로 이어지는 마당-길이 된다 → 개방이 들림(피로티)이 아니라 절단으로 이루어져 끊긴 두 단부가 문설주처럼 마주 선다 → 한계: 자름은 바 하나에서 멈춰 나머지 세 바의 회로는 유지되고, 틈을 선언하지 않으므로 gap 게이트와 무관하다(트랩 1 회피)."
+        }
+      ]
+    },
+    {
+      "name": "stadium_ring_one_brim",
+      "primary_language": "open_figure",
+      "secondary_language": "a mid-rise stadium-plan ring whose four bars are bound into one figure by a single brim at the crown",
+      "formal_principle": "네 바가 스타디움 궤도를 돌지만 회로를 완성하는 것은 몸이 아니라 관의 처마선 한 겹이다 — 판이 네 바를 한 건물로 묶고 열린면에서 깊어져 문이 된다.",
+      "dominant_gesture": "관을 묶는 한 겹의 챙",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.9,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "stadium",
+          "bar": 0.24,
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 마당을 도는 중층 프로그램(기숙·오피스)과 트랙형 필지 → loop(stadium)가 모서리를 죽인 궤도의 네 바를 0.55 높이로 세운다 → 각진 링이 아니라 도는 링 — 곡률이 회로의 연속을 평면에서 말한다 → 모든 실이 마당과 바깥을 얻는다 → 한계: 높이 0.55는 mid 선언으로 0.42와 0.72 양쪽 문턱에서 여유가 있고, 몸은 대칭으로 멈춰 방향은 판이 말한다."
+        },
+        {
+          "op": "canopy",
+          "reach": 0.28,
+          "at": 1.0,
+          "toward": "open",
+          "why": "입력: 네 바로 나뉜 몸을 하나로 읽게 할 요소와 진입의 방향 → canopy(at 1.0)가 층고보다 얇은 판으로 관 가장자리를 물고 열린면으로 내민다 → 지붕선이 몸 밖으로 연장되어 실루엣의 상단이 한 획이 되고, 깊어진 쪽이 문이 된다 → 방이 아님을 스스로 선언해(occupiable=False) 방 게이트를 면제받고 처마·차양으로 산다 → 한계: reach 0.28은 구조 게이트 역산 상한 0.40 아래의 실측 통과값이다(트랩 8)."
+        }
+      ]
+    },
+    {
+      "name": "kite_cloister_unequal_eaves",
+      "primary_language": "open_figure",
+      "secondary_language": "a low kite-plan cloister whose bars carry saltbox roofs, the long low eave meeting the neighbours and the short high face addressing the court",
+      "formal_principle": "연은 방향을 가진 도형이다 — 카이트 평면의 낮은 링이 능선을 한쪽으로 민 saltbox 단면을 이고, 긴 경사는 이웃으로 낮게 닿고 짧은 높은 면은 마당을 정면으로 받아 회랑의 안팎이 단면으로 구분된다.",
+      "dominant_gesture": "능선이 밀린 지붕을 인 회랑",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.2,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "kite",
+          "bar": 0.26,
+          "height": 0.3,
+          "storeys": 2,
+          "why": "입력: 마당을 도는 저층 프로그램(공방·교실)과 한 점을 향해 좁아지는 필지 → loop(kite)가 방향 있는 사변형 궤도의 2층 회랑으로 태어난다 → 카이트의 꼭짓점이 링에 앞뒤를 주어 궤도 자체가 어디로 여는 도형인지 말한다 → 모든 실이 마당과 바깥을 본다 → 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있고, 단면의 사건은 다음 단어가 만든다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.7,
+          "at": 0.3,
+          "along": "long",
+          "bays": 1,
+          "why": "입력: 이웃 저층 스케일과 마당의 정면성이라는 두 요구 → gable(at 0.3)이 각 바의 용마루를 한쪽으로 밀어 같은 경사의 두 면을 불균등하게 나눈다 → 긴 run의 처마가 낮게 내려앉고 짧은 run의 면이 높게 서는 saltbox 단면 → 낮은 처마는 바깥의 이웃에게, 높은 면은 마당에게 — 회랑의 안팎이 단면 하나로 위계를 얻는다 → 한계: pitch 0.7의 낙차는 1.5층 캡 안이고 바는 한 실 깊이라 면당 run이 짧아 경사가 실제로 읽히며(단면 저작 규칙 1), 틈을 선언하지 않으므로 gable의 발자국 확장은 무해하다(트랩 4)."
+        }
+      ]
+    },
+    {
+      "name": "triangle_one_brim",
+      "primary_language": "solid_body",
+      "secondary_language": "a low triangular hall whose single deep brim reaches out on one face only, completing the plan's own direction",
+      "formal_principle": "삼각 평면은 이미 방향이다 — 낮은 몸의 처마는 사방이 아니라 열린면 한쪽으로만 깊어져, 도형이 가리키던 곳을 판 한 장이 마저 가리킨다.",
+      "dominant_gesture": "한 면으로만 깊어진 처마",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "triangular",
+          "height": 0.3,
+          "storeys": 2,
+          "why": "입력: 한 방으로 읽히는 저층 공공 홀(집회·전시)과 세 가로에 면한 필지 → extrude(triangular)가 세 변이 서로 다른 2층 홀로 태어난다 → 정면이 셋이 아니라 하나임을 평면의 예각이 미리 말한다 → 무주 홀이 균질한 깊이를 얻는다 → 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있고, 몸은 침묵하며 방향의 완성은 판에 맡긴다."
+        },
+        {
+          "op": "canopy",
+          "reach": 0.28,
+          "at": 1.0,
+          "toward": "open",
+          "why": "입력: 삼각형의 지향을 건축 요소로 확정할 요구 → canopy(at 1.0, toward open)가 열린면 한 변에서만 지붕선을 밖으로 내민다 → 사방 처마의 등방성이 아니라 한 방향의 깊은 챙 — 평면의 화살표가 단면의 그늘로 번역된다 → 챙 아래가 진입 마당의 그늘이 되어 문의 위치를 캡션 없이 말한다 → 한계: reach 0.28은 구조 게이트 역산 상한 0.40 아래의 실측 통과값(트랩 8)이고, 판은 이 한 변에서 멈춰 다른 두 변은 맨 처마선으로 남는다."
+        }
+      ]
+    },
+    {
+      "name": "hexagon_waist_plate",
+      "primary_language": "solid_body",
+      "secondary_language": "a mid-rise hexagonal body stratified by one thin plate at its waist, plinth below and quiet crown above, with no cut anywhere",
+      "formal_principle": "판 한 장이 자름 없이 중층 몸을 기단과 관으로 나눈다 — 허리의 얇은 수평선이 아래의 공공과 위의 정주를 구분하는 유일한 사건이다.",
+      "dominant_gesture": "허리에 두른 얇은 판",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 4.0,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "hexagon",
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 아래는 공공(로비·상가), 위는 정주(사무·주거)로 갈리는 중층 프로그램 → extrude(hexagon)가 여섯 면의 4층 몸으로 태어난다 → 어느 가로에도 등을 대지 않는 다면의 몸 → 각 면이 제 가로를 받는다 → 한계: 높이 0.55는 mid 선언으로 양쪽 문턱(0.42·0.72)에서 여유가 있고, 프로그램의 구분은 몸이 아니라 판이 말한다."
+        },
+        {
+          "op": "canopy",
+          "reach": 0.25,
+          "at": 0.5,
+          "toward": "open",
+          "why": "입력: 두 프로그램의 경계를 자름 없이 말할 요구 → canopy(at 0.5)가 몸의 허리에서 층고보다 얇은 판을 열린면으로 내민다 → 수평선 하나가 몸을 기단과 관으로 층화하고, 판 위는 관의 테라스·판 아래는 기단의 차양이 된다 → 절단·후퇴 없이 두께의 대비만으로 프로그램 경계가 입면에 선다 → 한계: reach 0.25는 상한 0.40 아래 실측 통과선(0.28) 안쪽(트랩 8)이고, 사건은 이 한 선뿐이라 몸의 침묵이 유지된다."
+        }
+      ]
+    },
+    {
+      "name": "faceted_rampart_ring",
+      "primary_language": "open_figure",
+      "secondary_language": "a low faceted ring whose bars batter inward as they rise, the court widening to the sky like the inside of a crater",
+      "formal_principle": "낮은 링이 오르며 제 평면을 안으로 거두어 성벽의 경사(batter)를 얻는다 — 지붕도 자름도 없이 몸의 변주만으로 링이 지형이 되고, 마당은 위로 갈수록 넓게 하늘을 받는다.",
+      "dominant_gesture": "안으로 기운 성벽의 링",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "faceted",
+          "bar": 0.28,
+          "height": 0.32,
+          "storeys": 2,
+          "why": "입력: 마당을 도는 저층 프로그램(수련·전시)과 바람 많은 개활지 → loop(faceted)가 다면 궤도의 2층 링으로 태어난다 → 꺾인 궤도가 링에 결정질의 바깥 면들을 준다 → 마당이 바람에서 지켜지는 안이 된다 → 한계: 높이 0.32는 low 선언으로 문턱 0.42 아래 여유가 있고, bar 0.28은 채광 두 겹 깊이 안이다."
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "why": "입력: 벽으로 서는 링과 하늘로 여는 마당의 동시 요구 → taper(0.55)가 각 바의 평면을 오르며 제 중심으로 거둔다 → 수직의 벽이 아니라 기운 성벽 — 바깥은 물러나는 경사로 이웃에 눕고, 안은 마당이 위로 갈수록 넓어져 분화구의 단면이 된다 → 지붕 어휘 없이 실루엣의 상단이 경사로 설계되고(규범 7), 극단의 비율 0.55가 이 변주를 잔여물이 아닌 논지로 만든다 → 한계: 재배치 동사의 단독 주연 금지(규범 1)를 알며 쓴다 — 이 문장의 위상 사건은 taper 자체가 만드는 지형화이고, 오프너는 이미 faceted 도형이며, 비율은 침묵 바닥 0.15에서 멀다(트랩 11)."
+        }
+      ]
+    },
+    {
+      "name": "tall_ring_city_arch",
+      "primary_language": "open_figure",
+      "secondary_language": "a tall square ring holding its court to the sky, its ground arched clean through so the city passes beneath the completed circuit",
+      "formal_principle": "높은 정방 링은 마당을 하늘로 들고 회로를 공중에서 완결한다 — 지상은 관통 아치가 열린면에서 반대편까지 뚫어 길이 되고, 아치가 설 수 있는 이유는 하중이 네 바의 회로로 되돌아가기 때문이다.",
+      "dominant_gesture": "회로 아래를 관통하는 아치",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "loop",
+          "profile": "square",
+          "bar": 0.24,
+          "height": 0.85,
+          "storeys": 7,
+          "why": "입력: 고밀 프로그램과 마당을 포기하지 않겠다는 요구 → loop(square)가 정방 궤도의 네 바를 0.85 높이로 세운다 → 마당이 지상의 잔여가 아니라 수직으로 들린 회로의 중심이 된다 → 모든 층이 마당을 공유한다 → 한계: 높이 0.85는 tall 선언으로 문턱 0.72에서 여유가 있고, bar 0.24로 네 바 전부 채광 두 겹 깊이 안이다."
+        },
+        {
+          "op": "carve",
+          "at": "open",
+          "size": 0.28,
+          "up_to": 0.5,
+          "through": true,
+          "why": "입력: 링이 막아서는 지상의 흐름과 열린면-반대편을 잇는 보행축 → carve(up_to 0.5, through)가 선 몸의 아래 절반만을 열린면에서 반대편까지 관통해 뽑아낸다 → 위는 온전한 회로, 아래는 두 다리와 공중의 귀환부 — 도시가 건물 밑을 지나가는 문이 된다 → 절단이 회로를 끊지 않기에 아치가 넓을 수 있다: 하중은 남은 네 바의 링으로 되돌아간다 → 한계: up_to 0.5로 자름은 선 높이의 절반에서 멈춰 상부 회로가 무손상이고, 틈이 아니라 자름으로 말하므로 gap 게이트와 무관하다(트랩 1 회피)."
+        }
+      ]
+    }
+  ]
+}

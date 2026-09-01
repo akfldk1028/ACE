@@ -1,0 +1,218 @@
+{
+ "schemes": [
+  {
+   "name": "kite_prow_gable_pile",
+   "primary_language": "solid_body",
+   "secondary_language": "a tapering pile of kite-plan floors crowned by one saltbox gable aimed at the corner",
+   "formal_principle": "평면의 뱃머리와 지붕의 용마루가 같은 모서리를 겨눈다 — 줄어드는 세 켜의 더미가 연 평면으로 교차로를 향해 뾰족해지고, 꼭대기의 밀린 박공이 그 방향을 실루엣으로 반복한다.",
+   "dominant_gesture": "모서리를 겨누는 더미와 밀린 박공",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.5,
+     "height": 0.6,
+     "profile": "kite",
+     "why": "두 가로가 만나는 모서리 대지의 프로그램(입력)→stack에 kite 프로파일(연산자)→모서리로 뾰족한 연 평면의 세 켜가 위로 갈수록 줄며 쌓인다(변형)→평면의 뱃머리가 교차점을 겨누고 물러섬이 각 켜에 테라스를 남긴다(기능)→height 0.6·n 3으로 켜당 높이가 한 볼륨 층수 상한(§9, 12.5m) 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.8,
+     "along": "long",
+     "at": 0.3,
+     "why": "평지붕 더미는 방향 없는 잔여물(입력)→gable at 0.3(연산자)→용마루가 뱃머리 쪽으로 밀린 saltbox 경사가 줄어든 꼭대기 켜에 선다(변형)→지붕의 방향이 평면의 방향과 같은 곳을 가리켜 실루엣만으로도 모서리가 읽힌다(기능)→낙차는 1.5층 캡 안, 틈을 선언하지 않은 문장이라 박공의 발자국 확장이 거짓을 만들지 않는다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "lodged_bar_drum",
+   "primary_language": "solid_body",
+   "secondary_language": "a low stadium-plan drum with one bar lodged across its roof, overhanging both sides",
+   "formal_principle": "얹힘이 곧 결합이다 — 낮은 스타디움 더미는 대지에 눕고, 그 지붕에 가로걸친 바 하나가 양쪽으로 내밀며 둥근 몸과 곧은 바가 한 몸으로 읽힌다.",
+   "dominant_gesture": "둥근 더미 위에 걸쳐진 곧은 바",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 4.0,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.3,
+     "height": 0.34,
+     "profile": "stadium",
+     "why": "넓은 저층 프로그램(입력)→stack에 stadium 프로파일(연산자)→둥근 양단의 낮은 두 켜가 대지에 눕는다(변형)→곡면 둘레가 사방 어디서나 같은 얼굴을 주고 낮음이 위에 얹힐 바의 배경이 된다(기능)→height 0.34로 low 자세를 선언하고 멈춘다(한계)."
+    },
+    {
+     "op": "lodge",
+     "size": 0.45,
+     "over": 0.3,
+     "height": 0.6,
+     "at": 0.5,
+     "why": "더미 혼자로는 방향이 없다(입력)→lodge(연산자)→호스트 지붕 중앙(at 0.5)에 걸쳐진 바가 둥근 둘레 밖으로 양쪽 0.3씩 내민다(변형)→곧음과 둥긂의 대비가 한 몸에서 만나고 내민 밑면이 두 진입의 처마가 된다(기능)→size 0.45·over 0.3 모두 관계 비율 바닥 0.15 위, 내밈은 구조 게이트가 심판하는 안쪽에서 멈춘다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "hex_pile_on_air",
+   "primary_language": "open_figure",
+   "secondary_language": "a hexagonal band pile whose ground storey is lifted clear, six corners over open ground",
+   "formal_principle": "무거운 더미일수록 첫 켜는 비워야 한다 — 여섯 모서리의 세 켜가 한 층을 들려 지상을 여섯 방향의 통로로 내주고, 공중에서 시작하는 무게가 들림의 이유를 증명한다.",
+   "dominant_gesture": "들린 육각 더미 밑의 관통 지상",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.8,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.4,
+     "height": 0.55,
+     "profile": "hexagon",
+     "why": "어느 가로에도 등을 돌릴 수 없는 내부 블록 대지(입력)→stack에 hexagon 프로파일(연산자)→여섯 변의 세 켜가 줄며 쌓인다(변형)→정면 없는 평면이 여섯 방향 모두에 같은 값의 얼굴을 준다(기능)→height 0.55·n 3으로 켜당 높이가 §9 상한 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.25,
+     "why": "중앙에 선 더미는 지상 동선을 여섯 갈래로 끊는다(입력)→lift(연산자)→첫 켜가 한 층 높이만큼 들려 지상이 트인다(변형)→여섯 변 어느 쪽에서 와도 밑을 지나 반대편으로 나갈 수 있고, 들린 밑면의 그늘이 유일한 지상 공간이 된다(기능)→clearance 1.0 한 층에서 멈춰 더미의 무게감이 상실되지 않는다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "pierced_l_pile",
+   "primary_language": "carved_body",
+   "secondary_language": "four staggered L-plan units pierced twice, daylight passing through the stagger",
+   "formal_principle": "엇쌓인 더미는 벽이 되기 쉽다 — 오목한 L 평면의 네 단이 어긋나며 쌓인 몸통을 두 개의 관통 보이드가 꿰뚫어, 덩어리의 무게와 도시의 시선이 한 몸에 산다.",
+   "dominant_gesture": "엇쌓인 벽을 꿰뚫는 두 구멍",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.5,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "method": "stack",
+     "unit": "slab",
+     "storeys": 2,
+     "height": 0.6,
+     "turn": 14,
+     "tie": 0.25,
+     "spread": 1.0,
+     "profile": "concave_l",
+     "why": "단 단위로 나뉘는 프로그램(입력)→aggregate method stack에 concave_l 프로파일(연산자)→오목한 L 평면의 2층 단위 넷이 층마다 부호를 바꿔 돌며 엇쌓인다(변형)→L의 오목면이 단마다 다른 쪽 하늘을 물고 어긋남이 테라스를 남긴다(기능)→storeys 2 선언으로 단위가 사람 크기를 얻고 turn 14도에서 멈춰 지상층 고정을 지킨다(한계)."
+    },
+    {
+     "op": "puncture",
+     "n": 2,
+     "size": 0.22,
+     "why": "엇쌓여도 몸통은 여전히 긴 벽이다(입력)→puncture(연산자)→몸통을 관통하는 보이드 둘이 뚫린다(변형)→벽 너머의 하늘과 시선이 구멍으로 지나가 덩어리가 도시를 막지 않고, 뚫린 자리가 공중 마당이 된다(기능)→size 0.22는 비율 바닥 0.15 위의 여유, n 2에서 멈춰 다공체로 무너지지 않는다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "belted_oval_pile",
+   "primary_language": "solid_body",
+   "secondary_language": "an oval band tower wearing one thin plate at its waist where the pile steps back",
+   "formal_principle": "줄어드는 더미의 물러섬은 한 번이면 충분하고, 그 한 번을 판이 새긴다 — 오벌 탑의 허리에 두른 얇은 판이 아래의 몸과 위의 몸을 나누는 수평 기준선이다.",
+   "dominant_gesture": "탑의 허리에 두른 한 장의 띠",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.4,
+     "height": 0.58,
+     "profile": "oval",
+     "why": "모서리 없는 몸이 필요한 독립 필지(입력)→stack에 oval 프로파일(연산자)→타원 평면의 세 켜가 줄며 쌓인다(변형)→곡면 둘레가 방위 없이 서고 contrast 1.4의 물러섬이 허리를 만든다(기능)→height 0.58·n 3으로 켜당 높이가 §9 상한 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 0.65,
+     "why": "물러섬은 실루엣에서 잘 안 읽히는 얇은 사건(입력)→canopy at 0.65(연산자)→층고보다 얇은 판이 허리 높이의 둘레를 물고 사방으로 내민다(변형)→어느 시점에서도 탑은 띠 아래의 넓은 몸과 띠 위의 좁은 몸으로 읽히고 띠 밑이 중간층 테라스의 처마가 된다(기능)→방 아님을 스스로 선언해 방 게이트 면제, reach 0.28은 상한 0.40 아래의 실측 통과값(한계)."
+    }
+   ]
+  },
+  {
+   "name": "vault_crowned_stack",
+   "primary_language": "solid_body",
+   "secondary_language": "three staggered triangular slabs; only the topmost becomes a vaulted hall",
+   "formal_principle": "더미는 방을 들어 올리기 위한 기단이다 — 엇쌓인 세 단 가운데 맨 위 단만 볼트를 인 홀이 되어, 쌓음의 목적이 꼭대기의 빛 한 칸으로 끝난다.",
+   "dominant_gesture": "더미 꼭대기의 볼트 홀 한 칸",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 4.2,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "method": "stack",
+     "unit": "slab",
+     "storeys": 2,
+     "height": 0.62,
+     "turn": 16,
+     "tie": 0.2,
+     "spread": 1.0,
+     "profile": "triangular",
+     "why": "기단과 홀로 나뉘는 프로그램(입력)→aggregate method stack에 triangular 프로파일(연산자)→세모 평면의 2층 단위 셋이 층마다 부호를 바꿔 돌며 쌓인다(변형)→아래 두 단이 기단이 되고 어긋남의 테라스가 홀로 오르는 길이 된다(기능)→storeys 2로 단위 크기를 선언하고 turn 16도에서 멈춘다(한계)."
+    },
+    {
+     "op": "vault",
+     "rise": 0.8,
+     "along": "long",
+     "on": "object_2",
+     "why": "모든 단이 지붕을 이면 위계가 없다(입력)→vault를 맨 위 단에만(연산자)→마지막 단의 윗면이 긴 축을 따라 배럴 호가 된다(변형)→더미의 끝이 빛을 받는 홀 한 칸으로 선언되어 실루엣의 상단이 곡선 하나로 끝난다(기능)→on: object_2 한 곳만, 낙차는 1.5층 캡 안에서 정확히 그려진다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "turned_chamfer_stack",
+   "primary_language": "solid_body",
+   "secondary_language": "three low chamfered bands, each turned a little further, eight corners out of phase",
+   "formal_principle": "낮은 더미의 사건은 모서리에 있다 — 접힌 모서리의 세 켜가 켜마다 조금씩 더 돌아서며, 어긋난 모서리들이 톱니로 겹쳐 두 가로 모두에 정면을 준다.",
+   "dominant_gesture": "켜마다 돌아서는 접힌 모서리",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.5,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.25,
+     "height": 0.38,
+     "profile": "chamfered",
+     "why": "두 가로의 방위가 어긋난 대지의 저층 프로그램(입력)→stack에 chamfered 프로파일(연산자)→모서리 접힌 낮은 세 켜가 완만히 줄며 쌓인다(변형)→접힌 모서리가 회전을 잴 자가 되고 낮음이 회전을 지붕선 사건으로 만든다(기능)→height 0.38로 low 자세 선언, contrast 1.25로 켜 구분만 남기고 멈춘다(한계)."
+    },
+    {
+     "op": "twist",
+     "degrees": 30,
+     "why": "평행한 켜들은 한 방위밖에 못 가진다(입력)→twist(연산자)→세 켜가 누적 30도까지 켜마다 조금씩 더 돌아선다(변형)→아래 켜는 한 가로에, 위 켜는 다른 가로에 평행해져 어긋난 모서리들이 사방 실루엣에서 톱니로 읽힌다(기능)→밴드 셋 위의 회전이라 rotate로 퇴화하지 않고, 틈을 선언하지 않은 문장이라 회전이 닫을 틈도 없다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "court_bitten_slab_pile",
+   "primary_language": "carved_body",
+   "secondary_language": "a low square two-band pile with one deep side-cut pulling a court into the body",
+   "formal_principle": "자름은 문이 아니라 방이다 — 낮고 무거운 정방 더미의 한 변에서 파고든 깊은 자름 하나가 바깥 마당을 몸 안으로 들이고, 남은 ㄷ자의 무게가 그 마당을 지킨다.",
+   "dominant_gesture": "한 변에서 파고든 깊은 마당",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.8,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.5,
+     "height": 0.34,
+     "profile": "square",
+     "why": "조용한 저층 블록 프로그램(입력)→stack에 square 프로파일(연산자)→정방 평면의 두 켜가 위 켜만 크게 줄며 쌓인다(변형)→무겁고 말 없는 몸이 자름 한 수의 배경이 된다(기능)→height 0.34로 low 자세 선언, n 2로 켜당 높이가 §9 상한 안(한계)."
+    },
+    {
+     "op": "carve",
+     "size": 0.38,
+     "at": "cross",
+     "reach": 0.6,
+     "through": false,
+     "why": "닫힌 정방은 마당이 없다(입력)→carve(연산자)→짧은 축 한 변에서 깊이 0.6까지 파고드는 자름이 두 켜를 함께 비운다(변형)→바깥 지면이 몸 안까지 이어지는 외부 방이 되고 ㄷ자로 남은 몸이 삼면에서 그 방을 감싼다(기능)→size 0.38은 비율 바닥 0.15 위, through 없이 0.6에서 멈춰 등 쪽 한 켜의 두께를 지킨다(한계)."
+    }
+   ]
+  }
+ ]
+}

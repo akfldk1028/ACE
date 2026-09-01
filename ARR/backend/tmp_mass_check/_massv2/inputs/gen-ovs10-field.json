@@ -1,0 +1,261 @@
+{
+  "schemes": [
+    {
+      "name": "woven_ground_village",
+      "primary_language": "porous_field",
+      "secondary_language": "a low village where every second room floats and the paths run beneath",
+      "formal_principle": "마을의 절반만 땅에 앉고 절반은 들려서, 앉은 방이 마당을 지키고 들린 방 밑으로 땅의 길이 꿰어 이어진다 — 통째로 들지 않고 격자로 들어야 길과 마당이 서로를 만든다.",
+      "dominant_gesture": "번갈아 들린 낮은 방들 밑을 꿰는 길",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.0,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.6,
+          "height": 0.3,
+          "tie": 0.08,
+          "turn": 15,
+          "method": "pack",
+          "storeys": 2,
+          "profile": "stadium",
+          "why": "저층 프로그램을 방 여섯으로 흩는다(입력) → aggregate pack(연산자) → 2층짜리 스타디움 평면 단위들이 저마다 조금씩 돌아앉아 마당을 사이에 두고 정착한다(변형) → 각 방이 자기 마당과 사면 채광을 얻고 절반을 들 준비가 된다(기능) → height 0.30은 낮음의 선언이고 spread 1.6이 법규선 안쪽 여유를 남기는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.4,
+          "on": "object_1",
+          "why": "정착한 여섯 방 중 둘째 자리(입력) → lift(연산자) → 한 채가 기둥 위로 들려 바닥이 비워진다(변형) → 앉은 이웃의 마당에서 들린 방 밑을 지나 다음 마당으로 땅의 길이 이어진다(기능) → clearance 0.4는 사람이 지나는 한 켜 높이에서 멈추고 침묵 바닥 0.15 위(한계)."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.4,
+          "on": "object_3",
+          "why": "넷째 자리 방(입력) → lift(연산자) → 마을 한가운데의 한 채가 들린다(변형) → 두 갈래 길이 마을 중심에서 교차할 수 있게 되고, 들림이 한 곳의 사건이 아니라 격자의 규칙임이 드러난다(기능) → 같은 clearance 0.4 — 들린 방들의 밑면이 한 수평선을 이루는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.4,
+          "on": "object_5",
+          "why": "여섯째 자리 방(입력) → lift(연산자) → 마지막 짝수 방이 들려 격자가 완성된다(변형) → 앉음-들림-앉음의 교대가 실루엣에서 낮은 이-빠진 띠로 판독되고, 지상은 어느 방향으로도 막히지 않는다(기능) → 셋을 넘게 들면 마을이 통째로 뜬 판(보드 O10)이 되므로 절반에서 멈춘다(한계)."
+        }
+      ]
+    },
+    {
+      "name": "vaulted_hamlet",
+      "primary_language": "porous_field",
+      "secondary_language": "low kite-plan pavilions, each crowned by its own barrel vault",
+      "formal_principle": "흩어진 방마다 제 몸의 긴 축을 따라 배럴 하나씩을 인다 — 지붕이 잔여물이 아니라 방의 신원이고, 단위들이 돌아앉은 만큼 볼트의 방향도 흩어져 밭이 한 방향으로 눕지 않는다.",
+      "dominant_gesture": "저마다 다른 방향의 배럴을 인 낮은 방들",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 4.5,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.7,
+          "height": 0.26,
+          "tie": 0.1,
+          "turn": 14,
+          "method": "pack",
+          "storeys": 1,
+          "profile": "kite",
+          "why": "단층 파빌리온 다섯으로 흩어지는 프로그램(입력) → aggregate pack(연산자) → 연꼬리 평면의 낮은 방들이 저마다 돌아앉아 정착한다(변형) → 연 평면은 긴 축이 분명해 각 방이 자기 지붕의 방향을 스스로 정한다(기능) → height 0.26은 지붕이 주인공이기 위한 낮음이고, storeys 1·층고 4.5m로 방 하나의 스케일에서 멈춘다(한계)."
+        },
+        {
+          "op": "vault",
+          "rise": 0.85,
+          "bays": 1,
+          "along": "long",
+          "on": "object",
+          "why": "낮은 연 평면 파빌리온 다섯의 평지붕(입력) → vault를 접두 매칭으로 전 단위에(연산자) → 각 단위의 긴 축을 따라 배럴이 서고, 단위가 돌아앉은 만큼 볼트의 방향이 흩어진다(변형) → 지붕이 방의 신원이 되어 밭 전체가 한 방향으로 눕지 않는다 — 같은 방향으로 기운 밭(보드 O3)의 정반대(기능) → rise 0.85의 낙차는 1.5층 캡 안이고, 몸이 좁은 연 평면이라 면당 run이 짧아 곡률이 실제로 선다(한계)."
+        }
+      ]
+    },
+    {
+      "name": "three_towers_one_beam",
+      "primary_language": "porous_field",
+      "secondary_language": "three hexagonal towers apart on the ground, bound by one bar lodged at the sky",
+      "formal_principle": "지상은 셋으로 흩어지고 하늘에서만 하나다 — 탑들 자신이 얽히는 것이 아니라, 얹힌 바 하나가 지붕 높이에서 무리를 묶는 별개의 부재라는 것이 이 매스의 전부다.",
+      "dominant_gesture": "세 탑 위에 걸쳐 얹힌 바 하나",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.35,
+          "height": 0.85,
+          "tie": 0,
+          "turn": 12,
+          "method": "pack",
+          "storeys": 3,
+          "profile": "hexagon",
+          "why": "세 동으로 나뉘는 프로그램(입력) → aggregate pack(연산자) → 육각 평면의 3층 탑 셋이 붙지 않고 저마다 돌아앉아 선다(변형) → 사이 땅이 전부 지나다니는 마당이 되고, 떨어져 선 것이 위에서 묶일 이유가 된다(기능) → height 0.85는 자세의 선언이되 한 볼륨 4.2층 상한 안이고, tie 0으로 지상의 분리를 지키는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "lodge",
+          "size": 0.5,
+          "over": 0.3,
+          "height": 0.3,
+          "at": 0.55,
+          "on": "object_0",
+          "why": "떨어져 선 세 탑과 그 사이의 빈 하늘(입력) → lodge를 가운데 탑에(연산자) → 바 하나가 그 지붕에 걸쳐 양쪽 이웃을 향해 내민다(변형) → 지상의 셋이 하늘의 한 획으로 처음 하나가 되고, 내민 끝이 이웃 탑을 가리키는 실루엣 사건이 된다 — 팔들이 공중에서 맞물리는 문(보드 O11)이 아니라 몸들 위에 얹힌 별개의 부재(기능) → over 0.3은 구조 게이트(backspan 1.6)의 실측 통과권 안이고 size·height 전부 침묵 바닥 0.15 위(한계)."
+        }
+      ]
+    },
+    {
+      "name": "branching_oval_field",
+      "primary_language": "open_figure",
+      "secondary_language": "three oval mother-bodies whose low arms spread into a mid-rise field of fingers",
+      "formal_principle": "중층의 어미 몸 셋이 낮은 팔들을 뻗어 밭이 된다 — 건물의 가장자리가 벽이 아니라 손가락이라, 팔과 팔 사이가 전부 마당으로 열린다.",
+      "dominant_gesture": "타원 몸에서 뻗어 나온 낮은 팔들의 밭",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.5,
+          "height": 0.6,
+          "tie": 0.1,
+          "turn": 15,
+          "method": "pack",
+          "storeys": 2,
+          "profile": "oval",
+          "why": "중층 프로그램의 핵 셋(입력) → aggregate pack(연산자) → 타원 평면의 어미 몸들이 저마다 돌아앉아 정착한다(변형) → 타원은 모서리가 없어 팔이 어느 방향으로도 나갈 수 있는 몸이다(기능) → height 0.6은 중층의 선언(0.42~0.72 칸 한가운데)이고 spread 1.5가 팔이 나갈 땅을 남기는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "branch",
+          "n": 3,
+          "reach": 0.28,
+          "height": 0.4,
+          "on": "object",
+          "why": "여유 땅 위에 선 세 어미 몸(입력) → branch를 접두 매칭으로 전부에(연산자) → 각 몸에서 어미보다 낮은 팔 셋이 나간다(변형) → 핵의 프로그램이 땅 가까이에서 밭으로 펼쳐지고, 팔 사이의 오목한 자리가 저마다의 마당이 된다 — 실루엣은 중층 언덕에서 낮은 손가락으로 내려앉는 계단(기능) → reach 0.28은 실측 배달 통과값이고 height 0.4로 팔이 어미 아래 머물러 위계가 유지되는 데서 멈춘다(한계)."
+        }
+      ]
+    },
+    {
+      "name": "triangular_trunk_field",
+      "primary_language": "open_figure",
+      "secondary_language": "one tall triangular trunk with arms of two heights stepping down into the parcel",
+      "formal_principle": "높은 줄기 하나에서 키가 다른 팔들이 나가 밭이 계단으로 펼쳐진다 — 삼각 프로파일이 필지 모서리를 비워 두었기에 팔이 나갈 공중이 있고, 밭은 줄기의 그림자가 아니라 줄기의 연장이다.",
+      "dominant_gesture": "삼각 줄기에서 두 키로 가지 치는 팔들",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.9,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "profile": "triangular",
+          "why": "수직으로 서야 하는 프로그램 핵(입력) → 삼각 프로파일로 압출(연산자) → 민짜 상자가 아니라 세 모서리가 분명한 높은 줄기가 선다(변형) → 삼각형은 필지의 네 모서리를 비워 두므로 가지가 나갈 공중이 태생부터 확보된다(기능) → height 0.85는 자세의 선언이되 한 볼륨 4.2층 상한 안이고, 줄기 단독으로 끝나면 과묵한 모놀리스라 branch가 필수(한계)."
+        },
+        {
+          "op": "branch",
+          "n": 3,
+          "reach": 0.3,
+          "height": 0.35,
+          "why": "삼각 줄기와 그것이 비워 둔 필지 모서리(입력) → branch(연산자) → 낮은 팔 셋이 빈 모서리들로 길게 나간다(변형) → 줄기의 프로그램이 땅 높이에서 밭으로 펼쳐지고 팔 사이가 진입 마당이 된다(기능) → reach 0.3은 지면에 선 팔이라 캔틸레버가 아니고, height 0.35로 팔이 낮은 켜에 머무는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "branch",
+          "n": 2,
+          "reach": 0.2,
+          "height": 0.55,
+          "why": "낮은 팔들 위, 줄기의 중간 높이(입력) → branch(연산자) → 더 짧은 중간 키의 팔 둘이 나간다(변형) → 낮은 팔-중간 팔-줄기의 세 단이 생겨 실루엣이 한쪽으로 흘러내리는 계단으로 판독된다(기능) → 위로 갈수록 reach를 줄여(0.3→0.2) 밭이 줄기로 수렴하고, 둘 다 침묵 바닥 0.15 위(한계)."
+        }
+      ]
+    },
+    {
+      "name": "stilted_tall_cluster",
+      "primary_language": "open_figure",
+      "secondary_language": "three tall concave-L towers, all on stilts, the whole ground plane passing beneath",
+      "formal_principle": "높이가 땅을 사는 값이다 — 높은 세 채가 전부 기둥 위로 들려 지상면 전체가 끊기지 않는 한 장의 공공 바닥이 되고, 오목한 L의 안면들이 들린 그늘 아래 바깥방을 이룬다.",
+      "dominant_gesture": "통째로 들린 높은 세 채와 그 밑의 한 장의 땅",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.4,
+          "height": 0.8,
+          "tie": 0,
+          "turn": 10,
+          "method": "pack",
+          "storeys": 3,
+          "profile": "concave_l",
+          "why": "수직으로 서는 세 동의 프로그램(입력) → aggregate pack(연산자) → 오목한 L 평면의 높은 탑 셋이 오목면을 서로에게 돌리고 정착한다(변형) → L의 안면들이 사이 땅을 감싸 들리기 전부터 바깥방의 윤곽을 그린다(기능) → height 0.8은 자세의 선언이되 한 볼륨 4.2층 상한 안이고, tie 0으로 세 채가 붙지 않는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.35,
+          "on": "object",
+          "why": "정착한 높은 세 채(입력) → lift를 접두 매칭으로 전부에(연산자) → 세 탑이 통째로 기둥 위로 들려 지상층이 비워진다(변형) → 높이가 차지한 만큼 땅 전체를 도시에 돌려주고, 실루엣은 공중에 뜬 세 몸으로 판독된다 — 낮은 중정 고리 하나를 드는 것(보드 O10)이 아니라 흩어진 수직 몸들 밑으로 지상면 전체가 지나가는 것(기능) → clearance 0.35는 지상 한 켜 높이에서 멈추고, 들린 탑의 총높이 적법은 법규 클립이 심판(한계)."
+        }
+      ]
+    },
+    {
+      "name": "mansard_crowned_cluster",
+      "primary_language": "porous_field",
+      "secondary_language": "four tall chamfered towers, each ending in the same mansard crown",
+      "formal_principle": "탑은 멈추는 것이 아니라 지붕의 단면으로 끝난다 — 방향이 저마다 다른 네 탑이 가파른 어깨의 왕관 하나로만 합의해, 무리가 하늘에서 한 건물로 읽힌다.",
+      "dominant_gesture": "네 탑이 같은 맨사드 왕관으로 끝나는 하늘선",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.3,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.3,
+          "height": 0.78,
+          "tie": 0.05,
+          "turn": 14,
+          "method": "pack",
+          "storeys": 3,
+          "profile": "chamfered",
+          "why": "수직의 네 동으로 나뉘는 프로그램(입력) → aggregate pack(연산자) → 모서리 접힌 평면의 좁고 높은 탑 넷이 저마다 돌아앉아 선다(변형) → 좁은 가로벽 비례가 맨사드가 텐트로 무너지지 않을 몸을 만든다(기능) → height 0.78은 자세의 선언이되 한 볼륨 4.2층 상한 안이고, tie 0.05로 사이 골목을 지키는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "mansard",
+          "pitch": 0.9,
+          "shoulder": 0.25,
+          "along": "long",
+          "on": "object",
+          "why": "방향이 제각각인 네 탑의 평평한 끝(입력) → mansard를 접두 매칭으로 전부에(연산자) → 가파른 어깨와 평평한 정수리가 각 탑의 상단을 만든다(변형) → 평면에서 다른 넷이 단면 하나로 합의해 하늘선에서 한 건물이 되고, 실루엣의 상단이 잔여물이 아니라 설계가 된다(기능) → 낙차는 1.5층 캡 안이고, 좁은 몸이라 shoulder 0.25에서도 정수리가 살아남는 지점에서 멈춘다(한계)."
+        }
+      ]
+    },
+    {
+      "name": "one_cut_four_towers",
+      "primary_language": "carved_body",
+      "secondary_language": "four square towers standing as one block, pierced by a single shared cut",
+      "formal_principle": "네 탑이 한 직교 격자에 정확히 앉은 이유는 단 하나, 자름 한 번이 네 몸을 같은 자리에서 관통하기 위해서다 — 어느 탑도 아닌 공동의 부재(不在)가 무리의 신원이 된다.",
+      "dominant_gesture": "네 몸을 같은 자리에서 꿰는 한 줄의 절개",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.3,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.15,
+          "height": 0.82,
+          "tie": 0.25,
+          "turn": 0,
+          "method": "pack",
+          "storeys": 3,
+          "profile": "square",
+          "why": "수직의 네 동으로 나뉘는 프로그램(입력) → aggregate pack(연산자) → 정방 평면의 높은 탑 넷이 회전 없이 한 직교 격자에 촘촘히 앉는다(변형) → turn 0은 이 문장에서만 논지다 — 격자가 정확해야 한 번의 자름이 네 몸을 같은 자리에서 지나간다(기능) → height 0.82는 자세의 선언이되 한 볼륨 4.2층 상한 안, spread 1.15·tie 0.25로 절개가 건널 수 있는 거리까지 조이는 데서 멈춘다(한계)."
+        },
+        {
+          "op": "carve",
+          "size": 0.34,
+          "at": "cross",
+          "reach": 0.9,
+          "on": "object",
+          "why": "한 격자에 조여 앉은 네 탑(입력) → carve를 접두 매칭으로 전 탑의 같은 자리에(연산자) → 같은 크기·같은 자리의 절개가 네 몸을 이어 하나의 관통선으로 읽힌다(변형) → 두 벽 사이의 협곡(보드 O4)이 아니라 몸들 자체를 지나가는 부재 — 밖에서 보면 네 실루엣이 같은 높이에서 이가 빠져 한 획이 된다(기능) → size 0.34는 침묵 게이트 0.05 몫의 예닐곱 배 여유이고 reach 0.9로 몸을 실제로 꿰는 데서 멈춘다(한계)."
+        }
+      ]
+    }
+  ]
+}

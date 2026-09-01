@@ -995,12 +995,25 @@ class Command(BaseCommand):
                 "spoken_force": form.extra.get("spoken_force"),
             })
             declared = float(form.extra.get("declared_storeys") or 0.0)
+            # On unit-openers (aggregate/stack) `storeys` sizes the UNIT and
+            # the pile legitimately totals more - vitrahaus declares two and
+            # stands five. On extrude/loop the declaration IS the building,
+            # and there over-delivery is the same dishonesty as crushing:
+            # a declared two-storey gabled ring grown to four storeys keeps
+            # its pitch and loses its parti - the gable reads as a parapet.
+            base_sentence = form.name.split("~")[0].split("^")[0]
+            base_ops = (parti_book.get(base_sentence) or {}).get("ops") or []
+            opener = str((base_ops[0].get("op") if base_ops else "") or "")
+            stature_is_building = opener in ("extrude", "loop")
+            over = (declared > 0.0 and stature_is_building
+                    and measurement.height_m > (5.0 / 3.0) * declared * form_storey)
             if (declared > 0.0
-                    and measurement.height_m < (2.0 / 3.0) * declared * form_storey):
+                    and measurement.height_m < (2.0 / 3.0) * declared * form_storey) or over:
                 # Declared stature is held like a declared gap: a sentence
                 # that asked for eight storeys and delivered four is not that
-                # sentence. The variant stays measured and recorded; it just
-                # cannot represent the sentence on the sheet.
+                # sentence - and one that asked for two and delivered five is
+                # not it either. The variant stays measured and recorded; it
+                # just cannot represent the sentence on the sheet.
                 crushed += 1
             elif fit.satisfied:
                 # An unlawful mass was being counted and then offered anyway.

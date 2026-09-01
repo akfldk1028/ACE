@@ -26,11 +26,22 @@ def main() -> int:
         lambda: {axis: [] for axis in AXES} | {"reasons": defaultdict(list)})
     verdicts: list[tuple[str, str]] = []
 
+    # Newest verdict wins per sentence: a ring answered in round three must
+    # not carry round one's complaint into every future brief - the board's
+    # scores are era-corrected and the feedback channel owes the same rule.
+    latest: dict[str, float] = {}
+    rounds = []
     for round_dir in sorted(ROOT.glob("runs/vlm-*")):
         key_path = round_dir / "key.json"
         sheets = sorted(round_dir.glob("r*.txt"))
         if not key_path.exists() or not sheets:
             continue
+        stamp = max(p.stat().st_mtime for p in sheets)
+        rounds.append((stamp, round_dir, key_path, sheets))
+        for row in json.loads(key_path.read_text(encoding="utf-8")):
+            sentence = row["name"].split("~")[0].split("^")[0]
+            latest[sentence] = max(latest.get(sentence, 0.0), stamp)
+    for stamp, round_dir, key_path, sheets in sorted(rounds):
         key = {row["tile"]: row["name"]
                for row in json.loads(key_path.read_text(encoding="utf-8"))}
         for sheet in sheets:
@@ -44,6 +55,8 @@ def main() -> int:
                 if name is None:
                     continue
                 sentence = name.split("~")[0].split("^")[0]
+                if stamp < latest.get(sentence, 0.0):
+                    continue
                 entry = per_sentence[sentence]
                 for axis in AXES:
                     hit = re.search(

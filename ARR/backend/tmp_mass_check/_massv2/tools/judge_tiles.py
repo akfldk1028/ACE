@@ -43,11 +43,25 @@ def main(run: str, count: str = "10", out_name: str = "") -> int:
 
     chosen = (summary.get("selection") or {}).get("chosen_names") or []
     wanted = int(count)
-    # Shuffled with a fixed seed: the order a judge reads them in should not be
-    # the order the selector ranked them, or the first tile carries the
-    # recommendation without anyone saying so.
+    # Stratified by cell BEFORE the shuffle-and-truncate: the selector fills
+    # sixteen stature-x-void cells scarcest-first, and truncating a flat
+    # shuffle to twelve let a fixed seed - not the cells - decide which cells
+    # a judge ever saw. One representative per cell goes first (cells in
+    # seeded random order), the rest follow; the truncation now eats spares,
+    # not whole cells. The seed still hides the selector's own ranking.
+    cell_of = {r["name"]: (r.get("cell") or "?") for r in summary["records"]}
+    rng = random.Random(20260831)
     order = list(chosen)
-    random.Random(20260831).shuffle(order)
+    rng.shuffle(order)
+    firsts, spares, seen_cells = [], [], set()
+    for name in order:
+        cell = cell_of.get(name, "?")
+        if cell not in seen_cells:
+            seen_cells.add(cell)
+            firsts.append(name)
+        else:
+            spares.append(name)
+    order = firsts + spares
 
     out = ROOT / "runs" / (out_name or f"judge-{run}")
     out.mkdir(parents=True, exist_ok=True)

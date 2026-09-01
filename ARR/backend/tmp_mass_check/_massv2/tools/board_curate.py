@@ -75,7 +75,12 @@ def main() -> int:
     def key_of(item):
         family = item["name"].split("~")[0].split("^")[0]
         scheme = book.get(family)
-        return (item["track"],) + (family_key(scheme) if scheme else (family,))
+        # The canon layer competes only with itself: family_key cannot tell a
+        # canonical cylinder from an experimental one, and without the layer
+        # in the key one_per_family evicted the repertoire §11 promises is
+        # always present. The layer's owner is the scheme record.
+        layer = (scheme or {}).get("layer") or "experimental"
+        return (item["track"], layer) + (family_key(scheme) if scheme else (family,))
 
     curated = one_per_family(passers, key_of=key_of,
                              score_of=lambda item: item["score"])
@@ -89,20 +94,6 @@ def main() -> int:
     visual = ROOT / "runs" / "board" / "visual-groups.json"
     if visual.exists():
         groups = json.loads(visual.read_text(encoding="utf-8"))["groups"]
-        # The file accumulates passes, so one sentence can appear in two
-        # recorded groups (judged against different partners at different
-        # times); overlapping groups union, or a shared member silently
-        # splits a group and a merged-out entry walks back onto the board.
-        # A contradicted verdict is handled where it belongs: by removing
-        # the superseded pair from the file, never by resolution order here.
-        parent: dict[str, str] = {}
-
-        def find(node: str) -> str:
-            while parent.setdefault(node, node) != node:
-                parent[node] = parent[parent[node]]
-                node = parent[node]
-            return node
-
         # Entries are TRACK:sentence editions - a verdict is about the tile
         # the judge saw, and the K edition of a sentence is a different tile
         # from its O edition. Keying by bare sentence chained one edition's
@@ -112,37 +103,46 @@ def main() -> int:
                 return name
             return "O:" + name.split("~")[0].split("^")[0]
 
-        for names in groups:
-            editions = [edition(n) for n in names]
-            for other in editions[1:]:
-                parent[find(other)] = find(editions[0])
-        group_of = {node: find(node) for node in parent}
-        best_in_group: dict[str, dict] = {}
+        # Each recorded group is a CLIQUE the judge actually saw together.
+        # Union-find chained overlapping groups transitively - a flat plate,
+        # a rising wedge and stepped terraces shared one seat though
+        # wedge-terraces was never judged as a pair - so groups no longer
+        # merge with each other: an edition loses its seat only to a member
+        # of a group it was directly judged in.
+        cliques: list[tuple[list[str], str | None]] = []
+        for group in groups:
+            names = group["members"] if isinstance(group, dict) else group
+            keep = group.get("keep") if isinstance(group, dict) else None
+            cliques.append(([edition(n) for n in names],
+                            edition(keep) if keep else None))
+        member_of: dict[str, list[int]] = {}
+        for index, (members, _keep) in enumerate(cliques):
+            for name in members:
+                member_of.setdefault(name, []).append(index)
+        by_edition: dict[str, dict] = {}
         for item in curated:
-            sentence = item["track"] + ":" + \
-                item["name"].split("~")[0].split("^")[0]
-            gid = group_of.get(sentence)
-            if gid is None:
-                continue
-            # One seat per visual group on the WHOLE page, not per track: the
-            # client reads one board, and the K edition of a scheme is the
-            # same building at brief size - chain_of_turned_rooms held K6 and
-            # O2 at once. The two juries' scales differ, but the question
-            # here is only which edition represents the scheme.
-            held = best_in_group.get(gid)
+            name = item["track"] + ":" +                 item["name"].split("~")[0].split("^")[0]
+            held = by_edition.get(name)
             if held is None or item["score"] > held["score"]:
-                best_in_group[gid] = item
-        kept_ids = {id(v) for v in best_in_group.values()}
-        dropped = [
-            item for item in curated
-            if group_of.get(
-                item["track"] + ":"
-                + item["name"].split("~")[0].split("^")[0]) is not None
-            and id(item) not in kept_ids
-        ]
+                by_edition[name] = item
+        dropped_ids: set[int] = set()
+        for members, keep in cliques:
+            present = [by_edition[m] for m in members if m in by_edition]
+            if len(present) < 2 and keep is None:
+                continue
+            if keep is not None and keep in by_edition:
+                winner = by_edition[keep]
+            elif present:
+                winner = max(present, key=lambda it: it["score"])
+            else:
+                continue
+            for item in present:
+                if id(item) != id(winner):
+                    dropped_ids.add(id(item))
+        dropped = [item for item in curated if id(item) in dropped_ids]
         for item in dropped:
             print(f"  eye-merged out: {item['name'][:48]} ({item['score']:.2f})")
-        curated = [item for item in curated if id(item) not in {id(d) for d in dropped}]
+        curated = [item for item in curated if id(item) not in dropped_ids]
 
     # One sentence, one seat on the whole page: a sentence that passed both
     # juries held K6 and O2 at once, and to the client that is the same

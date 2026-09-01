@@ -41,7 +41,15 @@ def main(pool_dir: str, out_path: str, *names: str) -> int:
     batch = []
     kept: list[str] = []
     for name in names:
-        rank = index.get(name)
+        # "old::new" crops one pool's tile while rebuilding another name.
+        # NOTE the band tag in a name is the REQUESTED band (static table in
+        # design_space/axes.py) and survives executor changes - the mapping
+        # exists for pools whose variant sets differ (dropped sitings etc.),
+        # not because names drift. A rebuild failure here usually means the
+        # shell fed CR-tainted names, not a retired variant.
+        crop_name, _, build_name = name.partition("::")
+        name = build_name or crop_name
+        rank = index.get(crop_name)
         family = name.split("~")[0].split("^")[0]
         parti = book.get(family)
         if parti is None:

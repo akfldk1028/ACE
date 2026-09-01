@@ -235,20 +235,60 @@ def _depth(x: float, y: float) -> float:
     return x * math.sin(_YAW) + y * math.cos(_YAW)
 
 
+# A vertex turning less than this reads as a curve continuing, not a corner:
+# an oval's 16 facets each turn ~22 degrees and drawing all sixteen verticals
+# dressed the first cylinder tower in scaffolding. A chamfer's 45 and a box's
+# 90 stay corners.
+_SMOOTH_TURN_COS = math.cos(math.radians(30.0))
+
+
 def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=None):
     # Sorted far-to-near rather than emitted in ring order: ring order painted
     # a rotated body's rear wall over its front wall, and every rotated family
     # - the clasped arms, the turning petals, the winding stack - rendered as
     # a see-through frame the judges rightly refused to believe would stand.
+    count = len(ring)
+    segments = list(zip(ring, list(ring[1:]) + [ring[0]]))
+
+    def _facing(index: int) -> float:
+        (x0, y0), (x1, y1) = segments[index % count]
+        # outward-or-inward normal is consistent along the ring, so only the
+        # SIGN CHANGE matters for the silhouette test below
+        return (y1 - y0) * math.sin(math.radians(_YAW)) \
+            - (x1 - x0) * math.cos(math.radians(_YAW))
+
+    def _edge_drawn(index: int) -> bool:
+        # The vertical edge at vertex `index`, between walls index-1 and
+        # index: drawn when the plan genuinely turns there, or when the
+        # surface rolls past the view direction - the curve's own silhouette.
+        (ax0, ay0), (ax1, ay1) = segments[(index - 1) % count]
+        (bx0, by0), (bx1, by1) = segments[index % count]
+        ax, ay = ax1 - ax0, ay1 - ay0
+        bx, by = bx1 - bx0, by1 - by0
+        norm = (math.hypot(ax, ay) or 1.0) * (math.hypot(bx, by) or 1.0)
+        if (ax * bx + ay * by) / norm < _SMOOTH_TURN_COS:
+            return True
+        return _facing(index - 1) * _facing(index) <= 0.0
+
     quads = []
-    for (x0, y0), (x1, y1) in zip(ring, list(ring[1:]) + [ring[0]]):
-        quads.append((_depth((x0 + x1) / 2.0, (y0 + y1) / 2.0), [
+    for index, ((x0, y0), (x1, y1)) in enumerate(segments):
+        quads.append((_depth((x0 + x1) / 2.0, (y0 + y1) / 2.0), index, [
             _project(x0, y0, low), _project(x1, y1, low),
             _project(x1, y1, _top_at(x1, y1, high, slope)),
             _project(x0, y0, _top_at(x0, y0, high, slope)),
         ]))
-    for _d, quad in sorted(quads, key=lambda item: item[0]):
-        yield quad, _PAL.wall, True
+    for _d, index, quad in sorted(quads, key=lambda item: item[0]):
+        smooth = not (_edge_drawn(index) and _edge_drawn(index + 1))
+        yield quad, _PAL.wall, not smooth
+        if smooth:
+            # The fill runs seamless; the edges that ARE there come back as
+            # lines - the base always (the body's ground line), a vertical
+            # only where the plan turns or the curve rolls past the eye.
+            yield [quad[0], quad[1]], None, True
+            if _edge_drawn(index):
+                yield [quad[0], quad[3]], None, True
+            if _edge_drawn(index + 1):
+                yield [quad[1], quad[2]], None, True
 
 
 def _slope_of(volume, low: float, high: float):
@@ -530,6 +570,10 @@ def _render_frame(
             low = float(volume.bottom_fraction) * height
             high = float(volume.top_fraction) * height
             for shape, colour, seam in _faces(volume.footprint, low, high, _slope_of(volume, low, high)):
+                if len(shape) == 2:
+                    draw.line([to_screen(point) for point in shape],
+                              fill=_PAL.edge, width=1)
+                    continue
                 draw.polygon(
                     [to_screen(point) for point in shape], fill=colour,
                     outline=_PAL.edge if seam else colour,
@@ -723,6 +767,10 @@ def _render_one(
         return (off_x + (point[0] - min_x) * scale, off_y + (point[1] - min_y) * scale)
 
     for shape, colour, seam in polygons:
+        if len(shape) == 2:
+            draw.line([to_screen(point) for point in shape],
+                      fill=_PAL.edge, width=1)
+            continue
         draw.polygon(
             [to_screen(point) for point in shape], fill=colour,
             outline=_PAL.edge if seam else colour,

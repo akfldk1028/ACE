@@ -1,0 +1,174 @@
+{
+ "schemes": [
+  {
+   "name": "sun_draws_the_long_slope",
+   "primary_language": "solid_body",
+   "secondary_language": "one low two-storey bar under one asymmetric ridge - the tall eave stands to the street, the long slope runs down toward the north neighbour",
+   "formal_principle": "The north neighbour's daylight envelope presses the back of the parcel while the street asks for a standing face, so one bar answers with a saltbox section: the same pitch both ways, but the ridge pulled to the street quarter - the tall eave is the civic front and the long slope is the daylight line built, the zoning diagram worn as the roof.",
+   "dominant_gesture": "a ridge pulled to the street, a slope lying down to the sun",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: low neighbours press the height down and the program banks in two deep plates rather than rising against them. Extrude(square) raises a parcel-shaped two-storey body: the ground plate takes the big rooms whole, the upper plate takes the small ones. Storeys 2 stamps declared stature, so vertical growth is capped at 5/3x - three storeys - and any further budget is paid in plan length, which is exactly what the next words need: a body with length to spare. Limit: height 0.3 declares low with clear margin under the 0.42 threshold; this body is still a parcel-shaped box, and a ridge on a plan-wide box reads as a faint tangent - naming the bar is the next word's work."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.6,
+     "toward": "cross",
+     "why": "Input: a ridge reads as a spine only on a bar - the roof's whole argument dies on a plan-deep pentagon. Compress(ratio 0.6, toward cross) narrows the body across its short axis to the verb's own floor, turning the box into a true bar and returning the freed strip of ground to the site along the pressed neighbour edge - the first concession to the sun before the roof states it. Limit: 0.6 is the language's floor for this corrective verb, the canon gable bar's own measured value; the verb corrects proportion and claims no event - the event belongs entirely to the roof."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.9,
+     "at": 0.25,
+     "along": "long",
+     "why": "Input: the neighbour's sun pushes on the back of the section and the street pulls the eave up at the front - a symmetric ridge would answer neither. Gable(pitch 0.9, at 0.25, along long) sets one ridge off-centre at the street quarter: both faces keep the same 0.9 slope, but the street side is short - a tall two-storey eave, the civic face - and the back side is long, running low toward the neighbour so the silhouette itself is the daylight section. Under the ridge the upper plate gains a tall band at the street edge where the shared rooms sit, and shrinks to eaves-height service depth at the back. Limit: the roof drop is capped at 1.5 storeys, so on this two-storey bar the gable stays a section, not a hat; at 0.25 sits well inside the 0.15..0.85 range, and no gap is declared anywhere for this footprint-widening verb to close."
+    }
+   ]
+  },
+  {
+   "name": "mansard_ring_holds_the_court",
+   "primary_language": "open_figure",
+   "secondary_language": "four narrow bars ringing a court, all four wearing one continuous mansard shoulder - the top rooms live inside the roof, the eave line never rises",
+   "formal_principle": "Density pushes one more band of rooms upward but the street wall refuses to gain a storey, so the last rooms move into the roof: a court ring of narrow bars wears a steep-shouldered mansard all the way round - the eave holds its civic height, the roof is inhabited, and the court is the light that pays for the block's depth.",
+   "dominant_gesture": "a court block crowned by one inhabited roof band",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.55,
+     "storeys": 4,
+     "why": "Input: the FAR wants the parcel filled deep, and a deep filled plate goes dark at its middle - the density presses in, the middle yields to sky. Loop(bar 0.22) rings the parcel with four narrow bars around one court: every room sits on a two-front band, street outside and court inside, and the court is the block's light source rather than leftover ground. Bar 0.22 keeps the bands narrow and standing - which matters beyond daylight, because the next word is quiet on wide low bodies and speaks only on walls like these. Limit: height 0.55 declares mid, clear of both the 0.42 and 0.72 thresholds; storeys 4 stamps declared stature so no site average can press the ring down later."
+    },
+    {
+     "op": "mansard",
+     "pitch": 1.0,
+     "shoulder": 0.25,
+     "along": "long",
+     "why": "Input: the program asks for one more band of rooms, and the street wall refuses to raise its eave a full storey - the density pushes up, the cornice line holds. Mansard(pitch 1.0, shoulder 0.25, along long) resolves the fight in section on all four bars at once: a steep 45-degree shoulder climbs from the held eave line and a flat crown closes it, so the top rooms exist inside the roof instead of on top of the wall. The silhouette becomes the metropolitan block's - wall, shoulder, sky - continuous around the court, and the flat crown keeps the court's rectangle of sky whole. Limit: the drop is capped at 1.5 storeys, so the shoulder is exactly the one inhabited band and never a second building; the word is spoken on narrow 0.22 bars deliberately, because on a wide low body the crown pinches to a tent and the verb goes quiet near its 0.05 threshold."
+    }
+   ]
+  },
+  {
+   "name": "three_houses_up_one_chimney",
+   "primary_language": "solid_body",
+   "secondary_language": "three two-storey houses stacked bearing one on the next, each turned a few degrees to its own horizon - ridge over ridge over ridge",
+   "formal_principle": "The program is a village of house-sized rooms but the ground is one house wide, so the village stacks: three two-storey houses bear full-plan one on the next, each turned slightly to its own horizon - the house section is not the crown of the tower, it is the storey unit the tower is counted in.",
+   "dominant_gesture": "a totem of house sections",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "spread": 1.2,
+     "height": 0.6,
+     "tie": 0,
+     "method": "stack",
+     "unit": "house",
+     "storeys": 2,
+     "levels": 3,
+     "turn": 15,
+     "reach": 0,
+     "why": "Input: the program wants house-scaled rooms with house sections, and the parcel offers ground for only one house - the village has no land, so it goes up without giving up its unit. Aggregate(method stack, unit house, n 3, levels 3) stands three houses one per level, and unit house is the whole roof argument said at birth: each unit's depth is derived from its own height and the 45-degree gable is native to the section, so every level of the silhouette is a ridge - no roof word needs to follow. Storeys 2 per unit gives each house its true domestic scale; spread 1.2 fans the sizes so the pile diminishes as it climbs and reads as authored, not extruded; turn 15 alternates sign level by level so each house faces its own horizon while the plans still overlap almost whole. Limit: reach 0 is the sentence's structural promise - the flying ends stay home, because the measured record is exact (0.28 survives delivery, 0.35 grew to 1.61 backspan and was refused) and this pile's claim is bearing, not flight: each house sits full-plan on the one below, and tie 0 leaves no binding plate to litter the ground."
+    }
+   ]
+  },
+  {
+   "name": "roof_lies_down_to_the_open",
+   "primary_language": "solid_body",
+   "secondary_language": "a three-storey body whose whole roof is one continuous slope, standing full height at the back and lying down to the ground at the open face",
+   "formal_principle": "The open face presses the body down to meet it, so the roof stops being a lid and becomes one plane of descent: three storeys stand at the back edge and the section runs out to nothing at the open front - each floor ends where the roof meets it, and the building's one silhouette line is the slope itself.",
+   "dominant_gesture": "one slope from full height to the ground",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: the program fills three plates, and the parcel's one open face asks not to be walled - two claims one flat-topped box cannot hold at once. Extrude(square) banks the three storeys as a parcel-shaped body; storeys 3 stamps declared stature so growth is capped at 5/3x and the section the next word draws cannot be stretched past recognition. Limit: height 0.5 declares mid with margin from both the 0.42 and 0.72 thresholds; as built this body turns the same blank shoulder to the open ground as to its neighbours - that wrong equality is the debt the next word pays."
+    },
+    {
+     "op": "grade",
+     "run": 0.7,
+     "smooth": true,
+     "toward": "open",
+     "why": "Input: the open face pushes against the body's full height - a wall there blocks the one direction the parcel gives away - and the back carries the storeys that must survive. Grade(run 0.7, smooth, toward open) tips the whole top into one continuous slope falling toward the open face: the back band keeps its three storeys, each successive floor ends where the descending roof meets it, and the front rooms trade their upper floors for a roof they stand under at eave height - the section is a wedge whose long face is all sky exposure toward the open ground. Toward is an enum in this verb and only open lives, which is also the sentence's honesty: the slope has exactly one legal direction and it is the one the pressure names. Limit: smooth is declared so the slope is a single plane and not steps - a stepped body is already banded and would refuse a second section; run 0.7 stops the descent short of the back edge so a standing three-storey band survives to hold the deep rooms."
+    }
+   ]
+  },
+  {
+   "name": "two_fronts_share_one_valley",
+   "primary_language": "solid_body",
+   "secondary_language": "one low two-storey bar whose roof falls inward from both long eaves to an off-centre valley - a building with two fronts and no back",
+   "formal_principle": "Street and garden press on the bar from opposite sides with equal claim, so the building refuses to have a back: both long eaves rise to face their own ground and the section dips between them to a single valley, pulled toward the street where the entry spine runs - the inverted house, its ridge line replaced by a fold of arrival.",
+   "dominant_gesture": "two rising eaves, one valley of entry",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: low neighbours hold the height down and the program sits in two plates - but the deeper input is that this parcel has two grounds, street on one long side and garden on the other, and neither will accept the building's back. Extrude(square) raises the low two-storey body that can afford such symmetry of address; storeys 2 stamps declared stature so the section drawn later keeps house proportion under the 5/3x growth cap. Limit: height 0.3 declares low, clear under the 0.42 threshold; the body is still parcel-wide, and a V spanning a plan-deep box flattens toward nothing - the bar comes first."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.6,
+     "toward": "cross",
+     "why": "Input: a valley reads as a section only when its two eaves are close enough to be seen as one gesture - on a full-width body the V decays to a shallow dish. Compress(ratio 0.6, toward cross) narrows the body across the short axis to the verb's floor, making the true bar whose two long faces are the two fronts, and ceding the freed strips to forecourt and garden - the two grounds the roof is about to address. Limit: 0.6 is the corrective verb's own floor; it fixes proportion and claims no event, and the strips it releases are ground given back, not declared gaps - nothing is promised that a roof verb could close."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.8,
+     "at": 0.35,
+     "along": "long",
+     "why": "Input: street and garden each pull an eave upward toward themselves, and the middle of the section - the entry spine, the lowest-value band - concedes. Butterfly(pitch 0.8, at 0.35, along long) drops both roof planes inward to one valley: each long edge becomes a rising two-storey front lit under its own high eave, the silhouette inverts the expected house - high at the edges, low within - and at 0.35 the valley sits off-centre toward the street, because the spine runs nearer the front door than the garden: the offset is the pressure's arrow, not the centred non-answer. Limit: at 0.35 gives the street side the short run, so the declared 0.8 slope lives there in full while the garden side runs longer and gentler; the drop is capped at 1.5 storeys, holding the valley above head height on this two-storey bar, and at 0.35 sits clear inside the verb's 0.2..0.8 range."
+    }
+   ]
+  },
+  {
+   "name": "house_cedes_its_ground",
+   "primary_language": "solid_body",
+   "secondary_language": "a one-podium, one-house building: a deep ground plate holding the hall, and a two-storey gabled bar riding it - the house is the building, only its ground is ceded",
+   "formal_principle": "The 210 m2 hall wants a deep flat plate and the dwelling-scaled rooms want a house section, and neither survives inside the other - so they stratify: the hall takes the entire ground as a podium plate, and the house, a two-storey bar under one ridge, rides on top; the gable is not a crown on a pile, it is most of the building, standing one storey above the street it gave its ground to.",
+   "dominant_gesture": "a house standing on the hall it ceded the ground to",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.7,
+     "height": 0.35,
+     "storeys": 3,
+     "why": "Input: one room outscales all the others - the hall's span breaks any house plan it is forced into, and the house section suffocates inside any hall - so the two natures push apart in section and the body stratifies rather than compromises. Stack(n 2, contrast 1.7) lays the deep podium band that takes the hall whole at grade, with a smaller band above it stepped in on every side, leaving podium roof around it as the terrace the upper rooms walk out onto. Limit: contrast 1.7 sits mid-range in 1.2..3.5 so the upper band stays a body and not a parapet; height 0.35 declares low with margin under the 0.42 threshold, and storeys 3 - one for the podium, two for what rides it - stamps declared stature against any later averaging."
+    },
+    {
+     "op": "compress",
+     "on": "tier_1",
+     "ratio": 0.6,
+     "toward": "cross",
+     "why": "Input: the upper band is born plan-shaped, and a ridge on a plan-shaped plate is a faint tangent - the house must be a bar before it can wear its section. Compress(on tier_1, ratio 0.6, toward cross) narrows only the riding band across its short axis: the podium keeps its full hall-holding depth untouched, the upper body becomes a true two-storey bar, and the strip of podium roof it vacates widens the terrace on both long sides. Limit: 0.6 is the verb's floor; aimed with on at the one band whose proportion is wrong, it corrects without touching the podium - the asymmetry between deep ground and narrow rider is the sentence's point, so no global verb could say it."
+    },
+    {
+     "op": "gable",
+     "on": "tier_1",
+     "pitch": 1.0,
+     "along": "long",
+     "why": "Input: the dwelling rooms above want the section the hall denied them at grade - wall, then roof, the domestic proportion - and the podium's flat civic top wants exactly one figure standing on it. Gable(on tier_1, pitch 1.0, along long) sets a single 45-degree ridge down the bar's length: the upper floor gains its tall middle band under the ridge, the eaves come down to the terrace so the roof is touchable from the podium walk, and the silhouette reads in one line as a house standing one storey above the street. Limit: on a two-storey bar the 1.5-storey drop cap is no constraint - the full declared pitch is delivered, which is precisely why the house was kept low: a gable on a tall body is a hat, on this body it is the section; the ridge belongs to tier_1 alone, the podium stays flat, and no second event competes."
+    }
+   ]
+  }
+ ]
+}

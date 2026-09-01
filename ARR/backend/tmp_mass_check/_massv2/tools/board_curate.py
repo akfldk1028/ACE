@@ -47,6 +47,9 @@ ROUNDS = [
     # First English-authored round (the prompt-language probe): same brief,
     # instructions and whys in English. Anchor-corrected like every round.
     ("O", "runs/vlm-ovs15-en/vlm-shortlist.json", "shortlist"),
+    # Roof-section round: the client said the gables were gone; these
+    # win their seats through the jury instead of squatting in a canon row.
+    ("O", "runs/vlm-ovs16-en/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

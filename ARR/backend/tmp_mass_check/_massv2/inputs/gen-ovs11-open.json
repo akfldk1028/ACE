@@ -1,0 +1,201 @@
+{
+ "schemes": [
+  {
+   "name": "stadium_on_open_ground",
+   "primary_language": "solid_body",
+   "secondary_language": "a deep mid-rise stadium-plan body raised one storey clear, its rounded underside a continuous covered commons with no corner to stop at",
+   "formal_principle": "스타디움 평면은 모서리가 없는 깊은 몸이다 — 그 몸을 한 층만 들어 올리면 지상은 기둥 사이가 아니라 곡면 처마 아래의 연속 마당이 되고, 공공은 건물에 들어가기 전에 이미 건물 아래에 있다.",
+   "dominant_gesture": "한 층만 들린 깊은 몸",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "stadium",
+     "height": 0.58,
+     "storeys": 4,
+     "why": "입력: 진입이 사방에서 오는 공공 프로그램과 트랙형 필지 → extrude(stadium)가 모서리를 죽인 깊은 4층 몸으로 태어난다 → 정면과 뒷면의 구분이 평면에서 지워진다 → 깊은 스타디움 평면은 들린 첫 층에 210㎡ 대회의실 한 판을 기둥 간섭 없이 담을 폭이 있다(얇은 링이 아니라 찬 몸이다) → 한계: 높이 0.58은 mid 선언으로 0.42·0.72 양쪽 문턱에서 멀고, 몸은 침묵하며 사건은 들림 하나에 맡긴다."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.22,
+     "why": "입력: 지상을 도시에 내주면서 상부의 깊이는 잃지 않겠다는 요구 → lift(clearance 0.22)가 몸 전체를 정확히 한 층 높이만큼 든다 → 지상은 로비가 아니라 곡면 그늘 아래의 관통 마당이 되고, 실루엣은 떠 있는 한 덩어리로 읽힌다 → 몸이 낮게 들려 받침이 죽마가 아니라 짧고 굵은 다리로 서고(극세 필로티로 기각된 전례의 반대), 위 네 층의 깊이는 무손상이다 → 한계: clearance 0.22는 침묵 바닥 0.15 위(트랩 11)이고 한 층에서 멈춘다 — 더 들면 다리가 층이 되어 몸과 경쟁한다."
+    }
+   ]
+  },
+  {
+   "name": "oval_root_and_branches",
+   "primary_language": "porous_field",
+   "secondary_language": "a low two-storey oval hub with four one-storey bars branching outward, garden yards caught between the fingers",
+   "formal_principle": "밭은 흩뿌리는 것이 아니라 한 뿌리에서 갈라져 나오는 것이다 — 낮은 타원 몸이 대회의실을 품는 뿌리로 서고, 한 층짜리 가지 넷이 필지로 뻗어 나가며 가지 사이마다 마당을 하나씩 잡는다.",
+   "dominant_gesture": "뿌리에서 가지 치는 낮은 밭",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "입력: 주민센터의 한 큰 방(대회의실 210㎡)과 여러 작은 방(교실·사무)이라는 두 층위의 프로그램 → extrude(oval)가 깊은 타원의 2층 몸으로 태어난다 → 무주 깊이를 가진 찬 몸이라 210㎡ 한 판이 타원 중심에 그대로 들어간다 → 큰 방은 뿌리에, 작은 방은 가지에 — 규모가 형태의 분업이 된다 → 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있고, 과업 1,546㎡ 규모에 맞는 저층 공급이다."
+    },
+    {
+     "op": "branch",
+     "n": 4,
+     "reach": 0.4,
+     "height": 0.5,
+     "why": "입력: 작은 방들의 채광·개별 진입과 외부 마당의 요구 → branch(n 4, reach 0.4)가 타원 몸에서 한 층 높이(0.5)의 가지 넷을 밖으로 뻗는다 → 단일 오브제가 손가락 달린 밭이 되고, 가지 사이의 오목한 자리마다 방향이 다른 마당이 잡힌다 → 모든 교실이 마당 하나씩을 정면으로 얻고 이웃 저층 스케일에 가지의 낮은 켜로 닿는다 → 한계: reach 0.4는 침묵 바닥 0.15 위(트랩 11)에서 이웃 경계 전에 멈추고, 가지는 지면에 앉아 내밈이 없으니 구조 게이트와 무관하며, 높이 0.5로 뿌리의 위계가 유지된다(주 볼륨 지배)."
+    }
+   ]
+  },
+  {
+   "name": "turning_hexagon_court",
+   "primary_language": "open_figure",
+   "secondary_language": "a mid-rise hexagonal ring that rotates as it rises, the court's sky opening turning with it like a slow screw",
+   "formal_principle": "육각 링이 오르며 몸 전체가 천천히 틀어진다 — 층마다 궤도가 몇 도씩 돌아 마당의 하늘 구멍이 나선으로 감기고, 링의 여섯 바깥 면은 어느 가로와도 평행을 거부하며 빛의 각도를 층마다 바꾼다.",
+   "dominant_gesture": "오르며 틀어지는 링",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.5,
+   "ops": [
+    {
+     "op": "loop",
+     "profile": "hexagon",
+     "bar": 0.28,
+     "height": 0.55,
+     "storeys": 4,
+     "why": "입력: 마당을 도는 중층 프로그램과 여섯 방향의 가로 → loop(hexagon, bar 0.28)가 여섯 꺾임의 궤도를 도는 4층 링으로 태어난다 → bar 0.28의 두꺼운 바라 얇은 링 벽체로 기각된 전례와 달리 실 깊이가 있고, 한 변의 바 폭이 210㎡ 대회의실 한 판을 담는다 → 모든 실이 마당과 바깥을 동시에 본다 → 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고, 몸의 회전은 다음 단어가 만든다."
+    },
+    {
+     "op": "twist",
+     "degrees": 15,
+     "why": "입력: 균질한 링의 관성과 층마다 달라지는 빛·조망의 요구 → twist(15°)가 링을 오르며 층 켜마다 같은 몫씩 돌린다 → 수직의 관이 감기는 나선이 되어 마당의 하늘 구멍이 층마다 돌아 앉고, 여섯 면의 실루엣이 위로 갈수록 어긋나 탑의 상단이 잔여물이 아닌 사건이 된다(규범 7) → 층별 어긋남이 아래층 창의 처마가 된다 → 한계: 총 15°를 4켜로 나눠 켜당 어긋남이 캔틸레버 게이트 안에 머물고, 재배치 동사의 단독 주연 금지(규범 1)를 알며 쓴다 — 이 문장의 위상 사건은 마당 구멍의 나선화이며, 틈은 선언하지 않아 회전이 닫을 틈 자체가 없다(트랩 2 회피)."
+    }
+   ]
+  },
+  {
+   "name": "risen_square_circuit",
+   "primary_language": "open_figure",
+   "secondary_language": "a tall square ring standing clear of the ground on one squat storey of legs, the court a vertical shaft and the ground a park passing beneath the whole circuit",
+   "formal_principle": "높은 정방 링을 자르지 않고 통째로 한 층 들어 올린다 — 회로는 공중에서 무손상으로 완결되고, 지상은 네 바 아래를 전부 관통하는 공원이 되어 마당과 도시가 바닥 한 면에서 이어진다.",
+   "dominant_gesture": "통째로 들린 회로",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "profile": "square",
+     "bar": 0.3,
+     "height": 0.85,
+     "storeys": 6,
+     "why": "입력: 좁은 발자국에 세워야 하는 수직 프로그램과 포기할 수 없는 마당 → loop(square, bar 0.3)가 정방 궤도의 네 바를 0.85 높이 6켜로 세운다 → 마당이 지상의 잔여가 아니라 수직 샤프트의 중심이 된다 → bar 0.3의 깊은 바라 얇은 고리 벽체로 기각된 전례와 달리 들린 첫 켜의 한 바에 210㎡ 대회의실이 판째 들어간다 → 한계: 높이 0.85는 tall 선언으로 문턱 0.72에서 여유 있게 위이고, 6켜 분할로 켜당 볼륨이 층수 상한 안에 머문다(규범 9)."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.16,
+     "why": "입력: 높은 링이 지상의 흐름을 막아서는 문제 → lift(clearance 0.16)가 회로 전체를 정확히 한 층만 든다 → 지상은 네 바 아래가 전부 열린 관통 공원이 되고, 마당은 담긴 곳이 아니라 지나가는 곳이 된다 → 자름(아치)이 아니라 들림이라 회로의 구조 연속이 어느 바에서도 끊기지 않고, 낮은 들림이라 받침은 죽마가 아니라 한 층짜리 굵은 발이다 → 한계: clearance 0.16은 침묵 바닥 0.15 위(트랩 11)의 최소 유효 들림이며 여기서 멈춘다 — 높은 몸을 높게 들면 받침이 탑이 되어 회로와 경쟁한다."
+    }
+   ]
+  },
+  {
+   "name": "uncut_kite",
+   "primary_language": "solid_body",
+   "secondary_language": "one mid-rise kite-plan prism, entirely uncut - four unequal faces giving each street a different building from a single figure",
+   "formal_principle": "연 평면은 이미 완결된 발화다 — 네 변의 길이와 두 대각의 비대칭이 정면·측면·후면을 한 도형 안에 미리 새겨 두었으므로, 압출 한 번 뒤의 모든 동사는 사족이다: 이 몸의 저작은 자르지 않음이다.",
+   "dominant_gesture": "동사 없는 한 결정",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.8,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "kite",
+     "height": 0.55,
+     "storeys": 4,
+     "why": "입력: 예각 코너를 향해 좁아지는 필지와 한 몸으로 서야 하는 공공 프로그램 → extrude(kite)가 대칭축 하나만 가진 사변형의 4층 몸으로 태어난다 → 뾰족한 꼭짓점은 교차로의 뱃머리가 되고 넓은 등은 뒷골목의 낮은 스케일을 받는다 — 회전도 자름도 없이 방향·위계·정면성이 평면 도형 하나에서 전부 나온다 → 깊은 등 쪽 몸에 210㎡ 대회의실이 판째 들어가고 좁아지는 앞쪽에 작은 실이 줄 선다 → 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 선언한다(규범 6). 이후의 침묵이 이 문장의 논지다 — 도형이 이미 말한 것을 동사로 반복하면 필연성이 깨진다(BIG 운영 규칙: 지배 무브는 하나)."
+    },
+    {
+     "op": "align",
+     "to": "street",
+     "why": "입력: 자르지 않는 몸도 대지는 말해야 한다 → align(street)이 연 평면의 긴 변을 가로선에 붙인다 → 형태는 무손상, 자세만 도시를 향한다 → 정면 없는 도형에 주소가 생긴다 → 한계: 재배치 동사라 형태 사건 0 — 이 문장의 사건은 도형 그 자체다."
+    }
+   ]
+  },
+  {
+   "name": "chamfered_ring_field",
+   "primary_language": "porous_field",
+   "secondary_language": "a mid-rise chamfered ring holding one court, with three one-storey bars branching outward so the block dissolves into yards at its edges",
+   "formal_principle": "링은 안으로 마당 하나를 소유하고, 가지는 밖으로 마당 셋을 나눠 준다 — 중층 회로가 사유의 안뜰을 들고 서면 한 층짜리 가지들이 그 몸에서 갈라져 나가 링의 닫힘을 가장자리에서 밭으로 풀어낸다.",
+   "dominant_gesture": "링에서 갈라져 나가는 가지들",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.5,
+   "ops": [
+    {
+     "op": "loop",
+     "profile": "chamfered",
+     "bar": 0.26,
+     "height": 0.55,
+     "storeys": 4,
+     "why": "입력: 마당을 도는 중층 프로그램과 모서리를 접은 필지 → loop(chamfered, bar 0.26)가 모접은 궤도의 4층 링으로 태어난다 → 접힌 모서리가 궤도의 회전을 평면에서 부드럽게 말하고, bar 0.26의 실 깊이로 한 바에 210㎡ 대회의실이 담긴다 → 모든 실이 마당과 바깥을 얻는다 → 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고, 링은 닫힌 채 멈춰 여는 일은 가지가 한다."
+    },
+    {
+     "op": "branch",
+     "n": 3,
+     "reach": 0.35,
+     "height": 0.3,
+     "why": "입력: 닫힌 회로의 배타성과 이웃 저층 조직으로 스며들 요구 → branch(n 3, reach 0.35)가 링 몸에서 한 층 높이(0.3)의 가지 셋을 바깥으로 뻗는다 → 오브제였던 링이 가장자리에서 밭이 되고, 가지 사이마다 이웃과 공유하는 바깥 마당이 잡힌다 → 안뜰은 링의 것, 바깥 마당들은 동네의 것 — 소유의 위계가 형태의 위계와 일치한다 → 한계: reach 0.35는 침묵 바닥 0.15 위(트랩 11)이고, 가지 높이 0.3으로 링의 지배가 유지되며(주 볼륨 하나가 지배), 가지는 지면에 앉아 구조 게이트와 무관하다."
+    }
+   ]
+  },
+  {
+   "name": "triangle_sky_gate",
+   "primary_language": "carved_body",
+   "secondary_language": "a tall triangular prism whose crown floats above a two-storey void cut clean through the plan, the sky passing through the building near its top",
+   "formal_principle": "관문은 몸에 낸 자름이다 — 삼각 몸을 0.85까지 관통해 열고, 남은 정수리 켜가 문 위의 관이 된다.",
+   "dominant_gesture": "정수리 아래를 관통하는 빈 켜",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "triangular",
+     "height": 0.85,
+     "storeys": 6,
+     "why": "입력: 좁은 발자국의 수직 프로그램과 세 가로에 면한 삼각 필지 → extrude(triangular)가 세 변이 다른 6켜의 높은 몸으로 태어난다 → 예각 꼭짓점 셋이 평면에서 저절로 두꺼운 살이 되어 수직 코어의 자리를 도형이 미리 마련한다 → 균질한 사무 켜가 쌓이고 깊은 밑변 쪽 저층 켜에 210㎡ 대회의실이 담긴다 → 한계: 높이 0.85는 tall 선언으로 문턱 0.72에서 멀고, 6켜 분할로 켜당 볼륨이 층수 상한 안이다(규범 9)."
+    },
+    {
+     "op": "carve",
+     "at": "open",
+     "size": 0.28,
+     "through": true,
+     "why": "입력: 좁은 삼각 몸의 과밀과 도시가 지나다닐 공공의 문 → carve(at open, size 0.28, through, up_to 0.85)가 열린면에서 몸을 관통해 0.85 높이까지 여는 세로 관문을 낸다 → 정수리 켜만 문 위에 남아 관이 되고, 하중은 자름이 건드리지 않은 세 꼭짓점의 두꺼운 살로 되돌아간다 — 지지가 평면 도형에 보인다 → 문은 바람과 사람이 지나는 수직 마당이 된다 → 한계: size 0.28은 침묵 바닥 위(트랩 11), up_to 0.85는 관 한 켜를 반드시 남기는 값 — 틈이 아니라 자름이라 gap 게이트와 무관하다(트랩 1 회피).",
+     "up_to": 0.85
+    }
+   ]
+  },
+  {
+   "name": "overlapped_cloister",
+   "primary_language": "open_figure",
+   "secondary_language": "a low concave-L cloister and its low twin pushed together until their plans overlap - the 210 sqm hall existing only inside the shared bite",
+   "formal_principle": "큰 방은 큰 상자를 덧붙여서가 아니라 평범한 두 몸이 겹쳐서 생긴다 — 낮은 회랑 링과 낮은 쌍둥이 바가 평면을 물고 들어가 겹친 그 자리만 깊이가 두 배가 되고, 210㎡ 대회의실은 두 몸의 교집합으로만 존재한다.",
+   "dominant_gesture": "겹침이 만드는 한 방",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "profile": "concave_l",
+     "bar": 0.28,
+     "height": 0.3,
+     "storeys": 2,
+     "why": "입력: 저층 마당형 공공 프로그램과 오목하게 꺾인 필지 → loop(concave_l, bar 0.28)가 오목 L 궤도를 도는 2층 회랑으로 태어난다 → 마당이 평면의 중심이 되고 오목부가 진입의 예비가 된다 → 작은 실들은 bar 0.28의 회랑 깊이로 충분하지만 210㎡ 한 판에는 얇다 — 그 결핍이 다음 단어의 이유다 → 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있고, 과업 1,546㎡에 맞는 저층 공급이다."
+    },
+    {
+     "op": "overlap",
+     "bite": 0.45,
+     "slip": 0.2,
+     "height": 0.3,
+     "why": "입력: 회랑 깊이에 안 들어가는 대회의실 210㎡와 링의 닫힘을 흔들 요구 → overlap(bite 0.45, slip 0.2)이 같은 높이의 쌍둥이 몸을 링의 열린면 바에 밀어 넣어 평면을 겹친다 → 겹친 물림 자리만 깊이가 두 배가 되어 대회의실이 정확히 거기 생기고, 미끄러진(slip 0.2) 쌍둥이가 링의 기하를 비껴 서서 마당의 닫힘이 얽힘으로 바뀐다 → 큰 방이 부속 동이 아니라 두 몸의 관계 그 자체가 된다 → 한계: bite 0.45는 상한 0.6 아래·침묵 바닥 위(트랩 11)이고, 두 몸이 같은 높이라 겹침은 지면에서 일어나며 내밈이 없어 구조 게이트와 무관하다."
+    }
+   ]
+  }
+ ]
+}

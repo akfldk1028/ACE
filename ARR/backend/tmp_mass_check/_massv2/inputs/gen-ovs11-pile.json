@@ -1,0 +1,227 @@
+{
+ "schemes": [
+  {
+   "name": "facet_rings_meet_their_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "a mid faceted pile whose diminishing bands converge on the one hall nested inside, the hall emerging just above the last band",
+   "formal_principle": "더미는 자기가 품은 방의 크기를 향해 줄어든다 — 각진 세 켜가 안에 포갠 홀의 단면에 수렴하며 물러서고, 마지막 물러섬 위로 그 홀이 제 몸으로 반 켜 솟아, 더미의 끝이 곧 심의 드러남으로 한 몸이 된다.",
+   "dominant_gesture": "홀의 단면에 수렴하는 각진 켜들",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.8,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.5,
+     "height": 0.62,
+     "profile": "faceted",
+     "why": "대회의실 한 칸과 그것을 감싸는 일반실들로 나뉘는 프로그램(입력)→stack에 faceted 프로파일(연산자)→각진 세 켜가 contrast 1.5로 줄며 쌓인다(변형)→물러섬의 비율이 임의가 아니라 안에 설 홀의 단면 크기를 겨냥해, 맨 위 켜의 평면이 홀과 거의 같아진다(기능)→height 0.62로 mid 자세, n 3으로 켜당 높이가 §9 상한(12.5m) 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.3,
+     "why": "줄어드는 켜들만으로는 무엇을 향해 줄어드는지 보이지 않는다(입력)→nest(연산자)→단면 0.42의 홀이 더미 안에 전 층 연속으로 서고 지붕 위로 0.3만 솟는다(변형)→맨 위 켜와 거의 같은 크기의 심이 드러나며 더미의 수렴이 목적을 얻고, 솟은 반 켜가 홀의 고측창이 된다(기능)→turn 없이 켜들과 같은 방위로 서서 돌아선 탑의 관성을 밟지 않고, proud 0.3에서 멈춰 분출이 아니라 드러남으로 읽힌다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "battered_hull_hamlet",
+   "primary_language": "porous_field",
+   "secondary_language": "a low hamlet of stadium-plan hulls whose walls batter inward as they rise, one hull alone shearing toward the open edge",
+   "formal_principle": "지붕이 아니라 벽이 기운다 — 낮은 마을의 둥근 몸들은 전부 위로 갈수록 좁아지는 배흘림 선체이고, 그 공통 규칙 위에서 단 한 채만 열린 가장자리로 기울어 마을의 입구를 몸짓으로 가리킨다.",
+   "dominant_gesture": "배흘림 선체들 사이의 한 채의 기울음",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.5,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.35,
+     "height": 0.3,
+     "tie": 0.1,
+     "unit": "slab",
+     "profile": "stadium",
+     "why": "여러 작은 실 군으로 나뉘는 저층 프로그램(입력)→aggregate에 stadium 프로파일(연산자)→둥근 양단의 낮은 몸 여섯이 spread 1.35로 벌려 정착한다(변형)→몸 사이 남는 땅이 마을의 골목이 되고 곡면 둘레가 골목에 정면·배면 구분 없는 벽을 준다(기능)→height 0.3으로 low 자세를 선언하고, n 6에서 멈춰 파편이 아니라 마을로 남는다(한계)."
+    },
+    {
+     "op": "taper",
+     "ratio": 0.45,
+     "on": "object",
+     "why": "평벽의 낮은 몸들은 지붕 어휘 없이는 실루엣이 없다(입력)→taper를 모든 몸에(연산자)→각 선체의 벽이 위로 갈수록 평면 0.45까지 좁아진다(변형)→지붕을 말하지 않고도 윗면의 사건이 생긴다 — 실루엣의 상단은 얹은 지붕이 아니라 기운 벽 자체이고, 여섯 채가 같은 규칙을 공유해 마을이 한 문법으로 읽힌다(기능)→0.45에서 멈춰 꼭대기 층이 처마가 아니라 방으로 남는다(한계)."
+    },
+    {
+     "op": "shear",
+     "ratio": 0.24,
+     "toward": "open",
+     "on": "object_1",
+     "why": "규칙만 있는 마을은 입구가 없다(입력)→shear를 한 채에만(연산자)→여섯 중 하나가 열린 가장자리 쪽으로 켜들이 밀린다(변형)→공통 규칙(배흘림) 위의 단 하나의 예외가 마을의 어디로 들어오는지를 몸짓으로 가리킨다 — 전부가 기울면 바람에 눕는 풀이지만 하나만 기울면 손짓이다(기능)→ratio 0.24는 관계 비율 바닥 0.15 위, 벌려 정착한 몸이라 일조 봉투가 밀림을 먹지 않는 자리에서 멈춘다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "hearth_with_four_furrows",
+   "primary_language": "open_figure",
+   "secondary_language": "a low square two-band pile with four one-storey wings branching out at grade, garden rooms left between the furrows",
+   "formal_principle": "밭은 덩어리의 가장자리에서 자란다 — 낮은 정방 더미가 어미 몸이고, 지면에서 네 가지가 사방으로 뻗어 그 사이 남는 땅이 세 벽을 가진 마당 방이 된다; 팔의 낮음이 어미의 낮음을 대지의 수평으로 늘인다.",
+   "dominant_gesture": "정방 더미에서 뻗는 네 개의 낮은 가지",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.5,
+     "height": 0.3,
+     "profile": "square",
+     "why": "공용부 한 덩어리와 단위실 군으로 나뉘는 저층 프로그램(입력)→stack에 square 프로파일(연산자)→정방 평면의 두 켜가 위 켜만 크게 줄며 낮게 쌓인다(변형)→말 없는 정방이 가지들이 뻗어 나올 어미 몸이 되고, 줄어든 위 켜가 더미임을 실루엣에 남긴다(기능)→height 0.3으로 low 자세를 선언하고 n 2로 켜당 높이가 §9 상한 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "branch",
+     "n": 4,
+     "reach": 0.55,
+     "height": 0.5,
+     "why": "홀로 선 정방은 마당 없는 덩어리다(입력)→branch(연산자)→어미의 단위공간에서 한 층 높이(0.5)의 가지 넷이 지면을 따라 사방으로 뻗는다(변형)→가지와 가지 사이 남는 땅이 어미의 벽과 두 팔에 감싸인 마당 방이 되어, 건물이 필지를 밭처럼 경작한다 — 틈을 선언하지 않았으므로 골목의 폭은 주장이 아니라 잔여이고 닫혀도 거짓이 없다(기능)→reach 0.55는 팔끝이 법규선에 잘리기 전에 멈추는 실측 안쪽 값, height 0.5로 가지가 어미 위로 솟지 않아 위계가 지켜진다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "clasped_not_turned_ovals",
+   "primary_language": "solid_body",
+   "secondary_language": "a mid pile of stacked oval units, barely woven, held by two arms from opposite sides interlocking at different heights",
+   "formal_principle": "더미는 돌지 않고 맞잡는다 — 모인 타원 단들의 어긋남은 각도가 아니라 결속으로 서고, 반대편에서 와 서로 다른 높이에서 맞물리는 두 팔이 그 하중의 길을 형태 안에 그린다; 지지는 캡션이 아니라 실루엣에 있다.",
+   "dominant_gesture": "타원 더미를 맞잡는 두 팔의 맞물림",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "method": "stack",
+     "unit": "slab",
+     "storeys": 2,
+     "height": 0.6,
+     "tie": 0.3,
+     "turn": 8,
+     "spread": 1.0,
+     "profile": "oval",
+     "why": "단 단위로 나뉘는 중층 프로그램(입력)→aggregate method stack에 oval 프로파일(연산자)→2층 타원 단 넷이 tie 0.3의 넓은 겹침으로 포개지고 turn 8도의 미세한 엮임만 갖는다(변형)→겹침이 하중선을 수직으로 잇고, 회전은 결을 만들 만큼만 남아 원장이 기각한 '사고로 읽히는 회전 더미'를 정면으로 거절한다(기능)→storeys 2로 단위가 사람 크기를 얻고, turn 8도·tie 0.3에서 멈춰 받침 없는 오프셋을 만들지 않는다(한계)."
+    },
+    {
+     "op": "interlock",
+     "bite": 0.5,
+     "size": 0.35,
+     "reach": 0.28,
+     "why": "얌전히 포개진 더미는 결속의 이유가 안 보인다(입력)→interlock(연산자)→반대 면에서 온 폭 0.35의 두 팔이 서로 다른 높이에서 bite 0.5로 맞물린다(변형)→더미를 묶는 것이 무엇인지가 형태로 그려진다 — 맞물린 마디가 보이는 구조가 되고, 두 팔의 밑이 양쪽 진입의 처마가 된다(기능)→reach 0.28은 캔틸레버 게이트 실측 통과값으로 상한 0.40 안쪽에서 멈추고, bite 0.5로 팔이 스치는 접촉이 아니라 물린 결합이 된다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "one_cut_names_the_front",
+   "primary_language": "carved_body",
+   "secondary_language": "a mid hexagonal pile with no front, given one axis by a single full-height through-cut",
+   "formal_principle": "정면 없는 몸에 방향을 주는 것은 단 하나의 관통이다 — 여섯 변이 등가인 육각 더미를 전 켜 관통하는 자름 하나가 꿰뚫어, 지상의 길과 하늘의 틈이 같은 축에 놓이고 그 축이 이 건물의 유일한 정면이 된다.",
+   "dominant_gesture": "육각 더미를 전 층 관통하는 한 번의 자름",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.8,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.4,
+     "height": 0.6,
+     "profile": "hexagon",
+     "why": "어느 가로에도 등을 돌릴 수 없는 블록 대지의 중층 프로그램(입력)→stack에 hexagon 프로파일(연산자)→여섯 변의 세 켜가 줄며 쌓인다(변형)→방위 없는 등가의 여섯 얼굴이 관통 한 수의 배경이 된다 — 자름이 말하려면 몸이 먼저 침묵해야 한다(기능)→height 0.6으로 mid 자세, n 3으로 켜당 높이가 §9 상한 안에서 멈춘다(한계)."
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "cross",
+     "through": true,
+     "why": "등가의 육각은 시민이 어디로 들어와 어디로 나가는지 말하지 못한다(입력)→carve through(연산자)→폭 0.28의 자름이 세 켜를 전부 꿰뚫어 몸 반대편 하늘까지 연다(변형)→덩어리가 도시를 막지 않고 통과시키며, 지상의 관통로와 그 위로 열린 틈이 하나의 수직 단면으로 읽혀 육각에 유일한 축(정면)이 생긴다(기능)→size 0.28은 비율 바닥 0.15 위, 자름은 한 번뿐이라 몸이 파편으로 무너지지 않고 남은 두 팔이 §9 상한 안의 켜로 선다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "village_bound_at_the_lintel",
+   "primary_language": "porous_field",
+   "secondary_language": "a low village of kite-plan bodies ringed by one thin plate at door-lintel height, roofs free above, one porch below",
+   "formal_principle": "마을을 묶는 기준선은 처마가 아니라 문지방이다 — 연 평면의 낮은 몸들에 사람 키의 얇은 판 한 장이 둘려, 판 아래는 몸 사이사이가 지붕 있는 한 채의 툇마루로 이어지고 판 위는 각 몸이 제 집으로 선다.",
+   "dominant_gesture": "문인방 높이에 두른 한 장의 판",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.3,
+     "height": 0.32,
+     "tie": 0.1,
+     "unit": "slab",
+     "profile": "kite",
+     "why": "작은 실 군으로 나뉘는 저층 프로그램(입력)→aggregate에 kite 프로파일(연산자)→모서리를 겨누는 연 평면의 낮은 몸 다섯이 spread 1.3으로 벌려 정착한다(변형)→연 평면의 뾰족한 모서리들이 골목의 방향을 제각각 가리켜, 판이 묶기 전의 마을이 먼저 흩어져 있어야 묶음이 사건이 된다(기능)→height 0.32로 low 자세를 선언하고 n 5에서 멈춘다(한계)."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 0.4,
+     "on": "object",
+     "why": "흩어진 몸들은 지붕선으로 묶으면 처마선 마을의 재탕이다(입력)→canopy를 낮게(at 0.4), 모든 몸에(연산자)→층고보다 얇은 판이 각 몸의 문인방 높이 둘레를 물고 밖으로 0.28 내민다(변형)→내민 판들이 몸 사이 골목 위에서 거의 잇닿아 마을의 통일이 하늘이 아니라 사람이 걷는 높이에 생긴다 — 판 아래는 비를 긋는 한 채, 판 위는 다섯 채(기능)→방 아님을 스스로 선언해 방 게이트를 면제받고, reach 0.28은 구조 게이트 실측 통과값으로 상한 0.45 안쪽에서 멈춘다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "shallow_lift_wide_shoulders",
+   "primary_language": "open_figure",
+   "secondary_language": "a mid pile of trapezoidal units with wide overlaps, the whole lifted one storey so the ground passes beneath",
+   "formal_principle": "들림의 값은 높이가 아니라 아래를 지나는 길이다 — 사다리꼴 단들이 넓은 겹침으로 하중선을 곧게 포개고, 그 온전한 무게가 꼭 한 층만 들려 지상을 내준다; 필로티는 가늘어서 극적인 것이 아니라 낮아서 성립한다.",
+   "dominant_gesture": "넓게 포개진 더미 밑의 한 층 관통 지상",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.7,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 3,
+     "method": "stack",
+     "unit": "slab",
+     "storeys": 2,
+     "height": 0.55,
+     "tie": 0.35,
+     "turn": 0,
+     "spread": 1.0,
+     "profile": "trapezoidal",
+     "why": "단 단위로 나뉘는 중층 프로그램(입력)→aggregate method stack에 trapezoidal 프로파일(연산자)→2층 사다리꼴 단 셋이 turn 0으로 돌지 않고 tie 0.35의 넓은 어깨로 포개진다(변형)→긴 변과 짧은 변의 차이가 단마다 앞뒤 다른 깊이의 실을 주고, 넓은 겹침이 위 단의 하중을 아래 단의 몸통으로 곧장 내린다 — 들리기 전에 먼저 스스로 서는 더미(기능)→storeys 2로 단위가 사람 크기를 얻고, turn 0에서 멈춰 원장이 기각한 회전 더미의 관성을 밟지 않는다(한계)."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.25,
+     "why": "대지 가운데 앉은 더미는 지상 동선을 끊는다(입력)→lift(연산자)→포개진 더미 전체가 한 층 높이만큼 들린다(변형)→사방 어느 쪽에서 와도 밑을 지나 반대편으로 나가는 관통 지상이 생기고, 겹침으로 이미 정렬된 하중선이 그대로 기둥열이 되어 극세 필로티 없이 들림이 성립한다 — 원장이 기각한 '높이 든 극세 필로티'의 정반대(기능)→clearance 0.25 한 층에서 멈춰 들림이 과시가 아니라 통행의 치수로 남는다(한계)."
+    }
+   ]
+  },
+  {
+   "name": "spire_of_pure_diminution",
+   "primary_language": "solid_body",
+   "secondary_language": "a tall chamfered tower said with one word: five bands shrinking at a constant strong ratio, nothing else",
+   "formal_principle": "동사 없는 탑의 형태는 오직 줄어드는 속도다 — 모서리 접힌 다섯 켜가 일정한 강한 비율로 물러서며, 여덟 개의 모접기 능선이 계단으로 수렴해 첨탑이 된다; 더할 말이 없는 것이 이 문장의 주장이다.",
+   "dominant_gesture": "일정한 비율로 수렴하는 다섯 켜",
+   "reference_basis": "저작 신작",
+   "floor_height_m": 3.3,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 5,
+     "contrast": 1.6,
+     "height": 0.85,
+     "profile": "chamfered",
+     "why": "높이가 요구되는 좁은 필지의 프로그램(입력)→stack에 chamfered 프로파일, 단 한 단어(연산자)→모서리 접힌 다섯 켜가 contrast 1.6으로 켜마다 같은 비율로 줄며 쌓인다(변형)→여덟 모접기 능선이 계단꼴로 안쪽으로 수렴해 실루엣이 첨탑으로 읽히고, 매 물러섬이 테라스가 된다 — 자름도 회전도 내밈도 없이 수축의 속도 하나가 형태의 전부(기능)→height 0.85로 tall 자세를 문턱(0.72)에서 떨어져 선언하고, n 5로 켜당 높이가 §9 상한(12.5m) 안에 들며, contrast 1.6은 n 3 실측에서 92% 배달과 켜 구분을 함께 지킨 값(한계)."
+    },
+    {
+     "op": "align",
+     "to": "street",
+     "why": "입력: 동사 없는 첨탑도 대지는 말해야 한다 → align(street)이 최하단의 한 면을 가로선에 붙인다 → 수렴의 기하는 무손상, 자세만 도시를 향한다 → 첨탑이 물건이 아니라 주소를 가진 건물이 된다 → 한계: 재배치 동사라 형태 사건 0 — 이 문장의 사건은 줄어드는 속도다."
+    }
+   ]
+  }
+ ]
+}

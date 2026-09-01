@@ -145,10 +145,23 @@ def _programme_lift(
     # five percent of its height, which is how six-metre house piles arrived
     # at zero storeys. The floor a lift may never go under is the one the
     # executor already enforces at birth: the shortest unit still holds one
-    # storey. Derived, not chosen.
-    low, high = _height_span(form)
-    body = max(high - low, 1e-9)
-    floor = min(1.0, floor_height_m / body) if floor_height_m > 0 else 0.05
+    # storey. Derived, not chosen. And it is the UNIT's span, not the whole
+    # composition's - dividing by a three-house pile's total height let each
+    # house crush to a third of a storey while the stack as a whole "held"
+    # one, which is exactly how the Korean brief-resize flattened every
+    # declared vertical event.
+    # Occupiable units only: a declared-thin plate (a canopy, a brim) is not
+    # a storey and must not forbid the crush the rooms could take.
+    unit = min(
+        (max(high - low, 0.0) for low, high in
+         (item.z_span() for item in form.additive()
+          if getattr(item, "occupiable", True))),
+        default=0.0,
+    )
+    if unit <= 1e-9:
+        low, high = _height_span(form)
+        unit = max(high - low, 1e-9)
+    floor = min(1.0, floor_height_m / unit) if floor_height_m > 0 else 0.05
     return max(floor, min(inverse, far_capacity_m2 / scaled))
 
 

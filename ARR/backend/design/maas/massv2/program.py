@@ -531,6 +531,78 @@ def resized_to(form, schedule: Schedule, *, weight: float, storey_height_m: floa
         centre = ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
         placements[index] = _scaled_in_plan(item, factor, centre)
 
+    # A stacked volume rides its carrier. Each volume scaled about its OWN
+    # centre, and two volumes shrink by different factors - so an upper unit
+    # that bore on a lower one keeps its authored world position while its
+    # carrier contracts out from under it, and the brief-resize delivered
+    # knife bearings and floaters. The old rule applies: an attachment rides
+    # its owner - the upper's centre moves with the carrier's frame
+    # (carrier_centre + carrier_factor * authored_offset), bottom-up so a
+    # chain rides all the way down. Heights stay untouched; this is plan.
+    from shapely.geometry import Polygon as _Polygon
+
+    def _footprint(item):
+        corners = item.corners()
+        low = item.z_span()[0]
+        ring = [(x, y) for x, y, z in corners if abs(z - low) < 1e-6]
+        return _Polygon(ring).convex_hull if len(ring) >= 3 else None
+
+    def _centre(item):
+        corners = item.corners()
+        xs = [x for x, _y, _z in corners]
+        ys = [y for _x, y, _z in corners]
+        return ((min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0)
+
+    factor_of = {}
+    for slot, (index, item) in enumerate(additive):
+        share = target[slot] if slot < len(target) else current[slot]
+        if current[slot] > 1e-9 and share > 1e-9:
+            factor_of[index] = (share / current[slot]) ** 0.5
+
+    from design.maas.geometry_language.affine_matrix import (
+        compose_matrix4, translation_matrix4, validate_matrix4)
+
+    order_up = sorted((index for index, _item in additive),
+                      key=lambda i: form.placements[i].z_span()[0])
+    for index in order_up:
+        original = form.placements[index]
+        base = original.z_span()[0]
+        plan = _footprint(original)
+        if plan is None:
+            continue
+        carriers = [
+            (other, _footprint(form.placements[other]))
+            for other in order_up
+            if other != index
+            and abs(form.placements[other].z_span()[1] - base) <= 1e-3
+        ]
+        carriers = [
+            (other, plan.intersection(fp).area)
+            for other, fp in carriers if fp is not None and fp.intersects(plan)
+        ]
+        if not carriers:
+            continue
+        owner = max(carriers, key=lambda pair: pair[1])[0]
+        owner_was = _centre(form.placements[owner])
+        # Where the owner IS, not where it was authored: bottom-up order
+        # means a mid-chain carrier has already ridden its own carrier, and
+        # the offset is measured in the authored frame but planted on the
+        # owner's delivered centre.
+        owner_now = _centre(placements[owner])
+        owner_factor = factor_of.get(owner, 1.0)
+        authored = _centre(original)
+        wanted_centre = (
+            owner_now[0] + owner_factor * (authored[0] - owner_was[0]),
+            owner_now[1] + owner_factor * (authored[1] - owner_was[1]),
+        )
+        now = _centre(placements[index])
+        dx, dy = wanted_centre[0] - now[0], wanted_centre[1] - now[1]
+        if abs(dx) > 1e-6 or abs(dy) > 1e-6:
+            moved = compose_matrix4(
+                translation_matrix4((dx, dy, 0.0)), placements[index].matrix)
+            placements[index] = _replace(
+                placements[index], matrix=validate_matrix4(moved))
+
     # Tell the growth loop a brief exists and how large it asks the building to
     # be. Without this it grows toward the statutory ceiling, which is a
     # ceiling and not a target - and overshooting the 면적표 by more than five

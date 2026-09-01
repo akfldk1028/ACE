@@ -79,29 +79,81 @@ def main() -> int:
     visual = ROOT / "runs" / "board" / "visual-groups.json"
     if visual.exists():
         groups = json.loads(visual.read_text(encoding="utf-8"))["groups"]
-        group_of = {}
-        for i, names in enumerate(groups):
-            for name in names:
-                group_of[name.split("~")[0].split("^")[0]] = i
-        best_in_group: dict[tuple, dict] = {}
+        # The file accumulates passes, so one sentence can appear in two
+        # recorded groups (judged against different partners at different
+        # times); overlapping groups union, or a shared member silently
+        # splits a group and a merged-out entry walks back onto the board.
+        # A contradicted verdict is handled where it belongs: by removing
+        # the superseded pair from the file, never by resolution order here.
+        parent: dict[str, str] = {}
+
+        def find(node: str) -> str:
+            while parent.setdefault(node, node) != node:
+                parent[node] = parent[parent[node]]
+                node = parent[node]
+            return node
+
+        # Entries are TRACK:sentence editions - a verdict is about the tile
+        # the judge saw, and the K edition of a sentence is a different tile
+        # from its O edition. Keying by bare sentence chained one edition's
+        # verdict onto the other's partners and over-merged whole rows.
+        def edition(name: str) -> str:
+            if ":" in name:
+                return name
+            return "O:" + name.split("~")[0].split("^")[0]
+
+        for names in groups:
+            editions = [edition(n) for n in names]
+            for other in editions[1:]:
+                parent[find(other)] = find(editions[0])
+        group_of = {node: find(node) for node in parent}
+        best_in_group: dict[str, dict] = {}
         for item in curated:
-            sentence = item["name"].split("~")[0].split("^")[0]
+            sentence = item["track"] + ":" + \
+                item["name"].split("~")[0].split("^")[0]
             gid = group_of.get(sentence)
             if gid is None:
                 continue
-            key = (item["track"], gid)
-            held = best_in_group.get(key)
+            # One seat per visual group on the WHOLE page, not per track: the
+            # client reads one board, and the K edition of a scheme is the
+            # same building at brief size - chain_of_turned_rooms held K6 and
+            # O2 at once. The two juries' scales differ, but the question
+            # here is only which edition represents the scheme.
+            held = best_in_group.get(gid)
             if held is None or item["score"] > held["score"]:
-                best_in_group[key] = item
+                best_in_group[gid] = item
         kept_ids = {id(v) for v in best_in_group.values()}
         dropped = [
             item for item in curated
-            if group_of.get(item["name"].split("~")[0].split("^")[0]) is not None
+            if group_of.get(
+                item["track"] + ":"
+                + item["name"].split("~")[0].split("^")[0]) is not None
             and id(item) not in kept_ids
         ]
         for item in dropped:
             print(f"  eye-merged out: {item['name'][:48]} ({item['score']:.2f})")
         curated = [item for item in curated if id(item) not in {id(d) for d in dropped}]
+
+    # One sentence, one seat on the whole page: a sentence that passed both
+    # juries held K6 and O2 at once, and to the client that is the same
+    # building printed twice whatever the tracks' briefs did to its size.
+    # Runs AFTER the eye pass: an edition the eye already merged away must not first evict its twin from the other track and then die itself, orphaning the sentence. No judge needed for this tier - same name is same drawing by
+    # construction; the higher-scored edition represents it.
+    best_by_sentence: dict[str, dict] = {}
+    for item in curated:
+        sentence = item["name"].split("~")[0].split("^")[0]
+        held = best_by_sentence.get(sentence)
+        if held is None or item["score"] > held["score"]:
+            best_by_sentence[sentence] = item
+    for item in curated:
+        sentence = item["name"].split("~")[0].split("^")[0]
+        if id(item) != id(best_by_sentence[sentence]):
+            print(f"  cross-track duplicate out: {item['track']} "
+                  f"{item['name'][:44]} ({item['score']:.2f})")
+    curated = [item for item in curated
+               if id(item) == id(best_by_sentence[
+                   item["name"].split("~")[0].split("^")[0]])]
+
     board = []
     counters = {"K": 0, "O": 0}
     for track in ("K", "O"):

@@ -31,6 +31,15 @@ ROUNDS = [
     ("O", "runs/judge-ovs2/vlm-shortlist.json", "shortlist"),
     ("O", "runs/vlm-ovs9-family/vlm-shortlist.json", "shortlist"),
     ("O", "runs/vlm-ovs10-new/vlm-shortlist.json", "shortlist"),
+    # Rule 0's corollary: the smooth-curve renderer changed the drawings, so
+    # the seated overseas entries were re-judged on the rebaked tiles under
+    # the track's own rubric. Newest-last, so these scores override.
+    ("O", "runs/vlm-board-rejudge-1/vlm-shortlist.json", "corrected"),
+    # The partial correction above re-judged only the SEATED entries, and
+    # curation then compared its new-rubric scores against merged-out
+    # partners still holding old-rubric numbers - two scales, one contest,
+    # and the board flipped. One ruler over the whole passing ledger:
+    ("O", "runs/vlm-o-full-rejudge/vlm-shortlist.json", "corrected"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

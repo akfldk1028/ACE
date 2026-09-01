@@ -28,6 +28,22 @@ BOARD = ROOT / "runs" / "board"
 TILE = (880, 740)
 SHEET_TILE = (440, 370)
 SHEET_COLUMNS = 4
+# The board's parcel is 효돈동 and its Korean track is sized to this brief -
+# the same 과업 the Korean rubric names. Loaded from programs-korean.json,
+# never typed as numbers here.
+KOREA_BRIEF = "효돈동 주민센터"
+
+
+def _korea_schedule():
+    from design.maas.massv2 import program as programme
+    book = json.loads((ROOT / "inputs" / "programs-korean.json")
+                      .read_text(encoding="utf-8"))
+    record = next((r for r in book["schedules"]
+                   if r.get("name") == KOREA_BRIEF), None)
+    if record is None:
+        return None
+    return programme.schedule_from_record(
+        record, shared_share_of_gross=book.get("shared_area_share_of_gross"))
 
 
 def main() -> int:
@@ -39,6 +55,7 @@ def main() -> int:
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
 
+    korea_schedule = _korea_schedule()
     per_track: dict[str, list] = {"K": [], "O": []}
     kept, baked = 0, 0
     for row in board:
@@ -46,11 +63,12 @@ def main() -> int:
         family = row["name"].split("~")[0].split("^")[0]
         parti = book.get(family)
         source = None
-        if parti is not None and track == "O":
+        if parti is not None and (track == "O" or korea_schedule is not None):
             asked = max((float(op.get("storeys") or 0)
                          for op in parti["ops"]), default=0.0)
             source = rebuild(row["name"], book, site, buildable, axis,
-                             max(base, asked * site.floor_height_m))
+                             max(base, asked * site.floor_height_m),
+                             schedule=korea_schedule if track == "K" else None)
         if source is None:
             existing = BOARD / f"{row['label']}.png"
             if existing.exists():

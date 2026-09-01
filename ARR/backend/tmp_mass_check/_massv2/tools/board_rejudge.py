@@ -28,10 +28,20 @@ from design.maas.massv2.siting import open_side_direction  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def main(round_name: str) -> int:
-    board = json.loads((ROOT / "runs" / "board" / "board-key.json")
-                       .read_text(encoding="utf-8"))
-    names = [row["name"] for row in board if row["label"].startswith("O")]
+def main(round_name: str, scope: str = "") -> int:
+    if scope == "--ledger":
+        # One ruler over everything: a corrected round that covers only the
+        # seated entries leaves their merged-out partners holding old-rubric
+        # scores, and the next curation compares the two scales raw - the
+        # re-judged seats lost to stale numbers. So the whole passing ledger
+        # is judged in one round, and every overseas score is the same era.
+        rows = json.loads((ROOT / "runs" / "board" / "ledger.json")
+                          .read_text(encoding="utf-8"))
+        names = [r["name"] for r in rows if r["track"] == "O" and r["pass"]]
+    else:
+        board = json.loads((ROOT / "runs" / "board" / "board-key.json")
+                           .read_text(encoding="utf-8"))
+        names = [row["name"] for row in board if row["label"].startswith("O")]
     random.Random(20260901).shuffle(names)
 
     book = corpus()
@@ -85,4 +95,5 @@ def main(round_name: str) -> int:
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "board-rejudge"))
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "board-rejudge",
+                  sys.argv[2] if len(sys.argv) > 2 else ""))

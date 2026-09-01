@@ -29,6 +29,7 @@ ROUNDS = [
     ("K", "runs/judge-void-kor/vlm-shortlist.json", "shortlist"),
     ("O", "runs/judge-refix/vlm-shortlist.json", "corrected"),
     ("O", "runs/judge-ovs2/vlm-shortlist.json", "shortlist"),
+    ("O", "runs/vlm-ovs9-family/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

@@ -1,0 +1,53 @@
+{
+  "schemes": [
+    {
+      "name": "triple_house_stack_one_chimney",
+      "primary_language": "solid_body",
+      "secondary_language": "three two-storey house-units stacked one above the next, each turned slightly to its own horizon - ridge over ridge over ridge",
+      "formal_principle": "The program is a village of house-sized rooms but the ground is one house wide, so the village stacks: three two-storey houses bear full-plan one on the next, each turned slightly to its own horizon - the house section is not the crown of the tower, it is the storey unit the tower is counted in.",
+      "dominant_gesture": "a totem of house sections",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.2,
+          "height": 0.6,
+          "tie": 0,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "levels": 3,
+          "turn": 15,
+          "reach": 0,
+          "why": "Input: the program wants house-scaled rooms with house sections, and the parcel offers ground for only one house - the village has no land, so it goes up without giving up its unit. Aggregate(method stack, unit house, n 3, levels 3) stands three houses one per level, and unit house is the whole roof argument said at birth: each unit's depth is derived from its own height and the 45-degree gable is native to the section, so every level of the silhouette is a ridge - no roof word needs to follow. The stack turns a little at each level, so each house faces its own horizon while still bearing on the one below. Limit: reach 0 is the sentence's structural promise - the flying ends stay home, because this pile's claim is bearing, not flight; spread 1.2 makes the upper units read as a deliberate taper without collapsing them into sameness, and tie 0 leaves no binding plate to compete with the stacked-house idea."
+        }
+      ]
+    },
+    {
+      "name": "corner_lifted_courtyard_ring",
+      "primary_language": "open_figure",
+      "secondary_language": "a three-storey courtyard ring whose whole court stays on the ground while one corner alone rises into a taller lookout block",
+      "formal_principle": "The parcel wants the block edge and the program wants one room to look farther than the rest, so the ring stays a court-building almost everywhere and only one corner is pulled upward to become the figure of address - not a crown on the whole block, but one corner turned into a tower while the court remains ground-borne.",
+      "dominant_gesture": "one corner of the ring drawn upward",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.24,
+          "height": 0.45,
+          "storeys": 3,
+          "why": "Input: the program needs a real court for light and circulation, and the parcel edge wants continuous occupation instead of detached objects. Loop(bar 0.24) makes four narrow bars ring one court, so every room has an outer face and a court face and the block reads as one court-building rather than scattered wings. Storeys 3 gives the ring its ordinary datum and keeps the court low enough to remain a void read from the ground. Limit: bar 0.24 stays clear of the thin-room trap while keeping the court open as a figure; height 0.45 declares a middle body with margin from the nearby thresholds, because the exceptional event belongs to one corner, not to the whole ring."
+        },
+        {
+          "op": "lift",
+          "on": "bar_e",
+          "clearance": 0.32,
+          "why": "Input: one public room wants a farther horizon than the rest of the ring, but lifting the whole block would turn the court into an elevated tray and erase the ground court that justified the loop. Lift(on bar_e, clearance 0.32) pulls only the east bar upward, making one side of the ring stand as the lookout block while the other three bars stay seated and keep the court on the ground; the silhouette therefore reads as court-ring first, one-sided rise second. Limit: the clearance is enough to separate the corner as an event without making a pilotis megastructure, and the targeting stays local because a global lift would become the already-known raised-ring family rather than this one-corner exception."
+        }
+      ]
+    }
+  ]
+}

@@ -177,6 +177,44 @@ def main() -> int:
             board.append({"label": f"{track}{counters[track]}",
                           "name": item["name"], "score": item["score"],
                           "round": item["round"]})
+    # The canon is not a contestant. Section 11 promises the standard
+    # repertoire is ALWAYS present, and for a season it wasn't: the canon
+    # round was authored, closed-looped and never juried, so the wide slab,
+    # the pilotis slab and the cylinder simply never appeared before the
+    # client. Canon seats by right - base sentence, file order, jury score
+    # shown when one exists but never required.
+    # The representative is the canon run's own chosen VARIANT, not the bare
+    # sentence: rebuilding a base name fits the unspread form to the full
+    # footprint and the cylinder bakes as a squat drum. The latest canon run
+    # is the owner of which variant shows each type.
+    CANON_RUN = "ovs13-v2"
+    canon_pick: dict[str, str] = {}
+    canon_summary = ROOT / "runs" / CANON_RUN / "massv2-summary.json"
+    if canon_summary.exists():
+        chosen = (json.loads(canon_summary.read_text(encoding="utf-8"))
+                  .get("selection") or {}).get("chosen_names") or []
+        for name in chosen:
+            sentence = name.split("~")[0].split("^")[0]
+            canon_pick.setdefault(sentence, name)
+    # Eye/typology overrides: the run's cell picks optimise coverage spread,
+    # but a canon tile's job is to READ as its type - the tallest honest
+    # cylinder, the steepest honest ridge. Recorded per sentence, stature-
+    # honest, in canon-picks.json.
+    picks_path = ROOT / "runs" / "board" / "canon-picks.json"
+    if picks_path.exists():
+        canon_pick.update(json.loads(picks_path.read_text(encoding="utf-8")))
+    canon_count = 0
+    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+        for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
+            if scheme.get("layer") != "canon":
+                continue
+            canon_count += 1
+            shown = canon_pick.get(scheme["name"], scheme["name"])
+            judged = ledger.get(("O", shown)) or ledger.get(("O", scheme["name"]))
+            board.append({"label": f"C{canon_count}",
+                          "name": shown,
+                          "score": judged["score"] if judged else None,
+                          "round": judged["round"] if judged else "canon"})
     out = ROOT / "runs" / "board"
     out.mkdir(parents=True, exist_ok=True)
     (out / "ledger.json").write_text(
@@ -188,7 +226,8 @@ def main() -> int:
     print(f"ledger {len(ledger)} entries, passers {len(passers)}, "
           f"board K{kept['K']} + O{kept['O']} (one per family)")
     for row in board:
-        print(f"  {row['label']:>4} {row['score']:.2f} {row['name'][:52]}")
+        score = f"{row['score']:.2f}" if row["score"] is not None else "  - "
+        print(f"  {row['label']:>4} {score} {row['name'][:52]}")
     return 0
 
 

@@ -56,14 +56,14 @@ def main() -> int:
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
 
     korea_schedule = _korea_schedule()
-    per_track: dict[str, list] = {"K": [], "O": []}
+    per_track: dict[str, list] = {"K": [], "O": [], "C": []}
     kept, baked = 0, 0
     for row in board:
         track = row["label"][0]
         family = row["name"].split("~")[0].split("^")[0]
         parti = book.get(family)
         source = None
-        if parti is not None and (track == "O" or korea_schedule is not None):
+        if parti is not None and (track in ("O", "C") or korea_schedule is not None):
             asked = max((float(op.get("storeys") or 0)
                          for op in parti["ops"]), default=0.0)
             source = rebuild(row["name"], book, site, buildable, axis,
@@ -78,7 +78,7 @@ def main() -> int:
             print(f"missing and unbakeable: {row['label']} {row['name']}")
             continue
         baked += 1
-        meta = {"": f"{row['score']:.2f}"}
+        meta = {"": f"{row['score']:.2f}" if row.get("score") is not None else "전형"}
         render_masses([(row["label"], source, meta)],
                       BOARD / f"{row['label']}.png",
                       site_ring=list(buildable.exterior.coords),
@@ -86,7 +86,7 @@ def main() -> int:
         per_track[track].append((row["label"], source, None))
 
     from PIL import Image
-    for track in ("K", "O"):
+    for track in ("K", "O", "C"):
         entries = per_track[track]
         if not entries:
             continue

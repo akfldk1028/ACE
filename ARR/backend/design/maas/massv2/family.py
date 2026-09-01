@@ -66,6 +66,16 @@ def family_key(scheme: dict) -> tuple:
         if dominant in moves:
             moves = {dominant}
             break
+    # Except the roof: a jury reads a mansard court ring and a barrel-vaulted
+    # ring as different buildings, and one "section" bucket evicted the 3.90
+    # mansard for the 4.14 vault. The section family keys on its verb; the
+    # eye tier remains the net for genuine lookalikes.
+    if moves == {"section"}:
+        section_verbs = {
+            str(op.get("op") or op.get("verb") or "") for op in ops
+            if FAMILY_OF_VERB.get(str(op.get("op") or op.get("verb") or "")) == "section"
+        }
+        moves = section_verbs or moves
     stature = "low" if height < 0.42 else ("mid" if height < 0.72 else "tall")
     return (opener, frozenset(moves), stature)
 

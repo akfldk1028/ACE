@@ -1012,16 +1012,34 @@ class Command(BaseCommand):
             base_ops = (parti_book.get(base_sentence) or {}).get("ops") or []
             opener = str((base_ops[0].get("op") if base_ops else "") or "")
             stature_is_building = opener in ("extrude", "loop")
+            # The declaration names the BODY, and total extent is not the
+            # body: a lift's clearance is empty metres, yet it was billed as
+            # delivered storeys and a declared-3 bar over a 1-storey
+            # undercroft tripped the 5/3 gate arithmetically (ovs17: 122 of
+            # 134 "crushed", almost all honest pilotis). Stature is the
+            # tallest single volume's own span.
+            spans = [max(0.0, float(v.top_fraction) - float(v.bottom_fraction))
+                     for v in (getattr(source, "volumes", ()) or ())]
+            body_height = measurement.height_m * (max(spans) if spans else 1.0)
             over = (declared > 0.0 and stature_is_building
-                    and measurement.height_m > (5.0 / 3.0) * declared * form_storey)
+                    and body_height > (5.0 / 3.0) * declared * form_storey)
             if (declared > 0.0
-                    and measurement.height_m < (2.0 / 3.0) * declared * form_storey) or over:
+                    and body_height < (2.0 / 3.0) * declared * form_storey) or over:
                 # Declared stature is held like a declared gap: a sentence
                 # that asked for eight storeys and delivered four is not that
                 # sentence - and one that asked for two and delivered five is
                 # not it either. The variant stays measured and recorded; it
-                # just cannot represent the sentence on the sheet.
+                # just cannot represent the sentence on the sheet. The verdict
+                # rides the record too: the counter alone lived only in
+                # stdout, and the arbitration tools were free to rebuild a
+                # variant this gate had already retired.
                 crushed += 1
+                records[-1]["stature"] = {
+                    "declared_storeys": declared,
+                    "delivered_body_m": round(body_height, 2),
+                    "crushed": True,
+                    "over": over,
+                }
             elif fit.satisfied:
                 # An unlawful mass was being counted and then offered anyway.
                 # `central_beheer_islands` came out at 1.17 of the 건폐율 cap
@@ -1216,6 +1234,7 @@ class Command(BaseCommand):
             "delivered": len(renderable),
             "unlawful": unlawful,
             "implausible": implausible,
+            "crushed": crushed,
             "occupied_cells": len(cells),
             "cells": dict(sorted(cells.items())),
             # Why a sentence never became a record. These four refusals were

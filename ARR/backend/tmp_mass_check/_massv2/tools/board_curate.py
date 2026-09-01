@@ -50,6 +50,9 @@ ROUNDS = [
     # Roof-section round: the client said the gables were gone; these
     # win their seats through the jury instead of squatting in a canon row.
     ("O", "runs/vlm-ovs16-en/vlm-shortlist.json", "shortlist"),
+    # Pilotis + wide-slab round (closed-loop r2): the lifted court ring
+    # and the punched mat, seats won by jury after the canon row left.
+    ("O", "runs/vlm-ovs17-en/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.
@@ -71,8 +74,23 @@ def main() -> int:
         path = ROOT / rel
         if not path.exists():
             continue
+        # Anchors ride a round to calibrate it; they are not re-contested by
+        # it. Recording their ride-corrected scores let the ruler measure
+        # itself - anchor spread compressed 23-48% per ride and one seat
+        # drifted 3.29 -> 3.50 with no contest. New shortlists carry an
+        # `anchor` flag; older ones are covered by the sibling key.json,
+        # where an anchor row is any entry holding an `anchor` value.
+        anchor_names: set[str] = set()
+        key_path = path.parent / "key.json"
+        if key_path.exists():
+            anchor_names = {
+                r["name"] for r in json.loads(key_path.read_text(encoding="utf-8"))
+                if r.get("anchor") is not None
+            }
         for row in json.loads(path.read_text(encoding="utf-8")):
             name = row["name"]
+            if row.get("anchor") or name in anchor_names:
+                continue
             score = float(row.get("corrected") or row.get("score") or 0.0)
             passed = bool(row.get("pass")) if "pass" in row else score >= KOREA_FINAL_PASS
             ledger[(track, name)] = {

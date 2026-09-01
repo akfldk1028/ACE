@@ -126,6 +126,12 @@ def score(run: str, paths: list[str]) -> int:
         "corrected": round(s - drift, 2),
         "pass": (s - drift) >= 3.0,
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
+        # Anchors calibrate the session; they are not contestants. Without
+        # this flag the curator re-recorded each anchor's ride-corrected
+        # score as its current score, and the ruler measured itself: anchor
+        # spread compressed 23-48% per ride and a seat gained +0.21 over two
+        # rides with no contest. The flag lets the curator skip them.
+        **({"anchor": True} if key[t].get("anchor") is not None else {}),
     } for s, t in ranked]
     (out / "vlm-shortlist.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")

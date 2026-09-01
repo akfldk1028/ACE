@@ -1,0 +1,177 @@
+{
+ "schemes": [
+  {
+   "name": "ring_holds_its_court_aloft",
+   "primary_language": "open_figure",
+   "secondary_language": "a court ring of four three-storey bars lifted whole into the air - the court kept as a rectangle of sky above, the ground below one continuous public clearing",
+   "formal_principle": "The neighbourhood crosses this parcel - street to the open ground behind - and a court ring at grade would gate that crossing while the program still wants the court's shared centre, so the whole ring rises: enclosure moves into the air where the four bars frame the court against the sky, and at grade the wall becomes a roofline - court, parcel and street lie on one uninterrupted floor that passes under all four bars.",
+   "dominant_gesture": "a court ring standing in the air, the ground passing through",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.24,
+     "height": 0.55,
+     "storeys": 3,
+     "why": "Input: the program wants rooms gathered around one shared centre, and a deep filled plate would kill that centre in darkness - the density presses outward, the middle yields to sky. Loop(bar 0.24) rings the parcel with four narrow bars around a court: every room is a two-front band, outward to the city and inward to the shared centre, and the bar width keeps each of the four bodies slender - which the next word needs structurally, because a slender three-storey bar is a load its own legs can carry, where one fused deep body on legs is the transfer-span refusal the ledger already holds twice. Limit: height 0.55 declares mid with margin from both the 0.42 and 0.72 thresholds; storeys 3 stamps declared stature so no site average presses the ring down; the figure as born still does the one thing the site refuses - it walls the crossing at grade - and paying that debt is the next word's work."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "why": "Input: the parcel is a through-route - people cut across it between the street and the open ground behind - and the ring as it stands is a gate: the section conflict is enclosure against passage, a wall the program wants and the ground refuses. Lift(clearance 0.4) raises all four bars at once, each onto its own set of legs: the court is not unlocked, it is relocated - above, the four bars still frame their rectangle of sky and every room keeps its two fronts; below, the enclosing wall becomes a shadow line, and court, parcel and street join into one continuous clearing that the whole neighbourhood crosses in the shade of the rooms. The silhouette is the family's proof: daylight runs under the building on every side, so the float reads at tile scale. Limit: clearance 0.4 is the verb's ceiling, declared generously because the canon's measured record is exact - 0.2 under a standing body vanished into a slot and the pilotis did not read, while the executor clamps the undercroft between the 2.4 m person floor and a two-storey cap, so 0.4 delivers a true storey-plus and never stilts; and because lift rebuilds each bar separately, the legs answer to four slender bodies with short spans, not to one deep fused mass - the ledger's transfer-structure refusal does not apply."
+    }
+   ]
+  },
+  {
+   "name": "longhouse_over_the_market",
+   "primary_language": "solid_body",
+   "secondary_language": "one three-storey longhouse bar under a single ridge, lifted a full storey clear - the dwellings ride whole in the air over the covered market lane that keeps the entire ground",
+   "formal_principle": "The street's commerce claims the ground floor and the dwellings claim quiet and their own section, and on a narrow parcel neither survives inside the other - so the longhouse gives its ground away whole: one three-storey bar under one ridge lifts a clear storey onto legs, and the freed floor runs the parcel's full length as a covered market lane - the street widened under the homes, whose single ridge says from any distance that what floats is a house, not a slab.",
+   "dominant_gesture": "one ridged longhouse in the air, a market lane below",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: the program banks in three domestic plates over a ground it intends to give away - the body is born as a parcel-shaped three-storey block. Extrude(square) raises it; storeys 3 stamps declared stature, capping vertical growth at 5/3x, and three storeys is declared deliberately where two would starve the claim: the body will spend a storey-plus of its silhouette on the lift below it, and a stature declared at the delivered floors plus the void is a stature the delivery can actually hold - the closed loop's crush count traced exactly to lifted bodies declaring less than lift plus floors. Limit: height 0.5 declares mid with clear margin from both the 0.42 and 0.72 thresholds; as born this body is plan-deep, and both of the words to come - the legs and the ridge - die on a plan-deep block: the bar comes first."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.6,
+     "toward": "cross",
+     "why": "Input: a longhouse is a bar by definition, and a ridge on a plan-deep body flattens toward nothing - the proportion must be corrected before the section can be spoken. Compress(ratio 0.6, toward cross) narrows the body across its short axis to the verb's floor, making the true bar whose long faces will be the dwellings' two fronts, and ceding the freed ground strips back to the parcel - ground this sentence is about to give away entirely anyway. Limit: 0.6 is the corrective verb's own floor; it claims no event and declares no gap - the strips it releases are ground returned, not a promise a later verb could break."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.4,
+     "why": "Input: the section conflict is the city against the home - commerce and passage want the ground storey, the dwellings want their floors intact and quiet - and a podium would answer by stacking, which hands the ground to a lobby rather than to the street. Lift(clearance 0.4) answers by cession: the whole bar rises onto its legs, the ground floor is not built at all, and the freed floor becomes a covered market lane running the parcel's length, open at both ends. The bar rises as one body on one set of bearings - not as strips, because the closed loop measured what strips do in the air: split into thin plates, each spans dozens of times its own depth and the span gate refuses at 15x - so the longhouse keeps its full bar depth intact and every leg carries a body as deep as the ring's bars, the proportion the gates have already passed. Limit: clearance 0.4 is the verb's ceiling, declared there because the measured canon showed 0.2 vanishing into a slot while the executor clamps the undercroft between the 2.4 m person floor and two storeys - a lane a stall stands in, not a crawl space."
+    },
+    {
+     "op": "gable",
+     "on": "body",
+     "pitch": 0.7,
+     "along": "long",
+     "why": "Input: a lifted flat bar reads as an anonymous plate - the canon already owns that sentence - and this bar's claim is different: what floats is a home, so the silhouette must say dwelling, not slab. Gable(on body, pitch 0.7, along long) sets one ridge down the bar's whole length: the top floor gains its tall band under the ridge, and from the street the building is a single house section standing in the air - wall, roof, and beneath them the void of the lane. One ridge, not bays: the closed loop proved that dividing a lifted bar into ridge strips makes thin plates whose spans the structure gate refuses, so the section stays a profile drawn on one intact body - the top_profile primitive, no new volumes, nothing for the span rule to find. Limit: the roof drop is capped at 1.5 storeys, so on the compressed bar the delivered slope arrives near its declared 0.7 rather than decaying on a plan-wide top; the word is aimed with on at the one floating body, no gap is declared anywhere for this footprint-widening verb to close, and the gable is not a second event - it is the lift's cargo named."
+    }
+   ]
+  },
+  {
+   "name": "all_aloft_but_one_room",
+   "primary_language": "solid_body",
+   "secondary_language": "a three-storey bar floating a full storey clear, and the one low room that refused to fly standing on the ground beneath its end - the door, the stair, the address",
+   "formal_principle": "The building wants to give its whole ground to the open parcel, but a building must touch the earth somewhere to be entered - so all the touching is gathered into one room: a quarter of the plan stays down as the low door-room that holds the address and the stair, and everything else lifts a clear storey into the air, so the freed ground flows around and past the one grounded room and the section says plainly which single room bought the float for all the others.",
+   "dominant_gesture": "one room on the ground, the rest of the building in the air",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: a mid public program over a parcel whose ground the neighbourhood already crosses - the body is born parcel-shaped with three plates banked. Extrude(square) raises it; storeys 3 is declared deliberately where two would starve the claim, because the greater part of this body is about to spend a storey-plus of silhouette on a void beneath itself, and a declared stature that counts the floors plus the lift is one the delivery can hold - the closed loop's crush ledger traced exactly to lifted bodies declaring less. Limit: height 0.5 declares mid with clear margin from both the 0.42 and 0.72 thresholds; as born the body seals the ground it means to give away - dividing who flies from who stays is the next word's work."
+    },
+    {
+     "op": "split",
+     "ratio": 0.25,
+     "along": "long",
+     "first": "door_room",
+     "second": "long_body",
+     "contrast": 1.8,
+     "why": "Input: total cession of the ground is a contradiction - a building with no foot has no door - so before anything rises, the sentence must name exactly what stays. Split(ratio 0.25, along long, contrast 1.8) cuts the bar across: door_room, a quarter of the plan, is the designated ground-keeper - entry hall below, stair rising to the floating floors - and contrast 1.8 drops it to a low forecourt-scaled body so the hierarchy is legible before the lift even speaks: the small stays low and grounded, the large flies. Limit: ratio 0.25 keeps the anchor a room and not a second building - the composition stays one dominant body with one servant, no equal-volume rivalry; no gap is declared, because the seam between the two is not this sentence's thesis and an undeclared seam that closes is no lie."
+    },
+    {
+     "op": "lift",
+     "on": "long_body",
+     "clearance": 0.4,
+     "why": "Input: the section conflict is the ground given away against the ground a building must keep - the open parcel wants to flow through, the program must still be entered and climbed into. Lift(on long_body, clearance 0.4) resolves it by concentration: only the long body rises onto its legs, and every obligation to the earth - door, address, stair - is left in the one room that stays, so the freed ground runs under three-quarters of the building and around the quarter that anchors it, and the silhouette reads the contract in one line: a low grounded room, a shadow gap, a long body in the air. Aimed with on, the word leaves door_room untouched - a global lift would carry the door into the air and the building would have no way in, which is also the ledger's inverse: the court ring that lifted only its entry bar said arrival, this sentence grounds the entry and lifts everything else. Limit: clearance 0.4 is the verb's ceiling, declared there because the measured canon showed 0.2 vanishing into a slot while the executor clamps the undercroft between the 2.4 m person floor and two storeys; the lifted load is a three-storey bar - the same body-to-leg proportion the gates passed on the lifted ring - and the grounded door_room keeps a real share of the mass on the earth, so the mass's path to the ground is built into the figure, not borrowed from its legs."
+    }
+   ]
+  },
+  {
+   "name": "mat_lit_by_three_wells",
+   "primary_language": "carved_body",
+   "secondary_language": "one plan-wide two-storey mat of rooms pierced clean through by three inboard light wells - a single flat figure with an interior sky",
+   "formal_principle": "The program is a field of equal rooms that wants one shared floor with no wings and no hierarchy, and a plate that deep goes dark at its middle - so the mat keeps its single flat proportion and pays for its depth from inside: three wells punched clean through the body, inboard of every edge, drop sky into the deep plan at a steady rhythm, and the building stays one wide slab whose only events are the holes that make its depth livable.",
+   "dominant_gesture": "one deep flat mat, three holes of sky",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a field of equal rooms asks for one shared floor plate, not towers or wings - the program's pressure is horizontal equality, so the body must be born plan-wide and stay low. Extrude(square) raises the parcel-shaped two-storey mat: the whole program lies in two deep plates where every room is a neighbour, and storeys 2 stamps declared stature so growth is capped at 5/3x - any extra budget pays in plan, which is the direction a mat wants to be paid in. Limit: height 0.3 declares low with clear margin under the 0.42 threshold; the flatness is deliberately left as pure proportion - no compress, no bar - because the mat's argument is its plan-wide reach; what the depth costs in darkness is the debt the next word pays."
+    },
+    {
+     "op": "puncture",
+     "size": 0.18,
+     "n": 3,
+     "why": "Input: the section conflict is depth against daylight - two plates this deep are dark for half their area, and cutting courts from the edges would break the mat into the wings the program refused. Puncture(size 0.18, n 3) drives three holes clean through the body, top to bottom, spaced along the length and held inboard of every edge: each well drops sky and rain down through both plates, so every deep room reaches light either from the perimeter or from a well a room away, and the plan organizes itself around the rhythm of the three voids without any corridor hierarchy. The silhouette stays a single flat figure - the holes read from above and from within, never as notches in the outline - which is exactly the wide-slab claim: the flatness holds a field of rooms, and the cuts are how it holds them alive. Limit: size 0.18 keeps each well a court-of-light rather than a courtyard-of-program, well inside the verb's range; n 3 is the executor's own ceiling for punctures and gives the rhythm a beginning, middle and end; the wells are the sentence's one event - three instances of one word, not three words."
+    }
+   ]
+  },
+  {
+   "name": "datum_drawn_past_the_rooms",
+   "primary_language": "solid_body",
+   "secondary_language": "a low two-storey bar under one dead-flat roof plane that oversails toward the open face - the horizontal line drawn longer than the rooms that pay for it",
+   "formal_principle": "The open face gives this parcel its one long horizon and the context around is vertical clutter, so the building's whole speech is a single horizontal line - but rooms can only pay for so much length, so the line refuses to stop where the program stops: a roof-thin plate runs on past the glass line toward the open face, a deep shaded porch beneath it, and the architecture is the datum itself, drawn past its last room.",
+   "dominant_gesture": "one horizontal line, longer than the building",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a vertical, cluttered context and one open face with a long horizon - the site's pressure is for a building that reads as a horizontal counter-line, so the body is born low and level. Extrude(square) banks the program in two quiet plates; storeys 2 stamps declared stature so the 5/3x cap forces any growth into length - the one direction this sentence wants more of. Limit: height 0.3 declares low with margin under the 0.42 threshold; the body as born is plan-deep and its eave line is short on every side - a datum needs length before it can be a datum, and the next two words buy it."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.6,
+     "toward": "cross",
+     "why": "Input: a line is long in one direction - a plan-deep body has four short eaves and no datum. Compress(ratio 0.6, toward cross) narrows the body across its short axis to the verb's floor, so the roof edge along the long axis becomes the single dominant line and the freed ground strips return to the parcel along both long sides - the foreground the drawn line will be read against. Limit: 0.6 is the corrective verb's own floor; it fixes proportion only and declares no gap; the bar now has the longest eave the body can afford, and the sentence's claim is that even this is not long enough - which is the next word's opening."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 1.0,
+     "toward": "open",
+     "thin": 0.12,
+     "why": "Input: the section conflict is enclosure against the line - every metre of roof must normally be paid for by a metre of conditioned room, so the datum would end exactly where the program ends and the horizon would out-run the building. Canopy(reach 0.28, at 1.0, toward open, thin 0.12) breaks that bargain: a plate 0.12 of a storey thick - a true roof thickness, not a floor - grips the roof edge and runs on toward the open face, unoccupiable by its own declaration and so exempt from the 2.4 m room gate; beneath it the ground becomes a deep shaded porch facing the horizon, and in elevation the building's one line now extends visibly past its last room - the datum drawn longer than the rooms, which is the sentence's whole thesis said in section thickness. The offset is the pressure's arrow: the brim deepens only toward the open face, not concentrically. Limit: reach 0.28 is the structure gate's measured pass - 0.28 survived delivery where 0.35 grew to a 1.61 backspan and was refused - so the overhang is declared at the proven value, not at the threshold; at 1.0 keeps the plate at the roof edge so there is exactly one line; thin 0.12 is near the verb's floor because the plate's whole meaning is that it is thinner than habitation."
+    }
+   ]
+  },
+  {
+   "name": "one_hall_breaks_the_lid",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide flat two-storey plate with one broad hall standing head and shoulders through its roof - the datum held everywhere except where the big room could not fit under it",
+   "formal_principle": "The program is a flat field of equal rooms plus one hall too tall for any of them, and a plate low enough to be civil cannot swallow that hall - so the plate refuses to grow and the hall refuses to stoop: the flat lid holds its one datum line across the whole parcel and the oversized room pushes up through it, a single broad head standing a storey proud, so the flatness is what makes the exception legible - the lid measures the hall's excess, and the silhouette names the public room without a sign.",
+   "dominant_gesture": "one flat lid, one room standing through it",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a field of equal rooms wants one shared low plate and the surrounding grain wants the parcel kept flat - the body is born as a wide two-storey mat holding everything the program has except its one exception. Extrude(square) raises it; storeys 2 stamps declared stature so growth is capped at 5/3x and the datum the sentence depends on cannot be stretched into a mid-rise. Limit: height 0.3 declares low with clear margin under the 0.42 threshold; as born the plate is a lid with a lie inside it - the tall hall is pressed under a ceiling it does not fit - and telling that truth in section is the next word's work."
+    },
+    {
+     "op": "nest",
+     "on": "body",
+     "size": 0.4,
+     "proud": 0.5,
+     "why": "Input: the section conflict is the one oversized hall against the flat envelope - the room's clear height is more than the plate's two storeys, and stretching the whole lid to house one room would trade the datum for dead volume everywhere else. Nest(on body, size 0.4, proud 0.5) builds the hall as a body inside the body and lets it show the only place a nested solid can: above the roof, a broad head standing half the plate's height proud - a full storey of clerestory ringed by the datum it broke. The rooms keep their flat field, the hall gets its true section and high light from four sides, and the silhouette is the program stated in one line: a long held datum and one legible interruption, where flatness is the rule that makes the exception count. The head is broad and unturned on purpose - size 0.4 makes a hall's shoulders, not a tower, and no turn is spoken because the plinth-and-turned-tower family is the board's most worn habit and this sentence's figure is an eruption of the plan's own order, not an object placed on a tray. Limit: size 0.4 sits mid-range so the head reads as one room of the field grown tall rather than a second building; proud 0.5 clears the rendering scale where shallow bumps vanish, while the drop-side stays whole - nothing else leaves the datum, so the one event has no competitor."
+    }
+   ]
+  }
+ ]
+}

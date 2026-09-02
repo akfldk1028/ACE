@@ -81,6 +81,24 @@ RANGES = {
 # a share for `split` and a multiplier for `expand`, so one global range refused
 # a legal `expand: 1.6`. Checked before RANGES.
 PER_VERB_RANGES = {
+    # `n` counts different things: puncture clamps 1..3, stack 2..6, and a
+    # field 2..MAX_FIELD_OBJECTS (12). One global (2, 6) refused a legal
+    # single puncture and every field of seven or more - the extreme
+    # sweep's n 7-9 openers never entered a book, silently. These mirror
+    # the executor's own clamps (execute.py: _puncture, _stack, _aggregate).
+    ("puncture", "n"): (1, 3),
+    ("stack", "n"): (2, 6),
+    ("aggregate", "n"): (2, 12),
+    # Where the executor clamps tighter than the global range, a value the
+    # validator accepts is rewritten on delivery without a word: split
+    # 0.3..0.75, loop bar to 0.4, carve size 0.15..0.6, cantilever reach
+    # to 0.6. The validator now says so instead.
+    ("split", "ratio"): (0.3, 0.75),
+    ("loop", "bar"): (0.15, 0.4),
+    ("carve", "size"): (0.15, 0.6),
+    ("notch", "size"): (0.15, 0.5),
+    ("puncture", "size"): (0.1, 0.45),
+    ("cantilever", "reach"): (0.0, 0.6),
     ("expand", "ratio"): (1.0, 1.6),
     ("inflate", "ratio"): (1.0, 1.6),
     ("compress", "ratio"): (0.6, 1.0),

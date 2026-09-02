@@ -60,6 +60,7 @@ def stage(run: str, count: int) -> int:
         from band_probe import corpus as _corpus  # noqa: E402
         from finalists import PNU as _PNU, rebuild as _rebuild  # noqa: E402
         from design.maas.massv2.legal import load_legal_site  # noqa: E402
+        from design.maas.massv2.measure import gross_floor_area_m2  # noqa: E402
         from design.maas.massv2.render import render_masses  # noqa: E402
         from design.maas.massv2.siting import open_side_direction  # noqa: E402
         seats = [row for row in json.loads(board_path.read_text(encoding="utf-8"))
@@ -86,9 +87,19 @@ def stage(run: str, count: int) -> int:
                 continue
             index += 1
             tile = f"t{index:02d}"
+            # The same caption as a contest tile. Anchors carried the thesis
+            # alone while contestants carried 건폐율/용적률, so the three
+            # seated schemes were the only tiles without numbers - a juror
+            # could pick the ruler out of the line-up by its caption.
+            ground = float(source.footprint.area)
+            gross = gross_floor_area_m2(source, floor_height_m=site.floor_height_m)
+            parcel = float(site.parcel_area_m2)
             render_masses(
                 [(tile, source, {
-                    "thesis": str(parti.get("formal_principle") or "")[:180]})],
+                    "thesis": str(parti.get("formal_principle") or "")[:180],
+                    "건폐율": f"{ground / parcel * 100:.0f}%",
+                    "용적률": f"{gross / parcel * 100:.0f}%",
+                })],
                 out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
                 columns=1, tile=(900, 820), style="massing")
             key_rows.append({"tile": tile, "name": row["name"],
@@ -108,9 +119,25 @@ def score(run: str, paths: list[str]) -> int:
     per_tile: dict[str, list[float]] = {t: [] for t in key}
     for path in paths:
         text = Path(path).read_text(encoding="utf-8")
-        for tile, value in re.findall(r"TILE\s+(t\d+)[\s\S]*?WEIGHTED\s+([0-9.]+)", text):
+        # One reading per juror per tile. A juror that re-lists its scores
+        # in a summary block was counted twice (ovs17-en r3: 14 TILE lines
+        # for 7 tiles) and outweighed the other two; the last statement of
+        # a tile is the juror's verdict.
+        seen: dict[str, float] = {}
+        for tile, value in re.findall(
+                r"TILE\s+t?0*(\d+)[\s\S]*?WEIGHTED\s+([0-9.]+)", text):
+            seen[f"t{int(tile):02d}"] = float(value)
+        missing = [t for t in key if t not in seen]
+        if missing:
+            print(f"   WARNING: {Path(path).name} scored no line for "
+                  f"{', '.join(missing)}")
+        for tile, value in seen.items():
             if tile in per_tile:
-                per_tile[tile].append(float(value))
+                per_tile[tile].append(value)
+    unscored = [t for t, v in per_tile.items() if not v]
+    if unscored:
+        print(f"   WARNING: no juror scored {', '.join(unscored)} - "
+              "dropped from the shortlist")
     ranked = sorted(
         ((statistics.mean(v), t) for t, v in per_tile.items() if v), reverse=True)
     # Session drift, measured off the anchors: how much softer or harder this
@@ -123,6 +150,11 @@ def score(run: str, paths: list[str]) -> int:
     # the mean once pushed a candidate to 5.04 on a 5-point scale.
     drift = statistics.median(deltas) if deltas else 0.0
     spread = (max(deltas) - min(deltas)) if deltas else 0.0
+    # How the `corrected` column was made, on every row: a round with no
+    # anchors and a round whose anchors disagreed both wrote raw scores
+    # under the same key as a corrected round, and the curator read them
+    # on one scale.
+    correction = "median_drift" if deltas else "none_no_anchors"
     if deltas:
         print(f"   anchors {len(deltas)}, session drift {drift:+.2f} (median), "
               f"delta spread {spread:.2f}")
@@ -136,10 +168,12 @@ def score(run: str, paths: list[str]) -> int:
               f"(spread {spread:.2f}) - recording RAW scores, no correction; "
               "an eye check should confirm any board-top change.")
         drift = 0.0
+        correction = "none_anchor_spread"
     result = [{
         "tile": t, "score": round(s, 2),
         "corrected": round(min(5.0, max(1.0, s - drift)), 2),
         "pass": (s - drift) >= 3.0,
+        "correction": correction,
         **({"anchor_spread": round(spread, 2)} if spread > 1.0 else {}),
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
         # Anchors calibrate the session; they are not contestants. Without

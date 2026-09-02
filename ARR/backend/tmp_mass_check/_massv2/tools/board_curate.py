@@ -69,6 +69,10 @@ ROUNDS = [
     # written against the empty-family map on that engine.
     ("O", "runs/vlm-board-rejudge-s7/vlm-shortlist.json", "corrected"),
     ("O", "runs/vlm-ovs18-en/vlm-shortlist.json", "shortlist"),
+    # First book-stack round on the massv2 stage: c250-t3's six exact
+    # GeometryProgram masses at their own size and height, three board
+    # anchors riding. Seats resolve through runs/books/ (book_import).
+    ("O", "runs/vlm-book02/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.
@@ -83,6 +87,15 @@ def corpus() -> dict:
     for path in paths:
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
             book[scheme["name"]] = scheme
+    # Book-stack masses (book_language pipeline) staged through
+    # book_import: each is its own family in its own layer - a 70-principle
+    # vocabulary does not partition the way massv2's family key does, and
+    # the six records are six designs. The registry is the owner.
+    from book_import import registry as book_registry  # noqa: E402
+    for name, entry in book_registry().items():
+        book[name] = {"name": name, "layer": "book",
+                      "formal_principle": entry.get("thesis", ""),
+                      "ops": [{"op": verb} for verb in entry.get("verbs") or []]}
     return book
 
 
@@ -126,6 +139,8 @@ def main() -> int:
         # in the key one_per_family evicted the repertoire §11 promises is
         # always present. The layer's owner is the scheme record.
         layer = (scheme or {}).get("layer") or "experimental"
+        if layer == "book":
+            return (item["track"], layer, family)
         return (item["track"], layer) + (family_key(scheme) if scheme else (family,))
 
     curated = one_per_family(passers, key_of=key_of,

@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from band_probe import corpus  # noqa: E402
+from book_import import book_rebuild  # noqa: E402
 from finalists import PNU, rebuild  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
@@ -63,7 +64,9 @@ def main() -> int:
         family = row["name"].split("~")[0].split("^")[0]
         parti = book.get(family)
         source = None
-        if parti is not None and (track in ("O", "C") or korea_schedule is not None):
+        if row["name"].startswith("book:"):
+            source = book_rebuild(row["name"], site, buildable)
+        elif parti is not None and (track in ("O", "C") or korea_schedule is not None):
             asked = max((float(op.get("storeys") or 0)
                          for op in parti["ops"]), default=0.0)
             source = rebuild(row["name"], book, site, buildable, axis,

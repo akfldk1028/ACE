@@ -44,8 +44,15 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
     parcel = float(summary["site"]["parcel_area_m2"])
 
     rows = []
+    from design.maas.massv2.select import MINIMUM_DELIVERED_SHARE  # noqa: E402
     for record in summary["records"]:
         if not (record.get("plausibility") or {}).get("occupiable"):
+            continue
+        # The same floor the selector stands on: a siting that pushed the
+        # mass off the buildable area leaves a lawful 4%-FAR stub, and
+        # "tallest variant per sentence" put those sticks on the hero sheet
+        # (Maison Bordeaux, Sluishuis at 6% and 4%).
+        if float(record.get("far_utilization") or 0.0) < MINIMUM_DELIVERED_SHARE:
             continue
         fit = record.get("legal_fit") or {}
         ground = float(fit.get("ground_area_m2") or 0.0)

@@ -1,0 +1,89 @@
+{
+  "schemes": [
+    {
+      "name": "two_arms_at_step",
+      "primary_language": "open_figure",
+      "secondary_language": "four loop bars round a court; the north and east bars tall at four storeys, the south and west bars low at step 0.55 - two dominant arms crossing at the NE corner read as the structural event",
+      "formal_principle": "r2 diagnosis round 2: split-then-shear produced a silent word (split along 'long' on this parcel returns empty geometry at ratio 0.50 - the silence gate refused both halves). New principle: a loop with narrow bars already places four arms that physically cross at the corners; differentiate with step so bar_s and bar_w become low podiums (55% height) and bar_n and bar_e remain tall - the two tall arms crossing at the NE corner are the two-bar event the original sentence wanted. No interlock, no split, no rubble. The short bars hold the ground at grade; the tall pair is the silhouette.",
+      "dominant_gesture": "two tall bars crossing at NE corner, short bars as ground podium",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.5,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.68,
+          "storeys": 4,
+          "step": 0.55,
+          "why": "Input: the parcel needs a figure where two bars cross and the crossing zone is legible as a structural event. Loop(bar 0.22, height 0.68, storeys 4, step 0.55) rings four bars round a court; bar 0.22 keeps each arm thin enough to read as a bar (not a mat); step 0.55 makes bar_s and bar_w stand at 55% of the north and east bars' height - so bar_n (full height, east-west run) and bar_e (full height, north-south run) are the two dominant arms, and they cross at the NE corner. The crossing zone - one structural bay shared by both tall arms - is the hall. Bar_s and bar_w at 0.55 height are visible as low ground-hugging elements that frame the court without competing with the tall pair. Loop is the proven op for this parcel: r1 ran it clean. Limit: bar 0.22 is well within the 0.15..0.4 grammar range; step 0.55 is within 0.4..1.0; height 0.68 keeps the FAR stack credible at four storeys. r2 lesson recorded: split-then-shear failed (silent word); loop-step is the reliable two-arm operator on this parcel."
+        }
+      ]
+    },
+    {
+      "name": "trunk_and_four_branches",
+      "primary_language": "porous_field",
+      "secondary_language": "a four-storey bar compressed to a genuine spine; four one-storey lateral branches grow from its long flanks at grade",
+      "formal_principle": "r2 sheet diagnosis: branch delivered one visible stub because the trunk was a square extrude with no long flanks - the branch op could not find four eligible sides to grip. Fix: compress the trunk toward 'e' after extrude so the body narrows east-west and becomes a true north-south bar whose long east and west faces give the branch op clear extended flanks. The compress ratio 0.62 is the minimum allowed (0.6 floor) rounded up one notch for gate safety, producing a genuine 3:2 bar from a square base. Branches then grow eastward and westward from the long flanks at grade.",
+      "dominant_gesture": "a central trunk throwing lateral branches at grade",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.5,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.65,
+          "storeys": 4,
+          "why": "Input: the trunk needs to be a four-storey body before compression. Extrude(profile square, height 0.65, storeys 4) sets up the base body. Profile square avoids the invalid 'rectangular' label caught in r1 validation. Height 0.65 leaves FAR headroom for branches and keeps the total well under the stature gate. Limit: the body is intentionally square at this stage - the proportion fix happens in the compress step."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.62,
+          "toward": "cross",
+          "why": "Input: r2 diagnosis - the square trunk had no long flanks so branch delivered only one stub. Compress(ratio 0.62, toward e) narrows the body eastward to 62% of its original east-west span, producing a body whose north-south extent now dominates - a genuine bar with clear, extended east and west long faces. Ratio 0.62 is at the compress floor (0.6 minimum) rounded one notch up for gate safety; toward e ensures the narrowing is directional, reading as a deliberate move rather than a uniform shrink. The branch op now has two long flanks to distribute four arms across. Limit: ratio 0.62 is the minimum useful compression within the 0.6..1.0 gate window; going below 0.6 is illegal per the validator."
+        },
+        {
+          "op": "branch",
+          "n": 4,
+          "reach": 0.32,
+          "height": 0.18,
+          "why": "Input: four one-storey branches must grow from the trunk's east and west flanks to claim the ground and produce a T or cross silhouette. Branch(n 4, reach 0.32, height 0.18) grows four arms from the now-long flanks that compress created - two east, two west. Reach reduced to 0.32 from r1's 0.38 (r2 lesson: 0.38 on a square trunk gave one stub; with a bar trunk reach 0.32 is safe and the gate headroom is preserved). Height 0.18 makes each branch a genuine one-storey room, not a canopy. Limit: reach kept below 0.35 empirical safe zone; branch count 4 distributes two per long flank so no single face bears an outsized arm."
+        }
+      ]
+    },
+    {
+      "name": "vaulted_inset_proud",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-storey square host bar on pilotis; a hall-sized body nested inside, turned twenty degrees, its barrel vault rising proud above the host's flat deck",
+      "formal_principle": "r2 sheet diagnosis: nest+lift+proud delivered a genuinely novel silhouette - host on pilotis, nested object autonomous and angled, crown visible from street - but the inner object read as a faceted prism, not a barrel vault; the vault op was not declared separately and nest does not auto-apply it. Fix: add an explicit vault op after nest so the nested body's roof reads as a barrel crown. All other ops unchanged - the formal principle was correct.",
+      "dominant_gesture": "a vault crown rising proud from a plain host",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.65,
+          "storeys": 3,
+          "why": "Input: the host must be a plain, quiet body so the nested vault reads against it as a singular event. Extrude(profile square, height 0.65, storeys 3) makes a three-storey bar covering most of the parcel - solid, flat-topped - whose only purpose is to be the ground from which the nested object protrudes. Height 0.65 gives the host enough body so the vault can clear it visibly; storeys 3 keeps the per-unit height at 3 × 3.6 m = 10.8 m, well under the 12.5 m single-volume gate. Limit: the host must not have its own roof event - it is a base, not a building."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.18,
+          "why": "Input: the ground must stay public and the hall section must begin above street datum. Lift(clearance 0.18) raises the host on pilotis so the ground floor is a covered public clearing. Clearance 0.18 ≈ one floor, enough to read as pilotis rather than slab-on-grade. Limit: clearance kept low so total height after nesting stays within the FAR envelope. Unchanged from r1 - delivered correctly."
+        },
+        {
+          "op": "nest",
+          "size": 0.42,
+          "proud": 0.55,
+          "turn": 20,
+          "why": "Input: the hall must announce itself as a different programme from the host's floor plates. Nest(size 0.42, proud 0.55, turn 20) places a hall-sized body inside the host at a 20-degree turn - the turn makes the nested object read as autonomous, and proud 0.55 pulls the nested body's roof 0.55 storey-heights above the host deck. Size 0.42 contains the 210 m² hall at three storeys; turn 20 is the minimum for the nested body to read as its own orientation. Limit: proud capped at 0.55 to stay below the stature gate ceiling. Unchanged from r1 - delivered correctly."
+        },
+        {
+          "op": "vault",
+          "rise": 0.28,
+          "why": "Input: r2 sheet diagnosis - the nested object in r1 read as a faceted prism, not a barrel vault; nest does not auto-apply a vault profile to the nested body. Vault(rise 0.28) applied after nest explicitly converts the nested body's roof to a barrel crown so the vault event is visible above the host deck and from the street as declared. Rise 0.28 is a moderate barrel - readable but not a spire - consistent with the proud value already set. Limit: rise kept below 0.35 to avoid clashing with the stature gate given the combined lift + host + proud height stack. This op closes the loop on the r2 diagnosis: declared barrel must equal delivered barrel."
+        }
+      ]
+    }
+  ]
+}

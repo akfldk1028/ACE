@@ -56,6 +56,9 @@ ROUNDS = [
     # The first round authored, revised and juried by massagent itself -
     # three independent juror processes, anchor-corrected (drift -1.02).
     ("O", "runs/vlm-agent01/vlm-shortlist.json", "shortlist"),
+    # agent02: authored, sheet-diagnosed and revised (r2) by massagent,
+    # judged by the pinned sonnet jury under the no-shift rule.
+    ("O", "runs/vlm-agent02/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

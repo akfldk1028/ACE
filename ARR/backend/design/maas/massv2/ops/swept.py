@@ -223,6 +223,60 @@ def _primaries(picked: list[Placement]) -> list[Placement]:
     ]
 
 
+# How close a volume's base must sit to another's top to be standing on it.
+_BEARING_CONTACT_M = 0.3
+
+
+def _plan_box(item: Placement) -> tuple[float, float, float, float]:
+    xs = [x for x, _y, _z in item.corners()]
+    ys = [y for _x, y, _z in item.corners()]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _box_area(a) -> float:
+    return max(0.0, a[2] - a[0]) * max(0.0, a[3] - a[1])
+
+
+def _plan_overlap_m2(a, b) -> float:
+    return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) \
+        * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+
+def _carrying_nothing(frame, op, picked, rest):
+    """A roof goes on the volume nothing stands on.
+
+    An unscoped section verb reached every additive placement, so on a
+    `stack` each tier became its own full-height gable, vault or fold - and
+    the tier above went on resting on the ridge line. The contact tests
+    (`structure._touching`, `bands_of`) read footprints, never the section,
+    so the pile passed as grounded while the sheet showed a box floating over
+    a roof (sweepx_0465 stack+gable, sweep03_0053 stack+fold, sweep03_0176
+    stack+vault). A verb aimed with `on:` still gets exactly what it named;
+    left unscoped, it keeps only the volumes that carry nothing - the roofs.
+    """
+
+    if str(op.params.get("on") or "").strip():
+        return picked, rest
+    standing = [item for item in (*picked, *rest) if item.kind == "additive"]
+    boxes = {id(item): _plan_box(item) for item in standing}
+    free, covered = [], []
+    for item in picked:
+        if item.kind != "additive":
+            free.append(item)
+            continue
+        top = item.z_span()[1]
+        carried = any(
+            other is not item
+            and abs(other.z_span()[0] - top) < _BEARING_CONTACT_M
+            and _plan_overlap_m2(boxes[id(item)], boxes[id(other)])
+            > min(1.0, 0.5 * min(_box_area(boxes[id(item)]),
+                                 _box_area(boxes[id(other)])))
+            for other in standing
+        )
+        (covered if carried else free).append(item)
+    return free, rest + covered
+
+
 def _along_is_x(params: dict) -> bool:
     named = str(params.get("toward") or params.get("along") or "long").lower()
     return named not in ("cross", "short", "side")
@@ -325,7 +379,7 @@ def grade(frame, op) -> None:
     """
 
     run = _clamp(float(op.params.get("run", 0.6)), 0.2, 0.9)
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     along_x = _along_is_x(op.params)
@@ -765,7 +819,7 @@ def gable(frame, op) -> None:
     # stays on the ridge primitive; anywhere else is a saltbox - same pitch
     # both sides, the longer side reaching lower - said as a top profile.
     at = _clamp(float(op.params.get("at", 0.5)), 0.15, 0.85)
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})
@@ -872,7 +926,7 @@ def butterfly(frame, op) -> None:
 
     pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 1.2)
     at = _clamp(float(op.params.get("at", 0.5)), 0.2, 0.8)
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})
@@ -907,7 +961,7 @@ def mansard(frame, op) -> None:
 
     pitch = _clamp(float(op.params.get("pitch", 0.8)), 0.15, 1.2)
     shoulder = _clamp(float(op.params.get("shoulder", 0.25)), 0.1, 0.4)
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})
@@ -956,7 +1010,7 @@ def vault(frame, op) -> None:
 
     rise = _clamp(float(op.params.get("rise", 0.6)), 0.15, 1.2)
     bays = int(_clamp(float(op.params.get("bays", 1)), 1, 6))
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})
@@ -1115,7 +1169,7 @@ def fold(frame, op) -> None:
 
     pitch = _clamp(float(op.params.get("pitch", 0.5)), 0.15, 1.2)
     folds = int(_clamp(float(op.params.get("folds", 2)), 1, _MAX_FOLD_PEAKS))
-    picked, rest = frame.pick(op)
+    picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
     long_named = _along_is_x({"along": op.params.get("along", "long")})

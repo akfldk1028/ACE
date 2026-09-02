@@ -38,6 +38,31 @@ def main(round_name: str, scope: str = "") -> int:
         rows = json.loads((ROOT / "runs" / "board" / "ledger.json")
                           .read_text(encoding="utf-8"))
         names = [r["name"] for r in rows if r["track"] == "O" and r["pass"]]
+    elif scope == "--ever":
+        # A NEW ruler must see everything any ruler ever passed, not only
+        # what the last ruler left standing: the ledger's pass flag is the
+        # newest round's verdict, so a scheme the buildability ruler had
+        # dropped to 2.97 (the twisting tower) would never meet the
+        # international rubric at all. Union of every round's passers.
+        from board_curate import ROUNDS  # noqa: E402
+        seen: dict[str, None] = {}
+        for track, rel, _kind in ROUNDS:
+            path = ROOT / rel
+            if track != "O" or not path.exists():
+                continue
+            key_path = path.parent / "key.json"
+            anchors = set()
+            if key_path.exists():
+                anchors = {r["name"] for r in json.loads(key_path.read_text(encoding="utf-8"))
+                           if r.get("anchor") is not None}
+            for row in json.loads(path.read_text(encoding="utf-8")):
+                if row.get("anchor") or row["name"] in anchors:
+                    continue
+                score = float(row.get("corrected") or row.get("score") or 0.0)
+                passed = bool(row.get("pass")) if "pass" in row else score >= 3.0
+                if passed:
+                    seen.setdefault(row["name"], None)
+        names = list(seen)
     else:
         board = json.loads((ROOT / "runs" / "board" / "board-key.json")
                            .read_text(encoding="utf-8"))

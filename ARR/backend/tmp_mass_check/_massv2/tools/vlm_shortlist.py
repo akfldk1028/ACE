@@ -29,6 +29,88 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def certified_caption(source, site, thesis: str, *,
+                      ground_m2: float | None = None,
+                      gross_m2: float | None = None) -> dict:
+    """The caption every jury tile carries, contest, anchor or book alike.
+
+    Anchors once carried the thesis alone while contestants carried
+    건폐율/용적률 - the ruler could be picked out of the line-up. 건폐율 is
+    the building's projection as the law counts it (every volume's
+    footprint united), not `source.footprint`, which keeps the largest
+    grounded piece and printed 5% under a pilotis ring at full coverage.
+    """
+
+    from shapely.ops import unary_union
+    from design.maas.massv2.measure import gross_floor_area_m2  # noqa: E402
+    # A caller with its own certificate (the book stamps 연면적 at its own
+    # storey height and floor count) passes it; massv2 masses are measured
+    # here at the parcel's storey, the same ruler the legal fit uses.
+    ground = (float(ground_m2) if ground_m2 is not None
+              else float(unary_union([v.footprint for v in source.volumes]).area))
+    gross = (float(gross_m2) if gross_m2 is not None
+             else gross_floor_area_m2(source, floor_height_m=site.floor_height_m))
+    parcel = float(site.parcel_area_m2)
+    return {"thesis": str(thesis or "")[:180],
+            "건폐율": f"{ground / parcel * 100:.0f}%",
+            "용적률": f"{gross / parcel * 100:.0f}%"}
+
+
+def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
+    """Seat up to three current board entries among the tiles, anonymously.
+
+    Absolute scores drift by judge session (measured -0.9 to -0.007 across
+    rounds with an unchanged rubric), so a raw 3.0 cut is a function of the
+    session's mood; the anchors' known ledger scores let --score convert
+    every raw mean back onto the board's own scale. One owner for every
+    stage that rides anchors (massv2 rounds, book imports): same picks,
+    same rebuild, same caption. Appends to `key_rows`; returns how many.
+    """
+
+    board_path = ROOT / "runs" / "board" / "board-key.json"
+    if not board_path.exists():
+        return 0
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from band_probe import corpus as _corpus  # noqa: E402
+    from finalists import PNU as _PNU, rebuild as _rebuild  # noqa: E402
+    from design.maas.massv2.grammar import declared_height_m  # noqa: E402
+    from design.maas.massv2.legal import load_legal_site  # noqa: E402
+    from design.maas.massv2.render import render_masses  # noqa: E402
+    from design.maas.massv2.siting import open_side_direction  # noqa: E402
+    seats = [row for row in json.loads(board_path.read_text(encoding="utf-8"))
+             if row["label"].startswith("O")]
+    picks = [seats[0], seats[len(seats) // 2], seats[-1]] if len(seats) >= 3 else seats
+    book = _corpus()
+    if site is None:
+        site = load_legal_site(_PNU, building_type="제1종근린생활시설")
+    buildable = site.plan_at(0.0)
+    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    base = site.floor_height_m * max(
+        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
+    index = len(key_rows)
+    added = 0
+    for row in picks:
+        family = row["name"].split("~")[0].split("^")[0]
+        parti = book.get(family)
+        if parti is None:
+            continue
+        source = _rebuild(row["name"], book, site, buildable, axis,
+                          max(base, declared_height_m(parti, site.floor_height_m)))
+        if source is None:
+            continue
+        index += 1
+        tile = f"t{index:02d}"
+        render_masses(
+            [(tile, source, certified_caption(
+                source, site, parti.get("formal_principle") or ""))],
+            out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
+            columns=1, tile=(900, 820), style="massing")
+        key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"]})
+        added += 1
+    return added
+
+
 def stage(run: str, count: int) -> int:
     from judge_tiles import main as make_tiles  # noqa: E402  (django inside)
 
@@ -53,61 +135,9 @@ def stage(run: str, count: int) -> int:
     # cut is a function of the session's mood; the anchors' known ledger
     # scores let --score convert every raw mean back onto the board's own
     # scale. v2 had this discipline and v3 had silently dropped it.
-    board_path = ROOT / "runs" / "board" / "board-key.json"
-    if track != "korea" and board_path.exists():
-        import sys as _sys
-        _sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from band_probe import corpus as _corpus  # noqa: E402
-        from finalists import PNU as _PNU, rebuild as _rebuild  # noqa: E402
-        from design.maas.massv2.legal import load_legal_site  # noqa: E402
-        from design.maas.massv2.measure import gross_floor_area_m2  # noqa: E402
-        from design.maas.massv2.render import render_masses  # noqa: E402
-        from design.maas.massv2.siting import open_side_direction  # noqa: E402
-        seats = [row for row in json.loads(board_path.read_text(encoding="utf-8"))
-                 if row["label"].startswith("O")]
-        picks = [seats[0], seats[len(seats) // 2], seats[-1]] if len(seats) >= 3 else seats
-        book = _corpus()
-        site = load_legal_site(_PNU, building_type="제1종근린생활시설")
-        buildable = site.plan_at(0.0)
-        axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
-        base = site.floor_height_m * max(
-            1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
+    if track != "korea":
         key_rows = json.loads((out / "key.json").read_text(encoding="utf-8"))
-        index = len(key_rows)
-        for row in picks:
-            family = row["name"].split("~")[0].split("^")[0]
-            parti = book.get(family)
-            if parti is None:
-                continue
-            asked = max((float(op.get("storeys") or 0)
-                         for op in parti["ops"]), default=0.0)
-            source = _rebuild(row["name"], book, site, buildable, axis,
-                              max(base, asked * site.floor_height_m))
-            if source is None:
-                continue
-            index += 1
-            tile = f"t{index:02d}"
-            # The same caption as a contest tile. Anchors carried the thesis
-            # alone while contestants carried 건폐율/용적률, so the three
-            # seated schemes were the only tiles without numbers - a juror
-            # could pick the ruler out of the line-up by its caption.
-            # 건폐율 counts the building's projection, not what touches the
-            # ground - `source.footprint` keeps the largest grounded piece
-            # and printed 5% under a pilotis ring drawn at full coverage.
-            from shapely.ops import unary_union as _union
-            ground = float(_union([v.footprint for v in source.volumes]).area)
-            gross = gross_floor_area_m2(source, floor_height_m=site.floor_height_m)
-            parcel = float(site.parcel_area_m2)
-            render_masses(
-                [(tile, source, {
-                    "thesis": str(parti.get("formal_principle") or "")[:180],
-                    "건폐율": f"{ground / parcel * 100:.0f}%",
-                    "용적률": f"{gross / parcel * 100:.0f}%",
-                })],
-                out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
-                columns=1, tile=(900, 820), style="massing")
-            key_rows.append({"tile": tile, "name": row["name"],
-                             "anchor": row["score"]})
+        ride_anchors(out, key_rows)
         (out / "key.json").write_text(
             json.dumps(key_rows, ensure_ascii=False, indent=1), encoding="utf-8")
     tiles = sorted(p.name for p in out.glob("t*.png"))

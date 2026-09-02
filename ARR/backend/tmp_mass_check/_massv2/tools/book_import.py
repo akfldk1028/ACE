@@ -28,15 +28,16 @@ def main() -> int:
         book_dir = (ROOT / book_dir).resolve()
     stage_name = sys.argv[2]
 
-    from band_probe import corpus  # noqa: E402  (django setup side effect)
-    from finalists import PNU, rebuild  # noqa: E402
+    from band_probe import corpus  # noqa: E402,F401  (django setup side effect)
+    from finalists import PNU  # noqa: E402
+    from vlm_shortlist import certified_caption, ride_anchors  # noqa: E402
     from design.maas.geometry_language.ast import GeometryProgram  # noqa: E402
     from design.maas.geometry_language.source_bridge import (  # noqa: E402
         compile_geometry_program_to_source_mass,
     )
+    from dataclasses import replace  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
-    from design.maas.massv2.siting import open_side_direction  # noqa: E402
 
     artifacts = json.loads(
         (book_dir / "maas-book-exact-geometry-artifacts.json").read_text(encoding="utf-8"))
@@ -47,9 +48,6 @@ def main() -> int:
 
     site = load_legal_site(PNU, building_type="제1종근린생활시설")
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
-    base = site.floor_height_m * max(
-        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
 
     out = ROOT / "runs" / f"vlm-{stage_name}"
     out.mkdir(parents=True, exist_ok=True)
@@ -63,24 +61,61 @@ def main() -> int:
         payload = art.get("authoredGeometryProgram") or art.get("geometryProgram")
         if not payload:
             continue
+        metrics = ((art.get("hardGates") or {}).get("projectedMetrics") or {})
+        footprint_m2 = float(metrics.get("footprint_area_m2") or 0.0)
         try:
             program = GeometryProgram.from_dict(payload)
+            # At the book's own plan size. Left to its default the shared
+            # compile fits the plan to the legal host, and the book's 209 m2
+            # footprint was staged at 705 m2 under the book's 35 m - a tower
+            # 3.4x the certificate's, captioned 270% on a 250% parcel.
             source = compile_geometry_program_to_source_mass(
-                program, buildable, name=rec.get("trace_sequence_name"))
+                program, buildable, name=rec.get("trace_sequence_name"),
+                target_plan_area=footprint_m2 or None,
+                minimum_plan_area=footprint_m2 or None)
         except Exception as exc:  # a book record that no longer compiles is news, not a crash
             print(f"  skip {rec.get('trace_sequence_name')}: {type(exc).__name__}: {exc}")
             continue
         if source is None:
             print(f"  skip {rec.get('trace_sequence_name')}: compiled to None")
             continue
+        # The height dialect. massv2's measure, gates and renderer read
+        # `metadata["authored_height_m"]`; the book stamps its physical
+        # height as a certificate on the artifact instead, and the shared
+        # compile leaves the volumes as fractions of an unstated whole - so
+        # every book mass measured 0.0 m and drew flat. The bridge translates
+        # once, from the book's own certificate, never from a guess.
+        height_m, certificate = 0.0, ""
+        for label, value in (
+                ("projectedVisualCertificate.physical_height_m",
+                 (art.get("projectedVisualCertificate") or {}).get("physical_height_m")),
+                ("hardGates.projectedMetrics.height_m", metrics.get("height_m")),
+                ("capacityAlternative.candidate_requested_height_m",
+                 (art.get("capacityAlternative") or {}).get("candidate_requested_height_m"))):
+            if value:
+                height_m, certificate = float(value), label
+                break
+        if height_m <= 0.0:
+            print(f"  skip {rec.get('trace_sequence_name')}: no physical height certificate")
+            continue
+        source = replace(source, metadata={**dict(source.metadata),
+                                           "authored_height_m": round(height_m, 3),
+                                           "book_height_certificate": certificate})
         index += 1
         tile = f"t{index:02d}"
         thesis = str(art.get("bookPrincipleId") or art.get("bookScope") or "book principle")
-        render_masses([(tile, source, {"thesis": thesis[:180]})],
+        # 건폐율/용적률 from the book's own certificate: it counts floors at
+        # its own storey height (35 m / 10 floors), which massv2's per-band
+        # rounding at the parcel storey cannot reproduce on three fat bands.
+        render_masses([(tile, source, certified_caption(
+                           source, site, thesis,
+                           ground_m2=footprint_m2 or None,
+                           gross_m2=float(metrics.get("floor_area_m2") or 0.0) or None))],
                       out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
                       columns=1, tile=(900, 820), style="massing")
         key_rows.append({"tile": tile,
-                         "name": f"book:{rec.get('trace_sequence_name') or tile}"})
+                         "name": f"book:{rec.get('trace_sequence_name') or tile}",
+                         "height_m": round(height_m, 2)})
 
     if not key_rows:
         print("FAIL: no book record compiled")
@@ -93,30 +128,9 @@ def main() -> int:
         "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
         + (prompts.get("rubric_overseas") or prompts["rubric"]), encoding="utf-8")
 
-    # Three board seats ride as anchors, same as every jury session.
-    board_path = ROOT / "runs" / "board" / "board-key.json"
-    if board_path.exists():
-        seats = [r for r in json.loads(board_path.read_text(encoding="utf-8"))
-                 if r["label"].startswith("O")]
-        picks = [seats[0], seats[len(seats) // 2], seats[-1]] if len(seats) >= 3 else seats
-        book = corpus()
-        for row in picks:
-            family = row["name"].split("~")[0].split("^")[0]
-            parti = book.get(family)
-            if parti is None:
-                continue
-            asked = max((float(op.get("storeys") or 0) for op in parti["ops"]), default=0.0)
-            source = rebuild(row["name"], book, site, buildable, axis,
-                             max(base, asked * site.floor_height_m))
-            if source is None:
-                continue
-            index += 1
-            tile = f"t{index:02d}"
-            render_masses([(tile, source,
-                            {"thesis": str(parti.get("formal_principle") or "")[:180]})],
-                          out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
-                          columns=1, tile=(900, 820), style="massing")
-            key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"]})
+    # Three board seats ride as anchors - the same ride, rebuild and caption
+    # every massv2 round uses (vlm_shortlist.ride_anchors owns it).
+    ride_anchors(out, key_rows, site=site)
 
     (out / "key.json").write_text(json.dumps(key_rows, ensure_ascii=False, indent=1),
                                   encoding="utf-8")

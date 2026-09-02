@@ -103,10 +103,24 @@ def _operate(
                            "pivot": pivot},
             )
             matrix = compose_matrix4(unturn, matrix, turn)
-    return [
-        replace(item, matrix=validate_matrix4(compose_matrix4(item.matrix, matrix)))
-        for item in items
-    ]
+    turned = []
+    for item in items:
+        fields = {"matrix": validate_matrix4(compose_matrix4(item.matrix, matrix))}
+        if operator == "rotate":
+            # The section rides with the body. `ridge_along`, `drop_toward`
+            # and `profile_across` are WORLD unit vectors, and a rotate that
+            # replaced the matrix alone left them pointing where the volume
+            # used to face: `extrude; gable; rotate 30` rendered its ridge
+            # 30 degrees diagonal across the turned plan.
+            angle = radians(float(params.get("angle_degrees") or 0.0))
+            cos_a, sin_a = cos(angle), sin(angle)
+            for name in ("ridge_along", "drop_toward", "profile_across"):
+                vector = getattr(item, name)
+                if vector is not None:
+                    fields[name] = (vector[0] * cos_a - vector[1] * sin_a,
+                                    vector[0] * sin_a + vector[1] * cos_a)
+        turned.append(replace(item, **fields))
+    return turned
 
 
 def _verb(operator: str, build: Callable[[dict, tuple], dict]) -> Callable:

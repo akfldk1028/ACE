@@ -277,6 +277,27 @@ def _carrying_nothing(frame, op, picked, rest):
     return free, rest + covered
 
 
+def _section_turned(item: Placement, angle_degrees: float) -> Placement:
+    """A volume's section vectors, turned with the body.
+
+    `ridge_along`, `drop_toward` and `profile_across` are world unit
+    vectors; a band rotated by twist or bend has to carry its ridge round
+    with it or the roof keeps facing the way the body used to.
+    """
+
+    if abs(angle_degrees) < 1e-9:
+        return item
+    angle = math.radians(angle_degrees)
+    cos_a, sin_a = math.cos(angle), math.sin(angle)
+    fields = {}
+    for name in ("ridge_along", "drop_toward", "profile_across"):
+        vector = getattr(item, name)
+        if vector is not None:
+            fields[name] = (vector[0] * cos_a - vector[1] * sin_a,
+                            vector[0] * sin_a + vector[1] * cos_a)
+    return replace(item, **fields) if fields else item
+
+
 def _unit_axis_toward(item: Placement, ux: float, uy: float) -> int:
     """Which of the volume's own plan axes a world direction runs along.
 
@@ -325,6 +346,14 @@ def taper(frame, op) -> None:
     for item in picked:
         z0, z1 = item.z_span()
         count = _storeys(item, frame.storey, 2, 8)
+        if count < 2:
+            # One band evaluates the ramp at its midpoint: a uniform plan
+            # scale of (1 + ratio) / 2, which is `compress`, not a taper.
+            # Too short to draw in as it rises - left as it stands, so the
+            # silence gate reports the word (the same guard twist and
+            # cantilever already carry).
+            made.append(item)
+            continue
 
         def shape(index: int, t: float, z0=z0, z1=z1, count=count) -> Matrix4:
             z = z0 + (z1 - z0) * t
@@ -385,9 +414,9 @@ def twist(frame, op) -> None:
                 rotation_matrix4((0.0, 0.0, angle)),
                 translation_matrix4((pivot[0], pivot[1], 0.0)),
             )
-            made.append(replace(
+            made.append(_section_turned(replace(
                 band, matrix=validate_matrix4(compose_matrix4(band.matrix, world))
-            ))
+            ), angle))
     frame.placements = rest + made
 
 
@@ -659,7 +688,8 @@ def bend(frame, op) -> None:
         step = turn / max(count - 1, 1)
         for index in range(count):
             band = compose_matrix4(_slab(index, count, 0), item.matrix, chain)
-            made.append(replace(item, matrix=validate_matrix4(band)))
+            made.append(_section_turned(
+                replace(item, matrix=validate_matrix4(band)), step * index))
             joint = transform_point3(
                 compose_matrix4(item.matrix, chain),
                 ((index + 1) / count, 0.5, 0.0),

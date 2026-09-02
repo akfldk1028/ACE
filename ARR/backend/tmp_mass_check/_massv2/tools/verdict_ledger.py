@@ -18,7 +18,11 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-AXES = ("AESTHETICS", "FEASIBILITY", "COMPLIANCE", "EDITABILITY")
+# Both rulers' axes: the Korean rubric scores AESTHETICS / FEASIBILITY /
+# COMPLIANCE / EDITABILITY, the international one CONCEPT / FEASIBILITY /
+# SITE / EDITABILITY. A sentence's digest carries whichever axes its
+# rounds used; an axis never scored stays empty.
+AXES = ("CONCEPT", "AESTHETICS", "FEASIBILITY", "SITE", "COMPLIANCE", "EDITABILITY")
 
 
 def main() -> int:

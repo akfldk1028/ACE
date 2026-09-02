@@ -182,12 +182,9 @@ def main() -> int:
         print("FAIL: no book record compiled")
         return 1
 
-    # The overseas rubric, verbatim from its owner - never retyped here.
-    prompts = json.loads((ROOT / "inputs" / "judge-prompts.json").read_text(encoding="utf-8"))
-    (out / "prompts.json").write_text(json.dumps(prompts, ensure_ascii=False), encoding="utf-8")
-    (out / "PROMPT.txt").write_text(
-        "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
-        + (prompts.get("rubric_overseas") or prompts["rubric"]), encoding="utf-8")
+    # The overseas rubric, from its owner (vlm_shortlist.rubric_for) - never retyped here.
+    from vlm_shortlist import BLIND_PREAMBLE, rubric_for  # noqa: E402
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas"), encoding="utf-8")
 
     # Three board seats ride as anchors - the same ride, rebuild and caption
     # every massv2 round uses (vlm_shortlist.ride_anchors owns it).

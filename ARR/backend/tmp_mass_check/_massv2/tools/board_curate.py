@@ -73,6 +73,12 @@ ROUNDS = [
     # GeometryProgram masses at their own size and height, three board
     # anchors riding. Seats resolve through runs/books/ (book_import).
     ("O", "runs/vlm-book02/vlm-shortlist.json", "shortlist"),
+    # The ruler itself changed: every overseas round from 09-01 had been
+    # judged on a Korean-weighted copy (Feasibility 0.35 / Aesthetics 0.15)
+    # while the international rubric (CONCEPT 0.35) had no reader. One
+    # ruler: the whole passing overseas ledger re-judged under the real
+    # international rubric, newest-last so it overrides every score above.
+    ("O", "runs/vlm-board-rejudge-intl/vlm-shortlist.json", "corrected"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

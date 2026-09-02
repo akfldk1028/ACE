@@ -29,6 +29,30 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def rubric_for(track: str) -> str:
+    """The ruler for a track, from its owner file - never retyped.
+
+    Korea: inputs/judge-prompts.json["rubric"] (a 주민센터 with a fixed
+    소요면적표). Overseas: inputs/judge-prompts-overseas.json["rubric"] - the
+    international panel, CONCEPT 0.35 / FEASIBILITY 0.25 / SITE 0.20 /
+    EDITABILITY 0.20, where a cantilever costs only where it is
+    implausible. From 09-01 to 09-02 every overseas round read a
+    "rubric_overseas" that was the Korean rubric with the schedule removed
+    (Aesthetics 0.15, Feasibility 0.35, Compliance 0.25) - a buildability
+    ruler that dropped the twisting tower and seated the boxes; the real
+    international rubric had no reader. One owner, read by every stage.
+    """
+
+    if track == "korea":
+        return json.loads((ROOT / "inputs" / "judge-prompts.json")
+                          .read_text(encoding="utf-8"))["rubric"]
+    return json.loads((ROOT / "inputs" / "judge-prompts-overseas.json")
+                      .read_text(encoding="utf-8"))["rubric"]
+
+
+BLIND_PREAMBLE = "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
+
+
 def certified_caption(source, site, thesis: str, *,
                       ground_m2: float | None = None,
                       gross_m2: float | None = None) -> dict:
@@ -152,12 +176,8 @@ def stage(run: str, count: int) -> int:
     track = (json.loads((ROOT / "runs" / run / "massv2-summary.json")
                         .read_text(encoding="utf-8"))
              .get("provenance") or {}).get("track")
-    prompts = json.loads((out / "prompts.json").read_text(encoding="utf-8"))
-    prompt = prompts.get("rubric_overseas") if track != "korea" else None
-    prompt = prompt or prompts["rubric"]
-    (out / "PROMPT.txt").write_text(
-        "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
-        + prompt, encoding="utf-8")
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for(track or "overseas"),
+                                    encoding="utf-8")
     # Anchors: two or three seated board entries ride along as ordinary
     # anonymous tiles. Absolute scores drift by judge session (measured
     # -0.9 to -0.007 across rounds with an unchanged rubric), so a raw 3.0

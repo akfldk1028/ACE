@@ -74,13 +74,9 @@ def main(round_name: str, scope: str = "") -> int:
         )
         key.append({"tile": tile, "name": name})
 
-    prompts = json.loads((ROOT / "inputs" / "judge-prompts.json")
-                         .read_text(encoding="utf-8"))
-    (out / "prompts.json").write_text(
-        json.dumps(prompts, ensure_ascii=False, indent=1), encoding="utf-8")
-    (out / "PROMPT.txt").write_text(
-        "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
-        + prompts["rubric_overseas"], encoding="utf-8")
+    # The overseas ruler from its owner (vlm_shortlist.rubric_for).
+    from vlm_shortlist import BLIND_PREAMBLE, rubric_for  # noqa: E402
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas"), encoding="utf-8")
     (out / "key.json").write_text(
         json.dumps(key, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{made} tiles staged -> {out}")

@@ -30,7 +30,9 @@ from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.execute import realign  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
-from design.maas.massv2.grammar import parti_from_record  # noqa: E402
+from design.maas.massv2.grammar import (  # noqa: E402
+    declared_height_m, declared_stature, parti_from_record,
+)
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
@@ -60,6 +62,11 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     if parti is None:
         return None
     storey = float(parti.floor_height_m or site.floor_height_m)
+    # Callers pass max(base, asked * floor_height); the run divides the
+    # declaration by the sentence's height share (grammar.declared_height_m),
+    # so the same owner is read here and the caller's figure only ever
+    # rises to it. Same stamp, same budget, same shape.
+    height = max(float(height), declared_height_m(rec, storey))
     form = execute_parti(
         parti, buildable=buildable, axis=axis, height_m=height,
         storey_height_m=storey,
@@ -75,7 +82,7 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     asked = max((float(op.get("storeys") or 0) for op in rec.get("ops", [])),
                 default=0.0)
     if asked > 0.0:
-        form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
+        form = replace(form, extra={**dict(form.extra), **declared_stature(rec)})
     # Before the variants, exactly where the grid does it: the command sizes a
     # scheme to its 실별 소요면적표 and only then spreads it across coverage
     # bands and sitings. Applying the brief afterwards instead reshaped a

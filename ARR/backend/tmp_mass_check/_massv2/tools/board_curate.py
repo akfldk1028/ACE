@@ -62,6 +62,13 @@ ROUNDS = [
     # sweep01: the first grammar-sweep round - 300 generated sentences,
     # 5,132 variants, first-ever 16/16 cell fill; jury drift -0.48 applied.
     ("O", "runs/vlm-sweep01/vlm-shortlist.json", "shortlist"),
+    # 09-02 surgery day: executor, gates and renderer changed (height budget,
+    # roof-on-top-tier, crumb width, shift span, fracture lean, ridge
+    # vectors, structure-per-part). One ruler: the whole passing overseas
+    # ledger re-judged on the final engine, then the first authored round
+    # written against the empty-family map on that engine.
+    ("O", "runs/vlm-board-rejudge-s7/vlm-shortlist.json", "corrected"),
+    ("O", "runs/vlm-ovs18-en/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.

@@ -24,7 +24,7 @@ from design.maas.massv2.ablation import JOINT_CLEARANCE_M  # noqa: E402
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
-from design.maas.massv2.grammar import parti_from_record  # noqa: E402
+from design.maas.massv2.grammar import declared_stature, parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.legal_fit import fit_to_site  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
@@ -126,7 +126,7 @@ def main(run: str, family: str) -> int:
     read(form, "1 execute")
 
     if asked > 0.0:
-        form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
+        form = replace(form, extra={**dict(form.extra), **declared_stature(record)})
     if schedule is not None:
         from design.maas.massv2 import program as programme
         form = programme.resized_to(form, schedule, weight=1.0,

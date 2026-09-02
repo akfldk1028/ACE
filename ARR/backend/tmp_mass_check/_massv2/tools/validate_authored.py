@@ -98,7 +98,9 @@ PER_VERB_RANGES = {
     ("carve", "size"): (0.15, 0.6),
     ("notch", "size"): (0.15, 0.5),
     ("puncture", "size"): (0.1, 0.45),
-    ("cantilever", "reach"): (0.0, 0.6),
+    # cantilever's OWN clamp (swept.py): MIN_OFFSET_RATIO .. 0.65*1.6/2.6;
+    # the 0.0..0.6 first written here was aggregate's reach.
+    ("cantilever", "reach"): (0.15, 0.4),
     ("expand", "ratio"): (1.0, 1.6),
     ("inflate", "ratio"): (1.0, 1.6),
     ("compress", "ratio"): (0.6, 1.0),

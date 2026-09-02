@@ -246,6 +246,46 @@ def mistyped_words(record: dict[str, Any]) -> list[tuple[str, str, str]]:
     return found
 
 
+def declared_stature(record: dict[str, Any]) -> dict[str, Any]:
+    """What a sentence declares about its own height, as form.extra fields.
+
+    `declared_storeys` is the tallest `storeys` any op names; on extrude/loop
+    the declaration IS the building (`stature_is_building`), on aggregate and
+    stack it sizes the unit. The run stamped both and the rebuild tools
+    stamped only the first, so fill settled a rebuilt tower to the parcel
+    average while the run had held it to its own ceiling - rebuild != run for
+    exactly the sentences the ceiling was written for. One owner, read by the
+    command, finalists.rebuild and the probes alike.
+    """
+
+    ops = list(record.get("ops") or [])
+    asked = max((float(op.get("storeys") or 0) for op in ops), default=0.0)
+    if asked <= 0.0:
+        return {}
+    opener = str((ops[0].get("op") if ops else "") or "")
+    return {"declared_storeys": asked,
+            "stature_is_building": opener in ("extrude", "loop")}
+
+
+def declared_height_m(record: dict[str, Any], storey_m: float) -> float:
+    """The height budget a declaration asks for, at this storey height.
+
+    The executor multiplies whatever budget it is handed by the sentence's
+    own `height` share, so the declaration is divided by that share or
+    `storeys: 2, height: 0.3` is born at one storey. The executor clamps
+    height to 0.1..1.0, so the share floor is 0.1, not the 0.2 the first
+    version used (a 0.15 share was still born at a third of its storeys).
+    """
+
+    ops = list(record.get("ops") or [])
+    asked = max((float(op.get("storeys") or 0) for op in ops), default=0.0)
+    if asked <= 0.0:
+        return 0.0
+    share = max((float(op.get("height") or 0.0) for op in ops), default=0.0)
+    share = min(1.0, max(0.1, share)) if share > 0.0 else 1.0
+    return asked * storey_m / share
+
+
 def parti_from_record(record: dict[str, Any]) -> Parti | None:
     """Read an authored sentence. Unknown verbs are dropped, not guessed at."""
 

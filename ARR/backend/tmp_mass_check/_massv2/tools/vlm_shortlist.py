@@ -91,7 +91,11 @@ def stage(run: str, count: int) -> int:
             # alone while contestants carried 건폐율/용적률, so the three
             # seated schemes were the only tiles without numbers - a juror
             # could pick the ruler out of the line-up by its caption.
-            ground = float(source.footprint.area)
+            # 건폐율 counts the building's projection, not what touches the
+            # ground - `source.footprint` keeps the largest grounded piece
+            # and printed 5% under a pilotis ring drawn at full coverage.
+            from shapely.ops import unary_union as _union
+            ground = float(_union([v.footprint for v in source.volumes]).area)
             gross = gross_floor_area_m2(source, floor_height_m=site.floor_height_m)
             parcel = float(site.parcel_area_m2)
             render_masses(

@@ -32,7 +32,7 @@ from design.maas.design_space import CoverageBand  # noqa: E402
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
-from design.maas.massv2.grammar import parti_from_record  # noqa: E402
+from design.maas.massv2.grammar import declared_stature, parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.measure import measure_form  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
@@ -109,7 +109,7 @@ def main(run: str, family: str, *fractions: str) -> int:
     # Both steps the grid takes before the bands, in its order: the declared
     # storey stamp the growth loop reads, then the brief's own size.
     if asked > 0.0:
-        form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
+        form = replace(form, extra={**dict(form.extra), **declared_stature(record)})
     if schedule is not None:
         from design.maas.massv2 import program as programme
         form = programme.resized_to(

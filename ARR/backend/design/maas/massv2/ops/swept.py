@@ -257,20 +257,24 @@ def _carrying_nothing(frame, op, picked, rest):
 
     if str(op.params.get("on") or "").strip():
         return picked, rest
+    from ..compile import _plan
     standing = [item for item in (*picked, *rest) if item.kind == "additive"]
-    boxes = {id(item): _plan_box(item) for item in standing}
+    # True plans, not world axis-aligned boxes: on a bearing of 35 degrees a
+    # box inflates ~40% and two diagonal neighbours at different levels
+    # would register as carried and lose their roof.
+    plans = {id(item): _plan(item) for item in standing}
     free, covered = [], []
     for item in picked:
         if item.kind != "additive":
             free.append(item)
             continue
         top = item.z_span()[1]
+        mine = plans[id(item)]
         carried = any(
             other is not item
             and abs(other.z_span()[0] - top) < _BEARING_CONTACT_M
-            and _plan_overlap_m2(boxes[id(item)], boxes[id(other)])
-            > min(1.0, 0.5 * min(_box_area(boxes[id(item)]),
-                                 _box_area(boxes[id(other)])))
+            and mine.intersection(plans[id(other)]).area
+            > min(1.0, 0.5 * min(mine.area, plans[id(other)].area))
             for other in standing
         )
         (covered if carried else free).append(item)

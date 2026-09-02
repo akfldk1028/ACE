@@ -38,7 +38,7 @@ from gap_trace import ground_gap  # noqa: E402
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
-from design.maas.massv2.grammar import parti_from_record  # noqa: E402
+from design.maas.massv2.grammar import declared_stature, parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.compile import _plan  # noqa: E402
 from design.maas.massv2.legal_fit import (  # noqa: E402
@@ -110,7 +110,7 @@ def main() -> int:
                          height_m=max(base, asked * site.floor_height_m),
                          storey_height_m=storey)
     if asked > 0.0:
-        form = replace(form, extra={**dict(form.extra), "declared_storeys": asked})
+        form = replace(form, extra={**dict(form.extra), **declared_stature(record)})
     from design.maas.massv2 import program as programme
     form = programme.resized_to(form, schedule, weight=1.0, storey_height_m=storey)
     copy = next(c for c in spread_across_coverage(

@@ -511,18 +511,12 @@ class Command(BaseCommand):
                     (float(op.get("storeys") or 0) for op in record.get("ops", [])),
                     default=0.0,
                 )
-                # The executor multiplies whatever budget it is handed by the
-                # sentence's own `height` share, so a declaration has to be
-                # divided by that share or `storeys: 2, height: 0.3` is born
-                # at one storey and the stature gate retires it as crushed
-                # before growth gets a word in (sweep01: 128 of 226 base
-                # sentences born under two thirds of what they declared).
                 share = max(
                     (float(op.get("height") or 0.0)
                      for op in record.get("ops", [])),
                     default=0.0,
                 )
-                share = min(1.0, share) if share > 0.2 else 1.0
+                share = min(1.0, max(0.1, share)) if share > 0.0 else 1.0
                 budget = base_budget
                 if brief_storeys:
                     # The budget is a ceiling the sentence takes a share of, not
@@ -538,7 +532,9 @@ class Command(BaseCommand):
                     # brief needs. A scheme writing 0.4 gets a 15 m budget and
                     # stands at 6 m, the same two storeys as one writing 1.0.
                     budget = site.floor_height_m * brief_storeys / share
-                return max(budget, asked * storey / share)
+                # The declaration's own budget has one owner (grammar), read
+                # here and by every rebuild tool.
+                return max(budget, grammar_module.declared_height_m(record, storey))
             for record in sentences:
                 wrong = grammar_module.mistyped_words(record)
                 if wrong:
@@ -717,21 +713,9 @@ class Command(BaseCommand):
                                 # is: the eight-storey monolith crushed to
                                 # four is not a variant of the sentence, it
                                 # is a different building wearing its name.
-                                **({"declared_storeys": max(
-                                    (float(op.get("storeys") or 0)
-                                     for op in record.get("ops", [])),
-                                    default=0.0,
-                                ),
-                                    # On extrude/loop the declaration IS the
-                                    # building; on aggregate/stack it sizes
-                                    # the unit. Stamped here so the fill and
-                                    # the stature gate read one answer.
-                                    "stature_is_building": str(
-                                        (record.get("ops") or [{}])[0].get("op")
-                                        or "") in ("extrude", "loop"),
-                                } if any(op.get("storeys")
-                                          for op in record.get("ops", []))
-                                   else {}),
+                                # declared_storeys + stature_is_building, from
+                                # the one owner the rebuild tools read too.
+                                **grammar_module.declared_stature(record),
                             },
                         }
                     )
@@ -1032,8 +1016,11 @@ class Command(BaseCommand):
             spans = [max(0.0, float(v.top_fraction) - float(v.bottom_fraction))
                      for v in (getattr(source, "volumes", ()) or ())]
             body_height = measurement.height_m * (max(spans) if spans else 1.0)
+            # fill grows a declared building to exactly this ceiling, and the
+            # compiled band edges are rounded to 1e-4 - a strict > retired
+            # about half of the variants that reached it. One centimetre.
             over = (declared > 0.0 and stature_is_building
-                    and body_height > (5.0 / 3.0) * declared * form_storey)
+                    and body_height > (5.0 / 3.0) * declared * form_storey + 0.01)
             if (declared > 0.0
                     and body_height < (2.0 / 3.0) * declared * form_storey) or over:
                 # Declared stature is held like a declared gap: a sentence

@@ -328,7 +328,14 @@ def compile_matrix_form(
         role = _band_role(form, low, high)
         is_structure = _band_is_structure(form, low, high)
         for part in parts:
-            if is_structure:
+            # A band is structure only when nothing occupiable reaches it,
+            # which is right for the band's outline and wrong for its parts:
+            # Villa dall'Ava's legs stand in the same band as the half that
+            # was not lifted, so the band is a floor, the legs were emitted
+            # as occupiable volumes, and every small-volume rule (the crumb
+            # gate first) read four columns as four shards. A part is
+            # structure when everything standing on it is.
+            if is_structure or _part_is_structure(form, low, high, part):
                 structural.append(len(volumes))
             volumes.append(
                 SourceVolume(
@@ -506,6 +513,16 @@ def _band_is_structure(form: MatrixForm, low: float, high: float) -> bool:
     """
 
     occupants = [item for item in form.additive() if _spans(item, low, high)]
+    return bool(occupants) and not any(item.occupiable for item in occupants)
+
+
+def _part_is_structure(form: MatrixForm, low: float, high: float, part) -> bool:
+    """Is everything standing on this part of the band something that holds a room up."""
+
+    occupants = [
+        item for item in form.additive()
+        if _spans(item, low, high) and _plan(item).intersection(part).area > 0.5
+    ]
     return bool(occupants) and not any(item.occupiable for item in occupants)
 
 

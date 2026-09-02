@@ -345,15 +345,11 @@ def taper(frame, op) -> None:
     made: list[Placement] = []
     for item in picked:
         z0, z1 = item.z_span()
+        # No guard against a one-band volume here, on purpose: the ramp runs
+        # over the picked SET, so a one-storey band of a twisted tower takes
+        # the ramp at its own station and the tower still tapers - a guard
+        # tried on 09-02 silenced `taper` on the spiral, Glasir and Teshima.
         count = _storeys(item, frame.storey, 2, 8)
-        if count < 2:
-            # One band evaluates the ramp at its midpoint: a uniform plan
-            # scale of (1 + ratio) / 2, which is `compress`, not a taper.
-            # Too short to draw in as it rises - left as it stands, so the
-            # silence gate reports the word (the same guard twist and
-            # cantilever already carry).
-            made.append(item)
-            continue
 
         def shape(index: int, t: float, z0=z0, z1=z1, count=count) -> Matrix4:
             z = z0 + (z1 - z0) * t

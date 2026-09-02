@@ -674,8 +674,19 @@ def choose(
             ),
             reverse=True,
         )
-        for candidate in ranked[:max(1, per_cell)]:
+        seated_here = 0
+        for candidate in ranked:
+            if seated_here >= max(1, per_cell):
+                break
             family = family_of(candidate)
+            # `ranked` was ordered once, before the first seat in this cell
+            # was taken, so the second seat could not see the first: five of
+            # sixteen sweep01 cells seated the same sentence twice (a siting
+            # copy beside its band copy) while a distinct family with a
+            # stronger word waited. Two seats in a cell are two buildings.
+            if seated_here and family in taken:
+                continue
+            seated_here += 1
             taken.add(family)
             times[family] = times.get(family, 0) + 1
             tag = tag_of(candidate)

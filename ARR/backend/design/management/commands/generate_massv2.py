@@ -506,11 +506,23 @@ class Command(BaseCommand):
                 if schedule is not None else 0
             )
 
-            def _height_budget(record) -> float:
+            def _height_budget(record, storey: float) -> float:
                 asked = max(
                     (float(op.get("storeys") or 0) for op in record.get("ops", [])),
                     default=0.0,
                 )
+                # The executor multiplies whatever budget it is handed by the
+                # sentence's own `height` share, so a declaration has to be
+                # divided by that share or `storeys: 2, height: 0.3` is born
+                # at one storey and the stature gate retires it as crushed
+                # before growth gets a word in (sweep01: 128 of 226 base
+                # sentences born under two thirds of what they declared).
+                share = max(
+                    (float(op.get("height") or 0.0)
+                     for op in record.get("ops", [])),
+                    default=0.0,
+                )
+                share = min(1.0, share) if share > 0.2 else 1.0
                 budget = base_budget
                 if brief_storeys:
                     # The budget is a ceiling the sentence takes a share of, not
@@ -525,14 +537,8 @@ class Command(BaseCommand):
                     # and the sentence's own proportion lands on the storeys the
                     # brief needs. A scheme writing 0.4 gets a 15 m budget and
                     # stands at 6 m, the same two storeys as one writing 1.0.
-                    share = max(
-                        (float(op.get("height") or 0.0)
-                         for op in record.get("ops", [])),
-                        default=0.0,
-                    )
-                    share = min(1.0, share) if share > 0.2 else 1.0
                     budget = site.floor_height_m * brief_storeys / share
-                return max(budget, asked * site.floor_height_m)
+                return max(budget, asked * storey / share)
             for record in sentences:
                 wrong = grammar_module.mistyped_words(record)
                 if wrong:
@@ -540,11 +546,11 @@ class Command(BaseCommand):
                 parti = parti_from_record(record)
                 if parti is None:
                     continue
-                authored_height = _height_budget(record)
                 # The sentence's own storey. A gallery is not a shop and the
                 # corpus can finally say so - every gate below judges the
                 # sentence at the floor height it was written for.
                 storey = float(parti.floor_height_m or site.floor_height_m)
+                authored_height = _height_budget(record, storey)
                 # Judge the sentence, not its variants: a word that redraws
                 # nothing at the size it was written redraws nothing at any
                 # coverage or siting derived from it.
@@ -715,7 +721,15 @@ class Command(BaseCommand):
                                     (float(op.get("storeys") or 0)
                                      for op in record.get("ops", [])),
                                     default=0.0,
-                                )} if any(op.get("storeys")
+                                ),
+                                    # On extrude/loop the declaration IS the
+                                    # building; on aggregate/stack it sizes
+                                    # the unit. Stamped here so the fill and
+                                    # the stature gate read one answer.
+                                    "stature_is_building": str(
+                                        (record.get("ops") or [{}])[0].get("op")
+                                        or "") in ("extrude", "loop"),
+                                } if any(op.get("storeys")
                                           for op in record.get("ops", []))
                                    else {}),
                             },
@@ -1008,10 +1022,7 @@ class Command(BaseCommand):
             # and there over-delivery is the same dishonesty as crushing:
             # a declared two-storey gabled ring grown to four storeys keeps
             # its pitch and loses its parti - the gable reads as a parapet.
-            base_sentence = form.name.split("~")[0].split("^")[0]
-            base_ops = (parti_book.get(base_sentence) or {}).get("ops") or []
-            opener = str((base_ops[0].get("op") if base_ops else "") or "")
-            stature_is_building = opener in ("extrude", "loop")
+            stature_is_building = bool(form.extra.get("stature_is_building"))
             # The declaration names the BODY, and total extent is not the
             # body: a lift's clearance is empty metres, yet it was billed as
             # delivered storeys and a declared-3 bar over a 1-storey

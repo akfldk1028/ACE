@@ -369,14 +369,17 @@ def fill_to_site(
         past 12.5 m is going up where the parcel asked it to go out.
         """
 
-        ceiling = storeys_allowed * storey * _VOLUME_HEIGHT_SLACK
-        tallest = max(
-            (item.z_span()[1] - item.z_span()[0] for item in form.additive()),
-            default=0.0,
-        )
+        ceiling = volume_ceiling
+        tallest = _tallest_volume(form)
         if tallest <= ceiling or tallest <= 1e-6:
             return form
         return _taller(form, ceiling / tallest)
+
+    def _tallest_volume(form: MatrixForm) -> float:
+        return max(
+            (item.z_span()[1] - item.z_span()[0] for item in form.additive()),
+            default=0.0,
+        )
 
     def worth_taking(candidate: LegalFitResult) -> bool:
         """Lawful, larger, and still the same building.
@@ -411,6 +414,18 @@ def fill_to_site(
     # more ground, and that moves the scheme along the coverage axis where the
     # architect can see it.
     storeys_allowed = site.far_capacity_m2 / max(site.ground_capacity_m2, 1e-9)
+    # The tallest a single volume may stand. For a sentence that declared its
+    # storeys on a building-opener (extrude/loop) that is the declaration's own
+    # tolerance - the same 5/3 the delivery gate retires it at - and not the
+    # parcel's average: settling a declared tower to the average and then
+    # growing it back to 용적률 was how 949 sweep01 variants arrived at the gate
+    # "over" their own sentence. Every other scheme keeps the parcel rule.
+    declared_storeys = float(form.extra.get("declared_storeys") or 0.0)
+    if declared_storeys > 0.0 and form.extra.get("stature_is_building"):
+        volume_ceiling = (5.0 / 3.0) * declared_storeys * storey
+    else:
+        volume_ceiling = storeys_allowed * storey * _VOLUME_HEIGHT_SLACK
+
 
     # Settle an over-tall scheme onto the parcel before growing it. Stopping
     # growth at the ceiling was not enough: a scheme authored tall arrives above
@@ -530,9 +545,12 @@ def fill_to_site(
         # by rising. Left to grow upward, a field's small objects came back as
         # a bundle of sticks on a plinth at 용적률 0.99 - lawful, slender enough
         # to pass, and not the building that was authored.
-        if form.extra.get("growth") != "plan":
+        if (form.extra.get("growth") != "plan"
+                and _tallest_volume(current) < volume_ceiling - 1e-6):
             want = capacity / max(best.gross_floor_area_m2, 1.0)
-            grown = _taller(current, min(1.35, max(1.02, want)))
+            grown = _taller(current, min(
+                1.35, max(1.02, want),
+                volume_ceiling / max(_tallest_volume(current), 1e-6)))
             candidate = fit_to_site(grown, site)
             if worth_taking(candidate):
                 best, current, taller = candidate, candidate.form, taller + 1

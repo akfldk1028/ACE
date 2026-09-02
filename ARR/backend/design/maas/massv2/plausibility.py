@@ -328,7 +328,20 @@ def assess(
         if span <= 1e-6:
             continue
         area = float(volume.footprint.area)
-        if area < 9.0 or _min_dimension(volume.footprint) < MINIMUM_STOREY_WIDTH_M:
+        # Width is asked the way the canon states it - can a room stand here -
+        # which is the erosion `holds_a_storey` makes (3.0 m across), not the
+        # 1.5 m erosion RADIUS compared against a width directly: that let a
+        # 2.84 m needle through. And a volume can be room-wide at the base and
+        # still be a chimney: an occupiable piece taller than a storey is held
+        # to the parcel's own slenderness on its own, since the body-level
+        # slenderness above sees a stack as one fat body and never asks the
+        # spire on top (sweepx_0242: 9.8 m2 / 2.84 m wide, 8.3 m tall, passed).
+        span_m = span * height
+        width = _min_dimension(volume.footprint)
+        storey = float(floor_height_m) if floor_height_m > 0.0 else 3.0
+        chimney = (span_m > storey and width > 1e-6
+                   and span_m / width > max_slenderness)
+        if area < 9.0 or not holds_a_storey(volume.footprint) or chimney:
             shards += 1
     if shards:
         crumb_reason = f"crumb_{shards}_shard_volume{'s' if shards > 1 else ''}"

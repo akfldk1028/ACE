@@ -52,7 +52,10 @@ SHIPPED = (0.45, 0.65, 0.85, 1.00)
 
 def corpus() -> dict:
     out = {}
-    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+    # Sweep books live outside inputs/ so the authored canon stays clean,
+    # but their sentences must still resolve once staged or juried.
+    paths = sorted((ROOT / "inputs").glob("gen-*.json")) +         sorted((ROOT / "runs" / "sweeps").glob("*.json"))
+    for path in paths:
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
             out[scheme["name"]] = scheme
     return out

@@ -59,6 +59,9 @@ ROUNDS = [
     # agent02: authored, sheet-diagnosed and revised (r2) by massagent,
     # judged by the pinned sonnet jury under the no-shift rule.
     ("O", "runs/vlm-agent02/vlm-shortlist.json", "shortlist"),
+    # sweep01: the first grammar-sweep round - 300 generated sentences,
+    # 5,132 variants, first-ever 16/16 cell fill; jury drift -0.48 applied.
+    ("O", "runs/vlm-sweep01/vlm-shortlist.json", "shortlist"),
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.
@@ -67,7 +70,10 @@ KOREA_FINAL_PASS = 3.5 - 0.5  # anchor-corrected cut of that round
 
 def corpus() -> dict:
     book = {}
-    for path in sorted((ROOT / "inputs").glob("gen-*.json")):
+    # Sweep books live outside inputs/ so the authored canon stays clean,
+    # but their sentences must still resolve once staged or juried.
+    paths = sorted((ROOT / "inputs").glob("gen-*.json")) +         sorted((ROOT / "runs" / "sweeps").glob("*.json"))
+    for path in paths:
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
             book[scheme["name"]] = scheme
     return book

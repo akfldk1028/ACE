@@ -56,6 +56,41 @@ def certified_caption(source, site, thesis: str, *,
             "용적률": f"{gross / parcel * 100:.0f}%"}
 
 
+def rebuild_seat(name: str, book: dict, site, buildable, axis, base):
+    """A board seat's delivered geometry and its caption, whatever its stack.
+
+    massv2 names rebuild through finalists.rebuild at the declaration's own
+    budget; `book:` names rebuild through book_import at the book's own
+    size and height, captioned from the book's certificate. One owner for
+    every tool that re-stages seats (anchor rides, full-ledger rejudges) -
+    a book seat picked as an anchor was silently skipped and the ruler
+    shrank to two anchors with no warning. Returns (source, caption) or
+    (None, None).
+    """
+
+    if name.startswith("book:"):
+        from book_import import book_rebuild, registry  # noqa: E402
+        entry = registry().get(name) or {}
+        source = book_rebuild(name, site, buildable)
+        if source is None:
+            return None, None
+        return source, certified_caption(
+            source, site, entry.get("thesis", ""),
+            ground_m2=entry.get("footprint_m2") or None,
+            gross_m2=entry.get("floor_area_m2") or None)
+    from finalists import rebuild as _rebuild  # noqa: E402
+    from design.maas.massv2.grammar import declared_height_m  # noqa: E402
+    family = name.split("~")[0].split("^")[0]
+    parti = book.get(family)
+    if parti is None:
+        return None, None
+    source = _rebuild(name, book, site, buildable, axis,
+                      max(base, declared_height_m(parti, site.floor_height_m)))
+    if source is None:
+        return None, None
+    return source, certified_caption(source, site, parti.get("formal_principle") or "")
+
+
 def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     """Seat up to three current board entries among the tiles, anonymously.
 
@@ -73,8 +108,7 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     import sys as _sys
     _sys.path.insert(0, str(Path(__file__).resolve().parent))
     from band_probe import corpus as _corpus  # noqa: E402
-    from finalists import PNU as _PNU, rebuild as _rebuild  # noqa: E402
-    from design.maas.massv2.grammar import declared_height_m  # noqa: E402
+    from finalists import PNU as _PNU  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
     from design.maas.massv2.siting import open_side_direction  # noqa: E402
@@ -91,19 +125,14 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     index = len(key_rows)
     added = 0
     for row in picks:
-        family = row["name"].split("~")[0].split("^")[0]
-        parti = book.get(family)
-        if parti is None:
-            continue
-        source = _rebuild(row["name"], book, site, buildable, axis,
-                          max(base, declared_height_m(parti, site.floor_height_m)))
+        source, caption = rebuild_seat(row["name"], book, site, buildable, axis, base)
         if source is None:
+            print(f"   WARNING: anchor {row['name']} could not be rebuilt - riding without it")
             continue
         index += 1
         tile = f"t{index:02d}"
         render_masses(
-            [(tile, source, certified_caption(
-                source, site, parti.get("formal_principle") or ""))],
+            [(tile, source, caption)],
             out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 820), style="massing")
         key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"]})

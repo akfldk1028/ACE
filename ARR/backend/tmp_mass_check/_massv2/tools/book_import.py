@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BOOKS = ROOT / "runs" / "books"
 
 
-def _compile_record(rec: dict, buildable, site):
+def _compile_record(rec: dict, buildable):
     """One book record -> SourceMass at the book's own size and height.
 
     The single path the stage and the board's baker share, so a seated
@@ -118,7 +118,7 @@ def book_rebuild(name: str, site, buildable):
                 if r.get("trace_sequence_name") == entry["trace"]), None)
     if rec is None:
         return None
-    source, _entry = _compile_record(rec, buildable, site)
+    source, _entry = _compile_record(rec, buildable)
     return source
 
 
@@ -153,7 +153,7 @@ def main() -> int:
     entries: dict = {}
     index = 0
     for rec in records:
-        source, entry = _compile_record(rec, buildable, site)
+        source, entry = _compile_record(rec, buildable)
         if source is None:
             print(f"  skip {rec.get('trace_sequence_name')}: {entry}")
             continue

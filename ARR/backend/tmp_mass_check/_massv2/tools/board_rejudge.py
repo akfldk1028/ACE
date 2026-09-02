@@ -56,25 +56,19 @@ def main(round_name: str, scope: str = "") -> int:
     out.mkdir(parents=True, exist_ok=True)
     key = []
     made = 0
+    from vlm_shortlist import rebuild_seat  # noqa: E402
     for name in names:
-        family = name.split("~")[0].split("^")[0]
-        parti = book.get(family)
-        if parti is None:
-            print(f"skip (no parti): {name}")
-            continue
-        asked = max((float(op.get("storeys") or 0)
-                     for op in parti["ops"]), default=0.0)
-        source = rebuild(name, book, site, buildable, axis,
-                         max(base, asked * site.floor_height_m))
+        # One rebuild for every seat, book or massv2, with the certified
+        # caption every jury tile carries (this round used to caption the
+        # thesis alone, and skipped book seats as "no parti").
+        source, caption = rebuild_seat(name, book, site, buildable, axis, base)
         if source is None:
             print(f"skip (rebuild failed): {name}")
             continue
         made += 1
         tile = f"t{made:02d}"
         render_masses(
-            [(tile, source, {
-                "thesis": str(parti.get("formal_principle") or "")[:180],
-            })],
+            [(tile, source, caption)],
             out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 820), style="massing",
         )

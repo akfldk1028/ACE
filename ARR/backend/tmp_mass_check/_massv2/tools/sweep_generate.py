@@ -79,20 +79,64 @@ _MODS = (
     ("expand", lambda r: {"ratio": round(r.uniform(1.15, 1.35), 2)}),
 )
 
+# EXTREME mode: one gesture, all the way. The mid-range sweep produced
+# competent middling masses by construction; the offices the board is
+# measured against live at the edges - the deepest cantilever, the full
+# twist, the tallest thin, the lowest wide. One dominant verb at its
+# legal limit, one optional bar-maker, nothing else to muddy the move.
+_EXTREME_OPENERS = (
+    ("extrude", lambda r: {"profile": r.choice(_PROFILES),
+                           "height": r.choice((0.2, 0.9)),
+                           "storeys": r.choice((2, 8, 10))}),
+    ("loop", lambda r: {"bar": r.choice((0.18, 0.32)),
+                        "height": r.choice((0.2, 0.6)),
+                        "storeys": r.choice((1, 4))}),
+    ("aggregate", lambda r: {"n": r.choice((7, 8, 9)),
+                             "spread": r.choice((1.05, 1.6)),
+                             "height": 0.3, "storeys": r.choice((1, 2)), "tie": 0}),
+    ("stack", lambda r: {"n": r.choice((6, 7)),
+                         "contrast": r.choice((2.2, 2.5)),
+                         "height": 0.95}),
+)
+_EXTREME_MODS = (
+    ("twist", lambda r: {"turn": r.choice((40, 45))}),
+    ("cantilever", lambda r: {"reach": 0.34, "toward": "open"}),
+    ("taper", lambda r: {"ratio": r.choice((0.4, 0.45))}),
+    ("lift", lambda r: {"clearance": 0.4}),
+    ("shear", lambda r: {"run": 0.38, "toward": "open"}),
+    ("carve", lambda r: {"depth": 0.55, "toward": "open"}),
+    ("grade", lambda r: {"mode": "smooth", "run": 0.9, "toward": "open"}),
+    ("pinch", lambda r: {"ratio": 0.5}),
+    ("bend", lambda r: {"turn": 40}),
+    ("gable", lambda r: {"pitch": 1.2, "along": "long"}),
+    ("nest", lambda r: {"size": 0.55, "proud": 0.85, "turn": r.choice((-40, 40))}),
+    ("puncture", lambda r: {"n": 5}),
+)
+
 _WHY = ("swept from the grammar - the funnel, not this sentence, argues; "
         "gates and juries decide what survives")
 
 
-def _sentence(r: random.Random, index: int) -> dict:
-    opener, oparams = r.choice(_OPENERS)
+def _sentence(r: random.Random, index: int, extreme: bool = False) -> dict:
+    openers = _EXTREME_OPENERS if extreme else _OPENERS
+    mods = _EXTREME_MODS if extreme else _MODS
+    opener, oparams = r.choice(openers)
     ops = [{"op": opener, **oparams(r), "why": _WHY}]
-    for _ in range(r.choice((1, 1, 2, 2, 3))):
-        verb, vparams = r.choice(_MODS)
-        if any(o["op"] == verb for o in ops):
-            continue
+    # Extreme: exactly ONE dominant move (plus an optional bar-maker so a
+    # ridge/shear has a long axis to speak on). Mid: 1-3 mods as before.
+    if extreme:
+        if r.random() < 0.4:
+            ops.append({"op": "compress", "ratio": 0.6, "toward": "cross", "why": _WHY})
+        verb, vparams = r.choice(mods)
         ops.append({"op": verb, **vparams(r), "why": _WHY})
+    else:
+        for _ in range(r.choice((1, 1, 2, 2, 3))):
+            verb, vparams = r.choice(mods)
+            if any(o["op"] == verb for o in ops):
+                continue
+            ops.append({"op": verb, **vparams(r), "why": _WHY})
     return {
-        "name": f"sweep_{index:04d}_{opener}_{'_'.join(o['op'] for o in ops[1:]) or 'pure'}",
+        "name": f"sweep{'x' if False else ''}_{index:04d}_{opener}_{'_'.join(o['op'] for o in ops[1:]) or 'pure'}",
         "primary_language": "solid_body" if opener != "loop" else "open_figure",
         "secondary_language": "generated sweep candidate - see name for the verbs",
         "formal_principle": "스윕 후보 — 문법이 말할 수 있는 조합 하나를 게이트 앞에 세운다.",
@@ -107,6 +151,7 @@ def main() -> int:
     count = int(sys.argv[1])
     out = Path(sys.argv[2])
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 20260902
+    extreme = "--extreme" in sys.argv
     r = random.Random(seed)
 
     # The validator is the correctness owner: generate, filter by its
@@ -119,7 +164,7 @@ def main() -> int:
     tried = 0
     while len(kept) < count and tried < count * 8:
         tried += 1
-        record = _sentence(r, tried)
+        record = _sentence(r, tried, extreme=extreme)
         probe.write_text(json.dumps({"schemes": [record]}, ensure_ascii=False),
                          encoding="utf-8")
         faults, _verbs, _profiles = va.check(probe)

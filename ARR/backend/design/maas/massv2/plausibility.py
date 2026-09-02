@@ -64,6 +64,13 @@ AUTHORED_MINIMUM_PLAN_DIMENSION_M = 1.5
 # recalibration drew.
 MINIMUM_STOREY_WIDTH_M = (DEFAULT_MINIMUM_CLEAR_DEPTH_M + 0.6) / 2.0
 
+# The cleanliness law (canon §11), finally as a gate: a delivered OCCUPIABLE
+# body smaller than this share of the building's occupiable mass is a crumb -
+# a fragment no architect drew on purpose, the thing that makes a tile read
+# as rubble. Pure structure (legs, canopies - bands the compiler marks
+# structural) is exempt: a column is small because it is a column.
+CRUMB_MASS_SHARE = 0.04
+
 # How far daylight reaches into a storey, as a multiple of its own height.
 # Reinhart's rule of thumb puts the daylit zone at two to two and a half times
 # the window head; in a storey of this height the head lands just under the
@@ -304,6 +311,51 @@ def assess(
         slenderness = height / min_dimension if min_dimension > 1e-6 else float("inf")
 
     structural = set(source.metadata.get("structural_bands") or ())
+
+    # Crumb gate: per connected body, sum its occupiable mass (bands not
+    # marked structural whose plan meets the body's). A body with occupiable
+    # mass but under CRUMB_MASS_SHARE of the whole is delivered debris.
+    crumb_reason: str | None = None
+    # Shard check first, at the VOLUME level: bodies_of floors out fragments
+    # before physics, but the renderer draws every volume - so the debris the
+    # eye complains about lives below that floor. An additive occupiable
+    # volume too small or too thin to ever hold a room is delivered rubble.
+    shards = 0
+    for index, volume in enumerate(bands):
+        if index in structural:
+            continue
+        span = max(0.0, float(volume.top_fraction) - float(volume.bottom_fraction))
+        if span <= 1e-6:
+            continue
+        area = float(volume.footprint.area)
+        if area < 9.0 or _min_dimension(volume.footprint) < MINIMUM_STOREY_WIDTH_M:
+            shards += 1
+    if shards:
+        crumb_reason = f"crumb_{shards}_shard_volume{'s' if shards > 1 else ''}"
+    if bodies and bands:
+        body_mass = [0.0] * len(bodies)
+        total_occ = 0.0
+        for index, volume in enumerate(bands):
+            if index in structural:
+                continue
+            span = max(0.0, float(volume.top_fraction) - float(volume.bottom_fraction))
+            mass = float(volume.footprint.area) * span
+            total_occ += mass
+            for b, (_low, _high, plan) in enumerate(bodies):
+                try:
+                    hit = volume.footprint.intersection(plan).area
+                except Exception:
+                    hit = 0.0
+                if hit > 1e-6:
+                    body_mass[b] += mass * (hit / max(float(volume.footprint.area), 1e-9))
+        if total_occ > 1e-6:
+            for b, mass in enumerate(body_mass):
+                share = mass / total_occ
+                if crumb_reason is None and 1e-9 < share < CRUMB_MASS_SHARE:
+                    crumb_reason = (
+                        f"crumb_body_{share * 100:.0f}%_of_occupiable_mass")
+                    break
+
     viable = 0.0
     counted = 0.0
     room = 0.0
@@ -350,6 +402,8 @@ def assess(
     held_share = holding / max(holding + occupied, 1e-9)
 
     reasons: list[str] = []
+    if crumb_reason:
+        reasons.append(crumb_reason)
     if slenderness > max_slenderness:
         reasons.append(f"slenderness_{slenderness:.1f}_over_{max_slenderness:.1f}")
     if min_dimension < AUTHORED_MINIMUM_PLAN_DIMENSION_M:

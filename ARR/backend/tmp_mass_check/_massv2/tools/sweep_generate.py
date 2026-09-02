@@ -117,7 +117,8 @@ _WHY = ("swept from the grammar - the funnel, not this sentence, argues; "
         "gates and juries decide what survives")
 
 
-def _sentence(r: random.Random, index: int, extreme: bool = False) -> dict:
+def _sentence(r: random.Random, index: int, extreme: bool = False,
+              prefix: str = "sweep") -> dict:
     openers = _EXTREME_OPENERS if extreme else _OPENERS
     mods = _EXTREME_MODS if extreme else _MODS
     opener, oparams = r.choice(openers)
@@ -136,7 +137,7 @@ def _sentence(r: random.Random, index: int, extreme: bool = False) -> dict:
                 continue
             ops.append({"op": verb, **vparams(r), "why": _WHY})
     return {
-        "name": f"sweep{'x' if False else ''}_{index:04d}_{opener}_{'_'.join(o['op'] for o in ops[1:]) or 'pure'}",
+        "name": f"{prefix}_{index:04d}_{opener}_{'_'.join(o['op'] for o in ops[1:]) or 'pure'}",
         "primary_language": "solid_body" if opener != "loop" else "open_figure",
         "secondary_language": "generated sweep candidate - see name for the verbs",
         "formal_principle": "스윕 후보 — 문법이 말할 수 있는 조합 하나를 게이트 앞에 세운다.",
@@ -153,6 +154,10 @@ def main() -> int:
     seed = int(sys.argv[3]) if len(sys.argv) > 3 else 20260902
     extreme = "--extreme" in sys.argv
     r = random.Random(seed)
+    # Names carry the book's stem so two books never share a sentence name
+    # (corpus loaders read every runs/sweeps/*.json; sweep01/sweep03 once
+    # both minted sweep_0067_loop_mansard).
+    prefix = out.stem
 
     # The validator is the correctness owner: generate, filter by its
     # check() (which derives verbs/params from the executor source), repeat.
@@ -164,7 +169,7 @@ def main() -> int:
     tried = 0
     while len(kept) < count and tried < count * 8:
         tried += 1
-        record = _sentence(r, tried, extreme=extreme)
+        record = _sentence(r, tried, extreme=extreme, prefix=prefix)
         probe.write_text(json.dumps({"schemes": [record]}, ensure_ascii=False),
                          encoding="utf-8")
         faults, _verbs, _profiles = va.check(probe)

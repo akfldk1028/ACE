@@ -23,17 +23,35 @@ from design.maas.geometry_language.affine_matrix import (
 from ..form import Placement
 
 
-def _bounds(items: list[Placement]) -> tuple[float, float, float, float, float, float]:
-    """Centre and span of a set of volumes, in world coordinates."""
+def _bounds(
+    items: list[Placement], rotation_degrees: float = 0.0
+) -> tuple[float, float, float, float, float, float]:
+    """Centre and base in world coordinates; spans in the frame's own axes.
+
+    A `shift` moves a volume by a share of its own dimension, and the spans
+    have to be measured on the axes the volume is built on. The world
+    axis-aligned box of a posed volume is larger than the volume by the
+    cosine of the parcel's bearing on each side - the same inflation
+    `execute._bounds_of` was rewritten for - so on Gangnam (35.5 degrees) a
+    40 x 10 m bar read 31.4 m across and a quarter-share shift moved it
+    7.9 m instead of 2.5. The direction was then turned correctly, which is
+    why only the magnitude was wrong and nothing flagged it.
+    """
 
     corners = [corner for item in items for corner in item.corners()]
     xs = [x for x, _y, _z in corners]
     ys = [y for _x, y, _z in corners]
     zs = [z for _x, _y, z in corners]
-    return (
-        (min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0, min(zs),
-        max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs),
-    )
+    cx, cy = (min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0
+    if abs(rotation_degrees) < 1e-9:
+        span_x, span_y = max(xs) - min(xs), max(ys) - min(ys)
+    else:
+        bearing = radians(-rotation_degrees)
+        cos_b, sin_b = cos(bearing), sin(bearing)
+        us = [(x - cx) * cos_b - (y - cy) * sin_b for x, y, _z in corners]
+        vs = [(x - cx) * sin_b + (y - cy) * cos_b for x, y, _z in corners]
+        span_x, span_y = max(us) - min(us), max(vs) - min(vs)
+    return (cx, cy, min(zs), span_x, span_y, max(zs) - min(zs))
 
 
 def _operate(
@@ -103,7 +121,7 @@ def _verb(operator: str, build: Callable[[dict, tuple], dict]) -> Callable:
         if not picked:
             return
         rest = [item for item in frame.placements if item not in picked]
-        cx, cy, base, span_x, span_y, span_z = _bounds(picked)
+        cx, cy, base, span_x, span_y, span_z = _bounds(picked, frame.rotation)
         # `about:` names a regulating element the composition is already
         # holding - the line a `split` cut, the centre a `loop` made - and two
         # operations sharing one is the whole of what makes their volumes read

@@ -254,8 +254,11 @@ def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=N
         (x0, y0), (x1, y1) = segments[index % count]
         # outward-or-inward normal is consistent along the ring, so only the
         # SIGN CHANGE matters for the silhouette test below
-        return (y1 - y0) * math.sin(math.radians(_YAW)) \
-            - (x1 - x0) * math.cos(math.radians(_YAW))
+        # `_YAW` is already in radians (line 29); converting it again
+        # evaluated the silhouette at -0.6 degrees instead of -35, and the
+        # verticals on every curved plan sat a third of a turn from where
+        # the projection put the outline.
+        return (y1 - y0) * math.sin(_YAW) - (x1 - x0) * math.cos(_YAW)
 
     def _edge_drawn(index: int) -> bool:
         # The vertical edge at vertex `index`, between walls index-1 and

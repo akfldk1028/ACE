@@ -277,6 +277,29 @@ def _carrying_nothing(frame, op, picked, rest):
     return free, rest + covered
 
 
+def _unit_axis_toward(item: Placement, ux: float, uy: float) -> int:
+    """Which of the volume's own plan axes a world direction runs along.
+
+    `axis = 0 if abs(ux) >= abs(uy) else 1` compared a WORLD direction against
+    world x and y and then indexed the volume's UNIT axes with the answer -
+    right only when the volume happens to be posed square to north. For
+    street bearings between 45 and 135 degrees `shear toward: long` read the
+    short axis (a 40 x 10 m bar slid 3 m instead of 12) and the gap guard
+    measured the wrong width. The volume's own axes are in its matrix.
+    """
+
+    origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
+    ex = transform_point3(item.matrix, (1.0, 0.0, 0.0))
+    ey = transform_point3(item.matrix, (0.0, 1.0, 0.0))
+    dx = (ex[0] - origin[0], ex[1] - origin[1])
+    dy = (ey[0] - origin[0], ey[1] - origin[1])
+    lx = (dx[0] ** 2 + dx[1] ** 2) ** 0.5 or 1e-9
+    ly = (dy[0] ** 2 + dy[1] ** 2) ** 0.5 or 1e-9
+    along_x = abs(dx[0] * ux + dx[1] * uy) / lx
+    along_y = abs(dy[0] * ux + dy[1] * uy) / ly
+    return 0 if along_x >= along_y else 1
+
+
 def _along_is_x(params: dict) -> bool:
     named = str(params.get("toward") or params.get("along") or "long").lower()
     return named not in ("cross", "short", "side")
@@ -501,7 +524,6 @@ def _slid_no_further_than_the_gap(frame, op, picked, rest, ratio, clearance):
         return shares
 
     ux, uy = frame.out(*frame.direction(op.params.get("toward")))
-    axis = 0 if abs(ux) >= abs(uy) else 1
     plans_other = [(item.z_span(), _plan(item)) for item in others]
 
     for item in movers:
@@ -517,7 +539,7 @@ def _slid_no_further_than_the_gap(frame, op, picked, rest, ratio, clearance):
             continue
         kept = min(plan.distance(other) for other in beside)
         floor = min(kept, clearance)
-        width = _span_along_unit_axis(item, axis)
+        width = _span_along_unit_axis(item, _unit_axis_toward(item, ux, uy))
 
         def clear_at(share: float) -> float:
             reach = share * ratio * width
@@ -585,7 +607,7 @@ def shear(frame, op) -> None:
             moved.append(item)
             slides.setdefault(item.role, (0.0, 0.0))
             continue
-        axis = 0 if abs(ux) >= abs(uy) else 1
+        axis = _unit_axis_toward(item, ux, uy)
         reach = (ratio * held.get(item.role, 1.0)
                  * _span_along_unit_axis(item, axis) * (index - anchored))
         slides.setdefault(item.role, (ux * reach, uy * reach))
@@ -1124,7 +1146,7 @@ def cantilever(frame, op) -> None:
             # silence gate is the right place for that to surface.
             made.append(item)
             continue
-        axis = 0 if abs(ux) >= abs(uy) else 1
+        axis = _unit_axis_toward(item, ux, uy)
         run = _span_along_unit_axis(item, axis)
         step = min(asked_reach, 0.7 / (count - 1))
 

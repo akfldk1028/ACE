@@ -26,6 +26,7 @@ from typing import Callable
 
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
+    transform_point3,
     translation_matrix4,
     validate_matrix4,
 )
@@ -179,21 +180,29 @@ def fracture(frame, op) -> None:
             dx=dx0 + station * run, dy=dy0,
             turn=turn, kind="subtractive", occupiable=False,
         )
-        # The lean, said in the slat's own unit space: x drifts with z, so the
-        # crack wanders as it rises whatever the parcel's bearing.
+        # The lean, as a world-space shear composed AFTER the slat's own
+        # matrix: x drifts with z across the slat, about its base. Said in
+        # unit space before the scale it was tan(lean) per unit of the slat's
+        # HEIGHT over its WIDTH - a 30-degree lean on a 2.4 m slat 36 m tall
+        # delivered 2.2 degrees, and the fissures stood plumb. `skew` and
+        # `place(lean_degrees)` already do it this way.
         drift = tan(radians(lean))
-        # x' = x + drift * z: row 0 carries the z coefficient. Written
-        # transposed the first time - z' = z + drift * x - which tilted the
-        # cutter's TOP away instead of its side, changed nothing in plan, and
-        # announced itself by stretching the z-span to -14.2.
+        origin = transform_point3(slat.matrix, (0.0, 0.0, 0.0))
+        tip = transform_point3(slat.matrix, (1.0, 0.0, 0.0))
+        ax, ay = tip[0] - origin[0], tip[1] - origin[1]
+        norm = (ax * ax + ay * ay) ** 0.5 or 1.0
+        ax, ay = ax / norm, ay / norm
+        base_z = origin[2]
+        # p' = p + drift * (z - base_z) * (ax, ay, 0): rows 0 and 1 carry the
+        # z coefficient and its base offset.
         wander = (
-            (1.0, 0.0, drift, 0.0),
-            (0.0, 1.0, 0.0, 0.0),
+            (1.0, 0.0, drift * ax, -drift * ax * base_z),
+            (0.0, 1.0, drift * ay, -drift * ay * base_z),
             (0.0, 0.0, 1.0, 0.0),
             (0.0, 0.0, 0.0, 1.0),
         )
         made.append(replace(
-            slat, matrix=validate_matrix4(compose_matrix4(wander, slat.matrix))
+            slat, matrix=validate_matrix4(compose_matrix4(slat.matrix, wander))
         ))
     frame.placements = rest + picked + made
 

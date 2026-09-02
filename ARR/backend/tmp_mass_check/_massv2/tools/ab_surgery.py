@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from finalists import PNU, rebuild, scheme_of  # noqa: E402
+from finalists import PNU, rebuild, scheme_of, BUILDING_TYPE  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
@@ -54,7 +54,7 @@ def main(before: str) -> int:
         for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
             now[s["name"]] = s
 
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     height = site.floor_height_m * max(

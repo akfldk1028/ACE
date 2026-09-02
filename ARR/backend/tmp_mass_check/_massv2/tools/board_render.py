@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from band_probe import corpus  # noqa: E402
 from book_import import book_rebuild  # noqa: E402
-from finalists import PNU, rebuild  # noqa: E402
+from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
@@ -50,7 +50,7 @@ def _korea_schedule():
 def main() -> int:
     board = json.loads((BOARD / "board-key.json").read_text(encoding="utf-8"))
     book = corpus()
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     base = site.floor_height_m * max(

@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-from finalists import PNU, rebuild, scheme_of  # noqa: E402  (django setup inside)
+from finalists import PNU, rebuild, scheme_of, BUILDING_TYPE  # noqa: E402  (django setup inside)
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.siting import open_side_direction  # noqa: E402
@@ -28,7 +28,7 @@ def main(run: str) -> int:
     for p in sorted((ROOT / "inputs").glob("gen-*.json")):
         for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
             corpus[s["name"]] = s
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     base = site.floor_height_m * max(

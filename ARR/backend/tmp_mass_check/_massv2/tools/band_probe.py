@@ -26,7 +26,7 @@ import sys
 from dataclasses import replace
 from pathlib import Path
 
-from finalists import PNU  # noqa: E402  (django setup inside)
+from finalists import PNU, BUILDING_TYPE  # noqa: E402  (django setup inside)
 
 from design.maas.design_space import CoverageBand  # noqa: E402
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
@@ -85,7 +85,7 @@ def schedule_of(run: str):
 def main(run: str, family: str, *fractions: str) -> int:
     schedule = schedule_of(run)
     record = corpus()[family]
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     open_side = open_side_direction(buildable, site.shared_edges)

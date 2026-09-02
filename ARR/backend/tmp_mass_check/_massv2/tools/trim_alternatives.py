@@ -32,7 +32,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from band_probe import corpus, schedule_of  # noqa: E402
-from finalists import PNU  # noqa: E402
+from finalists import PNU, BUILDING_TYPE  # noqa: E402
 from gap_trace import ground_gap  # noqa: E402
 
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
@@ -95,7 +95,7 @@ def report(label, form, site, storey):
 def main() -> int:
     schedule = schedule_of("uij-aim")
     record = corpus()[FAMILY]
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     open_side = open_side_direction(buildable, site.shared_edges)

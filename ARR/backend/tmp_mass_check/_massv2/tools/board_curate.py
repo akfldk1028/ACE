@@ -82,7 +82,26 @@ ROUNDS = [
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.
-KOREA_FINAL_PASS = 3.5 - 0.5  # anchor-corrected cut of that round
+from vlm_shortlist import PASS_CUT  # noqa: E402
+KOREA_FINAL_PASS = PASS_CUT  # the one cut; this name survives for the pre-`pass` korea file
+
+
+def rounds() -> list:
+    """Every round the board reads: the legacy hand list, then every scored
+    round that wrote a manifest (runs/vlm-*/round.json) and is not already
+    listed, in the order their shortlists were scored. Newest last, so the
+    latest ruler overrides."""
+
+    listed = {rel for _t, rel, _k in ROUNDS}
+    discovered = []
+    for manifest in ROOT.glob("runs/vlm-*/round.json"):
+        rel = str(manifest.parent.relative_to(ROOT) / "vlm-shortlist.json").replace("\\", "/")
+        shortlist = manifest.parent / "vlm-shortlist.json"
+        if rel in listed or not shortlist.exists():
+            continue
+        meta = json.loads(manifest.read_text(encoding="utf-8"))
+        discovered.append((shortlist.stat().st_mtime, (meta["track"], rel, meta["kind"])))
+    return list(ROUNDS) + [entry for _stamp, entry in sorted(discovered)]
 
 
 def corpus() -> dict:
@@ -108,7 +127,7 @@ def corpus() -> dict:
 def main() -> int:
     book = corpus()
     ledger: dict[tuple, dict] = {}
-    for track, rel, kind in ROUNDS:
+    for track, rel, kind in rounds():
         path = ROOT / rel
         if not path.exists():
             continue

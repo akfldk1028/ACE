@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 from band_probe import corpus  # noqa: E402  (django setup inside)
-from finalists import PNU  # noqa: E402
+from finalists import PNU, BUILDING_TYPE  # noqa: E402
 from regulating_audit import distinct_parts, regulating_ratio  # noqa: E402
 
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
@@ -44,7 +44,7 @@ def main(name: str, *edits: str) -> int:
     if parti is None:
         print(f"{name} 없음")
         return 1
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     asked = max((float(op.get("storeys") or 0) for op in parti["ops"]), default=0.0)

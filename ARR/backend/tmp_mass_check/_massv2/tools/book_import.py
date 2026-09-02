@@ -129,7 +129,7 @@ def main() -> int:
     stage_name = sys.argv[2]
 
     from band_probe import corpus  # noqa: E402,F401  (django setup side effect)
-    from finalists import PNU  # noqa: E402
+    from finalists import PNU, BUILDING_TYPE  # noqa: E402
     from vlm_shortlist import certified_caption, ride_anchors  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
@@ -141,7 +141,7 @@ def main() -> int:
         print("FAIL: no records in book artifacts")
         return 1
 
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
 
     out = ROOT / "runs" / f"vlm-{stage_name}"

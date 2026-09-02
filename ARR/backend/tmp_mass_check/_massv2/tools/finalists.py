@@ -44,7 +44,12 @@ from design.maas.massv2.siting import (  # noqa: E402
 from design.maas.massv2.variations import spread_across_coverage  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-PNU = "4115011300106840001"
+# The parcel under study. config/massagent.env is the owner (PNU,
+# BUILDING_TYPE, exported by the skills); these literals are the fallback
+# for a bare tool run, and the reason a parcel change once moved mass-run
+# but not judging or baking.
+PNU = os.environ.get("PNU") or "4115011300106840001"
+BUILDING_TYPE = os.environ.get("BUILDING_TYPE") or "제1종근린생활시설"
 
 
 def scheme_of(name: str) -> str:
@@ -151,7 +156,7 @@ def plan(run: str) -> int:
         for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
             corpus[s["name"]] = s
 
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     height = site.floor_height_m * max(
@@ -295,7 +300,7 @@ def repechage(run: str) -> int:
     for p in sorted((ROOT / "inputs").glob("gen-*.json")):
         for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
             corpus[s["name"]] = s
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     height = site.floor_height_m * max(

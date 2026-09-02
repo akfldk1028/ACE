@@ -17,7 +17,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from band_probe import corpus, schedule_of  # noqa: E402  (django setup inside)
-from finalists import PNU  # noqa: E402
+from finalists import PNU, BUILDING_TYPE  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 from design.maas.massv2.ablation import JOINT_CLEARANCE_M  # noqa: E402
@@ -83,7 +83,7 @@ def ground_gap(source) -> float:
 def main(run: str, family: str) -> int:
     schedule = schedule_of(run)
     record = corpus()[family]
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     open_side = open_side_direction(buildable, site.shared_edges)

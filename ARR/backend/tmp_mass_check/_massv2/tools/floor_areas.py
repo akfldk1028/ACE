@@ -7,7 +7,7 @@ on the floor that can take it, and the average hides that in both directions.
 
 import json, sys
 from pathlib import Path
-from finalists import PNU, rebuild, scheme_of
+from finalists import PNU, rebuild, scheme_of, BUILDING_TYPE
 from design.maas.massv2.legal import load_legal_site
 from design.maas.massv2.measure import storeys_in
 from design.maas.massv2.siting import open_side_direction
@@ -54,7 +54,7 @@ def main(run: str) -> int:
     for p in sorted((ROOT / "inputs").glob("gen-*.json")):
         for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]:
             corpus[s["name"]] = s
-    site = load_legal_site(PNU, building_type="제1종근린생활시설")
+    site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     base = site.floor_height_m * max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))

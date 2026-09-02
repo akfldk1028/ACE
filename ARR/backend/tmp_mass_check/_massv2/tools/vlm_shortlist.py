@@ -28,6 +28,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# The pass cut, once. It lived as `>= 3.0` here and as `3.5 - 0.5` in the
+# curator's KOREA_FINAL_PASS - two literals that happened to agree.
+PASS_CUT = 3.0
+
 
 def rubric_for(track: str) -> str:
     """The ruler for a track, from its owner file - never retyped.
@@ -132,7 +136,7 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     import sys as _sys
     _sys.path.insert(0, str(Path(__file__).resolve().parent))
     from band_probe import corpus as _corpus  # noqa: E402
-    from finalists import PNU as _PNU  # noqa: E402
+    from finalists import PNU as _PNU, BUILDING_TYPE  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
     from design.maas.massv2.siting import open_side_direction  # noqa: E402
@@ -141,7 +145,7 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     picks = [seats[0], seats[len(seats) // 2], seats[-1]] if len(seats) >= 3 else seats
     book = _corpus()
     if site is None:
-        site = load_legal_site(_PNU, building_type="제1종근린생활시설")
+        site = load_legal_site(_PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
     axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
     base = site.floor_height_m * max(
@@ -255,7 +259,7 @@ def score(run: str, paths: list[str]) -> int:
     result = [{
         "tile": t, "score": round(s, 2),
         "corrected": round(min(5.0, max(1.0, s - drift)), 2),
-        "pass": (s - drift) >= 3.0,
+        "pass": (s - drift) >= PASS_CUT,
         "correction": correction,
         **({"anchor_spread": round(spread, 2)} if spread > 1.0 else {}),
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
@@ -268,6 +272,21 @@ def score(run: str, paths: list[str]) -> int:
     } for s, t in ranked]
     (out / "vlm-shortlist.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8")
+    # The round's manifest: what the curator needs to seat it, written by
+    # the tool that scored it. ROUNDS was a hand-edited list in
+    # board_curate.py - a scored round nobody typed in was invisible to the
+    # board, and "forgotten" looked exactly like "excluded".
+    summary_path = ROOT / "runs" / run / "massv2-summary.json"
+    track = "O"
+    if summary_path.exists():
+        provenance = (json.loads(summary_path.read_text(encoding="utf-8"))
+                      .get("provenance") or {})
+        track = "K" if provenance.get("track") == "korea" else "O"
+    (out / "round.json").write_text(json.dumps({
+        "track": track,
+        "kind": "corrected" if run.startswith("board-rejudge") else "shortlist",
+        "cut": PASS_CUT, "correction": correction,
+    }, ensure_ascii=False, indent=1), encoding="utf-8")
     for row in result:
         print(f"   {row['score']:.2f}  {row['name'][:56]}")
     print(f"-> {out / 'vlm-shortlist.json'}")

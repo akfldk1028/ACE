@@ -12,7 +12,7 @@ import json
 import sys
 from pathlib import Path
 
-from finalists import PNU, rebuild, scheme_of  # noqa: E402  (django setup inside)
+from finalists import PNU, rebuild, scheme_of, BUILDING_TYPE  # noqa: E402  (django setup inside)
 
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
@@ -51,7 +51,7 @@ def corpus() -> dict:
 
 
 CORPUS = corpus()
-SITE = load_legal_site(PNU, building_type="제1종근린생활시설")
+SITE = load_legal_site(PNU, building_type=BUILDING_TYPE)
 BUILDABLE = SITE.plan_at(0.0)
 AXIS = open_side_direction(BUILDABLE, SITE.shared_edges) or (1.0, 0.0)
 BUDGET = SITE.floor_height_m * max(
@@ -233,7 +233,7 @@ def _physics_fires():
                        placements=(place("body", size=(4.0, 4.0, 60.0)),))
     src = compile_matrix_form(stick, storey_height_m=3.0)
     v = assess(src, parcel_area_m2=SITE.parcel_area_m2, max_slenderness=lim,
-               floor_height_m=3.0, building_type="제1종근린생활시설")
+               floor_height_m=3.0, building_type=BUILDING_TYPE)
     return not v.occupiable, f"세장비 {v.slenderness:.1f} > {lim:.1f}, 판정 {v.occupiable}"
 
 

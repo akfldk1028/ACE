@@ -139,11 +139,36 @@ def _project(x: float, y: float, z: float) -> tuple[float, float]:
     return sx, sy * math.sin(_PITCH) - z * math.cos(_PITCH)
 
 
+def _warp_share(x: float, y: float, slope) -> float:
+    """The bilinear corner-height share (0..1) at a plan point of a W band."""
+
+    _tag, _band_m, ux, uy, vx, vy, ulo, uhi, vlo, vhi, corners, _plate, sag = slope
+    u = min(1.0, max(0.0, (x * ux + y * uy - ulo) / max(uhi - ulo, 1e-9)))
+    v = min(1.0, max(0.0, (x * vx + y * vy - vlo) / max(vhi - vlo, 1e-9)))
+    h00, h10, h11, h01 = corners
+    share = ((1 - u) * (1 - v) * h00 + u * (1 - v) * h10
+             + u * v * h11 + (1 - u) * v * h01)
+    # The sag pulls every edge down toward its middle and the field toward
+    # its centre, so the eaves curve up to the corners instead of running
+    # straight between them.
+    return share - sag * (4 * u * (1 - u) + 4 * v * (1 - v)) / 2.0
+
+
+def _bottom_at(x: float, y: float, low: float, slope) -> float:
+    """The underside's height at a plan point - flat except for a warped plate."""
+
+    if slope is not None and slope[0] == "W" and slope[11]:
+        return low - slope[1] * (1.0 - _warp_share(x, y, slope))
+    return low
+
+
 def _top_at(x: float, y: float, high: float, slope) -> float:
     """The top face's height at a plan point - flat unless the band tilts."""
 
     if slope is None:
         return high
+    if slope[0] == "W":
+        return high - slope[1] * (1.0 - _warp_share(x, y, slope))
     if slope[0] == "R":
         # A ridge: full height on the line, both eaves at full drop.
         _tag, drop_m, px, py, centre, half = slope
@@ -159,6 +184,19 @@ def _top_at(x: float, y: float, high: float, slope) -> float:
     span = max(hi_p - lo_p, 1e-9)
     t = (x * ux + y * uy - lo_p) / span
     return high - drop_m * min(1.0, max(0.0, t))
+
+
+def _densified(ring, per_edge: int):
+    """The ring with `per_edge` points added along every edge."""
+
+    out = []
+    count = len(ring)
+    for index in range(count):
+        (x0, y0), (x1, y1) = ring[index], ring[(index + 1) % count]
+        for k in range(per_edge):
+            t = k / per_edge
+            out.append((x0 + (x1 - x0) * t, y0 + (y1 - y0) * t))
+    return out
 
 
 def _break_lines(slope):
@@ -276,7 +314,8 @@ def _walls(ring: Sequence[tuple[float, float]], low: float, high: float, slope=N
     quads = []
     for index, ((x0, y0), (x1, y1)) in enumerate(segments):
         quads.append((_depth((x0 + x1) / 2.0, (y0 + y1) / 2.0), index, [
-            _project(x0, y0, low), _project(x1, y1, low),
+            _project(x0, y0, _bottom_at(x0, y0, low, slope)),
+            _project(x1, y1, _bottom_at(x1, y1, low, slope)),
             _project(x1, y1, _top_at(x1, y1, high, slope)),
             _project(x0, y0, _top_at(x0, y0, high, slope)),
         ]))
@@ -304,6 +343,18 @@ def _slope_of(volume, low: float, high: float):
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
     if drop <= 0.0:
         return None
+    warp = getattr(volume, "warp", None)
+    if warp is not None:
+        (ux, uy), (vx, vy), corners, plate = warp[:4]
+        sag = float(warp[4]) if len(warp) > 4 else 0.0
+        nu = math.hypot(ux, uy) or 1.0
+        nv = math.hypot(vx, vy) or 1.0
+        ux, uy, vx, vy = ux / nu, uy / nu, vx / nv, vy / nv
+        coords = list(volume.footprint.exterior.coords)
+        us = [x * ux + y * uy for x, y in coords]
+        vs = [x * vx + y * vy for x, y in coords]
+        return ("W", high - low, ux, uy, vx, vy, min(us), max(us), min(vs), max(vs),
+                tuple(float(c) for c in corners), bool(plate), sag)
     points = getattr(volume, "top_profile", None)
     across = getattr(volume, "profile_across", None)
     if points is not None and across is not None:
@@ -350,6 +401,10 @@ def _faces(polygon, low: float, high: float, slope=None):
     if folds:
         # A vertex on every fold, or the end face loses its peak.
         outer = _ridge_points(outer, slope)
+    if slope is not None and slope[0] == "W":
+        # A warped surface's edges are straight only along its own axes; a
+        # long edge is drawn as a polyline so the sweep of the eave shows.
+        outer = _densified(outer, 6)
     yield from _walls(outer, low, high, slope)
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
@@ -359,7 +414,36 @@ def _faces(polygon, low: float, high: float, slope=None):
             yield from _walls(court, low, high, slope)
     # The roof is the ring minus its holes. Painting the hole in the background
     # colour is the cheapest correct answer for a filled polygon renderer.
-    if folds and slope[0] == "R":
+    if slope is not None and slope[0] == "W":
+        # The roof as a seamless grid of bilinear cells (each cell is near
+        # enough planar to paint flat), then one outlined ring over it so the
+        # surface has a silhouette - the same trick the vault needed.
+        from shapely.geometry import Polygon as _Poly
+        _tag, _band_m, ux, uy, vx, vy, ulo, uhi, vlo, vhi, _corners, _plate, _sag = slope
+        ring_poly = _Poly(outer)
+        steps = 8
+        for i in range(steps):
+            for j in range(steps):
+                u0, u1 = ulo + (uhi - ulo) * i / steps, ulo + (uhi - ulo) * (i + 1) / steps
+                v0, v1 = vlo + (vhi - vlo) * j / steps, vlo + (vhi - vlo) * (j + 1) / steps
+                # the cell's world corners from its (u, v) extents
+                def _pt(u, v):
+                    # solve x*ux + y*uy = u, x*vx + y*vy = v
+                    det = ux * vy - uy * vx
+                    return ((u * vy - v * uy) / det, (ux * v - vx * u) / det)
+                cell = _Poly([_pt(u0, v0), _pt(u1, v0), _pt(u1, v1), _pt(u0, v1)])
+                part = cell.intersection(ring_poly)
+                if part.is_empty or part.area < 1e-6:
+                    continue
+                parts = list(part.geoms) if hasattr(part, "geoms") else [part]
+                for piece in parts:
+                    if piece.geom_type != "Polygon":
+                        continue
+                    pts = [(float(x), float(y)) for x, y in piece.exterior.coords[:-1]]
+                    yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in pts],
+                           _PAL.roof, False)
+        yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], None, True)
+    elif folds and slope[0] == "R":
         # Two planes, drawn as two polygons so the ridge is a drawn line.
         _tag, _drop, px, py, centre, _half = slope
         for side in (1.0, -1.0):

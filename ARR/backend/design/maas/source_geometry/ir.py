@@ -85,6 +85,20 @@ class SourceVolume:
     # the profile it actually occupies; None keeps the old footprint-derived
     # reading for anything that predates the field.
     profile_span: tuple[float, float] | None = None
+    # The doubly-curved top: a bilinear surface over the footprint's extent
+    # along two plan axes. `warp` is ((ux, uy), (vx, vy), (h00, h10, h11, h01),
+    # plate) - world unit axes, corner heights as shares of the band (1 = the
+    # band's top, at the corners (u-lo,v-lo), (u-hi,v-lo), (u-hi,v-hi),
+    # (u-lo,v-hi) of the footprint's extent along u and v), and `plate` says
+    # the underside follows the top (a roof plate of constant thickness)
+    # rather than staying flat (a body whose top warps). The one-axis
+    # `top_profile` cannot say an upswept eave whose corners rise on two
+    # axes at once - the hyperbolic-paraboloid roofs a whole family of
+    # competition winners rests on. Legal counting stays on the full prism.
+    # An optional fifth term, `sag` (share of the band), lowers the surface
+    # toward the middle of every edge and of the field - the corners keep
+    # their heights, the eaves between them curve: the flying eave.
+    warp: tuple | None = None
 
     def signature(self) -> dict[str, Any]:
         data = {

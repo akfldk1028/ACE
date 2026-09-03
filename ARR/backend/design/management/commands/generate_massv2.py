@@ -21,8 +21,14 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.design_space import delivered_ground_take_band, delivered_stature_band
+from design.maas.design_space.axes import STATURE_BANDS
 from design.maas.massv2 import compile_matrix_form, measure_form
 from design.maas.massv2 import composition as composition_module
+
+# How many cells the grid has: stature bands crossed with part-to-whole
+# positions. It was written as the literal 16 and the second axis now has six
+# positions, so a full sheet reported itself as 24/16.
+_CELL_COUNT = len(STATURE_BANDS) * len(composition_module.COMPOSITION_BANDS)
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2 import ablation as ablate_module
@@ -1361,6 +1367,6 @@ class Command(BaseCommand):
             f"parti lost at delivery: {parti_lost}" + chr(10) +
             f"compiled {compiled_count}/{len(forms)}  delivered {len(renderable)}  "
             f"unlawful {unlawful}  implausible {implausible}  "
-            f"crushed {crushed}  cells {len(cells)}/16"
+            f"crushed {crushed}  cells {len(cells)}/{_CELL_COUNT}"
         )
         self.stdout.write(str(sheet) if sheet else str(output))

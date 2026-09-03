@@ -149,10 +149,12 @@ class Composition:
 # continuous score: "give me the one with a base and two wings" is a request;
 # "give me the one at 0.62 dominance" is not.
 COMPOSITION_BANDS: tuple[tuple[str, str], ...] = (
-    ("single_body", "one body: the building is one figure"),
+    ("single_body", "one figure, one plan, standing on the ground"),
+    ("stacked_tiers", "one body that changes plan as it rises - base and tower"),
     ("body_and_parts", "one body leads, the rest are subordinate to it"),
     ("paired_bodies", "two bodies of comparable weight, in relation"),
     ("field_of_parts", "many parts, none of them the building on its own"),
+    ("lifted_body", "the building stands off the ground on structure"),
 )
 
 
@@ -164,13 +166,22 @@ def band_id(reading: "Composition") -> str:
     and the axis exists to spread the SHEET, which is made of what was built.
     """
 
-    if reading.parts <= 1:
-        return "single_body"
-    if reading.dominance >= PRIMARY_SHARE + 0.2:
-        return "body_and_parts"
+    # Section first: standing off the ground is the strongest part-to-whole
+    # statement a massing can make and it is invisible to a plan reading,
+    # because the legs holding the body up are structure.
+    if reading.lifted:
+        return "lifted_body"
+    if reading.parts >= 3 and reading.dominance < PRIMARY_SHARE + 0.2:
+        return "field_of_parts"
     if reading.parts == 2:
         return "paired_bodies"
-    return "field_of_parts"
+    if reading.parts >= 2:
+        return "body_and_parts"
+    # One body that changes plan as it rises is a base and a tower, which is
+    # a composition of parts however the plan reads it.
+    if reading.tiers >= 2:
+        return "stacked_tiers"
+    return "single_body"
 
 
 def _bodies(source: SourceMass) -> list[tuple[float, list]]:
@@ -346,7 +357,12 @@ def read(source: SourceMass) -> Composition:
     for lower, upper in zip(ordered_lead, ordered_lead[1:]):
         low_area = float(lower.footprint.area)
         high_area = float(upper.footprint.area)
-        if low_area > 1e-6 and abs(high_area - low_area) / low_area > 0.1:
+        # A quarter, not a tenth: the sunlight envelope shaves a few per cent
+        # off each band as it rises, and at a tenth that trimming was counted
+        # as designed setbacks - a quarter of the pool read four tiers or
+        # more and one read twenty-four. A step an architect drew is a
+        # quarter of the plan; anything less is the law taking a corner.
+        if low_area > 1e-6 and abs(high_area - low_area) / low_area > 0.25:
             tiers += 1
 
     return Composition(

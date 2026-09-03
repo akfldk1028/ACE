@@ -48,6 +48,14 @@ ALIGNMENT_TOLERANCE_M = 0.5
 # as aligned and shares its regulating line.
 PARALLEL_TOLERANCE_DEG = 4.0
 
+# How far apart two bodies must be to be two bodies. Half a metre is a
+# construction joint; what separates one building from another is space a
+# person can occupy or pass through, which is the room-width standard the
+# plausibility gate already erodes by. Measured at the joint tolerance, a
+# ring whose four bars sat 0.4 m apart read as two bodies before the growth
+# loop and one after - and the difference was reported as a lost parti.
+SEPARATION_M = 1.5
+
 # A face shorter than this is not a face a line can regulate - it is a corner
 # cut or a clip fragment, and letting them vote turned every chamfered plan
 # into its own family of axes.
@@ -68,6 +76,13 @@ class Composition:
     explained: int
     dominance: float
     datums: int
+    # The section relation the plan reading cannot see: the leading body
+    # stands off the ground on structure. Pilotis is the oldest of these and
+    # the one this project is asked for most often, and to a part-to-whole
+    # reading a lifted house and a house on the ground are the same single
+    # body - the legs are structure and structure is not a part. Recorded
+    # here so the axis is at least honest about what it does not measure.
+    lifted: bool = False
 
     @property
     def explained_share(self) -> float:
@@ -106,6 +121,7 @@ class Composition:
             "economy": round(self.economy, 2),
             "dominance": round(self.dominance, 3),
             "datums": self.datums,
+            "lifted": self.lifted,
             "composed": self.is_composed,
         }
 
@@ -164,6 +180,37 @@ def _bodies(source: SourceMass) -> list[tuple[float, list]]:
                 break
         else:
             columns.append([volume])
+    # Bodies that TOUCH are one body. Two bays of a gable, the two halves of
+    # a split with no gap declared, a bar and the wing built against it: they
+    # share a wall, and a wall is not a gap. Counting them apart made the
+    # reading unstable - the same house read as two parts before the growth
+    # loop and one part after, because a plan scale moved the overlap across
+    # the fifty-per-cent line - and that instability was being reported as
+    # the pipeline destroying a parti. What separates two bodies is space
+    # between them, which is what the declared-gap rule already polices.
+    merged = True
+    while merged and len(columns) > 1:
+        merged = False
+        for i in range(len(columns)):
+            for j in range(i + 1, len(columns)):
+                a_low = min(float(v.bottom_fraction) for v in columns[i])
+                a_high = max(float(v.top_fraction) for v in columns[i])
+                b_low = min(float(v.bottom_fraction) for v in columns[j])
+                b_high = max(float(v.top_fraction) for v in columns[j])
+                if min(a_high, b_high) < max(a_low, b_low) - 1e-3:
+                    continue  # one is above the other, with nothing shared
+                touching = any(
+                    va.footprint.distance(vb.footprint) <= SEPARATION_M
+                    for va in columns[i] for vb in columns[j]
+                )
+                if not touching:
+                    continue
+                columns[i] = columns[i] + columns[j]
+                del columns[j]
+                merged = True
+                break
+            if merged:
+                break
     out = []
     for column in columns:
         mass = sum(float(v.footprint.area)
@@ -261,10 +308,24 @@ def read(source: SourceMass) -> Composition:
                 levels.append([value])
     datums = sum(1 for group in levels if len(group) >= 2)
 
+    # Off the ground: the leading body starts above grade and something
+    # structural stands under it. A body floating with nothing below is a
+    # different fault and the standing gate owns it.
+    lead = max(bodies, key=lambda item: item[0])[1]
+    lead_base = min(float(volume.bottom_fraction) for volume in lead)
+    structural = set(source.metadata.get("structural_bands") or ())
+    lifted = bool(
+        lead_base > 1e-3
+        and any(float(source.volumes[index].bottom_fraction) <= 1e-6
+                for index in structural
+                if index < len(source.volumes))
+    )
+
     return Composition(
         parts=len(bodies),
         elements=elements,
         explained=len(covered),
         dominance=dominance,
         datums=datums,
+        lifted=lifted,
     )

@@ -124,6 +124,40 @@ REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle"
             "dominant_gesture", "reference_basis", "ops")
 
 
+def _repeated_families(schemes: list) -> list[str]:
+    """Sentences whose language another sentence in the book already said.
+
+    `family_key` is (opener, dominant move family, stature band) - the
+    partition the board curator has used for weeks to seat one scheme per
+    idea. A book carrying two members of one family spends the funnel's whole
+    budget twice on the same idea and puts near-identical tiles side by side
+    on the sheet.
+    """
+
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[3]))
+    from design.maas.massv2.family import family_key  # noqa: E402
+
+    seen: dict[tuple, str] = {}
+    faults: list[str] = []
+    for scheme in schemes:
+        try:
+            key = family_key(scheme)
+        except Exception:  # noqa: BLE001 - a malformed scheme is another fault
+            continue
+        first = seen.get(key)
+        if first is not None:
+            faults.append(
+                f"{scheme.get('name')}: says the same thing as {first} "
+                f"(opener/dominant/stature all equal) - one book, one sentence "
+                f"per idea"
+            )
+            continue
+        seen[key] = str(scheme.get("name"))
+    return faults
+
+
 def check(path: Path) -> tuple[list, Counter, Counter]:
     faults: list[str] = []
     verbs: Counter = Counter()
@@ -202,6 +236,7 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
                 available.update({"bar_n", "bar_s", "bar_e", "bar_w"})
             elif verb == "lift":
                 available.add("support")
+    faults.extend(_repeated_families(schemes))
     return faults, verbs, profiles
 
 

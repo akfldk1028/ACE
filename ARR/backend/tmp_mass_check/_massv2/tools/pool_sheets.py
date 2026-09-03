@@ -82,8 +82,22 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
                 opener, moves, stature = family_key(book[sentence])
                 family_tag[sentence] = (
                     f"{opener}/{next(iter(moves), '-')}/{stature}")
+        # One tile per FAMILY, not per sentence: three sentences that open
+        # the same way and make the same dominant move are one idea, and
+        # showing all three is how a sheet of nineteen came back reading as
+        # six. The tallest stands for its family, which is the rule this
+        # block's own docstring states.
+        best_of_family: dict[tuple, tuple] = {}
+        for item in rows:
+            sentence = item[2].split("~")[0].split("^")[0]
+            scheme = book.get(sentence)
+            if scheme is None:
+                continue
+            key = family_key(scheme)
+            if key not in best_of_family or item[0] > best_of_family[key][0]:
+                best_of_family[key] = item
         rows = sorted(
-            (best[s] for s in best if s in book),
+            best_of_family.values(),
             key=lambda item: (
                 family_tag[item[2].split("~")[0].split("^")[0]], -item[0]))
 

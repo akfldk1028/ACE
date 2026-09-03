@@ -720,6 +720,21 @@ class Command(BaseCommand):
                             },
                         }
                     )
+                    # What the sentence composed, before any coverage band,
+                    # siting, growth loop or legal clip touched it. Compared
+                    # against the delivered reading below, this is what says
+                    # whether the pipeline kept the argument or ate it.
+                    authored_source = compile_matrix_form(
+                        built, storey_height_m=storey, allowed_at=site.plan_at)
+                    if authored_source is not None:
+                        built = built.__class__(**{
+                            **built.__dict__,
+                            "extra": {
+                                **dict(built.extra),
+                                "authored_composition": composition_module.band_id(
+                                    composition_module.read(authored_source)),
+                            },
+                        })
                     pending_force.append(
                         (len(written), tuple(spoken.declared), tuple(word_blends))
                     )
@@ -916,6 +931,7 @@ class Command(BaseCommand):
         pool: list[Candidate] = []
         cells: collections.Counter[str] = collections.Counter()
         unlawful = 0
+        parti_lost = 0
         crushed = 0
         implausible = 0
 
@@ -980,6 +996,11 @@ class Command(BaseCommand):
             # the sheet was never owed a composed scheme against a pile. The
             # void band stays measured and recorded as the free variable.
             composed_band = composition_module.band_id(composition_read)
+            # The argument, held to delivery. A body with subordinates that
+            # arrives as one body is not that scheme - the same standard a
+            # declared gap and declared storeys are already held to.
+            authored_band = form.extra.get("authored_composition")
+            parti_kept = authored_band is None or authored_band == composed_band
             if schedule is not None:
                 cell = (
                     f"{programme.large_span_strategy(source, storey_height_m=site.floor_height_m)}"
@@ -1000,6 +1021,8 @@ class Command(BaseCommand):
                 unlawful += 1
             if not standing.occupiable:
                 implausible += 1
+            if not parti_kept:
+                parti_lost += 1
             # The selector reads it off the form, the same channel the
             # sentence's other claims ride on.
             form = form.__class__(**{
@@ -1021,7 +1044,11 @@ class Command(BaseCommand):
                 # Are these parts one thing: how few regulating lines explain
                 # how many of them, and does one part lead. The one reading in
                 # this record that is about composition rather than quantity.
-                "composition": composition_read.to_dict(),
+                "composition": {
+                    **composition_read.to_dict(),
+                    "authored_band": authored_band,
+                    "parti_kept": parti_kept,
+                },
                 "language": {
                     "primary": form.primary_language,
                     "secondary": form.secondary_language,
@@ -1314,6 +1341,7 @@ class Command(BaseCommand):
         # `renderable` is the shortlist by this point, so reporting it as the
         # compiled count read "compiled 3/1099" on a run that compiled 1,098.
         self.stdout.write(
+            f"parti lost at delivery: {parti_lost}" + chr(10) +
             f"compiled {compiled_count}/{len(forms)}  delivered {len(renderable)}  "
             f"unlawful {unlawful}  implausible {implausible}  "
             f"crushed {crushed}  cells {len(cells)}/16"

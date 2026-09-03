@@ -311,7 +311,8 @@ def compile_matrix_form(
         if float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
         and (item.drop_toward is not None
              or getattr(item, "ridge_along", None) is not None
-             or getattr(item, "top_profile", None) is not None)
+             or getattr(item, "top_profile", None) is not None
+             or getattr(item, "warp", None) is not None)
     ]
     flat_form = replace(
         form,
@@ -350,7 +351,7 @@ def compile_matrix_form(
 
         def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward,
                           ridge=None, profile=None, across=None,
-                          clip_at: float | None = None) -> bool:
+                          clip_at: float | None = None, warp=None) -> bool:
             plan = _plan_between(item, lo, hi)
             # The profile's authored range, read off the UNCLIPPED plan: a
             # fragment must remember where its stations came from or it draws
@@ -386,7 +387,13 @@ def compile_matrix_form(
             for piece in pieces:
                 if not isinstance(piece, Polygon) or piece.area < _MINIMUM_BAND_AREA_M2:
                     continue
-                if profile is not None or ridge is not None or drop > 0.0:
+                if warp is not None:
+                    # A warped plate is one surface; a clip fragment of it
+                    # is not, so a fragment thinner than a room's depth is a
+                    # leftover here too.
+                    if piece.buffer(-_MINIMUM_BAND_M / 2.0).is_empty:
+                        continue
+                elif profile is not None or ridge is not None or drop > 0.0:
                     # A sliver cannot wear a section. Every consumer re-reads
                     # the profile's stations off the fragment's own footprint,
                     # so a 0.2 m ribbon left by the clip carried a whole
@@ -398,6 +405,12 @@ def compile_matrix_form(
                     if piece.buffer(-_MINIMUM_BAND_M / 2.0).is_empty:
                         continue
                 made = True
+                # A tilted piece of something that is not a room - a warped
+                # roof plate - is structure, the same channel the flat loop
+                # gives legs and canopies; without this the plate met the
+                # crumb and chimney rules as if it were a room.
+                if not item.occupiable:
+                    structural.append(len(volumes))
                 volumes.append(SourceVolume(
                     role=item.role,
                     footprint=piece,
@@ -410,6 +423,7 @@ def compile_matrix_form(
                     top_profile=profile,
                     profile_across=across,
                     profile_span=span,
+                    warp=warp,
                 ))
             return made
 
@@ -458,6 +472,7 @@ def compile_matrix_form(
                     ridge=getattr(item, "ridge_along", None),
                     profile=profile,
                     across=getattr(item, "profile_across", None),
+                    warp=getattr(item, "warp", None),
                     # Cut where the shoulders are cut: the roof and the body
                     # under it must survive or vanish together.
                     clip_at=(max(low, z0) + roof_lo) / 2.0
@@ -467,6 +482,31 @@ def compile_matrix_form(
             dropped_bands += 1
     if not volumes:
         return None
+    # A roof with nothing under it is not a roof. The coverage band scales
+    # a scheme's height, the daylight envelope then cuts the BODY low while
+    # a wide roof plate keeps a piece inside the envelope higher up - and a
+    # structural piece that touches no other piece would be drawn floating
+    # and counted as ungrounded mass. Dropped here, where the geometry is
+    # decided; the variant is judged on what remains.
+    if structural:
+        keep: list[int] = []
+        for index, item in enumerate(volumes):
+            if index not in structural:
+                keep.append(index)
+                continue
+            touches = any(
+                other is not item
+                and min(item.top_fraction, other.top_fraction)
+                >= max(item.bottom_fraction, other.bottom_fraction) - 1e-4
+                and item.footprint.buffer(0.05).intersection(other.footprint).area > 1.0
+                for other in volumes
+            )
+            if touches:
+                keep.append(index)
+        if len(keep) != len(volumes):
+            remap = {old: new for new, old in enumerate(keep)}
+            volumes = [volumes[i] for i in keep]
+            structural = [remap[i] for i in structural if i in remap]
     grounded = [item for item in volumes if item.bottom_fraction <= 1e-6]
     topmost = [item for item in volumes if item.top_fraction >= 1.0 - 1e-6]
     footprint = unary_union([item.footprint for item in grounded]) if grounded else volumes[0].footprint

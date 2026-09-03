@@ -205,10 +205,22 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
     worst_ratio = 0.0
     worst_reach = 0.0
     worst_slenderness = 0.0
+    # Structure is not asked the cantilever question: a roof plate's eave
+    # is a slab overhang an engineer sizes, not a room flying past its
+    # backspan - the rule that refused every warped-roof pavilion field.
+    # Structural volumes still SUPPORT what stands on them, and still have
+    # to touch something (connectivity asks that).
+    structural = set(source.metadata.get("structural_bands") or ())
+    asked = {
+        (round(float(v.bottom_fraction), 4), round(float(v.top_fraction), 4))
+        for i, v in enumerate(source.volumes) if i not in structural
+    }
     for index in range(len(bands)):
         low, high, plan = bands[index]
         if low <= 1e-6 or plan.is_empty:
             # Grounded bands answer to the earth, not to a neighbour.
+            continue
+        if (round(low, 4), round(high, 4)) not in asked:
             continue
         # Support is what this band actually touches from below: every band
         # that ends at its bottom, and every band that runs past it - a taller
@@ -437,8 +449,23 @@ def connectivity(source: SourceMass) -> tuple[float, int]:
                 reached.add(index)
                 frontier.append(index)
 
-    total = sum(float(plan.area) for _low, _high, plan in pieces)
-    held = sum(float(pieces[i][2].area) for i in reached)
+    # The share is of the ROOMS' floor area: structure (legs, roof plates)
+    # carries load and connects pieces but is not the mass the question is
+    # about - a warped roof plate's four-metre sweep counted as most of a
+    # pavilion's "mass" and one loose eave read as 78% of the building
+    # hanging in the air.
+    structural = set(source.metadata.get("structural_bands") or ())
+    # `band_parts` sorts and skips empties, so its indices are not volume
+    # indices; the flag rides the same sort.
+    flagged = sorted(
+        ((round(float(v.bottom_fraction), 4), round(float(v.top_fraction), 4), i in structural)
+         for i, v in enumerate(source.volumes)
+         if v.footprint is not None and not v.footprint.is_empty),
+        key=lambda item: (item[0], item[1]))
+    weight = [0.0 if flagged[i][2] else float(plan.area)
+              for i, (_low, _high, plan) in enumerate(pieces)]
+    total = sum(weight) or sum(float(plan.area) for _low, _high, plan in pieces)
+    held = sum(weight[i] for i in reached) if sum(weight) else sum(float(pieces[i][2].area) for i in reached)
 
     # Separate bodies: the same touching relation, without starting from the
     # ground. Two wings that never meet are two buildings on one parcel.

@@ -22,6 +22,8 @@ from dataclasses import replace
 from math import cos, radians, sin
 from typing import Callable
 
+from design.maas.geometry_language.affine_matrix import transform_point3
+
 from ..form import Placement
 from .grafting import _GRIP, _region
 from .swept import _clamp
@@ -406,7 +408,75 @@ def canopy(frame, op) -> None:
     frame.placements = rest + picked + made
 
 
+def roof(frame, op) -> None:
+    """A warped roof plate over each body - the flying eave.
+
+    Every picked body gets its own thin plate above it, overhanging on all
+    four sides by `eave` of the body's short span, its corners lifted by
+    `rise` storeys and its edges curving between them by `sag` - the
+    hyperbolic-paraboloid roof a whole family of competition winners rests
+    on (MAD's Jiaxing pavilions, Kuma's canopies), which no one-axis section
+    could draw. `corners` names which corners rise: "opposite" (two, the
+    saddle), "one", "adjacent" (two on one side, a lean-to sweep), "all"
+    (a dish on four points). The plate declares itself unoccupiable and
+    lands in the structural bands; the eave beyond the body is judged by
+    the structure gate like any cantilever.
+    """
+
+    from math import atan2, degrees
+
+    picked, rest = frame.pick(op)
+    hosts = _hosts(picked)
+    if not hosts:
+        return
+    rise_share = _clamp(float(op.params.get("rise", 0.8)), 0.2, 1.5)      # of a storey
+    eave = _clamp(float(op.params.get("eave", 0.25)), 0.0, 0.5)          # of the short span
+    sag = _clamp(float(op.params.get("sag", 0.3)), 0.0, 0.6)             # of the plate's band
+    thin = _clamp(float(op.params.get("thin", 0.12)), 0.06, 0.35)        # of a storey
+    which = str(op.params.get("corners", "opposite")).strip().lower()
+    lifted = {"opposite": (1, 0, 1, 0), "one": (1, 0, 0, 0),
+              "adjacent": (1, 1, 0, 0), "all": (1, 1, 1, 1)}.get(which, (1, 0, 1, 0))
+    made: list[Placement] = []
+    for host in hosts:
+        corners = host.corners()
+        origin = transform_point3(host.matrix, (0.0, 0.0, 0.0))
+        ex = transform_point3(host.matrix, (1.0, 0.0, 0.0))
+        ey = transform_point3(host.matrix, (0.0, 1.0, 0.0))
+        ax, ay = ex[0] - origin[0], ex[1] - origin[1]
+        bx, by = ey[0] - origin[0], ey[1] - origin[1]
+        span_u = (ax * ax + ay * ay) ** 0.5
+        span_v = (bx * bx + by * by) ** 0.5
+        if span_u < 1e-6 or span_v < 1e-6:
+            continue
+        ux, uy = ax / span_u, ay / span_u
+        vx, vy = bx / span_v, by / span_v
+        eave_m = eave * min(span_u, span_v)
+        rise_m = rise_share * frame.storey
+        thin_m = thin * frame.storey
+        band = thin_m + rise_m
+        zs = [z for _x, _y, z in corners]
+        crest = max(zs)
+        xs = [x for x, _y, _z in corners]
+        ys = [y for _x, y, _z in corners]
+        cx, cy = (min(xs) + max(xs)) / 2.0, (min(ys) + max(ys)) / 2.0
+        dx, dy = frame.local(cx, cy)
+        turn = degrees(atan2(uy, ux)) - frame.rotation
+        plate = frame.box(
+            f"{host.role}_roof", w=span_u + 2 * eave_m, d=span_v + 2 * eave_m,
+            z=crest, h=band, dx=dx, dy=dy, turn=turn, occupiable=False,
+        )
+        low_share = thin_m / band
+        made.append(replace(
+            plate,
+            top_drop=rise_m / band,
+            warp=((ux, uy), (vx, vy),
+                  tuple(1.0 if c else low_share for c in lifted), True, sag),
+        ))
+    frame.placements = rest + picked + made
+
+
 RELATIONAL_VERBS: dict[str, Callable] = {
+    "roof": roof,
     "merge": merge,
     "nest": nest,
     "interlock": interlock,

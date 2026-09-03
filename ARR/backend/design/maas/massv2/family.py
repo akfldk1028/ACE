@@ -31,6 +31,7 @@ FAMILY_OF_VERB = {
     "cantilever": "banding", "shear": "banding", "twist": "banding",
     "taper": "banding", "bend": "banding", "pinch": "banding",
     "canopy": "plate",
+    "roof": "plate",
     "lift": "piloti",
     "branch": "field", "embed": "relational",
 }

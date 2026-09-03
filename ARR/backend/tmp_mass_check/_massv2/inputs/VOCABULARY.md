@@ -39,6 +39,7 @@
 - `merge` {height} — 서 있는 몸들이 **하나로 병합** (선언된 유일한 union).
 - `extract` {size, gap, height, level} — 조각을 **빼내** 소켓 옆에 세운다 (보이드+조각 한 쌍).
 - `inscribe` {size 0.15-0.6, depth 0.1-0.5} — 지붕에 모서리 안 닿는 도형을 **새긴다** (침강 마당).
+- `roof` {rise 0.2-1.5(층고 배수), eave 0-0.5(짧은 변 몫), corners "opposite"|"one"|"adjacent"|"all", sag 0-0.6, thin 0.06-0.35} — **휜 지붕판(날아오르는 처마)**. 잡힌 몸통마다 제 지붕판을 사방 처마로 띄우고, 지정 모서리를 rise만큼 들어 올리며 sag가 처마 선을 곡선으로 만든다(쌍곡포물면·MAD 자싱·쿠마의 지붕). 판은 방 아님(구조 밴드)이고 처마 내밈은 구조 게이트가 심판. `aggregate n:5 + roof`가 지붕 밭, `extrude + roof corners:"adjacent"`가 한쪽으로 쓸리는 정자.
 - `canopy` {reach 0.1-0.45, at 0.3-1.0, toward} — 층고보다 얇은 판(0.35층)이 호스트 가장자리를 물고 **밖으로 내민다** — 처마(at 1.0 기본)·마퀴(at 낮게). 방 아님을 스스로 선언(occupiable=False)해 방 게이트를 면제받고, 내밈은 구조 게이트가 그대로 심판하므로 reach 상한이 cantilever와 같은 이유로 0.45.
 
 ## 지붕 (낙차는 선언한 만큼 정확히 그려짐 — 한 층 캡 아님)

@@ -101,6 +101,10 @@ class Placement:
     # gate keeps reading the same field.
     top_profile: tuple[tuple[float, float], ...] | None = None
     profile_across: tuple[float, float] | None = None
+    # The doubly-curved top (see SourceVolume.warp): ((u), (v), corner
+    # heights as shares of this volume's height, plate, sag). Set by `roof`;
+    # carried to compile beside the one-axis section fields above.
+    warp: tuple | None = None
     # Is this volume a room, or is it what holds a room up. A column is meant
     # to be thin and a storey is not, so every rule about how wide or how deep
     # a plate must be has to know which of the two it is looking at. The

@@ -7,7 +7,8 @@ import hashlib
 import json
 from typing import Any
 
-from shapely.geometry import Polygon, mapping
+from shapely.geometry import Polygon, box as _box, mapping
+from shapely.ops import unary_union
 
 
 # A top profile with more vertices than this is a sampled curve, not a set of
@@ -99,6 +100,226 @@ class SourceVolume:
     # toward the middle of every edge and of the field - the corners keep
     # their heights, the eaves between them curve: the flying eave.
     warp: tuple | None = None
+
+    # ---- The section as a height field: one owner for every consumer ----
+    #
+    # A volume's top is a function top(x, y) over its footprint; the flat
+    # prism, the plain drop, the ridge, the one-axis profile and the warped
+    # surface are five shapes of that one function. The renderer used to
+    # evaluate it in one place and the gates in another, each with its own
+    # branch per shape - so every new shape was five edits. Here it is once;
+    # render, measure, structure and the postcondition call these.
+
+    def section_kind(self) -> str:
+        """flat | warp | profile | ridge | drop - which shape the top takes."""
+
+        if float(self.top_drop or 0.0) <= 0.0:
+            return "flat"
+        if self.warp is not None:
+            return "warp"
+        if self.top_profile is not None and self.profile_across is not None:
+            return "profile"
+        if self.ridge_along is not None:
+            return "ridge"
+        if self.drop_toward is not None:
+            return "drop"
+        return "flat"
+
+    def _unit(self, vector):
+        vx, vy = vector
+        norm = (vx * vx + vy * vy) ** 0.5 or 1.0
+        return vx / norm, vy / norm
+
+    def _extent_along(self, ux: float, uy: float) -> tuple[float, float]:
+        values = [x * ux + y * uy for x, y in self.footprint.exterior.coords]
+        return min(values), max(values)
+
+    def top_share(self, x: float, y: float) -> float:
+        """The top's height at a plan point as a share of the band (1 = top)."""
+
+        kind = self.section_kind()
+        if kind == "flat":
+            return 1.0
+        drop = min(max(float(self.top_drop), 0.0), 1.0)
+        if kind == "warp":
+            (ux, uy), (vx, vy), corners, _plate = self.warp[:4]
+            sag = float(self.warp[4]) if len(self.warp) > 4 else 0.0
+            ux, uy = self._unit((ux, uy))
+            vx, vy = self._unit((vx, vy))
+            ulo, uhi = self._extent_along(ux, uy)
+            vlo, vhi = self._extent_along(vx, vy)
+            u = min(1.0, max(0.0, (x * ux + y * uy - ulo) / max(uhi - ulo, 1e-9)))
+            v = min(1.0, max(0.0, (x * vx + y * vy - vlo) / max(vhi - vlo, 1e-9)))
+            h00, h10, h11, h01 = (float(c) for c in corners)
+            share = ((1 - u) * (1 - v) * h00 + u * (1 - v) * h10
+                     + u * v * h11 + (1 - u) * v * h01)
+            return share - sag * (4 * u * (1 - u) + 4 * v * (1 - v)) / 2.0
+        if kind == "profile":
+            ux, uy = self._unit(self.profile_across)
+            lo_p, hi_p = self.profile_span if self.profile_span is not None else self._extent_along(ux, uy)
+            u = min(1.0, max(0.0, (x * ux + y * uy - lo_p) / max(hi_p - lo_p, 1e-9)))
+            return profile_height(self.top_profile, u)
+        if kind == "ridge":
+            rx, ry = self._unit(self.ridge_along)
+            px, py = -ry, rx
+            lo_p, hi_p = self._extent_along(px, py)
+            centre, half = (lo_p + hi_p) / 2.0, max((hi_p - lo_p) / 2.0, 1e-9)
+            t = abs(x * px + y * py - centre) / half
+            return 1.0 - drop * min(1.0, t)
+        ux, uy = self.drop_toward
+        lo_p, hi_p = self._extent_along(ux, uy)
+        t = (x * ux + y * uy - lo_p) / max(hi_p - lo_p, 1e-9)
+        return 1.0 - drop * min(1.0, max(0.0, t))
+
+    def top_z(self, x: float, y: float, low: float, high: float) -> float:
+        """World height of the top at a plan point, for a band [low, high]."""
+
+        return high - (high - low) * (1.0 - self.top_share(x, y))
+
+    def bottom_z(self, x: float, y: float, low: float, high: float) -> float:
+        """World height of the underside - flat except for a warped plate."""
+
+        if self.section_kind() == "warp" and bool(self.warp[3]):
+            return low - (high - low) * (1.0 - self.top_share(x, y))
+        return low
+
+    def creases(self) -> list[tuple[float, float, float]]:
+        """Plan lines where the top folds: (px, py, offset) per fold.
+
+        A ridge is one line; a profile folds at every interior station. A
+        curve (a sampled arc, a warp) has no crease - drawing its samples as
+        creases turned a barrel vault into corrugation.
+        """
+
+        kind = self.section_kind()
+        if kind == "ridge":
+            rx, ry = self._unit(self.ridge_along)
+            px, py = -ry, rx
+            lo_p, hi_p = self._extent_along(px, py)
+            return [(px, py, (lo_p + hi_p) / 2.0)]
+        if kind == "profile":
+            ux, uy = self._unit(self.profile_across)
+            lo_p, hi_p = self.profile_span if self.profile_span is not None else self._extent_along(ux, uy)
+            span = hi_p - lo_p
+            return [(ux, uy, lo_p + u * span)
+                    for u, _h in self.top_profile if 1e-6 < u < 1.0 - 1e-6]
+        return []
+
+    def plan_at(self, z: float, low: float, high: float):
+        """The part of the footprint whose top is still above z.
+
+        A band with a tilted top is solid where top(x, y) >= z and gone
+        where the roof has already descended below the sample. The three
+        one-axis shapes are cut analytically (exact, so the silence gate's
+        area comparisons do not wobble); a warped top is sampled.
+        """
+
+        kind = self.section_kind()
+        if kind == "flat":
+            return self.footprint
+        band = max(high - low, 1e-9)
+        drop = min(max(float(self.top_drop), 0.0), 1.0)
+        drop_m = drop * band
+        if kind == "warp":
+            if z <= low + band * min(self.top_share(x, y) for x, y in self.footprint.exterior.coords) - 1e-9:
+                return self.footprint
+            minx, miny, maxx, maxy = self.footprint.bounds
+            step = max(0.5, max(maxx - minx, maxy - miny) / 48.0)
+            cells = []
+            yy = miny
+            while yy < maxy:
+                xx = minx
+                while xx < maxx:
+                    if self.top_z(xx + step / 2.0, yy + step / 2.0, low, high) >= z:
+                        cells.append(_box(xx, yy, xx + step, yy + step))
+                    xx += step
+                yy += step
+            if not cells:
+                return None
+            cut = self.footprint.intersection(unary_union(cells))
+            return cut if not cut.is_empty else None
+        if kind == "profile":
+            rel = (z - low) / band
+            points = self.top_profile
+            if rel <= min(h for _u, h in points):
+                return self.footprint
+            ux, uy = self._unit(self.profile_across)
+            lo_p, hi_p = self.profile_span if self.profile_span is not None else self._extent_along(ux, uy)
+            span = max(hi_p - lo_p, 1e-9)
+            kept: list[tuple[float, float]] = []
+            start = points[0][0] if points[0][1] >= rel else None
+            for (u0, h0), (u1, h1) in zip(points, points[1:]):
+                if (h0 >= rel) != (h1 >= rel):
+                    t = (rel - h0) / ((h1 - h0) or 1e-9)
+                    u_cross = u0 + (u1 - u0) * t
+                    if start is None:
+                        start = u_cross
+                    else:
+                        kept.append((start, u_cross))
+                        start = None
+            if start is not None:
+                kept.append((start, points[-1][0]))
+            px, py = -uy, ux
+            perp = [x * px + y * py for x, y in self.footprint.exterior.coords]
+            mid_perp = (min(perp) + max(perp)) / 2.0
+            reach = (max(perp) - min(perp)) + 1.0
+            parts = []
+            for u0, u1 in kept:
+                c0 = lo_p + max(0.0, u0) * span
+                c1 = lo_p + min(1.0, u1) * span
+                if c1 - c0 <= 1e-9:
+                    continue
+                slab = Polygon([
+                    (ux * c0 + px * (mid_perp - reach), uy * c0 + py * (mid_perp - reach)),
+                    (ux * c1 + px * (mid_perp - reach), uy * c1 + py * (mid_perp - reach)),
+                    (ux * c1 + px * (mid_perp + reach), uy * c1 + py * (mid_perp + reach)),
+                    (ux * c0 + px * (mid_perp + reach), uy * c0 + py * (mid_perp + reach)),
+                ])
+                cut = self.footprint.intersection(slab)
+                if not cut.is_empty:
+                    parts.append(cut)
+            return unary_union(parts) if parts else None
+        if z <= high - drop_m:
+            return self.footprint
+        if kind == "ridge":
+            rx, ry = self._unit(self.ridge_along)
+            px, py = -ry, rx
+            lo_p, hi_p = self._extent_along(px, py)
+            centre = (lo_p + hi_p) / 2.0
+            half = max((hi_p - lo_p) / 2.0, 1e-9)
+            keep = half * max(0.0, (high - z) / drop_m)
+            along = [x * rx + y * ry for x, y in self.footprint.exterior.coords]
+            reach = (max(along) - min(along)) + 1.0
+            mid_r = (max(along) + min(along)) / 2.0
+            base_x = rx * mid_r + px * centre
+            base_y = ry * mid_r + py * centre
+            strip = Polygon([
+                (base_x + rx * reach + px * keep, base_y + ry * reach + py * keep),
+                (base_x - rx * reach + px * keep, base_y - ry * reach + py * keep),
+                (base_x - rx * reach - px * keep, base_y - ry * reach - py * keep),
+                (base_x + rx * reach - px * keep, base_y + ry * reach - py * keep),
+            ])
+            cut = self.footprint.intersection(strip)
+            return cut if not cut.is_empty else None
+        ux, uy = self.drop_toward
+        lo_p, hi_p = self._extent_along(ux, uy)
+        span = max(hi_p - lo_p, 1e-9)
+        keep = lo_p + span * max(0.0, (high - z) / drop_m)
+        reach = span + 1.0
+        cx = [x for x, _y in self.footprint.exterior.coords]
+        cy = [y for _x, y in self.footprint.exterior.coords]
+        mid_x, mid_y = (min(cx) + max(cx)) / 2.0, (min(cy) + max(cy)) / 2.0
+        base_x = mid_x + (keep - (mid_x * ux + mid_y * uy)) * ux
+        base_y = mid_y + (keep - (mid_x * ux + mid_y * uy)) * uy
+        px, py = -uy, ux
+        half = Polygon([
+            (base_x + px * reach, base_y + py * reach),
+            (base_x - px * reach, base_y - py * reach),
+            (base_x - px * reach - ux * reach, base_y - py * reach - uy * reach),
+            (base_x + px * reach - ux * reach, base_y + py * reach - uy * reach),
+        ])
+        cut = self.footprint.intersection(half)
+        return cut if not cut.is_empty else None
 
     def signature(self) -> dict[str, Any]:
         data = {

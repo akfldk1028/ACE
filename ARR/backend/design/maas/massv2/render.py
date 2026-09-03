@@ -139,27 +139,31 @@ def _project(x: float, y: float, z: float) -> tuple[float, float]:
     return sx, sy * math.sin(_PITCH) - z * math.cos(_PITCH)
 
 
-def _warp_share(x: float, y: float, slope) -> float:
-    """The bilinear corner-height share (0..1) at a plan point of a W band."""
+class _Slope(tuple):
+    """The renderer's reading of a tilted band.
 
-    _tag, _band_m, ux, uy, vx, vy, ulo, uhi, vlo, vhi, corners, _plate, sag = slope
-    u = min(1.0, max(0.0, (x * ux + y * uy - ulo) / max(uhi - ulo, 1e-9)))
-    v = min(1.0, max(0.0, (x * vx + y * vy - vlo) / max(vhi - vlo, 1e-9)))
-    h00, h10, h11, h01 = corners
-    share = ((1 - u) * (1 - v) * h00 + u * (1 - v) * h10
-             + u * v * h11 + (1 - u) * v * h01)
-    # The sag pulls every edge down toward its middle and the field toward
-    # its centre, so the eaves curve up to the corners instead of running
-    # straight between them.
-    return share - sag * (4 * u * (1 - u) + 4 * v * (1 - v)) / 2.0
+    A tuple, as every drawing helper indexes it, that also remembers the
+    volume and the band it came from - so the per-point heights are asked
+    of the IR (`SourceVolume.top_z` / `bottom_z`), the one owner of the
+    section, instead of being re-derived here per shape.
+    """
+
+    volume: Any
+    low: float
+    high: float
+
+    def __new__(cls, fields, volume, low, high):
+        obj = super().__new__(cls, fields)
+        obj.volume, obj.low, obj.high = volume, low, high
+        return obj
 
 
 def _bottom_at(x: float, y: float, low: float, slope) -> float:
     """The underside's height at a plan point - flat except for a warped plate."""
 
-    if slope is not None and slope[0] == "W" and slope[11]:
-        return low - slope[1] * (1.0 - _warp_share(x, y, slope))
-    return low
+    if slope is None:
+        return low
+    return slope.volume.bottom_z(x, y, slope.low, slope.high)
 
 
 def _top_at(x: float, y: float, high: float, slope) -> float:
@@ -167,23 +171,7 @@ def _top_at(x: float, y: float, high: float, slope) -> float:
 
     if slope is None:
         return high
-    if slope[0] == "W":
-        return high - slope[1] * (1.0 - _warp_share(x, y, slope))
-    if slope[0] == "R":
-        # A ridge: full height on the line, both eaves at full drop.
-        _tag, drop_m, px, py, centre, half = slope
-        t = abs(x * px + y * py - centre) / max(half, 1e-9)
-        return high - drop_m * min(1.0, t)
-    if slope[0] == "P":
-        # A profile: the top is the piecewise-linear height at this station.
-        _tag, band_m, ux, uy, lo_p, hi_p, points = slope
-        span = max(hi_p - lo_p, 1e-9)
-        u = min(1.0, max(0.0, (x * ux + y * uy - lo_p) / span))
-        return high - band_m * (1.0 - profile_height(points, u))
-    drop_m, ux, uy, lo_p, hi_p = slope
-    span = max(hi_p - lo_p, 1e-9)
-    t = (x * ux + y * uy - lo_p) / span
-    return high - drop_m * min(1.0, max(0.0, t))
+    return slope.volume.top_z(x, y, slope.low, slope.high)
 
 
 def _densified(ring, per_edge: int):
@@ -210,18 +198,7 @@ def _break_lines(slope):
 
     if slope is None:
         return []
-    if slope[0] == "R":
-        _tag, _drop, px, py, centre, _half = slope
-        return [(px, py, centre)]
-    if slope[0] == "P":
-        _tag, _band, ux, uy, lo_p, hi_p, points = slope
-        span = hi_p - lo_p
-        return [
-            (ux, uy, lo_p + u * span)
-            for u, _h in points
-            if 1e-6 < u < 1.0 - 1e-6
-        ]
-    return []
+    return slope.volume.creases()
 
 
 def _ridge_points(ring, slope):
@@ -343,6 +320,13 @@ def _slope_of(volume, low: float, high: float):
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
     if drop <= 0.0:
         return None
+    fields = _slope_fields(volume, low, high, drop)
+    return _Slope(fields, volume, low, high) if fields is not None else None
+
+
+def _slope_fields(volume, low: float, high: float, drop: float):
+    """The tag tuple the drawing helpers index (kind, band, axes, extents)."""
+
     warp = getattr(volume, "warp", None)
     if warp is not None:
         (ux, uy), (vx, vy), corners, plate = warp[:4]
@@ -813,10 +797,15 @@ def _render_one(
     reserve = 46 + 13 * len(thesis_lines)
 
     height = float(source.metadata.get("authored_height_m") or 0.0)
+    # The ground datum: how far the parcel's ground sits above the mass's
+    # own base. Zero for every mass that stands on grade; a sunken court or
+    # a half-buried bar carries the metres it went down. The site plate is
+    # drawn at the datum, over whatever is below it - except inside the pit
+    # (the union of sunken footprints), where the ground is open and the
+    # walls below show. Nineteen of forty competition winners make their
+    # parti in the ground; before this the drawing could not say so.
+    datum = float(source.metadata.get("datum_m") or 0.0)
     polygons: list[tuple[list[tuple[float, float]], tuple[int, int, int], bool]] = []
-
-    if site_ring:
-        polygons.append(([_project(x, y, 0.0) for x, y in site_ring], _PAL.site, True))
 
     # Painter's algorithm on the band's own depth: farther bands first, and
     # within a band the lower one first, so an upper volume overlaps the one
@@ -826,11 +815,45 @@ def _render_one(
                          item[0],
                          _depth(item[2].centroid.x, item[2].centroid.y),
                      ))
+    below: list = []
+    above: list = []
+    pit_parts: list = []
     for low_fraction, high_fraction, footprint, tilted in ordered:
         low = low_fraction * height
         high = high_fraction * height
         slope = _slope_of(tilted, low, high) if tilted is not None else None
-        polygons.extend(_faces(footprint, low, high, slope))
+        if datum > 1e-6 and low < datum - 1e-6:
+            pit_parts.append(footprint)
+            # Split at the datum: the part below is drawn under the ground
+            # plate, the part above over it.
+            below.extend(_faces(footprint, low, min(high, datum), None))
+            if high > datum + 1e-6:
+                above.extend(_faces(footprint, datum, high, slope))
+            continue
+        above.extend(_faces(footprint, low, high, slope))
+    polygons.extend(below)
+    if site_ring:
+        from shapely.geometry import Polygon as _Poly
+        from shapely.ops import unary_union as _union
+        plate = _Poly(site_ring)
+        if pit_parts:
+            plate = plate.difference(_union(pit_parts).buffer(0.0))
+        pieces = list(plate.geoms) if hasattr(plate, "geoms") else [plate]
+        for piece in pieces:
+            if piece.is_empty or piece.geom_type != "Polygon":
+                continue
+            if piece.interiors:
+                # PIL cannot paint a hole: paint the ring, then the holes in
+                # the pit's own tone - the open ground the court looks into.
+                polygons.append(([_project(x, y, datum) for x, y in piece.exterior.coords[:-1]],
+                                 _PAL.site, True))
+                for hole in piece.interiors:
+                    polygons.append(([_project(x, y, datum) for x, y in hole.coords[:-1]],
+                                     _PAL.court, True))
+            else:
+                polygons.append(([_project(x, y, datum) for x, y in piece.exterior.coords[:-1]],
+                                 _PAL.site, True))
+    polygons.extend(above)
 
     flat = [point for shape, _colour, _seam in polygons for point in shape]
     if not flat:

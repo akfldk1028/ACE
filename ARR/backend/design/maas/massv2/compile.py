@@ -488,17 +488,28 @@ def compile_matrix_form(
     # structural piece that touches no other piece would be drawn floating
     # and counted as ungrounded mass. Dropped here, where the geometry is
     # decided; the variant is judged on what remains.
-    if structural:
+    if structural and DROP_ORPHAN_STRUCTURE:
         keep: list[int] = []
         for index, item in enumerate(volumes):
-            if index not in structural:
+            if index not in structural or item.bottom_fraction <= 1e-6:
+                # Rooms always; and structure standing on the ground is
+                # never an orphan - a leg at the rim of the tier it holds
+                # up overlaps that tier by less than a square metre and
+                # was being dropped as if it floated.
                 keep.append(index)
                 continue
+            # Contact in METRES, not fractions: a leg's top and its tier's
+            # base differ by rounding (2 mm on a 22 m mass) and a fraction
+            # tolerance of 1e-4 read that as a gap - four legs dropped.
+            # Overlap relative to the smaller piece, so a slender column
+            # under a wide tier still counts.
+            tol = 0.05 / max(height, 1e-6)
             touches = any(
                 other is not item
                 and min(item.top_fraction, other.top_fraction)
-                >= max(item.bottom_fraction, other.bottom_fraction) - 1e-4
-                and item.footprint.buffer(0.05).intersection(other.footprint).area > 1.0
+                >= max(item.bottom_fraction, other.bottom_fraction) - tol
+                and item.footprint.buffer(0.05).intersection(other.footprint).area
+                > min(1.0, 0.25 * min(item.footprint.area, other.footprint.area))
                 for other in volumes
             )
             if touches:
@@ -540,6 +551,11 @@ def compile_matrix_form(
             structural_bands=tuple(structural),
         ),
     )
+
+
+# A diagnosis switch, not a setting: structure that touches nothing is
+# dropped (see the block above); turning this off shows what the rule ate.
+DROP_ORPHAN_STRUCTURE = True
 
 
 def _band_is_structure(form: MatrixForm, low: float, high: float) -> bool:

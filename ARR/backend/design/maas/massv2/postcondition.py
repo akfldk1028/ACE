@@ -101,6 +101,18 @@ class Verdict:
 def _sliced_by_tilt(volume, z: float, height: float):
     """The part of a tilted band's footprint whose top is still above z.
 
+    The geometry lives in the IR (`SourceVolume.plan_at`); this keeps the
+    old name for its callers.
+    """
+
+    low = float(volume.bottom_fraction) * height
+    high = float(volume.top_fraction) * height
+    return volume.plan_at(z, low, high)
+
+
+def _sliced_by_tilt_legacy(volume, z: float, height: float):
+    """The part of a tilted band's footprint whose top is still above z.
+
     A band with `top_drop` is a wedge: solid where top(x, y) >= z, gone where
     the roof has already descended below the sample. Without this cut the gate
     read a smooth `grade` as changing nothing - the wedge kept one full-height

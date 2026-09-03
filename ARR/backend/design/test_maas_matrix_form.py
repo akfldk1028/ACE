@@ -1016,3 +1016,17 @@ class ABasementSurvivesCompilationTests(SimpleTestCase):
         self.assertIsNotNone(source)
         self.assertEqual(2, len(source.volumes))
         self.assertAlmostEqual(depth, float(source.metadata["datum_m"]), places=2)
+
+    def test_a_roof_sheet_on_a_grown_body_keeps_its_band(self):
+        # The body's top rounds to 22.6675 and the sheet starts there; a
+        # tolerance finer than the edge rounding lost the sheet's only band.
+        top = 22.66749
+        body = place("body", size=(30, 12, top))
+        sheet = replace(
+            place("body_roof", size=(34, 16, 2.21), at=(0.0, 0.0, top), occupiable=False),
+            top_drop=1.0,
+            warp=((1.0, 0.0), (0.0, 1.0), (1.0, 1.0, 1.0, 1.0), True, 0.25, 0.15),
+        )
+        source = compile_matrix_form(_form("sheet", [body, sheet]))
+        self.assertIsNotNone(source)
+        self.assertEqual(1, sum(1 for v in source.volumes if v.warp is not None))

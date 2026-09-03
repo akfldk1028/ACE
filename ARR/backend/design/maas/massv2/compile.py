@@ -44,7 +44,12 @@ from shapely.ops import unary_union
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
 
 from dataclasses import replace
-from design.maas.geometry_language.affine_matrix import transform_point3
+from design.maas.geometry_language.affine_matrix import (
+    compose_matrix4,
+    transform_point3,
+    translation_matrix4,
+    validate_matrix4,
+)
 
 from .form import MatrixForm, Placement
 from .profiles import unit_plan
@@ -64,6 +69,10 @@ from .profiles import unit_plan
 # not noise - forty-nine of the seventy-four are 3 m or thicker, and those are
 # storeys.
 _MINIMUM_BAND_M = 0.5
+# Band edges are rounded to four places; every "is this height in this band"
+# test must allow at least that much, or a base that rounds the wrong way
+# falls out of its own band (the basement and the roof sheet both did).
+_EDGE_TOLERANCE_M = 1e-3
 # A band whose remaining plan is slighter than this was cut away, not built.
 _MINIMUM_BAND_AREA_M2 = 1.0
 
@@ -155,6 +164,43 @@ def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
     return hull if isinstance(hull, Polygon) else Polygon()
 
 
+def _sheets_settled(form: MatrixForm) -> MatrixForm:
+    """A roof sheet sits on the top of the body it covers, whatever moved.
+
+    The plate is placed on its host's crest at authoring size; then the
+    coverage band stretches the host, the growth loop grows the rooms and
+    leaves structure alone, and the legal fit cuts the body under the
+    sunlight envelope - and the sheet stayed where it was authored, 7 m in
+    the air over a grown bar. One rule at the one place geometry is decided:
+    the host is the occupiable body sharing the most plan with the sheet,
+    and the sheet's base is that body's top.
+    """
+
+    items = list(form.placements)
+    changed = False
+    for index, item in enumerate(items):
+        if (item.kind != "additive" or item.occupiable
+                or getattr(item, "warp", None) is None):
+            continue
+        plan = _plan(item)
+        best, shared = None, 0.0
+        for other in items:
+            if other is item or other.kind != "additive" or not other.occupiable:
+                continue
+            area = _plan(other).intersection(plan).area
+            if area > shared:
+                best, shared = other, area
+        if best is None:
+            continue
+        low, _high = item.z_span()
+        crest = best.z_span()[1]
+        if abs(crest - low) > 1e-6:
+            items[index] = replace(item, matrix=validate_matrix4(compose_matrix4(
+                item.matrix, translation_matrix4((0.0, 0.0, crest - low)))))
+            changed = True
+    return replace(form, placements=tuple(items)) if changed else form
+
+
 def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> list[float]:
     """Cut heights, taken from the volumes' own tops and bottoms.
 
@@ -188,7 +234,8 @@ def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> li
     # fell under `ground - 1e-9`, and the whole basement band vanished - the
     # sunken plinth's tower compiled as a box standing on grade. Above grade
     # a base is 0.0 exactly and this never showed.
-    ordered = sorted(value for value in edges if ground - 1e-3 <= value <= roof + 1e-3)
+    ordered = sorted(value for value in edges
+                     if ground - _EDGE_TOLERANCE_M <= value <= roof + _EDGE_TOLERANCE_M)
     merged: list[float] = []
     for value in ordered:
         if not merged or value - merged[-1] >= _MINIMUM_BAND_M:
@@ -299,6 +346,7 @@ def compile_matrix_form(
     building until it fits inside a rectangle.
     """
 
+    form = _sheets_settled(form)
     edges = _band_edges(form, storey_height_m=storey_height_m)
     if len(edges) < 2:
         return None
@@ -458,8 +506,15 @@ def compile_matrix_form(
                 emitted |= _tilted_piece(
                     item, max(low, z0), body_hi, drop=0.0, toward=None,
                 )
-            if low - 1e-6 <= roof_lo < high - 1e-6 or (
-                roof_lo <= z0 + 1e-9 and low - 1e-6 <= z0 < high - 1e-6
+            # Band edges are rounded to four places (`_band_edges`), so a
+            # band's `low` can sit up to 5e-5 above the volume's own base and
+            # a 1e-6 tolerance read "this roof starts in this band" as false
+            # - a sheet whose whole height is roof (top_drop 1.0) was then
+            # emitted in no band at all and vanished from every grown copy.
+            # The tolerance is the rounding's, not the float's.
+            if low - _EDGE_TOLERANCE_M <= roof_lo < high - _EDGE_TOLERANCE_M or (
+                roof_lo <= z0 + 1e-9
+                and low - _EDGE_TOLERANCE_M <= z0 < high - _EDGE_TOLERANCE_M
             ):
                 # A profile's heights are shares of the whole volume; the roof
                 # band is only its top slice, so the profile is re-read in the

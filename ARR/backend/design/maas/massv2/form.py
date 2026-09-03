@@ -185,6 +185,20 @@ def section_held_through_height_scale(item: Placement, factor: float) -> Placeme
 
     if factor <= 0.0 or abs(factor - 1.0) < 1e-9 or item.top_drop <= 0.0:
         return item
+    if item.warp is not None and not item.occupiable:
+        # A sheet is metres, not a share of anything: `thin` and `rise`
+        # were written in storeys, and a coverage band that stretched its
+        # host 2.2x made a 2.2 m roof a 4.9 m one. Undo the scale about the
+        # sheet's own base; where the base lands is the host's business
+        # (`compile._sheets_settled` seats it on the host's top).
+        low, _high = item.z_span()
+        matrix = compose_matrix4(
+            item.matrix,
+            translation_matrix4((0.0, 0.0, -low)),
+            scale_matrix4((1.0, 1.0, 1.0 / factor)),
+            translation_matrix4((0.0, 0.0, low)),
+        )
+        return replace(item, matrix=validate_matrix4(matrix))
     # A profile station's h is a share of the same height the drop is, so its
     # distance below the crown scales with the body unless divided back too -
     # correcting only `top_drop` re-deepens every creased surface (butterfly's

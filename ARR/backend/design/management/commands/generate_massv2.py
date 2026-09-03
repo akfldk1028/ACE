@@ -1013,9 +1013,17 @@ class Command(BaseCommand):
             # undercroft tripped the 5/3 gate arithmetically (ovs17: 122 of
             # 134 "crushed", almost all honest pilotis). Stature is the
             # tallest single volume's own span.
-            spans = [max(0.0, float(v.top_fraction) - float(v.bottom_fraction))
-                     for v in (getattr(source, "volumes", ()) or ())]
-            body_height = measurement.height_m * (max(spans) if spans else 1.0)
+            # A body is a COLUMN of bands, not one band: the compiler cuts at
+            # every height where anything changes, so a gable is storeys plus
+            # a roof band and reading one band called a four-storey house 5.1 m
+            # tall. `SourceMass.body_height_m` owns the definition - bands that
+            # share a plan and touch are one body, structure left out, so a
+            # lift's empty clearance is still not billed as storeys.
+            body_height = source.body_height_m() if source is not None else 0.0
+            if body_height <= 0.0:
+                spans = [max(0.0, float(v.top_fraction) - float(v.bottom_fraction))
+                         for v in (getattr(source, "volumes", ()) or ())]
+                body_height = measurement.height_m * (max(spans) if spans else 1.0)
             # fill grows a declared building to exactly this ceiling, and the
             # compiled band edges are rounded to 1e-4 - a strict > retired
             # about half of the variants that reached it. One centimetre.

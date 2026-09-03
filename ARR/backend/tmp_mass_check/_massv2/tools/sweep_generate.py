@@ -49,34 +49,102 @@ _OPENERS = (
 # from gate thresholds). Enum params are small hand tables - any bad combo
 # is caught by the in-process validator below, which is the actual owner.
 _AIM = ("open", "back", "cross")
+# Every modifier the executor knows, with its REAL parameter names. The old
+# table wrote twist:{turn}, carve:{depth,toward}, grade:{mode}, bend:{turn},
+# shear:{run}, notch:{depth}, inscribe:{share} - none of which exist, so the
+# validator refused every draw carrying one and the sweep could say only
+# about half the language. Wide draws came back as the same boxes with
+# sections because the other half was unsayable, not unwanted. Names come
+# from validate_authored.VERBS, which derives them from the executor.
 _MODS = (
-    ("compress", lambda r: {"ratio": round(r.uniform(0.6, 0.75), 2), "toward": "cross"}),
-    ("gable", lambda r: {"pitch": round(r.uniform(0.6, 1.1), 2), "along": "long"}),
-    ("vault", lambda r: {"rise": round(r.uniform(0.5, 1.0), 2)}),
-    ("fold", lambda r: {"folds": r.choice((2, 3)), "pitch": round(r.uniform(0.35, 0.6), 2)}),
-    ("butterfly", lambda r: {"pitch": round(r.uniform(0.5, 0.8), 2),
-                             "at": round(r.uniform(0.3, 0.45), 2)}),
-    ("mansard", lambda r: {"pitch": round(r.uniform(0.6, 1.0), 2)}),
-    ("grade", lambda r: {"mode": "smooth", "run": round(r.uniform(0.5, 0.8), 2),
-                         "toward": "open"}),
-    ("lift", lambda r: {"clearance": round(r.uniform(0.3, 0.4), 2)}),
-    ("carve", lambda r: {"depth": round(r.uniform(0.25, 0.45), 2), "toward": r.choice(_AIM)}),
-    ("split", lambda r: {"ratio": round(r.uniform(0.3, 0.55), 2)}),
-    ("taper", lambda r: {"ratio": round(r.uniform(0.55, 0.8), 2)}),
-    ("twist", lambda r: {"turn": r.choice((12, 18, 24, 30))}),
-    ("shear", lambda r: {"run": round(r.uniform(0.15, 0.3), 2), "toward": r.choice(_AIM)}),
-    ("notch", lambda r: {"depth": round(r.uniform(0.2, 0.4), 2), "toward": r.choice(_AIM)}),
-    ("puncture", lambda r: {"n": r.choice((1, 2, 3))}),
-    ("inscribe", lambda r: {"share": round(r.uniform(0.15, 0.3), 2)}),
-    ("nest", lambda r: {"size": round(r.uniform(0.35, 0.5), 2),
-                        "proud": round(r.uniform(0.4, 0.7), 2),
-                        "turn": r.choice((-30, -20, 15, 20, 30))}),
-    ("cantilever", lambda r: {"reach": round(r.uniform(0.2, 0.3), 2), "toward": "open"}),
-    ("canopy", lambda r: {"reach": round(r.uniform(0.2, 0.3), 2), "at": 1.0,
-                          "toward": "open"}),
-    ("pinch", lambda r: {"ratio": round(r.uniform(0.55, 0.7), 2)}),
-    ("bend", lambda r: {"turn": r.choice((15, 20, 30))}),
-    ("expand", lambda r: {"ratio": round(r.uniform(1.15, 1.35), 2)}),
+    # section
+    ("gable", lambda r: {"pitch": round(r.uniform(0.5, 1.15), 2), "along": "long",
+                         "bays": r.choice((1, 1, 2, 3, 4))}),
+    ("butterfly", lambda r: {"pitch": round(r.uniform(0.5, 0.9), 2),
+                             "at": round(r.uniform(0.3, 0.6), 2)}),
+    ("mansard", lambda r: {"pitch": round(r.uniform(0.6, 1.0), 2),
+                           "shoulder": round(r.uniform(0.15, 0.35), 2)}),
+    ("vault", lambda r: {"rise": round(r.uniform(0.5, 1.1), 2),
+                         "bays": r.choice((1, 1, 2, 3))}),
+    ("fold", lambda r: {"folds": r.choice((1, 2, 3)),
+                        "pitch": round(r.uniform(0.35, 0.7), 2)}),
+    ("roof", lambda r: {"rise": round(r.uniform(0.4, 1.3), 2),
+                        "eave": round(r.uniform(0.15, 0.45), 2),
+                        "corners": r.choice(("opposite", "adjacent", "one", "all")),
+                        "sag": round(r.uniform(0.0, 0.5), 2),
+                        "thin": round(r.uniform(0.07, 0.2), 2)}),
+    ("grade", lambda r: {"smooth": True, "run": round(r.uniform(0.5, 0.85), 2),
+                         "toward": "open", "walk": r.random() < 0.5}),
+    ("grade", lambda r: {"steps": r.choice((2, 3, 4)),
+                         "run": round(r.uniform(0.4, 0.7), 2), "toward": "open"}),
+    # ground
+    ("sink", lambda r: {"depth": round(r.uniform(0.15, 0.5), 2)}),
+    ("inscribe", lambda r: {"size": round(r.uniform(0.2, 0.5), 2),
+                            "depth": round(r.uniform(0.15, 0.45), 2)}),
+    # in the air
+    ("lift", lambda r: {"clearance": round(r.uniform(0.25, 0.4), 2)}),
+    ("cantilever", lambda r: {"reach": round(r.uniform(0.2, 0.32), 2),
+                              "levels": r.choice((2, 3)), "toward": "open"}),
+    ("canopy", lambda r: {"reach": round(r.uniform(0.2, 0.4), 2),
+                          "at": round(r.uniform(0.6, 1.0), 2), "toward": "open"}),
+    ("lodge", lambda r: {"size": round(r.uniform(0.25, 0.5), 2),
+                         "over": round(r.uniform(0.15, 0.5), 2),
+                         "height": round(r.uniform(0.3, 0.8), 2)}),
+    # plan
+    ("split", lambda r: {"ratio": round(r.uniform(0.32, 0.55), 2),
+                         "gap": r.choice((0, 0, 3, 6, 9)),
+                         "along": r.choice(("long", "cross"))}),
+    ("compress", lambda r: {"ratio": round(r.uniform(0.6, 0.78), 2), "toward": "cross"}),
+    ("expand", lambda r: {"ratio": round(r.uniform(1.15, 1.35), 2), "toward": "open"}),
+    ("taper", lambda r: {"ratio": round(r.uniform(0.5, 0.8), 2)}),
+    ("pinch", lambda r: {"ratio": round(r.uniform(0.5, 0.72), 2),
+                         "segments": r.choice((2, 3))}),
+    ("inflate", lambda r: {"ratio": round(r.uniform(1.1, 1.3), 2)}),
+    ("offset", lambda r: {"ratio": round(r.uniform(0.15, 0.35), 2),
+                          "toward": r.choice(_AIM)}),
+    ("shift", lambda r: {"ratio": round(r.uniform(0.15, 0.35), 2),
+                         "toward": r.choice(_AIM)}),
+    # turning
+    ("twist", lambda r: {"degrees": r.choice((12, 18, 24, 30))}),
+    ("rotate", lambda r: {"degrees": r.choice((-30, -20, 20, 30, 45))}),
+    ("skew", lambda r: {"degrees": r.choice((10, 15, 20)), "toward": "open"}),
+    ("bend", lambda r: {"degrees": r.choice((15, 20, 30)),
+                        "segments": r.choice((2, 3))}),
+    ("shear", lambda r: {"ratio": round(r.uniform(0.15, 0.3), 2),
+                         "toward": r.choice(_AIM)}),
+    ("fracture", lambda r: {"n": r.choice((2, 3)), "degrees": r.choice((8, 12, 20)),
+                            "slot": round(r.uniform(0.05, 0.15), 2)}),
+    # cutting
+    ("carve", lambda r: {"size": round(r.uniform(0.25, 0.5), 2),
+                         "at": round(r.uniform(0.2, 0.8), 2),
+                         "reach": round(r.uniform(0.4, 0.7), 2)}),
+    ("notch", lambda r: {"size": round(r.uniform(0.2, 0.4), 2),
+                         "at": round(r.uniform(0.2, 0.8), 2)}),
+    ("puncture", lambda r: {"n": r.choice((1, 2, 3)),
+                            "size": round(r.uniform(0.15, 0.35), 2)}),
+    ("extract", lambda r: {"size": round(r.uniform(0.2, 0.4), 2),
+                           "gap": r.choice((2, 4, 6)),
+                           "height": round(r.uniform(0.4, 0.9), 2)}),
+    # bodies against bodies
+    ("nest", lambda r: {"size": round(r.uniform(0.3, 0.55), 2),
+                        "proud": round(r.uniform(0.3, 0.8), 2),
+                        "turn": r.choice((-40, -25, 20, 30, 45))}),
+    ("overlap", lambda r: {"bite": round(r.uniform(0.2, 0.55), 2),
+                           "slip": round(r.uniform(0.1, 0.45), 2),
+                           "height": round(r.uniform(0.4, 0.9), 2)}),
+    ("interlock", lambda r: {"bite": round(r.uniform(0.35, 0.7), 2),
+                             "size": round(r.uniform(0.3, 0.5), 2),
+                             "reach": round(r.uniform(0.2, 0.5), 2)}),
+    ("merge", lambda r: {"height": round(r.uniform(0.4, 0.9), 2)}),
+    ("branch", lambda r: {"n": r.choice((2, 3)),
+                          "reach": round(r.uniform(0.25, 0.5), 2),
+                          "height": round(r.uniform(0.3, 0.7), 2)}),
+    ("embed", lambda r: {"size": round(r.uniform(0.25, 0.45), 2),
+                         "depth": round(r.uniform(0.2, 0.5), 2),
+                         "height": round(r.uniform(0.4, 0.9), 2)}),
+    ("intersect", lambda r: {"size": round(r.uniform(0.25, 0.45), 2),
+                             "degrees": r.choice((20, 35, 50)),
+                             "climb": round(r.uniform(0.2, 0.5), 2)}),
 )
 
 # EXTREME mode: one gesture, all the way. The mid-range sweep produced
@@ -99,22 +167,82 @@ _EXTREME_OPENERS = (
                          "height": 0.95}),
 )
 _EXTREME_MODS = (
-    ("twist", lambda r: {"turn": r.choice((40, 45))}),
-    ("cantilever", lambda r: {"reach": 0.34, "toward": "open"}),
+    ("twist", lambda r: {"degrees": r.choice((40, 50, 60))}),
+    ("cantilever", lambda r: {"reach": 0.34, "levels": 3, "toward": "open"}),
     ("taper", lambda r: {"ratio": r.choice((0.4, 0.45))}),
     ("lift", lambda r: {"clearance": 0.4}),
-    ("shear", lambda r: {"run": 0.38, "toward": "open"}),
-    ("carve", lambda r: {"depth": 0.55, "toward": "open"}),
-    ("grade", lambda r: {"mode": "smooth", "run": 0.9, "toward": "open"}),
-    ("pinch", lambda r: {"ratio": 0.5}),
-    ("bend", lambda r: {"turn": 40}),
-    ("gable", lambda r: {"pitch": 1.2, "along": "long"}),
-    ("nest", lambda r: {"size": 0.55, "proud": 0.85, "turn": r.choice((-40, 40))}),
-    ("puncture", lambda r: {"n": 5}),
+    ("shear", lambda r: {"ratio": 0.38, "toward": "open"}),
+    ("carve", lambda r: {"size": 0.6, "at": 0.5, "reach": 0.8}),
+    ("grade", lambda r: {"smooth": True, "run": 0.9, "toward": "open",
+                         "walk": r.random() < 0.5}),
+    ("pinch", lambda r: {"ratio": 0.45, "segments": 3}),
+    ("bend", lambda r: {"degrees": 45, "segments": 3}),
+    ("gable", lambda r: {"pitch": 1.2, "along": "long", "bays": r.choice((1, 5))}),
+    ("nest", lambda r: {"size": 0.6, "proud": 0.95, "turn": r.choice((-45, 45))}),
+    ("puncture", lambda r: {"n": 3, "size": 0.4}),
+    ("roof", lambda r: {"rise": 1.5, "eave": 0.5,
+                        "corners": r.choice(("opposite", "one")),
+                        "sag": 0.6, "thin": 0.07}),
+    ("sink", lambda r: {"depth": 0.6}),
+    ("fold", lambda r: {"folds": 3, "pitch": 0.9}),
+    ("vault", lambda r: {"rise": 1.2, "bays": r.choice((1, 5))}),
+    ("interlock", lambda r: {"bite": 0.75, "size": 0.5, "reach": 0.55}),
+    ("branch", lambda r: {"n": 3, "reach": 0.55, "height": 0.6}),
 )
+
+
+_SAYS = {
+    "extrude": "a single body", "loop": "a ring around a court",
+    "aggregate": "a field of small bodies", "stack": "stacked tiers",
+    "compress": "narrowed to a bar", "gable": "under a pitched roof",
+    "vault": "under a barrel vault", "fold": "under a folded roof",
+    "butterfly": "under a butterfly roof", "mansard": "under a mansard",
+    "grade": "its top graded down toward the open side",
+    "lift": "lifted clear of the ground on supports",
+    "carve": "carved open", "split": "split in two",
+    "taper": "tapering as it rises", "twist": "turning as it rises",
+    "shear": "sheared along its length", "notch": "notched at a corner",
+    "puncture": "punctured through", "inscribe": "with an inscribed court",
+    "nest": "with a nested body set proud", "cantilever": "cantilevered toward the open side",
+    "canopy": "under a canopy", "pinch": "pinched at the waist",
+    "bend": "bent along its length", "expand": "widening as it rises",
+    "roof": "under a warped roof plate with a flying eave",
+    "sink": "set down into the ground",
+}
+
+
+def _caption(ops: list) -> str:
+    parts = [_SAYS.get(op["op"], op["op"]) for op in ops]
+    if ops and ops[0]["op"] == "grade" and ops[0].get("walk"):
+        parts[0] = "a walkable landscape roof"
+    walk = any(op["op"] == "grade" and op.get("walk") for op in ops)
+    body = parts[0]
+    rest = ", ".join(parts[1:])
+    line = f"{body}, {rest}" if rest else body
+    if walk:
+        line += "; the slope is public ground"
+    return line[0].upper() + line[1:] + "."
+
 
 _WHY = ("swept from the grammar - the funnel, not this sentence, argues; "
         "gates and juries decide what survives")
+
+
+# A move that leaves the body's own outline needs ground to move onto: said
+# on a parcel-filling extrusion the legal line takes all of it and the whole
+# sentence is dropped as clipped (audit A/B, 09-03).
+_NEEDS_ROOM = frozenset({
+    "expand", "offset", "shift", "shear", "skew", "cantilever", "canopy",
+    "lodge", "extract", "nest", "branch", "embed", "intersect", "inscribe",
+    "interlock", "overlap", "roof",
+})
+# A move that translates or scales the WHOLE composition says nothing the
+# pipeline keeps: the siting re-seats it and the fit rescales it, so the
+# building comes back the same. Scoped to one part of a split body it is a
+# relation between two bodies, and it survives (audit C).
+_NEEDS_PART = frozenset({"expand", "offset", "shift"})
+_ROOM = {"op": "compress", "ratio": 0.66, "toward": "cross"}
+_PART = {"op": "split", "ratio": 0.45, "gap": 0}
 
 
 def _sentence(r: random.Random, index: int, extreme: bool = False,
@@ -136,11 +264,21 @@ def _sentence(r: random.Random, index: int, extreme: bool = False,
             if any(o["op"] == verb for o in ops):
                 continue
             ops.append({"op": verb, **vparams(r), "why": _WHY})
+    # The audit's two rules, applied where the sentence is assembled.
+    said = {op["op"] for op in ops}
+    if said & _NEEDS_ROOM and "compress" not in said and opener == "extrude":
+        ops.insert(1, {**_ROOM, "why": _WHY})
+    if said & _NEEDS_PART:
+        if "split" not in {op["op"] for op in ops}:
+            ops.insert(-1, {**_PART, "why": _WHY})
+        for op in ops:
+            if op["op"] in _NEEDS_PART:
+                op["on"] = "part_b"
     return {
         "name": f"{prefix}_{index:04d}_{opener}_{'_'.join(o['op'] for o in ops[1:]) or 'pure'}",
         "primary_language": "solid_body" if opener != "loop" else "open_figure",
         "secondary_language": "generated sweep candidate - see name for the verbs",
-        "formal_principle": "스윕 후보 — 문법이 말할 수 있는 조합 하나를 게이트 앞에 세운다.",
+        "formal_principle": _caption(ops),
         "dominant_gesture": ops[-1]["op"],
         "reference_basis": "grammar sweep",
         "floor_height_m": 3.4,

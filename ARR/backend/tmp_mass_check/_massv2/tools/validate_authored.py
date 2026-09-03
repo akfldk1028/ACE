@@ -34,6 +34,11 @@ _HAND_PARAMS = {
     "notch":     {"size", "at"},
     "puncture":  {"size", "n"},
     "rotate":    {"degrees"}, "skew": {"degrees", "toward"},
+    # The affine table's verbs are lambdas taking `p`, so the `params.get`
+    # scan below never sees their names. `shift`, `shear` and the rest are
+    # listed here for that reason and `sink` was missed when it was added -
+    # the sweep could not say "into the ground" at all.
+    "sink":      {"depth"},
     "twist":     {"degrees"}, "shift": {"ratio", "toward"},
     "offset":    {"ratio", "toward"}, "expand": {"ratio", "toward"},
     "compress":  {"ratio", "toward"}, "inflate": {"ratio"},

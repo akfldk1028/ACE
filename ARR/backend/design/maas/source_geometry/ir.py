@@ -422,6 +422,51 @@ class SourceMass:
     fallback_reason: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    def body_height_m(self) -> float:
+        """The tallest single body, in metres: a column of bands that share a
+        plan and touch, structure left out.
+
+        The stature gate asked for "the tallest volume's own span" and read
+        one compiled band, which is not a body - the compiler cuts at every
+        height where anything changes, so a gable is a storeys band plus a
+        roof band and a lift is legs plus body. Read band by band, a
+        four-storey house under a pitched roof delivered 5.1 m and was
+        retired as crushed. Bands that share a plan and touch are one body;
+        a lift's legs have their own plan and stay their own body, so empty
+        clearance is still not billed as storeys.
+        """
+
+        height = float(self.metadata.get("authored_height_m") or 0.0)
+        if height <= 0.0:
+            return 0.0
+        structural = set(self.metadata.get("structural_bands") or ())
+        rooms = [volume for index, volume in enumerate(self.volumes)
+                 if index not in structural]
+        rooms.sort(key=lambda volume: float(volume.bottom_fraction))
+        # Bands are one body when they OVERLAP in plan and touch, not when
+        # their plans are identical: twist, taper, fracture and a stepped
+        # grade give every storey its own outline, so an equality test read
+        # a turning tower as a stack of one-storey bodies and retired it as
+        # crushed. Overlap of more than half the smaller plan is one column.
+        columns: list[list] = []
+        for volume in rooms:
+            for column in columns:
+                top = column[-1]
+                if float(volume.bottom_fraction) > float(top.top_fraction) + 1e-3:
+                    continue
+                shared = volume.footprint.intersection(top.footprint).area
+                if shared > 0.5 * min(volume.footprint.area, top.footprint.area):
+                    column.append(volume)
+                    break
+            else:
+                columns.append([volume])
+        tallest = 0.0
+        for column in columns:
+            low = min(float(volume.bottom_fraction) for volume in column)
+            high = max(float(volume.top_fraction) for volume in column)
+            tallest = max(tallest, high - low)
+        return tallest * height
+
     def signature(self) -> dict[str, Any]:
         areas = [float(volume.footprint.area) for volume in self.volumes]
         ground_area = float(self.footprint.area)

@@ -431,6 +431,8 @@ def grade(frame, op) -> None:
     """
 
     run = _clamp(float(op.params.get("run", 0.6)), 0.2, 0.9)
+    # `walk: true` - the slope is public ground, the roof as landscape.
+    walk = bool(op.params.get("walk"))
     picked, rest = _carrying_nothing(frame, op, *frame.pick(op))
     if not picked:
         return
@@ -491,11 +493,13 @@ def grade(frame, op) -> None:
                     ridge_along=None,
                     top_profile=((0.0, ha), (1.0, hb)),
                     profile_across=unit,
+                    top_walkable=walk,
                 ))
             frame.placements = rest + shaped
             return
         frame.placements = rest + [
-            replace(item, top_drop=run, drop_toward=unit) for item in picked
+            replace(item, top_drop=run, drop_toward=unit, top_walkable=walk)
+            for item in picked
         ]
         return
 

@@ -105,6 +105,12 @@ class Placement:
     # heights as shares of this volume's height, plate, sag). Set by `roof`;
     # carried to compile beside the one-axis section fields above.
     warp: tuple | None = None
+    # The tilted top is public ground - a slope people walk up, the roof
+    # as landscape (Oslo Opera, Yokohama, Moesgaard). Nine of forty
+    # competition winners make their parti there. Semantics only: the
+    # geometry is the same tilt; the drawing paints it as ground and the
+    # thesis says so.
+    top_walkable: bool = False
     # Is this volume a room, or is it what holds a room up. A column is meant
     # to be thin and a storey is not, so every rule about how wide or how deep
     # a plate must be has to know which of the two it is looking at. The

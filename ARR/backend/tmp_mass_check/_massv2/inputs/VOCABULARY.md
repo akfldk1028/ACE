@@ -39,6 +39,7 @@
 - `merge` {height} — 서 있는 몸들이 **하나로 병합** (선언된 유일한 union).
 - `extract` {size, gap, height, level} — 조각을 **빼내** 소켓 옆에 세운다 (보이드+조각 한 쌍).
 - `inscribe` {size 0.15-0.6, depth 0.1-0.5} — 지붕에 모서리 안 닿는 도형을 **새긴다** (침강 마당).
+- `grade ... walk:true` — **경사 지붕을 걷는 땅으로 선언**(`grade smooth run:0.6 toward:"open" walk:true`). 같은 기울기지만 그림이 지면 톤으로 칠하고, 심판은 오르는 지형으로 읽는다(오슬로 오페라·요코하마·모스고르). 문장의 why에 "walkable"을 말하라 — 캡션은 formal_principle이다.
 - `sink` {depth 0.1-0.6(자기 높이 몫), on} — **땅으로 내려앉는다**. 잡힌 몸통을 제 높이의 depth만큼 지반(z=0) 아래로. 침강 마당(loop 뒤 `sink on:"court"`는 아직 — 링 전체가 내려감), 반지하 바(`extrude + sink depth:0.4`), 기단에 박힌 탑(`stack + sink on:"tier_0"`). 지하 밴드는 용적률에서 빠지고(시행령 119조), 건축면적은 지상 투영만, 그림은 대지판에 구덩이를 연다.
 - `roof` {rise 0.2-1.5(층고 배수), eave 0-0.5(짧은 변 몫), corners "opposite"|"one"|"adjacent"|"all", sag 0-0.6, thin 0.06-0.35} — **휜 지붕판(날아오르는 처마)**. 잡힌 몸통마다 제 지붕판을 사방 처마로 띄우고, 지정 모서리를 rise만큼 들어 올리며 sag가 처마 선을 곡선으로 만든다(쌍곡포물면·MAD 자싱·쿠마의 지붕). 판은 방 아님(구조 밴드)이고 처마 내밈은 구조 게이트가 심판. `aggregate n:5 + roof`가 지붕 밭, `extrude + roof corners:"adjacent"`가 한쪽으로 쓸리는 정자.
 - `canopy` {reach 0.1-0.45, at 0.3-1.0, toward} — 층고보다 얇은 판(0.35층)이 호스트 가장자리를 물고 **밖으로 내민다** — 처마(at 1.0 기본)·마퀴(at 낮게). 방 아님을 스스로 선언(occupiable=False)해 방 게이트를 면제받고, 내밈은 구조 게이트가 그대로 심판하므로 reach 상한이 cantilever와 같은 이유로 0.45.
@@ -58,7 +59,7 @@
 2. **`cantilever`는 두 켜가 있어야 말한다.** 한 층짜리 몸에는 할 말이 없어 조용히 통과한다(그건 `lift`가 할 말이다). `split`의 `contrast`가 작은 조각의 높이를 나누므로 자른 뒤에도 켜가 둘 남게 `storeys`를 선언하라.
 3. **대지를 꽉 채운 몸 위에서 내밀지 마라.** 일조 봉투가 내밈을 먼저 가져가 그림에 안 남는다. `split`이나 `carve` 뒤 여유가 생긴 자리에 말하라.
 4. **이미 밴드로 나뉜 볼륨에 또 단면을 얹지 마라.** `grade`(계단) 뒤에 `fold`를 더했더니 밴드마다 지붕이 생겨 23개 변형 전부가 캔틸레버 초과로 기각됐다. 계단 자체가 그 문장의 단면이다.
-5. **논지가 아닌 틈은 선언하지 마라.** 바를 만들려고 `split`에 `gap`을 붙이면 그 틈이 배달되지 않을 때 문장 전체가 거부된다 — 말하지 않은 틈은 닫혀도 거짓이 아니다.
+5. **`split`의 `gap` 단위는 JOINT_CLEARANCE_M(0.76 m)의 배수다** — `gap: 0.16`은 12 cm라 무조건 닫힌다. 골목 6 m를 원하면 `gap: 8`. 논지가 아닌 틈은 선언하지 마라.** 바를 만들려고 `split`에 `gap`을 붙이면 그 틈이 배달되지 않을 때 문장 전체가 거부된다 — 말하지 않은 틈은 닫혀도 거짓이 아니다.
 
 ## 기존 변형·절단 (요약)
 split, carve, lift{clearance}, notch, puncture, branch{n,reach,height}, embed{size,depth,at},

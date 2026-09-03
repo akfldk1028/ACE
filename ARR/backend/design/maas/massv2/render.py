@@ -379,6 +379,10 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
     """
 
     outer = [(float(x), float(y)) for x, y in polygon.exterior.coords[:-1]]
+    # A walkable slope is ground, and is painted as ground: the site tone
+    # climbing the building, which is how the eye reads a roof-landscape.
+    walkable = bool(getattr(getattr(slope, "volume", None), "top_walkable", False))
+    top_tone = _PAL.site if walkable else _PAL.roof
     if len(outer) < 3:
         return
     folds = _break_lines(slope)
@@ -433,7 +437,7 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
         for side in (1.0, -1.0):
             part = _clip_halfplane(outer, px, py, centre, side)
             if part:
-                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], _PAL.roof, True
+                yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in part], top_tone, True
     elif folds:
         # One plane per profile segment: the ring clipped to the slab between
         # neighbouring fold lines, so every crease is a drawn line - unless the
@@ -448,7 +452,7 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
             part = _clip_halfplane(part, ux, uy, hi_c, -1.0) if part else None
             if part:
                 yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in part],
-                       _PAL.roof, creased)
+                       top_tone, creased)
         if not creased:
             # A sampled curve's segments are painted seamless (outline in the
             # fill colour), and the roof colour sits two values off the page's
@@ -458,7 +462,7 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
             yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in outer],
                    None, True)
     else:
-        yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], _PAL.roof, True
+        yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], top_tone, True
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:

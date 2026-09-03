@@ -430,6 +430,7 @@ def compile_matrix_form(
                     top_profile=profile,
                     profile_across=across,
                     profile_span=span,
+                    top_walkable=bool(getattr(item, "top_walkable", False)),
                     warp=warp,
                 ))
             return made

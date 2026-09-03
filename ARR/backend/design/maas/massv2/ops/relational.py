@@ -469,8 +469,11 @@ def roof(frame, op) -> None:
         made.append(replace(
             plate,
             top_drop=rise_m / band,
+            # The sixth term is the sheet's thickness as a share of its band,
+            # so the underside follows the top at `thin` metres.
             warp=((ux, uy), (vx, vy),
-                  tuple(1.0 if c else low_share for c in lifted), True, sag),
+                  tuple(1.0 if c else low_share for c in lifted), True, sag,
+                  low_share),
         ))
     frame.placements = rest + picked + made
 

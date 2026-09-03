@@ -78,6 +78,9 @@ class SourceVolume:
     # shapes - hips, vaults - are still outside this primitive.
     top_profile: tuple[tuple[float, float], ...] | None = None
     profile_across: tuple[float, float] | None = None
+    # The tilted top is walkable ground (the roof as landscape); painted as
+    # ground by the renderer, otherwise the same surface.
+    top_walkable: bool = False
     # The stations' AUTHORED extent along `profile_across`, as (lo, hi) world
     # scalars. Every consumer used to re-derive this range from the volume's
     # own footprint - honest for the whole volume, and a lie for any clip
@@ -180,7 +183,15 @@ class SourceVolume:
         """World height of the underside - flat except for a warped plate."""
 
         if self.section_kind() == "warp" and bool(self.warp[3]):
-            return low - (high - low) * (1.0 - self.top_share(x, y))
+            # A plate is a SHEET: its underside follows its top at the
+            # plate's own thickness (warp[5], a share of the band), not at
+            # the band's full depth. The band is thin + rise, so following at
+            # the band's depth made a 1.2-storey rise a 4 m thick wedge -
+            # every roof on the sheet read as a fat hat on a box, and the
+            # jury said so. Missing thickness (older warps) keeps the band.
+            thickness = float(self.warp[5]) if len(self.warp) > 5 else 1.0
+            top = self.top_z(x, y, low, high)
+            return max(low - (high - low), top - (high - low) * thickness)
         return low
 
     def creases(self) -> list[tuple[float, float, float]]:

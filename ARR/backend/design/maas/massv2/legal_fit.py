@@ -193,7 +193,14 @@ def _scaled_in_plan(
         # A profiled top holds its section the same way a ridge does: the
         # preserved axis is the fold line, perpendicular to the profile's run.
         across = getattr(placement, "profile_across", None)
-        if across is not None:
+        profile = getattr(placement, "top_profile", None)
+        # A profile of two stations is a PLANE (grade smooth), and a plane
+        # has no proportion to hold: undoing the across-scale about the
+        # volume's own centre kept each of two graded bars at full width
+        # while the composition shrank between them, and the 6 m valley the
+        # sentence was about closed to 0.0 in every coverage band. Only a
+        # folded or curved section (three stations or more) keeps its metres.
+        if across is not None and profile is not None and len(profile) > 2:
             ridge = (-across[1], across[0])
     if ridge is None or abs(factor - 1.0) < 1e-6 or factor <= 1e-9:
         return scaled

@@ -1000,3 +1000,19 @@ class ARoofIsNeverDeeperThanItsCapTests(SimpleTestCase):
                 held.top_drop * new_height, 3.0, places=6,
                 msg=f"factor {factor}: band floor moved",
             )
+
+
+class ABasementSurvivesCompilationTests(SimpleTestCase):
+    """A base below the ground rounds away from zero; the edge filter must
+    allow for it, or the whole basement band vanishes and `datum_m` is 0."""
+
+    def test_a_sunken_plinth_keeps_its_band_and_its_datum(self):
+        depth = 7.848698252444
+        form = _form("sunken", [
+            place("plinth", size=(30, 30, 2 * depth), at=(0.0, 0.0, -depth)),
+            place("tower", size=(10, 10, 16), at=(0.0, 0.0, depth)),
+        ])
+        source = compile_matrix_form(form)
+        self.assertIsNotNone(source)
+        self.assertEqual(2, len(source.volumes))
+        self.assertAlmostEqual(depth, float(source.metadata["datum_m"]), places=2)

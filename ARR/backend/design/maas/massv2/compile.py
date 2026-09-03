@@ -183,11 +183,18 @@ def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> li
                 level += storey_height_m
     ground = min(low for low, _high in (item.z_span() for item in additive))
     roof = max(high for _low, high in (item.z_span() for item in additive))
-    ordered = sorted(value for value in edges if ground - 1e-9 <= value <= roof + 1e-9)
+    # The edges were rounded to four places; the filter must allow for that.
+    # A base below the ground rounds AWAY from zero (-7.848698 -> -7.8487),
+    # fell under `ground - 1e-9`, and the whole basement band vanished - the
+    # sunken plinth's tower compiled as a box standing on grade. Above grade
+    # a base is 0.0 exactly and this never showed.
+    ordered = sorted(value for value in edges if ground - 1e-3 <= value <= roof + 1e-3)
     merged: list[float] = []
     for value in ordered:
         if not merged or value - merged[-1] >= _MINIMUM_BAND_M:
             merged.append(value)
+    if merged:
+        merged[0] = ground
     if merged and roof - merged[-1] >= _MINIMUM_BAND_M:
         merged.append(roof)
     elif merged:

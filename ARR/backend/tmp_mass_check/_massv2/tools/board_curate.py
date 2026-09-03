@@ -92,16 +92,49 @@ def rounds() -> list:
     listed, in the order their shortlists were scored. Newest last, so the
     latest ruler overrides."""
 
+    # An era: runs/board/era.json (written by `--new-era`) names the moment
+    # the board was cleared. Before it, nothing is read - not the hand list,
+    # not older manifests. The old board is archived beside it, never lost.
+    era = ROOT / "runs" / "board" / "era.json"
+    since = float(json.loads(era.read_text(encoding="utf-8"))["since"]) if era.exists() else None
     listed = {rel for _t, rel, _k in ROUNDS}
     discovered = []
     for manifest in ROOT.glob("runs/vlm-*/round.json"):
         rel = str(manifest.parent.relative_to(ROOT) / "vlm-shortlist.json").replace("\\", "/")
         shortlist = manifest.parent / "vlm-shortlist.json"
-        if rel in listed or not shortlist.exists():
+        if (since is None and rel in listed) or not shortlist.exists():
+            continue
+        stamp = shortlist.stat().st_mtime
+        if since is not None and stamp < since:
             continue
         meta = json.loads(manifest.read_text(encoding="utf-8"))
-        discovered.append((shortlist.stat().st_mtime, (meta["track"], rel, meta["kind"])))
-    return list(ROUNDS) + [entry for _stamp, entry in sorted(discovered)]
+        discovered.append((stamp, (meta["track"], rel, meta["kind"])))
+    legacy = [] if since is not None else list(ROUNDS)
+    return legacy + [entry for _stamp, entry in sorted(discovered)]
+
+
+def new_era(note: str) -> None:
+    """Clear the board: archive runs/board, then write era.json so only rounds
+    scored from now on are read. The archive keeps every ledger and eye pass."""
+
+    import shutil
+    import time
+    board = ROOT / "runs" / "board"
+    stamp = time.strftime("%Y%m%d-%H%M")
+    if board.exists():
+        archive = ROOT / "runs" / f"board-archive-{stamp}"
+        shutil.copytree(board, archive)
+        for item in board.iterdir():
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+        print(f"archived the old board to {archive.relative_to(ROOT)}")
+    board.mkdir(parents=True, exist_ok=True)
+    (board / "era.json").write_text(json.dumps(
+        {"since": time.time(), "started": stamp, "note": note}, indent=1, ensure_ascii=False),
+        encoding="utf-8")
+    print(f"new era from {stamp}: {note}")
 
 
 def corpus() -> dict:
@@ -136,6 +169,10 @@ def corpus() -> dict:
 
 
 def main() -> int:
+    import sys as _sys
+    if len(_sys.argv) > 2 and _sys.argv[1] == "--new-era":
+        new_era(" ".join(_sys.argv[2:]))
+        return 0
     book = corpus()
     ledger: dict[tuple, dict] = {}
     for track, rel, kind in rounds():

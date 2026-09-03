@@ -450,7 +450,12 @@ def roof(frame, op) -> None:
             continue
         ux, uy = ax / span_u, ay / span_u
         vx, vy = bx / span_v, by / span_v
-        eave_m = eave * min(span_u, span_v)
+        # An eave is metres of roof past the wall, and a share of the plan
+        # is the wrong unit for it at scale: 0.35 of a 60 m hall is a 21 m
+        # overhang whose plate hides the whole body under it in axonometric.
+        # Capped at two storeys of overhang - the biggest flying eave that
+        # still reads as an eave and not as a second building.
+        eave_m = min(eave * min(span_u, span_v), 2.0 * frame.storey)
         rise_m = rise_share * frame.storey
         thin_m = thin * frame.storey
         band = thin_m + rise_m
@@ -466,9 +471,16 @@ def roof(frame, op) -> None:
             z=crest, h=band, dx=dx, dy=dy, turn=turn, occupiable=False,
         )
         low_share = thin_m / band
+        # The whole band tilts (top_drop 1.0): the compiler emits a tilted
+        # placement as a flat body up to the drop zone and a tilted slice
+        # above it, and with the drop set to rise/band the sheet's first
+        # `thin` metres came out as a second, flat, full-footprint slab
+        # under the warped one - two plates in the drawing for one roof.
+        # The low corners' share (thin/band) already puts their top at
+        # thin metres above the crest, and the underside follows.
         made.append(replace(
             plate,
-            top_drop=rise_m / band,
+            top_drop=1.0,
             # The sixth term is the sheet's thickness as a share of its band,
             # so the underside follows the top at `thin` metres.
             warp=((ux, uy), (vx, vy),

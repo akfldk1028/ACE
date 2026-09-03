@@ -44,9 +44,9 @@ def main(round_name: str, scope: str = "") -> int:
         # newest round's verdict, so a scheme the buildability ruler had
         # dropped to 2.97 (the twisting tower) would never meet the
         # international rubric at all. Union of every round's passers.
-        from board_curate import ROUNDS  # noqa: E402
+        from board_curate import rounds  # noqa: E402
         seen: dict[str, None] = {}
-        for track, rel, _kind in ROUNDS:
+        for track, rel, _kind in rounds():
             path = ROOT / rel
             if track != "O" or not path.exists():
                 continue

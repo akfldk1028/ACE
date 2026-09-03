@@ -525,6 +525,12 @@ def compile_matrix_form(
             remap = {old: new for new, old in enumerate(keep)}
             volumes = [volumes[i] for i in keep]
             structural = [remap[i] for i in structural if i in remap]
+    if not volumes:
+        # Every band was structure with nothing to hold up (a roof plate
+        # whose body the envelope cut away), or the envelope cut every band:
+        # the mass does not exist. Refuse it the way an empty form is
+        # refused, instead of indexing volumes[0] and taking the run down.
+        return None
     grounded = [item for item in volumes if item.bottom_fraction <= 1e-6]
     topmost = [item for item in volumes if item.top_fraction >= 1.0 - 1e-6]
     footprint = unary_union([item.footprint for item in grounded]) if grounded else volumes[0].footprint

@@ -31,6 +31,7 @@ from typing import Any, Iterable
 
 from design.maas.source_geometry.ir import SourceMass
 
+from .composition import PRIMARY_SHARE
 from .form import MatrixForm
 from .measure import FormMeasurement
 from .plausibility import Plausibility
@@ -206,6 +207,15 @@ def _spoken_force(item: Candidate) -> float:
     A seed family has no sentence, so it reads 0.0 and cannot win a cell it is
     sharing with an authored one. That is the intended reading rather than a
     fallback: this sheet is for options somebody wrote.
+
+    ⚠️ 2026-09-03: what the runner writes into `spoken_force` is no longer the
+    mean this note measured. The mean rewards a sentence whose words are all
+    equally loud, which is the opposite of the brief authoring is given ("one
+    decisive move per scheme") and of what a jury grades under CONCEPT - and
+    the sheets it selected were read by the architect as assemblies of equal
+    parts. It is now the loudest word carried by its support, 3:1. The mean
+    rides along as `spoken_mean` so the correlation above can be re-measured
+    against the new reading rather than argued about.
     """
 
     return float(item.form.extra.get("spoken_force") or 0.0)
@@ -253,8 +263,50 @@ def _shape_read(item: Candidate) -> float:
     return max(measurement.convexity_drop, measurement.section_change)
 
 
+def _composed(item: Candidate) -> float:
+    """Do these parts read as one building - and does one of them lead.
+
+    The first objective in this module that is about composition rather than
+    quantity or roughness. `composition.read` measures what Akin and
+    Moustapha observed architects doing: a small set of regulating elements
+    (alignment lines, shared faces, datums) explaining where every part sits.
+    A field of equal boxes on eight lines of their own scores at the floor; a
+    body with its wings landing on its own faces scores near the ceiling.
+
+    Two readings, one number, because they are one judgement:
+
+        economy    parts explained per regulating line (1.0 is a pile)
+        dominance  the largest body's share of the mass
+
+    Economy is mapped from 1.0 (a line per part) to 3.0 (three parts per
+    line) because past three the reading stops improving - a bar with four
+    wings on one axis is as composed as a bar with eight. A single-body
+    scheme is composed by definition and reads 1.0 rather than being asked
+    to prove a relation it does not have.
+    """
+
+    reading = item.form.extra.get("composition")
+    if not reading:
+        # The runner stamps the reading onto the form; anything that builds a
+        # candidate without going through it (tests, tools) is read straight
+        # off the compiled geometry rather than scored as a default, which
+        # would make this objective silently constant.
+        from .composition import read as _read_composition
+        reading = _read_composition(item.source).to_dict()
+    parts = int(reading.get("parts") or 0)
+    if parts <= 1:
+        return 1.0
+    economy = float(reading.get("economy") or 0.0)
+    dominance = float(reading.get("dominance") or 0.0)
+    explained = float(reading.get("explained_share") or 0.0)
+    held = max(0.0, min(1.0, (economy - 1.0) / 2.0))
+    led = max(0.0, min(1.0, dominance / PRIMARY_SHARE))
+    return (held * explained + led) / 2.0
+
+
 OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("spoken_force", _spoken_force),
+    ("composed", _composed),
     ("shape_read", _shape_read),
 )
 
@@ -488,6 +540,9 @@ BRIEFED_OBJECTIVES: tuple[tuple[str, Any], ...] = (
     ("storeys_for_the_brief", _storeys_for_the_brief),
     ("way_in", _has_a_way_in),
     ("turned", _turned_against_each_other),
+    # Same reading as the unbriefed tuple: a brief changes what a building is
+    # for, not whether its parts belong to each other.
+    ("composed", _composed),
     # Restored. It was dropped from the briefed set by argument - "the mass a
     # Korean jury rewards is the plain one with a good yard, which shape_work
     # scores down by construction" - and the measurement offered alongside it

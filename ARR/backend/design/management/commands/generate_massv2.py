@@ -22,6 +22,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from design.maas.design_space import delivered_ground_take_band, delivered_stature_band
 from design.maas.massv2 import compile_matrix_form, measure_form
+from design.maas.massv2 import composition as composition_module
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2 import ablation as ablate_module
@@ -774,12 +775,27 @@ class Command(BaseCommand):
                         / (len(pop) + _SHRINK)
                     )
                 form = written[idx]
+                # A sentence is not the average of its words. `author.py`
+                # asks for "one decisive move per scheme" and the mean is
+                # the one statistic that punishes it: a loud move with three
+                # quiet supports scores under four medium ones, and the
+                # selector picked the second every time. The reading here is
+                # the claim the sentence makes - a dominant word, carried by
+                # its support - at three to one, so a lone shout with nothing
+                # holding it still loses.
+                scores.sort(reverse=True)
+                lead = scores[0] if scores else 0.0
+                support = (sum(scores[1:]) / len(scores[1:])) if len(scores) > 1 else lead
                 written[idx] = form.__class__(
                     **{
                         **form.__dict__,
                         "extra": {
                             **dict(form.extra),
-                            "spoken_force": sum(scores) / max(len(scores), 1),
+                            "spoken_force": 0.75 * lead + 0.25 * support,
+                            # The mean the correlation study was measured on,
+                            # kept so the two readings can be compared rather
+                            # than taken on trust.
+                            "spoken_mean": sum(scores) / max(len(scores), 1),
                         },
                     }
                 )
@@ -951,16 +967,23 @@ class Command(BaseCommand):
             gfa = gross_floor_area_m2(source, floor_height_m=storey_h)
             far_use = gfa / max(site.far_capacity_m2, 1e-9)
             take = fit.ground_area_m2 / max(site.ground_capacity_m2, 1e-9)
+            # Read before the cell, because the cell is now made of it.
+            composition_read = composition_module.read(source)
             # With a brief, the coverage axis stops meaning anything: a
             # 1,428 m² schedule on a 2,500 m² parcel cannot reach the full
             # band however it is composed, and the grid emptied. What the
             # brief does give is a decision worth an axis - where its one big
             # room went - which Korean practice treats as a discrete choice
             # between a detached volume, the base, a middle floor and the top.
+            # The second coordinate is part-to-whole, not void. Both axes
+            # were quantities, so a cell only ever asked "how big" twice and
+            # the sheet was never owed a composed scheme against a pile. The
+            # void band stays measured and recorded as the free variable.
+            composed_band = composition_module.band_id(composition_read)
             if schedule is not None:
                 cell = (
                     f"{programme.large_span_strategy(source, storey_height_m=site.floor_height_m)}"
-                    f"|{measurement.void_band_id}"
+                    f"|{composed_band}"
                 )
             else:
                 # Stature crossed with void, since the flatness measurement:
@@ -971,12 +994,19 @@ class Command(BaseCommand):
                 stature = delivered_stature_band(
                     measurement.height_m, storey_height_m=form_storey
                 ).band_id
-                cell = f"{stature}|{measurement.void_band_id}"
+                cell = f"{stature}|{composed_band}"
             cells[cell] += 1
             if not fit.satisfied:
                 unlawful += 1
             if not standing.occupiable:
                 implausible += 1
+            # The selector reads it off the form, the same channel the
+            # sentence's other claims ride on.
+            form = form.__class__(**{
+                **form.__dict__,
+                "extra": {**dict(form.extra),
+                          "composition": composition_read.to_dict()},
+            })
             records.append({
                 "name": form.name,
                 "status": "compiled",
@@ -988,6 +1018,10 @@ class Command(BaseCommand):
                 "far_utilization": round(far_use, 4),
                 "plausibility": standing.evidence(),
                 "measurement": measurement.evidence(),
+                # Are these parts one thing: how few regulating lines explain
+                # how many of them, and does one part lead. The one reading in
+                # this record that is about composition rather than quantity.
+                "composition": composition_read.to_dict(),
                 "language": {
                     "primary": form.primary_language,
                     "secondary": form.secondary_language,

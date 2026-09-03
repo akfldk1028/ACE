@@ -54,7 +54,16 @@ def rubric_for(track: str) -> str:
                       .read_text(encoding="utf-8"))["rubric"]
 
 
-BLIND_PREAMBLE = "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n\n"
+# A tile is now the mass over its own operation sequence, so the rubric has to
+# say what the strip is - a juror shown an unexplained band of small drawings
+# reads it as clutter and marks the scheme down for it.
+BLIND_PREAMBLE = (
+    "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n"
+    "타일 위쪽은 배달된 매스(백색 모형 액소노메트릭 + 배치도)입니다. 아래에 띠가 있으면 "
+    "그 매스가 만들어진 조작 순서입니다 - 문장의 단어 하나가 프레임 하나이고, 마지막 "
+    "프레임이 법규 한도까지 자란 결과입니다. 띠는 논지의 증거이지 별개의 안이 아닙니다. "
+    "띠가 없는 타일은 순서 기록이 없는 안이며, 그것만으로 감점하지 마십시오.\n\n"
+)
 
 
 def certified_caption(source, site, thesis: str, *,
@@ -168,6 +177,37 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     return added
 
 
+def _with_sequence(tile_png: Path, run: str, name: str) -> None:
+    """Paste the scheme's operation sequence under its axonometric, in place.
+
+    The sequence sheet is wide and short; the tile is tall. Scaled to the
+    tile's width and joined below it, the juror reads the moves that made the
+    mass in the same glance as the mass - which is the pairing every massing
+    convention in the literature publishes and the one this pipeline drew and
+    then threw away.
+    """
+
+    from PIL import Image  # noqa: E402  (Pillow is already a render dependency)
+
+    strip_path = ROOT / "runs" / run / f"parti-{name}.png"
+    if not strip_path.exists() or not tile_png.exists():
+        return
+    tile = Image.open(tile_png).convert("RGB")
+    strip = Image.open(strip_path).convert("RGB")
+    width = tile.width
+    height = max(1, round(strip.height * width / strip.width))
+    # A strip taller than the mass would make the tile a sequence sheet with a
+    # picture on top; half the tile is the most the argument may take.
+    if height > tile.height // 2:
+        scale = (tile.height // 2) / height
+        height = max(1, int(height * scale))
+    strip = strip.resize((width, height), Image.LANCZOS)
+    joined = Image.new("RGB", (width, tile.height + height), (255, 255, 255))
+    joined.paste(tile, (0, 0))
+    joined.paste(strip, (0, tile.height))
+    joined.save(tile_png)
+
+
 def stage(run: str, count: int) -> int:
     from judge_tiles import main as make_tiles  # noqa: E402  (django inside)
 
@@ -193,6 +233,12 @@ def stage(run: str, count: int) -> int:
         ride_anchors(out, key_rows)
         (out / "key.json").write_text(
             json.dumps(key_rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    # The argument under the outcome, for every contest tile that has one.
+    for row in json.loads((out / "key.json").read_text(encoding="utf-8")):
+        if row.get("anchor") is not None:
+            continue
+        family = str(row["name"]).split("~")[0].split("^")[0]
+        _with_sequence(out / f"{row['tile']}.png", run, family)
     tiles = sorted(p.name for p in out.glob("t*.png"))
     print(f"{len(tiles)} tiles staged -> {out}")
     print(f"judges read: {out / 'PROMPT.txt'} + the tiles; "

@@ -201,6 +201,35 @@ def _sheets_settled(form: MatrixForm) -> MatrixForm:
     return replace(form, placements=tuple(items)) if changed else form
 
 
+# What a room needs across a plate, in metres. The same number the
+# plausibility gate erodes by when it asks "is this a plate at all"; it lives
+# there as MINIMUM_STOREY_WIDTH_M and is repeated as a literal here only
+# because plausibility imports this module's output and cannot be imported
+# back. Kept in one line so the two are easy to check against each other.
+_ROOM_WIDTH_M = 1.5
+
+
+def _without_clip_waste(parts: list[Polygon]) -> list[Polygon]:
+    """Drop the offcuts a band leaves beside a real plate.
+
+    The envelope cuts a band and leaves a sliver at one end; the sliver is
+    not a body, and the cleanliness gate downstream refuses the whole mass
+    for carrying it. Dropped only when a piece of the SAME band still holds
+    a room - a band whose every piece is sub-room is the thing itself, and
+    the gate should still see it.
+    """
+
+    if len(parts) < 2:
+        return parts
+    def holds_a_room(piece) -> bool:
+        try:
+            return not piece.buffer(-_ROOM_WIDTH_M, join_style=2).is_empty
+        except Exception:  # pragma: no cover - GEOS refusing an erosion
+            return True
+    kept = [piece for piece in parts if holds_a_room(piece)]
+    return kept if kept else parts
+
+
 def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> list[float]:
     """Cut heights, taken from the volumes' own tops and bottoms.
 
@@ -380,7 +409,7 @@ def compile_matrix_form(
     structural: list[int] = []
     dropped_bands = 0
     for low, high in zip(edges, edges[1:]):
-        parts = _band_parts(flat_form, low, high, allowed_at)
+        parts = _without_clip_waste(_band_parts(flat_form, low, high, allowed_at))
         role = _band_role(form, low, high)
         is_structure = _band_is_structure(form, low, high)
         for part in parts:

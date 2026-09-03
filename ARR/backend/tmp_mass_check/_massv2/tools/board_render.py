@@ -12,6 +12,7 @@ schedule.
 """
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -59,6 +60,14 @@ def main() -> int:
     korea_schedule = _korea_schedule()
     per_track: dict[str, list] = {"K": [], "O": [], "C": []}
     kept, baked = 0, 0
+    unbakeable: list[str] = []
+    # Label tiles are regenerated every bake; a leftover from the previous
+    # curation carries another scheme's drawing under this label (labels are
+    # reassigned each time). Clear them first so a seat that cannot be
+    # rebuilt shows as missing instead of as someone else's building.
+    for stale in BOARD.glob("[KOC]*.png"):
+        if stale.stem[1:].isdigit():
+            stale.unlink()
     for row in board:
         track = row["label"][0]
         family = row["name"].split("~")[0].split("^")[0]
@@ -72,13 +81,22 @@ def main() -> int:
             source = rebuild(row["name"], book, site, buildable, axis,
                              max(base, asked * site.floor_height_m),
                              schedule=korea_schedule if track == "K" else None)
+        # A tile that cannot be rebuilt is kept from the cache BY SCHEME NAME,
+        # never by label: labels are reassigned at every curation, and keeping
+        # `K8.png` from the previous bake once put another scheme's drawing
+        # under ring_on_air's seat (two K seats rendered pixel-identical).
+        cache = BOARD / "by-name"
+        cache.mkdir(exist_ok=True)
+        safe = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in row["name"])[:150]
+        cached = cache / f"{safe}.png"
         if source is None:
-            existing = BOARD / f"{row['label']}.png"
-            if existing.exists():
+            if cached.exists():
                 kept += 1
-                per_track[track].append((row["label"], None, existing))
+                shutil.copyfile(cached, BOARD / f"{row['label']}.png")
+                per_track[track].append((row["label"], None, BOARD / f"{row['label']}.png"))
                 continue
             print(f"missing and unbakeable: {row['label']} {row['name']}")
+            unbakeable.append(row["name"])
             continue
         baked += 1
         meta = {"": f"{row['score']:.2f}" if row.get("score") is not None else "전형"}
@@ -86,7 +104,14 @@ def main() -> int:
                       BOARD / f"{row['label']}.png",
                       site_ring=list(buildable.exterior.coords),
                       columns=1, tile=TILE, style="massing")
+        shutil.copyfile(BOARD / f"{row['label']}.png", cached)
         per_track[track].append((row["label"], source, None))
+
+    # Seats the current engine cannot rebuild are ledger ghosts (judged on
+    # an engine that no longer makes that variant). Recorded here; the
+    # curator reads the file and leaves them out of the next board.
+    (BOARD / "unbakeable.json").write_text(
+        json.dumps(unbakeable, ensure_ascii=False, indent=1), encoding="utf-8")
 
     from PIL import Image
     for track in ("K", "O", "C"):

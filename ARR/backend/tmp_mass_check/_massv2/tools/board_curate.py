@@ -155,6 +155,15 @@ def main() -> int:
                 "pass": passed, "round": rel.split("/")[1],
             }
     passers = [item for item in ledger.values() if item["pass"]]
+    # Ledger ghosts: seats the last bake could not rebuild (board_render
+    # writes the list). They were judged on an engine that no longer makes
+    # that variant; they do not get a seat until they rebuild again.
+    ghosts_path = ROOT / "runs" / "board" / "unbakeable.json"
+    if ghosts_path.exists():
+        ghosts = set(json.loads(ghosts_path.read_text(encoding="utf-8")))
+        if ghosts:
+            print(f"unbakeable on the last bake, left out: {sorted(ghosts)}")
+            passers = [item for item in passers if item["name"] not in ghosts]
 
     def key_of(item):
         family = item["name"].split("~")[0].split("^")[0]

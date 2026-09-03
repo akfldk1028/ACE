@@ -369,7 +369,7 @@ def _slope_fields(volume, low: float, high: float, drop: float):
     return (drop * (high - low), ux, uy, min(values), max(values))
 
 
-def _faces(polygon, low: float, high: float, slope=None):
+def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = False):
     """Walls for every ring, then the roof drawn as a ring with its holes.
 
     Drawing only the exterior ring made every courtyard scheme render as a solid
@@ -392,7 +392,7 @@ def _faces(polygon, low: float, high: float, slope=None):
     yield from _walls(outer, low, high, slope)
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
-        if len(court) >= 3:
+        if len(court) >= 3 and not pit_walls:
             if folds:
                 court = _ridge_points(court, slope)
             yield from _walls(court, low, high, slope)
@@ -463,6 +463,11 @@ def _faces(polygon, low: float, high: float, slope=None):
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
             yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in court], _PAL.court, True
+            if pit_walls:
+                # A pit in the earth: its walls are drawn AFTER the ground
+                # face so the far walls show inside the hole and the court
+                # reads as sunken, not as a flat mark on the ground.
+                yield from _walls(court, low, high, slope)
 
 
 def render_masses(
@@ -815,7 +820,6 @@ def _render_one(
                          item[0],
                          _depth(item[2].centroid.x, item[2].centroid.y),
                      ))
-    below: list = []
     above: list = []
     pit_parts: list = []
     for low_fraction, high_fraction, footprint, tilted in ordered:
@@ -823,36 +827,33 @@ def _render_one(
         high = high_fraction * height
         slope = _slope_of(tilted, low, high) if tilted is not None else None
         if datum > 1e-6 and low < datum - 1e-6:
+            # Below the ground the volume is inside the earth: its walls are
+            # the pit's walls, drawn with the earth block below. Only the
+            # part above the datum is drawn as building.
             pit_parts.append(footprint)
-            # Split at the datum: the part below is drawn under the ground
-            # plate, the part above over it.
-            below.extend(_faces(footprint, low, min(high, datum), None))
             if high > datum + 1e-6:
                 above.extend(_faces(footprint, datum, high, slope))
             continue
         above.extend(_faces(footprint, low, high, slope))
-    polygons.extend(below)
     if site_ring:
-        from shapely.geometry import Polygon as _Poly
-        from shapely.ops import unary_union as _union
-        plate = _Poly(site_ring)
-        if pit_parts:
-            plate = plate.difference(_union(pit_parts).buffer(0.0))
-        pieces = list(plate.geoms) if hasattr(plate, "geoms") else [plate]
-        for piece in pieces:
-            if piece.is_empty or piece.geom_type != "Polygon":
-                continue
-            if piece.interiors:
-                # PIL cannot paint a hole: paint the ring, then the holes in
-                # the pit's own tone - the open ground the court looks into.
-                polygons.append(([_project(x, y, datum) for x, y in piece.exterior.coords[:-1]],
-                                 _PAL.site, True))
-                for hole in piece.interiors:
-                    polygons.append(([_project(x, y, datum) for x, y in hole.coords[:-1]],
-                                     _PAL.court, True))
-            else:
-                polygons.append(([_project(x, y, datum) for x, y in piece.exterior.coords[:-1]],
-                                 _PAL.site, True))
+        if datum > 1e-6:
+            # The ground is a block, not a sheet: an opaque earth mass from
+            # the lowest base up to the datum, with the pit as a hole in it -
+            # `_faces` draws walls for holes (inward-facing) and paints the
+            # hole in the court tone, which is exactly a sunken court.
+            from shapely.geometry import Polygon as _Poly
+            from shapely.ops import unary_union as _union
+            earth = _Poly(site_ring)
+            if pit_parts:
+                earth = earth.difference(_union(pit_parts).buffer(0.0))
+            pieces = list(earth.geoms) if hasattr(earth, "geoms") else [earth]
+            for piece in pieces:
+                if piece.is_empty or piece.geom_type != "Polygon":
+                    continue
+                for shape, colour, seam in _faces(piece, 0.0, datum, None, pit_walls=True):
+                    polygons.append((shape, _PAL.site if colour == _PAL.roof else colour, seam))
+        else:
+            polygons.append(([_project(x, y, 0.0) for x, y in site_ring], _PAL.site, True))
     polygons.extend(above)
 
     flat = [point for shape, _colour, _seam in polygons for point in shape]

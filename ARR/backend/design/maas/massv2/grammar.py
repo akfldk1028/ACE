@@ -171,6 +171,7 @@ PLOT_MODES: dict[str, PlotMode] = {
     "rotate": "impose",
     "skew": "inherit",
     "shift": "inherit",
+    "sink": "inherit",
     "offset": "inherit",
     "expand": "inherit",
     "compress": "inherit",

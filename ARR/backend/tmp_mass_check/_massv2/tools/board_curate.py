@@ -110,7 +110,18 @@ def corpus() -> dict:
     # but their sentences must still resolve once staged or juried.
     paths = sorted((ROOT / "inputs").glob("gen-*.json")) +         sorted((ROOT / "runs" / "sweeps").glob("*.json"))
     for path in paths:
-        for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
+        # A book the agent is mid-edit (or a probe someone half-wrote) must
+        # not take every tool down with it: warn and skip, the way the
+        # validator would refuse it.
+        try:
+            schemes = json.loads(path.read_text(encoding="utf-8"))["schemes"]
+            if not all(isinstance(item, dict) and item.get("name") for item in schemes):
+                raise ValueError("schemes must be records with names")
+        except Exception as exc:  # noqa: BLE001
+            import sys as _sys
+            print(f"corpus: skipping {path.name} ({type(exc).__name__}: {exc})", file=_sys.stderr)
+            continue
+        for scheme in schemes:
             book[scheme["name"]] = scheme
     # Book-stack masses (book_language pipeline) staged through
     # book_import: each is its own family in its own layer - a 70-principle

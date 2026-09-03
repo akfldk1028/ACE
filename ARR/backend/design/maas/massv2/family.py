@@ -32,6 +32,7 @@ FAMILY_OF_VERB = {
     "taper": "banding", "bend": "banding", "pinch": "banding",
     "canopy": "plate",
     "roof": "plate",
+    "sink": "ground",
     "lift": "piloti",
     "branch": "field", "embed": "relational",
 }

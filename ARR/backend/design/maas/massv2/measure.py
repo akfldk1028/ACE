@@ -146,6 +146,11 @@ def gross_floor_area_m2(source: SourceMass, *, floor_height_m: float) -> float:
     """
 
     height = float(source.metadata.get("authored_height_m") or 0.0)
+    # 지하층 is left out of 용적률 (건축법 시행령 제119조: 용적률 산정 시 지하층
+    # 면적 제외). A band is a basement when its midpoint lies below the
+    # parcel's ground, which the compiler stamps as `datum_m` above the
+    # mass's own base.
+    datum = float(source.metadata.get("datum_m") or 0.0)
     return sum(
         float(volume.footprint.area)
         * storeys_in(
@@ -153,6 +158,7 @@ def gross_floor_area_m2(source: SourceMass, *, floor_height_m: float) -> float:
             floor_height_m=floor_height_m,
         )
         for volume in source.volumes
+        if (float(volume.top_fraction) + float(volume.bottom_fraction)) / 2.0 * height >= datum
     )
 
 

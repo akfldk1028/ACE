@@ -549,6 +549,11 @@ def compile_matrix_form(
         metadata=_metadata(
             form, height_m=height, band_count=len(volumes),
             structural_bands=tuple(structural),
+            # The parcel's ground is z = 0; a mass whose lowest base is
+            # below it carries how far. Fractions stay measured from the
+            # base (every consumer assumes that); the datum says where the
+            # ground crosses them.
+            datum_m=max(0.0, -ground),
         ),
     )
 
@@ -605,6 +610,7 @@ def _metadata(
     height_m: float,
     band_count: int,
     structural_bands: tuple[int, ...] = (),
+    datum_m: float = 0.0,
 ) -> dict[str, Any]:
     """The fields `SourceMass.signature()` turns into `source_signature`.
 
@@ -621,6 +627,7 @@ def _metadata(
         "dominant_gesture": form.dominant_gesture,
         "reference_basis": form.reference_basis,
         "authored_height_m": round(height_m, 3),
+        "datum_m": round(float(datum_m), 3),
         "authored_floor_height_m": form.floor_height_m,
         "matrix_form": form.evidence(),
         "massing_genome": {

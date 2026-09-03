@@ -119,9 +119,14 @@ def projected_ground_area(form: MatrixForm, *, allowed_at=None) -> float:
         source = compile_matrix_form(form, allowed_at=allowed_at)
         if source is None:
             return 0.0
-        plans = [volume.footprint for volume in source.volumes]
+        # A basement larger than the building above it is not 건축면적:
+        # the projection is of what stands above the parcel's ground.
+        height = float(source.metadata.get("authored_height_m") or 0.0)
+        datum = float(source.metadata.get("datum_m") or 0.0)
+        plans = [volume.footprint for volume in source.volumes
+                 if float(volume.top_fraction) * height > datum + 1e-6]
     else:
-        plans = [_plan(item) for item in form.additive()]
+        plans = [_plan(item) for item in form.additive() if item.z_span()[1] > 1e-6]
     plans = [item for item in plans if not item.is_empty and item.area > 0.0]
     if not plans:
         return 0.0

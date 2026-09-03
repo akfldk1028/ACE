@@ -195,6 +195,16 @@ AFFINE_VERBS: dict[str, Callable] = {
     # a shift displaces a volume against its neighbours, an offset steps a whole
     # outline out - but both are one translation, and the difference is which
     # volumes the sentence aims at.
+    # Into the ground. The parcel's ground is z = 0 and every opener was
+    # born on it; a sunken court, a half-buried bar, a plinth cut into the
+    # slope were unsayable - and nineteen of forty competition winners make
+    # their parti there. `depth` is a share of the picked set's own height,
+    # like every other move here. The compiler reads the lowest base as the
+    # datum's depth, 용적률 leaves the buried floors out, 건축면적 counts only
+    # what stands above ground, and the drawing opens a pit.
+    "sink": _verb("translate", lambda p, span: {
+        "vector": (0.0, 0.0, -_clamp(float(p.get("depth", 0.3)), 0.1, 0.6) * span[2]),
+    }),
     "shift": _verb("translate", lambda p, span: {
         "vector": tuple(
             axis * _clamp(float(p.get("ratio", 0.25)), _MIN_MOVE, _MAX_MOVE)

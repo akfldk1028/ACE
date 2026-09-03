@@ -76,6 +76,12 @@ class Composition:
     explained: int
     dominance: float
     datums: int
+    # How many times the leading body changes plan as it rises: a plinth with
+    # a tower on it, a body that sets back twice. Vertical composition is the
+    # other half of part-to-whole and this reading cannot see it as parts -
+    # a tower standing on its own base is one column, one body. Recorded so
+    # the number is at least visible while the axis stays planimetric.
+    tiers: int = 1
     # The section relation the plan reading cannot see: the leading body
     # stands off the ground on structure. Pilotis is the oldest of these and
     # the one this project is asked for most often, and to a part-to-whole
@@ -103,13 +109,23 @@ class Composition:
 
     @property
     def is_composed(self) -> bool:
-        """A reading, not a verdict: most parts on few lines, one part leading."""
+        """A reading, not a verdict: the parts are ordered, one way or another.
+
+        Ching lists hierarchy and datum as SEPARATE ordering principles, and
+        demanding both refused compositions that are ordered by the second
+        alone: four equal pavilions on one alignment line - Moriyama, Inujima,
+        a terrace of houses - scored 4.0 parts per line and were called
+        uncomposed for having no leader. Either a part leads, or few lines
+        explain many parts strongly enough that the order is the datum.
+        """
 
         if self.parts <= 1:
             return True
-        return (self.explained_share >= 0.75
-                and self.economy >= 1.75
-                and self.dominance >= PRIMARY_SHARE)
+        if self.explained_share < 0.75:
+            return False
+        led = self.dominance >= PRIMARY_SHARE and self.economy >= 1.75
+        ordered_by_datum = self.economy >= 3.0
+        return led or ordered_by_datum
 
     def to_dict(self) -> dict:
         return {
@@ -121,6 +137,7 @@ class Composition:
             "economy": round(self.economy, 2),
             "dominance": round(self.dominance, 3),
             "datums": self.datums,
+            "tiers": self.tiers,
             "lifted": self.lifted,
             "composed": self.is_composed,
         }
@@ -321,11 +338,23 @@ def read(source: SourceMass) -> Composition:
                 if index < len(source.volumes))
     )
 
+    # Tiers of the leading body: how many times its plan changes as it rises,
+    # counted as bands whose area differs from the one below by more than a
+    # tenth. A base and a tower is two; a plain prism is one.
+    tiers = 1
+    ordered_lead = sorted(lead, key=lambda volume: float(volume.bottom_fraction))
+    for lower, upper in zip(ordered_lead, ordered_lead[1:]):
+        low_area = float(lower.footprint.area)
+        high_area = float(upper.footprint.area)
+        if low_area > 1e-6 and abs(high_area - low_area) / low_area > 0.1:
+            tiers += 1
+
     return Composition(
         parts=len(bodies),
         elements=elements,
         explained=len(covered),
         dominance=dominance,
         datums=datums,
+        tiers=tiers,
         lifted=lifted,
     )

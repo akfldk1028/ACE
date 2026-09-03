@@ -1107,6 +1107,15 @@ class Command(BaseCommand):
                     "crushed": True,
                     "over": over,
                 }
+            elif not parti_kept:
+                # Held exactly the way declared stature and a declared gap
+                # are: a scheme authored as a body with subordinates and
+                # delivered as one mass is a different building wearing the
+                # sentence's name. Counted and recorded, and not offered as
+                # that sentence. The reading was made stable first - two
+                # bodies need space between them, not a joint - because a
+                # gate on a flickering measurement retires good work.
+                pass
             elif fit.satisfied:
                 # An unlawful mass was being counted and then offered anyway.
                 # `central_beheer_islands` came out at 1.17 of the 건폐율 cap
@@ -1115,7 +1124,15 @@ class Command(BaseCommand):
                 # satisfy is not a low-scoring option, it is not an option -
                 # the same argument `plausibility` makes about standing up.
                 pool.append(Candidate(
-                    form=fit.form, source=source, measurement=measurement,
+                    # The composition reading rides on the candidate's own
+                    # form, so the selector's objective reads it once here
+                    # rather than recomputing it per comparison.
+                    form=fit.form.__class__(**{
+                        **fit.form.__dict__,
+                        "extra": {**dict(fit.form.extra),
+                                  "composition": composition_read.to_dict()},
+                    }),
+                    source=source, measurement=measurement,
                     plausibility=standing, cell=cell, ground_take=take,
                     far_utilization=far_use,
                 ))

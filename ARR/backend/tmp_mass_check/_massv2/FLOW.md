@@ -42,6 +42,24 @@ bash skills/mass-cycle/scripts/cycle.sh <라운드명> --from=8   # 중간부터
 
 하나라도 빠지면 그 라운드는 반쪽이다.
 
+## BOOK 저작은 서브에이전트가 한다
+
+`--author-mode llm`은 OpenAI를 직접 부르고 그 계정은 크레딧이 없다. 정본은
+**`--author-mode payload`**이고, **저자는 Claude 서브에이전트(또는 MassAgent)**다.
+저자가 읽어야 할 계약은 `geometry_language/llm_adapter.py`의
+GEOMETRY_AUTHOR_PROMPT_CONTRACT · BASE_SEED_SPECS · BASE_FORM_SPECS ·
+AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_payload`
+(페이로드 형식과 검증), 그리고 아핀 권위 규칙(유닛 박스 기저 사슬 위 matrix4 하나).
+
+`recipe_fixture`는 회귀·데모용 결정론 소스다. 그걸로 돌리면 십자·L·중정 같은
+일반형만 나온다.
+
+## 전후는 시대로 가른다
+
+큰 수정 뒤에는 `python tools/board_curate.py --new-era "<BEFORE/AFTER 설명>"`.
+이전 판은 `runs/board-archive-<타임스탬프>`에 통째로 남고, 새 보드에는 시대
+이후에 채점된 라운드만 앉는다. 비교는 그 둘을 나란히 놓고 한다.
+
 ## BOOK은 이 필지로 온다
 
 책은 **비례**를 주고 필지는 **크기**를 준다. 균일 배율(용적률 목표의 세제곱근,

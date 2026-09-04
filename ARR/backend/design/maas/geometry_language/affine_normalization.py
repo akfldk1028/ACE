@@ -242,12 +242,19 @@ def _validate_affine_authority(program: GeometryProgram) -> None:
     ):
         raise ValueError("affine shorthand remains after normalization")
     matrices = [node for node in program.nodes if node.operator == "matrix4"]
-    if (
-        len(matrices) != 1
-        or not _matrix_follows_unitbox_base_form_chain(
-            program, unitbox.id, matrices[0]
-        )
-    ):
+    # Exactly one matrix carries the BASE VOLUME's pose - that is the
+    # authority this rule defends. Others may exist: an affine verb spoken
+    # later in the sentence (BOOK's `skew` projects to `shear`, which lowers
+    # to a matrix) is a modelling operation on a body that is already posed,
+    # not a second claim about where the unit box sits. Demanding exactly one
+    # matrix in the whole program conflated the two and refused every BOOK
+    # sentence built on skew - one of the thirty base operatives - which is
+    # why the exploration pipeline could not start.
+    on_the_base_chain = [
+        node for node in matrices
+        if _matrix_follows_unitbox_base_form_chain(program, unitbox.id, node)
+    ]
+    if len(on_the_base_chain) != 1:
         raise ValueError("canonical UnitBox lacks an explicit BaseVolume Matrix4")
 
 

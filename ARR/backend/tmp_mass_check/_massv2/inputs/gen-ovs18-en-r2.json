@@ -1,0 +1,71 @@
+{
+ "schemes": [
+  {
+   "name": "twin_gabled_bars_share_a_wide_lane",
+   "primary_language": "solid_body",
+   "secondary_language": "two parallel five-storey bars with a lane a room wide between them, each bar under its own 45-degree ridge - r2 of twin_gabled_bars_share_a_lane, the lane opened to 6.8 m so growth cannot close it",
+   "formal_principle": "The parcel is deep and one deep bar goes dark, so the program becomes two bars with a lane between; each bar is house-deep and carries a real ridge, and the lane between the two roofs is the building's street - declared wide enough to survive the growth that closed it the first time.",
+   "dominant_gesture": "two tall gabled bars and a lane",
+   "reference_basis": "authored new work (r2)",
+   "floor_height_m": 3.4,
+   "ops": [
+    {"op": "extrude", "profile": "square", "height": 0.8, "storeys": 5, "why": "Input: five storeys of program on a deep parcel. Limit: height 0.8 declares tall; as born the bar is one deep dark body."},
+    {"op": "split", "ratio": 0.5, "along": "long", "first": "east_bar", "second": "west_bar", "gap": 9, "contrast": 1.2, "why": "Input: the deep bar goes dark, so it becomes two. r1 declared a 3.8 m lane and the growth loop widened both bars until it closed to 0.0 m; the lane is now declared at 6.8 m, a real street between two roofs. Limit: gap 9 is the widest joint the grammar names before the parts leave the site."},
+    {"op": "gable", "pitch": 1.0, "along": "long", "why": "Input: each bar is now house-deep and takes a full ridge. Limit: pitch 1.0 lands inside the roof cap on bars half the parcel deep; two ridges, one lane."}
+   ]
+  },
+  {
+   "name": "mansard_bar_holds_the_street_r2",
+   "primary_language": "solid_body",
+   "secondary_language": "one four-storey street bar, split into two parallel bars with a narrow court between, both bars wearing a steep mansard - the eave at three storeys, the roof inhabited",
+   "formal_principle": "The street wall must hold a three-storey eave while the program wants four floors, so the fourth moves into the roof; r1 cut the bar with a 0.4 m joint that growth closed, so the joint is now a real court the two mansards face across.",
+   "dominant_gesture": "two mansarded bars facing a court",
+   "reference_basis": "authored new work (r2)",
+   "floor_height_m": 3.4,
+   "ops": [
+    {"op": "extrude", "profile": "square", "height": 0.6, "storeys": 4, "why": "Input: a street bar of four floors. Limit: height 0.6 declares mid."},
+    {"op": "split", "ratio": 0.5, "along": "long", "first": "front", "second": "back", "gap": 7, "contrast": 1.2, "why": "Input: a bar the full parcel deep is too wide for a mansard to read; two house-deep bars, and between them a court rather than a joint. Limit: gap 7 is 5.3 m - a court, so growth has something to keep open."},
+    {"op": "mansard", "pitch": 1.0, "shoulder": 0.3, "why": "Input: the eave stays at three storeys; the fourth lives in the roof of both bars. Limit: shoulder 0.3 gives a real attic; the roof is a storey and a half at most."}
+   ]
+  },
+  {
+   "name": "vault_crowns_a_stepped_stack_r2",
+   "primary_language": "solid_body",
+   "secondary_language": "two stacked tiers stepping back from the street, the top tier under one barrel vault - r2 of a three-tier stack that was crushed whole",
+   "formal_principle": "Daylight to the neighbour asks the mass to step back as it rises, and the top of a stepped stack wants a figure rather than a flat; r1 declared two storeys per tier over three tiers and every variant was retired short of its declaration, so the stack is two tiers of three storeys, the vault crowning the upper.",
+   "dominant_gesture": "a terrace climbing to a vault",
+   "reference_basis": "authored new work (r2)",
+   "floor_height_m": 3.4,
+   "ops": [
+    {"op": "stack", "n": 2, "contrast": 1.4, "align": "back", "height": 0.65, "storeys": 3, "why": "Input: the daylight envelope wants a setback as the mass rises. Two tiers aligned back so the terrace faces the street. Limit: height 0.65 declares mid; storeys 3 per tier."},
+    {"op": "vault", "rise": 0.9, "along": "long", "why": "Input: the top tier is the one room nothing stands on; it takes the vault. Limit: rise 0.9 on the narrower top tier stays inside the cap."}
+   ]
+  },
+  {
+   "name": "court_ring_steps_toward_the_street_r2",
+   "primary_language": "open_figure",
+   "secondary_language": "a four-storey court ring whose bars step down toward the street in two broad terraces - tall at the back, low at the front",
+   "formal_principle": "A court ring of one height walls the street; graded toward it, the ring keeps its court and drops its street bar to a garden wall. r1 asked for four steps across a narrow ring and the last treads came out as slivers; two steps give each tread a room's depth.",
+   "dominant_gesture": "a court ring graded to the street",
+   "reference_basis": "authored new work (r2)",
+   "floor_height_m": 3.4,
+   "ops": [
+    {"op": "loop", "bar": 0.26, "height": 0.6, "storeys": 4, "why": "Input: rooms around a court. Limit: height 0.6 declares mid; bar 0.26 keeps each tread room-deep after the grade."},
+    {"op": "grade", "steps": 2, "run": 0.6, "toward": "long", "why": "Input: the street should see into the court, not a four-storey wall. Two broad steps down toward the open side. Limit: run 0.6 keeps the treads wider than a room - four steps left slivers the crumb gate refused."}
+   ]
+  },
+  {
+   "name": "low_hall_under_a_thin_canopy_r2",
+   "primary_language": "solid_body",
+   "secondary_language": "a low two-storey hall with a roof-thin canopy reaching a short way toward the street - the building's plate extended past its glass line as a porch",
+   "formal_principle": "The street front wants shelter before it wants a wall, so the hall's roof keeps going as a thin plate; r1 reached 0.4 of the hall's depth and every variant failed the cantilever rule, so the porch is now a plate a room deep, held within what a slab can carry.",
+   "dominant_gesture": "a low hall under an outreaching plate",
+   "reference_basis": "authored new work (r2)",
+   "floor_height_m": 3.4,
+   "ops": [
+    {"op": "extrude", "profile": "square", "height": 0.3, "storeys": 2, "why": "Input: a low hall. Limit: height 0.3 declares low."},
+    {"op": "canopy", "reach": 0.15, "thin": 0.12, "toward": "long", "why": "Input: shelter before wall at the street. Limit: reach 0.15 of the hall's depth is a porch a slab carries; thin 0.12 is roof-thick, not a storey - r1's 0.4 reach failed the cantilever rule on 20 of 22 variants."}
+   ]
+  }
+ ]
+}

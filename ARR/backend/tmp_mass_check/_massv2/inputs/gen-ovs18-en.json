@@ -1,0 +1,622 @@
+{
+ "schemes": [
+  {
+   "name": "sawtooth_hall_stands_tall",
+   "primary_language": "solid_body",
+   "secondary_language": "one tall bar, six storeys, its top cut into three parallel gabled bays - a sawtooth crown read from the street as three ridges in a row",
+   "formal_principle": "The north neighbour's daylight envelope allows height only along the street edge, so the program stacks into one tall bar there; a single ridge across a bar this wide would be a tent, so the roof breaks into three bays - each bay a house-sized ridge, the crown reading as a row of houses carried six storeys up.",
+   "dominant_gesture": "a tall bar wearing three ridges",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.9,
+     "storeys": 6,
+     "why": "Input: the daylight envelope leaves height only at the street edge, and the program wants six storeys - so one bar takes them all. Limit: height 0.9 with storeys 6 declares tall; the bar is one plain body and the next word gives it a top."
+    },
+    {
+     "op": "gable",
+     "pitch": 1.0,
+     "bays": 3,
+     "along": "long",
+     "why": "Input: a 45-degree ridge over a body this wide would eat two storeys, so the roof splits across the long axis into three bays, each with its own ridge at a run a house would have. Limit: pitch 1.0 is the honest 45 degrees; three bays keep each run under the 1.5-storey roof cap so the silhouette shows three real ridges, not one shallow parapet."
+    }
+   ]
+  },
+  {
+   "name": "gabled_ring_around_a_court",
+   "primary_language": "open_figure",
+   "secondary_language": "four four-storey bars ringing a court, every bar under its own 45-degree ridge - a village street wrapped into a square",
+   "formal_principle": "The FAR wants the parcel filled deep and a deep plate goes dark, so the rooms gather as four bars around a court; each bar is narrow enough to carry a real pitched roof, so the ring reads from outside as four gabled houses joined at the corners and from the court as one continuous eave.",
+   "dominant_gesture": "a court ring of gabled houses",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.6,
+     "storeys": 4,
+     "why": "Input: depth kills daylight, so the mass rings a court and every room gets two fronts. Limit: bar 0.22 keeps each bar narrow enough for a pitched roof to be a roof; height 0.6 with storeys 4 declares mid."
+    },
+    {
+     "op": "gable",
+     "pitch": 1.0,
+     "along": "long",
+     "why": "Input: a flat-topped ring is a block with a hole; the four narrow bars are exactly the bodies a 45-degree ridge belongs to. Limit: pitch 1.0 on a bar 0.22 of the parcel wide lands inside the roof cap, so all four ridges draw fully and meet at the corners."
+    }
+   ]
+  },
+  {
+   "name": "houses_bear_on_a_plinth",
+   "primary_language": "solid_body",
+   "secondary_language": "a two-storey plinth the full parcel wide, and on it a smaller two-storey house under one steep ridge - the roof only where the house is",
+   "formal_principle": "The street asks for a continuous low wall while the program has one tall room it wants to show, so the wall becomes a plinth and the room a house set back on top: the ridge belongs to the house alone, the plinth stays flat and public, and the section reads as ground floor city, upper floor home.",
+   "dominant_gesture": "a house set back on a plinth",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 2.2,
+     "align": "back",
+     "height": 0.6,
+     "storeys": 2,
+     "why": "Input: the street edge wants a continuous low wall and the program has one room it wants to lift above it. Stack two tiers with contrast 2.2 so the upper is a house on a plinth, aligned back so the plinth's street face stays whole. Limit: storeys 2 sizes each tier as a two-storey unit."
+    },
+    {
+     "op": "gable",
+     "pitch": 1.0,
+     "along": "long",
+     "why": "Input: the house on top wants a roof and the plinth does not - a roof over the plinth would make the street wall a barn. The ridge lands only on the tier nothing stands on. Limit: 45 degrees on the narrow upper tier stays inside the cap and reads as a house."
+    }
+   ]
+  },
+  {
+   "name": "tall_house_row_on_a_plinth",
+   "primary_language": "solid_body",
+   "secondary_language": "a plinth and a tall four-storey block above it under a row of three ridges - the upper block a terrace of houses in the sky",
+   "formal_principle": "Density asks for height at the back of the parcel while the front must stay low, so a three-storey base carries a taller block set back from the street, and the tall block is roofed as three gabled bays so its bulk reads as a row of houses rather than one slab.",
+   "dominant_gesture": "a terrace of houses lifted on a base",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.4,
+     "align": "back",
+     "height": 0.95,
+     "storeys": 4,
+     "why": "Input: height belongs at the back, away from the street's low neighbours. Two tiers, the upper set back, contrast 1.4 so the upper block is still a full building. Limit: height 0.95 with storeys 4 per tier declares tall."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.9,
+     "bays": 3,
+     "along": "long",
+     "why": "Input: the upper block is wide; one ridge would be shallow, three bays give it three real ridges. Limit: bays 3 keeps each run under the roof cap; the roof lands only on the top tier."
+    }
+   ]
+  },
+  {
+   "name": "five_tall_houses_in_a_field",
+   "primary_language": "porous_field",
+   "secondary_language": "five narrow four-storey houses standing apart on the parcel, each under its own 45-degree ridge, the ground between them one shared yard",
+   "formal_principle": "The program is five separate tenancies and the parcel has no dominant edge, so the building is five tall houses standing apart in a field: each house is its own address with its own ridge, and the space between them is the building's real room - a yard passing under no roof at all.",
+   "dominant_gesture": "a field of tall gabled houses",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.8,
+     "height": 0.8,
+     "tie": 0,
+     "unit": "house",
+     "storeys": 4,
+     "why": "Input: five tenancies, no dominant edge - five houses standing apart. Spread 1.8 keeps yard between them; tie 0 refuses a binding plate; unit house gives each a house section by birth. Limit: height 0.8 with storeys 4 declares tall houses, and the field's openness is the composition."
+    }
+   ]
+  },
+  {
+   "name": "houses_stacked_on_houses",
+   "primary_language": "solid_body",
+   "secondary_language": "six two-storey houses stacked two levels high, each house turned a little, ridge on ridge - a VitraHaus pile at mid height",
+   "formal_principle": "The program is house-sized rooms and the ground is scarce, so houses stack: two levels of three houses each, every house its own gabled section and its own small turn, the pile reading as a village stacked rather than a block roofed.",
+   "dominant_gesture": "a pile of houses",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.3,
+     "height": 0.55,
+     "tie": 0,
+     "method": "stack",
+     "unit": "house",
+     "levels": 2,
+     "turn": 12,
+     "storeys": 2,
+     "why": "Input: house rooms, scarce ground - the houses stack in two levels of three, each with the house section by birth and turned 12 degrees so ridges cross. Limit: height 0.55 declares mid; storeys 2 is the unit, not the pile."
+    }
+   ]
+  },
+  {
+   "name": "tall_bar_walks_on_legs",
+   "primary_language": "solid_body",
+   "secondary_language": "one tall six-storey bar lifted clear of the ground on legs, the whole parcel floor passing beneath it",
+   "formal_principle": "The parcel is a crossing between the street and the open ground behind, and a tall bar at grade would wall it; so the bar rises on legs, its six storeys held in the air, and the ground stays one continuous public floor under the building's shadow.",
+   "dominant_gesture": "a tall bar in the air",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.95,
+     "storeys": 6,
+     "why": "Input: the program wants six storeys and the daylight envelope permits them along the street. Limit: height 0.95 with storeys 6 declares tall; as born the bar walls the crossing."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.35,
+     "why": "Input: the ground is a through-route and the bar is a gate. Lift the whole bar on legs so the crossing passes under it. Limit: clearance 0.35 is a full storey of open ground, the legs slender, the bar carrying itself."
+    }
+   ]
+  },
+  {
+   "name": "low_ring_lifted_off_the_yard",
+   "primary_language": "open_figure",
+   "secondary_language": "a one-storey court ring lifted on short legs, the yard flowing under the ring and out to the street",
+   "formal_principle": "A low pavilion ring wants a court but the yard wants to be one piece of ground, so the ring lifts just enough for the yard to pass under it: a single storey of rooms floating over a continuous garden, the court and the outside one surface.",
+   "dominant_gesture": "a floating pavilion ring",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.24,
+     "height": 0.25,
+     "storeys": 1,
+     "why": "Input: a pavilion program around a garden. Limit: height 0.25 with storeys 1 declares low; bar 0.24 keeps the ring narrow."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "why": "Input: the yard and the court want to be one ground. Lift the ring so the garden passes under. Limit: clearance 0.3 keeps the ring close to the ground - a floating pavilion, not a bridge."
+    }
+   ]
+  },
+  {
+   "name": "tall_ring_over_an_open_ground",
+   "primary_language": "open_figure",
+   "secondary_language": "a six-storey court ring standing on legs, the court open to the sky above and the ground open to the street below",
+   "formal_principle": "Height and a court both want the parcel and the ground wants to stay public, so the ring goes tall and lifts: six storeys of two-fronted rooms frame a rectangle of sky, and beneath the whole ring the parcel is one shaded public floor.",
+   "dominant_gesture": "a tall court ring in the air",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.95,
+     "storeys": 6,
+     "why": "Input: density and daylight - a tall ring of narrow bars. Limit: height 0.95 with storeys 6 declares tall; bar 0.22 keeps each bar slender enough to stand on legs."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "why": "Input: the ground is a crossing. Lift the ring whole. Limit: clearance 0.3, one open storey under six."
+    }
+   ]
+  },
+  {
+   "name": "upper_tier_lifted_off_the_base",
+   "primary_language": "solid_body",
+   "secondary_language": "a two-storey base with a set-back upper block that floats above it on legs - a gap of air between base and block",
+   "formal_principle": "The base is public and the block above is private, and the section wants that difference shown: the upper block lifts off the base on legs so a band of open air separates the two lives, and the base roof becomes a terrace under the floating block.",
+   "dominant_gesture": "a block floating over its base",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.6,
+     "align": "back",
+     "height": 0.6,
+     "storeys": 2,
+     "why": "Input: a public base and a private block. Two tiers, the block set back. Limit: height 0.6 declares mid; storeys 2 per tier."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "on": "tier_1",
+     "why": "Input: the section wants the two lives separated by air, not a floor slab. Lift only the upper tier so legs stand on the base roof. Limit: clearance 0.3 is a visible band of sky."
+    }
+   ]
+  },
+  {
+   "name": "houses_in_the_air",
+   "primary_language": "porous_field",
+   "secondary_language": "four two-storey houses standing apart, all lifted on legs, the ground beneath the whole field one open garden",
+   "formal_principle": "The program is four houses and the ground wants to remain a garden, so the houses lift: four gabled units float on legs over one continuous garden, the field of houses above and the field of ground below never touching.",
+   "dominant_gesture": "a village on stilts",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.7,
+     "height": 0.5,
+     "tie": 0,
+     "unit": "house",
+     "storeys": 2,
+     "why": "Input: four houses, one garden. Spread 1.7 keeps them apart; unit house gives each a ridge. Limit: height 0.5 declares mid."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "why": "Input: the garden must pass under every house. Lift the whole field. Limit: clearance 0.3 - the houses hover a storey up."
+    }
+   ]
+  },
+  {
+   "name": "mansard_bar_holds_the_street",
+   "primary_language": "solid_body",
+   "secondary_language": "one four-storey street bar with the top storey inside a steep mansard - the eave at three storeys, the roof inhabited",
+   "formal_principle": "The street wall must hold a three-storey eave while the program wants four floors, so the fourth moves into the roof: a mansard with a steep shoulder and flat crown gives the top floor its rooms without raising the civic eave.",
+   "dominant_gesture": "a street bar wearing its top floor as a roof",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.6,
+     "storeys": 4,
+     "why": "Input: a street bar of four floors. Limit: height 0.6 declares mid."
+    },
+    {
+     "op": "split",
+     "ratio": 0.5,
+     "along": "long",
+     "first": "front",
+     "second": "back",
+     "gap": 0.5,
+     "contrast": 1.2,
+     "why": "Input: a bar the full parcel deep is too wide for a mansard to read; cut it into two bars so each is house-deep. Limit: gap 0.5 is a joint, not a court - the two bars stay one wall."
+    },
+    {
+     "op": "mansard",
+     "pitch": 1.0,
+     "shoulder": 0.3,
+     "why": "Input: the eave must stay at three storeys; the fourth lives in the roof. Limit: shoulder 0.3 gives a real inhabited attic; the roof is a storey and a half at most."
+    }
+   ]
+  },
+  {
+   "name": "vaulted_ring_stands_tall",
+   "primary_language": "open_figure",
+   "secondary_language": "a six-storey court ring crowned by one continuous barrel vault running round all four bars",
+   "formal_principle": "A tall ring needs a top that is not a parapet, and a vault is the one roof that turns a corner without a ridge: the four bars carry one continuous barrel round the court, the ring reading as a single arched cloister stood six storeys high.",
+   "dominant_gesture": "a tall cloister under one vault",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.95,
+     "storeys": 6,
+     "why": "Input: density wants height, daylight wants a court. Limit: height 0.95 with storeys 6 declares tall."
+    },
+    {
+     "op": "vault",
+     "rise": 0.9,
+     "along": "long",
+     "why": "Input: a flat top would make it a block with a hole; a barrel turns the ring's corners as one roof. Limit: rise 0.9 on bars 0.22 wide stays inside the roof cap so the arch draws fully."
+    }
+   ]
+  },
+  {
+   "name": "three_vaults_low_over_a_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "one low two-storey hall under three parallel barrel vaults - a Kimbell rhythm at the parcel's own width",
+   "formal_principle": "A single big hall wants daylight from above and a roof that reads as more than a lid, so the hall is spanned by three vaults side by side: each bay a room-wide barrel, the three ridges of light giving the low building its whole silhouette.",
+   "dominant_gesture": "a low hall under three barrels",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a low hall program. Limit: height 0.3 with storeys 2 declares low."
+    },
+    {
+     "op": "vault",
+     "rise": 1.0,
+     "bays": 3,
+     "along": "long",
+     "why": "Input: a wide low hall needs its roof broken into bays to draw as vaults at all. Limit: three bays put each run under the roof cap; rise 1.0 is a full half-round."
+    }
+   ]
+  },
+  {
+   "name": "vault_crowns_a_stepped_stack",
+   "primary_language": "solid_body",
+   "secondary_language": "three stacked tiers stepping back from the street, the top tier under one barrel vault",
+   "formal_principle": "Daylight to the neighbour asks the mass to step back as it rises, and the top of a stepped stack wants a figure rather than a flat: the last tier carries a barrel vault, so the building reads as terraces climbing to a single arched room.",
+   "dominant_gesture": "terraces climbing to a vault",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.35,
+     "align": "back",
+     "height": 0.65,
+     "storeys": 2,
+     "why": "Input: the daylight envelope wants setbacks as the mass rises. Three tiers aligned back so the terraces face the street. Limit: height 0.65 declares mid; storeys 2 per tier."
+    },
+    {
+     "op": "vault",
+     "rise": 0.9,
+     "along": "long",
+     "why": "Input: the top tier is the one room nothing stands on; it takes the vault. Limit: rise 0.9 on the narrow top tier stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "terraces_step_down_to_the_open",
+   "primary_language": "solid_body",
+   "secondary_language": "one low body whose top steps down in four terraces toward the open side - a hill of rooms",
+   "formal_principle": "The open side has the view and the back has the neighbour's daylight claim, so the roof becomes a stair: four terraces descending toward the open side give every floor an outdoor room and hand the neighbour the sky the envelope asks for.",
+   "dominant_gesture": "a stepped roof falling to the view",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.4,
+     "storeys": 3,
+     "why": "Input: a low deep body. Limit: height 0.4 declares low; storeys 3 is the tallest terrace."
+    },
+    {
+     "op": "grade",
+     "steps": 4,
+     "run": 0.7,
+     "toward": "long",
+     "why": "Input: the view is to the open side and the neighbour's daylight is at the back, so the top steps down toward the open side. Limit: run 0.7 makes the stair take most of the depth; four steps are four terraces."
+    }
+   ]
+  },
+  {
+   "name": "court_ring_steps_toward_the_street",
+   "primary_language": "open_figure",
+   "secondary_language": "a four-storey court ring whose bars step down toward the street - tall at the back, low at the front",
+   "formal_principle": "A court ring of one height walls the street; graded toward it, the ring keeps its court and drops its street bar to a low garden wall, so the court opens to the city as a stepped amphitheatre of rooms.",
+   "dominant_gesture": "a court ring graded to the street",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.24,
+     "height": 0.6,
+     "storeys": 4,
+     "why": "Input: rooms around a court. Limit: height 0.6 declares mid; bar 0.24."
+    },
+    {
+     "op": "grade",
+     "steps": 4,
+     "run": 0.8,
+     "toward": "long",
+     "why": "Input: the street should see into the court, not a four-storey wall. Step the ring down toward the open side. Limit: run 0.8 carries the stair across the whole ring."
+    }
+   ]
+  },
+  {
+   "name": "field_under_butterfly_wings",
+   "primary_language": "porous_field",
+   "secondary_language": "five three-storey pavilions standing apart, each under a V-shaped butterfly roof - valleys catching the rain in the middle of every roof",
+   "formal_principle": "Rain and daylight both want to be collected at the centre of each pavilion, so every roof folds inward as a butterfly: five valleys in a field, each pavilion's two wings lifting its eaves outward to the yard.",
+   "dominant_gesture": "a field of V roofs",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.6,
+     "height": 0.55,
+     "tie": 0,
+     "storeys": 3,
+     "why": "Input: five pavilions in a yard. Limit: height 0.55 declares mid; spread 1.6 keeps yard between."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.8,
+     "at": 0.5,
+     "why": "Input: each pavilion collects rain and light at its centre. Limit: pitch 0.8 keeps the valley inside the cap on pavilions this size."
+    }
+   ]
+  },
+  {
+   "name": "mansard_over_a_stepped_base",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide two-storey base and a narrower block on it, the block wearing a steep mansard - a Parisian corner block at the parcel's scale",
+   "formal_principle": "The base holds the street and the block above holds the height; a mansard on the block gives the upper storey to the roof, so the building's crown is a shoulder rather than a parapet, and the eave of the block stays a floor lower than its rooms.",
+   "dominant_gesture": "a mansarded block on a base",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 1.5,
+     "align": "back",
+     "height": 0.65,
+     "storeys": 3,
+     "why": "Input: base and block. Limit: height 0.65 declares mid; storeys 3 per tier."
+    },
+    {
+     "op": "mansard",
+     "pitch": 1.1,
+     "shoulder": 0.3,
+     "why": "Input: the block's top floor goes into the roof. Lands on the top tier only. Limit: shoulder 0.3, pitch 1.1 steep."
+    }
+   ]
+  },
+  {
+   "name": "folded_plate_ring",
+   "primary_language": "open_figure",
+   "secondary_language": "a four-storey court ring under a roof that folds three times - a concertina of ridges running round the court",
+   "formal_principle": "A court ring wants a roof with rhythm rather than one ridge, so its roof is a folded plate: three folds run round all four bars, the ring reading as a cloister of sawtooth light.",
+   "dominant_gesture": "a court ring under a concertina",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.6,
+     "storeys": 4,
+     "why": "Input: rooms around a court. Limit: height 0.6 declares mid."
+    },
+    {
+     "op": "fold",
+     "folds": 3,
+     "pitch": 0.9,
+     "why": "Input: one ridge round a court is a hat; three folds are a rhythm. Limit: folds 3 keeps the profile under the render's point cap; pitch 0.9 per facet."
+    }
+   ]
+  },
+  {
+   "name": "low_hall_under_a_thin_canopy",
+   "primary_language": "solid_body",
+   "secondary_language": "a low two-storey hall with a roof-thin canopy reaching out toward the street - the building's plate extended past its walls as shade",
+   "formal_principle": "The street front wants shelter before it wants a wall, so the hall's roof keeps going: a thin plate reaches out beyond the glass line as a deep porch, the building read first as its roof and only then as its rooms.",
+   "dominant_gesture": "a low hall under an outreaching plate",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a low hall. Limit: height 0.3 declares low."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.4,
+     "thin": 0.12,
+     "toward": "long",
+     "why": "Input: shelter before wall at the street. A thin plate reaches out toward the open side. Limit: thin 0.12 is roof-thick, not a storey; reach 0.4 is a real porch."
+    }
+   ]
+  },
+  {
+   "name": "stack_carved_for_a_court",
+   "primary_language": "carved_body",
+   "secondary_language": "three stacked tiers stepping back, with one court carved down through the middle of them - a well of light in a stepped block",
+   "formal_principle": "A stepped stack goes dark at its centre as it grows deep, so a court is carved through all three tiers: the setbacks give the neighbour daylight outside, the carved well gives the rooms daylight inside.",
+   "dominant_gesture": "a stepped block with a light well",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.3,
+     "align": "back",
+     "height": 0.6,
+     "storeys": 2,
+     "why": "Input: setbacks for daylight outside. Limit: height 0.6 declares mid; storeys 2 per tier."
+    },
+    {
+     "op": "carve",
+     "size": 0.3,
+     "at": "cross",
+     "reach": 0.5,
+     "why": "Input: the deep middle goes dark; a court carved through the tiers lights it. Limit: size 0.3 is a real court, reach 0.5 keeps it inside the block."
+    }
+   ]
+  },
+  {
+   "name": "twin_gabled_bars_share_a_lane",
+   "primary_language": "solid_body",
+   "secondary_language": "two parallel five-storey bars, a narrow lane between them, each bar under its own 45-degree ridge",
+   "formal_principle": "The parcel is deep and one deep bar goes dark, so the program becomes two bars with a lane between; each bar is house-deep, so each carries a real ridge, and the lane between the two roofs is the building's street.",
+   "dominant_gesture": "two tall gabled bars and a lane",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.8,
+     "storeys": 5,
+     "why": "Input: five storeys of program. Limit: height 0.8 declares tall."
+    },
+    {
+     "op": "split",
+     "ratio": 0.5,
+     "along": "long",
+     "first": "east_bar",
+     "second": "west_bar",
+     "gap": 5,
+     "contrast": 1.2,
+     "why": "Input: a deep bar goes dark; two bars with a lane. Limit: gap 5 is 3.8 m - a lane a person walks, not a joint."
+    },
+    {
+     "op": "gable",
+     "pitch": 1.0,
+     "along": "long",
+     "why": "Input: each bar is now house-deep and takes a full ridge. Limit: pitch 1.0 on bars half the parcel deep lands inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "house_pile_lifted_on_legs",
+   "primary_language": "solid_body",
+   "secondary_language": "four two-storey houses stacked two-and-two, the whole pile lifted on legs so the ground passes under it",
+   "formal_principle": "House-sized rooms want to stack and the ground wants to stay open, so the pile lifts: two levels of two gabled houses carried on legs, ridges crossing above and one clear ground below.",
+   "dominant_gesture": "a house pile in the air",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.2,
+     "height": 0.55,
+     "tie": 0,
+     "method": "stack",
+     "unit": "house",
+     "levels": 2,
+     "turn": 10,
+     "storeys": 2,
+     "why": "Input: house rooms stack two levels of two. Limit: height 0.55 declares mid; storeys 2 is the unit."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "why": "Input: the ground stays open under the pile. Limit: clearance 0.3."
+    }
+   ]
+  }
+ ]
+}

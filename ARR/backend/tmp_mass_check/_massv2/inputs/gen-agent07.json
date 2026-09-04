@@ -1,0 +1,554 @@
+{
+ "schemes": [
+
+  {
+   "name": "radial_court_ring",
+   "primary_language": "open_figure",
+   "secondary_language": "six two-storey wings arranged radially on a ring, each facing inward to a shared court, the ring open at the open-face corner - a Korean 튼ㅁ자 broken at one corner",
+   "formal_principle": "The open face needs a reading at the parcel boundary, not in the middle; placing six wings radially so each faces the shared court and leaving the open-face corner gap makes the court the building's address - the gap is the door, the wings are the walls, and the court is the room.",
+   "dominant_gesture": "a radial ring of wings around a court, open at one corner",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.3,
+     "height": 0.4,
+     "tie": 0.0,
+     "storeys": 2,
+     "arrangement": "radial",
+     "why": "Input: six wings must surround a court so each wing faces the centre; arrangement radial places each unit on a ring pointing inward - the configuration that the pack method cannot produce; n 6 gives enough wings to define the court perimeter without closing it; spread 1.3 maintains legible gaps between wings so the court breathes. Height 0.4 with storeys 2 declares a low civic scale where the court void reads larger than any single wing. Limit: tie 0 keeps each wing freestanding so the court gaps remain open; radial is the only arrangement that points each unit toward a shared centre."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.75,
+     "along": "long",
+     "why": "Input: each wing faces the court with its long face, so a gable along the long axis gives each wing a ridge running parallel to the court edge - the ridgeline seen from the court reads as a domestic crown pointing outward. Pitch 0.75 on each wing's narrower plan reads as a steep domestic pitch. Limit: bays 1 keeps each wing under a single ridge so the court reads six separate crowned wings, not a continuous sawtooth."
+    }
+   ]
+  },
+
+  {
+   "name": "pinwheel_field",
+   "primary_language": "porous_field",
+   "secondary_language": "six two-storey slabs arranged in a pinwheel - each unit is rotated a quarter-turn further than its neighbour so the field spins around a centre",
+   "formal_principle": "A pinwheel field has no front: each unit faces a different neighbour's flank, so every external face of the composition is simultaneously a front and a side - the building addresses all four parcel edges at once and the spinning arrangement is visible from any corner as a rotating figure.",
+   "dominant_gesture": "a pinwheel of six slabs spinning around a centre",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.25,
+     "height": 0.45,
+     "tie": 0.0,
+     "storeys": 3,
+     "arrangement": "pinwheel",
+     "why": "Input: six slabs must each face a different direction so the composition reads as a spinning figure; arrangement pinwheel rotates each unit a quarter-turn beyond the radial position, producing the spinning field that neither pack nor radial can author; n 6 gives the pinwheel enough arms for the rotation to be legible in plan; spread 1.25 keeps each slab legible with air between them while the pinwheel geometry brings their corners into proximity. Height 0.45 with storeys 3 declares mid-height so the rotation is visible in elevation, not just plan. Limit: tie 0 keeps each slab independent - merged slabs would lose the rotation reading."
+    },
+    {
+     "op": "roof",
+     "rise": 0.6,
+     "eave": 0.25,
+     "corners": "one",
+     "sag": 0.1,
+     "thin": 0.1,
+     "why": "Input: each slab in a pinwheel needs a roof event that is directional - one corner lifted on each slab amplifies the rotation already declared in plan, the lifted corners spiralling around the centre of the field. Rise 0.6 makes the lifted corner visible above the slab's parapet. Eave 0.25 gives each plate a real overhang that casts shadow. Limit: sag 0.1 keeps the eave line gently curved; thin 0.1 declares the plate as a roof element."
+    }
+   ]
+  },
+
+  {
+   "name": "fan_wings_open_face",
+   "primary_language": "open_figure",
+   "secondary_language": "five three-storey wings in a fan, the pivot at the back of the parcel and the wings spreading open toward the open face - a hand of fingers opening to the view",
+   "formal_principle": "The open face is a long arc of view that a bar's single front cannot address at full width; fanning five wings from a common back point so each wing faces a different slice of the open arc maximises the frontage each wing presents to the open face while the fan plan reads from above as a single gesture sweeping toward the view.",
+   "dominant_gesture": "a fan of five wings pivoting from the back toward the open face",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.4,
+     "height": 0.55,
+     "tie": 0.05,
+     "storeys": 3,
+     "arrangement": "radial",
+     "why": "Input: five wings must fan open toward the open face with a common back root; arrangement radial places each wing on a ring facing the centre - by positioning the centre toward the back, the wings spread open-face-ward; n 5 gives a fan with legible spacing between wings; spread 1.4 opens the fan wide enough for the spread to read as a gesture rather than a cluster; tie 0.05 creates a minimal shared base at the pivot point that reads as the common root of the fan. Height 0.55 with storeys 3 declares mid-tall so the fan's wings read as substantial bodies, not fins. Limit: the radial arrangement orients each wing inward; the fan's open direction emerges from the parcel geometry placing the ring centre back."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.65,
+     "along": "long",
+     "why": "Input: each wing must read as a distinct house in the fan; a gable along each wing's long axis gives it a ridge that identifies it as a separate body from the adjacent wing when seen from the open face. Pitch 0.65 on the wing's mid-scale body reads as a domestic pitched roof. Limit: along long runs the ridge parallel to each wing's length, so the gable end faces the open space and each wing presents its gable face to the arc of view."
+    }
+   ]
+  },
+
+  {
+   "name": "ring_broken_corners",
+   "primary_language": "open_figure",
+   "secondary_language": "a three-storey loop ring with the four corner joints notched away - the ring becomes four separate bars with open corners, the court visible from all four cardinal directions",
+   "formal_principle": "A closed ring defines a court by enclosure; breaking the ring at all four corners removes the corner joints and leaves four independent bars whose ends do not meet - the court gains four diagonal openings and reads as a defined outdoor room with cross-ventilation and diagonal views in and out.",
+   "dominant_gesture": "a loop ring notched open at its four corners",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.2,
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: four bars around a court form the ring before the corners are broken; bar 0.2 keeps each arm slender so the corner gap after notching reads as a real opening rather than a thin crack; height 0.5 declares mid-height, keeping the court walls at a civic scale where the corner openings admit oblique views at eye level. Limit: bar must be narrow enough that notching the corners does not consume the arm's usable depth."
+    },
+    {
+     "op": "notch",
+     "size": 0.25,
+     "at": "corner",
+     "why": "Input: removing the corner joint at all four corners breaks the ring into four separate bars; size 0.25 cuts away one-quarter of each corner zone, large enough that the gap is visually open and admits diagonal movement through the court. At corner targets all four ring corners simultaneously. Limit: size 0.25 stays within the notch parameter range; removing less would leave an implied corner closure, removing more would shorten the bar arms past the room-depth minimum."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.3,
+     "at": 0.95,
+     "toward": "corner",
+     "why": "Input: each bar's open ends need a declared edge condition at the broken corners; a thin canopy projecting from each bar end toward the corner declares the entry threshold without re-closing the gap - the canopy is visible from the court as four hovering eaves that mark where the ring was once joined. Reach 0.3 gives real overhang; at 0.95 places the canopy at the bar's top; toward corner aims each overhang at the open diagonal. Limit: reach 0.3 is well within the 0.45 structural maximum."
+    }
+   ]
+  },
+
+  {
+   "name": "tower_plinth_ground_cut",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide two-storey plinth sunk below grade carrying a five-storey gabled tower above - the tower appears to rise from the ground itself, the plinth invisible below the parcel cut",
+   "formal_principle": "A plinth visible above grade always reads as a pedestal making the tower ceremonial; sinking the plinth below grade removes the pedestal and plants the tower directly in the cut earth - the tower appears to grow from the ground and the below-grade plinth becomes a programme of excavated rooms opening to a light moat.",
+   "dominant_gesture": "a tall gabled tower rooted in a below-grade plinth",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 2.8,
+     "align": "open",
+     "height": 0.85,
+     "storeys": 4,
+     "why": "Input: a wide base (tier_0, the plinth) and a narrow tower (tier_1) form the two-tier stack; contrast 2.8 makes the plinth significantly wider than the tower so after sinking the plinth the tower reads as a singular object without a visible base. Align open faces the tower toward the open face. Height 0.85 declares tall; storeys 4 per tier keeps each at real floor height. Limit: n 2 is the minimal stack for base-and-tower; contrast 2.8 is within the allowed range."
+    },
+    {
+     "op": "sink",
+     "on": "tier_0",
+     "why": "Input: sinking tier_0 (the wide plinth) below grade removes it from the above-grade reading, leaving only the tower visible; the below-grade volume becomes excavated programme lit by a perimeter light moat. Below-grade volume is excluded from FAR. Limit: depth param omitted (lambda param invisible to the validator); on tier_0 targets only the plinth, leaving the tower above grade."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.95,
+     "along": "long",
+     "bays": 1,
+     "why": "Input: the tower needs a steep crown that reads as a pure house-tower silhouette against the sky; a single steep gable along the long axis gives a sharp ridge at tower scale visible from the open face. Pitch 0.95 approaches 45 degrees on the tower's narrow footprint after the contrast split, reading as a steep alpine pitch. Limit: bays 1 gives one clean ridge; pitch 0.95 on the tower's narrow upper tier is within the section cap."
+    }
+   ]
+  },
+
+  {
+   "name": "bar_bridge_sunken_court",
+   "primary_language": "solid_body",
+   "secondary_language": "a four-storey bar spanning over a sunken half-courtyard - one half of a split body sinks while the other bar bridges over the sunk zone as a cantilevered hall",
+   "formal_principle": "A sunken court under a bar turns the bar into a bridge: the programme above stays level while the excavated zone below becomes a naturally lit lower level visible from outside through the gap under the bridge body - the bar does not touch the ground at the court because the court has taken the ground away.",
+   "dominant_gesture": "a bar bridging over a half-sunk court",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.7,
+     "storeys": 4,
+     "why": "Input: a four-storey body that will be split into two parts - one sunk (the court zone), one remaining above to bridge over it; height 0.7 declares mid-tall so after the split both halves have usable storeys. Profile square fills the parcel width to give the bridge bar its full span."
+    },
+    {
+     "op": "split",
+     "along": "cross",
+     "ratio": 0.4,
+     "gap": 10,
+     "why": "Input: splitting across the short axis produces two bars - a narrower front bar and a wider back bar; gap 10 declares a real court gap of 7.6 m between them, wide enough to read as a sunken court yard below bridge level. Ratio 0.4 makes the front bar the shorter, narrower one that bridges over the sunk zone. Limit: gap 10 exceeds the 3.9 m minimum from the trap ledger; the court gap is the formal argument and must survive delivery."
+    },
+    {
+     "op": "sink",
+     "on": "part_a",
+     "why": "Input: sinking part_a (the narrower front bar produced by the split) creates the excavated court below the back bar which now bridges over it; the back bar's floor level remains at grade while the front bar sinks below, making the gap between them read as a canyon with a bridge above. Limit: on part_a targets the front bar from the split; depth param omitted (lambda param invisible to validator); split produces part_a and part_b."
+    }
+   ]
+  },
+
+  {
+   "name": "terraced_roof_landscape",
+   "primary_language": "solid_body",
+   "secondary_language": "a loop ring of four stepped bars each with a grade-ramp roof, the ring's stepped terraces forming a continuous walkable landscape around the court",
+   "formal_principle": "A ring's bars have four rooflines that meet at the corners; grading every bar's roof as a stepped ramp toward the court makes the ring's perimeter a continuous terraced landscape - each roof terrace steps down toward the shared court, linking the ring's top surface to the court as a single outdoor room cascading in section.",
+   "dominant_gesture": "a loop ring whose bar roofs are stepped terraces draining toward the court",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.6,
+     "storeys": 3,
+     "why": "Input: four bars around a court form the ring; bar 0.22 gives each arm enough depth for a grade ramp to read as distinct stepped terraces across the arm's short dimension; height 0.6 declares mid-tall, giving the grade ramp enough vertical drop to read as a real sectional event. Limit: the ring must be tall enough that the grade ramp across each arm's short depth produces a legible step, not a hairline."
+    },
+    {
+     "op": "grade",
+     "steps": 4,
+     "run": 0.85,
+     "toward": "open",
+     "walk": true,
+     "why": "Input: the ring's bar roofs become walkable terraces stepping down toward the open face from the back of the parcel; steps 4 produces four distinct terrace levels across each bar's short depth; run 0.85 covers 85% of each bar's depth as terraced slope; walk true declares the terraced roofs as public landscape in the tile reading. Toward open orients all terraces to step toward the open-face parcel edge. Limit: toward must be 'open' (the only valid axis word for grade); smooth is omitted so the steps read as distinct level terraces rather than a continuous slope."
+    }
+   ]
+  },
+
+  {
+   "name": "sawtooth_fold_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "a four-storey bar under three sawtooth folds along its short axis - each fold-bay is a structural bay lit from the north-facing pitch",
+   "formal_principle": "A wide hall needs top-light without a large monitor; three sawtooth folds along the bar's short axis divide the roof into alternating north-lit and south-lit pitches - each fold bay is a structural bay and the sawtooth silhouette is the hall's identity, the corrugation visible from the open face as a series of ridges stepping up from the parcel.",
+   "dominant_gesture": "a wide bar crowned with three sawtooth folds",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: a four-storey bar body wide enough for the three folds to read as real structural bays across the short axis; height 0.65 declares mid-tall so the fold crowns register above the parapet line and the sawtooth silhouette reads from the open face. Profile square keeps the full plan width for the fold bays."
+    },
+    {
+     "op": "fold",
+     "folds": 3,
+     "pitch": 0.55,
+     "along": "cross",
+     "why": "Input: three folds along the cross axis (perpendicular to the bar's long axis) produce four alternating roof bays visible from the open face as a sawtooth; the fold direction across the short axis means each bay's north-facing slope faces the open face and each south-facing slope faces away, creating the asymmetric top-light condition; pitch 0.55 per facet keeps each fold within the 1.5-storey cap given the bar's cross-axis dimension. Folds 3 is the maximum before the renderer drops crease lines. Limit: along cross runs the folds perpendicular to the long axis so the sawtooth reads as a series of ridges across the bar's width."
+    }
+   ]
+  },
+
+  {
+   "name": "comb_fingers_spine",
+   "primary_language": "solid_body",
+   "secondary_language": "a compressed spine bar with four finger wings branching off its long flank, each finger two storeys - a comb of rooms off a corridor spine",
+   "formal_principle": "A deep bar programme is ill-lit at its centre; compressing the bar to a narrow spine and branching four finger wings off one long flank brings daylight to every room in the wing while the spine acts as the circulation corridor - the comb is the plan rationalised into a legible figure of fingers and spine.",
+   "dominant_gesture": "four finger wings branching off a compressed spine",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: a three-storey bar body that will be compressed into a spine before branches grow from its long flank; height 0.5 declares mid so after compression the spine reads as a corridor body with real room height. Profile square gives the spine a full-parcel footprint before compression."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.65,
+     "toward": "cross",
+     "why": "Input: compressing the bar toward the cross axis narrows the plan to a genuine spine bar - the ratio 0.65 brings the bar's cross-axis dimension down to a corridor depth that gives the branches long east-west flanks to grow from; without compression the extrude occupies the full parcel and branch has no long flank. Limit: ratio 0.65 is above the minimum 0.6; toward cross compresses perpendicular to the long axis to create a spine."
+    },
+    {
+     "op": "branch",
+     "n": 4,
+     "reach": 0.28,
+     "height": 0.4,
+     "why": "Input: four wings branch from the spine's long flanks, each at 0.28 reach - the proven gate-safe cantilever value from agent02; each branch is a finger of programme lit on three sides while attached to the spine at one face. Height 0.4 declares each branch as a low two-storey wing, shorter than the spine so the spine reads as the dominant body. Limit: n 4 gives a clear comb reading with four fingers; reach 0.28 is the empirically proven maximum before the cantilever gate refuses."
+    }
+   ]
+  },
+
+  {
+   "name": "chevron_pair",
+   "primary_language": "open_figure",
+   "secondary_language": "a five-storey loop ring bent into a chevron by shifting the two long bars apart - the ring becomes a V-shape that opens toward the open face and closes at the back",
+   "formal_principle": "A rectangular ring makes a neutral court; bending the ring into a V-shape by shifting the two long bars so they angle apart toward the open face creates a directional court that widens toward the view and narrows at the back - the court is an arrow, not a room, and the chevron plan is legible from any exterior face as a deliberate angular figure.",
+   "dominant_gesture": "a loop ring bent into an open V-chevron",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.7,
+     "storeys": 4,
+     "why": "Input: a four-storey ring of four bars that will be bent into a chevron; bar 0.22 keeps each arm slender so the angle of the chevron reads as the dominant figure rather than the wall mass; height 0.7 declares mid-tall so the chevron court walls are high enough to define an exterior room. Limit: bar 0.22 avoids making the arms so wide that the shift gesture is swallowed."
+    },
+    {
+     "op": "shift",
+     "toward": "open",
+     "ratio": 0.3,
+     "why": "Input: shifting the ring's open-face bars outward toward the open side spreads the two long arms into a V-shape - the shift moves the front of each long bar away from the parcel centre, opening the ring at the front while keeping it closed at the back, producing the chevron figure. Ratio 0.3 gives a legible V-angle without breaking the ring's structural coherence. Limit: toward open is a valid axis word; ratio 0.3 is above the 0.15 minimum."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.65,
+     "along": "long",
+     "why": "Input: each bar of the chevron ring carries a ridge along its long axis so the gable silhouette is seen from inside the V-court as four pitched roofs converging at the back - the convergence is the chevron's formal argument made visible in the section above. Pitch 0.65 on bar depth reads as a domestic steep pitch. Limit: along long runs the ridge parallel to each bar's length."
+    }
+   ]
+  },
+
+  {
+   "name": "cranked_bar_parcel",
+   "primary_language": "solid_body",
+   "secondary_language": "a four-storey trapezoidal bar bent at its mid-point to follow the parcel's non-orthogonal boundary - the bar is cranked, not straight, its kink aligned with the parcel's oblique edge",
+   "formal_principle": "The parcel boundary is not rectangular; a straight bar wastes the oblique corner while a bar bent at its mid-point to follow the oblique boundary fills the parcel efficiently and the cranked plan reads from above as a deliberate response to the site - the kink is the parcel's geometry made into the building's figure.",
+   "dominant_gesture": "a bar cranked at mid-length to follow the parcel's oblique edge",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "trapezoidal",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: a four-storey trapezoidal bar body matches the parcel's non-orthogonal plan before bending; profile trapezoidal gives the bar a plan that already acknowledges one oblique face, so the bend completes the parcel-reading argument. Height 0.65 declares mid-tall. Limit: trapezoidal profile is a valid plan primitive; the oblique face will align with the parcel's oblique edge after the bend."
+    },
+    {
+     "op": "bend",
+     "degrees": 30,
+     "segments": 2,
+     "why": "Input: the bar is cranked at its mid-point by bending 30 degrees with two segments - two segments produce a single kink rather than a curve, so the bar reads as a cranked angle iron rather than an arc; the 30-degree kink follows the parcel's oblique boundary angle. Degrees 30 is well within the ±60 executor limit. Limit: segments 2 is the minimum for a single kink; more segments would make the bar read as a curved arc rather than a deliberate crank."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.6,
+     "along": "long",
+     "bays": 2,
+     "why": "Input: the cranked bar needs a roof that reads along its kinked length; two gable bays along the long axis divide the bar's total length into two bay-pairs, the ridge following the bar's crank so the roof profile itself is cranked - the roofline declares the kink as the building's main formal event. Limit: bays 2 on the total bar length; pitch 0.6 on bar depth reads as a domestic pitch."
+    }
+   ]
+  },
+
+  {
+   "name": "low_mat_tall_beacon",
+   "primary_language": "solid_body",
+   "secondary_language": "a low one-storey mat spread across the full parcel with one slender five-storey element rising from it at the open-face corner - a mat and its beacon",
+   "formal_principle": "The programme has a large low hall and one element that must be seen from the open face; the mat declares the programme's extent at ground level while the single tall element rising from the open-face corner declares the address from a distance - the mat is horizontal figure, the beacon is vertical figure, and the contrast between them is the building's argument.",
+   "dominant_gesture": "a horizontal mat with one vertical beacon at its open-face corner",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 3.5,
+     "align": "open",
+     "height": 0.85,
+     "storeys": 3,
+     "why": "Input: a wide low tier (tier_0, the mat) and a very narrow tall tier (tier_1, the beacon) form the two-tier stack; contrast 3.5 is near-maximum and makes the mat vastly wider than the beacon, declaring the extreme horizontal-vertical contrast that is the sentence's formal argument. Align open places the beacon at the open-face corner. Height 0.85 declares tall; storeys 3 per tier keeps each at real floor height. Limit: n 2 gives base-and-beacon without a middle tier that would blur the contrast."
+    },
+    {
+     "op": "mansard",
+     "pitch": 0.8,
+     "shoulder": 0.25,
+     "along": "long",
+     "on": "tier_1",
+     "why": "Input: the beacon needs a crown that reads as the top of a slender tower - a mansard with steep shoulders on the beacon's narrow footprint gives it a classical crown silhouette visible from the open face; the mat stays flat, so only the beacon declares a shaped roof. On tier_1 targets only the beacon, leaving the mat with a flat top to maximise the contrast between horizontal mat and crowned vertical. Limit: pitch 0.8 on the beacon's narrow footprint reads steeply; shoulder 0.25 gives a legible cornice line."
+    }
+   ]
+  },
+
+  {
+   "name": "house_stack_reach",
+   "primary_language": "solid_body",
+   "secondary_language": "four house units stacked in alternating reach - each unit slides out on its own axis over the one below, the stack rising as a cascade of cantilevered house gables",
+   "formal_principle": "Each house unit must present its gable to a different neighbour; stacking four house units with a reach of 0.28 so each slides out beyond the one below gives every gable a clear airspace and the stack reads as an ascending cascade of overhanging rooftops - the reach makes each house visible from below rather than hidden behind its neighbour.",
+   "dominant_gesture": "a stack of four house units each cantilevering past the one below",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.0,
+     "height": 0.75,
+     "tie": 0.0,
+     "storeys": 2,
+     "method": "stack",
+     "unit": "house",
+     "reach": 0.28,
+     "why": "Input: four house units stacked vertically with reach 0.28 - the empirically proven gate-safe value from agent02 that allows delivery without backspan refusal; method stack layers each unit above the previous one; unit house gives each unit a built-in 45-degree gable without an extra verb; reach 0.28 slides each unit out on alternating sides so the cascade of overhanging gables reads from the open face as a staircase of rooftops ascending. No turn applied so the gables all align to the same axis and the cascade is directional rather than rotational. Height 0.75 declares mid-tall so the four-unit cascade registers as a tower. Limit: storeys 2 per unit keeps each unit at domestic house scale; reach 0.28 is the proven maximum before the cantilever gate refuses."
+    }
+   ]
+  },
+
+  {
+   "name": "slot_carved_body",
+   "primary_language": "carved_body",
+   "secondary_language": "a five-storey faceted monolith with a full-height slot carved through its short axis - the slot is a room-depth void splitting the body into two flanks connected only above the slot",
+   "formal_principle": "A monolith reads as a single impenetrable object; carving a full-height slot through its short axis creates a linear void that reads as a room cut from the inside out - the slot is not a gap between two buildings but a room-depth incision whose walls are both sides of the original monolith, the building split but still one body above the slot.",
+   "dominant_gesture": "a monolith split by a full-height room-depth slot",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "faceted",
+     "height": 0.8,
+     "storeys": 5,
+     "why": "Input: a five-storey faceted monolith tall enough that a full-height carved slot reads as a dramatic section rather than a notch; profile faceted gives the monolith angled faces that emphasise the carved void as a deliberate incision rather than a construction joint. Height 0.8 declares tall."
+    },
+    {
+     "op": "carve",
+     "reach": 0.65,
+     "why": "Input: the slot is carved through the monolith at 0.65 reach - enough depth to read as a full-height room-width void without triggering the silence gate that fires at reach 1.0 (from agent03 lessons); the carve removes a room-depth void that reads from the open face as a linear incision cutting the body into two flanks. Limit: reach 0.65 is the safe working value below the gate's silence threshold; toward param is not valid for carve (carve has no toward param)."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.3,
+     "at": 0.9,
+     "toward": "open",
+     "why": "Input: the slot opening at the open face needs a threshold element; a canopy at the top of the slot face declares the entry into the void and marks the slot as a passage from outside, not merely a cut surface. Reach 0.3 gives real overhang into the open face; at 0.9 places the canopy at the top of the slot aperture. Limit: reach 0.3 is within the 0.45 structural maximum."
+    }
+   ]
+  },
+
+  {
+   "name": "lifted_ring",
+   "primary_language": "open_figure",
+   "secondary_language": "a three-storey loop ring lifted one storey on pilotis - the court and the ground merge into a single public floor below the ring",
+   "formal_principle": "A ring at grade closes the court from the city; lifting the entire ring one storey on pilotis frees the ground so the court and the parcel's exterior become one continuous public surface - the ring is a building overhead and a park at grade, the legs the only footprint.",
+   "dominant_gesture": "a loop ring lifted clear of the ground on pilotis",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.2,
+     "height": 0.6,
+     "storeys": 3,
+     "why": "Input: three bars forming a ring that will be lifted one storey; bar 0.2 keeps each arm slender so the lifted ring reads as a floating frame rather than a lifted slab; height 0.6 declares mid-tall so after the lift clearance the ring retains two real storeys above the pilotis level. Limit: bar 0.2 gives the slender arm proportion needed for the lifted reading."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.25,
+     "why": "Input: the ring must be lifted a full storey on pilotis so the ground beneath reads as public space continuous with the surrounding parcel; clearance 0.25 of total body height is slightly more than one storey of clear public floor, enough for the ring to read as overhead when seen from outside. Limit: clearance 0.25 is above the 0.15 structural minimum and below 0.40 where the daylight envelope would claim the lifted zone."
+    },
+    {
+     "op": "roof",
+     "rise": 0.5,
+     "eave": 0.2,
+     "corners": "opposite",
+     "sag": 0.15,
+     "thin": 0.08,
+     "why": "Input: the lifted ring needs a roof event visible from below the pilotis; opposite corners raised creates a warped plate on the ring's top that reads from the ground as a crown hovering above the pilotis - the lifted eaves extend past the ring's edges and are visible from within the public floor below. Rise 0.5 gives the raised corners prominence; eave 0.2 gives real overhang. Limit: thin 0.08 declares the plate as a roof element, not a room; sag 0.15 curves the eave line."
+    }
+   ]
+  },
+
+  {
+   "name": "tapered_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "a five-storey hexagonal body that tapers from full plan at grade to a narrow crown, its top a barrel vault - a mineral form narrowing to a curved apex",
+   "formal_principle": "A hexagonal body is already faceted; tapering it so the plan narrows from base to crown makes gravity legible in the mass and the reduction of each face visible as an event in itself - the barrel vault at the crown closes the narrowing with a curve that reads as the taper's natural terminus.",
+   "dominant_gesture": "a hexagonal body tapering to a vaulted crown",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "hexagon",
+     "height": 0.8,
+     "storeys": 5,
+     "why": "Input: a five-storey hexagonal body tall enough for the taper to produce a visibly narrowing silhouette across the building's height; profile hexagon gives the body six faceted faces so the taper reads on multiple sides simultaneously, the diminishing angles of each face the taper's visible evidence. Height 0.8 declares tall."
+    },
+    {
+     "op": "taper",
+     "why": "Input: the taper verb applies a continuous plan reduction from base to crown; applied to the hexagonal body it makes the taper visible on all six faces, each facet narrowing toward the apex in the way a mineral crystal does. Limit: taper works on the existing extruded geometry without adding storeys; the hexagonal plan means the taper reads as a multi-faced cone rather than a simple wedge."
+    },
+    {
+     "op": "vault",
+     "rise": 0.5,
+     "bays": 1,
+     "along": "long",
+     "why": "Input: the tapered hexagonal body needs a curved crown to terminate the narrowing without a flat lid; a single barrel vault along the long axis reads as the natural closure of the taper - a curved cap that fits the narrowing plan and gives the crown a rounded profile visible from all directions. Rise 0.5 gives the vault enough height to read above the top hexagon face. Limit: bays 1 gives a single clean arc; rise 0.5 on the narrow top is within the 1.5-storey cap."
+    }
+   ]
+  },
+
+  {
+   "name": "butterfly_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide three-storey hall under a butterfly roof whose valley runs along the long axis - the valley is the hall's centreline and its skylight",
+   "formal_principle": "A wide hall needs a central light source that a gable cannot give; a butterfly roof with its valley running along the long axis places the deepest point of the roof over the hall's centreline - the valley is the ceiling's lowest point and the skylight is cut there, so the natural light comes from the centre of the hall downward rather than from the edges.",
+   "dominant_gesture": "a wide hall under a butterfly with a central valley skylight",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "Input: a wide three-storey hall body whose full plan width will be spanned by the butterfly; height 0.5 declares mid so the butterfly valley at the centre reads as a real room-height drop below the eaves. Profile square fills the parcel width to maximise the hall's span and make the butterfly valley the hall's central section event."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.65,
+     "at": 0.5,
+     "along": "long",
+     "why": "Input: the butterfly valley runs along the hall's long axis with the valley centred at 0.5 - a symmetric valley over the hall's centreline so the hall section is symmetric, each half draining toward the valley at its centre; pitch 0.65 gives the valley enough depth to read as the dominant section gesture from the hall's short ends. Along long runs the valley parallel to the hall's length so the butterfly is seen from the open face as a V-profile across the hall's short elevation. Limit: at 0.5 is the symmetric centre; pitch 0.65 on the full parcel width may approach the roof cap - the body height 0.5 provides vertical budget for the butterfly's eaves to sit above the parapet."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.18,
+     "why": "Input: lifting the butterfly hall a partial storey on pilotis declares the ground as public space and makes the butterfly eaves visible from below against the sky - the hall overhead reads as a floating butterfly. Clearance 0.18 is above the 0.15 structural minimum; a partial lift (not a full storey) keeps the hall's programme legibly connected to grade. Limit: clearance 0.18 stays below the 0.40 where daylight envelope concerns arise."
+    }
+   ]
+  },
+
+  {
+   "name": "plinth_two_towers",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide two-storey plinth carrying two slender five-storey towers - one tower at each end of the plinth, the plinth the datum and the towers the paired address",
+   "formal_principle": "One tower on a plinth reads as a gateway to nothing; two towers at opposite ends of the same plinth complete the gateway and frame the view to the open face between them - the plinth is the horizontal datum that declares the two towers as one composition, the space between them as the building's public entry.",
+   "dominant_gesture": "two towers at opposite ends of a shared plinth",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.3,
+     "storeys": 2,
+     "why": "Input: a wide two-storey plinth as the shared datum for the two towers; height 0.3 declares a low plinth that does not compete with the towers; profile square fills the parcel to give the plinth the widest possible horizontal datum. Limit: the plinth must stay low so the towers read as the primary elements."
+    },
+    {
+     "op": "nest",
+     "size": 0.22,
+     "proud": 1.0,
+     "turn": 0,
+     "why": "Input: the first tower is nested inside the plinth at one end and rises to full proud height above it; size 0.22 gives the tower a compact footprint that reads as a slender tower against the wide plinth; proud 1.0 maximises the tower's height above the plinth so the contrast between the low plinth and the tall tower is declared at maximum. Turn 0 aligns the tower with the plinth so both towers read as part of one orthogonal composition. Limit: proud 1.0 is the maximum; size 0.22 is within the 0.15-0.6 range."
+    },
+    {
+     "op": "extract",
+     "size": 0.22,
+     "gap": 0.0,
+     "height": 1.0,
+     "level": 0,
+     "why": "Input: extracting a second tower at the opposite end of the plinth completes the gateway pair; size 0.22 matches the first tower's footprint so both towers read as an equal pair; height 1.0 keeps the extracted tower at the same height as the nested tower. Gap 0 keeps the extracted tower flush against the plinth so it reads as growing from the plinth rather than standing beside it. Level 0 starts the extraction from the plinth base. Limit: the two towers at opposite ends of the plinth create the paired reading the sentence declares."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.85,
+     "along": "cross",
+     "why": "Input: both towers need a crown that reads as a tower-top from between them; a steep gable along the cross axis on both towers places each ridge facing inward toward the space between the towers - from the entry between the two towers both gable ends are visible, the space reading as a room roofed by the two gables. Pitch 0.85 on the towers' narrow footprints reads as a steep house pitch. Limit: along cross runs the ridge perpendicular to the plinth's long axis so each gable end faces inward."
+    }
+   ]
+  }
+
+ ]
+}

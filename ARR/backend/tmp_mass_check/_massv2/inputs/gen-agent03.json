@@ -1,0 +1,676 @@
+{
+ "schemes": [
+  {
+   "name": "nested_tower_turns_proud",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide two-storey host body with a narrower four-storey tower nested inside and turned 25 degrees, rising proud above the host roof",
+   "formal_principle": "The open face commands the view and the program wants one legible civic room above the mass, so a tower is nested inside a low body and rotated to face the open edge: the host is the building's ground, the turned tower is its one skyward declaration.",
+   "dominant_gesture": "a turned tower rising proud from its host",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.35,
+     "storeys": 2,
+     "why": "Input: the open face asks for a low base that keeps the view open at ground level; two storeys declare the host as a datum. Limit: height 0.35 keeps the host low so the tower above it reads as the only rising element."
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.7,
+     "turn": 25,
+     "why": "Input: a tower rotated toward the open face becomes a directional figure, not a centred extrusion; proud 0.7 means the inner body rises well above the host roof so the turn reads in silhouette. Limit: size 0.42 gives the tower a real floor plate; turn 25 degrees is enough to read the rotation without shearing the geometry; proud 0.7 is safely above the minimum 0.1 and gives a clear height difference."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.9,
+     "along": "long",
+     "why": "Input: the tower's top must be a shape, not a parapet; a single ridge on the narrow nested body reads clearly in silhouette. Limit: pitch 0.9 on the narrow nested plan stays inside the 1.5-storey cap."
+    }
+   ]
+  },
+  {
+   "name": "bar_lodged_over_a_low_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "a low three-storey hall with a slender two-storey bar lodged over its roof edge, projecting beyond the hall on both sides",
+   "formal_principle": "The street wants a low civic hall but the program needs a servant bar of offices above it; lodging the bar over the hall's edge rather than centring it declares which is public and which is served - the bar projects as a cantilevered bridge over the entrance on one side and over the garden on the other.",
+   "dominant_gesture": "a bar bridging over a hall's edge",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.45,
+     "storeys": 3,
+     "why": "Input: a low civic hall at the parcel's full plan; three storeys is the civic stature. Limit: height 0.45 declares low-mid; the hall is the host for what comes next."
+    },
+    {
+     "op": "lodge",
+     "size": 0.25,
+     "over": 0.35,
+     "height": 0.55,
+     "at": 0.2,
+     "why": "Input: the office bar sits over the hall's near edge and projects both ways, declaring its servant role structurally; at 0.2 pushes the lodge toward the street so the projection over the entrance is the longer overhang. Limit: size 0.25 keeps the bar slender; over 0.35 means the lodge spans about a third of the hall's depth; height 0.55 makes the lodged bar taller than the host so the two lives read differently in section."
+    }
+   ]
+  },
+  {
+   "name": "two_slipped_slabs_bite",
+   "primary_language": "solid_body",
+   "secondary_language": "two four-storey slabs shifted so they overlap by a quarter of their plan - the bite zone is the shared hall",
+   "formal_principle": "Two programs want two addresses on opposite sides of the parcel but one hall must connect them; overlapping the two slabs by a quarter of their width produces the hall as a residue of the bite - the hall is not inserted, it is the consequence of the overlap.",
+   "dominant_gesture": "two slabs overlapping at a hall",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: two four-storey programs side by side. Limit: height 0.65 declares mid-tall; as born the single body is the seed that overlap will reorganise."
+    },
+    {
+     "op": "overlap",
+     "bite": 0.28,
+     "slip": 0.35,
+     "height": 0.75,
+     "why": "Input: the two programs live in the two halves; the bite zone is the shared hall. Slip 0.35 shifts the twins along the short axis so they address opposite ends; bite 0.28 is the hall's depth - real enough to hold a room, not so deep it devours a program. Limit: bite 0.28 is above the 0.15 floor; height 0.75 makes the overlapping portion slightly taller so the joint reads as a raised hall in section."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.7,
+     "at": 0.5,
+     "along": "long",
+     "why": "Input: the valley roof collects rain at the bite zone and marks the shared hall from above with a trough; eaves at both edges lift each slab's identity. Limit: pitch 0.7 keeps the valley inside the cap on these mid-height bodies."
+    }
+   ]
+  },
+  {
+   "name": "void_and_its_piece",
+   "primary_language": "carved_body",
+   "secondary_language": "a tall four-storey body with one piece extracted from its open-face corner and placed beside the gap as a free-standing object",
+   "formal_principle": "The open-face corner is the most valuable spot on the parcel and also the one that daylight most wants free, so that corner is extracted from the body and moved slightly aside: the host carries a readable socket and the piece stands as a gate, the gap between them the building's formal entry.",
+   "dominant_gesture": "a corner piece extracted and placed as a gate",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "chamfered",
+     "height": 0.7,
+     "storeys": 4,
+     "why": "Input: a tall body with a chamfered corner that already softens the open-face angle, making the extraction read as an event rather than a jagged cut. Limit: height 0.7 declares mid-tall; the chamfered profile sets up the corner as the site of the next operation."
+    },
+    {
+     "op": "extract",
+     "size": 0.28,
+     "gap": 0.22,
+     "height": 0.8,
+     "level": 0.0,
+     "why": "Input: the corner piece is lifted out of the host's body and placed alongside the gap; gap 0.22 of the host-width coordinate is a real passage, not a joint; the extracted piece is taller than the host (height 0.8 vs 0.7) so the gate reads as its own thing. Limit: size 0.28 gives the piece a real floor plate; gap above the 0.15 extraction floor."
+    }
+   ]
+  },
+  {
+   "name": "roof_garden_inscribed_in_monolith",
+   "primary_language": "carved_body",
+   "secondary_language": "a tall faceted monolith with one large rectangle inscribed into its roof as a sunken garden, not touching any edge",
+   "formal_principle": "A monolith at maximum FAR is opaque to the sky from inside; inscribing a garden into the roof rather than cutting a court through the full section keeps the building's bottom intact as one continuous floor while bringing sky to the upper rooms from a sheltered depression.",
+   "dominant_gesture": "a monolith with a sunken roof garden",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "faceted",
+     "height": 0.85,
+     "storeys": 6,
+     "why": "Input: the program fills the FAR envelope; a faceted profile on the monolith gives the dense mass one formal identity beyond a plain box. Limit: height 0.85 with storeys 6 declares tall; the faceted profile prevents it reading as a simple slab."
+    },
+    {
+     "op": "inscribe",
+     "size": 0.35,
+     "depth": 0.25,
+     "why": "Input: the top of a tall dense body needs sky without losing the bottom floor plate; inscribing a garden into the roof - not touching the edges - produces a sheltered sky room on the topmost floor. Limit: size 0.35 is a real garden, not a skylight; depth 0.25 is enough to read as a sunken terrace rather than a mere parapet reveal."
+    }
+   ]
+  },
+  {
+   "name": "tall_bar_with_thin_belt_canopy",
+   "primary_language": "solid_body",
+   "secondary_language": "a six-storey square-plan bar with one thin canopy plate at its mid-height, reaching toward the open face",
+   "formal_principle": "A tall bar's ground and sky are distant from each other; a thin plate at mid-height marks the building's datum floor - the civic belt that separates the public programme below from the private above - visible as a shadow line from across the parcel.",
+   "dominant_gesture": "a tall bar bisected by a thin canopy belt",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.9,
+     "storeys": 6,
+     "why": "Input: the programme needs six storeys and the daylight envelope permits them at the street edge. Limit: height 0.9 with storeys 6 declares tall; the body is the host for the thin datum element."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 0.5,
+     "toward": "open",
+     "why": "Input: the mid-storey mark needs to be legible from the street as a horizontal datum; a thin plate reaching toward the open face creates a shadow line at mid-height without adding programme. Limit: reach 0.28 is within the structural gate (below 0.40 ceiling, matching proven 0.28 delivery value); at 0.5 places the plate at mid-height of the six-storey bar."
+    }
+   ]
+  },
+  {
+   "name": "tall_bar_fold_crown",
+   "primary_language": "solid_body",
+   "secondary_language": "a six-storey tall bar under a three-fold concertina crown - the roof read as a sawtooth from the street",
+   "formal_principle": "A tall bar's flat parapet kills its silhouette; folding the roof into three bays gives the bar a sawtooth crown that reads as structure made visible - three pairs of north-light collectors lifted six storeys into the sky.",
+   "dominant_gesture": "a tall bar wearing a sawtooth crown",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.9,
+     "storeys": 6,
+     "why": "Input: six storeys of programme. Limit: height 0.9 declares tall."
+    },
+    {
+     "op": "fold",
+     "folds": 3,
+     "pitch": 0.6,
+     "along": "long",
+     "why": "Input: a flat parapet on a tall bar has no silhouette; three fold-bays along the long axis produce a sawtooth crown legible at street distance. Limit: folds 3 stays at the render point-cap boundary; pitch 0.6 per facet keeps the valley shallow enough to stay inside the 1.5-storey roof cap on a body this tall."
+    }
+   ]
+  },
+  {
+   "name": "loop_wears_butterfly",
+   "primary_language": "open_figure",
+   "secondary_language": "a four-storey court ring under a butterfly roof on every bar - the court drains inward and the eaves rise outward to the street",
+   "formal_principle": "A court ring has two fronts on every bar - one to the court and one to the outside - and a butterfly roof makes both frontages equally expressed: the eaves at the outer edge lift toward the street and the valley at the inner edge drains toward the court, the whole ring reading as a continuous low-V crown.",
+   "dominant_gesture": "a court ring of V roofs",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.6,
+     "storeys": 4,
+     "why": "Input: rooms around a court, two fronts per bar. Limit: height 0.6 declares mid; bar 0.22 is slender enough for a butterfly to read on the narrow bar section."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.65,
+     "at": 0.45,
+     "along": "long",
+     "why": "Input: the valley drains to the court; the high outer eave faces the street. At 0.45 shifts the valley slightly toward the court edge so the outer wing is longer and the street eave higher. Limit: pitch 0.65 on bars of this width stays inside the roof cap."
+    }
+   ]
+  },
+  {
+   "name": "bar_with_branching_levels",
+   "primary_language": "porous_field",
+   "secondary_language": "a compressed bar trunk with four arms branching out at mid-height, each arm a one-storey room stepping off the trunk",
+   "formal_principle": "A long bar in a wide parcel leaves the flanks empty; four arms branch from its long faces so the plan looks like a comb from above - each arm is a different room stepping off the trunk, and the gaps between arms are south-facing garden courts.",
+   "dominant_gesture": "a bar with lateral garden-court arms",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: a four-storey bar runs the parcel's long axis as the trunk. Limit: height 0.65 declares mid-tall."
+    },
+    {
+     "op": "compress",
+     "ratio": 0.62,
+     "toward": "cross",
+     "why": "Input: the bar must be genuinely narrow along its short axis so branches find a clear long flank; compress 0.62 toward the cross axis reduces the body to a house-deep bar. Limit: 0.62 is the validated minimum; compressing toward cross makes the bar run along the long parcel axis."
+    },
+    {
+     "op": "branch",
+     "n": 4,
+     "reach": 0.28,
+     "height": 0.3,
+     "why": "Input: four arms at one-storey height branch from the long flanks, leaving garden courts between them. Reach 0.28 is the proven delivery value; n 4 distributes two arms per long side. Limit: height 0.3 keeps the arms a single storey so they read as garden rooms against the tall trunk."
+    }
+   ]
+  },
+  {
+   "name": "stack_cantilevers_as_it_rises",
+   "primary_language": "solid_body",
+   "secondary_language": "three stacked tiers, each tier projecting further toward the open face than the one below - a stair growing out over the parcel",
+   "formal_principle": "The open face has the view and the daylight envelope at the back pushes mass forward as the building rises; each tier cantilevers one step further toward the open face so the building grows and leans toward the view, its underside becoming a deep shaded ceiling for the floor below.",
+   "dominant_gesture": "a stack that grows toward the open face",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.3,
+     "align": "back",
+     "height": 0.7,
+     "storeys": 3,
+     "why": "Input: the daylight envelope asks setbacks from the back neighbour; three tiers aligned back mean the front face steps forward as the building rises. Limit: height 0.7 declares mid-tall; storeys 3 per tier; contrast 1.3 keeps tiers visibly different."
+    },
+    {
+     "op": "cantilever",
+     "reach": 0.28,
+     "levels": 2,
+     "toward": "open",
+     "why": "Input: the upper tiers project toward the open face, making the stack grow toward the view; reach 0.28 is the proven delivery value that clears the structural gate. Limit: levels 2 applies the cantilever to the upper two tiers; toward open aligns the projection with the site pressure."
+    }
+   ]
+  },
+  {
+   "name": "hexagon_tower_with_civic_belt",
+   "primary_language": "solid_body",
+   "secondary_language": "a tall hexagonal-plan tower wearing one wide canopy plate at civic-floor height - a tower with a brim",
+   "formal_principle": "A tower at the open-face corner reads as a signal from the street; a hexagonal plan turns the corner evenly without a dominant face, and a thin plate at the civic floor marks the threshold between the public lower floors and the private tower above - the brim the one horizontal datum in an otherwise vertical building.",
+   "dominant_gesture": "a hexagonal tower belted by a civic canopy",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "hexagon",
+     "height": 0.95,
+     "storeys": 6,
+     "why": "Input: the open corner wants a tower whose plan is rotationally symmetric so no one street gets the back; hexagon gives six equal faces. Limit: height 0.95 with storeys 6 declares tall; the hexagonal plan is the formal decision that allows no preferred orientation."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 0.3,
+     "toward": "open",
+     "why": "Input: the civic floor at the lower third of the tower needs a legible datum; a thin plate reaching toward the open face marks where the tower's public life ends. Limit: reach 0.28 is the proven structural gate value; at 0.3 places the brim one-third up the tower."
+    }
+   ]
+  },
+  {
+   "name": "pinched_waist_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "a six-storey trapezoidal tower whose middle two floors are pinched inward - a waist that reads as two heads sharing one neck",
+   "formal_principle": "The programme divides into a public lower body and a private upper body; pinching the waist between them declares the transition structurally - the narrowing reads as a joint, the two bodies as two formal identities sharing one core.",
+   "dominant_gesture": "a tower pinched at its waist",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "trapezoidal",
+     "height": 0.9,
+     "storeys": 6,
+     "why": "Input: a trapezoidal plan gives the tower a wide public base and a narrow private crown without needing to declare a separate taper; the trapezoid is the section idea at plan level. Limit: height 0.9 declares tall."
+    },
+    {
+     "op": "pinch",
+     "ratio": 0.72,
+     "why": "Input: the waist between public and private is made legible by pinching the plan at mid-height; ratio 0.72 narrows the tower to three-quarters of its widest face so the pinch reads clearly without crushing the corridor. Limit: 0.72 is well above the minimum 0.15 and pinches across the long run of the trapezoidal body."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.8,
+     "along": "long",
+     "why": "Input: the narrow upper head needs a top that is a shape; a ridge on the upper trapezoidal tip reads as a hat on the private body. Limit: pitch 0.8 on the narrow upper plan stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "deep_corner_notched",
+   "primary_language": "carved_body",
+   "secondary_language": "a wide four-storey body with one deep corner notch cut to the open face - the notch is the entry plaza",
+   "formal_principle": "The open-face corner is the parcel's civic threshold, but a body filling the envelope makes it a back corner; a single deep notch cut from that corner pulls the entry inward, opening a sheltered plaza exactly where pedestrians arrive from the street.",
+   "dominant_gesture": "a body notched at its civic corner",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: four storeys filling the envelope. Limit: height 0.65 declares mid-tall; as born the body covers the open-face corner that needs to become the entry."
+    },
+    {
+     "op": "notch",
+     "size": 0.32,
+     "at": "open",
+     "why": "Input: the open-face corner is the civic threshold; cutting a notch at the open edge creates a sheltered entry plaza. Size 0.32 is a real plaza dimension that the body structure closes around. Limit: size 0.32 is within the notch clamp 0.15–0.5."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 1.0,
+     "toward": "corner",
+     "why": "Input: the notch as a plaza needs shelter; a thin canopy at the eave level reaches over the cut so the entry is covered. Limit: reach 0.28 structural gate value."
+    }
+   ]
+  },
+  {
+   "name": "monolith_punctured_by_a_tube",
+   "primary_language": "carved_body",
+   "secondary_language": "a tall faceted monolith punctured by one circular hole through its body at mid-height - the hole is a framed view of the open face",
+   "formal_principle": "A solid monolith hides its best asset - the open face; one circular puncture through the body at mid-height frames the view as a picture: the hole is not a window but a room-sized aperture that borrows the landscape for the interior.",
+   "dominant_gesture": "a monolith with one framing hole",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "faceted",
+     "height": 0.8,
+     "storeys": 5,
+     "why": "Input: a dense faceted monolith fills the FAR; five storeys at this height each under 12.5 m so no fill-settle fires. Limit: height 0.8 with storeys 5 declares tall."
+    },
+    {
+     "op": "puncture",
+     "size": 0.25,
+     "n": 1,
+     "why": "Input: the open face is the view; one room-sized hole through the body frames it as a picture aperture. Size 0.25 is a real aperture across the body's short dimension; n 1 declares a single centered puncture. Limit: size 0.25 leaves enough body either side for the structure to close around the void."
+    }
+   ]
+  },
+  {
+   "name": "bent_bar_frames_entry",
+   "primary_language": "open_figure",
+   "secondary_language": "one five-storey bar bent into an L, the L's interior corner becoming the sheltered entry court",
+   "formal_principle": "A straight bar has no front; bending it into an L at the open-face corner creates an interior angle that becomes the court - the building's own geometry makes the entry rather than an added wall.",
+   "dominant_gesture": "an L-bar with entry court at the bend",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.8,
+     "storeys": 5,
+     "why": "Input: five storeys of programme along the street. Limit: height 0.8 declares tall; the body will be bent to make the court without any added element."
+    },
+    {
+     "op": "bend",
+     "degrees": 55,
+     "segments": 2,
+     "why": "Input: the bar bends 55 degrees at its mid-point to form two arms; the interior angle of the elbow is the entry court. Degrees 55 produces a strong L-like kink without exceeding the ±60 clamp; segments 2 is the book's single kink - one joint, two arms."
+    },
+    {
+     "op": "vault",
+     "rise": 0.7,
+     "along": "long",
+     "why": "Input: the long arm of the L is the nave of the building and takes a barrel vault; the bent arm is flat-roofed and lower so the vault identifies which arm is primary. Limit: rise 0.7 on the L's long arm stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "bar_intersected_by_a_crossing_bar",
+   "primary_language": "solid_body",
+   "secondary_language": "a four-storey north-south bar pierced by a narrower east-west bar at third-height - a cross seen in section",
+   "formal_principle": "Two circulation paths cross the parcel at right angles; making each path a bar and intersecting them gives the crossing physical mass - the joint is the hall, readable in section as a cross, and each arm points to one of the site's four edges.",
+   "dominant_gesture": "a bar cross with a shared hall at the joint",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: the north-south bar is the primary body; four storeys of program. Limit: height 0.65 declares mid-tall."
+    },
+    {
+     "op": "intersect",
+     "size": 0.35,
+     "level": 0.3,
+     "climb": 0.5,
+     "degrees": 90,
+     "why": "Input: the east-west bar crosses the primary bar at a third of its height and rises to half the primary; the cross reads in section. Size 0.35 gives the crossing bar a real width; level 0.3 seats the crossing bar's base at the first-third of the host height. Limit: climb 0.5 means the crossing bar's top is half the primary bar's height, so it reads as lower; degrees 90 is a true right-angle cross."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.85,
+     "along": "cross",
+     "why": "Input: the crossing bar gets its own ridge perpendicular to the main bar's axis, so the two rooflines declare the two bars in silhouette. Limit: pitch 0.85 on the narrower crossing bar stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "carved_canyon_with_canopy",
+   "primary_language": "carved_body",
+   "secondary_language": "a wide four-storey body with a full-depth canyon carved through its middle, a thin canopy bridging over the canyon mouth",
+   "formal_principle": "The open face pressure demands a public pass through the building rather than round it; carving a canyon through the full depth of the body creates an interior street, and a thin canopy at the entry mouth marks it as the building's front gate rather than a service gap.",
+   "dominant_gesture": "a body carved through by a public canyon",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: four storeys filling the site. Limit: height 0.65 declares mid-tall; the full-plan body is the host for the through-cut."
+    },
+    {
+     "op": "carve",
+     "size": 0.22,
+     "at": "long",
+     "reach": 1.0,
+     "why": "Input: the canyon cuts through the full depth of the body; reach 1.0 means the carve exits both short faces. Size 0.22 is a real interior street width. Limit: at long runs the canyon along the building's long axis so it connects the open face to the back."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.28,
+     "at": 1.0,
+     "toward": "open",
+     "why": "Input: the canyon mouth at the open face needs a marker; a thin canopy reaches over it so the entry is covered and legible from the street. Limit: reach 0.28 structural gate."
+    }
+   ]
+  },
+  {
+   "name": "grade_smooth_hill_building",
+   "primary_language": "solid_body",
+   "secondary_language": "a wide three-storey body whose roof rises continuously in one smooth ramp from the street edge to the back - a man-made hill",
+   "formal_principle": "The back neighbour's daylight claim rises from zero at the street to maximum at the rear setback; a smooth ramp follows this envelope exactly, the roof as a datum that is simultaneously a daylight response and a public walkable surface.",
+   "dominant_gesture": "a smooth-ramp hill building",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "square",
+     "height": 0.45,
+     "storeys": 3,
+     "why": "Input: a low-to-mid body whose top will be ramped. Limit: height 0.45 declares low; the body is the base for the smooth ramp."
+    },
+    {
+     "op": "grade",
+     "steps": 6,
+     "run": 0.85,
+     "toward": "back",
+     "smooth": true,
+     "why": "Input: the daylight envelope tilts up toward the back; a smooth ramp follows it instead of a stepped profile. Six notional steps along 85% of the body depth makes the surface a single slope. Limit: smooth true removes the step risers so the roof reads as a continuous hill; toward back aligns the ramp with the daylight pressure."
+    }
+   ]
+  },
+  {
+   "name": "stack_fold_plate_crown",
+   "primary_language": "solid_body",
+   "secondary_language": "two stacked tiers, the upper tier narrow and crowned by a folded plate of three bays - a concertina roof on a pedestal",
+   "formal_principle": "The lower tier is the public body and the upper tier is the hall; the hall's roof is a folded plate so north light enters through every fold, the sawtooth crown floating above the stepped mass as the one element that declares the hall's interior section from outside.",
+   "dominant_gesture": "a stepped mass with a sawtooth hall on top",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 2,
+     "contrast": 2.0,
+     "align": "back",
+     "height": 0.65,
+     "storeys": 3,
+     "why": "Input: a wide public base and a narrow upper hall. Contrast 2.0 makes the base nearly twice the upper tier's footprint; align back keeps the base's street face whole. Limit: height 0.65 declares mid; storeys 3 per tier."
+    },
+    {
+     "op": "fold",
+     "folds": 3,
+     "pitch": 0.7,
+     "along": "long",
+     "why": "Input: the hall on the upper tier takes a north-light folded plate; three folds give three north-light bays. Limit: folds 3 is the render cap; pitch 0.7 per facet keeps the folds inside the 1.5-storey roof cap on the narrow upper tier."
+    }
+   ]
+  },
+  {
+   "name": "aggregate_overlap_clusters",
+   "primary_language": "solid_body",
+   "secondary_language": "two clusters of three oval towers each, the clusters overlapping at their centre - six towers fusing into one body at the bite zone",
+   "formal_principle": "Two programmes each want their own cluster of rooms but they share one hall; two tight oval clusters are placed so they overlap at the centre, the bite zone merging into the shared hall whose roof is the only element above both clusters.",
+   "dominant_gesture": "two clusters fusing at a shared hall",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 6,
+     "spread": 1.2,
+     "height": 0.7,
+     "tie": 0.25,
+     "profile": "oval",
+     "storeys": 4,
+     "why": "Input: two programmes of three towers each; oval profiles avoid sharp corners at the fusion zone. Spread 1.2 keeps the towers touching; tie 0.25 binds the bottoms of each cluster so the ground reads as two coherent pads. Limit: height 0.7 declares mid-tall; storeys 4."
+    },
+    {
+     "op": "overlap",
+     "bite": 0.22,
+     "slip": 0.0,
+     "height": 0.8,
+     "why": "Input: the two clusters are shifted toward each other so their centre towers merge into one shared hall body; bite 0.22 is the overlap depth across the cluster pair. Height 0.8 means the fused centre rises slightly taller than the peripheral towers, marking the hall. Limit: bite above the 0.15 floor; slip 0.0 means the two clusters meet face to face without lateral shift."
+    }
+   ]
+  },
+  {
+   "name": "tall_loop_fold_crown",
+   "primary_language": "open_figure",
+   "secondary_language": "a six-storey court ring under a folded-plate crown that runs continuously around all four bars",
+   "formal_principle": "A tall ring's flat parapet is the ring's weakest moment; a folded plate running continuously around the court transforms the crown into a procession of three folds, each fold shedding light inward to the court below.",
+   "dominant_gesture": "a tall ring under a continuous folded crown",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.22,
+     "height": 0.9,
+     "storeys": 6,
+     "why": "Input: density and court. Limit: height 0.9 with storeys 6 declares tall."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 0.65,
+     "along": "long",
+     "why": "Input: two folds per bar run continuously around the ring so the crown is a procession of sawtooth bays directing light to the court. Limit: folds 2 (not 3) on bars this width keeps each fold's run large enough to read; pitch 0.65 stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "narrow_aggregate_then_merge",
+   "primary_language": "solid_body",
+   "secondary_language": "four tall oval stems placed close together, merged at the base into one two-storey ground body, then separating into open sky",
+   "formal_principle": "Four equal programmes share one ground and divide above it; four oval stems merge at the base into a single ground floor that holds the shared programme, then separate above the datum so each stem reads as its own thing in the sky.",
+   "dominant_gesture": "four stems rising from one shared base",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.15,
+     "height": 0.8,
+     "tie": 0.3,
+     "profile": "oval",
+     "storeys": 5,
+     "why": "Input: four tall oval stems with spread 1.15 keep them close enough to merge at the base; tie 0.3 binds the lower 30% of each stem into the shared ground body. Limit: height 0.8 with storeys 5 declares tall; oval plan avoids corner stress at merge points."
+    },
+    {
+     "op": "merge",
+     "height": 0.28,
+     "why": "Input: the ground datum - two storeys - is declared explicitly by merge at height 0.28 (28% of the total body height = two of the five storeys). Limit: merge height 0.28 stops the union below the point where the stems' individual identities become important."
+    },
+    {
+     "op": "vault",
+     "rise": 0.7,
+     "along": "long",
+     "why": "Input: the merged ground body's roof is a barrel vault so the shared hall's ceiling is a curve, distinguishing it from the flat-plate office floors above in each stem. Limit: rise 0.7 on the merged ground body's plan depth stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "trapezoidal_bar_shed_roof",
+   "primary_language": "solid_body",
+   "secondary_language": "one four-storey trapezoidal-plan bar whose roof is one continuous slope falling toward the open face - a mono-pitch over a tapered plan",
+   "formal_principle": "The open face has sun and the back edge the neighbour's shadow; a trapezoidal plan widens toward the open face so the most rooms face the view, and a mono-pitch roof follows the slope of the daylight envelope, the building's section a right triangle whose hypotenuse is the sky.",
+   "dominant_gesture": "a mono-pitch shed over a trapezoidal bar",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "trapezoidal",
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: a trapezoidal plan widens toward the open face so the program biases toward the view. Limit: height 0.65 declares mid-tall; the trapezoidal profile is the formal decision."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.7,
+     "along": "long",
+     "at": 0.85,
+     "why": "Input: a saltbox gable with the ridge placed at 0.85 produces a long shallow slope toward the open face and a short steep slope at the back - the roof follows the daylight envelope direction. Limit: at 0.85 creates the asymmetric pitch; pitch 0.7 stays inside the cap."
+    }
+   ]
+  },
+  {
+   "name": "low_aggregate_embed_hall",
+   "primary_language": "porous_field",
+   "secondary_language": "five low oval pavilions in a field, one pavilion with a taller object embedded sunk into its body - the civic hall embedded in the smallest pavilion",
+   "formal_principle": "Five equal pavilions are too democratic for a hall; embedding a taller body inside the smallest pavilion sinks the hall below the pavilion's roof so its presence is declared by a raised skylight rather than a taller mass - the civic room hidden and revealed at once.",
+   "dominant_gesture": "a hall embedded and sunken in a pavilion",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.5,
+     "height": 0.45,
+     "tie": 0,
+     "profile": "oval",
+     "storeys": 2,
+     "why": "Input: five low oval pavilions standing apart. Limit: height 0.45 declares low; spread 1.5 gives yard between them."
+    },
+    {
+     "op": "embed",
+     "size": 0.35,
+     "depth": 0.4,
+     "at": 0.0,
+     "why": "Input: the hall is embedded into the first pavilion (object_0) sunk to depth 0.4 of the host body so it disappears below the pavilion roof; its presence is marked by the raised edge only. Size 0.35 gives the hall a real interior. Limit: depth 0.4 keeps the embedded object mostly below the host roof; at 0.0 anchors it to the first object."
+    },
+    {
+     "op": "vault",
+     "rise": 0.8,
+     "along": "long",
+     "why": "Input: the embedded hall's roof is a vault rising above the pavilion's flat roof, the one skylight that marks where the hall is. Limit: rise 0.8 on the embedded object's narrow span reads as a clear arc above the pavilion roof."
+    }
+   ]
+  }
+ ]
+}

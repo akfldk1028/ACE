@@ -1,0 +1,729 @@
+{
+  "schemes": [
+    {
+      "name": "roof_field_five_opposite_eaves",
+      "primary_language": "porous_field",
+      "secondary_language": "five low one-storey oval pavilions each wearing its own warped roof plate, opposite corners lifted - a field of flying eaves",
+      "formal_principle": "Five scattered pavilions share no common height; giving each its own warped roof with opposite corners raised means the field reads as a collection of individual gestures, not a slab - each eave is a different sky-facing sail.",
+      "dominant_gesture": "a field of pavilions under individual flying-eave roofs",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.6,
+          "height": 0.3,
+          "tie": 0,
+          "profile": "oval",
+          "storeys": 1,
+          "why": "Input: five scattered one-storey oval pavilions, spread wide enough to leave real yard between them. Limit: height 0.3 declares low; spread 1.6 gives generous inter-pavilion gaps; tie 0 means no shared base so each reads as a freestanding body."
+        },
+        {
+          "op": "roof",
+          "rise": 0.5,
+          "eave": 0.3,
+          "corners": "opposite",
+          "sag": 0.25,
+          "thin": 0.12,
+          "why": "Input: each pavilion is individually small and needs a legible skyward identity; raising opposite corners 0.5 storeys per body creates a hyperbolic-paraboloid warped plate over each oval body, the sag curving the eave line so it reads as a sail, not a flat flap. Limit: eave 0.3 of short span; rise 0.5 inside the 1.5-storey cap; sag 0.25 makes the curve legible without touching grade; thin 0.12 is a true roof plate not a storey."
+        }
+      ]
+    },
+    {
+      "name": "extrude_adjacent_eaves_low_hall",
+      "primary_language": "solid_body",
+      "secondary_language": "one low two-storey bar under a warped roof plate with adjacent corners raised - a building that sweeps toward its open corner",
+      "formal_principle": "The open-face corner is the view; raising the two adjacent corners of the roof that face it lifts the eave toward the corner address and drops the back, so the building is directed at its best view by the shape of its roof alone.",
+      "dominant_gesture": "a low bar with its open-corner eave swept up",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.35,
+          "storeys": 2,
+          "why": "Input: a low two-storey hall whose section reads as a datum; the body is the host for the roof's directional event. Limit: height 0.35 declares low."
+        },
+        {
+          "op": "roof",
+          "rise": 0.9,
+          "eave": 0.4,
+          "corners": "adjacent",
+          "sag": 0.15,
+          "thin": 0.1,
+          "why": "Input: two adjacent corners on the open-face side are raised 0.9 storeys, lifting the eave toward the view and letting the roof fall away at the back two corners; sag 0.15 curves the eave line to a gentle arc. Limit: rise 0.9 inside cap; eave 0.4 reaches well over the short span; thin 0.10 is a roof plate, not a room."
+        }
+      ]
+    },
+    {
+      "name": "loop_roof_all_corners_crown",
+      "primary_language": "open_figure",
+      "secondary_language": "a mid-height court ring whose every bar wears a warped roof with all four corners raised - the court reads as a crown of eight lifted eaves",
+      "formal_principle": "A court ring's court is more interesting than its bars; raising all four corners of every bar's roof plate makes the bars dissolve into a ring of lifted eaves, the eave line oscillating around the court like a crown.",
+      "dominant_gesture": "a court ring under a crown of lifted flying eaves",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.2,
+          "height": 0.55,
+          "storeys": 3,
+          "why": "Input: a mid-height ring with slender bars; three storeys declares civic stature. Limit: height 0.55 declares mid-low; bar 0.20 keeps the bars slender so the roof plate dominates the silhouette."
+        },
+        {
+          "op": "roof",
+          "rise": 0.6,
+          "eave": 0.35,
+          "corners": "all",
+          "sag": 0.3,
+          "thin": 0.08,
+          "why": "Input: all four corners of each bar's roof plate are raised, making every bar a tent-like form with a sagging middle; the court below the ring of eaves becomes a sheltered outdoor room. Limit: rise 0.6 inside cap; eave 0.35 extends the plate beyond the bar footprint; sag 0.3 curves the lower edge into a legible catenary; thin 0.08 is a true plate."
+        }
+      ]
+    },
+    {
+      "name": "stack_roof_one_corner_lifted",
+      "primary_language": "solid_body",
+      "secondary_language": "three stacked tiers stepping back, each tier's roof plate has only one corner raised toward the open face - a tower of ascending single-winged eaves",
+      "formal_principle": "A stepping tower loses its identity at each setback; giving each tier one raised corner toward the open face threads the vertical sequence with a directional gesture - tier by tier the same corner lifts, making the stack read as a rising diagonal argument.",
+      "dominant_gesture": "a stepped tower of single-corner lifted eaves",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.8,
+          "align": "back",
+          "height": 0.75,
+          "storeys": 3,
+          "why": "Input: three tiers stepping back from the back neighbour; contrast 1.8 makes the tiers clearly differentiated; align back keeps the front face continuous. Limit: height 0.75 declares mid-tall; storeys 3 per tier stays inside the 12.5m per-volume cap."
+        },
+        {
+          "op": "roof",
+          "rise": 0.7,
+          "eave": 0.25,
+          "corners": "one",
+          "sag": 0.1,
+          "thin": 0.09,
+          "why": "Input: one corner of each tier's roof plate is raised toward the open face, threading the stack with a single rising diagonal gesture; sag 0.1 gives the eave a gentle curve. Limit: rise 0.7 inside cap; eave 0.25 extends the plate a quarter-span; thin 0.09 is a roof plate."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_stack_method_opposite_roof",
+      "primary_language": "solid_body",
+      "secondary_language": "six two-storey house units stacked with alternating turns, every unit wearing a warped plate with opposite corners lifted - a pile of rotating flying-eave houses",
+      "formal_principle": "Stacked houses read as a pile of identical objects; warping each unit's roof with opposite corners lifted and alternating the turn direction makes each house a pinwheel silhouette, the pile reading as a spiralling argument rather than a stack of identical boxes.",
+      "dominant_gesture": "a spiralling pile of flying-eave houses",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.1,
+          "height": 0.75,
+          "tie": 0.18,
+          "turn": 22,
+          "method": "stack",
+          "unit": "house",
+          "storeys": 2,
+          "why": "Input: six two-storey house units stacked with each unit turned 22 degrees from the one below; method stack alternates the turn sign so adjacent houses diverge. Limit: height 0.75 declares mid-tall; tie 0.18 binds the base storey; reach not declared so the units do not overhang."
+        },
+        {
+          "op": "roof",
+          "rise": 0.45,
+          "eave": 0.28,
+          "corners": "opposite",
+          "sag": 0.2,
+          "thin": 0.11,
+          "why": "Input: each house unit's roof plate has opposite corners raised so the warped surface echoes the turning sequence of the stack; sag 0.2 curves the lower eave line into a readable arc on each house. Limit: rise 0.45 inside cap; eave 0.28 extends past the unit footprint; thin 0.11 is a roof plate."
+        }
+      ]
+    },
+    {
+      "name": "extrude_roof_one_corner_tall_bar",
+      "primary_language": "solid_body",
+      "secondary_language": "one five-storey hexagonal bar under a warped roof plate with one corner lifted high toward the open face - a monolith with one raised wing",
+      "formal_principle": "A tall hexagonal body has no preferred direction; raising one corner of its roof toward the open face makes the directional choice architectural - the one raised wing is the building's bow toward the street, the rest of the eave held level.",
+      "dominant_gesture": "a tall hexagonal monolith with one raised-wing eave",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "hexagon",
+          "height": 0.82,
+          "storeys": 5,
+          "why": "Input: a tall hexagonal body whose equal faces need one direction singled out. Limit: height 0.82 with storeys 5 keeps each volume below the 12.5m cap."
+        },
+        {
+          "op": "roof",
+          "rise": 1.2,
+          "eave": 0.22,
+          "corners": "one",
+          "sag": 0.05,
+          "thin": 0.07,
+          "why": "Input: one corner at the open-face direction is raised 1.2 storeys, making a dramatic single wing against the sky; the rest of the eave barely sags. Limit: rise 1.2 inside the 1.5 cap; eave 0.22 of short span; thin 0.07 is barely above the 0.06 minimum - a truly thin plate."
+        }
+      ]
+    },
+    {
+      "name": "loop_roof_opposite_mid_tall",
+      "primary_language": "open_figure",
+      "secondary_language": "a five-storey court ring of square-plan bars each under a warped plate with opposite corners raised - a tall ring that breathes open at the diagonal",
+      "formal_principle": "A tall ring's bars are too massive for a simple flat parapet; opposite corners of each bar's roof plate rise, so the ring reads as four saddle surfaces whose high corners face the diagonal voids at each inner corner of the court - the ring opens at its own joints.",
+      "dominant_gesture": "a tall court ring with diagonal-opening saddle roofs",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.24,
+          "height": 0.82,
+          "storeys": 5,
+          "why": "Input: a tall ring of programme; five storeys with bar 0.24 keeps each bar proportioned for habitation. Limit: height 0.82 declares tall."
+        },
+        {
+          "op": "roof",
+          "rise": 0.8,
+          "eave": 0.38,
+          "corners": "opposite",
+          "sag": 0.35,
+          "thin": 0.09,
+          "why": "Input: opposite corners of each bar's plate rise toward the diagonal voids at the ring's inner corners, so the four saddle surfaces pull toward the court's open sky; sag 0.35 curves the lower eave deeply so each bar's long face reads as a curved brim. Limit: rise 0.8 inside cap; eave 0.38 extends the plate well beyond the bar plan; thin 0.09 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_oval_roof_one_corner_field",
+      "primary_language": "porous_field",
+      "secondary_language": "four mid-height oval bodies each with one corner of its roof plate lifted toward the open face - a scattered field of directional sailing forms",
+      "formal_principle": "Four oval bodies share the parcel without a hierarchy; giving each the same one-corner raise toward the open face makes every body face the same direction simultaneously - a field of identical gestures that reads as a collective bow.",
+      "dominant_gesture": "a field of oval bodies bowing toward the open face",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.45,
+          "height": 0.55,
+          "tie": 0,
+          "profile": "oval",
+          "storeys": 3,
+          "why": "Input: four mid-height oval bodies spread across the parcel with generous gaps. Limit: height 0.55 declares mid; spread 1.45 gives real yard between bodies; tie 0 keeps them independent."
+        },
+        {
+          "op": "roof",
+          "rise": 0.65,
+          "eave": 0.45,
+          "corners": "one",
+          "sag": 0.2,
+          "thin": 0.13,
+          "why": "Input: one corner of each body's roof plate faces the open face and is raised 0.65 storeys, making every oval body lift its brow toward the view; eave 0.45 extends the plate almost half the short span beyond the body footprint. Limit: rise 0.65 inside cap; sag 0.2 curves the lowered eave line; thin 0.13 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "extrude_chamfered_roof_all_four_corners",
+      "primary_language": "solid_body",
+      "secondary_language": "a mid-height chamfered-plan body under a warped plate with all four corners raised - a tent-like crown over a faceted base",
+      "formal_principle": "A chamfered plan already softens the square's corners; raising all four corners of the roof plate above a chamfered body turns the crown into a tensile tent: the mid-plate sags and all edges lift, the building reading as a taut surface that the chamfered walls barely hold.",
+      "dominant_gesture": "a chamfered base under a four-corner tent roof",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "chamfered",
+          "height": 0.58,
+          "storeys": 3,
+          "why": "Input: a mid-height chamfered body whose softened corners set up the tent's anchors. Limit: height 0.58 declares mid; the chamfered profile is the formal decision."
+        },
+        {
+          "op": "roof",
+          "rise": 0.55,
+          "eave": 0.32,
+          "corners": "all",
+          "sag": 0.45,
+          "thin": 0.08,
+          "why": "Input: all four corners raise and the centre sags deeply (0.45) so the plate reads as a tensile tent, the eave line a pronounced catenary. Limit: rise 0.55 inside cap; eave 0.32 extends the plate; sag 0.45 is deeply curved without reaching the 0.6 maximum; thin 0.08 is a true plate."
+        }
+      ]
+    },
+    {
+      "name": "loop_bar_stepped_roof_one_corner",
+      "primary_language": "open_figure",
+      "secondary_language": "a low two-storey court ring with only the street-front bar wearing a raised single-corner roof plate - one asymmetric eave identifies the entry bar",
+      "formal_principle": "A court ring needs one face that is the front; giving only the street bar a single raised-corner roof singles it out from the ring without adding height - the asymmetric eave reads as the building's address from across the street.",
+      "dominant_gesture": "a ring with one bar distinguished by a single raised eave corner",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.38,
+          "storeys": 2,
+          "why": "Input: a low two-storey ring; the low height keeps the ring domestic and the roof plate the dominant event. Limit: height 0.38 declares low."
+        },
+        {
+          "op": "roof",
+          "rise": 1.0,
+          "eave": 0.5,
+          "corners": "one",
+          "sag": 0.08,
+          "thin": 0.14,
+          "why": "Input: one corner of the front bar's roof plate is raised 1.0 storey, lifting the eave at the entry to a full storey above the bar while the rest of the ring stays flat; eave 0.5 is the maximum - the plate reaches half the short span beyond the bar. Limit: rise 1.0 inside cap; thin 0.14 is a plate; sag 0.08 keeps the lowered eave nearly straight."
+        }
+      ]
+    },
+    {
+      "name": "extrude_kite_roof_adjacent_grade_high",
+      "primary_language": "solid_body",
+      "secondary_language": "a tall kite-plan body under a warped roof plate with the two open-face adjacent corners raised and the two back corners dropped - a building that surges toward the view",
+      "formal_principle": "The kite plan already directs the building toward one corner; raising the two adjacent corners nearest the open face amplifies the direction in the roof, the entire eave line surging toward the view while the back remains anchored low.",
+      "dominant_gesture": "a kite body surging toward its open corner in roof and plan",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "kite",
+          "height": 0.85,
+          "storeys": 5,
+          "why": "Input: a kite plan concentrates the tip at the open-face corner; five storeys declares tall. Limit: height 0.85 with storeys 5 stays inside the cap."
+        },
+        {
+          "op": "roof",
+          "rise": 1.1,
+          "eave": 0.42,
+          "corners": "adjacent",
+          "sag": 0.18,
+          "thin": 0.1,
+          "why": "Input: the two corners flanking the kite's open-face tip are raised 1.1 storeys, framing the tip between two lifted eaves; the two back corners stay low. Limit: rise 1.1 inside cap; eave 0.42 extends the plate well past the kite body; sag 0.18 curves the lower eave gently."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_field_turned_units_opposite_roof",
+      "primary_language": "porous_field",
+      "secondary_language": "eight one-storey square pavilions each turned a different amount, each wearing a warped roof plate with opposite corners raised - a field of individually-oriented flying eaves",
+      "formal_principle": "A field of identical pavilions reads as parking; turning each unit a different amount and giving each a warped roof with opposite corners raised makes the field a collection of singular expressions - the roof plates are the means by which each pavilion declares its own orientation.",
+      "dominant_gesture": "a field of individually turned pavilions under per-unit flying eaves",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 8,
+          "spread": 1.55,
+          "height": 0.28,
+          "tie": 0,
+          "turn": 15,
+          "profile": "square",
+          "method": "pack",
+          "storeys": 1,
+          "why": "Input: eight one-storey square pavilions spread across the parcel, each turned 15 degrees cumulatively from the last so they rotate around the field. Limit: height 0.28 declares low; spread 1.55 gives real gaps; turn 15 degrees is enough to read as a rotation sequence."
+        },
+        {
+          "op": "roof",
+          "rise": 0.55,
+          "eave": 0.38,
+          "corners": "opposite",
+          "sag": 0.22,
+          "thin": 0.12,
+          "why": "Input: opposite corners of each pavilion's roof plate are raised; because each pavilion is turned differently, the raised corners point in eight different directions, making the field read as a collection of distinct gestures. Limit: rise 0.55 inside cap; eave 0.38 extends the plate; sag 0.22 curves the lower eave; thin 0.12 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "bar_grade_smooth_open_hill",
+      "primary_language": "solid_body",
+      "secondary_language": "a wide three-storey bar whose roof grades smoothly upward from the street edge to a peak at the open face - a man-made hill rising toward the view",
+      "formal_principle": "The open face is the highest-value ground; reversing the conventional daylight slope so the roof rises toward the open face turns the building into a landform that culminates at the city's edge - the roof becomes a hill and the programme lives inside the hill's body.",
+      "dominant_gesture": "a smooth hill building rising toward its open face",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.48,
+          "storeys": 3,
+          "why": "Input: a three-storey base wide enough to hold all programme before the grade transforms its top. Limit: height 0.48 declares low-mid; the body is the host for the hill-forming grade."
+        },
+        {
+          "op": "grade",
+          "steps": 8,
+          "run": 0.9,
+          "toward": "open",
+          "smooth": true,
+          "why": "Input: the roof grades smoothly over 90% of the body's depth toward the open face, rising from the street side to a peak at the open edge; smooth true makes the surface a continuous ramp rather than stepped. Limit: toward open is a valid axis word; run 0.9 covers nearly the full depth; steps 8 gives a smooth curve approximation."
+        }
+      ]
+    },
+    {
+      "name": "bend_twist_roof_adjacent_bar",
+      "primary_language": "solid_body",
+      "secondary_language": "a five-storey bar bent into a shallow L, then twisted 20 degrees, under a warped plate with adjacent corners raised at the bend - a curved bar that gestures at the open corner",
+      "formal_principle": "A straight bar cannot hold two street edges simultaneously; bending it into a soft L and twisting the body gives two independent addresses, and raising the two corners adjacent to the elbow lifts the roof toward the open corner - the eave follows the body's structural logic.",
+      "dominant_gesture": "a bent-twisted bar with a flying eave at its elbow",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.78,
+          "storeys": 5,
+          "why": "Input: five storeys of programme in a bar that will be bent and twisted. Limit: height 0.78 declares tall."
+        },
+        {
+          "op": "bend",
+          "degrees": 40,
+          "segments": 2,
+          "why": "Input: the bar bends 40 degrees at its mid-point to face the open corner; segments 2 is a single kink creating two arms at the elbow. Limit: degrees 40 is well within the ±60 clamp."
+        },
+        {
+          "op": "twist",
+          "why": "Input: the body twists as it rises to face the open face more directly; the twist is applied after the bend so the elbow faces the corner while the bar faces the street. Limit: twist is applied once to the full bent body."
+        },
+        {
+          "op": "roof",
+          "rise": 0.75,
+          "eave": 0.3,
+          "corners": "adjacent",
+          "sag": 0.14,
+          "thin": 0.1,
+          "why": "Input: the two corners adjacent to the elbow are raised, framing the bend with two lifted eaves; the roof follows the structural moment of the kink. Limit: rise 0.75 inside cap; eave 0.3 of short span; thin 0.10 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_bar_per_unit_turn_field",
+      "primary_language": "porous_field",
+      "secondary_language": "six two-storey rectangular units each turned a successive 12 degrees, packed into a dense field - a sawtooth plan that reads from above as a pinwheel array",
+      "formal_principle": "Six equal programme units need six different solar orientations; each unit is turned 12 degrees from the last so the field rotates through 60 degrees, giving each unit its own south face while the whole reads from above as a spinning array.",
+      "dominant_gesture": "a pinwheel field of turned rectangular programme units",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.3,
+          "height": 0.38,
+          "tie": 0,
+          "turn": 12,
+          "profile": "square",
+          "method": "pack",
+          "storeys": 2,
+          "why": "Input: six two-storey rectangular units each rotated 12 degrees cumulatively, so the field spans 60 degrees of rotation; spread 1.3 keeps them close but gap-separated. Limit: height 0.38 declares low; turn 12 degrees per unit is enough to read a rotation sequence without shearing plan."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.8,
+          "along": "long",
+          "bays": 1,
+          "why": "Input: each unit needs its ridge direction to reinforce its individual orientation; a single ridge along the unit's own long axis reads the rotation clearly at each unit. Limit: pitch 0.8 on the narrow unit plan stays inside the cap."
+        }
+      ]
+    },
+    {
+      "name": "split_long_grade_hill_toward_open",
+      "primary_language": "solid_body",
+      "secondary_language": "a wide body split into two unequal slabs along its short axis, the wider slab graded into a hill toward the open face, the narrower slab a flat platform at grade",
+      "formal_principle": "The open face is the pressure to respond to; splitting the body into an active hill-slab facing it and a flat datum-slab behind gives the project two ground conditions in one move - the hill is the landform argument, the platform the civic flat.",
+      "dominant_gesture": "an active hill slab facing the open face beside a flat datum slab",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.55,
+          "storeys": 3,
+          "why": "Input: a wide body that will become two distinct ground conditions. Limit: height 0.55 declares mid."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.6,
+          "contrast": 1.3,
+          "why": "Input: splitting across the short axis at ratio 0.6 (not 0.50) gives the front slab 60% of the plan depth; contrast 1.3 makes the back slab slightly lower as a datum. Limit: ratio 0.6 avoids 0.50; contrast 1.3 within range."
+        },
+        {
+          "op": "grade",
+          "steps": 6,
+          "run": 0.85,
+          "toward": "open",
+          "smooth": true,
+          "why": "Input: the larger front slab grades smoothly toward the open face, rising as a hill; smooth true makes the surface a ramp not steps; the back flat slab remains as the datum. Limit: toward open is valid; run 0.85; steps 6."
+        }
+      ]
+    },
+    {
+      "name": "extrude_skew_roof_opposite_mid",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-storey skewed parallelogram body under a warped plate with opposite corners raised - the skew and the roof together declare a single diagonal direction",
+      "formal_principle": "The parcel's open face is diagonal to the road; skewing the body's plan to a parallelogram aligns it with the diagonal, and raising the opposite corners that face the open direction amplifies the skew in the roof - the body and its roof are one diagonal argument.",
+      "dominant_gesture": "a skewed body and diagonal flying-eave roof as one move",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.5,
+          "storeys": 3,
+          "why": "Input: a three-storey body that will be skewed to a parallelogram plan. Limit: height 0.5 declares mid-low."
+        },
+        {
+          "op": "skew",
+          "why": "Input: the body is sheared into a parallelogram plan whose long diagonal faces the open face; the skew is the plan's declaration of direction. Limit: skew is applied once."
+        },
+        {
+          "op": "roof",
+          "rise": 0.7,
+          "eave": 0.4,
+          "corners": "opposite",
+          "sag": 0.28,
+          "thin": 0.11,
+          "why": "Input: opposite corners of the skewed body's roof plate are raised, aligning with the parallelogram's long diagonal; the sag 0.28 curves the eave so the diagonal direction reads as a smooth arc. Limit: rise 0.7 inside cap; eave 0.4; thin 0.11 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "stack_grade_hill_toward_back",
+      "primary_language": "solid_body",
+      "secondary_language": "three stacked tiers set to back-align, the whole tower's exposed stepped face grading toward the open face as a continuous stepped hill",
+      "formal_principle": "A daylight-step tower set toward the back neighbour produces a stepped face on the street side; reading that stepped face as a hillside rather than setbacks means the exposed steps are not left-over geometry but a designed terrain - the building's front is a mountain slope.",
+      "dominant_gesture": "a stepped tower whose street face reads as a designed hillside",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 4,
+          "contrast": 1.6,
+          "align": "back",
+          "height": 0.82,
+          "storeys": 2,
+          "why": "Input: four tiers aligned back; each tier two storeys so no volume exceeds the 12.5m cap. Contrast 1.6 makes each tier meaningfully smaller than the one below. Limit: height 0.82 declares tall; storeys 2 keeps each volume under cap."
+        },
+        {
+          "op": "grade",
+          "steps": 4,
+          "run": 0.8,
+          "toward": "open",
+          "why": "Input: the stepped face of the back-aligned stack is treated as a hill surface grading toward the open face; steps 4 matches the four tiers; run 0.8 of the body depth. Limit: toward open is valid; no smooth so the steps read as terraces."
+        }
+      ]
+    },
+    {
+      "name": "extrude_twist_vault_tall_tower",
+      "primary_language": "solid_body",
+      "secondary_language": "a six-storey trapezoidal tower that twists as it rises, crowned by a barrel vault along its upper long axis - a twisted tower with a curved hat",
+      "formal_principle": "A tower that twists through six storeys has no single dominant face; crowning it with a barrel vault along its topmost long axis gives it a unidirectional crown that the twist below has earned - the vault is the tower's one stable declaration after all the turning.",
+      "dominant_gesture": "a twisting tower resolved by a barrel-vault crown",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "trapezoidal",
+          "height": 0.9,
+          "storeys": 6,
+          "why": "Input: a six-storey trapezoidal tower that will twist to face the open face progressively. Limit: height 0.9 with storeys 6 stays inside the cap."
+        },
+        {
+          "op": "twist",
+          "why": "Input: the tower twists as it rises so the narrow end traces the open face; the twist is the building's kinetic argument. Limit: twist applied once to the full tower body."
+        },
+        {
+          "op": "vault",
+          "rise": 0.65,
+          "bays": 1,
+          "along": "long",
+          "why": "Input: the vault runs along the tower's topmost long axis to resolve the twist with a stable curved crown; one bay keeps the silhouette clean. Limit: rise 0.65 inside the 1.5-storey cap; along long follows the trapezoidal body's own long axis."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_merge_roof_adjacent_three_oval",
+      "primary_language": "solid_body",
+      "secondary_language": "three tall oval stems merged at their base into one ground body, the merged base wearing a warped plate with adjacent corners raised toward the open face",
+      "formal_principle": "Three oval towers share a ground floor hall; the merged base is the civic room and the three stems are the tower identities above; the base's warped roof plate with adjacent corners raised toward the open face declares the hall's civic orientation against the stems' verticality.",
+      "dominant_gesture": "three oval stems rising from a flying-eave base hall",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.2,
+          "height": 0.85,
+          "tie": 0.22,
+          "profile": "oval",
+          "storeys": 5,
+          "why": "Input: three tall oval stems with spread 1.2 keep them close enough to merge at base; tie 0.22 binds the lower 22% of each stem as the shared hall base. Limit: height 0.85 declares tall; storeys 5."
+        },
+        {
+          "op": "merge",
+          "height": 0.22,
+          "why": "Input: the base 22% of the three stems is merged into one single ground floor body - the civic hall that connects the three towers. Limit: merge height 0.22 stops the union below where the stems' individual oval identities are important."
+        },
+        {
+          "op": "roof",
+          "rise": 0.9,
+          "eave": 0.4,
+          "corners": "adjacent",
+          "sag": 0.2,
+          "thin": 0.09,
+          "why": "Input: the two corners of the merged base adjacent to the open face are raised 0.9 storeys, making the civic hall's roof surge toward the open edge; the stems rise from this flying-eave base. Limit: rise 0.9 inside cap; eave 0.4; thin 0.09 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "extrude_notch_roof_one_corner_carved",
+      "primary_language": "carved_body",
+      "secondary_language": "a four-storey faceted body with a corner notch at the open face, the whole body under a warped plate with one corner raised at the notch - the entry is under a lifted eave",
+      "formal_principle": "The notch opens the entry but leaves it unmarked in the sky; raising the roof corner directly above the notch turns the entry into a framed arrival - the lifted eave is the canopy that the structure provides rather than an added element.",
+      "dominant_gesture": "a notched body with its entry corner eave raised high",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "faceted",
+          "height": 0.65,
+          "storeys": 4,
+          "why": "Input: a four-storey faceted body whose open-face corner is the entry zone. Limit: height 0.65 declares mid-tall."
+        },
+        {
+          "op": "notch",
+          "size": 0.28,
+          "at": "corner",
+          "why": "Input: a notch at the open corner creates the entry plaza; size 0.28 is a real arrival space. Limit: size 0.28 within the 0.15-0.5 notch clamp; at corner targets the open-face corner."
+        },
+        {
+          "op": "roof",
+          "rise": 1.3,
+          "eave": 0.45,
+          "corners": "one",
+          "sag": 0.06,
+          "thin": 0.08,
+          "why": "Input: the one corner of the roof plate above the entry notch is raised 1.3 storeys, framing the arrival with a dramatic single eave; the rest of the plate stays nearly level. Limit: rise 1.3 inside the 1.5 cap; eave 0.45 extends the plate over the notch plaza; thin 0.08 is a plate; sag 0.06 keeps the lowered eave line nearly flat."
+        }
+      ]
+    },
+    {
+      "name": "low_hall_lodge_with_roof",
+      "primary_language": "solid_body",
+      "secondary_language": "a wide three-storey hall body with a slender bar lodged over its open-face edge, the whole body under a warped plate with one corner raised - a hall and its bridge as a directed flying-eave pair",
+      "formal_principle": "The hall needs a servant bar of offices above it at the street face; lodging the bar over the hall edge so it projects both ways gives the hall its bridge, and raising one corner of the roof toward the open face makes both a directional pair rather than a stack.",
+      "dominant_gesture": "a hall-and-lodge pair under a directed flying eave",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.45,
+          "storeys": 3,
+          "why": "Input: a wide three-storey hall as the civic base; the body is the host for the lodged bar. Limit: height 0.45 declares mid-low."
+        },
+        {
+          "op": "lodge",
+          "size": 0.22,
+          "over": 0.32,
+          "height": 0.55,
+          "at": 0.18,
+          "why": "Input: the office bar lodges over the hall edge and projects toward the open face; at 0.18 pushes the lodge toward the street. Limit: size 0.22 keeps the bar slender; over 0.32 spans a third of the hall depth; height 0.55 makes the lodged bar taller than the hall."
+        },
+        {
+          "op": "roof",
+          "rise": 0.75,
+          "eave": 0.32,
+          "corners": "one",
+          "sag": 0.1,
+          "thin": 0.1,
+          "why": "Input: one corner of the combined body roof plate is raised toward the open face, threading the hall-and-lodge pair with a single directional gesture. Limit: rise 0.75 inside cap; eave 0.32; thin 0.10 is a plate."
+        }
+      ]
+    },
+    {
+      "name": "nest_tower_with_tent_base_roof",
+      "primary_language": "solid_body",
+      "secondary_language": "a two-storey chamfered host body with a narrower tower nested inside and turned 30 degrees, the host wearing a warped plate with all four corners raised - a tower rising from a tensile-tent base",
+      "formal_principle": "The nested tower declares its rotation by rising proud above its host; raising all four corners of the host roof plate turns the base into a tent whose eaves reach outward while the tower rises from its centre - the base and tower are in formal opposition.",
+      "dominant_gesture": "a rotated tower rising from a four-corner tent base",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "chamfered",
+          "height": 0.35,
+          "storeys": 2,
+          "why": "Input: a low chamfered host body that reads as a base; two storeys declares the datum. Limit: height 0.35 declares low."
+        },
+        {
+          "op": "nest",
+          "size": 0.38,
+          "proud": 0.85,
+          "turn": 30,
+          "why": "Input: a tower is nested inside the host and turned 30 degrees to face the open face; proud 0.85 means the tower rises well above the host. Limit: size 0.38 gives the tower a real floor plate; turn 30 reads clearly in silhouette."
+        },
+        {
+          "op": "roof",
+          "rise": 0.6,
+          "eave": 0.42,
+          "corners": "all",
+          "sag": 0.38,
+          "thin": 0.09,
+          "why": "Input: all four corners of the host base roof plate are raised to form a tent whose eaves reach beyond the chamfered footprint; the deeply-sagging centre makes the tent read as a catenary surface. Limit: rise 0.6 inside cap; eave 0.42; sag 0.38; thin 0.09."
+        }
+      ]
+    },
+    {
+      "name": "aggregate_three_oval_vault_civic_base",
+      "primary_language": "solid_body",
+      "secondary_language": "three tall oval stems merged at their base, the merged ground body under a barrel vault - three towers emerging from a vaulted hall",
+      "formal_principle": "Three programme towers share a civic hall at grade; merging their bases into one continuous ground body and vaulting its roof declares the hall as the building public room - the vault is the signal of the hall, the three oval stems above are the building identity in the sky.",
+      "dominant_gesture": "three oval towers emerging from a vaulted civic base",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.2,
+          "height": 0.82,
+          "tie": 0.2,
+          "profile": "oval",
+          "storeys": 5,
+          "why": "Input: three tall oval stems; spread 1.2 keeps them close enough for a merged base. Limit: height 0.82 declares tall; tie 0.20 binds the lower fifth of each stem."
+        },
+        {
+          "op": "merge",
+          "height": 0.2,
+          "why": "Input: the base 20 percent of the three stems is merged into one civic hall body. Limit: merge height 0.20 stops the union before the stems individual identities."
+        },
+        {
+          "op": "vault",
+          "rise": 0.65,
+          "bays": 1,
+          "along": "long",
+          "why": "Input: the merged hall base gets a barrel vault so the public room ceiling is a curve, distinguishing it from the flat-plate floors in the oval stems above. Limit: rise 0.65 inside the 1.5-storey cap; one bay keeps the silhouette clear."
+        }
+      ]
+    }
+  ]
+}

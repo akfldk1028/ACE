@@ -254,7 +254,13 @@ def _validate_affine_authority(program: GeometryProgram) -> None:
         node for node in matrices
         if _matrix_follows_unitbox_base_form_chain(program, unitbox.id, node)
     ]
-    if len(on_the_base_chain) != 1:
+    # And at least one, not exactly one: a program may place the same unit box
+    # several times - a bridge is two supports and a deck, each its own matrix
+    # off the same box, which is what every multi-volume massing is. The
+    # authority claim is that the box is ONE and every pose is explicit, not
+    # that the building is one volume. Demanding a single matrix refused the
+    # bridge and the interlocking discs outright.
+    if not on_the_base_chain:
         raise ValueError("canonical UnitBox lacks an explicit BaseVolume Matrix4")
 
 

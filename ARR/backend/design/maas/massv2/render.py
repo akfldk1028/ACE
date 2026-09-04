@@ -686,6 +686,64 @@ def _plan_key(polygon) -> tuple:
     return (bounds, round(float(polygon.area), 2), len(polygon.interiors))
 
 
+def _ruled_faces(rings, lows, highs):
+    """One solid from a run of plans that change smoothly with height.
+
+    `rings` are the run's plans bottom to top, already in vertex correspondence;
+    the walls are quads between neighbouring rings and only the outermost
+    outline is drawn, so a taper reads as a taper rather than as a stack of
+    trays. Far-to-near ordering is the same painter's rule `_walls` uses.
+    """
+
+    count = len(rings[0])
+    quads = []
+    for index in range(len(rings) - 1):
+        lower, upper = rings[index], rings[index + 1]
+        z_low, z_high = lows[index], highs[index]
+        for corner in range(count):
+            nxt = (corner + 1) % count
+            quads.append((
+                [_project(*lower[corner], z_low), _project(*lower[nxt], z_low),
+                 _project(*upper[nxt], z_high), _project(*upper[corner], z_high)],
+                _depth((lower[corner][0] + lower[nxt][0]) / 2.0,
+                       (lower[corner][1] + lower[nxt][1]) / 2.0),
+            ))
+    for shape, _depth_value in sorted(quads, key=lambda item: -item[1]):
+        # Seamless: the run's own silhouette is drawn once, after the walls,
+        # so no line lands where the building has no edge.
+        yield shape, _PAL.wall, False
+    yield [_project(x, y, highs[-1]) for x, y in rings[-1]], _PAL.roof, True
+    outline = [_project(x, y, lows[0]) for x, y in rings[0]]
+    yield outline, None, True
+
+
+def _correspondence(rings) -> list | None:
+    """The same rings with their vertices paired, or None if they cannot pair.
+
+    Two plans pair when they have the same number of vertices and each vertex
+    of one is nearer its partner than to any other - which is what a taper, a
+    twist or a pinch produces and what a setback to a different figure does
+    not.
+    """
+
+    count = len(rings[0])
+    if any(len(ring) != count for ring in rings):
+        return None
+    paired = [rings[0]]
+    for ring in rings[1:]:
+        previous = paired[-1]
+        best, shift = None, 0
+        for offset in range(count):
+            total = sum(
+                (previous[i][0] - ring[(i + offset) % count][0]) ** 2
+                + (previous[i][1] - ring[(i + offset) % count][1]) ** 2
+                for i in range(count))
+            if best is None or total < best:
+                best, shift = total, offset
+        paired.append([ring[(i + shift) % count] for i in range(count)])
+    return paired
+
+
 def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
     """Consecutive bands with the same plan, drawn as one prism.
 
@@ -826,6 +884,40 @@ def _render_one(
                      ))
     above: list = []
     pit_parts: list = []
+    # A run of untilted bands stacked without a gap, whose plans pair vertex to
+    # vertex, is one body that changes with height - a taper, a twist, a pinch.
+    # Drawn band by band it is corduroy; drawn as one ruled solid it is what an
+    # architect draws.
+    ruled: list = []
+    plain: list = []
+    run: list = []
+
+    def _flush_run():
+        if len(run) >= 3:
+            rings = _correspondence([
+                [(float(x), float(y)) for x, y in item[2].exterior.coords[:-1]]
+                for item in run])
+            if rings is not None:
+                lows = [item[0] * height for item in run]
+                highs = [item[1] * height for item in run]
+                ruled.append((rings, lows, highs))
+                run.clear()
+                return
+        plain.extend(run)
+        run.clear()
+
+    for entry in ordered:
+        if entry[3] is not None or (datum > 1e-6 and entry[0] * height < datum - 1e-6):
+            _flush_run()
+            plain.append(entry)
+            continue
+        if run and abs(run[-1][1] - entry[0]) > 1e-4:
+            _flush_run()
+        run.append(entry)
+    _flush_run()
+    for rings, lows, highs in ruled:
+        above.extend(_ruled_faces(rings, lows, highs))
+    ordered = plain
     for low_fraction, high_fraction, footprint, tilted in ordered:
         low = low_fraction * height
         high = high_fraction * height

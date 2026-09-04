@@ -113,8 +113,48 @@ def records_of(book_dir: Path) -> list[dict]:
     return records
 
 
-def _compile_record(rec: dict, buildable):
-    """One book record -> SourceMass at the book's own size and height.
+# What share of the parcel's 용적률 capacity a book mass is brought to. Not the
+# whole of it: an authored scheme that fills the cap is making a claim about
+# density, and a book figure makes no such claim - it states a proportion. Four
+# fifths puts it in the same conversation as the schemes it is judged against
+# without pretending it was designed for this brief.
+BOOK_FAR_SHARE = 0.8
+
+# And the ceiling on its footprint, as a share of the 건폐율 capacity. A book
+# figure taken to the full coverage ceiling would be a different figure - the
+# whole parcel wearing a cross - so it stops here and takes the rest in height.
+BOOK_GROUND_SHARE = 0.75
+
+
+def _to_parcel_size(footprint_m2: float, gross_m2: float, height_m: float,
+                    site) -> tuple[float, float]:
+    """The book's figure at this parcel's size: (plan area, height).
+
+    One uniform factor, so every proportion the book states survives it. Gross
+    floor area goes as plan area times floor count, and a uniform scale s
+    multiplies plan by s squared and height (so floors) by s, which is why the
+    factor is the cube root of the ratio wanted.
+    """
+
+    if site is None or footprint_m2 <= 1e-6 or gross_m2 <= 1e-6 or height_m <= 1e-6:
+        return footprint_m2, height_m
+    target = float(site.far_capacity_m2) * BOOK_FAR_SHARE
+    scale = (target / gross_m2) ** (1.0 / 3.0)
+    ground_cap = float(site.ground_capacity_m2) * BOOK_GROUND_SHARE
+    if footprint_m2 * scale * scale > ground_cap:
+        scale = (ground_cap / footprint_m2) ** 0.5
+    # A book taller than the parcel's own legal section is not this parcel's
+    # building; the envelope would cut it to one anyway, and cutting is what
+    # made these read as fragments in the first place.
+    ceiling = float(site.floor_height_m) * max(
+        1.0, float(site.far_capacity_m2) / max(float(site.ground_capacity_m2), 1.0)) * 2.0
+    if height_m * scale > ceiling:
+        scale = ceiling / height_m
+    return footprint_m2 * scale * scale, height_m * scale
+
+
+def _compile_record(rec: dict, buildable, site=None):
+    """One book record -> SourceMass, the book's figure at this parcel's size.
 
     The single path the stage and the board's baker share, so a seated
     book mass is rebuilt exactly as it was judged. Returns (source, entry)
@@ -133,6 +173,13 @@ def _compile_record(rec: dict, buildable):
         return None, "no geometry program"
     metrics = ((art.get("hardGates") or {}).get("projectedMetrics") or {})
     footprint_m2 = float(metrics.get("footprint_area_m2") or 0.0)
+    book_gross_m2 = float(metrics.get("floor_area_m2") or 0.0)
+    book_height_m = float(
+        (art.get("projectedVisualCertificate") or {}).get("physical_height_m")
+        or metrics.get("height_m") or 0.0)
+    # The figure is the book's, the size is the parcel's.
+    footprint_m2, scaled_height_m = _to_parcel_size(
+        footprint_m2, book_gross_m2, book_height_m, site)
     try:
         program = GeometryProgram.from_dict(payload)
         # At the book's own plan size. Left to its default the shared
@@ -165,6 +212,9 @@ def _compile_record(rec: dict, buildable):
             break
     if height_m <= 0.0:
         return None, "no physical height certificate"
+    # Scaled with the plan, so the book's proportion survives.
+    if scaled_height_m > 0.0:
+        height_m = scaled_height_m
     source = replace(source, metadata={**dict(source.metadata),
                                        "authored_height_m": round(height_m, 3),
                                        "book_height_certificate": certificate})
@@ -182,10 +232,54 @@ def _compile_record(rec: dict, buildable):
         "verbs": verbs,
         "height_m": round(height_m, 2),
         "footprint_m2": round(footprint_m2, 2),
-        "floor_area_m2": round(float(metrics.get("floor_area_m2") or 0.0), 2),
+        # The book's gross at the size it was actually staged. Recorded
+        # unscaled, the caption printed the toy's 용적률 beside the scaled
+        # mass - 40% coverage next to 42% floor area ratio, which is
+        # arithmetically impossible on any parcel. Gross goes as the cube of
+        # a uniform scale, and the height ratio is that scale.
+        "floor_area_m2": round(
+            float(metrics.get("floor_area_m2") or 0.0)
+            * ((height_m / book_height_m) ** 3 if book_height_m > 1e-6 else 1.0), 2),
         "program": art.get("programType"),
     }
     return source, entry
+
+
+def _refused(source, site) -> str:
+    """Why this mass cannot be judged, or an empty string.
+
+    Standing first - a body with nothing under it is not a proposal - then the
+    room rule, which is what separates a building from a sculpture at this
+    scale.
+    """
+
+    from design.maas.massv2.plausibility import assess as plausibility_of  # noqa: E402
+    from design.maas.massv2.structure import assess_standing  # noqa: E402
+
+    from design.maas.massv2.plausibility import slenderness_limit  # noqa: E402
+
+    height_m = float(source.metadata.get("authored_height_m") or 0.0)
+    try:
+        standing = assess_standing(source, height_m=height_m)
+    except Exception as exc:  # noqa: BLE001 - a gate that crashes is news
+        return f"standing check failed ({type(exc).__name__}: {exc})"
+    if not getattr(standing, "stands", True):
+        reasons = list(getattr(standing, "reasons", ()) or ())
+        return f"does not stand ({'; '.join(str(r) for r in reasons[:2]) or 'no reason'})"
+    try:
+        plausible = plausibility_of(
+            source,
+            parcel_area_m2=float(site.parcel_area_m2),
+            max_slenderness=slenderness_limit(
+                far_capacity_m2=float(site.far_capacity_m2),
+                ground_capacity_m2=float(site.ground_capacity_m2)),
+            floor_height_m=float(site.floor_height_m))
+    except Exception as exc:  # noqa: BLE001
+        return f"room check failed ({type(exc).__name__}: {exc})"
+    if not plausible.occupiable:
+        reasons = list(getattr(plausible, "reasons", ()) or ())
+        return f"no room in it ({'; '.join(str(r) for r in reasons[:2])})"
+    return ""
 
 
 def registry() -> dict:
@@ -214,7 +308,7 @@ def book_rebuild(name: str, site, buildable):
                 if r.get("trace_sequence_name") == entry["trace"]), None)
     if rec is None:
         return None
-    source, _entry = _compile_record(rec, buildable)
+    source, _entry = _compile_record(rec, buildable, site)
     return source
 
 
@@ -247,9 +341,18 @@ def main() -> int:
     entries: dict = {}
     index = 0
     for rec in records:
-        source, entry = _compile_record(rec, buildable)
+        source, entry = _compile_record(rec, buildable, site)
         if source is None:
             print(f"  skip {rec.get('trace_sequence_name')}: {entry}")
+            continue
+        # The same questions every authored mass answers before it is drawn.
+        # A book mass skipped all of them and went straight to the jury, so a
+        # `lift` whose supports the compile dropped arrived as a slab floating
+        # over an empty parcel - 14% coverage, nothing under it - and a juror
+        # was asked to score it as architecture. One ruler for everything.
+        refusal = _refused(source, site)
+        if refusal:
+            print(f"  skip {rec.get('trace_sequence_name')}: {refusal}")
             continue
         index += 1
         tile = f"t{index:02d}"

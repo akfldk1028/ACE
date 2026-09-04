@@ -210,6 +210,21 @@ def main() -> int:
                 "pass": passed, "round": rel.split("/")[1],
             }
     passers = [item for item in ledger.values() if item["pass"]]
+    # BOOK masses are repertoire, not alternatives for this parcel. They come
+    # from the catalogue graph at their own fraction scope - measured on this
+    # board, 5 to 20% coverage and 42 to 60% 용적률 where the parcel allows
+    # 60% and 250% - so they arrive as abstract figures centred on a site they
+    # do not answer: no entry, no open side, no ground. They pass a jury that
+    # grades a formal idea, and then sit on a client's sheet as under-built
+    # blocks. The canon column was evicted from this board for the same reason
+    # and by the same judgement: a repertoire is what the office knows, not
+    # what it delivers. They stay judged, scored and in the ledger - which is
+    # how we learn which BOOK principles read - and they no longer take seats.
+    book_passers = [item for item in passers if str(item["name"]).startswith("book:")]
+    if book_passers:
+        print(f"BOOK masses that passed, kept as repertoire rather than seated: "
+              f"{len(book_passers)} (best {max(i['score'] for i in book_passers):.2f})")
+    passers = [item for item in passers if not str(item["name"]).startswith("book:")]
     # Ledger ghosts: seats the last bake could not rebuild (board_render
     # writes the list). They were judged on an engine that no longer makes
     # that variant; they do not get a seat until they rebuild again.

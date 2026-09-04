@@ -225,8 +225,42 @@ def main() -> int:
             return (item["track"], layer, family)
         return (item["track"], layer) + (family_key(scheme) if scheme else (family,))
 
+    # What each passer composed, read off the run that judged it. The runner
+    # writes the part-to-whole position as the second half of the grid cell.
+    def position_of(item) -> str:
+        summary = ROOT / "runs" / str(item.get("round") or "") / "massv2-summary.json"
+        if not summary.exists():
+            return "unknown"
+        try:
+            records = json.loads(summary.read_text(encoding="utf-8"))["records"]
+        except Exception:  # noqa: BLE001 - a half-written summary is not fatal here
+            return "unknown"
+        for record in records:
+            if record.get("name") == item["name"]:
+                return str(record.get("cell") or "").split("|")[-1] or "unknown"
+        return "unknown"
+
     curated = one_per_family(passers, key_of=key_of,
                              score_of=lambda item: item["score"])
+    # One seat reserved for the best passer of each part-to-whole position,
+    # before the rest fill in by score. Without it the board came back as ten
+    # single bodies and one pilotis while the pool held all six positions.
+    seated = {item["name"] for item in curated}
+    best_of_position: dict[tuple, dict] = {}
+    for item in passers:
+        position = position_of(item)
+        if position == "unknown":
+            continue
+        key = (item["track"], position)
+        if key not in best_of_position or item["score"] > best_of_position[key]["score"]:
+            best_of_position[key] = item
+    reserved = [item for key, item in sorted(best_of_position.items())
+                if item["name"] not in seated]
+    if reserved:
+        print("reserved a seat for each part-to-whole position: "
+              + ", ".join(f"{key[1]} ({item['score']:.2f})"
+                          for key, item in sorted(best_of_position.items())))
+        curated = curated + reserved
     # The family key is a partition of the LANGUAGE - opener, dominant verb,
     # stature - and two sentences built from different words can still be one
     # drawing: three court rings held three seats through three different

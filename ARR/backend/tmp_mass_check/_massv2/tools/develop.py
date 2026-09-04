@@ -210,6 +210,13 @@ def score(family_dir: str, verdict_paths: list[str]) -> int:
     for child in record["children"]:
         if not child.get("delivered"):
             continue
+        # A mutant that arrived as a building already staged has no pair and
+        # no vote: the growth loop normalised its change away, so there was
+        # nothing for a judge to choose between. It stays in the ledger as
+        # the measurement of that, and is not counted as a loss.
+        if not child.get("pair"):
+            child["votes"] = ""
+            continue
         pair = child["pair"].removesuffix(".png")
         cast = votes.get(pair, [])
         if cast and all(vote == "B" for vote in cast):

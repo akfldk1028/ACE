@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, replace
-from math import ceil, sqrt
+from math import ceil, cos, degrees, pi, sin, sqrt
 from typing import Any
 
 from shapely import affinity
@@ -1509,6 +1509,19 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
     rows = max(1, int(ceil(count / columns)))
     cell_w = frame.width / columns
     cell_d = frame.depth / rows
+    # Where the units stand relative to one another. A grid is one answer and
+    # was the only one: every figure that turns about a point - pinwheel, fan,
+    # Y, splayed wings around a court - needs the field itself to rotate, and
+    # no parameter said so. `turn` above turns each unit in place, which is a
+    # different claim (a settlement askew of itself, Moriyama) and stays.
+    arrangement = str(op.params.get("arrangement", "pack")).strip().lower()
+    if arrangement not in ("pack", "radial", "pinwheel"):
+        arrangement = "pack"
+    # The ring the units stand on, and how big each may be on it: the chord
+    # between neighbours, so they sit close without overlapping however many
+    # there are.
+    ring = 0.32 * min(frame.width, frame.depth)
+    chord = 2.0 * ring * sin(pi / max(count, 2)) if count > 1 else ring
     for index in range(count):
         column, row = index % columns, index // columns
         # Size fans out across the whole field, and the smallest object is held
@@ -1540,6 +1553,19 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
         turn = float(op.params.get("turn", 0.0))
         turn *= (1 if (column * 2 + row) % 3 else -1)
         turn *= 0.4 + 0.6 * (index / max(count - 1, 1))
+        if arrangement in ("radial", "pinwheel"):
+            # On the ring, facing the centre. The unit is a bar pointing at the
+            # middle - which is what makes a fan read as a fan rather than as
+            # boxes on a circle - and the pinwheel turns each one a quarter
+            # further so the whole field spins.
+            angle = 2.0 * pi * index / max(count, 1)
+            bearing = degrees(angle)
+            turn = bearing + (90.0 if arrangement == "pinwheel" else 0.0)
+            depth_on_ring = max(chord * 0.82, frame.storey)
+            w = max(ring * 0.9 * scale, frame.storey)
+            d = max(depth_on_ring * scale, frame.storey * 0.8)
+            radial_dx = ring * cos(angle)
+            radial_dy = ring * sin(angle)
         frame.placements.append(
             frame.box(
                 f"object_{index}",
@@ -1557,8 +1583,10 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
                 # all the way and the storey rule stops it, which is the same
                 # discipline `_storeys` holds one file over.
                 h=max(frame.height * share * scale, frame.storey),
-                dx=(column + 0.5 + drift) * cell_w - frame.width / 2.0,
-                dy=(row + 0.5 - drift) * cell_d - frame.depth / 2.0,
+                dx=(radial_dx if arrangement in ("radial", "pinwheel")
+                    else (column + 0.5 + drift) * cell_w - frame.width / 2.0),
+                dy=(radial_dy if arrangement in ("radial", "pinwheel")
+                    else (row + 0.5 - drift) * cell_d - frame.depth / 2.0),
                 turn=turn,
             )
         )

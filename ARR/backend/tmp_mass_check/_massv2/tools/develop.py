@@ -129,8 +129,27 @@ def main(run: str, variant: str, count: str = "24") -> int:
     if parent_source is None:
         print("parent rebuild failed"); return 1
 
+    def delivered_shape(source) -> tuple:
+        """What the mass actually is, to the metre - plans and their heights.
+
+        Two mutants that differ only in a parameter the growth loop then
+        normalises away deliver this same tuple, and staging them as a choice
+        asks a juror to compare an image with itself.
+        """
+
+        height = float(source.metadata.get("authored_height_m") or 0.0)
+        return tuple(sorted(
+            (round(volume.footprint.area, 1),
+             tuple(round(value, 1) for value in volume.footprint.bounds),
+             round(float(volume.bottom_fraction) * height, 1),
+             round(float(volume.top_fraction) * height, 1))
+            for volume in source.volumes
+        ))
+
     ledger = []
     kept = 0
+    erased = 0
+    seen_shapes = {delivered_shape(parent_source)}
     for child in mutants_of(parent_scheme, int(count)):
         child_family = child["name"]
         # the mutant keeps the parent's variant suffixes (siting/coverage)
@@ -139,6 +158,16 @@ def main(run: str, variant: str, count: str = "24") -> int:
         if child_source is None:
             ledger.append({"name": child["name"], "delivered": False})
             continue
+        shape = delivered_shape(child_source)
+        if shape in seen_shapes:
+            # Asked for something else and got this again: the mutation was
+            # inside what the growth loop normalises, so there is nothing to
+            # judge.
+            erased += 1
+            ledger.append({"name": child["name"], "delivered": True,
+                           "erased_by_delivery": True})
+            continue
+        seen_shapes.add(shape)
         kept += 1
         pair = out / "pairs" / f"p{kept:02d}.png"
         render_masses(
@@ -151,6 +180,9 @@ def main(run: str, variant: str, count: str = "24") -> int:
         json.dumps({"parent": variant, "children": ledger},
                    ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{kept} delivered mutants, pairs -> {out / 'pairs'}")
+    if erased:
+        print(f"{erased} mutants arrived as a building already staged - the "
+              "growth loop normalised the change away; not offered as a choice")
     print("next: blind pairwise judges pick A or B per pair; "
           "keep B only where preferred; repeat on the winner.")
     return 0

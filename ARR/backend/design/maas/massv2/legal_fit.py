@@ -392,6 +392,12 @@ def _pulled_inside(
     return None
 
 
+# The space two bodies need between them to read as two bodies: the room
+# width the plausibility gate erodes by, and the same number `composition`
+# separates parts with. Anything narrower is a joint, not a court.
+_BODY_SEPARATION_M = 1.5
+
+
 def _scaled_composition(form: MatrixForm, factor: float,
                         anchor: tuple[float, float]) -> MatrixForm:
     """Scale a composition in plan with the carrying invariant enforced.
@@ -431,6 +437,33 @@ def _scaled_composition(form: MatrixForm, factor: float,
         _scaled_in_plan(item, factor, anchor, carrying=(index in carries))
         for index, item in enumerate(form.placements)
     ]
+    # The section-holding exemption undoes the across-ridge scale about each
+    # volume's own centre, so a gabled bar pays for coverage with length
+    # rather than with its pentagon. On ONE body that is right. On a field it
+    # is paid for by the space between the units: every unit keeps its width
+    # while the anchor pulls their centres together, and a court of 9.4 m
+    # closed to 0.35 m in a single fit - which is how "two bars flanking a
+    # court" arrived as one block and why half of one round lost its parti at
+    # delivery. Space between bodies is architecture too. If the exemption
+    # closed it below what a person can walk through, the composition scales
+    # plainly instead, where every distance moves with the factor and the
+    # relationships survive.
+    if factor < 1.0 - 1e-9:
+        def _closest(items) -> float:
+            plans = [_plan(item) for item in items
+                     if item.kind == "additive" and item.occupiable]
+            gaps = [plans[i].distance(plans[j])
+                    for i in range(len(plans)) for j in range(i + 1, len(plans))
+                    if plans[i].distance(plans[j]) > 1e-9]
+            return min(gaps) if gaps else 0.0
+
+        before = _closest(form.placements)
+        after = _closest(scaled)
+        if before > _BODY_SEPARATION_M and after < _BODY_SEPARATION_M:
+            scaled = [
+                _scaled_in_plan(item, factor, anchor, carrying=False)
+                for item in form.placements
+            ]
     order = sorted(
         (index for index, item in enumerate(form.placements) if item.kind == "additive"),
         key=lambda index: form.placements[index].z_span()[0],

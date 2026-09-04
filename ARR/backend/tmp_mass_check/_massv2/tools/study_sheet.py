@@ -34,6 +34,7 @@ from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.measure import gross_floor_area_m2  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from vlm_shortlist import certified_caption  # noqa: E402
 
 STYLE = """<title>매스 스터디 3안</title>
 <style>
@@ -61,6 +62,15 @@ img { display:block; width:100%; height:auto; border:1px solid var(--line); back
 .seq h3 { font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
   color:var(--muted); margin:0 0 8px; font-weight:600; }
 footer { margin-top:36px; color:var(--muted); font-size:12px; }
+h2.rest { font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--muted); margin:40px 0 10px; font-weight:600; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:0;
+  border-left:1px solid var(--line); border-top:1px solid var(--line); }
+.grid figure { margin:0; border-right:1px solid var(--line);
+  border-bottom:1px solid var(--line); background:#fff; }
+.grid img { border:0; }
+.grid figcaption { padding:6px 10px 9px; font-size:11px; color:var(--muted);
+  border-top:1px solid var(--line); }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --bg:#141413; --ink:#f0efe9; --line:#33322e;
     --muted:#8a8a84; --pick:#e0a06a; }
@@ -69,6 +79,23 @@ footer { margin-top:36px; color:var(--muted); font-size:12px; }
   --muted:#8a8a84; --pick:#e0a06a; }
 </style>
 """
+
+
+def _trimmed(text: str, limit: int = 165) -> str:
+    """Cut a thesis at a word, not mid-syllable.
+
+    The tile caption is a fixed width and the sentence was sliced at a
+    character count, so a scheme's argument ended "the court is not a". The
+    whole sentence is on the page below; the tile carries as much of it as
+    fits and says so with an ellipsis.
+    """
+
+    text = str(text or "").strip()
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    space = cut.rfind(" ")
+    return (cut[:space] if space > limit // 2 else cut).rstrip(",;: ") + "…"
 
 
 def _uri(path: Path) -> str:
@@ -131,12 +158,14 @@ def main(run: str, out_name: str = "") -> int:
             continue
         tile = out / f"{order + 1}-{sentence}.png"
         gross = gross_floor_area_m2(source, floor_height_m=site.floor_height_m)
-        ground = float(source.metadata.get("ground_area_m2") or 0.0)
+        # 건폐율 has one owner - the same certified caption every jury tile
+        # carries. Read off `source.metadata` here it came back empty and the
+        # sheet printed a dash where the number the architect checks first
+        # belongs.
+        caption = certified_caption(
+            source, site, _trimmed(record.get("formal_principle", "")))
         render_masses(
-            [(sentence.replace("_", " "), source,
-              {"thesis": record.get("formal_principle", "")[:170],
-               "건폐율": f"{ground / parcel * 100:.0f}%" if ground else "-",
-               "용적률": f"{gross / parcel * 100:.0f}%"})],
+            [(sentence.replace("_", " "), source, caption)],
             tile, site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 800), style="massing")
         reading = composition_module.read(source)
@@ -184,12 +213,40 @@ def main(run: str, out_name: str = "") -> int:
             f'{f" · {reading.tiers}단" if reading.tiers > 1 else ""}'
             f'</p></div></div>{sequence}</section>')
 
+    # The rest of the shortlist under the three, so one address carries the
+    # whole answer. The architect asked why a selection board, a sweep sheet
+    # and a study were three separate links; there is no good answer - the
+    # study is the deliverable and the board is what it was chosen from.
+    board = ROOT / "runs" / "board" / "board-key.json"
+    rest = ""
+    if board.exists():
+        chosen = {block["name"].replace(" ", "_") for block in blocks}
+        cards = []
+        for row in json.loads(board.read_text(encoding="utf-8")):
+            label = str(row.get("label") or "")
+            if not label.startswith("O"):
+                continue
+            if str(row.get("name") or "").split("~")[0].split("^")[0] in chosen:
+                continue
+            png = board.parent / f"{label}.png"
+            if not png.exists():
+                continue
+            score = row.get("score")
+            mark = f" · {float(score):.2f}" if score else ""
+            cards.append(
+                f'<figure><img src="{_uri(png)}" alt="{label}">'
+                f'<figcaption>{label}{mark}</figcaption></figure>')
+        if cards:
+            rest = ('<h2 class="rest">심사를 통과한 나머지 안</h2>'
+                    f'<div class="grid">{"".join(cards)}</div>')
+
     html = STYLE + (
         '<main>\n<header><h1>매스 스터디 3안</h1>'
         f'<p>효돈동 {parcel:,.0f}㎡ · 건폐율 60% · 용적률 250% · '
         '각 안은 이름, 논지, 조작 순서, 배달된 매스와 법정 수치를 가진다. '
         '첫 안이 추천안이다.</p></header>\n'
         + "\n".join(sections)
+        + rest
         + '\n<footer>백색 모형 액소노메트릭과 배치도는 법규선으로 잘린 배달 상태다. '
         '순서 띠의 마지막 프레임이 그 상태이며, 그 앞의 프레임들은 문장의 단어 하나씩이다.'
         '</footer>\n</main>')

@@ -16,6 +16,7 @@ Deterministic by construction: mutants vary by index, never by dice.
 
 import copy
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -215,25 +216,89 @@ def main(run: str, variant: str, count: str = "24") -> int:
     return 0
 
 
+def _mutation_serial(name: str) -> int:
+    """The mutation's own serial, read off the name mutants_of gave it."""
+
+    hit = re.search(r"__d(\d+)_", name)
+    return int(hit.group(1)) if hit else 10 ** 6
+
+
+def _mutation_change(parent: dict, child: dict) -> str:
+    """What the mutation moved, read off the two dicts rather than the name.
+
+    The name says `bar+`; the brief has to say which op and by how much, or
+    the next author cannot avoid re-proposing the parent's value.
+    """
+
+    moves = []
+    for index, (before, after) in enumerate(zip(parent["ops"], child["ops"])):
+        for key, value in after.items():
+            if key != "why" and before.get(key) != value:
+                moves.append(f"ops[{index}].{key} {before.get(key)} -> {value}")
+    return ", ".join(moves) or "no parameter moved"
+
+
+def _champion_pair(record: dict) -> tuple[dict, dict] | None:
+    """The parent sentence and the champion's own, as dicts.
+
+    The champion is the parent with one mutation applied, and mutants_of
+    already builds exactly that dict deterministically - so the winner is
+    regenerated from the parent by name rather than re-derived here. A second
+    derivation of the same thing is the hand-copy the one-owner rule exists
+    to stop; the extract gap parameter was written twice in two coordinate
+    systems that way.
+    """
+
+    family = str(record["parent"]).split("~")[0].split("^")[0]
+    parent = corpus().get(family)
+    if parent is None:
+        return None
+    for child in mutants_of(parent, len(record["children"])):
+        if child["name"] == record["champion"]:
+            return parent, child
+    return None
+
+
+def _seat_in_corpus(scheme: dict) -> str:
+    """Append the winning sentence to the authored corpus.
+
+    champion.json was written and then read by nothing: a development that
+    beat its parent in front of a jury reached neither the corpus, nor the
+    board, nor the next author, so the only real result a development round
+    produces evaporated when the round ended. A run delivers what the books
+    hold, so the champion belongs in a book.
+    """
+
+    path = ROOT / "inputs" / "gen-develop.json"
+    book = (json.loads(path.read_text(encoding="utf-8"))
+            if path.exists() else {"schemes": []})
+    if any(seated.get("name") == scheme["name"] for seated in book["schemes"]):
+        return f"already in {path.name}: {scheme['name']}"
+    book["schemes"].append(scheme)
+    path.write_text(json.dumps(book, ensure_ascii=False, indent=1) + '\n',
+                    encoding="utf-8")
+    return f"seated in {path.name}: {scheme['name']}"
+
+
 def score(family_dir: str, verdict_paths: list[str]) -> int:
     """Aggregate blind pairwise verdicts; a child wins only unanimously.
 
     Ties and splits go to the parent - the incumbent rule, because a
     development step that cannot convince every judge is not an improvement,
-    it is drift. Writes champion.json naming the winning child (the one with
-    the most decisive support), ready for the next development round.
+    it is drift. Writes champion.json naming the winning child - the one the
+    most jurors voted for - and seats that child's sentence in the corpus so
+    the next run can deliver it.
     """
-
-    import re
 
     out = ROOT / "runs" / family_dir
     record = json.loads((out / "mutants.json").read_text(encoding="utf-8"))
+    jurors = len(verdict_paths)
     votes: dict[str, list[str]] = {}
     for path in verdict_paths:
         for pair, choice in re.findall(r"PAIR\s+(p\d+):\s*([AB])",
                                        Path(path).read_text(encoding="utf-8")):
             votes.setdefault(pair, []).append(choice)
-    winners = []
+    winners: list[tuple[int, int, str]] = []
     for child in record["children"]:
         if not child.get("delivered"):
             continue
@@ -246,17 +311,45 @@ def score(family_dir: str, verdict_paths: list[str]) -> int:
             continue
         pair = child["pair"].removesuffix(".png")
         cast = votes.get(pair, [])
-        if cast and all(vote == "B" for vote in cast):
-            winners.append(child["name"])
+        # Unanimity has to mean every juror who was handed a sheet, not every
+        # vote that happened to arrive: one verdict file saying B used to read
+        # as a consensus, which is how a single opinion could rewrite the
+        # corpus. Requiring one vote per file makes a one-juror round look
+        # like a one-juror round, and champion.json records the count.
+        if cast and len(cast) >= jurors and all(vote == "B" for vote in cast):
+            winners.append((len(cast), _mutation_serial(child["name"]),
+                            child["name"]))
         child["votes"] = "".join(cast)
-    record["unanimous_children"] = winners
-    record["champion"] = winners[0] if winners else None
+    # The docstring promised the most decisive support and the code took
+    # whichever child the ledger happened to list first - which is mutation
+    # order, not jury order. Sort by how many jurors voted the pair, then by
+    # the mutation serial so a tie goes to the smaller, earlier change: the
+    # nearer development is the one the parent's virtues survive.
+    winners.sort(key=lambda row: (-row[0], row[1]))
+    names = [name for _, _, name in winners]
+    record["unanimous_children"] = names
+    record["champion"] = names[0] if names else None
+    record["jurors"] = jurors
+    seated = ""
+    if record["champion"]:
+        pair = _champion_pair(record)
+        if pair is None:
+            seated = (f"champion {record['champion']} not seated - the corpus "
+                      f"has no parent named {record['parent']}")
+        else:
+            parent_scheme, champion_scheme = pair
+            record["champion_change"] = _mutation_change(parent_scheme,
+                                                         champion_scheme)
+            seated = _seat_in_corpus(champion_scheme)
     (out / "champion.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"pairs judged {len(votes)}, unanimous child wins {len(winners)}")
-    for name in winners:
+    print(f"pairs judged {len(votes)}, jurors {jurors}, "
+          f"unanimous child wins {len(names)}")
+    for name in names:
         print("  WIN", name.split("__")[-1])
     print("champion:", record["champion"] or "parent holds (no unanimous win)")
+    if seated:
+        print(seated)
     return 0
 
 

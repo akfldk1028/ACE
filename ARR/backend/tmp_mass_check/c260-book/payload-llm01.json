@@ -1,0 +1,5312 @@
+{
+ "schema_version": "arr.maas.geometry_llm_author_payload.v1",
+ "programs": [
+  {
+   "name": "comb_fingers_south",
+   "base_seed": "bar",
+   "intent_tags": [
+    "comb",
+    "fingers",
+    "daylight_section"
+   ],
+   "rationale": "A spine on the north with five fingers reaching south: every room gets the open side.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "finger",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         0.32,
+         0.0,
+         0.0,
+         0.12
+        ],
+        [
+         0.0,
+         1.55,
+         0.0,
+         0.5
+        ],
+        [
+         0.0,
+         0.0,
+         0.48,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "program_wing"
+    },
+    {
+     "id": "fingers",
+     "kind": "pattern",
+     "operator": "linear_array",
+     "inputs": [
+      "finger"
+     ],
+     "parameters": [
+      {
+       "name": "count",
+       "value_type": "number",
+       "numeric_value": 5.0
+      },
+      {
+       "name": "vector",
+       "value_type": "vector",
+       "vector_value": [
+        0.6,
+        0.0,
+        0.0
+       ]
+      }
+     ],
+     "semantic_role": "program_wings"
+    },
+    {
+     "id": "r",
+     "kind": "boolean",
+     "operator": "union",
+     "inputs": [
+      "base",
+      "fingers"
+     ],
+     "parameters": [],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "comb_grid",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "comb",
+    "grid",
+    "courts_between"
+   ],
+   "rationale": "Two ranks of bars offset against each other, leaving a run of courts between them.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.9,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "grid_mass",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "column_offset_ratio",
+       "value_type": "number",
+       "numeric_value": 0.24
+      },
+      {
+       "name": "row_spacing_ratio",
+       "value_type": "number",
+       "numeric_value": 1.35
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "comb_branched",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "branched_wings",
+    "comb",
+    "trunk_and_arms"
+   ],
+   "rationale": "A trunk that throws off an arm - the smallest comb there is, and the clearest.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.1,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_branch",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 44.0
+      },
+      {
+       "name": "arm_ratio",
+       "value_type": "number",
+       "numeric_value": 0.55
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "notch_corner_block",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "notched_block",
+    "corner_void",
+    "entry"
+   ],
+   "rationale": "One corner removed from a compact block - the notch is the address and nothing else changes.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.7,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_notch",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "corner",
+       "value_type": "string",
+       "string_value": "se"
+      },
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.34
+      }
+     ],
+     "semantic_role": "entry_court"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "notch_chamfer",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "chamfered_block",
+    "oblique_face",
+    "corner"
+   ],
+   "rationale": "A single oblique cut across one corner turns a box into a figure that has a front.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.75,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.8,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "cut_corner",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "corner",
+       "value_type": "string",
+       "string_value": "se"
+      },
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.4
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "notch_south_slot",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "notched_block",
+    "entry_threshold",
+    "open_side_south"
+   ],
+   "rationale": "Two bites out of one plate: a corner for the light, a slot on the south for the door.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.8,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "body",
+     "kind": "macro",
+     "operator": "book_notch",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "corner",
+       "value_type": "string",
+       "string_value": "sw"
+      },
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.26
+      }
+     ],
+     "semantic_role": "program_space"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "notch",
+     "inputs": [
+      "body"
+     ],
+     "parameters": [
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.24
+      },
+      {
+       "name": "side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "width_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      },
+      {
+       "name": "height_ratio",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "entry_threshold"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "notch_punctured",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "punctured_plate",
+    "light_wells",
+    "deep_plan"
+   ],
+   "rationale": "A deep plate punched three times so daylight reaches its middle - the holes make the plan possible.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "puncture",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "count",
+       "value_type": "number",
+       "numeric_value": 3.0
+      },
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.16
+      },
+      {
+       "name": "spacing_ratio",
+       "value_type": "number",
+       "numeric_value": 1.2
+      }
+     ],
+     "semantic_role": "light_voids"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "interlock_pair",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "interlocking_pair",
+    "crossed_bars",
+    "two_wings"
+   ],
+   "rationale": "Two bars locked through each other at a right angle - neither is the host, and the lock is the plan.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.2,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "interlock_related",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 90.0
+      },
+      {
+       "name": "bar_ratio",
+       "value_type": "number",
+       "numeric_value": 0.7
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "interlock_stacked",
+   "base_seed": "bar",
+   "intent_tags": [
+    "interlocking_pair",
+    "stacked_cross",
+    "cantilevered_wing"
+   ],
+   "rationale": "A second bar laid across the first one storey up, each carrying the other's overhang.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "upper",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         0.6,
+         0.0,
+         0.0,
+         1.0
+        ],
+        [
+         0.0,
+         2.5,
+         0.0,
+         -0.95
+        ],
+        [
+         0.0,
+         0.0,
+         0.5,
+         0.44
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "upper_wing"
+    },
+    {
+     "id": "r",
+     "kind": "boolean",
+     "operator": "union",
+     "inputs": [
+      "base",
+      "upper"
+     ],
+     "parameters": [],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "oblique_shear_block",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "oblique_block",
+    "leaning_face",
+    "single_gesture"
+   ],
+   "rationale": "A block sheared along its height: every face stays flat and the whole leans.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.9,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "transform",
+     "operator": "shear",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "amount",
+       "value_type": "number",
+       "numeric_value": 0.34
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "twist_tower",
+   "base_seed": "tower",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "twisted_shaft",
+    "vertical_landmark",
+    "continuous_deformation"
+   ],
+   "rationale": "A shaft that rotates as it rises - one continuous deformation, no tiers.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        0.68,
+        0.68,
+        2.5
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.35,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.35,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "modifier",
+     "operator": "twist",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 42.0
+      },
+      {
+       "name": "subdivisions",
+       "value_type": "number",
+       "numeric_value": 6.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "taper_tower",
+   "base_seed": "tower",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "tapered_shaft",
+    "vertical_landmark",
+    "continuous_deformation"
+   ],
+   "rationale": "A shaft narrowing continuously to its top - the taper is the section and the silhouette both.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        0.68,
+        0.68,
+        2.5
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.4,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.4,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "tapered_tower",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "start_scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0
+       ]
+      },
+      {
+       "name": "end_scale",
+       "value_type": "vector",
+       "vector_value": [
+        0.52,
+        0.52
+       ]
+      },
+      {
+       "name": "subdivisions",
+       "value_type": "number",
+       "numeric_value": 5.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "hall_profiled_section",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "long_span_hall",
+    "sawtooth_section",
+    "north_light"
+   ],
+   "rationale": "A long-span hall whose roof is a sawtooth - the section, not the plan, is the architecture.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "profiled_hall",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "span_axis",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "section_family",
+       "value_type": "string",
+       "string_value": "sawtooth"
+      }
+     ],
+     "semantic_role": "hall_section"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "overlap_plates",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "overlapping_plates",
+    "shifted_pair",
+    "sectional_shift"
+   ],
+   "rationale": "Two plates overlapping in section and shifted in plan - the overlap is the shared room.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "overlap_related",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "shift_ratio",
+       "value_type": "number",
+       "numeric_value": 0.4
+      },
+      {
+       "name": "vertical_overlap",
+       "value_type": "number",
+       "numeric_value": 0.5
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "embed_atrium",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "embedded_void",
+    "atrium",
+    "compact_block"
+   ],
+   "rationale": "A void set fully inside the block: an atrium that is read only from within, and from the roof.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.9,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "embed_void",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "position",
+       "value_type": "string",
+       "string_value": "center"
+      },
+      {
+       "name": "guest_scale",
+       "value_type": "number",
+       "numeric_value": 0.42
+      }
+     ],
+     "semantic_role": "internal_atrium"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "offset_twin_plates",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "offset_pair",
+    "twin_plates",
+    "slot_between"
+   ],
+   "rationale": "A plate and its smaller offset relative, held a slot apart along the short axis.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.6,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "offset_related",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "distance_ratio",
+       "value_type": "number",
+       "numeric_value": 0.62
+      },
+      {
+       "name": "unit_scale",
+       "value_type": "number",
+       "numeric_value": 0.72
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "bridge_two_wings",
+   "base_seed": "bar",
+   "intent_tags": [
+    "bridged_wings",
+    "court_between",
+    "linked_pair"
+   ],
+   "rationale": "Two parallel wings held apart and then linked - the bridge makes the gap between them a court.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "wing",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         2.6,
+         0.0,
+         0.0,
+         0.1
+        ],
+        [
+         0.0,
+         0.58,
+         0.0,
+         1.55
+        ],
+        [
+         0.0,
+         0.0,
+         0.5,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "second_wing"
+    },
+    {
+     "id": "r",
+     "kind": "composition",
+     "operator": "bridge",
+     "inputs": [
+      "base",
+      "wing"
+     ],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 0.5
+      },
+      {
+       "name": "height_ratio",
+       "value_type": "number",
+       "numeric_value": 0.55
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "court_slab_south",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "court",
+    "open_side_south",
+    "u_shape"
+   ],
+   "rationale": "A wide plate holds three sides and lets the fourth go: the court opens on the parcel's one free edge.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.6,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "courtyard",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "margin_ratio",
+       "value_type": "number",
+       "numeric_value": 0.27
+      },
+      {
+       "name": "open_side",
+       "value_type": "string",
+       "string_value": "south"
+      }
+     ],
+     "semantic_role": "public_threshold"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "court_deep_block",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "court",
+    "carved_void",
+    "compact"
+   ],
+   "rationale": "A compact block hollowed on the south face - the void is the room, the block is the wall around it.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.5,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.5,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "carve_void",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "margin_ratio",
+       "value_type": "number",
+       "numeric_value": 0.21
+      },
+      {
+       "name": "open_side",
+       "value_type": "string",
+       "string_value": "south"
+      }
+     ],
+     "semantic_role": "public_court"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "court_on_plinth",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "court",
+    "stepped_section",
+    "plinth"
+   ],
+   "rationale": "The court is cut into a body that already steps back from the north: two ideas, one of them subordinate.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         3.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "body",
+     "kind": "macro",
+     "operator": "stepped_mass",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 2.0
+      },
+      {
+       "name": "setback_ratio",
+       "value_type": "number",
+       "numeric_value": 0.1
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "courtyard",
+     "inputs": [
+      "body"
+     ],
+     "parameters": [
+      {
+       "name": "margin_ratio",
+       "value_type": "number",
+       "numeric_value": 0.2
+      },
+      {
+       "name": "open_side",
+       "value_type": "string",
+       "string_value": "south"
+      }
+     ],
+     "semantic_role": "public_threshold"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "court_slot_bar",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "slot_court",
+    "linear_bar",
+    "open_side_south"
+   ],
+   "rationale": "One slot driven into the long south flank of a bar - a court that reads as an event in a wall.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.9,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_carve",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "face_side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "width_ratio",
+       "value_type": "number",
+       "numeric_value": 0.42
+      },
+      {
+       "name": "depth_ratio",
+       "value_type": "number",
+       "numeric_value": 0.55
+      }
+     ],
+     "semantic_role": "public_court"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "court_round",
+   "base_seed": "block",
+   "base_form_id": "elliptical",
+   "intent_tags": [
+    "round_court",
+    "elliptical_host",
+    "open_side_south"
+   ],
+   "rationale": "A rounded host with its centre taken out and one mouth to the south - a ring, not a lump.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base_form",
+     "kind": "modifier",
+     "operator": "ellipsoidize",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "segments",
+       "value_type": "number",
+       "numeric_value": 28.0
+      }
+     ],
+     "semantic_role": "base_form"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "base_form"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.7,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.15,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "carve_void",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "margin_ratio",
+       "value_type": "number",
+       "numeric_value": 0.23
+      },
+      {
+       "name": "open_side",
+       "value_type": "string",
+       "string_value": "south"
+      }
+     ],
+     "semantic_role": "public_court"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "spine_bent_bar",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "bent_spine",
+    "linear_bar",
+    "hinge"
+   ],
+   "rationale": "One bar, one hinge in plan: the spine turns to face the open side and the turn is the whole idea.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.2,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "bent_bar",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 38.0
+      },
+      {
+       "name": "subdivisions",
+       "value_type": "number",
+       "numeric_value": 5.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "spine_bend_entry",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "bent_spine",
+    "entry_notch",
+    "open_side_south"
+   ],
+   "rationale": "A continuously curved spine, notched once on the south where the public arrives.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.2,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "body",
+     "kind": "modifier",
+     "operator": "bend",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 30.0
+      },
+      {
+       "name": "subdivisions",
+       "value_type": "number",
+       "numeric_value": 5.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "notch",
+     "inputs": [
+      "body"
+     ],
+     "parameters": [
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.24
+      },
+      {
+       "name": "side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "width_ratio",
+       "value_type": "number",
+       "numeric_value": 0.32
+      },
+      {
+       "name": "height_ratio",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "entry_threshold"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "spine_split_kink",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "kinked_spine",
+    "split_bar",
+    "joined_wings"
+   ],
+   "rationale": "The bar breaks once and the two lengths take different bearings while staying one body.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_split",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "gap_ratio",
+       "value_type": "number",
+       "numeric_value": 0.1
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 22.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "spine_bend_lifted",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "bent_spine",
+    "lifted_ground",
+    "open_side_south"
+   ],
+   "rationale": "A bent bar set down on piers so the ground beneath it stays continuous with the open side.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "body",
+     "kind": "macro",
+     "operator": "bent_bar",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 30.0
+      },
+      {
+       "name": "subdivisions",
+       "value_type": "number",
+       "numeric_value": 4.0
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "lift",
+     "inputs": [
+      "body"
+     ],
+     "parameters": [
+      {
+       "name": "access_side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "rise_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      },
+      {
+       "name": "support_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      }
+     ],
+     "semantic_role": "public_ground"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "spine_fracture",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "fractured_bar",
+    "bent_spine",
+    "shifted_lengths"
+   ],
+   "rationale": "One long body fractured across its length so the two halves shift and read as a single articulated spine.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.1,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_fracture",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "angle_degrees",
+       "value_type": "number",
+       "numeric_value": 15.0
+      },
+      {
+       "name": "gap_ratio",
+       "value_type": "number",
+       "numeric_value": 0.08
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "plinth_tower_offset",
+   "base_seed": "slab",
+   "intent_tags": [
+    "plinth_and_tower",
+    "vertical_landmark",
+    "two_scales"
+   ],
+   "rationale": "A low plate covers the parcel and one shaft rises off its far end - the plinth is the public floor.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.6,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "tower",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         0.62,
+         0.0,
+         0.0,
+         1.35
+        ],
+        [
+         0.0,
+         0.62,
+         0.0,
+         0.42
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "vertical_landmark"
+    },
+    {
+     "id": "r",
+     "kind": "boolean",
+     "operator": "union",
+     "inputs": [
+      "base",
+      "tower"
+     ],
+     "parameters": [],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "plinth_tower_podium",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "podium_and_shaft",
+    "stepped_section",
+    "single_chain"
+   ],
+   "rationale": "One body that reads as podium and shaft because the setbacks are large and start low.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.4,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.4,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         3.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "stepped_mass",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 4.0
+      },
+      {
+       "name": "setback_ratio",
+       "value_type": "number",
+       "numeric_value": 0.24
+      },
+      {
+       "name": "podium_height_ratio",
+       "value_type": "number",
+       "numeric_value": 0.22
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "plinth_tower_nested",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "nested_volumes",
+    "plinth_and_tower",
+    "two_scales"
+   ],
+   "rationale": "A smaller volume seated within the plate's own footprint - carried, not merely stacked beside it.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.8,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "nested_related",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "distance_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "plinth_tower_wide_base",
+   "base_seed": "tower",
+   "intent_tags": [
+    "plinth_and_tower",
+    "wide_base",
+    "vertical_landmark"
+   ],
+   "rationale": "A shaft standing centred on a broad low base: the base takes the ground, the shaft takes the height.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        0.68,
+        0.68,
+        2.5
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "plinth",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         2.4,
+         0.0,
+         0.0,
+         -0.86
+        ],
+        [
+         0.0,
+         1.9,
+         0.0,
+         -0.61
+        ],
+        [
+         0.0,
+         0.0,
+         0.34,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "public_ground_floor"
+    },
+    {
+     "id": "r",
+     "kind": "boolean",
+     "operator": "union",
+     "inputs": [
+      "base",
+      "plinth"
+     ],
+     "parameters": [],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "lifted_plate_south",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "lifted_ground",
+    "piers",
+    "open_side_south"
+   ],
+   "rationale": "The whole plate is raised one storey on piers that reach the ground, giving the parcel back its open side.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         3.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "lift",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "access_side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "rise_ratio",
+       "value_type": "number",
+       "numeric_value": 0.34
+      },
+      {
+       "name": "support_ratio",
+       "value_type": "number",
+       "numeric_value": 0.28
+      }
+     ],
+     "semantic_role": "public_ground"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "lifted_bar_piers",
+   "base_seed": "bar",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "lifted_ground",
+    "piers",
+    "linear_bar"
+   ],
+   "rationale": "A bar carried clear of the ground on a stub that reaches it - the space below is the entrance.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.8,
+        0.62,
+        0.48
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.4,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_lift",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "distance_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      },
+      {
+       "name": "guest_scale",
+       "value_type": "number",
+       "numeric_value": 0.34
+      }
+     ],
+     "semantic_role": "public_ground"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "lifted_court_slab",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "lifted_ground",
+    "internal_court",
+    "daylight_section"
+   ],
+   "rationale": "A ring plate with an internal light court, lifted so the public ground runs under it.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         3.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "body",
+     "kind": "macro",
+     "operator": "carve_void",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "margin_ratio",
+       "value_type": "number",
+       "numeric_value": 0.2
+      },
+      {
+       "name": "open_side",
+       "value_type": "string",
+       "string_value": "closed"
+      }
+     ],
+     "semantic_role": "internal_light_court"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "lift",
+     "inputs": [
+      "body"
+     ],
+     "parameters": [
+      {
+       "name": "access_side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "rise_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      },
+      {
+       "name": "support_ratio",
+       "value_type": "number",
+       "numeric_value": 0.3
+      }
+     ],
+     "semantic_role": "public_ground"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "gate_under_block",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "gate_under_mass",
+    "entry_threshold",
+    "open_side_south"
+   ],
+   "rationale": "A block whose lower south face is taken away, so the mass passes over the entrance.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.9,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "notch",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "ratio",
+       "value_type": "number",
+       "numeric_value": 0.34
+      },
+      {
+       "name": "side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "width_ratio",
+       "value_type": "number",
+       "numeric_value": 0.36
+      },
+      {
+       "name": "height_ratio",
+       "value_type": "number",
+       "numeric_value": 0.5
+      }
+     ],
+     "semantic_role": "entry_threshold"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "step_ziggurat",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "stepped_section",
+    "terraces",
+    "north_setback"
+   ],
+   "rationale": "Five steps back in one direction: a section that gives every level its own sky.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.6,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.5,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.6,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "stepped_mass",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "x"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 5.0
+      },
+      {
+       "name": "setback_ratio",
+       "value_type": "number",
+       "numeric_value": 0.17
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "step_tower_setback",
+   "base_seed": "tower",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "stepped_section",
+    "vertical_landmark",
+    "setback"
+   ],
+   "rationale": "A shaft that loses depth as it rises, so the section is read from the street, not the plan.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        0.68,
+        0.68,
+        2.5
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.3,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.3,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         1.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "setback",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 4.0
+      },
+      {
+       "name": "setback_ratio",
+       "value_type": "number",
+       "numeric_value": 0.15
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "step_terrace_south",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "stepped_section",
+    "terraces",
+    "open_side_south"
+   ],
+   "rationale": "Terraces stepping down toward the open side - the building descends to meet its one public edge.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         3.2,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "terrace",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "direction",
+       "value_type": "string",
+       "string_value": "y"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 5.0
+      },
+      {
+       "name": "setback_ratio",
+       "value_type": "number",
+       "numeric_value": 0.2
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "step_graded_ground",
+   "base_seed": "slab",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "graded_section",
+    "public_stair",
+    "open_side_south"
+   ],
+   "rationale": "The south face is graded into occupiable steps - a landscape cut out of the building's own body.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        2.2,
+        1.45,
+        0.28
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.0,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         2.6,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "macro",
+     "operator": "book_grade",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "axis",
+       "value_type": "string",
+       "string_value": "z"
+      },
+      {
+       "name": "face_side",
+       "value_type": "string",
+       "string_value": "south"
+      },
+      {
+       "name": "levels",
+       "value_type": "number",
+       "numeric_value": 4.0
+      },
+      {
+       "name": "width_ratio",
+       "value_type": "number",
+       "numeric_value": 0.6
+      },
+      {
+       "name": "depth_ratio",
+       "value_type": "number",
+       "numeric_value": 0.45
+      }
+     ],
+     "semantic_role": "public_terraces"
+    }
+   ],
+   "root_id": "r"
+  },
+  {
+   "name": "step_shifted_stack",
+   "base_seed": "block",
+   "base_form_id": "cube",
+   "intent_tags": [
+    "shifted_stack",
+    "stepped_section",
+    "cantilevered_levels"
+   ],
+   "rationale": "Five equal plates each stepped off the one below - the stagger is the whole section.",
+   "nodes": [
+    {
+     "id": "unit_box",
+     "kind": "primitive",
+     "operator": "box",
+     "inputs": [],
+     "parameters": [
+      {
+       "name": "width",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "depth",
+       "value_type": "number",
+       "numeric_value": 1.0
+      },
+      {
+       "name": "height",
+       "value_type": "number",
+       "numeric_value": 1.0
+      }
+     ],
+     "semantic_role": "unitbox"
+    },
+    {
+     "id": "seed",
+     "kind": "transform",
+     "operator": "scale",
+     "inputs": [
+      "unit_box"
+     ],
+     "parameters": [
+      {
+       "name": "scale",
+       "value_type": "vector",
+       "vector_value": [
+        1.0,
+        1.0,
+        1.0
+       ]
+      }
+     ],
+     "semantic_role": "base_seed"
+    },
+    {
+     "id": "base",
+     "kind": "transform",
+     "operator": "matrix4",
+     "inputs": [
+      "seed"
+     ],
+     "parameters": [
+      {
+       "name": "matrix4",
+       "value_type": "matrix4",
+       "matrix4_value": [
+        [
+         1.7,
+         0.0,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         1.6,
+         0.0,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.62,
+         0.0
+        ],
+        [
+         0.0,
+         0.0,
+         0.0,
+         1.0
+        ]
+       ]
+      }
+     ],
+     "semantic_role": "base_volume"
+    },
+    {
+     "id": "r",
+     "kind": "pattern",
+     "operator": "stack",
+     "inputs": [
+      "base"
+     ],
+     "parameters": [
+      {
+       "name": "count",
+       "value_type": "number",
+       "numeric_value": 5.0
+      },
+      {
+       "name": "shift_per_level",
+       "value_type": "vector",
+       "vector_value": [
+        0.18,
+        0.06,
+        0.0
+       ]
+      }
+     ],
+     "semantic_role": "dominant_mass"
+    }
+   ],
+   "root_id": "r"
+  }
+ ]
+}

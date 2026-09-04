@@ -246,27 +246,97 @@ def stage(run: str, count: int) -> int:
     return 0
 
 
+# A tile block opens on its own line - every juror file ever written puts
+# TILE at the start of a line, with or without the `t` and with or without
+# the leading zero ("TILE 7" and "TILE t07" both appear in the ledger).
+_TILE_OPENS = re.compile(r"^\s*TILE\s+t?0*(\d+)\b")
+_WEIGHTED = re.compile(r"WEIGHTED\s+(\S+)")
+
+
+class VerdictError(ValueError):
+    """A juror's file cannot be read tile by tile, so the round does not score.
+
+    Numbers that are not bound to the tile the juror was looking at are
+    worse than no numbers: they seat the wrong mass on the board, and
+    nothing downstream - not the curator, not the ledger, not an eye check
+    on the sheet - can tell a mis-bound score from an honest one.
+    """
+
+
+def read_verdict(path: Path, key_tiles) -> dict[str, float]:
+    """One juror's file as {tile: weighted score}, read block by block.
+
+    A TILE line opens a block and the next TILE line closes it, so the
+    WEIGHTED a tile gets is the one the juror wrote underneath it. The
+    reading this replaces was a single non-greedy regex over the whole file
+    (`TILE ... WEIGHTED`), which let a juror who wrote a TILE block and
+    omitted its WEIGHTED line take the NEXT tile's number: two tiles shared
+    one score, one tile's score belonged to another drawing, and the round
+    published both without a word. judge.sh cannot catch it either - it
+    counts `^TILE` lines, and in that failure the count is right and only
+    the binding is wrong.
+
+    So this refuses instead of skipping, on every way the binding can go
+    wrong: a block with no WEIGHTED, a WEIGHTED that is not a score in
+    1..5, and a tile the round's key.json does not contain. A tile stated
+    twice with the same number is a juror restating its own table
+    (ovs17-en r3 wrote a seven-row summary under its seven blocks) and the
+    last statement stands, as it always did; a tile stated twice with two
+    different numbers is a contradiction no reader can resolve, so that
+    refuses too.
+    """
+
+    name = Path(path).name
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    opens = [i for i, line in enumerate(lines) if _TILE_OPENS.match(line)]
+    seen: dict[str, float] = {}
+    for n, start in enumerate(opens):
+        end = opens[n + 1] if n + 1 < len(opens) else len(lines)
+        tile = f"t{int(_TILE_OPENS.match(lines[start]).group(1)):02d}"
+        if tile not in key_tiles:
+            raise VerdictError(
+                f"{name}: scores {tile}, which this round has no tile for - "
+                "the juror was reading a different stage")
+        found = next((m for m in (_WEIGHTED.search(line) for line in
+                                  lines[start:end]) if m), None)
+        if found is None:
+            raise VerdictError(
+                f"{name}: TILE {tile} has no WEIGHTED line in its block - "
+                "refusing to score the round rather than lend it the next "
+                "tile's number")
+        raw = found.group(1)
+        try:
+            value = float(raw)
+        except ValueError:
+            raise VerdictError(
+                f"{name}: TILE {tile} has WEIGHTED {raw!r}, which is not a "
+                "number") from None
+        if not 1.0 <= value <= 5.0:
+            raise VerdictError(
+                f"{name}: TILE {tile} has WEIGHTED {value}, outside the "
+                "rubric's 1..5 - a stray number read as a score moves the "
+                "session drift for every other tile")
+        if tile in seen and seen[tile] != value:
+            raise VerdictError(
+                f"{name}: TILE {tile} is scored twice and the two disagree "
+                f"({seen[tile]} then {value}) - no reader can say which the "
+                "juror meant")
+        seen[tile] = value
+    return seen
+
+
 def score(run: str, paths: list[str]) -> int:
     out = ROOT / "runs" / f"vlm-{run}"
     key = {r["tile"]: r for r in json.loads((out / "key.json").read_text(encoding="utf-8"))}
     per_tile: dict[str, list[float]] = {t: [] for t in key}
     for path in paths:
-        text = Path(path).read_text(encoding="utf-8")
-        # One reading per juror per tile. A juror that re-lists its scores
-        # in a summary block was counted twice (ovs17-en r3: 14 TILE lines
-        # for 7 tiles) and outweighed the other two; the last statement of
-        # a tile is the juror's verdict.
-        seen: dict[str, float] = {}
-        for tile, value in re.findall(
-                r"TILE\s+t?0*(\d+)[\s\S]*?WEIGHTED\s+([0-9.]+)", text):
-            seen[f"t{int(tile):02d}"] = float(value)
+        seen = read_verdict(Path(path), key)
         missing = [t for t in key if t not in seen]
         if missing:
             print(f"   WARNING: {Path(path).name} scored no line for "
                   f"{', '.join(missing)}")
         for tile, value in seen.items():
-            if tile in per_tile:
-                per_tile[tile].append(value)
+            per_tile[tile].append(value)
     unscored = [t for t, v in per_tile.items() if not v]
     if unscored:
         print(f"   WARNING: no juror scored {', '.join(unscored)} - "

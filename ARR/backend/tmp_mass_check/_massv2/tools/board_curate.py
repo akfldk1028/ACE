@@ -170,8 +170,15 @@ def corpus() -> dict:
 
 def main() -> int:
     import sys as _sys
-    if len(_sys.argv) > 2 and _sys.argv[1] == "--new-era":
-        new_era(" ".join(_sys.argv[2:]))
+    if len(_sys.argv) > 1 and _sys.argv[1] == "--new-era":
+        note = " ".join(_sys.argv[2:]).strip()
+        if not note:
+            # Silently curating instead of clearing is the worst possible
+            # answer here: the operator reads a normal board and believes the
+            # era began.
+            print("usage: board_curate.py --new-era <why this era begins>")
+            return 2
+        new_era(note)
         return 0
     book = corpus()
     ledger: dict[tuple, dict] = {}
@@ -228,7 +235,14 @@ def main() -> int:
     # What each passer composed, read off the run that judged it. The runner
     # writes the part-to-whole position as the second half of the grid cell.
     def position_of(item) -> str:
-        summary = ROOT / "runs" / str(item.get("round") or "") / "massv2-summary.json"
+        # `round` is the JUDGING directory (vlm-agent07); the run that staged
+        # it is the same name without that prefix. Read against the judging
+        # directory this resolved nothing at all, on every entry, and the
+        # `except` below made the failure invisible.
+        round_name = str(item.get("round") or "")
+        if round_name.startswith("vlm-"):
+            round_name = round_name[len("vlm-"):]
+        summary = ROOT / "runs" / round_name / "massv2-summary.json"
         if not summary.exists():
             return "unknown"
         try:
@@ -254,12 +268,17 @@ def main() -> int:
         key = (item["track"], position)
         if key not in best_of_position or item["score"] > best_of_position[key]["score"]:
             best_of_position[key] = item
+    # Guarded by FAMILY, not by name: part-to-whole is orthogonal to the
+    # family key, so the best `stacked_tiers` passer is often a second member
+    # of a family a higher scorer already seated, and appending it would void
+    # the board's one stated invariant.
+    seated_families = {key_of(item) for item in curated}
     reserved = [item for key, item in sorted(best_of_position.items())
-                if item["name"] not in seated]
+                if item["name"] not in seated and key_of(item) not in seated_families]
     if reserved:
-        print("reserved a seat for each part-to-whole position: "
-              + ", ".join(f"{key[1]} ({item['score']:.2f})"
-                          for key, item in sorted(best_of_position.items())))
+        print("reserved a seat for a part-to-whole position the board lacked: "
+              + ", ".join(f"{item['name'][:28]} ({item['score']:.2f})"
+                          for item in reserved))
         curated = curated + reserved
     # The family key is a partition of the LANGUAGE - opener, dominant verb,
     # stature - and two sentences built from different words can still be one

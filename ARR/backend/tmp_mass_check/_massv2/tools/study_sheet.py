@@ -58,7 +58,7 @@ h2 { font-size:17px; font-weight:600; margin:0; }
 img { display:block; width:100%; height:auto; border:1px solid var(--line); background:#fff; }
 .facts { font-size:12.5px; color:var(--muted); margin:14px 0 0; }
 .facts b { color:var(--ink); font-weight:600; }
-.seq { margin-top:20px; }
+.seq { margin:0 0 22px; }
 .seq h3 { font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
   color:var(--muted); margin:0 0 8px; font-weight:600; }
 footer { margin-top:36px; color:var(--muted); font-size:12px; }
@@ -116,12 +116,18 @@ def _picks(run: str, book: dict) -> list[tuple[str, float | None]]:
         entries = json.loads(scored.read_text(encoding="utf-8"))
         entries.sort(key=lambda row: -(row.get("corrected") or row.get("score") or 0.0))
         rows = [(row["name"], float(row.get("corrected") or row.get("score") or 0.0))
-                for row in entries if not row.get("anchor")]
+                for row in entries if not row.get("anchor") and row.get("pass")]
     else:
         summary = json.loads((ROOT / "runs" / run / "massv2-summary.json")
                              .read_text(encoding="utf-8"))
+        # Compiled is not approved. The board filters refusals and implausible
+        # masses before it seats anything; a sheet that recommends one of them
+        # to a client is worse than an empty sheet.
         rows = [(record["name"], None) for record in summary["records"]
-                if record.get("status") == "compiled"]
+                if record.get("status") == "compiled"
+                and (record.get("plausibility") or {}).get("occupiable") is not False
+                and (record.get("legal_fit") or {}).get("satisfied") is not False
+                and (record.get("composition") or {}).get("parti_kept") is not False]
     seen: set[str] = set()
     picks: list[tuple[str, float | None]] = []
     for name, score in rows:
@@ -196,12 +202,13 @@ def main(run: str, out_name: str = "") -> int:
         sequence = ""
         if block["sequence"] is not None:
             sequence = (
-                '<div class="seq"><h3>이 안이 만들어진 순서</h3>'
+                '<div class="seq"><h3>이 안이 만들어진 순서 — 단어 하나가 프레임 하나</h3>'
                 f'<img src="{_uri(block["sequence"])}" alt="operation sequence"></div>')
         sections.append(
             f'<section><div class="head">{tag}<h2>{block["name"]}</h2>'
             f'<span class="tag">{block["moves"]}</span></div>'
             f'<p class="thesis">{block["thesis"]}</p>'
+            f'{sequence}'
             f'<div class="mass"><img src="{_uri(block["tile"])}" alt="{block["name"]}">'
             f'<div><p class="facts">'
             f'<b>연면적</b> {block["gross"]:,.0f}㎡ · 용적률 {block["gross"] / parcel * 100:.0f}%'
@@ -211,7 +218,7 @@ def main(run: str, out_name: str = "") -> int:
             f'지배 {reading.dominance:.0%}'
             f'{" · 지면에서 들림" if reading.lifted else ""}'
             f'{f" · {reading.tiers}단" if reading.tiers > 1 else ""}'
-            f'</p></div></div>{sequence}</section>')
+            f'</p></div></div></section>')
 
     # The rest of the shortlist under the three, so one address carries the
     # whole answer. The architect asked why a selection board, a sweep sheet

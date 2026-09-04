@@ -87,13 +87,30 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         # showing all three is how a sheet of nineteen came back reading as
         # six. The tallest stands for its family, which is the rule this
         # block's own docstring states.
+        # One tile per family AND per source book. The family alone evicted
+        # every reference edition: BIG delivers 350 variants over 14 families
+        # and 11 of those families also hold sentences somebody else wrote, so
+        # with the tallest variant winning the tile, BIG, OMA and SANAA came to
+        # the sheet as one tile each and SANAA - low pavilions, always the
+        # shorter of any pair - as none. A sheet whose point is to compare how
+        # different authors solve the same figure cannot show one of them.
+        origin: dict[str, str] = {}
+        for path in sorted((ROOT / "inputs").glob("*.json")):
+            try:
+                schemes = json.loads(path.read_text(encoding="utf-8"))["schemes"]
+            except Exception:  # noqa: BLE001 - a malformed book is skipped elsewhere
+                continue
+            for scheme in schemes:
+                name = scheme.get("name")
+                if name:
+                    origin.setdefault(str(name), path.stem)
         best_of_family: dict[tuple, tuple] = {}
         for item in rows:
             sentence = item[2].split("~")[0].split("^")[0]
             scheme = book.get(sentence)
             if scheme is None:
                 continue
-            key = family_key(scheme)
+            key = family_key(scheme) + (origin.get(sentence, "?"),)
             if key not in best_of_family or item[0] > best_of_family[key][0]:
                 best_of_family[key] = item
         rows = sorted(

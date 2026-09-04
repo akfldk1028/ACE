@@ -270,7 +270,13 @@ def _sentence(r: random.Random, index: int, extreme: bool = False,
         ops.insert(1, {**_ROOM, "why": _WHY})
     if said & _NEEDS_PART:
         if "split" not in {op["op"] for op in ops}:
-            ops.insert(-1, {**_PART, "why": _WHY})
+            # Immediately BEFORE the scoped verb, not second-to-last: the mods
+            # are drawn in random order, so inserting by position left the
+            # verb naming a `part_b` that did not exist yet - an `on` that
+            # names nothing, which the validator refuses.
+            first = next(index for index, op in enumerate(ops)
+                         if op["op"] in _NEEDS_PART)
+            ops.insert(first, {**_PART, "why": _WHY})
         for op in ops:
             if op["op"] in _NEEDS_PART:
                 op["on"] = "part_b"

@@ -115,6 +115,11 @@ def main(run: str, variant: str, count: str = "24") -> int:
     parent_scheme = book[family]
     out = ROOT / "runs" / f"develop-{family[:28]}"
     (out / "pairs").mkdir(parents=True, exist_ok=True)
+    # A juror reads the folder, not mutants.json: a run that stages three
+    # pairs where the last staged thirteen would be judged on ten images
+    # nothing points at any more.
+    for stale in (out / "pairs").glob("p*.png"):
+        stale.unlink()
 
     def deliver(scheme, name_for_pipeline):
         local_book = dict(book)
@@ -138,11 +143,33 @@ def main(run: str, variant: str, count: str = "24") -> int:
         """
 
         height = float(source.metadata.get("authored_height_m") or 0.0)
+
+        def section_of(volume) -> tuple:
+            # A pitch, a warp or a walkable slope changes the building without
+            # moving a footprint or an elevation: `gabled_halves` applies a
+            # pitch by replacing top_drop and ridge_along on the same volume.
+            # Hashing plans alone called every such mutant a duplicate.
+            return (
+                round(float(getattr(volume, "top_drop", 0.0) or 0.0), 3),
+                tuple(round(v, 3) for v in (getattr(volume, "drop_toward", None) or ())),
+                tuple(round(v, 3) for v in (getattr(volume, "ridge_along", None) or ())),
+                tuple((round(u, 3), round(h, 3))
+                      for u, h in (getattr(volume, "top_profile", None) or ())),
+                bool(getattr(volume, "top_walkable", False)),
+                getattr(volume, "warp", None) is not None,
+                str(getattr(volume, "verb", "")),
+            )
+
         return tuple(sorted(
             (round(volume.footprint.area, 1),
              tuple(round(value, 1) for value in volume.footprint.bounds),
              round(float(volume.bottom_fraction) * height, 1),
-             round(float(volume.top_fraction) * height, 1))
+             round(float(volume.top_fraction) * height, 1),
+             # The plan's own shape, not just its box: a notch moved from one
+             # end to the other is a mirror with the same area and bounds.
+             tuple(sorted((round(x, 1), round(y, 1))
+                          for x, y in volume.footprint.exterior.coords)),
+             section_of(volume))
             for volume in source.volumes
         ))
 

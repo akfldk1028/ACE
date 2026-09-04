@@ -79,6 +79,13 @@ def main(round_name: str, scope: str = "") -> int:
 
     out = ROOT / "runs" / f"vlm-{round_name}"
     out.mkdir(parents=True, exist_ok=True)
+    # A stale stage lies twice, the same way it does in `stage.sh`: leftover
+    # tiles inflate the round and leftover juror files let `score` bind an
+    # old session's per-tile numbers to a new key's names. The shuffle is
+    # seeded, so a changed ledger reshuffles the mapping and the lie is
+    # silent.
+    for stale in list(out.glob("t*.png")) + list(out.glob("r?.txt")):
+        stale.unlink()
     key = []
     made = 0
     from vlm_shortlist import rebuild_seat  # noqa: E402

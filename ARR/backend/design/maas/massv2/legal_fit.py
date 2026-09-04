@@ -449,20 +449,48 @@ def _scaled_composition(form: MatrixForm, factor: float,
     # plainly instead, where every distance moves with the factor and the
     # relationships survive.
     if factor < 1.0 - 1e-9:
-        def _closest(items) -> float:
-            plans = [_plan(item) for item in items
-                     if item.kind == "additive" and item.occupiable]
-            gaps = [plans[i].distance(plans[j])
-                    for i in range(len(plans)) for j in range(i + 1, len(plans))
-                    if plans[i].distance(plans[j]) > 1e-9]
-            return min(gaps) if gaps else 0.0
+        def _gaps(items) -> dict:
+            """Every pair's separation, by pair, with zero included.
 
-        before = _closest(form.placements)
-        after = _closest(scaled)
-        if before > _BODY_SEPARATION_M and after < _BODY_SEPARATION_M:
+            The minimum positive gap answered the wrong question twice: one
+            0.3 m construction joint anywhere made the whole composition look
+            already closed, and a court that closed to exactly zero was
+            excluded from the reading that exists to catch it. Pairs are
+            compared with themselves instead.
+            """
+
+            plans = [(index, _plan(item)) for index, item in enumerate(items)
+                     if item.kind == "additive" and item.occupiable]
+            out = {}
+            for a in range(len(plans)):
+                for b in range(a + 1, len(plans)):
+                    out[(plans[a][0], plans[b][0])] = plans[a][1].distance(plans[b][1])
+            return out
+
+        before = _gaps(form.placements)
+        after = _gaps(scaled)
+        if any(gap > _BODY_SEPARATION_M
+               and after.get(pair, gap) < _BODY_SEPARATION_M
+               for pair, gap in before.items()):
+            # Only the no-court exemption is dropped, not the carrier rule.
+            # `carries` holds volumes for two reasons, and a genuine carrier
+            # paying the plan scale in height is the stacked-gable regression
+            # this branch exists to prevent: 1.65 to 1.98 of backspan against
+            # a limit of 1.60.
+            holds = set()
+            for index, item in enumerate(form.placements):
+                if item.kind != "additive":
+                    continue
+                top = item.z_span()[1]
+                plan = _plan(item)
+                if any(other.kind == "additive"
+                       and abs(other.z_span()[0] - top) <= 1e-3
+                       and _plan(other).intersects(plan)
+                       for other in form.placements):
+                    holds.add(index)
             scaled = [
-                _scaled_in_plan(item, factor, anchor, carrying=False)
-                for item in form.placements
+                _scaled_in_plan(item, factor, anchor, carrying=(index in holds))
+                for index, item in enumerate(form.placements)
             ]
     order = sorted(
         (index for index, item in enumerate(form.placements) if item.kind == "additive"),

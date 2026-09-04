@@ -188,7 +188,13 @@ def _sheets_settled(form: MatrixForm) -> MatrixForm:
             if other is item or other.kind != "additive" or not other.occupiable:
                 continue
             area = _plan(other).intersection(plan).area
-            if area > shared:
+            # Ties go to the taller body, not to whichever came first in the
+            # list: a plate wholly inside both a low wing and a tower shares
+            # the same area with each, and list order is not geometry.
+            if area > shared or (
+                    area > 0.0 and abs(area - shared) < 1e-6
+                    and best is not None
+                    and other.z_span()[1] > best.z_span()[1]):
                 best, shared = other, area
         if best is None:
             continue
@@ -209,7 +215,8 @@ def _sheets_settled(form: MatrixForm) -> MatrixForm:
 _ROOM_WIDTH_M = 1.5
 
 
-def _without_clip_waste(parts: list[Polygon]) -> list[Polygon]:
+def _without_clip_waste(form: MatrixForm, low: float, high: float,
+                        parts: list[Polygon]) -> list[Polygon]:
     """Drop the offcuts a band leaves beside a real plate.
 
     The envelope cuts a band and leaves a sliver at one end; the sliver is
@@ -221,12 +228,20 @@ def _without_clip_waste(parts: list[Polygon]) -> list[Polygon]:
 
     if len(parts) < 2:
         return parts
+
     def holds_a_room(piece) -> bool:
         try:
             return not piece.buffer(-_ROOM_WIDTH_M, join_style=2).is_empty
         except Exception:  # pragma: no cover - GEOS refusing an erosion
             return True
-    kept = [piece for piece in parts if holds_a_room(piece)]
+    # A column is narrow because it is a column. This ran before the
+    # structural classification, so a `split` + `lift` sentence - a fat
+    # un-lifted half and four legs in one band - lost its legs here: the
+    # lifted body then read as ungrounded, the drawing floated it, and the
+    # legs' footprint left 건축면적. `_part_is_structure` is the same question
+    # the band loop asks a few lines later.
+    kept = [piece for piece in parts
+            if holds_a_room(piece) or _part_is_structure(form, low, high, piece)]
     return kept if kept else parts
 
 
@@ -409,7 +424,8 @@ def compile_matrix_form(
     structural: list[int] = []
     dropped_bands = 0
     for low, high in zip(edges, edges[1:]):
-        parts = _without_clip_waste(_band_parts(flat_form, low, high, allowed_at))
+        parts = _without_clip_waste(
+            form, low, high, _band_parts(flat_form, low, high, allowed_at))
         role = _band_role(form, low, high)
         is_structure = _band_is_structure(form, low, high)
         for part in parts:

@@ -227,8 +227,14 @@ def _bodies(source: SourceMass) -> list[tuple[float, list]]:
                 b_high = max(float(v.top_fraction) for v in columns[j])
                 if min(a_high, b_high) < max(a_low, b_low) - 1e-3:
                     continue  # one is above the other, with nothing shared
+                # Only volumes that share a height may touch. Taken over all
+                # pairs at any height, a plinth lent its ground plan to a merge
+                # test against a tower's crown, and a block eleven metres clear
+                # of the shaft merged with it.
                 touching = any(
-                    va.footprint.distance(vb.footprint) <= SEPARATION_M
+                    min(float(va.top_fraction), float(vb.top_fraction))
+                    > max(float(va.bottom_fraction), float(vb.bottom_fraction)) + 1e-6
+                    and va.footprint.distance(vb.footprint) <= SEPARATION_M
                     for va in columns[i] for vb in columns[j]
                 )
                 if not touching:
@@ -248,7 +254,8 @@ def _bodies(source: SourceMass) -> list[tuple[float, list]]:
     return out
 
 
-def _faces(column: list) -> list[tuple[float, float]]:
+def _faces(column: list,
+           origin: tuple[float, float] = (0.0, 0.0)) -> list[tuple[float, float]]:
     """The body's own faces as (direction in degrees, signed offset).
 
     A face is a line: its bearing folded into [0, 180) because a wall and the
@@ -266,9 +273,19 @@ def _faces(column: list) -> list[tuple[float, float]]:
                 continue
             bearing = degrees(atan2(dy, dx)) % 180.0
             # Perpendicular offset of the line through (x0, y0) at `bearing`.
-            normal = bearing + 90.0
-            offset = x0 * cos(normal * 3.141592653589793 / 180.0) + \
-                y0 * sin(normal * 3.141592653589793 / 180.0)
+            # The normal is forced into a fixed half-plane. Left free it swung
+            # 180 degrees whenever two bearings straddled 0/180 - two bars
+            # turned +2 and -2 degrees about the same line measured +0.69 and
+            # -0.69, so a line every eye reads as shared counted as two. Every
+            # `aggregate` turns its units to alternating signs, so this fired
+            # on exactly the fields this reading exists to judge. Offsets are
+            # measured from the composition's own centre, because two lines
+            # four degrees apart read the same offset near the world origin
+            # and fourteen metres apart two hundred metres out.
+            normal = (bearing + 90.0) % 180.0
+            radians = normal * 3.141592653589793 / 180.0
+            offset = ((x0 - origin[0]) * cos(radians)
+                      + (y0 - origin[1]) * sin(radians))
             faces.append((bearing, offset))
     return faces
 
@@ -292,7 +309,10 @@ def read(source: SourceMass) -> Composition:
     # is shared - two bodies landing on it - which is the whole content of the
     # idea. Lines are then chosen greedily, most bodies first, until every
     # body that can be explained is: the fewest lines that explain them all.
-    per_body = [_faces(column) for _mass, column in bodies]
+    centres = [column[0].footprint.centroid for _mass, column in bodies]
+    origin = (sum(c.x for c in centres) / len(centres),
+              sum(c.y for c in centres) / len(centres))
+    per_body = [_faces(column, origin) for _mass, column in bodies]
     candidates: list[tuple[tuple[float, float], set[int]]] = []
     for index, faces in enumerate(per_body):
         for face in faces:
@@ -326,8 +346,11 @@ def read(source: SourceMass) -> Composition:
     height = float(source.metadata.get("authored_height_m") or 0.0)
     levels: list[list[float]] = []
     for _mass, column in bodies:
-        for value in (float(column[0].bottom_fraction) * height,
-                      float(column[-1].top_fraction) * height):
+        # min and max, not first and last: a merged column is not sorted, and
+        # a forty-metre tower with a low touching wing reported its crest at
+        # eight metres.
+        for value in (min(float(v.bottom_fraction) for v in column) * height,
+                      max(float(v.top_fraction) for v in column) * height):
             for group in levels:
                 if abs(group[0] - value) <= ALIGNMENT_TOLERANCE_M:
                     group.append(value)
@@ -353,10 +376,18 @@ def read(source: SourceMass) -> Composition:
     # counted as bands whose area differs from the one below by more than a
     # tenth. A base and a tower is two; a plain prism is one.
     tiers = 1
-    ordered_lead = sorted(lead, key=lambda volume: float(volume.bottom_fraction))
-    for lower, upper in zip(ordered_lead, ordered_lead[1:]):
-        low_area = float(lower.footprint.area)
-        high_area = float(upper.footprint.area)
+    # By LEVEL, not by volume. A merged body holds several volumes at the same
+    # height - the parts of one compiled band - and comparing two co-planar
+    # siblings called a 25% area difference a setback: two touching bars of
+    # different length read as `stacked_tiers`, and a 1.1 m change in the gap
+    # between them moved the grid coordinate and retired the variant.
+    levels: dict[tuple, float] = {}
+    for volume in lead:
+        key = (round(float(volume.bottom_fraction), 4),
+               round(float(volume.top_fraction), 4))
+        levels[key] = levels.get(key, 0.0) + float(volume.footprint.area)
+    ordered_lead = [area for _key, area in sorted(levels.items())]
+    for low_area, high_area in zip(ordered_lead, ordered_lead[1:]):
         # A quarter, not a tenth: the sunlight envelope shaves a few per cent
         # off each band as it rises, and at a tenth that trimming was counted
         # as designed setbacks - a quarter of the pool read four tiers or
@@ -364,6 +395,7 @@ def read(source: SourceMass) -> Composition:
         # quarter of the plan; anything less is the law taking a corner.
         if low_area > 1e-6 and abs(high_area - low_area) / low_area > 0.25:
             tiers += 1
+
 
     return Composition(
         parts=len(bodies),

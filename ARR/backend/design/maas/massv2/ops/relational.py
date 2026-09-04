@@ -455,7 +455,12 @@ def roof(frame, op) -> None:
         # overhang whose plate hides the whole body under it in axonometric.
         # Capped at two storeys of overhang - the biggest flying eave that
         # still reads as an eave and not as a second building.
-        eave_m = min(eave * min(span_u, span_v), 2.0 * frame.storey)
+        # Two storeys of overhang, or the share alone when the caller named
+        # no storey height - a tool or a test that omits it used to get no
+        # eave at all.
+        eave_share = eave * min(span_u, span_v)
+        eave_m = (min(eave_share, 2.0 * frame.storey)
+                  if frame.storey > 1e-6 else eave_share)
         rise_m = rise_share * frame.storey
         thin_m = thin * frame.storey
         band = thin_m + rise_m

@@ -460,9 +460,15 @@ class SourceMass:
                     break
             else:
                 columns.append([volume])
+        # Stature is what stands up. Since `sink` the fractions are measured
+        # from a base that may be below grade, and a basement shares its plan
+        # with the building over it, so it joined the same column: a
+        # four-storey house sunk eight metres measured twenty-two metres of
+        # body and was retired as over its declared stature.
+        datum = float(self.metadata.get("datum_m") or 0.0) / height
         tallest = 0.0
         for column in columns:
-            low = min(float(volume.bottom_fraction) for volume in column)
+            low = max(datum, min(float(volume.bottom_fraction) for volume in column))
             high = max(float(volume.top_fraction) for volume in column)
             tallest = max(tallest, high - low)
         return tallest * height

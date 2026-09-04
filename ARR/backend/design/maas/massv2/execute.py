@@ -1561,9 +1561,19 @@ def _aggregate(frame: _Frame, op: Operation) -> None:
             angle = 2.0 * pi * index / max(count, 1)
             bearing = degrees(angle)
             turn = bearing + (90.0 if arrangement == "pinwheel" else 0.0)
-            depth_on_ring = max(chord * 0.82, frame.storey)
-            w = max(ring * 0.9 * scale, frame.storey)
-            d = max(depth_on_ring * scale, frame.storey * 0.8)
+            # The radial reach first, then the tangential width measured at
+            # the unit's INNER end where the arc is narrowest. The chord at the
+            # ring is the spacing of the CENTRES, and sizing by it overlapped
+            # every neighbour from six units up - a twelve-unit pinwheel
+            # arrived as one fused body, the opposite of the verb. A joint
+            # clearance comes off, as the grid branch takes one off its cells.
+            reach = max(ring * 0.7 * scale, frame.storey)
+            inner = max(ring - reach / 2.0, 0.25 * ring)
+            span = 2.0 * inner * sin(pi / max(count, 2)) - JOINT_CLEARANCE_M
+            span = max(span * scale, frame.storey * 0.9)
+            # `turn` rotates the box, so a pinwheel's local w axis runs along
+            # the arc while d points at the centre: the two swap.
+            w, d = (span, reach) if arrangement == "pinwheel" else (reach, span)
             radial_dx = ring * cos(angle)
             radial_dy = ring * sin(angle)
         frame.placements.append(

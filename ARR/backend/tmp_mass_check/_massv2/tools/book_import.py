@@ -25,6 +25,70 @@ ROOT = Path(__file__).resolve().parents[1]
 BOOKS = ROOT / "runs" / "books"
 
 
+def records_of(book_dir: Path) -> list[dict]:
+    """Every BOOK record in a run directory, whichever era wrote it.
+
+    The exploration command has two output shapes. The older run wrote one
+    `maas-book-exact-geometry-artifacts.json` holding records with a
+    `geometry_artifact`; the current one writes a portfolio plus one JSON per
+    candidate, each with its `geometry_program` directly. Both are BOOK masses
+    and the board judges both, so the reader takes either.
+    """
+
+    old = book_dir / "maas-book-exact-geometry-artifacts.json"
+    if old.exists():
+        return list(json.loads(old.read_text(encoding="utf-8")).get("records") or [])
+    portfolio = book_dir / "maas-creative-portfolio.json"
+    if not portfolio.exists():
+        return []
+    entries = json.loads(portfolio.read_text(encoding="utf-8")).get("candidates") or []
+    records = []
+    for entry in entries:
+        path = book_dir / str(entry.get("candidate_json") or "")
+        if not path.exists():
+            continue
+        candidate = json.loads(path.read_text(encoding="utf-8"))
+        program = candidate.get("geometry_program")
+        if not program:
+            continue
+        # The portfolio's own words for what this candidate is: the family it
+        # came from and the BOOK principle it was assigned. That is the thesis
+        # a juror reads, and without it the tile carries a hash.
+        assignment = (program.get("metadata") or {}).get(
+            "creative_book_assignment") or {}
+        principle = str(assignment.get("principle_id") or "")
+        verbs = ", ".join(str(v) for v in (assignment.get("execution_verbs") or ()))
+        family = str(candidate.get("family") or entry.get("family") or "")
+        records.append({
+            "trace_sequence_name": f"book:{family}:{entry.get('candidate_id')}",
+            "thesis": (
+                f"{family.replace('_', ' ')} - "
+                f"{verbs or 'base'}"
+                + (f" ({principle.split(':')[-1]})" if principle else "")
+            ),
+            "geometry_artifact": {
+                "authoredGeometryProgram": program,
+                # The portfolio states the physical height as the top of the
+                # mesh bounds and the storeys it was cut into; the older
+                # artifact carried a certificate instead. Both are the book's
+                # own account of how tall it is, which is what the height
+                # dialect below needs - without one every book mass measured
+                # 0.0 m and drew flat.
+                "projectedVisualCertificate": {
+                    "physical_height_m": float(
+                        ((candidate.get("mesh_evidence") or {}).get("bounds")
+                         or [[0, 0, 0], [0, 0, 0]])[1][2] or 0.0),
+                },
+                "hardGates": {"projectedMetrics": {
+                    "footprint_area_m2": float(
+                        ((candidate.get("storey_evidence") or {}).get(
+                            "actual_floor_areas_m2") or [0.0])[0] or 0.0),
+                }},
+            },
+        })
+    return records
+
+
 def _compile_record(rec: dict, buildable):
     """One book record -> SourceMass at the book's own size and height.
 
@@ -84,7 +148,13 @@ def _compile_record(rec: dict, buildable):
                  .get("ordered_verbs") or [])
     entry = {
         "trace": rec.get("trace_sequence_name"),
-        "thesis": str(art.get("bookPrincipleId") or art.get("bookScope") or "book principle"),
+        # What the tile says about itself. The portfolio reader writes a
+        # sentence ("courtyard - inscribe (11)"); the older artifact carries a
+        # principle id. Either beats the literal words "book principle", which
+        # is what every one of sixty tiles was captioned with.
+        "thesis": str(rec.get("thesis")
+                      or art.get("bookPrincipleId")
+                      or art.get("bookScope") or "book principle"),
         "verbs": verbs,
         "height_m": round(height_m, 2),
         "footprint_m2": round(footprint_m2, 2),
@@ -112,8 +182,10 @@ def book_rebuild(name: str, site, buildable):
     entry = registry().get(name)
     if entry is None:
         return None
-    artifacts = json.loads((Path(entry["book_dir"]) / "maas-book-exact-geometry-artifacts.json")
-                           .read_text(encoding="utf-8"))
+    # `records_of` reads whichever shape the run wrote; the old artifact file
+    # was being opened unconditionally beside it, so a seat imported from a
+    # portfolio run could be judged and then not baked.
+    artifacts = {"records": records_of(Path(entry["book_dir"]))}
     rec = next((r for r in artifacts.get("records") or []
                 if r.get("trace_sequence_name") == entry["trace"]), None)
     if rec is None:
@@ -134,9 +206,7 @@ def main() -> int:
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
 
-    artifacts = json.loads(
-        (book_dir / "maas-book-exact-geometry-artifacts.json").read_text(encoding="utf-8"))
-    records = artifacts.get("records") or []
+    records = records_of(book_dir)
     if not records:
         print("FAIL: no records in book artifacts")
         return 1

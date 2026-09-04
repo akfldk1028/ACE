@@ -68,7 +68,8 @@ BLIND_PREAMBLE = (
 
 def certified_caption(source, site, thesis: str, *,
                       ground_m2: float | None = None,
-                      gross_m2: float | None = None) -> dict:
+                      gross_m2: float | None = None,
+                      storey_m: float | None = None) -> dict:
     """The caption every jury tile carries, contest, anchor or book alike.
 
     Anchors once carried the thesis alone while contestants carried
@@ -85,8 +86,16 @@ def certified_caption(source, site, thesis: str, *,
     # here at the parcel's storey, the same ruler the legal fit uses.
     ground = (float(ground_m2) if ground_m2 is not None
               else float(unary_union([v.footprint for v in source.volumes]).area))
+    # At the SCHEME's own storey height, which is the height the legal gate
+    # counted floors at. Measured at the parcel's default instead, a mass
+    # built on 3.4 m storeys was counted in 3.0 m floors and gained 13% of
+    # floor area: `cascade_ramp_tower` passed the gate at 97% of the 용적률
+    # capacity and was captioned 265% on a 250% parcel - a sheet that claims
+    # legality while printing a number over the cap.
     gross = (float(gross_m2) if gross_m2 is not None
-             else gross_floor_area_m2(source, floor_height_m=site.floor_height_m))
+             else gross_floor_area_m2(
+                 source,
+                 floor_height_m=float(storey_m or site.floor_height_m)))
     parcel = float(site.parcel_area_m2)
     return {"thesis": str(thesis or "")[:180],
             "건폐율": f"{ground / parcel * 100:.0f}%",
@@ -121,11 +130,13 @@ def rebuild_seat(name: str, book: dict, site, buildable, axis, base):
     parti = book.get(family)
     if parti is None:
         return None, None
+    storey = float(parti.get("floor_height_m") or site.floor_height_m)
     source = _rebuild(name, book, site, buildable, axis,
                       max(base, declared_height_m(parti, site.floor_height_m)))
     if source is None:
         return None, None
-    return source, certified_caption(source, site, parti.get("formal_principle") or "")
+    return source, certified_caption(source, site, parti.get("formal_principle") or "",
+                                     storey_m=storey)
 
 
 def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:

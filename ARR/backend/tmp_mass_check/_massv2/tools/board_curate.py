@@ -222,9 +222,8 @@ def main() -> int:
     # how we learn which BOOK principles read - and they no longer take seats.
     book_passers = [item for item in passers if str(item["name"]).startswith("book:")]
     if book_passers:
-        print(f"BOOK masses that passed, kept as repertoire rather than seated: "
-              f"{len(book_passers)} (best {max(i['score'] for i in book_passers):.2f})")
-    passers = [item for item in passers if not str(item["name"]).startswith("book:")]
+        print(f"BOOK masses seated alongside the authored ones: {len(book_passers)} "
+              f"(best {max(i['score'] for i in book_passers):.2f})")
     # Ledger ghosts: seats the last bake could not rebuild (board_render
     # writes the list). They were judged on an engine that no longer makes
     # that variant; they do not get a seat until they rebuild again.

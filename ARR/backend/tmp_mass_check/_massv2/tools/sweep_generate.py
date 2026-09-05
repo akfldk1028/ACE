@@ -309,7 +309,15 @@ def main() -> int:
 
     out.parent.mkdir(parents=True, exist_ok=True)
     probe = out.parent / "_sweep_probe.json"
+    # The validator refuses a book that holds the same idea twice, but each
+    # draw is checked alone in its probe, so a sweep could keep two sentences
+    # of one family and spend two of its seats on one idea - 16 kept, 14
+    # families, measured. Same key the validator and the curator use:
+    # (opener, dominant move family, stature band).
+    from design.maas.massv2.family import family_key  # noqa: E402
     kept: list[dict] = []
+    families: set = set()
+    same_idea = 0
     tried = 0
     while len(kept) < count and tried < count * 8:
         tried += 1
@@ -319,12 +327,17 @@ def main() -> int:
         faults, _verbs, _profiles = va.check(probe)
         if faults:
             continue
+        key = family_key(record)
+        if key in families:
+            same_idea += 1
+            continue
+        families.add(key)
         kept.append(record)
     probe.unlink(missing_ok=True)
-
     out.write_text(json.dumps({"schemes": kept}, ensure_ascii=False, indent=1),
                    encoding="utf-8")
-    print(f"kept {len(kept)} / tried {tried} (seed {seed}) -> {out}")
+    print(f"kept {len(kept)} / tried {tried} (seed {seed}, "
+          f"{same_idea} same-family draws skipped) -> {out}")
     return 0
 
 

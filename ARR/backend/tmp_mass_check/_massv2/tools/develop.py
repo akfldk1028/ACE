@@ -259,6 +259,30 @@ def _champion_pair(record: dict) -> tuple[dict, dict] | None:
     return None
 
 
+def _with_developed_why(parent: dict, child: dict) -> dict:
+    """The champion's prose says what its value now is.
+
+    The champion is the parent with one parameter moved, and it carried the
+    parent's `why` unchanged - so a sentence that said "a 3 m gap so the
+    court reads as a court" shipped with gap 4.5, and the next author read
+    the argument for a value the mass no longer has. The moved op's why now
+    ends with the move and how it was decided.
+    """
+
+    ops = []
+    for before, after in zip(parent["ops"], child["ops"]):
+        after = dict(after)
+        moves = [f"{key} {before.get(key)} -> {value}"
+                 for key, value in after.items()
+                 if key != "why" and before.get(key) != value]
+        if moves:
+            why = str(after.get("why") or "").rstrip(". ")
+            after["why"] = (f"{why}. Developed: {', '.join(moves)}, "
+                            f"chosen over the parent by a unanimous blind pairwise jury.")
+        ops.append(after)
+    return {**child, "ops": ops}
+
+
 def _seat_in_corpus(scheme: dict) -> str:
     """Append the winning sentence to the authored corpus.
 
@@ -340,7 +364,7 @@ def score(family_dir: str, verdict_paths: list[str]) -> int:
             parent_scheme, champion_scheme = pair
             record["champion_change"] = _mutation_change(parent_scheme,
                                                          champion_scheme)
-            seated = _seat_in_corpus(champion_scheme)
+            seated = _seat_in_corpus(_with_developed_why(parent_scheme, champion_scheme))
     (out / "champion.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"pairs judged {len(votes)}, jurors {jurors}, "

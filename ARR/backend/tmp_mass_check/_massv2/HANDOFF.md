@@ -60,8 +60,8 @@ cd tmp_mass_check/_massv2 && python -X utf8 tools/book_import.py <c260-book/id �
 5. 절대 점수 → **쌍비교**. 같은 그림도 타일당 ±0.5 흔들린다(cascade 4.33→3.75). develop은 이미 쌍비교.
 6. ~~`judge.sh`가 TILE 줄 개수만 센다~~ → `--verify`(채점기와 같은 읽기)로 검사, 거부되면 같은 심사원을 한 번 더 앉힌다.
 7. 배심 취향 검증 없음(문헌: VLM≈전문가 52%).
-8. develop이 심은 문장의 `why`가 변이값과 안 맞음.
-9. 스윕에 책 단위 중복 가족 검사 없음.
+8. ~~develop이 심은 문장의 `why`가 변이값과 안 맞음~~ → 챔피언의 바뀐 op `why` 끝에 `Developed: gap 3.0 -> 4.5, …` 명시(`develop._with_developed_why`).
+9. ~~스윕에 책 단위 중복 가족 검사 없음~~ → `family_key`로 같은 가족 두 번 안 뽑음(실측 16/14 → 16/16).
 10. 한국 트랙 K0(보류).
 
 ## 함정 — 반드시

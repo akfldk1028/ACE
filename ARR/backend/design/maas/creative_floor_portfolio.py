@@ -247,9 +247,10 @@ def build_creative_floor_portfolio_report(
             scope_label=scope_label,
         ))
 
+    # Phase A: every program that stands on its own, before any book slot
+    # touches it. Verbatim from the single-pass version.
+    eligible: list[tuple[int, Any, str]] = []
     for input_index, raw_authored in enumerate(inputs):
-        if len(candidates) >= target:
-            break
         try:
             authored = normalize_authored_programs((raw_authored,))[0]
         except (RuntimeError, TypeError, ValueError):
@@ -267,7 +268,6 @@ def build_creative_floor_portfolio_report(
             continue
         program_hashes.add(source_program_hash)
         stage_counts["unique_program_hash"] += 1
-
         try:
             source_compilation = compile_geometry_program(authored.program)
         except (RuntimeError, TypeError, ValueError):
@@ -292,78 +292,119 @@ def build_creative_floor_portfolio_report(
             )
             continue
         stage_counts["structural_pass"] += 1
+        eligible.append((input_index, authored, source_program_hash))
 
-        assignment = book_schedule[len(candidates)]
+    # Phase B: match figures to book slots. A slot is one operative at one
+    # fraction scope; whether a figure can carry it is only known by
+    # projecting, compiling and checking it stands, so feasibility is
+    # computed lazily and cached. The single-pass version handed each
+    # program the next unfilled slot and the payload's ORDER decided which
+    # figures survived (35 of 40 in one ordering, 40 after a rotation, no
+    # figure changed); greedy search left the last program with the last
+    # slot. Augmenting paths, as the fixture path has done all along: a
+    # program whose feasible slots are taken asks their owners to move.
+    pair_cache: dict[tuple[int, int], tuple] = {}
+    pairs_tried: Counter[int] = Counter()
+
+    def pair(e_index: int, slot_index: int) -> tuple:
+        key = (e_index, slot_index)
+        if key in pair_cache:
+            return pair_cache[key]
+        pairs_tried[e_index] += 1
+        _input_index, authored, source_program_hash = eligible[e_index]
+        assignment = book_schedule[slot_index]
         try:
-            projected_program = project_creative_book_program(
+            projected = project_creative_book_program(
                 authored.program,
                 assignment,
             )
         except BookProjectionFailure as exc:
-            reject(
-                input_index,
-                "book_projection_pass",
-                str(exc.evidence.get("code") or "book_projection_failure"),
-                program_hash=source_program_hash,
-                principle_id=assignment.principle_id,
-                scope_label=assignment.scope_label,
-            )
-            continue
+            result = ("fail", assignment, "book_projection_pass",
+                      str(exc.evidence.get("code") or "book_projection_failure"),
+                      source_program_hash, None)
         except (RuntimeError, TypeError, ValueError):
-            reject(
-                input_index,
-                "book_projection_pass",
-                "book_projection_failure",
-                program_hash=source_program_hash,
-                principle_id=assignment.principle_id,
-                scope_label=assignment.scope_label,
-            )
+            result = ("fail", assignment, "book_projection_pass",
+                      "book_projection_failure", source_program_hash, None)
+        else:
+            evidence = creative_book_evidence(projected)
+            if not evidence:
+                result = ("fail", assignment, "book_authority_pass",
+                          "book_authority_missing", source_program_hash, None)
+            else:
+                projected_hash = projected.program_hash()
+                try:
+                    compilation = compile_geometry_program(projected)
+                except (RuntimeError, TypeError, ValueError):
+                    result = ("fail", assignment, "book_compile_pass",
+                              "book_compiler_exception", projected_hash, None)
+                else:
+                    reason = _structural_rejection_reason(compilation)
+                    if reason:
+                        result = ("fail", assignment, "book_structural_pass",
+                                  f"book_{reason}", projected_hash,
+                                  compilation.geometry_hash)
+                    else:
+                        result = ("ok", assignment, projected, evidence, compilation)
+        pair_cache[key] = result
+        return result
+
+    slot_owner: dict[int, int] = {}
+    program_slot: dict[int, int] = {}
+
+    def augment(e_index: int, visited: set[int]) -> bool:
+        # A program's own slot first - what the single pass always gave it -
+        # then the rest in order.
+        for offset in range(target):
+            slot_index = (e_index + offset) % target
+            if slot_index in visited:
+                continue
+            if pair(e_index, slot_index)[0] != "ok":
+                continue
+            visited.add(slot_index)
+            previous = slot_owner.get(slot_index)
+            if previous is not None and not augment(previous, visited):
+                continue
+            slot_owner[slot_index] = e_index
+            program_slot[e_index] = slot_index
+            return True
+        return False
+
+    for e_index, (input_index, authored, source_program_hash) in enumerate(eligible):
+        if len(slot_owner) >= target:
+            break  # every slot has a figure; the rest of the supply is spare
+        if augment(e_index, set()):
             continue
-        stage_counts["book_projection_pass"] += 1
-        book_evidence = creative_book_evidence(projected_program)
-        if not book_evidence:
-            reject(
-                input_index,
-                "book_authority_pass",
-                "book_authority_missing",
-                program_hash=source_program_hash,
-                principle_id=assignment.principle_id,
-                scope_label=assignment.scope_label,
-            )
+        # No slot will take this figure, and no owner can make room. The
+        # rejection carries its own slot's stage and reason, as it always did.
+        own = pair(e_index, e_index % target)
+        if own[0] == "ok":
+            reject(input_index, "book_projection_pass", "book_slot_unavailable",
+                   program_hash=source_program_hash)
             continue
-        stage_counts["book_authority_pass"] += 1
+        _kind, assignment, stage, reason_code, failed_hash, failed_geometry = own
+        reject(
+            input_index,
+            stage,
+            reason_code,
+            program_hash=failed_hash,
+            **({"geometry_hash": failed_geometry} if failed_geometry else {}),
+            principle_id=assignment.principle_id,
+            scope_label=assignment.scope_label,
+        )
+
+    # Phase C: the matched pairs, in slot order, through the stages that
+    # depend on what came before them - exactly as the single pass ran them.
+    for slot_index in sorted(slot_owner):
+        e_index = slot_owner[slot_index]
+        input_index, authored, source_program_hash = eligible[e_index]
+        _kind, assignment, projected_program, book_evidence, authored_compilation = (
+            pair(e_index, slot_index)
+        )
+        for stage in ("book_projection_pass", "book_authority_pass",
+                      "book_compile_pass", "book_structural_pass"):
+            stage_counts[stage] += 1
         authored = replace(authored, program=projected_program)
         program_hash = authored.program.program_hash()
-
-        try:
-            authored_compilation = compile_geometry_program(authored.program)
-        except (RuntimeError, TypeError, ValueError):
-            reject(
-                input_index,
-                "book_compile_pass",
-                "book_compiler_exception",
-                program_hash=program_hash,
-                principle_id=assignment.principle_id,
-                scope_label=assignment.scope_label,
-            )
-            continue
-        stage_counts["book_compile_pass"] += 1
-        book_structural_reason = _structural_rejection_reason(
-            authored_compilation
-        )
-        if book_structural_reason:
-            reject(
-                input_index,
-                "book_structural_pass",
-                f"book_{book_structural_reason}",
-                program_hash=program_hash,
-                geometry_hash=authored_compilation.geometry_hash,
-                principle_id=assignment.principle_id,
-                scope_label=assignment.scope_label,
-            )
-            continue
-        stage_counts["book_structural_pass"] += 1
-
         try:
             family = posthoc_family_label(
                 authored.program,
@@ -394,7 +435,6 @@ def build_creative_floor_portfolio_report(
             )
             continue
         stage_counts["physical_candidate_pass"] += 1
-
         geometry_hash = str(candidate["geometry_hash"])
         if geometry_hash in geometry_hashes:
             reject(
@@ -407,7 +447,6 @@ def build_creative_floor_portfolio_report(
             continue
         geometry_hashes.add(geometry_hash)
         stage_counts["unique_geometry_hash"] += 1
-
         normalized_mesh_hash = str(
             candidate["normalized_authored_mesh_hash"]
         )
@@ -422,7 +461,6 @@ def build_creative_floor_portfolio_report(
             continue
         normalized_mesh_hashes.add(normalized_mesh_hash)
         stage_counts["unique_normalized_mesh_hash"] += 1
-
         morphology_decision = accept_morphology(candidate, candidates)
         candidate["book_language_evidence"] = book_evidence
         candidate["morphology_evidence"]["decision"] = (
@@ -437,6 +475,12 @@ def build_creative_floor_portfolio_report(
                 geometry_hash=geometry_hash,
             )
             continue
+        candidate["book_slot_search"] = {
+            "slot": slot_index,
+            "principle_id": assignment.principle_id,
+            "scope_label": assignment.scope_label,
+            "pairs_tried": int(pairs_tried[e_index]),
+        }
         candidates.append(candidate)
         stage_counts["morphology_retained"] += 1
 

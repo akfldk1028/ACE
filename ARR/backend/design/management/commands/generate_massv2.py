@@ -39,7 +39,7 @@ from design.maas.massv2.execute import execute as execute_parti
 from design.maas.massv2 import grammar as grammar_module
 from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
-from design.maas.massv2.execute import realign
+from design.maas.massv2.execute import delivered as delivered_form
 from design.maas.massv2.fill import fill_to_site
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.sampler import read_facts, sample_sentences
@@ -210,7 +210,8 @@ def _sequence_sheet(item, *, book, site, buildable, axis, out_dir):
     # is the law and the capacity acting, which is the part of the argument that
     # belongs to this package rather than to the sentence.
     delivered = compile_matrix_form(
-        realign(item.form), storey_height_m=storey, allowed_at=site.plan_at)
+        delivered_form(item.form, axis=axis, storey_m=storey),
+        storey_height_m=storey, allowed_at=site.plan_at)
     if delivered is not None:
         measurement = measure_form(delivered)
         gfa = gross_floor_area_m2(delivered, floor_height_m=storey)
@@ -966,7 +967,7 @@ class Command(BaseCommand):
             # composition, so a sentence obeyed at execute arrives disobeyed.
             # Re-asserted here, under the same guard, on the grown mass.
             source = compile_matrix_form(
-                realign(fit.form),
+                delivered_form(fit.form, axis=axis, storey_m=form_storey),
                 storey_height_m=form_storey,
                 allowed_at=site.plan_at,
             )

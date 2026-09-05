@@ -99,6 +99,41 @@ def _offsets_along(placement: Placement, normal: tuple[float, float]) -> list[fl
                    for x, y in _plan(placement).exterior.coords})
 
 
+# A snapped part must keep this share of the plan it shared with whatever
+# carried it. Snapping is a small move by construction (a face within 1.2 m),
+# but an upper part carried at one edge by a leg or a wing loses that edge
+# when it slides, and the standing check then finds 60% of the mass reaching
+# the ground where 100% did before the snap. A line is not worth a collapse.
+CARRIED_KEEPS_SHARE = 0.9
+
+
+def _carriers(item: Placement, others: list[Placement]) -> list[Placement]:
+    """The parts directly under this one that it rests on."""
+
+    low, _high = item.z_span()
+    if low <= 1e-6:
+        return []
+    plan = _plan(item)
+    found = []
+    for other in others:
+        if other is item or other.kind != "additive":
+            continue
+        _olow, ohigh = other.z_span()
+        if abs(ohigh - low) > 0.3:
+            continue
+        if _plan(other).intersection(plan).area > 1e-6:
+            found.append(other)
+    return found
+
+
+def _still_carried(before: Placement, after: Placement, carriers: list[Placement]) -> bool:
+    if not carriers:
+        return True
+    was = sum(_plan(c).intersection(_plan(before)).area for c in carriers)
+    now = sum(_plan(c).intersection(_plan(after)).area for c in carriers)
+    return now >= CARRIED_KEEPS_SHARE * was
+
+
 def regulated(form: MatrixForm, *, axis: tuple[float, float] | None = None,
               storey_m: float = 0.0) -> MatrixForm:
     """Snap near-alignments true: bearings, faces, then levels.
@@ -128,7 +163,9 @@ def regulated(form: MatrixForm, *, axis: tuple[float, float] | None = None,
         for target in axes:
             turn = (target - own + 90.0) % 180.0 - 90.0
             if abs(turn) <= BEARING_SNAP_DEG:
-                items[index] = _turned(item, turn)
+                turned = _turned(item, turn)
+                if _still_carried(item, turned, _carriers(item, items)):
+                    items[index] = turned
                 break
 
     # 2. Faces. The lines the leading body occupies are the composition's
@@ -151,7 +188,9 @@ def regulated(form: MatrixForm, *, axis: tuple[float, float] | None = None,
                             best is None or abs(shift) < abs(best)):
                         best = shift
             if best is not None:
-                items[index] = _moved(item, normal[0] * best, normal[1] * best)
+                moved = _moved(item, normal[0] * best, normal[1] * best)
+                if _still_carried(item, moved, _carriers(item, items)):
+                    items[index] = moved
 
     # 3. Levels. A base or a top within a fifth of a storey of a storey line
     #    is that line, so tiers read as floors rather than as near-misses.
@@ -162,6 +201,14 @@ def regulated(form: MatrixForm, *, axis: tuple[float, float] | None = None,
                 continue
             low, _high = item.z_span()
             if low <= 1e-6:
+                continue
+            # A part resting on another has its base where that carrier's top
+            # is, not where the storey grid says; snapping it to the grid
+            # opened a 0.4 m seam between a crossing bar and its plate and the
+            # standing check found 40% of the mass in the air. Only a part on
+            # nothing answers to the grid, and a part on nothing above the
+            # ground is the standing check's business, not this one's.
+            if _carriers(item, items):
                 continue
             nearest = round(low / storey_m) * storey_m
             if 0.0 < abs(nearest - low) <= slack:

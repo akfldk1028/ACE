@@ -28,7 +28,7 @@ django.setup()
 
 from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
-from design.maas.massv2.execute import realign  # noqa: E402
+from design.maas.massv2.execute import delivered as delivered_form  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
 from design.maas.massv2.grammar import (  # noqa: E402
     declared_height_m, declared_stature, parti_from_record,
@@ -139,7 +139,8 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     # the run ships. A named line survives as an intent through the growth loop
     # rather than as a position, and it is re-asserted here.
     return compile_matrix_form(
-        realign(grown), storey_height_m=storey, allowed_at=site.plan_at,
+        delivered_form(grown, axis=axis, storey_m=storey),
+        storey_height_m=storey, allowed_at=site.plan_at,
     )
 
 

@@ -38,6 +38,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
 from shapely.ops import unary_union
 
@@ -214,6 +215,44 @@ def _sheets_settled(form: MatrixForm) -> MatrixForm:
 # back. Kept in one line so the two are easy to check against each other.
 _ROOM_WIDTH_M = 1.5
 
+# How much ground a band may give up to keep its own figure rather than wear
+# the parcel's. A clipped plan that keeps this share of its area as a clean
+# shrunk figure takes the clean one: the loss is a few per cent of one band's
+# footprint, and what it buys is a building that reads as a figure instead of
+# as a chamfered lump. Below it the envelope is genuinely shaping the mass and
+# the cut is the honest drawing.
+_FIGURE_KEEPS_SHARE = 0.88
+
+
+def _own_figure(plan, clipped, allowed):
+    """The plan's own shape, shrunk to fit, when that costs little area.
+
+    Returns the clipped polygon unchanged when shrinking cannot keep enough of
+    it - which is what happens where the envelope really bites, and there the
+    cut IS the building.
+    """
+
+    if plan is None or plan.is_empty or clipped.is_empty:
+        return clipped
+    if len(clipped.exterior.coords) <= len(plan.exterior.coords):
+        return clipped
+    if allowed.contains(plan):
+        return plan
+    centre = plan.centroid
+    low, high = 0.5, 1.0
+    best = None
+    for _step in range(12):
+        middle = (low + high) / 2.0
+        trial = affinity.scale(plan, xfact=middle, yfact=middle,
+                               origin=(centre.x, centre.y))
+        if allowed.contains(trial):
+            best, low = trial, middle
+        else:
+            high = middle
+    if best is None or best.area < _FIGURE_KEEPS_SHARE * clipped.area:
+        return clipped
+    return best
+
 
 def _without_clip_waste(form: MatrixForm, low: float, high: float,
                         parts: list[Polygon]) -> list[Polygon]:
@@ -323,6 +362,21 @@ def _band_parts(
     built = [item for item in built if not item.is_empty and item.area > 0.0]
     if not built:
         return []
+    if allowed_at is not None:
+        # Piece by piece before the union: a part that the envelope only
+        # grazes keeps its own figure, shrunk a little, instead of wearing the
+        # parcel's chamfer. Every mass on the board read as an octagonal lump
+        # because this cut applied to the whole; the intersection distributes
+        # over the union, so cutting the pieces first changes nothing where
+        # the figure is not kept.
+        allowed_now = allowed_at((low + high) / 2.0)
+        if allowed_now is None or allowed_now.is_empty:
+            return []
+        built = [_own_figure(item, item.intersection(allowed_now), allowed_now)
+                 for item in built]
+        built = [item for item in built if not item.is_empty and item.area > 0.0]
+        if not built:
+            return []
     shape = unary_union(built)
     if allowed_at is not None:
         # The legal line cuts the building; it does not shrink it. A volume that
@@ -471,7 +525,7 @@ def compile_matrix_form(
                                      else (lo + hi) / 2.0)
                 if allowed is None or allowed.is_empty:
                     return False
-                plan = plan.intersection(allowed)
+                plan = _own_figure(plan, plan.intersection(allowed), allowed)
             cutters = [
                 _plan_between(cutter, lo, hi)
                 for cutter in form.subtractive()

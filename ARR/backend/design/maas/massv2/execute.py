@@ -1015,6 +1015,21 @@ def _slide_onto(line, picked, standing_all, *, far: bool):
     return moved
 
 
+def delivered(form: MatrixForm, *, axis: tuple[float, float] | None = None,
+              storey_m: float = 0.0) -> MatrixForm:
+    """The mass about to ship: the sentence's lines, then the composition's.
+
+    Every place that compiles a delivered mass goes through here - the run,
+    the sequence sheet, the board's rebuild - so a seat is drawn as it was
+    judged. `realign` puts back the lines the sentence named; `regulated`
+    then snaps the near-alignments nobody named, which is what separates a
+    composition from parts that happen to be close.
+    """
+
+    from .regulate import regulated
+    return regulated(realign(form), axis=axis, storey_m=storey_m)
+
+
 def realign(form: MatrixForm) -> MatrixForm:
     """Put the sentence's alignments back on the mass that is about to ship.
 

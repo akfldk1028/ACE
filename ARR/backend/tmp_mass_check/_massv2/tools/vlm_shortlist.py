@@ -510,6 +510,26 @@ def score(run: str, paths: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    if "--verify" in sys.argv:
+        # One juror file against the round's key: the same reading --score
+        # does, so a file the scorer would refuse is refused at the jury
+        # step, where the juror can be run again, instead of at the end of
+        # the cycle. judge.sh counted `^TILE` lines and passed files whose
+        # scores were not bound to their tiles.
+        i = sys.argv.index("--verify")
+        out = ROOT / "runs" / f"vlm-{sys.argv[1]}"
+        key_tiles = {r["tile"] for r in json.loads((out / "key.json").read_text(encoding="utf-8"))}
+        try:
+            verdict = read_verdict(Path(sys.argv[i + 1]), key_tiles)
+        except VerdictError as exc:
+            print(f"REFUSED: {exc}")
+            sys.exit(1)
+        missing = sorted(key_tiles - set(verdict))
+        if missing:
+            print(f"REFUSED: no score for {', '.join(missing)}")
+            sys.exit(1)
+        print(f"ok: {len(verdict)} tiles bound to scores")
+        sys.exit(0)
     if "--score" in sys.argv:
         i = sys.argv.index("--score")
         sys.exit(score(sys.argv[1], sys.argv[i + 1:]))

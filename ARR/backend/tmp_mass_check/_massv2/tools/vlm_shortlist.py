@@ -139,6 +139,62 @@ def rebuild_seat(name: str, book: dict, site, buildable, axis, base):
                                      storey_m=storey)
 
 
+def shape_id(source) -> str:
+    """The identity of what the renderer draws, as a short hash.
+
+    A score belongs to a picture. When the engine changes, a seat's picture
+    can change while its name and its ledger score do not, and an anchor
+    whose picture changed is not an anchor: three anchors carried deltas
+    spread 1.32 apart because the top seat had been redrawn under a
+    regulating snap, the ruler refused to move, and a whole round was
+    recorded raw - unchanged pictures fell 0.4 to 1.0 with no contest.
+
+    Geometry, not pixels: the tile label and caption are outside it, and so
+    is the renderer's own code. Every field the renderer reads is inside.
+    """
+
+    import hashlib
+    rows = []
+    for v in source.volumes:
+        fp = v.footprint
+        ring = () if fp is None or fp.is_empty else tuple(
+            (round(x, 3), round(y, 3)) for x, y in fp.exterior.coords)
+        rows.append((
+            ring, round(float(v.bottom_fraction), 4), round(float(v.top_fraction), 4),
+            getattr(v, "role", ""), getattr(v, "verb", ""),
+            round(float(getattr(v, "top_drop", 0.0) or 0.0), 4),
+            getattr(v, "drop_toward", None), getattr(v, "ridge_along", None),
+            getattr(v, "top_profile", None), getattr(v, "profile_across", None),
+            getattr(v, "profile_span", None), bool(getattr(v, "top_walkable", False)),
+            getattr(v, "warp", None),
+        ))
+    meta = source.metadata or {}
+    rows.sort(key=repr)
+    text = repr((rows, round(float(meta.get("authored_height_m") or 0.0), 3),
+                 round(float(meta.get("datum_m") or 0.0), 3),
+                 tuple(sorted(meta.get("structural_bands") or ()))))
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()[:16]
+
+
+def seat_context(site=None):
+    """Everything a seat needs to be rebuilt: (book, site, buildable, axis, base)."""
+
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from band_probe import corpus as _corpus  # noqa: E402
+    from finalists import PNU as _PNU, BUILDING_TYPE  # noqa: E402
+    from design.maas.massv2.legal import load_legal_site  # noqa: E402
+    from design.maas.massv2.siting import open_side_direction  # noqa: E402
+    book = _corpus()
+    if site is None:
+        site = load_legal_site(_PNU, building_type=BUILDING_TYPE)
+    buildable = site.plan_at(0.0)
+    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    base = site.floor_height_m * max(
+        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
+    return book, site, buildable, axis, base
+
+
 def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     """Seat up to three current board entries among the tiles, anonymously.
 
@@ -162,20 +218,40 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     from design.maas.massv2.siting import open_side_direction  # noqa: E402
     seats = [row for row in json.loads(board_path.read_text(encoding="utf-8"))
              if row["label"].startswith("O")]
-    picks = [seats[0], seats[len(seats) // 2], seats[-1]] if len(seats) >= 3 else seats
-    book = _corpus()
-    if site is None:
-        site = load_legal_site(_PNU, building_type=BUILDING_TYPE)
-    buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
-    base = site.floor_height_m * max(
-        1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
+    # Top, middle and bottom of the board first, so the anchors span the
+    # scale; then the rest, for when one of those cannot serve. Three
+    # anchors is the ride; fewer is a weaker ruler, and it says so.
+    order = []
+    if seats:
+        first = list(dict.fromkeys([0, len(seats) // 2, len(seats) - 1]))
+        order = [seats[i] for i in first]
+        order += [row for i, row in enumerate(seats) if i not in first]
+    book, site, buildable, axis, base = seat_context(site)
     index = len(key_rows)
     added = 0
-    for row in picks:
+    # A contestant cannot be its own ruler: the round's own seats are not
+    # anchors for that round (the vault arcade rode as tile t12 and stood
+    # as contest tile t01 in one stage), and neither is any seat whose
+    # score came from the round being re-judged.
+    contestants = {str(r.get("name")) for r in key_rows}
+    for row in order:
+        if added >= 3:
+            break
+        if row["name"] in contestants or str(row.get("round") or "") == out.name:
+            continue
         source, caption = rebuild_seat(row["name"], book, site, buildable, axis, base)
         if source is None:
             print(f"   WARNING: anchor {row['name']} could not be rebuilt - riding without it")
+            continue
+        # A score belongs to a picture. A seat whose current drawing is not
+        # the one its score was given to cannot calibrate anything.
+        known = row.get("shape_id")
+        current = shape_id(source)
+        if not known:
+            print(f"   anchor {row['name'][:48]}: no recorded picture identity - not riding it")
+            continue
+        if known != current:
+            print(f"   anchor {row['name'][:48]}: picture changed since it was scored - not riding it")
             continue
         index += 1
         tile = f"t{index:02d}"
@@ -183,8 +259,11 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
             [(tile, source, caption)],
             out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 820), style="massing")
-        key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"]})
+        key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"],
+                         "shape_id": current})
         added += 1
+    if added < 3:
+        print(f"   WARNING: only {added} anchor(s) rode - the session ruler is weaker")
     return added
 
 
@@ -239,11 +318,20 @@ def stage(run: str, count: int) -> int:
     # cut is a function of the session's mood; the anchors' known ledger
     # scores let --score convert every raw mean back onto the board's own
     # scale. v2 had this discipline and v3 had silently dropped it.
+    key_rows = json.loads((out / "key.json").read_text(encoding="utf-8"))
+    # Every contest tile records the identity of the picture it was judged
+    # as, so it can serve as an anchor later only while that picture holds.
+    book, site, buildable, axis, base = seat_context()
+    for row in key_rows:
+        if row.get("anchor") is not None or row.get("shape_id"):
+            continue
+        source, _caption = rebuild_seat(row["name"], book, site, buildable, axis, base)
+        if source is not None:
+            row["shape_id"] = shape_id(source)
     if track != "korea":
-        key_rows = json.loads((out / "key.json").read_text(encoding="utf-8"))
-        ride_anchors(out, key_rows)
-        (out / "key.json").write_text(
-            json.dumps(key_rows, ensure_ascii=False, indent=1), encoding="utf-8")
+        ride_anchors(out, key_rows, site=site)
+    (out / "key.json").write_text(
+        json.dumps(key_rows, ensure_ascii=False, indent=1), encoding="utf-8")
     # The argument under the outcome, for every contest tile that has one.
     for row in json.loads((out / "key.json").read_text(encoding="utf-8")):
         if row.get("anchor") is not None:
@@ -390,6 +478,7 @@ def score(run: str, paths: list[str]) -> int:
         "correction": correction,
         **({"anchor_spread": round(spread, 2)} if spread > 1.0 else {}),
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
+        **({"shape_id": key[t]["shape_id"]} if key[t].get("shape_id") else {}),
         # Anchors calibrate the session; they are not contestants. Without
         # this flag the curator re-recorded each anchor's ride-corrected
         # score as its current score, and the ruler measured itself: anchor

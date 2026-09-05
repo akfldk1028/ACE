@@ -320,7 +320,7 @@ def main() -> int:
 
     from band_probe import corpus  # noqa: E402,F401  (django setup side effect)
     from finalists import PNU, BUILDING_TYPE  # noqa: E402
-    from vlm_shortlist import certified_caption, ride_anchors  # noqa: E402
+    from vlm_shortlist import certified_caption, ride_anchors, shape_id  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
 
@@ -366,7 +366,8 @@ def main() -> int:
                            gross_m2=entry["floor_area_m2"] or None))],
                       out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
                       columns=1, tile=(900, 820), style="massing")
-        key_rows.append({"tile": tile, "name": name, "height_m": entry["height_m"]})
+        key_rows.append({"tile": tile, "name": name, "height_m": entry["height_m"],
+                         "shape_id": shape_id(source)})
         entries[name] = entry
     # The registry: how the curator keys a book mass and how the baker
     # rebuilds it once seated. Written per stage, read as a whole.

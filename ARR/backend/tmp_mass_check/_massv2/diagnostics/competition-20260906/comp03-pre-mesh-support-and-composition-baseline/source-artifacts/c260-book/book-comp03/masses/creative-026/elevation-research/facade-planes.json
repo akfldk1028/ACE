@@ -1,0 +1,79 @@
+{
+  "facade_planes": [
+    {
+      "extent_m": [
+        41.743488,
+        9.9
+      ],
+      "normal": [
+        0,
+        -1,
+        0
+      ],
+      "origin": [
+        -20.871744,
+        -8.989366,
+        -0.0
+      ],
+      "view": "front"
+    },
+    {
+      "extent_m": [
+        17.978734000000003,
+        9.9
+      ],
+      "normal": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        20.871744,
+        -8.989366,
+        -0.0
+      ],
+      "view": "right"
+    },
+    {
+      "extent_m": [
+        41.743488,
+        9.9
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "origin": [
+        20.871744,
+        8.989368,
+        -0.0
+      ],
+      "view": "back"
+    },
+    {
+      "extent_m": [
+        17.978734000000003,
+        9.9
+      ],
+      "normal": [
+        -1,
+        0,
+        0
+      ],
+      "origin": [
+        -20.871744,
+        8.989368,
+        -0.0
+      ],
+      "view": "left"
+    }
+  ],
+  "identity": {
+    "candidate_id": "creative-026",
+    "geometry_hash": "e08aedadcc06cc4c9855cd94901e804cdc6f1aa8777cf93c3afa850b67a7ee9a",
+    "pnu": "4115011300106840001",
+    "program_hash": "69a24ba232714631cc69c4873013e46a2763a5f37e00015c71c7c5d35b33a110",
+    "run_id": "book-comp03"
+  }
+}

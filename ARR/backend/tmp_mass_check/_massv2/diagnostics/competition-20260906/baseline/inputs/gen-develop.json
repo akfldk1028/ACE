@@ -1,0 +1,29 @@
+{
+ "schemes": [
+  {
+   "name": "loop_butterfly_open__d07_bar+",
+   "primary_language": "open_figure",
+   "secondary_language": "a four-storey loop ring whose every bar carries a butterfly roof draining toward the court - a basin of roofs over a garden of rain",
+   "formal_principle": "The court is the ring's centre but a flat ring drains rain away from it; giving every bar a butterfly that drains toward the court makes the court a rain garden that the building actively feeds - the building is organised around its own hydrological logic, the butterfly valleys as gutters pointing inward.",
+   "dominant_gesture": "a court ring of butterfly roofs draining to the court",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.4,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.265,
+     "height": 0.65,
+     "storeys": 4,
+     "why": "Input: a four-storey ring tall enough that the butterfly's valley is visible above the bar's eaves; height 0.65 declares mid-tall. Bar 0.23 gives each arm enough depth for a readable butterfly across its short dimension. Limit: four storeys keep the ring civic-scaled; bar 0.23 avoids making the arms too deep for the butterfly to register."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.55,
+     "at": 0.3,
+     "along": "cross",
+     "why": "Input: the butterfly valley runs along each bar's cross axis (parallel to the court edge) so the valley is the deepest point closest to the court; at 0.3 biases the valley toward the court face so the deep wing is over the court and the shallow wing faces outward. Limit: pitch 0.55 on bar depth 0.23 reads cleanly within the cap; along cross runs the valley perpendicular to each bar's own length."
+    }
+   ]
+  }
+ ]
+}

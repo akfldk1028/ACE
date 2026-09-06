@@ -1,0 +1,12 @@
+{
+  "status": "pending",
+  "exit_code": 75,
+  "round": "comp01",
+  "step": 12,
+  "kind": "development-incomplete",
+  "agent_mode": "external",
+  "resume": "rerun the identical cycle.sh command",
+  "parent": "sangok_open_court_threshold^centred",
+  "reason": "no distinct legal child was delivered; no pairwise verdict possible",
+  "artifacts": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp01"
+}

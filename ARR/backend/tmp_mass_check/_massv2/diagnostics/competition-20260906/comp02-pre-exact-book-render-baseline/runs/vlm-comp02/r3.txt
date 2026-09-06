@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 2 | A small box nested over a broad plinth is legible but offers little distinctive civic identity.
+FEASIBILITY 5 | The grounded lower volume and compact upper block suggest straightforward spans and conventional construction.
+SITE 3 | The lower perimeter acknowledges the parcel geometry, while the remaining outdoor space reads mostly as a margin.
+EDITABILITY 5 | Both volumes can accommodate regular floors, cores and facade modules without losing their basic relationship.
+WEIGHTED 3.55
+
+TILE t02
+CONCEPT 3 | The rising roof profile and diagonal division establish an idea, although the heavy base weakens its clarity.
+FEASIBILITY 4 | The continuous supporting mass makes the shaped roof credible, with additional detailing needed at its curved edges and junctions.
+SITE 3 | The footprint follows the parcel, but the division does not clearly organize an entrance or a useful public outdoor room.
+EDITABILITY 4 | Regular occupied floors can fit beneath the expressive roof, provided its profile and separating seam remain legible.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | A clear central court framed by rising and falling roof bands produces the strongest spatial identity in the set.
+FEASIBILITY 4 | Grounded perimeter wings provide plausible support, with the intersecting roof slopes requiring careful drainage and junction detailing.
+SITE 4 | The shaped perimeter addresses the parcel and the central void provides a defined communal outdoor space, though its street connection remains unclear.
+EDITABILITY 4 | The courtyard and perimeter wings can survive regular floors and cores, while retaining the roof articulation will require coordination.
+WEIGHTED 4.00
+
+RANKING: t03, t01, t02
+VERDICT: Advance t03 for its coherent courtyard organization and memorable roof silhouette, subject to clarifying public access and roof junctions. t01 is the most straightforward to build and develop, while t02 needs its roof gesture and division to establish a clearer civic purpose.

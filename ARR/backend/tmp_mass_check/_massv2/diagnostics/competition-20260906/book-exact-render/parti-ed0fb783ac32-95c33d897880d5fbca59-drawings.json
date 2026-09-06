@@ -1,0 +1,18 @@
+{
+  "name": "book:book-comp02:morph-oblique-low:creative-049",
+  "shape_id": "95c33d897880d5fbca59",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.981483395444141
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1099.2114111191675,
+    1073.860842803274
+  ],
+  "section_area_m2": 757.3879869478378,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "df0f883bb1adc41ba568b41bb9477f518a30f28132f7f036f57b6cfe0faa965b"
+}

@@ -1,0 +1,79 @@
+[
+ {
+  "tile": "t07",
+  "score": 4.45,
+  "corrected": 4.45,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_open_court_threshold^centred",
+  "coverage_pct": 31.7,
+  "shape_id": "86ee19dddb637aab6202",
+  "certificate_id": "88e9ae6161069039a14e"
+ },
+ {
+  "tile": "t02",
+  "score": 4.08,
+  "corrected": 4.08,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_saddle_garden_room^centred",
+  "coverage_pct": 42.7,
+  "shape_id": "4de0ff702cb5a6225c03",
+  "certificate_id": "b50de2f60be0d002d301"
+ },
+ {
+  "tile": "t03",
+  "score": 3.87,
+  "corrected": 3.87,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "loop_butterfly_open__d07_bar+^centred",
+  "coverage_pct": 33.3,
+  "shape_id": "3485ae42b715f31e4eae",
+  "certificate_id": "bbc277dbf83a8f200916"
+ },
+ {
+  "tile": "t06",
+  "score": 3.83,
+  "corrected": 3.83,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_terrace_lantern^centred",
+  "coverage_pct": 59.9,
+  "shape_id": "48932e0db8d269503702",
+  "certificate_id": "ee57800228fc5e2552d0"
+ },
+ {
+  "tile": "t04",
+  "score": 3.82,
+  "corrected": 3.82,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_vaulted_civic_street~held_ground^off_open",
+  "coverage_pct": 30.5,
+  "shape_id": "403759564808447c0d4d",
+  "certificate_id": "362fb07a9ecb342a8d0c"
+ },
+ {
+  "tile": "t05",
+  "score": 3.72,
+  "corrected": 3.72,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_boundary_hinge~full_ground^to_open",
+  "coverage_pct": 45.0,
+  "shape_id": "d52f9b5562f8f236e8be",
+  "certificate_id": "450194cac76c45c46914"
+ },
+ {
+  "tile": "t01",
+  "score": 3.55,
+  "corrected": 3.55,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_forum_with_reading_room^centred",
+  "coverage_pct": 59.9,
+  "shape_id": "2296bf245bad0c8ebb53",
+  "certificate_id": "62f31bd51acb55d744da"
+ }
+]

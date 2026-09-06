@@ -1,0 +1,87 @@
+{
+  "old_sha256": "eacae368a6353dfe4d5388a18b68fa8839e5dde8982268563fb28d2343886034",
+  "new_sha256": "316e5bcd83ea335f9ca5486887cf894f7ca665bf644cbcdfc4fdf0ca6699cafe",
+  "cases": [
+    {
+      "kind": "scored",
+      "name": "sangok_c04_two_gardens~full_ground^cross_open",
+      "shape_id": "e0efd2fcf3269d302770",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "scored",
+      "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+      "shape_id": "8cea48dc1e0f41f8f3da",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "scored",
+      "name": "sangok_c04_three_houses^cross_open",
+      "shape_id": "c3e46aaebcffab294545",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "scored",
+      "name": "sangok_c04_hall_daily_street~full_ground^centred",
+      "shape_id": "57c2b01b0c870f71d8dc",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "child",
+      "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+      "shape_id": "64c94edfe13ebcdc018e",
+      "changed_pixels_35_215": [
+        985,
+        1383
+      ]
+    },
+    {
+      "kind": "child",
+      "name": "sangok_c04_develop_thickened_middle~full_ground^cross_open",
+      "shape_id": "9608f22ad3290ead8ae3",
+      "changed_pixels_35_215": [
+        7294,
+        7022
+      ]
+    },
+    {
+      "kind": "child",
+      "name": "sangok_c04_develop_rear_opening~full_ground^cross_open",
+      "shape_id": "7730c10a6f6377ee2a98",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "child",
+      "name": "sangok_c04_develop_entry_recess~full_ground^cross_open",
+      "shape_id": "0ba065ff709c7a5385b9",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "book",
+      "name": "book:book-comp04:morph-voided-low:creative-001",
+      "shape_id": "41392ec7e99f209299ff",
+      "changed_pixels_35_215": [
+        0,
+        0
+      ]
+    }
+  ]
+}

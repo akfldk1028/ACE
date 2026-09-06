@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "round": "comp04",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "feedback": {
+    "parent": "sangok_c04_two_gardens~full_ground^cross_open",
+    "champion": "sangok_c04_develop_perforated_base",
+    "source": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp04-authored\\champion.json",
+    "feedback_written": true
+  },
+  "board": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\board.html",
+  "sheet": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp04\\study.html"
+}

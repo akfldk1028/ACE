@@ -1,0 +1,76 @@
+{
+ "book_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c250-t3",
+ "entries": {
+  "book:neighborhood__01__program_neighborhood_active_bar__universal_0_20_3a48dcce9b__book_case_68_lift+extrude__search_v5": {
+   "trace": "neighborhood__01__program_neighborhood_active_bar__universal_0_20_3a48dcce9b__book_case_68_lift+extrude__search_v5",
+   "thesis": "book:case:68:lift+extrude",
+   "verbs": [
+    "lift",
+    "extrude"
+   ],
+   "height_m": 35.0,
+   "footprint_m2": 209.4,
+   "floor_area_m2": 1611.49,
+   "program": "neighborhood"
+  },
+  "book:neighborhood__02__program_neighborhood_active_bar__universal_0_8_b99c5ef711__book_case_64_overlap+expand__search_v5": {
+   "trace": "neighborhood__02__program_neighborhood_active_bar__universal_0_8_b99c5ef711__book_case_64_overlap+expand__search_v5",
+   "thesis": "book:case:64:overlap+expand",
+   "verbs": [
+    "overlap",
+    "expand"
+   ],
+   "height_m": 28.0,
+   "footprint_m2": 183.41,
+   "floor_area_m2": 1422.3,
+   "program": "neighborhood"
+  },
+  "book:neighborhood__03__program_neighborhood_stepback_corner__universal_2_18_fa2543dcbd__book_combination_11_inscribe+intersect__search_v5": {
+   "trace": "neighborhood__03__program_neighborhood_stepback_corner__universal_2_18_fa2543dcbd__book_combination_11_inscribe+intersect__search_v5",
+   "thesis": "book:combination:11:inscribe+intersect",
+   "verbs": [
+    "inscribe",
+    "intersect"
+   ],
+   "height_m": 17.5,
+   "footprint_m2": 499.94,
+   "floor_area_m2": 2130.01,
+   "program": "neighborhood"
+  },
+  "book:cultural__01__program_cultural_court_bridge__universal_0_0_f772e33305__diagnostic_anchor_prismatic__book_operative_skew__search_v5": {
+   "trace": "cultural__01__program_cultural_court_bridge__universal_0_0_f772e33305__diagnostic_anchor_prismatic__book_operative_skew__search_v5",
+   "thesis": "book:operative:skew",
+   "verbs": [
+    "skew"
+   ],
+   "height_m": 15.0,
+   "footprint_m2": 203.1,
+   "floor_area_m2": 1015.53,
+   "program": "cultural"
+  },
+  "book:cultural__02__program_cultural_split_gallery_ramp__universal_2_8_b99c5ef711__book_case_64_overlap+expand__search_v5": {
+   "trace": "cultural__02__program_cultural_split_gallery_ramp__universal_2_8_b99c5ef711__book_case_64_overlap+expand__search_v5",
+   "thesis": "book:case:64:overlap+expand",
+   "verbs": [
+    "overlap",
+    "expand"
+   ],
+   "height_m": 18.0,
+   "footprint_m2": 183.41,
+   "floor_area_m2": 1066.72,
+   "program": "cultural"
+  },
+  "book:cultural__03__program_cultural_court_bridge__universal_0_6_94e7aa1fb2__book_case_60_carve+offset__search_v5": {
+   "trace": "cultural__03__program_cultural_court_bridge__universal_0_6_94e7aa1fb2__book_case_60_carve+offset__search_v5",
+   "thesis": "book:case:60:carve+offset",
+   "verbs": [
+    "carve",
+    "offset"
+   ],
+   "height_m": 9.0,
+   "footprint_m2": 415.12,
+   "floor_area_m2": 1245.37,
+   "program": "cultural"
+  }
+ }
+}

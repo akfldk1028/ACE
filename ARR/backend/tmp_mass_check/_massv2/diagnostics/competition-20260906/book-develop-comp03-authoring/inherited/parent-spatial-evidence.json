@@ -1,0 +1,40 @@
+{
+  "authored_to_world_matrix4": [
+    [
+      -8.982996057550501,
+      -5.383164436691546,
+      0.0,
+      64.80823858321382
+    ],
+    [
+      5.15056183434393,
+      -9.388673792731167,
+      0.0,
+      34.447095016458164
+    ],
+    [
+      0.0,
+      0.0,
+      14.074347384999431,
+      1.9352227654374219
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "open_court_direction_world_xy": [
+    -0.8675174786594184,
+    0.49740669901038254
+  ],
+  "open_court_bearing_degrees_clockwise_from_north": 299.82857638841415,
+  "registered_road_outward_direction_world_xy": [
+    0.9846758322859253,
+    0.1743946825795459
+  ],
+  "opening_dot_road_direction": -0.7674784119346949,
+  "road_connection_verified": false,
+  "open_mouth_road_ray_hits": []
+}

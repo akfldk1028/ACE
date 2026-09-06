@@ -1,0 +1,4 @@
+PAIR p01: B - The ground-level openings give the enclosed court a clearer connection to the exterior while retaining the continuous roof and overall composition.
+PAIR p02: A - Its straight roof edges and consistent section produce a clearer, more coherent volume than B's small undulations, with similarly organized outdoor spaces.
+PAIR p03: B - The full-height slot visibly connects the inner court to the exterior and creates a legible approach while preserving the main courtyard arrangement.
+PAIR p04: A - The simple courtyard edges and uninterrupted wing ends form a more coherent composition than B's narrow stepped recess, which adds no clear spatial benefit in the cuts.

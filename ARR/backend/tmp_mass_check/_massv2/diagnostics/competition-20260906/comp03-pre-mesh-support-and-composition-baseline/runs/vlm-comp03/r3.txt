@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 3 | The vaulted hall is legible, but the accompanying blocks form a loose cluster without an equally clear overall figure.
+FEASIBILITY 4 | Grounded volumes and a supported vaulted roof are credible, with the hall span requiring a deliberate structural solution.
+SITE 3 | The separated buildings leave generous open ground, but its shape reads as leftover space more than a defined civic gathering place.
+EDITABILITY 4 | The block volumes can accommodate conventional floors and cores while the vaulted hall remains the principal spatial feature.
+WEIGHTED 3.45
+
+TILE t02
+CONCEPT 4 | A continuous enclosure around a large court gives the scheme a strong, memorable figure, although the roof folds compete for attention.
+FEASIBILITY 4 | The substantial supporting wings make the enclosure plausible; the changing roof geometry adds detailing demands without appearing structurally impossible.
+SITE 4 | The perimeter mass establishes a purposeful central outdoor room and responds to the parcel outline, although a public entry is not clearly expressed.
+EDITABILITY 4 | Floors and cores can develop within the courtyard wings while preserving the parti, provided the irregular roof remains a controlled upper-level condition.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 2 | A large rectangular bar beside a low tapered volume is readable but offers limited formal identity beyond the separation of two masses.
+FEASIBILITY 5 | Both masses appear directly supported and geometrically straightforward, with no visible transfer or major cantilever burden.
+SITE 3 | The lower volume follows the angled parcel edge, but the narrow separation and broad remaining ground lack a clearly established public-space hierarchy.
+EDITABILITY 5 | The dominant bar readily accepts regular floors, cores and a facade, and the two-volume relationship can survive substantial internal adjustment.
+WEIGHTED 3.55
+
+RANKING: t02, t03, t01
+VERDICT: Advance t02 for its legible courtyard enclosure and capacity to turn the centre's shared outdoor space into its organizing idea. Keep t03 as a practical reserve that needs a stronger civic identity; t01 needs a more deliberate relationship between its vaulted hall, auxiliary volumes and open ground.

@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 2 | A small rotated block on a broad plinth is legible, but the notch contributes little to a memorable overall figure.
+FEASIBILITY 5 | The compact stacked volumes have direct support and modest spans suitable for an ordinary civic construction budget.
+SITE 3 | The clipped base acknowledges the parcel geometry, while the remaining exterior space has no clear civic focus or arrival sequence.
+EDITABILITY 4 | Regular floors and cores can fit comfortably, although the small notch could disappear during practical development.
+WEIGHTED 3.35
+
+TILE t02
+CONCEPT 3 | The diagonal division and rising roof plane give the solid a recognizable gesture, though the mass still reads mainly as a large block.
+FEASIBILITY 4 | The continuous base offers credible support for the raised roof, with the diagonal roof junction requiring some additional structural coordination.
+SITE 3 | The perimeter follows the parcel and the diagonal cut establishes direction, but a public entrance or useful outdoor gathering space remains unclear.
+EDITABILITY 4 | The broad floorplate can accept programme and circulation while retaining the roof gesture if its diagonal separation remains expressed.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | A deep courtyard enclosed by a folded roof ring produces a clear spatial idea and a distinctive silhouette.
+FEASIBILITY 4 | Continuous perimeter walls provide a plausible load path, with the intersecting roof slopes adding manageable drainage and detailing demands.
+SITE 3 | The courtyard creates a meaningful open space within the parcel, but the tall closed perimeter leaves its connection to the exterior unresolved.
+EDITABILITY 4 | Programme and cores can occupy the courtyard wings without losing the central void, provided access and roof junctions are resolved carefully.
+WEIGHTED 3.80
+
+RANKING: t03, t02, t01
+VERDICT: t03 would advance for its legible courtyard parti and folded roof silhouette; its next stage should establish a clear public route into the court. t02 is a reserve candidate whose roof gesture needs a stronger spatial consequence, while t01 remains buildable but formally less distinctive.

@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "round": "comp03",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "feedback": {
+    "parent": "book:book-comp03:morph-bridge-low:creative-018",
+    "champion": "book:book-develop-comp03:exact-authored-development:creative-001",
+    "source": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp03-book-exact\\champion.json",
+    "feedback_written": true
+  },
+  "board": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\board.html",
+  "sheet": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp03\\study.html"
+}

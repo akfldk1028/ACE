@@ -1,0 +1,698 @@
+{
+ "book_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book05",
+ "entries": {
+  "book:book:bent:creative-001": {
+   "trace": "book:bent:creative-001",
+   "thesis": "book principle",
+   "verbs": [
+    "inflate"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 69.82,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-002": {
+   "trace": "book:carved_void:creative-002",
+   "thesis": "book principle",
+   "verbs": [
+    "branch"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 67.1,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-003": {
+   "trace": "book:courtyard:creative-003",
+   "thesis": "book principle",
+   "verbs": [
+    "merge"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 59.45,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-004": {
+   "trace": "book:cross:creative-004",
+   "thesis": "book principle",
+   "verbs": [
+    "offset"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 63.88,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-005": {
+   "trace": "book:grid:creative-005",
+   "thesis": "book principle",
+   "verbs": [
+    "bend"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 77.83,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-006": {
+   "trace": "book:inflated:creative-006",
+   "thesis": "book principle",
+   "verbs": [
+    "nest"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 0.03,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-007": {
+   "trace": "book:notch:creative-007",
+   "thesis": "book principle",
+   "verbs": [
+    "skew"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 59.75,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-008": {
+   "trace": "book:radial:creative-008",
+   "thesis": "book principle",
+   "verbs": [
+    "split"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 51.56,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-009": {
+   "trace": "book:split_wing:creative-009",
+   "thesis": "book principle",
+   "verbs": [
+    "twist"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 78.81,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-010": {
+   "trace": "book:stepped:creative-010",
+   "thesis": "book principle",
+   "verbs": [
+    "intersect"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 66.46,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-011": {
+   "trace": "book:triangular_shard:creative-011",
+   "thesis": "book principle",
+   "verbs": [
+    "interlock"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 59.21,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-012": {
+   "trace": "book:oblique_crystal:creative-012",
+   "thesis": "book principle",
+   "verbs": [
+    "lift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 49.21,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-013": {
+   "trace": "book:thin_disc_cluster:creative-013",
+   "thesis": "book principle",
+   "verbs": [
+    "lodge"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 20.76,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-014": {
+   "trace": "book:interlocking_tilted_discs:creative-014",
+   "thesis": "book principle",
+   "verbs": [
+    "carve"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 6.33,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-015": {
+   "trace": "book:long_span_bridge:creative-015",
+   "thesis": "book principle",
+   "verbs": [
+    "overlap"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 29.85,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-016": {
+   "trace": "book:bent:creative-016",
+   "thesis": "book principle",
+   "verbs": [
+    "rotate"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 72.8,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-017": {
+   "trace": "book:carved_void:creative-017",
+   "thesis": "book principle",
+   "verbs": [
+    "inscribe",
+    "inscribe"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 46.53,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-018": {
+   "trace": "book:courtyard:creative-018",
+   "thesis": "book principle",
+   "verbs": [
+    "shift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 44.31,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-019": {
+   "trace": "book:cross:creative-019",
+   "thesis": "book principle",
+   "verbs": [
+    "fracture"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 100.3,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-020": {
+   "trace": "book:grid:creative-020",
+   "thesis": "book principle",
+   "verbs": [
+    "compress"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 107.41,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-021": {
+   "trace": "book:inflated:creative-021",
+   "thesis": "book principle",
+   "verbs": [
+    "notch"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 39.89,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-022": {
+   "trace": "book:notch:creative-022",
+   "thesis": "book principle",
+   "verbs": [
+    "grade"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 45.81,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-023": {
+   "trace": "book:radial:creative-023",
+   "thesis": "book principle",
+   "verbs": [
+    "shear"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 106.91,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-024": {
+   "trace": "book:split_wing:creative-024",
+   "thesis": "book principle",
+   "verbs": [
+    "pinch"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 92.41,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-025": {
+   "trace": "book:stepped:creative-025",
+   "thesis": "book principle",
+   "verbs": [
+    "embed"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 72.74,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-026": {
+   "trace": "book:triangular_shard:creative-026",
+   "thesis": "book principle",
+   "verbs": [
+    "taper"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 45.33,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-027": {
+   "trace": "book:oblique_crystal:creative-027",
+   "thesis": "book principle",
+   "verbs": [
+    "inscribe"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 111.85,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-028": {
+   "trace": "book:thin_disc_cluster:creative-028",
+   "thesis": "book principle",
+   "verbs": [
+    "extract"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 22.74,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-029": {
+   "trace": "book:interlocking_tilted_discs:creative-029",
+   "thesis": "book principle",
+   "verbs": [
+    "branch",
+    "branch"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 7.47,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-030": {
+   "trace": "book:long_span_bridge:creative-030",
+   "thesis": "book principle",
+   "verbs": [
+    "puncture"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 39.04,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-031": {
+   "trace": "book:bent:creative-031",
+   "thesis": "book principle",
+   "verbs": [
+    "intersect",
+    "intersect"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 53.48,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-032": {
+   "trace": "book:carved_void:creative-032",
+   "thesis": "book principle",
+   "verbs": [
+    "shift",
+    "shift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 49.86,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-033": {
+   "trace": "book:courtyard:creative-033",
+   "thesis": "book principle",
+   "verbs": [
+    "split",
+    "split"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 68.36,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-034": {
+   "trace": "book:cross:creative-034",
+   "thesis": "book principle",
+   "verbs": [
+    "embed",
+    "embed"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 73.16,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-035": {
+   "trace": "book:grid:creative-035",
+   "thesis": "book principle",
+   "verbs": [
+    "taper",
+    "taper"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 61.26,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-036": {
+   "trace": "book:inflated:creative-036",
+   "thesis": "book principle",
+   "verbs": [
+    "bend",
+    "bend"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 46.16,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-037": {
+   "trace": "book:notch:creative-037",
+   "thesis": "book principle",
+   "verbs": [
+    "notch",
+    "notch"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 79.77,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-038": {
+   "trace": "book:radial:creative-038",
+   "thesis": "book principle",
+   "verbs": [
+    "expand",
+    "expand"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 55.54,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-039": {
+   "trace": "book:split_wing:creative-039",
+   "thesis": "book principle",
+   "verbs": [
+    "branch",
+    "expand"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 69.24,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-040": {
+   "trace": "book:stepped:creative-040",
+   "thesis": "book principle",
+   "verbs": [
+    "inscribe",
+    "intersect"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 79.93,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-041": {
+   "trace": "book:triangular_shard:creative-041",
+   "thesis": "book principle",
+   "verbs": [
+    "intersect",
+    "split"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 76.27,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-042": {
+   "trace": "book:oblique_crystal:creative-042",
+   "thesis": "book principle",
+   "verbs": [
+    "split",
+    "embed"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 94.05,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-043": {
+   "trace": "book:thin_disc_cluster:creative-043",
+   "thesis": "book principle",
+   "verbs": [
+    "embed",
+    "taper"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 12.8,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-044": {
+   "trace": "book:interlocking_tilted_discs:creative-044",
+   "thesis": "book principle",
+   "verbs": [
+    "bend",
+    "branch"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 6.08,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-045": {
+   "trace": "book:long_span_bridge:creative-045",
+   "thesis": "book principle",
+   "verbs": [
+    "taper",
+    "bend"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 66.26,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-046": {
+   "trace": "book:bent:creative-046",
+   "thesis": "book principle",
+   "verbs": [
+    "shift",
+    "notch"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 46.7,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-047": {
+   "trace": "book:carved_void:creative-047",
+   "thesis": "book principle",
+   "verbs": [
+    "expand",
+    "shift"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 99.7,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-048": {
+   "trace": "book:courtyard:creative-048",
+   "thesis": "book principle",
+   "verbs": [
+    "notch",
+    "twist"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 84.88,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-049": {
+   "trace": "book:cross:creative-049",
+   "thesis": "book principle",
+   "verbs": [
+    "skew",
+    "reflect",
+    "pack"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 55.01,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-050": {
+   "trace": "book:grid:creative-050",
+   "thesis": "book principle",
+   "verbs": [
+    "expand",
+    "reflect"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 37.69,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-051": {
+   "trace": "book:inflated:creative-051",
+   "thesis": "book principle",
+   "verbs": [
+    "branch",
+    "pack",
+    "stack"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 89.55,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-052": {
+   "trace": "book:notch:creative-052",
+   "thesis": "book principle",
+   "verbs": [
+    "inflate",
+    "pack"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 83.41,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-053": {
+   "trace": "book:radial:creative-053",
+   "thesis": "book principle",
+   "verbs": [
+    "bend",
+    "stack"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 58.89,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-054": {
+   "trace": "book:split_wing:creative-054",
+   "thesis": "book principle",
+   "verbs": [
+    "extrude"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 39.85,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-055": {
+   "trace": "book:stepped:creative-055",
+   "thesis": "book principle",
+   "verbs": [
+    "taper",
+    "array"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 139.23,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-056": {
+   "trace": "book:triangular_shard:creative-056",
+   "thesis": "book principle",
+   "verbs": [
+    "rotate",
+    "array",
+    "stack"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 81.75,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-057": {
+   "trace": "book:oblique_crystal:creative-057",
+   "thesis": "book principle",
+   "verbs": [
+    "split",
+    "join"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 43.87,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-058": {
+   "trace": "book:thin_disc_cluster:creative-058",
+   "thesis": "book principle",
+   "verbs": [
+    "pinch",
+    "join",
+    "array"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 7.03,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-059": {
+   "trace": "book:interlocking_tilted_discs:creative-059",
+   "thesis": "book principle",
+   "verbs": [
+    "expand"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 11.33,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-060": {
+   "trace": "book:long_span_bridge:creative-060",
+   "thesis": "book principle",
+   "verbs": [
+    "expand"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 66.06,
+   "floor_area_m2": 0.0,
+   "program": null
+  }
+ }
+}

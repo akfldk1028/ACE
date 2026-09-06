@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 3 | The vaulted main volume gives the cluster a recognizable civic hall, but the detached block and small annex do not establish an equally clear shared composition.
+FEASIBILITY 4 | Grounded volumes and a continuous vaulted roof suggest practical construction, with the hall roof requiring a deliberate but credible spanning system.
+SITE 3 | The dispersed footprint leaves useful outdoor space and varies the scale along the parcel, although the gaps do not clearly define an arrival space or courtyard.
+EDITABILITY 4 | The distinct volumes can accommodate separate uses and conventional floors, while retaining the main hall's roof silhouette through development.
+WEIGHTED 3.45
+
+TILE t02
+CONCEPT 4 | A continuous ring around a large courtyard is immediately legible, and its alternating roof profiles provide a memorable silhouette despite some competing corner gestures.
+FEASIBILITY 4 | The enclosing wings are visibly supported throughout; the changing roof slopes introduce junction and drainage work without suggesting implausible structure.
+SITE 3 | The courtyard creates a definite communal outdoor room and the clipped perimeter acknowledges the parcel, but the tall outer walls give the surrounding open space little spatial definition.
+EDITABILITY 4 | Repeated floors and cores can fit within the connected wings while preserving the courtyard parti, provided roof development keeps the changing upper profile coherent.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 2 | The contrast between a large plain bar and a low shaped strip is clear, but the roof manipulation remains subordinate and the overall image is not particularly memorable.
+FEASIBILITY 5 | The main bar and low annex both read as continuously grounded volumes, with no visible major transfer, cantilever, or unsupported element.
+SITE 3 | The low strip follows the angled edge and reduces the mass at that boundary, while the separation from the main block could form a passage but remains spatially unresolved.
+EDITABILITY 4 | The regular main volume readily accepts floors and cores, and the height contrast can survive development, although circulation must give the narrow secondary strip a convincing role.
+WEIGHTED 3.35
+
+RANKING: t02, t01, t03
+VERDICT: Advance t02 for its clear communal courtyard and strongest overall formal identity, with attention to roof junctions and the relationship between the enclosure and the outer site. Keep t01 as a reserve if its loose cluster can be organized around a more purposeful shared outdoor space. T03 is straightforward to construct but needs a stronger architectural proposition to advance.

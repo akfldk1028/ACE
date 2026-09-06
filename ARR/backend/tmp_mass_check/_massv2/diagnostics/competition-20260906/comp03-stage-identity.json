@@ -1,0 +1,573 @@
+{
+  "round": "comp03",
+  "basis": "actual staged certificates, raster files, generation records, final sequence compiler matrices; no geometry or score mutation",
+  "site_axis": [
+    0.9846758322859253,
+    0.1743946825795459
+  ],
+  "rows": [
+    {
+      "track": "vlm-comp03",
+      "tile": "t01",
+      "name": "sangok_c03_three_houses_common_ground~full_ground^centred",
+      "shape_id": "b8d88d8ec599faea1d32",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "generation_gfa": true,
+        "generation_height": true,
+        "final_sequence_shape": true,
+        "final_sequence_certificate": true,
+        "actual_sequence_png": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-comp03",
+      "tile": "t02",
+      "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+      "shape_id": "8cea48dc1e0f41f8f3da",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "generation_gfa": true,
+        "generation_height": true,
+        "final_sequence_shape": true,
+        "final_sequence_certificate": true,
+        "actual_sequence_png": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-comp03",
+      "tile": "t03",
+      "name": "sangok_c03_hall_and_daily_street~worked_ground^to_open",
+      "shape_id": "9f49a54d14665783d24e",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "generation_gfa": true,
+        "generation_height": true,
+        "final_sequence_shape": true,
+        "final_sequence_certificate": true,
+        "actual_sequence_png": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t01",
+      "name": "book:book-comp03:morph-voided-low:creative-001",
+      "shape_id": "41392ec7e99f209299ff",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t02",
+      "name": "book:book-comp03:morph-voided-low:creative-003",
+      "shape_id": "acfbb1110e960215b24b",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t03",
+      "name": "book:book-comp03:morph-voided-mid:creative-005",
+      "shape_id": "ec12d646821d301984e4",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t04",
+      "name": "book:book-comp03:morph-voided-mid:creative-006",
+      "shape_id": "14ab2c416e71cce98255",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t05",
+      "name": "book:book-comp03:morph-compact-low:creative-007",
+      "shape_id": "64c05e010e8c48f68489",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t06",
+      "name": "book:book-comp03:morph-curved-mid:creative-011",
+      "shape_id": "b392af0bfa57edab52b0",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t07",
+      "name": "book:book-comp03:morph-compact-tall:creative-013",
+      "shape_id": "0f92a71f8b4126a4fe49",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t08",
+      "name": "book:book-comp03:morph-voided-low:creative-014",
+      "shape_id": "8e57ca78a2f185af80cc",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t09",
+      "name": "book:book-comp03:morph-bridge-low:creative-018",
+      "shape_id": "0acc8c4adc70e3c86cfb",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t10",
+      "name": "book:book-comp03:morph-compact-low:creative-019",
+      "shape_id": "3434da0b5109f592f69a",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t11",
+      "name": "book:book-comp03:morph-voided-low:creative-021",
+      "shape_id": "b3a7931c3b16b69479b5",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t12",
+      "name": "book:book-comp03:morph-voided-low:creative-022",
+      "shape_id": "bfcc958077c15d663264",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t13",
+      "name": "book:book-comp03:morph-voided-mid:creative-023",
+      "shape_id": "80e1b8f49fba8361751b",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t14",
+      "name": "book:book-comp03:morph-curved-mid:creative-025",
+      "shape_id": "77713afe12499ac4eaa1",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t15",
+      "name": "book:book-comp03:morph-voided-mid:creative-028",
+      "shape_id": "6be8230de312a4de01da",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t16",
+      "name": "book:book-comp03:morph-voided-tall:creative-030",
+      "shape_id": "f8df85c08b83d0871996",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t17",
+      "name": "book:book-comp03:morph-compact-low:creative-031",
+      "shape_id": "6475c5ca9a75cd820813",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t18",
+      "name": "book:book-comp03:morph-voided-mid:creative-033",
+      "shape_id": "1448b97a7aff3c3db1f9",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t19",
+      "name": "book:book-comp03:morph-curved-mid:creative-036",
+      "shape_id": "96c19ddb6b69ada79a18",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t20",
+      "name": "book:book-comp03:morph-compact-tall:creative-037",
+      "shape_id": "80164fc0d412bf6beed2",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t21",
+      "name": "book:book-comp03:morph-voided-low:creative-040",
+      "shape_id": "af77b82df68fff6ed141",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t22",
+      "name": "book:book-comp03:morph-curved-low:creative-042",
+      "shape_id": "074153e3257416c5b971",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t23",
+      "name": "book:book-comp03:morph-curved-low:creative-043",
+      "shape_id": "58575b507d01970dcac6",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t24",
+      "name": "book:book-comp03:morph-voided-low:creative-048",
+      "shape_id": "55a86ca97174921c5666",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    },
+    {
+      "track": "vlm-book-comp03",
+      "tile": "t25",
+      "name": "book:book-comp03:morph-oblique-low:creative-049",
+      "shape_id": "95c33d897880d5fbca59",
+      "checks": {
+        "certificate_shape": true,
+        "certificate_identity": true,
+        "actual_tile_hash": true,
+        "storey_limit": true,
+        "area_limits": true,
+        "actual_floor_sum": true,
+        "floor_mesh_shape": true,
+        "floor_comparisons": true,
+        "actual_projection": true,
+        "floor_count": true,
+        "actual_matrices_valid": true
+      },
+      "all_pass": true
+    }
+  ],
+  "pass_count": 28,
+  "count": 28,
+  "limitation": "This identity audit does not certify rooms, vehicle access or exact BOOK structural support."
+}

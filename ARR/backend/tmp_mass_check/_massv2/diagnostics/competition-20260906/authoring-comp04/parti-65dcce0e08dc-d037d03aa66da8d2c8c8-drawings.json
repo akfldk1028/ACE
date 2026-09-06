@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_three_houses",
+  "shape_id": "d037d03aa66da8d2c8c8",
+  "anonymous_image": false,
+  "image_footer": "sangok_c04_three_houses | d037d03aa66da8d2c8c8 | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    709.5913499240346,
+    709.5913499240346
+  ],
+  "section_area_m2": 154.89753293648977,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "65cea136ceda465d4f7e0071bb5d949288fee16600fd6c0668ecacbf5ab5156a"
+}

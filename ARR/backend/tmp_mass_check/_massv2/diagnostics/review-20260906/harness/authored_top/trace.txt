@@ -1,0 +1,16 @@
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-author/scripts/brief.sh
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-validate/scripts/validate.sh gen-review.json
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-run/scripts/run.sh gen-review.json review
+stubbed_rm -rf /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/backend/tmp_mass_check/c260-book/book-review
+python manage.py generate_maas_creative_100 --count 40 --pnu review_fixture --capacity-ceiling-m2 1 --output-root tmp_mass_check/c260-book --run-id book-review --author-mode recipe_fixture
+python tools/book_import.py /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/backend/tmp_mass_check/c260-book/book-review book-review
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-judge/scripts/stage.sh review 14
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-judge/scripts/judge.sh review
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-judge/scripts/judge.sh book-review
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-judge/scripts/score.sh review
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-judge/scripts/score.sh book-review
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-curate/scripts/curate.sh
+bash /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/skills/mass-board/scripts/bake.sh
+python tools/study_sheet.py review study-review
+python -c import json,sys; k=json.load(open(sys.argv[1],encoding='utf-8')); print(next((r['name'] for r in k if str(r['label']).startswith('O')), '')) /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/workspace/runs/board/board-key.json
+python tools/develop.py review spine_vault_arcade~dispersed_ground^to_open 16

@@ -1,0 +1,1940 @@
+{
+  "name": "sangok_c04_civic_court",
+  "shape_id": "b78b8312c25d1095fd33",
+  "fit": {
+    "schema_version": "arr.maas.massv2_legal_fit.v1",
+    "ground_area_m2": 537.055,
+    "ground_capacity_m2": 1497.877,
+    "ground_take": 0.3585,
+    "gross_floor_area_m2": 1611.165,
+    "far_capacity_m2": 6241.962,
+    "far_utilization": 0.2581,
+    "passes": 0,
+    "plan_scale_applied": 1.0,
+    "volumes_pulled_in": 0,
+    "satisfied": true,
+    "storey_limit": {
+      "policy_id": "gosan-public1-molit-2026-334",
+      "max_storeys": 5,
+      "statutory_max_height_m": null,
+      "declared_storeys": 3.0,
+      "book_floor_count": null,
+      "candidate_storey_height_m": 3.6,
+      "occupied_height_above_datum_m": 10.8,
+      "conceptual_storey_proxy": 3,
+      "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+      "actual_design_floor_count_verified": false,
+      "satisfied": true,
+      "reasons": [],
+      "policy_evidence": {
+        "policy_id": "gosan-public1-molit-2026-334",
+        "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+        "max_storeys": 5,
+        "max_bcr_pct": 60.0,
+        "max_far_pct": 250.0,
+        "statutory_max_height_m": null,
+        "default_building_type": "업무시설",
+        "building_subtype": "공공업무시설",
+        "sources": [
+          {
+            "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+            "date": "2026-06-29",
+            "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+            "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+            "relevant_pdf_pages_1_based": [
+              6
+            ],
+            "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+            "bytes": 16093893,
+            "pdf_page_count": 6,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+          },
+          {
+            "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+            "date": "2022-06-29",
+            "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+            "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+            "relevant_pdf_pages_1_based": [
+              13,
+              22
+            ],
+            "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+            "bytes": 446211,
+            "pdf_page_count": 32,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+          },
+          {
+            "title": "의정부고산 9차 지구단위계획 시행지침",
+            "date": "2022-06-29",
+            "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+            "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+            "relevant_pdf_pages_1_based": [
+              47,
+              48,
+              49,
+              50,
+              56
+            ],
+            "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+            "bytes": 5813648,
+            "pdf_page_count": 79,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+          },
+          {
+            "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+            "date": "2026-07-28",
+            "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+            "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+            "relevant_pdf_pages_1_based": [
+              3,
+              7
+            ],
+            "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+            "bytes": 137824,
+            "pdf_page_count": 12,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+          }
+        ],
+        "unverified": [
+          "measured_terrain_datum",
+          "exact_building_line_geometry",
+          "detailed_floor_schedule",
+          "access_and_egress"
+        ],
+        "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+        "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+        "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+        "building_line_status": "official_plan_registered; survey_geometry_unverified",
+        "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+        "datum_measured": false,
+        "frontage_registration": {
+          "registration_id": "gosan-public1-decision15-frontages-20260906",
+          "evidence_grade": "official_plan_registered",
+          "survey_verified": false,
+          "permit_compliance_verified": false,
+          "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+          "source_pdf_page_1_based": 6,
+          "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+          "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+          "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+          "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+          "reference_parcel_ring_local_m": [
+            [
+              0.0,
+              32.85654268087819
+            ],
+            [
+              11.59371943201404,
+              39.50109809124842
+            ],
+            [
+              29.64010443945881,
+              50.43758501717821
+            ],
+            [
+              46.434598230640404,
+              61.34179168846458
+            ],
+            [
+              76.16706880752463,
+              44.32430054806173
+            ],
+            [
+              78.23247281974182,
+              36.59896623622626
+            ],
+            [
+              57.298764832085,
+              0.0
+            ],
+            [
+              33.13071452913573,
+              13.857184919528663
+            ]
+          ],
+          "native_boundary_path_indices": [
+            169709,
+            169802,
+            169859,
+            169736
+          ],
+          "similarity_rmse_m": 0.0422624523558319,
+          "similarity_max_residual_m": 0.06730724482142661,
+          "pdf_to_local_matrix": [
+            [
+              1.7632335297180013,
+              -0.03870232491089445
+            ],
+            [
+              -0.03870232491089446,
+              -1.7632335297180015
+            ]
+          ],
+          "pdf_to_local_translation": [
+            -1128.226518104534,
+            2717.6559174955923
+          ],
+          "building_limit": {
+            "edge_indices_0_based": [
+              3,
+              4,
+              5
+            ],
+            "setback_m": 2.0,
+            "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+            "native_line_path_indices": [
+              153873,
+              153874,
+              153875,
+              153876,
+              153877,
+              153878,
+              153879,
+              153880,
+              153881,
+              153882,
+              153883,
+              153884,
+              153885,
+              153886,
+              153887,
+              153888,
+              153889,
+              153890,
+              153891,
+              153892,
+              153893,
+              153894,
+              153895,
+              153896,
+              153897
+            ],
+            "native_dimension_path_indices": [
+              153087,
+              153088,
+              153089,
+              153090
+            ],
+            "observed_centerline_local_m": [
+              [
+                44.56676010658284,
+                60.12905534841926
+              ],
+              [
+                74.48117894171324,
+                42.985759756271534
+              ],
+              [
+                76.07149158052712,
+                36.87602862980489
+              ],
+              [
+                55.52816026433155,
+                1.0152078718458881
+              ]
+            ]
+          },
+          "road_frontage": {
+            "registered_edge_group": "building_limit",
+            "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+            "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+          },
+          "vehicle_access_prohibited": {
+            "full_edge_indices_0_based": [
+              3,
+              4
+            ],
+            "partial_edge_index_0_based": 5,
+            "partial_edge_end_chainage_m": 9.272546192997954,
+            "end_local_m": [
+              73.62868408060275,
+              28.550038223959213
+            ],
+            "native_path_indices": [
+              152682,
+              152776,
+              152778
+            ],
+            "native_end_tick_midpoint": [
+              714.7499694824219,
+              1509.4100341796875
+            ],
+            "endpoint_reading_spread_m": 0.04481685651251688,
+            "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+          }
+        }
+      }
+    },
+    "area_limits": {
+      "ground_m2": 537.0550986826828,
+      "gross_m2": 1611.1652960480483,
+      "ground_capacity_m2": 1497.877,
+      "far_capacity_m2": 6241.962,
+      "projection_basis": "source_volume_plan_projection",
+      "building_line": {
+        "satisfied": true,
+        "outside_area_m2": 0.0,
+        "evidence_grade": "official_plan_registered",
+        "survey_verified": false,
+        "registration_id": "gosan-public1-decision15-frontages-20260906"
+      },
+      "satisfied": true,
+      "reasons": []
+    },
+    "method": "per_volume_affine_no_csg"
+  },
+  "delivery_gate": {
+    "accepted": true,
+    "reasons": [],
+    "plausibility": {
+      "schema_version": "arr.maas.massv2_plausibility.v1",
+      "slenderness": 0.43,
+      "minimum_plan_dimension_m": 25.113,
+      "viable_band_share": 1.0,
+      "occupiable_mass_share": 1.0,
+      "occupiable": true,
+      "reasons": [],
+      "structure": {
+        "schema_version": "arr.maas.massv2_structure.v2",
+        "policy_version": "arr.maas.structure_policy.v2",
+        "measurement_basis": "typed_source_solids",
+        "measurement_status": "measured",
+        "measurement_error": null,
+        "member_capacity_status": "typed_geometry_screen",
+        "grounded_share": 1.0,
+        "grounded_share_basis": "occupied_band_area",
+        "body_count": 1,
+        "cantilever_ratio": 0.0,
+        "cantilever_reach_m": 0.0,
+        "cantilever_limit_ratio": 1.6,
+        "span_to_depth": 0.0,
+        "span_to_depth_limit": 15.0,
+        "overturning_margin_m": 11.627,
+        "centre_of_mass_height_m": 4.769,
+        "potential_well_m": 6.858,
+        "potential_well_basis": "support_margin_minus_com_height",
+        "stands": true,
+        "reasons": [],
+        "requirements": [],
+        "mesh_support": null,
+        "basis": "AISC cantilever rule of thumb + Mezghanni CVPR 2021 support polygon"
+      },
+      "max_slenderness": 4.17,
+      "basis": "design.maas.floor_viability + parcel slenderness + structure"
+    },
+    "stature": {
+      "declared_storeys": 3.0,
+      "delivered_body_m": 10.8,
+      "crushed": false,
+      "over": false
+    },
+    "composition_kept": true,
+    "composition": {
+      "schema_version": "arr.maas.massv2_composition.v1",
+      "parts": 1,
+      "regulating_elements": 0,
+      "explained_parts": 0,
+      "explained_share": 0.0,
+      "economy": 1.0,
+      "dominance": 1.0,
+      "datums": 0,
+      "tiers": 1,
+      "lifted": false,
+      "composed": true
+    },
+    "legal_storeys": {
+      "policy_id": "gosan-public1-molit-2026-334",
+      "max_storeys": 5,
+      "statutory_max_height_m": null,
+      "declared_storeys": 3.0,
+      "book_floor_count": null,
+      "candidate_storey_height_m": 3.6,
+      "occupied_height_above_datum_m": 10.8,
+      "conceptual_storey_proxy": 3,
+      "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+      "actual_design_floor_count_verified": false,
+      "satisfied": true,
+      "reasons": [],
+      "policy_evidence": {
+        "policy_id": "gosan-public1-molit-2026-334",
+        "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+        "max_storeys": 5,
+        "max_bcr_pct": 60.0,
+        "max_far_pct": 250.0,
+        "statutory_max_height_m": null,
+        "default_building_type": "업무시설",
+        "building_subtype": "공공업무시설",
+        "sources": [
+          {
+            "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+            "date": "2026-06-29",
+            "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+            "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+            "relevant_pdf_pages_1_based": [
+              6
+            ],
+            "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+            "bytes": 16093893,
+            "pdf_page_count": 6,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+          },
+          {
+            "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+            "date": "2022-06-29",
+            "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+            "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+            "relevant_pdf_pages_1_based": [
+              13,
+              22
+            ],
+            "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+            "bytes": 446211,
+            "pdf_page_count": 32,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+          },
+          {
+            "title": "의정부고산 9차 지구단위계획 시행지침",
+            "date": "2022-06-29",
+            "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+            "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+            "relevant_pdf_pages_1_based": [
+              47,
+              48,
+              49,
+              50,
+              56
+            ],
+            "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+            "bytes": 5813648,
+            "pdf_page_count": 79,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+          },
+          {
+            "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+            "date": "2026-07-28",
+            "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+            "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+            "relevant_pdf_pages_1_based": [
+              3,
+              7
+            ],
+            "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+            "bytes": 137824,
+            "pdf_page_count": 12,
+            "retrieved_on": "2026-09-06",
+            "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+          }
+        ],
+        "unverified": [
+          "measured_terrain_datum",
+          "exact_building_line_geometry",
+          "detailed_floor_schedule",
+          "access_and_egress"
+        ],
+        "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+        "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+        "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+        "building_line_status": "official_plan_registered; survey_geometry_unverified",
+        "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+        "datum_measured": false,
+        "frontage_registration": {
+          "registration_id": "gosan-public1-decision15-frontages-20260906",
+          "evidence_grade": "official_plan_registered",
+          "survey_verified": false,
+          "permit_compliance_verified": false,
+          "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+          "source_pdf_page_1_based": 6,
+          "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+          "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+          "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+          "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+          "reference_parcel_ring_local_m": [
+            [
+              0.0,
+              32.85654268087819
+            ],
+            [
+              11.59371943201404,
+              39.50109809124842
+            ],
+            [
+              29.64010443945881,
+              50.43758501717821
+            ],
+            [
+              46.434598230640404,
+              61.34179168846458
+            ],
+            [
+              76.16706880752463,
+              44.32430054806173
+            ],
+            [
+              78.23247281974182,
+              36.59896623622626
+            ],
+            [
+              57.298764832085,
+              0.0
+            ],
+            [
+              33.13071452913573,
+              13.857184919528663
+            ]
+          ],
+          "native_boundary_path_indices": [
+            169709,
+            169802,
+            169859,
+            169736
+          ],
+          "similarity_rmse_m": 0.0422624523558319,
+          "similarity_max_residual_m": 0.06730724482142661,
+          "pdf_to_local_matrix": [
+            [
+              1.7632335297180013,
+              -0.03870232491089445
+            ],
+            [
+              -0.03870232491089446,
+              -1.7632335297180015
+            ]
+          ],
+          "pdf_to_local_translation": [
+            -1128.226518104534,
+            2717.6559174955923
+          ],
+          "building_limit": {
+            "edge_indices_0_based": [
+              3,
+              4,
+              5
+            ],
+            "setback_m": 2.0,
+            "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+            "native_line_path_indices": [
+              153873,
+              153874,
+              153875,
+              153876,
+              153877,
+              153878,
+              153879,
+              153880,
+              153881,
+              153882,
+              153883,
+              153884,
+              153885,
+              153886,
+              153887,
+              153888,
+              153889,
+              153890,
+              153891,
+              153892,
+              153893,
+              153894,
+              153895,
+              153896,
+              153897
+            ],
+            "native_dimension_path_indices": [
+              153087,
+              153088,
+              153089,
+              153090
+            ],
+            "observed_centerline_local_m": [
+              [
+                44.56676010658284,
+                60.12905534841926
+              ],
+              [
+                74.48117894171324,
+                42.985759756271534
+              ],
+              [
+                76.07149158052712,
+                36.87602862980489
+              ],
+              [
+                55.52816026433155,
+                1.0152078718458881
+              ]
+            ]
+          },
+          "road_frontage": {
+            "registered_edge_group": "building_limit",
+            "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+            "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+          },
+          "vehicle_access_prohibited": {
+            "full_edge_indices_0_based": [
+              3,
+              4
+            ],
+            "partial_edge_index_0_based": 5,
+            "partial_edge_end_chainage_m": 9.272546192997954,
+            "end_local_m": [
+              73.62868408060275,
+              28.550038223959213
+            ],
+            "native_path_indices": [
+              152682,
+              152776,
+              152778
+            ],
+            "native_end_tick_midpoint": [
+              714.7499694824219,
+              1509.4100341796875
+            ],
+            "endpoint_reading_spread_m": 0.04481685651251688,
+            "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+          }
+        }
+      }
+    },
+    "legal_area": {
+      "ground_m2": 537.0550986826828,
+      "gross_m2": 1611.1652960480483,
+      "ground_capacity_m2": 1497.877,
+      "far_capacity_m2": 6241.962,
+      "projection_basis": "source_volume_plan_projection",
+      "building_line": {
+        "satisfied": true,
+        "outside_area_m2": 0.0,
+        "evidence_grade": "official_plan_registered",
+        "survey_verified": false,
+        "registration_id": "gosan-public1-decision15-frontages-20260906"
+      },
+      "satisfied": true,
+      "reasons": []
+    },
+    "gap": {
+      "declared_m": 0.0,
+      "delivered_m": 0.0,
+      "required_m": 0.0,
+      "tolerance_m": 0.05,
+      "satisfied": true,
+      "basis": "widest band-level narrowest component separation; not verified circulation"
+    }
+  },
+  "height_m": 10.8,
+  "declared_storeys": 3,
+  "own_storey_m": 3.6,
+  "ground_m2": 537.055098682683,
+  "projection_m2": 537.0550986826828,
+  "floor_area_proxy_m2": 1611.1652960480483,
+  "floor_slices": [
+    {
+      "z_m": 1.2,
+      "area_m2": 537.055098682683
+    },
+    {
+      "z_m": 4.8,
+      "area_m2": 537.055098682683
+    },
+    {
+      "z_m": 8.4,
+      "area_m2": 320.65752840229084
+    }
+  ],
+  "ground_components": 1,
+  "ground_holes": 0,
+  "final_matrix_form": {
+    "schema_version": "arr.maas.matrix_form.v1",
+    "name": "sangok_c04_civic_court",
+    "placement_count": 1,
+    "additive_count": 1,
+    "subtractive_count": 0,
+    "height_m": 10.8,
+    "floor_height_m": 3.6,
+    "primary_language": "open_figure",
+    "secondary_language": "열린 공공마당을 감싸는 깊은 C형 청사",
+    "formal_principle": "동북동의 열린 보행 전면을 향해 뒤 3층 업무 몸과 앞 2층 주민 날개가 깊은 C형 공공마당을 감싸도록 구성한다.",
+    "dominant_gesture": "뒤쪽 3층에서 앞쪽 2층으로 한 번 낮아지는 지붕과 열린 C형 마당",
+    "placements": [
+      {
+        "role": "body",
+        "kind": "additive",
+        "plan": "square",
+        "z_low": 0.0,
+        "z_high": 10.8,
+        "matrix4": [
+          [
+            31.096011419774456,
+            -4.379491876714296,
+            0.0,
+            33.79025077226977
+          ],
+          [
+            5.507374978882191,
+            24.727702386946973,
+            0.0,
+            17.251640858681654
+          ],
+          [
+            0.0,
+            0.0,
+            10.800000000000002,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "plan_region": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                0.27
+              ],
+              [
+                0.32,
+                0.27
+              ],
+              [
+                0.32,
+                0.72
+              ],
+              [
+                0.94,
+                0.72
+              ],
+              [
+                0.94,
+                1.0
+              ],
+              [
+                0.0,
+                1.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "top_surface": {
+          "type": "profile",
+          "points": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.32,
+              1.0
+            ],
+            [
+              0.55,
+              0.6666666666666666
+            ],
+            [
+              1.0,
+              0.6666666666666666
+            ]
+          ],
+          "axis": [
+            1,
+            0
+          ],
+          "span": [
+            0,
+            1
+          ]
+        },
+        "bottom_surface": {
+          "type": "constant",
+          "height": 0.0
+        }
+      }
+    ]
+  },
+  "room_envelopes": [
+    {
+      "role": "rear work",
+      "authored_envelope_width_m": 10.105583307784876,
+      "authored_envelope_depth_m": 10.798388340356532,
+      "minimum_envelope_dimension_m": 10.105583307784876,
+      "ground_retained_area_m2": 109.12401296328576,
+      "authored_area_retained_fraction": 0.9999999999999998,
+      "basis": "Final 4x4 applied to explicit rectangular room zone; envelope dimensions, before walls/cores, not net usable room dimensions.",
+      "inscribed_room_witness": {
+        "width_m": 10.105583307784588,
+        "depth_m": 10.798388340356224,
+        "area_m2": 109.12401296327957,
+        "inside_actual_ground": true,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                42.51471670111742,
+                25.937757520269233
+              ],
+              [
+                40.63153519413033,
+                36.570669546656134
+              ],
+              [
+                30.68081153980279,
+                34.80830955341388
+              ],
+              [
+                32.56399304678988,
+                24.175397527026984
+              ],
+              [
+                42.51471670111742,
+                25.937757520269233
+              ]
+            ]
+          ]
+        },
+        "assumed_wall_allowance_per_side_m": 0.3,
+        "potential_clear_width_m": 9.505583307784589,
+        "potential_clear_depth_m": 10.198388340356225,
+        "qualifier": "Clear size assumes 0.3m perimeter walls only; interior structure, circulation and cores have not been designed."
+      },
+      "floor_headroom_witness": [
+        {
+          "floor_base_m": 0.0,
+          "three_metre_envelope_headroom_share": 1.0000000000000002
+        },
+        {
+          "floor_base_m": 3.6,
+          "three_metre_envelope_headroom_share": 1.0000000000000002
+        },
+        {
+          "floor_base_m": 7.2,
+          "three_metre_envelope_headroom_share": 1.0000000000000002
+        }
+      ],
+      "world_region": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              42.51471670111759,
+              25.93775752026911
+            ],
+            [
+              32.56399304678977,
+              24.175397527026806
+            ],
+            [
+              32.481288020712434,
+              24.64237071211681
+            ],
+            [
+              32.367050836929536,
+              25.287382316573943
+            ],
+            [
+              32.219495470400965,
+              26.120516682803842
+            ],
+            [
+              31.9577029200895,
+              27.598662653490877
+            ],
+            [
+              31.69591036977803,
+              29.076808624177907
+            ],
+            [
+              31.43411781946656,
+              30.554954594864938
+            ],
+            [
+              31.172325269155095,
+              32.03310056555197
+            ],
+            [
+              30.910532718843626,
+              33.511246536239
+            ],
+            [
+              30.888904866242505,
+              33.6333627811013
+            ],
+            [
+              30.680811539802626,
+              34.808309553414006
+            ],
+            [
+              40.63153519413045,
+              36.570669546656305
+            ],
+            [
+              40.64980060642165,
+              36.46753847761306
+            ],
+            [
+              40.91159315673312,
+              34.98939250692603
+            ],
+            [
+              41.068729913516606,
+              34.10215922389337
+            ],
+            [
+              41.19435016012946,
+              33.39287601034667
+            ],
+            [
+              41.23592666105173,
+              33.15812472639913
+            ],
+            [
+              41.307973853089095,
+              32.75132832794302
+            ],
+            [
+              41.56208212988484,
+              31.31656968023901
+            ],
+            [
+              41.69697080766752,
+              30.554954594864938
+            ],
+            [
+              41.95876335797899,
+              29.076808624177907
+            ],
+            [
+              42.08647612055654,
+              28.355710544096116
+            ],
+            [
+              42.51471670111759,
+              25.93775752026911
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "role": "south resident",
+      "authored_envelope_width_m": 18.31636974536009,
+      "authored_envelope_depth_m": 6.7803833765029395,
+      "minimum_envelope_dimension_m": 6.7803833765029395,
+      "ground_retained_area_m2": 124.19200893932096,
+      "authored_area_retained_fraction": 1.0000000000000004,
+      "basis": "Final 4x4 applied to explicit rectangular room zone; envelope dimensions, before walls/cores, not net usable room dimensions.",
+      "inscribed_room_witness": {
+        "width_m": 18.31636974535957,
+        "depth_m": 6.780383376502747,
+        "area_m2": 124.19200893931387,
+        "inside_actual_ground": true,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                62.398581278462,
+                22.318425839253315
+              ],
+              [
+                61.21611847174917,
+                28.99490548372881
+              ],
+              [
+                43.1804318482805,
+                25.80062799597723
+              ],
+              [
+                44.362894654993326,
+                19.124148351501738
+              ],
+              [
+                62.398581278462,
+                22.318425839253315
+              ]
+            ]
+          ]
+        },
+        "assumed_wall_allowance_per_side_m": 0.3,
+        "potential_clear_width_m": 17.716369745359568,
+        "potential_clear_depth_m": 6.180383376502747,
+        "qualifier": "Clear size assumes 0.3m perimeter walls only; interior structure, circulation and cores have not been designed."
+      },
+      "floor_headroom_witness": [
+        {
+          "floor_base_m": 0.0,
+          "three_metre_envelope_headroom_share": 1.0
+        },
+        {
+          "floor_base_m": 3.6,
+          "three_metre_envelope_headroom_share": 1.0
+        },
+        {
+          "floor_base_m": 7.2,
+          "three_metre_envelope_headroom_share": 0.03160919540228573
+        }
+      ],
+      "world_region": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              62.398581278462274,
+              22.31842583925327
+            ],
+            [
+              61.929970250670166,
+              22.23543073694091
+            ],
+            [
+              61.043633489648364,
+              22.078452762028963
+            ],
+            [
+              60.451824279983136,
+              21.97363818662944
+            ],
+            [
+              58.973678309296105,
+              21.71184563631797
+            ],
+            [
+              58.849437760395986,
+              21.68984155093421
+            ],
+            [
+              58.82819216585183,
+              21.686078770742746
+            ],
+            [
+              57.495532338609074,
+              21.450053086006506
+            ],
+            [
+              57.359865312564324,
+              21.426025271808346
+            ],
+            [
+              56.01738636792204,
+              21.188260535695036
+            ],
+            [
+              54.539240397235005,
+              20.926467985383567
+            ],
+            [
+              53.06109442654798,
+              20.664675435072102
+            ],
+            [
+              51.582948455860944,
+              20.402882884760633
+            ],
+            [
+              50.893057053145725,
+              20.28069709706686
+            ],
+            [
+              50.48221170132448,
+              20.207932800055715
+            ],
+            [
+              50.1463174434327,
+              20.148442995833204
+            ],
+            [
+              50.10480248517392,
+              20.141090334449167
+            ],
+            [
+              49.14542029121461,
+              19.97117537593984
+            ],
+            [
+              48.62665651448688,
+              19.879297784137698
+            ],
+            [
+              47.14851054379985,
+              19.61750523382623
+            ],
+            [
+              45.67036457311282,
+              19.35571268351476
+            ],
+            [
+              44.362894654993084,
+              19.1241483515016
+            ],
+            [
+              43.18043184828023,
+              25.80062799597728
+            ],
+            [
+              43.84093819187154,
+              25.917609433274233
+            ],
+            [
+              44.19221860242579,
+              25.979824259399095
+            ],
+            [
+              44.67945125245866,
+              26.066117413510145
+            ],
+            [
+              44.98660308171863,
+              26.120516682803842
+            ],
+            [
+              45.67036457311282,
+              26.241616809710564
+            ],
+            [
+              47.14851054379985,
+              26.503409360022033
+            ],
+            [
+              48.00632533826149,
+              26.655335845761897
+            ],
+            [
+              48.62665651448688,
+              26.7652019103335
+            ],
+            [
+              49.71059424643287,
+              26.95717674154254
+            ],
+            [
+              50.10480248517392,
+              27.026994460644968
+            ],
+            [
+              50.93458667047319,
+              27.173956480895683
+            ],
+            [
+              51.582948455860944,
+              27.288787010956437
+            ],
+            [
+              53.06109442654798,
+              27.550579561267906
+            ],
+            [
+              53.33258354624599,
+              27.598662653490877
+            ],
+            [
+              53.88207266610745,
+              27.69598197168384
+            ],
+            [
+              54.539240397235005,
+              27.81237211157937
+            ],
+            [
+              56.01738636792204,
+              28.07416466189084
+            ],
+            [
+              57.03944724430242,
+              28.255180562016612
+            ],
+            [
+              57.495532338609074,
+              28.33595721220231
+            ],
+            [
+              58.973678309296105,
+              28.59774976251378
+            ],
+            [
+              59.76476036494371,
+              28.73785729787266
+            ],
+            [
+              60.451824279983136,
+              28.859542312825244
+            ],
+            [
+              61.21611847174941,
+              28.994905483728953
+            ],
+            [
+              62.398581278462274,
+              22.31842583925327
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "role": "north meeting",
+      "authored_envelope_width_m": 18.00057026699181,
+      "authored_envelope_depth_m": 7.0315086867437895,
+      "minimum_envelope_dimension_m": 7.0315086867437895,
+      "ground_retained_area_m2": 126.5711661986949,
+      "authored_area_retained_fraction": 1.0000000000000004,
+      "basis": "Final 4x4 applied to explicit rectangular room zone; envelope dimensions, before walls/cores, not net usable room dimensions.",
+      "inscribed_room_witness": {
+        "width_m": 18.0005702669913,
+        "depth_m": 7.03150868674359,
+        "area_m2": 126.57116619868768,
+        "inside_actual_ground": true,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                58.93438701302996,
+                40.06729780806633
+              ],
+              [
+                57.70812928755,
+                46.99105447641128
+              ],
+              [
+                39.983402778279064,
+                43.851850738448526
+              ],
+              [
+                41.20966050375903,
+                36.92809407010356
+              ],
+              [
+                58.93438701302996,
+                40.06729780806633
+              ]
+            ]
+          ]
+        },
+        "assumed_wall_allowance_per_side_m": 0.3,
+        "potential_clear_width_m": 17.4005702669913,
+        "potential_clear_depth_m": 6.43150868674359,
+        "qualifier": "Clear size assumes 0.3m perimeter walls only; interior structure, circulation and cores have not been designed."
+      },
+      "floor_headroom_witness": [
+        {
+          "floor_base_m": 0.0,
+          "three_metre_envelope_headroom_share": 1.0
+        },
+        {
+          "floor_base_m": 3.6,
+          "three_metre_envelope_headroom_share": 1.0
+        },
+        {
+          "floor_base_m": 7.2,
+          "three_metre_envelope_headroom_share": 0.03216374269004507
+        }
+      ],
+      "world_region": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              58.93438701303023,
+              40.06729780806627
+            ],
+            [
+              57.495532338609074,
+              39.812464089195316
+            ],
+            [
+              56.01738636792204,
+              39.55067153888385
+            ],
+            [
+              55.301209799606006,
+              39.42383041898712
+            ],
+            [
+              54.539240397235005,
+              39.28887898857238
+            ],
+            [
+              53.06109442654798,
+              39.02708643826091
+            ],
+            [
+              51.582948455860944,
+              38.76529388794944
+            ],
+            [
+              50.43216048296189,
+              38.561479295705226
+            ],
+            [
+              50.10480248517392,
+              38.50350133763798
+            ],
+            [
+              48.62665651448688,
+              38.24170878732651
+            ],
+            [
+              48.29095860210973,
+              38.182253757608024
+            ],
+            [
+              47.73982290191144,
+              38.08464281566868
+            ],
+            [
+              47.24888042624395,
+              37.997692619064296
+            ],
+            [
+              47.14851054379985,
+              37.97991623701504
+            ],
+            [
+              47.066478219671325,
+              37.96538759656446
+            ],
+            [
+              46.955229335078684,
+              37.9456844483001
+            ],
+            [
+              45.67036457311282,
+              37.71812368670357
+            ],
+            [
+              44.19221860242579,
+              37.4563311363921
+            ],
+            [
+              43.85682754402449,
+              37.39693045319048
+            ],
+            [
+              42.71407263173876,
+              37.19453858608064
+            ],
+            [
+              41.23592666105173,
+              36.93274603576917
+            ],
+            [
+              41.2096605037588,
+              36.92809407010342
+            ],
+            [
+              39.983402778278794,
+              43.851850738448576
+            ],
+            [
+              40.01963810518705,
+              43.85826833104822
+            ],
+            [
+              41.23592666105173,
+              44.07368364812037
+            ],
+            [
+              42.26212354481978,
+              44.255432071246986
+            ],
+            [
+              42.71407263173876,
+              44.33547619843184
+            ],
+            [
+              44.19221860242579,
+              44.59726874874331
+            ],
+            [
+              44.76859257841256,
+              44.69934960956425
+            ],
+            [
+              45.67036457311282,
+              44.85906129905477
+            ],
+            [
+              46.35596474091283,
+              44.980487071598006
+            ],
+            [
+              46.513565176431435,
+              45.008399484013836
+            ],
+            [
+              46.7107023267761,
+              45.043314193638814
+            ],
+            [
+              47.14851054379985,
+              45.12085384936624
+            ],
+            [
+              48.23491181570593,
+              45.31326499500007
+            ],
+            [
+              48.3656185697144,
+              45.33641430173525
+            ],
+            [
+              48.560111667788966,
+              45.37086072663012
+            ],
+            [
+              48.62665651448688,
+              45.38264639967771
+            ],
+            [
+              48.90279205213701,
+              45.431552413066534
+            ],
+            [
+              50.10480248517392,
+              45.64443894998918
+            ],
+            [
+              51.582948455860944,
+              45.90623150030065
+            ],
+            [
+              53.06109442654798,
+              46.16802405061212
+            ],
+            [
+              54.314742618804786,
+              46.390056085304685
+            ],
+            [
+              54.539240397235005,
+              46.42981660092358
+            ],
+            [
+              56.01738636792204,
+              46.69160915123505
+            ],
+            [
+              56.08144992883439,
+              46.70295536691731
+            ],
+            [
+              56.71159903424175,
+              46.814560272422284
+            ],
+            [
+              57.495532338609074,
+              46.95340170154652
+            ],
+            [
+              57.708129287550236,
+              46.99105447641142
+            ],
+            [
+              58.93438701303023,
+              40.06729780806627
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "courts": {
+    "court": {
+      "area_m2": 221.26162512177865,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              40.5877402753633,
+              36.81794657052578
+            ],
+            [
+              59.86726735562347,
+              40.23251905743273
+            ],
+            [
+              61.8380387001449,
+              29.105052983306596
+            ],
+            [
+              42.55851161988474,
+              25.690480496399637
+            ],
+            [
+              40.5877402753633,
+              36.81794657052578
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  "vehicle_reserve": {
+    "area_m2": 277.29086541547895,
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            73.62868408060275,
+            28.550038223959213
+          ],
+          [
+            57.298764832085,
+            0.0
+          ],
+          [
+            49.491103231360924,
+            4.4766627524411335
+          ],
+          [
+            59.391533144255654,
+            21.78585137396051
+          ],
+          [
+            64.88626219204423,
+            22.759015837563844
+          ],
+          [
+            63.71872826551733,
+            29.351203304636112
+          ],
+          [
+            65.81633668403698,
+            33.018508673159026
+          ],
+          [
+            73.62868408060275,
+            28.550038223959213
+          ]
+        ]
+      ]
+    },
+    "diagnostic_strip_depth_m": 9,
+    "public_court_overlap_m2": 0.0,
+    "qualifier": "Unbuilt allowance beside registered permitted edge; no stalls, turning path, slope, gate width or statutory capacity verified."
+  },
+  "drawing": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\authoring-comp04\\parti-f47622432765-b78b8312c25d1095fd33-drawings.png",
+  "source_metadata": {
+    "primary_language": "open_figure",
+    "secondary_language": "열린 공공마당을 감싸는 깊은 C형 청사",
+    "formal_principle": "동북동의 열린 보행 전면을 향해 뒤 3층 업무 몸과 앞 2층 주민 날개가 깊은 C형 공공마당을 감싸도록 구성한다.",
+    "dominant_gesture": "뒤쪽 3층에서 앞쪽 2층으로 한 번 낮아지는 지붕과 열린 C형 마당",
+    "reference_basis": "등록된 산곡동 공공1 필지와 comp03 실제 평단면 비평에 근거한 공간 가설. 확정 법정 프로그램이나 실별 면적표가 아님.",
+    "authored_height_m": 10.8,
+    "datum_m": 0.0,
+    "authored_floor_height_m": 3.6,
+    "matrix_form": {
+      "schema_version": "arr.maas.matrix_form.v1",
+      "name": "sangok_c04_civic_court",
+      "placement_count": 1,
+      "additive_count": 1,
+      "subtractive_count": 0,
+      "height_m": 10.8,
+      "floor_height_m": 3.6,
+      "primary_language": "open_figure",
+      "secondary_language": "열린 공공마당을 감싸는 깊은 C형 청사",
+      "formal_principle": "동북동의 열린 보행 전면을 향해 뒤 3층 업무 몸과 앞 2층 주민 날개가 깊은 C형 공공마당을 감싸도록 구성한다.",
+      "dominant_gesture": "뒤쪽 3층에서 앞쪽 2층으로 한 번 낮아지는 지붕과 열린 C형 마당",
+      "placements": [
+        {
+          "role": "body",
+          "kind": "additive",
+          "plan": "square",
+          "z_low": 0.0,
+          "z_high": 10.8,
+          "matrix4": [
+            [
+              31.096011419774456,
+              -4.379491876714296,
+              0.0,
+              33.79025077226977
+            ],
+            [
+              5.507374978882191,
+              24.727702386946973,
+              0.0,
+              17.251640858681654
+            ],
+            [
+              0.0,
+              0.0,
+              10.800000000000002,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.27
+                ],
+                [
+                  0.32,
+                  0.27
+                ],
+                [
+                  0.32,
+                  0.72
+                ],
+                [
+                  0.94,
+                  0.72
+                ],
+                [
+                  0.94,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0.0,
+                1.0
+              ],
+              [
+                0.32,
+                1.0
+              ],
+              [
+                0.55,
+                0.6666666666666666
+              ],
+              [
+                1.0,
+                0.6666666666666666
+              ]
+            ],
+            "axis": [
+              1,
+              0
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0.0
+          }
+        }
+      ]
+    },
+    "massing_genome": {
+      "schema_version": "arr.maas.matrix_form_genome.v1",
+      "roles": [
+        "body"
+      ],
+      "band_count": 1,
+      "additive_count": 1,
+      "subtractive_count": 0
+    },
+    "geometry_authority": "matrix_form_analysis",
+    "structural_bands": [],
+    "parti": {
+      "schema_version": "arr.maas.massv2_parti.v1",
+      "name": "sangok_c04_civic_court",
+      "plot_mode": "impose",
+      "operations": [
+        {
+          "verb": "extrude",
+          "plot_mode": "inherit",
+          "params": {
+            "height": 0.6,
+            "storeys": 3
+          },
+          "why": "Unconfirmed neighborhood-office use needs ordinary work rooms behind an accessible public court. Keep the rear to three storeys and the street ends to two, trading upper floor area for a welcoming court edge."
+        },
+        {
+          "verb": "shape",
+          "plot_mode": "impose",
+          "params": {
+            "on": "body",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.27
+                  ],
+                  [
+                    0.32,
+                    0.27
+                  ],
+                  [
+                    0.32,
+                    0.72
+                  ],
+                  [
+                    0.94,
+                    0.72
+                  ],
+                  [
+                    0.94,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "profile",
+              "points": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0.32,
+                  1
+                ],
+                [
+                  0.55,
+                  0.6666666666666666
+                ],
+                [
+                  1,
+                  0.6666666666666666
+                ]
+              ],
+              "axis": [
+                1,
+                0
+              ],
+              "span": [
+                0,
+                1
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            }
+          },
+          "why": "A 32-percent-deep rear work-and-meeting wing binds two genuinely room-deep arms; the whole eastern mouth opens toward the pedestrian address. A flat three-storey rear changes once into two-storey resident wings, keeping the court a legible outdoor room rather than decorating its roof. All rooms begin at ground; this is a spatial mass, not a verified program or structural design."
+        }
+      ],
+      "growth": "plan"
+    },
+    "plot_mode": "impose",
+    "growth": "plan",
+    "alignments": [],
+    "declared_storeys": 3.0,
+    "stature_is_building": true,
+    "authored_composition": "single_body"
+  },
+  "role_sections": [
+    {
+      "role": "body",
+      "base_m": 0.0,
+      "top_m": 10.8,
+      "cut_y_m": 32.36917954159623,
+      "section_geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              31.443964304429066,
+              10.8
+            ],
+            [
+              32.367050836929536,
+              10.8
+            ],
+            [
+              33.509117831572304,
+              10.8
+            ],
+            [
+              33.84519680761657,
+              10.8
+            ],
+            [
+              34.987263802259335,
+              10.8
+            ],
+            [
+              35.3233427783036,
+              10.8
+            ],
+            [
+              35.65942175434786,
+              10.8
+            ],
+            [
+              36.801488748990636,
+              10.8
+            ],
+            [
+              37.9435557436334,
+              10.8
+            ],
+            [
+              38.27963471967766,
+              10.8
+            ],
+            [
+              38.61571369572192,
+              10.8
+            ],
+            [
+              39.7577806903647,
+              10.8
+            ],
+            [
+              40.19934790426202,
+              10.8
+            ],
+            [
+              41.23592666105173,
+              10.8
+            ],
+            [
+              41.37565573793681,
+              10.799999999999999
+            ],
+            [
+              41.37565573793681,
+              0.0
+            ],
+            [
+              41.23592666105173,
+              0.0
+            ],
+            [
+              40.19934790426202,
+              0.0
+            ],
+            [
+              39.7577806903647,
+              0.0
+            ],
+            [
+              38.61571369572192,
+              0.0
+            ],
+            [
+              38.27963471967766,
+              0.0
+            ],
+            [
+              37.9435557436334,
+              0.0
+            ],
+            [
+              36.801488748990636,
+              0.0
+            ],
+            [
+              35.65942175434786,
+              0.0
+            ],
+            [
+              35.3233427783036,
+              0.0
+            ],
+            [
+              34.987263802259335,
+              0.0
+            ],
+            [
+              33.84519680761657,
+              0.0
+            ],
+            [
+              33.509117831572304,
+              0.0
+            ],
+            [
+              32.367050836929536,
+              0.0
+            ],
+            [
+              31.443964304429066,
+              0.0
+            ],
+            [
+              31.112802749735852,
+              0.0
+            ],
+            [
+              31.112802749735852,
+              10.8
+            ],
+            [
+              31.443964304429066,
+              10.8
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

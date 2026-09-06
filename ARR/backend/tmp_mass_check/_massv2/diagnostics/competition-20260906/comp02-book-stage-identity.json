@@ -1,0 +1,405 @@
+{
+  "count": 25,
+  "rows": [
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-001",
+      "shape_id": "41392ec7e99f209299ff",
+      "gfa": 964.0474808679239,
+      "ground": 430.9803320560642,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-003",
+      "shape_id": "acfbb1110e960215b24b",
+      "gfa": 2818.9582420203856,
+      "ground": 777.5175617079921,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-mid:creative-005",
+      "shape_id": "ec12d646821d301984e4",
+      "gfa": 3350.6784709043714,
+      "ground": 712.4309890723905,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-mid:creative-006",
+      "shape_id": "14ab2c416e71cce98255",
+      "gfa": 3081.8740571631897,
+      "ground": 1027.291352336816,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-compact-low:creative-007",
+      "shape_id": "64c05e010e8c48f68489",
+      "gfa": 2778.596135864329,
+      "ground": 681.4617542972535,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-curved-mid:creative-011",
+      "shape_id": "b392af0bfa57edab52b0",
+      "gfa": 2484.7446342924363,
+      "ground": 689.6297488901879,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-compact-tall:creative-013",
+      "shape_id": "0f92a71f8b4126a4fe49",
+      "gfa": 3083.97015620524,
+      "ground": 616.794031223966,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-014",
+      "shape_id": "8e57ca78a2f185af80cc",
+      "gfa": 1581.6128857970316,
+      "ground": 704.6818136141998,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-bridge-low:creative-018",
+      "shape_id": "0acc8c4adc70e3c86cfb",
+      "gfa": 1026.3081491435976,
+      "ground": 451.6955375984814,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-compact-low:creative-019",
+      "shape_id": "3434da0b5109f592f69a",
+      "gfa": 2373.6546586404106,
+      "ground": 487.7445013900151,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-021",
+      "shape_id": "b3a7931c3b16b69479b5",
+      "gfa": 1673.6167434414997,
+      "ground": 381.85356934714457,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-022",
+      "shape_id": "bfcc958077c15d663264",
+      "gfa": 1624.6150501514253,
+      "ground": 645.6828634365875,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-mid:creative-023",
+      "shape_id": "80e1b8f49fba8361751b",
+      "gfa": 1134.8796325658654,
+      "ground": 367.7575718127587,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-curved-mid:creative-025",
+      "shape_id": "77713afe12499ac4eaa1",
+      "gfa": 1722.0260398674425,
+      "ground": 596.1317913548678,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-mid:creative-028",
+      "shape_id": "6be8230de312a4de01da",
+      "gfa": 1715.1291265410057,
+      "ground": 734.3337870209799,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-tall:creative-030",
+      "shape_id": "f8df85c08b83d0871996",
+      "gfa": 1099.9718850630027,
+      "ground": 664.2342302169416,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-compact-low:creative-031",
+      "shape_id": "6475c5ca9a75cd820813",
+      "gfa": 994.7011851855042,
+      "ground": 243.5813956967368,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-mid:creative-033",
+      "shape_id": "1448b97a7aff3c3db1f9",
+      "gfa": 1200.5189045568686,
+      "ground": 568.1294869016511,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-curved-mid:creative-036",
+      "shape_id": "96c19ddb6b69ada79a18",
+      "gfa": 1746.1354830664995,
+      "ground": 639.5345523058434,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-compact-tall:creative-037",
+      "shape_id": "80164fc0d412bf6beed2",
+      "gfa": 2041.0345160871357,
+      "ground": 810.6585304045885,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-040",
+      "shape_id": "af77b82df68fff6ed141",
+      "gfa": 1872.5506679521231,
+      "ground": 734.3337870209883,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-curved-low:creative-042",
+      "shape_id": "074153e3257416c5b971",
+      "gfa": 1490.617178436466,
+      "ground": 496.87239282322594,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-curved-low:creative-043",
+      "shape_id": "58575b507d01970dcac6",
+      "gfa": 2606.351436396743,
+      "ground": 652.6950858412348,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-voided-low:creative-048",
+      "shape_id": "55a86ca97174921c5666",
+      "gfa": 2401.9883676584013,
+      "ground": 662.9289806331712,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    },
+    {
+      "name": "book:book-comp02:morph-oblique-low:creative-049",
+      "shape_id": "95c33d897880d5fbca59",
+      "gfa": 3148.971216163127,
+      "ground": 1099.211411094493,
+      "checks": {
+        "gfa_sum": true,
+        "measured_consistent": true,
+        "all_floors": true,
+        "shape_binding": true,
+        "certificate_binding": true,
+        "area_legal": true,
+        "storey_legal": true,
+        "affine4x4": true
+      }
+    }
+  ]
+}

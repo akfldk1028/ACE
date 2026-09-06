@@ -1,0 +1,83 @@
+{
+  "all_pass": true,
+  "count": 7,
+  "rows": [
+    {
+      "name": "sangok_forum_with_reading_room^centred",
+      "shape_id": "2296bf245bad0c8ebb53",
+      "generator_gfa_record": 3435.3,
+      "current_gfa": 3435.286202812612,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "sangok_saddle_garden_room^centred",
+      "shape_id": "4de0ff702cb5a6225c03",
+      "generator_gfa_record": 3202.9,
+      "current_gfa": 3202.8547512530986,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "loop_butterfly_open__d07_bar+^centred",
+      "shape_id": "3485ae42b715f31e4eae",
+      "generator_gfa_record": 4156.2,
+      "current_gfa": 4156.171474264254,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "sangok_vaulted_civic_street~held_ground^off_open",
+      "shape_id": "403759564808447c0d4d",
+      "generator_gfa_record": 3521.6,
+      "current_gfa": 3521.595535404411,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "sangok_boundary_hinge~full_ground^to_open",
+      "shape_id": "d52f9b5562f8f236e8be",
+      "generator_gfa_record": 5621.8,
+      "current_gfa": 5621.799997649491,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "sangok_terrace_lantern^centred",
+      "shape_id": "48932e0db8d269503702",
+      "generator_gfa_record": 3915.9,
+      "current_gfa": 3915.9212354909732,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    },
+    {
+      "name": "sangok_open_court_threshold^centred",
+      "shape_id": "86ee19dddb637aab6202",
+      "generator_gfa_record": 3967.3,
+      "current_gfa": 3967.3174187351433,
+      "gfa_matches_recorded_rounding": true,
+      "ground_matches_recorded_rounding": true,
+      "final_frame_identity_matches": true,
+      "tile_sha_matches": true,
+      "matrix_form_present": true
+    }
+  ]
+}

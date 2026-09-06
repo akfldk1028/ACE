@@ -1,0 +1,18 @@
+{
+  "author_evidence": {
+    "cache_hit": false,
+    "model": "GPT-6",
+    "prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+    "provider": "codex_host",
+    "response_id": "",
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program"
+  },
+  "identity": {
+    "candidate_id": "creative-047",
+    "geometry_hash": "039f08ecb4e6127e8952e73358a18cb872defb63cb1d22a0ab1e0b02e29d47ed",
+    "pnu": "4115011300106840001",
+    "program_hash": "554c361833d51f0d7846e6e905a17e44aca8933e6e60ccea8cd6d74094052bd3",
+    "run_id": "book-comp04"
+  }
+}

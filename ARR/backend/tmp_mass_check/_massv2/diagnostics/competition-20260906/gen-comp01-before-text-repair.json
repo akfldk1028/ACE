@@ -1,0 +1,463 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex",
+  "site_pnu": "4115011300106840001",
+  "assumptions": [
+    "공공시설 공간조직 연구; 실제 기관·정원·실별면적표 미확정",
+    "지형 실측 미확인, 열린 방향은 실제 접도 확인 전 배치 가설"
+  ],
+  "schemes": [
+    {
+      "name": "sangok_vaulted_civic_street",
+      "design_argument_ko": {
+        "title": "공공 길과 두 홀",
+        "spatial_strategy": "민원·활동 공간을 높이가 다른 홀로 나누고 사이 공간을 공유 진입부로 삼는다.",
+        "tradeoff": "길의 개방성은 좋아지지만 두 동의 횡단 연결과 비 오는 날 접근을 따로 풀어야 한다."
+      },
+      "primary_language": "open_figure",
+      "secondary_language": "unequal vaulted halls flank a public street",
+      "formal_principle": "높이가 다른 두 볼트 홀 사이의 넓은 길이 민원 공간과 주민 활동 공간의 공통 진입부가 된다.",
+      "dominant_gesture": "지붕의 차이보다 사이 길이 먼저 보이는 두 홀",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "공공 기능을 담을 세 층의 몸을 만든다. 이후 나누어 길을 형성하므로 이 몸 자체가 최종 매스는 아니다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.58,
+          "along": "cross",
+          "first": "civic",
+          "second": "community",
+          "gap": 8,
+          "contrast": 1.4,
+          "why": "하나의 깊은 몸을 두 폭으로 잘라 그 사이에 외부 진입 공간을 확보한다. 법규 클립 뒤 틈이 유지되어야 하며 차량도로라고 가정하지 않는다."
+        },
+        {
+          "op": "vault",
+          "rise": 0.55,
+          "bays": 2,
+          "along": "long",
+          "why": "분리된 홀의 깊이에 맞춘 두 볼트가 큰 방의 단면을 드러낸다. 실제 장스팬 구조와 배수는 후속 검증 대상이다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_three_light_gardens",
+      "design_argument_ko": {
+        "title": "세 빛마당의 낮은 집",
+        "spatial_strategy": "낮은 연속 공간을 세 마당으로 나눠 깊은 평면에 빛과 외부를 끌어들인다.",
+        "tradeoff": "마당이 늘어 외벽·배수 길이가 길어지고 내부 운영 구획이 더 중요해진다."
+      },
+      "primary_language": "carved_body",
+      "secondary_language": "a low continuous civic field organized by three light gardens",
+      "formal_principle": "낮고 연속된 실내에 세 빛마당을 뚫어 작은 방들이 외부와 번갈아 만나는 공공 공간을 만든다.",
+      "dominant_gesture": "세 빛마당을 품는 하나의 낮은 지붕",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.36,
+          "storeys": 2,
+          "why": "고층 지표 경쟁보다 가까운 진입과 방 사이 관계를 위해 두 층의 낮은 몸을 잡는다."
+        },
+        {
+          "op": "puncture",
+          "size": 0.22,
+          "n": 3,
+          "why": "긴 몸의 내부에 세 개의 열린 하늘을 배치하여 깊은 평면을 나눈다. 각각 사람이 머물 수 있는 크기로 배달되어야 한다."
+        },
+        {
+          "op": "grade",
+          "run": 0.35,
+          "toward": "open",
+          "smooth": true,
+          "why": "하나의 완만한 지붕 변화로 마당마다 단면 높이가 달라지게 한다. 지붕은 보행 경사로로 선언하지 않으며 별도 접근 시설이 필요하다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_five_room_canopies",
+      "design_argument_ko": {
+        "title": "다섯 방의 공동 빈터",
+        "spatial_strategy": "작은 방들이 빈터를 바라보고 들린 처마가 각 방의 진입을 드러낸다.",
+        "tradeoff": "분산된 방의 관리와 겨울철 이동을 낮은 연결부가 해결해야 한다."
+      },
+      "primary_language": "porous_field",
+      "secondary_language": "five low civic rooms face a common clearing under lifted eaves",
+      "formal_principle": "서로 다른 방향을 바라보는 다섯 낮은 방을 공통 빈터 주변에 놓아 한 정면에 종속되지 않는 주민 공간을 만든다.",
+      "dominant_gesture": "중앙 빈터로 향하는 다섯 처마",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "arrangement": "radial",
+          "spread": 1.5,
+          "tie": 0.18,
+          "height": 0.38,
+          "storeys": 2,
+          "why": "분산된 방들을 하나의 공동 빈터 둘레에 놓고 낮은 연결부로 묶는다. 연결부가 방들보다 두드러지지 않아야 한다."
+        },
+        {
+          "op": "roof",
+          "rise": 0.55,
+          "eave": 0.12,
+          "corners": "one",
+          "sag": 0.12,
+          "thin": 0.1,
+          "why": "각 방의 처마를 한 번 들어 외부로 열린 방향을 읽게 한다. 지붕판은 점유 가능한 방이 아니며 접촉과 내밈을 검증한다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_boundary_hinge",
+      "design_argument_ko": {
+        "title": "경계를 따라 꺾이는 방",
+        "spatial_strategy": "연속된 바의 굽힘으로 비정형 경계와 앞마당을 함께 정의한다.",
+        "tradeoff": "꺾임마다 실 배치와 구조 그리드가 충돌할 수 있어 이음부 검토가 필요하다."
+      },
+      "primary_language": "solid_body",
+      "secondary_language": "a bent linear room sequence turns a residual edge into a forecourt",
+      "formal_principle": "길게 이어지는 방의 몸을 완만하게 꺾어 대지의 비스듬한 가장자리와 앞마당을 동시에 정의한다.",
+      "dominant_gesture": "앞마당을 감싸는 꺾인 세 층 바",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.56,
+          "storeys": 3,
+          "profile": "trapezoidal",
+          "why": "비정형 필지에 대응할 바의 시작을 사다리꼴 평면으로 잡는다. 특정 도로 위치는 확정하지 않는다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.6,
+          "toward": "cross",
+          "why": "깊은 바를 줄여 바깥 공간과 실의 유효 깊이를 함께 남긴다. 압축 이후 면적 확보는 실측으로 판단한다."
+        },
+        {
+          "op": "bend",
+          "degrees": 36,
+          "segments": 3,
+          "why": "연속된 바를 두 번 꺾어 앞마당의 가장자리가 되게 한다. 단순 회전과 달리 이음부 연결이 유지되어야 한다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_open_court_threshold",
+      "design_argument_ko": {
+        "title": "바깥에서 안마당으로",
+        "spatial_strategy": "중정 테두리의 한 구석을 열어 외부 공간과 중정 사이에 진입 순서를 만든다.",
+        "tradeoff": "개방한 부분의 보안·야간 운영과 중정의 채광을 함께 조정해야 한다."
+      },
+      "primary_language": "open_figure",
+      "secondary_language": "a courtyard perimeter is cut open at its public threshold",
+      "formal_principle": "중정을 둘러싼 세 층의 테두리를 한쪽에서 깊게 열어 바깥마당과 안마당이 하나의 진입 순서를 이룬다.",
+      "dominant_gesture": "닫힌 중정에서 열리는 공공 문턱",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.52,
+          "storeys": 3,
+          "why": "외부와 내부를 모두 마주보는 실의 테두리를 세운다. 링의 팔이 지나치게 얇아지지 않게 실 깊이를 확인한다."
+        },
+        {
+          "op": "notch",
+          "size": 0.38,
+          "at": "open",
+          "why": "대지의 열린 방향에 테두리 일부를 걷어내 외부에서 중정으로 이어지는 문턱을 만든다. 실제 접도 확인 전에는 이 방향은 배치 가설이다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_terrace_lantern",
+      "design_argument_ko": {
+        "title": "지붕마당과 작은 공동실",
+        "spatial_strategy": "하부 몸의 지붕을 넓게 남기고 상부 공동실을 한쪽에 모은다.",
+        "tradeoff": "테라스 접근·피난·방수와 하부 큰 실의 구조 부담이 추가된다."
+      },
+      "primary_language": "solid_body",
+      "secondary_language": "a compact upper meeting room leaves a generous lower roof terrace",
+      "formal_principle": "낮은 공공층 위로 작은 주민 회의동을 모아 세우고 남는 넓은 지붕을 외부 활동의 여지로 남긴다.",
+      "dominant_gesture": "넓은 낮은 몸 위에 놓인 하나의 작은 등불",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 2,
+          "align": "back",
+          "height": 0.62,
+          "storeys": 2,
+          "why": "공공 영역과 조용한 회의 영역을 크기가 다른 두 덩어리로 나눈다. 법규에 따른 자동 계단 모양이 아니라 두 개의 계획된 몸으로 남아야 한다."
+        },
+        {
+          "op": "roof",
+          "rise": 0.8,
+          "eave": 0.12,
+          "corners": "opposite",
+          "sag": 0.18,
+          "thin": 0.12,
+          "on": "tier_1",
+          "why": "작은 상부 동에만 들린 처마를 두어 공동실의 표정을 만든다. 하부 테라스의 보행 접근과 난간은 매스 이후 과제이다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_forum_with_reading_room",
+      "design_argument_ko": {
+        "title": "포럼 속의 조용한 방",
+        "spatial_strategy": "넓은 공공 포럼 속 작은 방이 방향과 높이를 달리해 집중 공간을 만든다.",
+        "tradeoff": "포개진 볼륨의 접촉부와 실내 동선이 단순한 조형 효과에 머물지 않아야 한다."
+      },
+      "primary_language": "solid_body",
+      "secondary_language": "a rotated intimate room rises within a broad civic forum",
+      "formal_principle": "넓은 공공 포럼 안에 방향이 다른 작은 방을 포개어 집합과 집중의 두 공간을 한 건물에서 드러낸다.",
+      "dominant_gesture": "낮은 포럼과 그 안에서 돌아선 방",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.34,
+          "storeys": 2,
+          "why": "민원과 일상 활동이 이어질 낮은 포럼을 만든다. 지상층의 공공성은 내부 동선으로 후속 검증해야 한다."
+        },
+        {
+          "op": "nest",
+          "size": 0.46,
+          "proud": 0.7,
+          "turn": 28,
+          "why": "작은 조용한 방을 몸 안에 걸쳐 넣고 방향을 달리하여 위로 드러낸다. 접촉이 끊어지거나 무근거 부유 형상이 되면 기각한다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_linked_garden_houses",
+      "design_argument_ko": {
+        "title": "정원 사이 네 집",
+        "spatial_strategy": "작은 집 크기 공공실들을 낮게 연결해 여러 문턱과 사이 정원을 만든다.",
+        "tradeoff": "중복되는 복도·설비를 줄이면서 각 방의 독립 운영을 유지해야 한다."
+      },
+      "primary_language": "porous_field",
+      "secondary_language": "four unequal roofed houses share a low connecting floor",
+      "formal_principle": "작은 집 크기의 네 공공실을 낮은 연결부로 묶어 큰 청사의 규모를 주민이 드나드는 여러 문턱으로 나눈다.",
+      "dominant_gesture": "서로 다른 방향의 네 집과 사이 정원",
+      "floor_height_m": 3.6,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.5,
+          "turn": 18,
+          "tie": 0.2,
+          "height": 0.56,
+          "storeys": 3,
+          "why": "네 방의 방향을 달리하되 낮은 연결부로 접근을 공유한다. 빈틈이 실제로 머무를 폭인지 측정한다."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.65,
+          "bays": 1,
+          "along": "long",
+          "why": "각 방의 단면에 하나의 지붕만 부여해 독립된 방의 성격을 읽게 한다. 작은 박공 장식의 반복이 아니라 몸의 단면으로 보여야 한다."
+        }
+      ],
+      "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+    },
+    {
+      "name": "sangok_saddle_garden_room",
+      "primary_language": "carved_body",
+      "secondary_language": "one continuous low room around two unequal gardens beneath a saddle surface",
+      "formal_principle": "? ??? ???? ??? ??? ?? ???, ?? ??? ???? ?? ?? ?? ??? ????.",
+      "dominant_gesture": "? ?? ??? ?? ?? ?? ??",
+      "floor_height_m": 3.6,
+      "design_argument_ko": {
+        "title": "? ??? ??? ?",
+        "spatial_strategy": "?? ?? ??? ? ?? ??? ??? ??? ?? ??. ??? ??? ???? ? ?? ? ?? ??? ????.",
+        "tradeoff": "?? ??? ?????? ?? ?? ??? ??? ?? ?? ??? ???? ???."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "? ? ??? ??? ???? ??? ??? ????."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              [
+                [
+                  0.18,
+                  0.25
+                ],
+                [
+                  0.18,
+                  0.65
+                ],
+                [
+                  0.38,
+                  0.65
+                ],
+                [
+                  0.38,
+                  0.25
+                ],
+                [
+                  0.18,
+                  0.25
+                ]
+              ],
+              [
+                [
+                  0.61,
+                  0.32
+                ],
+                [
+                  0.61,
+                  0.76
+                ],
+                [
+                  0.84,
+                  0.76
+                ],
+                [
+                  0.84,
+                  0.32
+                ],
+                [
+                  0.61,
+                  0.32
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                0.78
+              ],
+              [
+                1,
+                0,
+                0.22
+              ],
+              [
+                0,
+                1,
+                0.22
+              ],
+              [
+                1,
+                1,
+                -0.44
+              ]
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "?? ?? ? ?? ? ??? ??? ?? ????. ??? ?? ??? ?? ???? ?? ?? ??? ????????? ??? ??."
+        }
+      ],
+      "reference_basis": "Codex ??. ??? ??? ??1 ???? ??; ?? ?????? ???."
+    },
+    {
+      "name": "sangok_civic_roof_fold",
+      "primary_language": "solid_body",
+      "secondary_language": "a compact folded civic hall overlooks a broad community terrace",
+      "formal_principle": "?? ??? ? ???? ?? ??? ??? ??? ?? ?? ?? ????? ????? ??? ???.",
+      "dominant_gesture": "?? ?? ??? ?? ???",
+      "floor_height_m": 3.6,
+      "design_argument_ko": {
+        "title": "??? ?? ?? ???",
+        "spatial_strategy": "?? ???? ?? ?? ???? ?? ??? ??? ?? ??? ?? ?? ??? ????.",
+        "tradeoff": "?? ?? ??? ??? ??? ?? ?? ??? ?? ???? ??."
+      },
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 2.4,
+          "align": "back",
+          "height": 0.56,
+          "storeys": 2,
+          "why": "??? ?? ? ?? ??? ?? ????? ??? ?? ??? ??? ???."
+        },
+        {
+          "op": "shape",
+          "on": "tier_1",
+          "top_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0,
+                0.75
+              ],
+              [
+                0.3,
+                1
+              ],
+              [
+                1,
+                0.65
+              ]
+            ],
+            "axis": [
+              1,
+              0
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "why": "?? ???? ???? ? ? ?? ??? ??. ??? ??? ??? ??? ??? ?? ?? ?? ? ?? ??? ????."
+        }
+      ],
+      "reference_basis": "Codex ??. ??? ??? ??1 ???? ??; ?? ???? ?? ?????? ???."
+    }
+  ]
+}

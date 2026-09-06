@@ -1,0 +1,35 @@
+
+=== 1. brief - the author writes knowing what the last jury said ===
+
+=== 2. author - 18 sentences into inputs/gen-review.json ===
+inputs/gen-review.json exists - riding the book that is already there
+
+=== 3. validate - unknown words, out-of-range parameters, duplicate ideas ===
+
+=== 4. run - execute, vary, grow, fit, gate, select ===
+
+=== 5. BOOK - the catalogue graph explores, and its masses come to this parcel ===
+stub worker completed
+
+=== 6. stage - anonymous tiles for both rounds ===
+
+=== 7. jury - three blind jurors per round ===
+
+=== 8. score - anchors correct session drift ===
+
+=== 9. curate - one seat per family, one reserved per part-to-whole position ===
+
+=== 10. bake - the board is redrawn from the seats ===
+
+=== 11. sheet - three schemes with their arguments ===
+stub worker completed
+
+=== 12. develop - the top seat is grown, not replaced ===
+stub worker completed
+next: judge the pairs in runs/develop-*/pairs, then tools/develop.py --score
+
+=== cycle complete ===
+board:  /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/workspace/runs/board/board.html
+sheet:  /d/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/diagnostics/review-20260906/harness/authored_top/workspace/runs/study-review/study.html
+publish the sheet yourself; a cycle that republishes would overwrite a
+sheet somebody is reading.

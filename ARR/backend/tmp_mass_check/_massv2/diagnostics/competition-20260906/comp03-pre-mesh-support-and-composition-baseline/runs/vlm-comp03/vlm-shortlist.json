@@ -1,0 +1,35 @@
+[
+ {
+  "tile": "t02",
+  "score": 3.93,
+  "corrected": 3.93,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+  "coverage_pct": 32.2,
+  "shape_id": "8cea48dc1e0f41f8f3da",
+  "certificate_id": "663a45dc906ad1be2503"
+ },
+ {
+  "tile": "t01",
+  "score": 3.53,
+  "corrected": 3.53,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c03_three_houses_common_ground~full_ground^centred",
+  "coverage_pct": 26.9,
+  "shape_id": "b8d88d8ec599faea1d32",
+  "certificate_id": "868acae822608238f08d"
+ },
+ {
+  "tile": "t03",
+  "score": 3.43,
+  "corrected": 3.43,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c03_hall_and_daily_street~worked_ground^to_open",
+  "coverage_pct": 38.9,
+  "shape_id": "9f49a54d14665783d24e",
+  "certificate_id": "f0ad84475e4dd0c74525"
+ }
+]

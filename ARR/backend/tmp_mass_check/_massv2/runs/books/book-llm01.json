@@ -1,0 +1,455 @@
+{
+ "book_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-llm01",
+ "entries": {
+  "book:book-llm01:morph-compact-low:creative-001": {
+   "trace": "book-llm01:morph-compact-low:creative-001",
+   "thesis": "morph-compact-low - expand (expand)",
+   "verbs": [
+    "expand"
+   ],
+   "height_m": 14.01,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 2973.79,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-002": {
+   "trace": "book-llm01:morph-voided-low:creative-002",
+   "thesis": "morph-voided-low - extrude (extrude)",
+   "verbs": [
+    "extrude"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 477.83,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-003": {
+   "trace": "book-llm01:morph-voided-low:creative-003",
+   "thesis": "morph-voided-low - inflate (inflate)",
+   "verbs": [
+    "inflate"
+   ],
+   "height_m": 15.32,
+   "footprint_m2": 974.94,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-004": {
+   "trace": "book-llm01:morph-voided-mid:creative-004",
+   "thesis": "morph-voided-mid - branch (branch)",
+   "verbs": [
+    "branch"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 746.2,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-005": {
+   "trace": "book-llm01:morph-voided-mid:creative-005",
+   "thesis": "morph-voided-mid - merge (merge)",
+   "verbs": [
+    "merge"
+   ],
+   "height_m": 16.66,
+   "footprint_m2": 983.54,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-006": {
+   "trace": "book-llm01:morph-voided-low:creative-006",
+   "thesis": "morph-voided-low - nest (nest)",
+   "verbs": [
+    "nest"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 582.12,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-low:creative-007": {
+   "trace": "book-llm01:morph-compact-low:creative-007",
+   "thesis": "morph-compact-low - offset (offset)",
+   "verbs": [
+    "offset"
+   ],
+   "height_m": 14.52,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 4252.26,
+   "program": null
+  },
+  "book:book-llm01:morph-curved-low:creative-008": {
+   "trace": "book-llm01:morph-curved-low:creative-008",
+   "thesis": "morph-curved-low - bend (bend)",
+   "verbs": [
+    "bend"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 668.63,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-009": {
+   "trace": "book-llm01:morph-voided-low:creative-009",
+   "thesis": "morph-voided-low - skew (skew)",
+   "verbs": [
+    "skew"
+   ],
+   "height_m": 16.66,
+   "footprint_m2": 690.31,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-010": {
+   "trace": "book-llm01:morph-voided-mid:creative-010",
+   "thesis": "morph-voided-mid - split (split)",
+   "verbs": [
+    "split"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 525.98,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-curved-tall:creative-011": {
+   "trace": "book-llm01:morph-curved-tall:creative-011",
+   "thesis": "morph-curved-tall - twist (twist)",
+   "verbs": [
+    "twist"
+   ],
+   "height_m": 15.32,
+   "footprint_m2": 1078.03,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-tall:creative-012": {
+   "trace": "book-llm01:morph-voided-tall:creative-012",
+   "thesis": "morph-voided-tall - interlock (interlock)",
+   "verbs": [
+    "interlock"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 1029.29,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-low:creative-013": {
+   "trace": "book-llm01:morph-compact-low:creative-013",
+   "thesis": "morph-compact-low - intersect (intersect)",
+   "verbs": [
+    "intersect"
+   ],
+   "height_m": 15.94,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 4379.03,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-014": {
+   "trace": "book-llm01:morph-voided-low:creative-014",
+   "thesis": "morph-voided-low - lift (lift)",
+   "verbs": [
+    "lift"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 472.53,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-015": {
+   "trace": "book-llm01:morph-voided-mid:creative-015",
+   "thesis": "morph-voided-mid - lodge (lodge)",
+   "verbs": [
+    "lodge"
+   ],
+   "height_m": 15.32,
+   "footprint_m2": 919.76,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-016": {
+   "trace": "book-llm01:morph-voided-low:creative-016",
+   "thesis": "morph-voided-low - overlap (overlap)",
+   "verbs": [
+    "overlap"
+   ],
+   "height_m": 24.7,
+   "footprint_m2": 519.23,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-bridge-low:creative-017": {
+   "trace": "book-llm01:morph-bridge-low:creative-017",
+   "thesis": "morph-bridge-low - rotate (rotate)",
+   "verbs": [
+    "rotate"
+   ],
+   "height_m": 15.38,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 3927.91,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-018": {
+   "trace": "book-llm01:morph-voided-low:creative-018",
+   "thesis": "morph-voided-low - shift (shift)",
+   "verbs": [
+    "shift"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 550.33,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-mid:creative-019": {
+   "trace": "book-llm01:morph-compact-mid:creative-019",
+   "thesis": "morph-compact-mid - carve (carve)",
+   "verbs": [
+    "carve"
+   ],
+   "height_m": 15.28,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 4952.1,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-020": {
+   "trace": "book-llm01:morph-voided-low:creative-020",
+   "thesis": "morph-voided-low - compress (compress)",
+   "verbs": [
+    "compress"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 968.72,
+   "floor_area_m2": 4361.82,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-021": {
+   "trace": "book-llm01:morph-voided-low:creative-021",
+   "thesis": "morph-voided-low - fracture (fracture)",
+   "verbs": [
+    "fracture"
+   ],
+   "height_m": 16.66,
+   "footprint_m2": 919.12,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-022": {
+   "trace": "book-llm01:morph-voided-mid:creative-022",
+   "thesis": "morph-voided-mid - grade (grade)",
+   "verbs": [
+    "grade"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 238.57,
+   "floor_area_m2": 4169.69,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-023": {
+   "trace": "book-llm01:morph-voided-mid:creative-023",
+   "thesis": "morph-voided-mid - notch (notch)",
+   "verbs": [
+    "notch"
+   ],
+   "height_m": 12.38,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 2638.48,
+   "program": null
+  },
+  "book:book-llm01:morph-curved-mid:creative-024": {
+   "trace": "book-llm01:morph-curved-mid:creative-024",
+   "thesis": "morph-curved-mid - pinch (pinch)",
+   "verbs": [
+    "pinch"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 1087.13,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-low:creative-025": {
+   "trace": "book-llm01:morph-compact-low:creative-025",
+   "thesis": "morph-compact-low - shear (shear)",
+   "verbs": [
+    "shear"
+   ],
+   "height_m": 16.66,
+   "footprint_m2": 1008.77,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-026": {
+   "trace": "book-llm01:morph-voided-mid:creative-026",
+   "thesis": "morph-voided-mid - taper (taper)",
+   "verbs": [
+    "taper"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 166.59,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-027": {
+   "trace": "book-llm01:morph-voided-low:creative-027",
+   "thesis": "morph-voided-low - embed (embed)",
+   "verbs": [
+    "embed"
+   ],
+   "height_m": 13.55,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 3457.84,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-028": {
+   "trace": "book-llm01:morph-voided-mid:creative-028",
+   "thesis": "morph-voided-mid - extract (extract)",
+   "verbs": [
+    "extract"
+   ],
+   "height_m": 21.84,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 3472.75,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-tall:creative-029": {
+   "trace": "book-llm01:morph-voided-tall:creative-029",
+   "thesis": "morph-voided-tall - inscribe (inscribe)",
+   "verbs": [
+    "inscribe"
+   ],
+   "height_m": 12.7,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 2212.67,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-030": {
+   "trace": "book-llm01:morph-voided-low:creative-030",
+   "thesis": "morph-voided-low - puncture (puncture)",
+   "verbs": [
+    "puncture"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 652.8,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-low:creative-031": {
+   "trace": "book-llm01:morph-compact-low:creative-031",
+   "thesis": "morph-compact-low - inscribe, inscribe (inscribe+inscribe)",
+   "verbs": [
+    "inscribe",
+    "inscribe"
+   ],
+   "height_m": 15.32,
+   "footprint_m2": 1075.79,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-032": {
+   "trace": "book-llm01:morph-voided-low:creative-032",
+   "thesis": "morph-voided-low - intersect, intersect (intersect+intersect)",
+   "verbs": [
+    "intersect",
+    "intersect"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 181.17,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-033": {
+   "trace": "book-llm01:morph-voided-mid:creative-033",
+   "thesis": "morph-voided-mid - split, split (split+split)",
+   "verbs": [
+    "split",
+    "split"
+   ],
+   "height_m": 16.66,
+   "footprint_m2": 866.07,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-034": {
+   "trace": "book-llm01:morph-voided-low:creative-034",
+   "thesis": "morph-voided-low - embed, embed (embed+embed)",
+   "verbs": [
+    "embed",
+    "embed"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 177.82,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-035": {
+   "trace": "book-llm01:morph-voided-mid:creative-035",
+   "thesis": "morph-voided-mid - taper, taper (taper+taper)",
+   "verbs": [
+    "taper",
+    "taper"
+   ],
+   "height_m": 15.79,
+   "footprint_m2": 1119.84,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-curved-tall:creative-036": {
+   "trace": "book-llm01:morph-curved-tall:creative-036",
+   "thesis": "morph-curved-tall - bend, bend (bend+bend)",
+   "verbs": [
+    "bend",
+    "bend"
+   ],
+   "height_m": 22.47,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 3784.12,
+   "program": null
+  },
+  "book:book-llm01:morph-compact-tall:creative-037": {
+   "trace": "book-llm01:morph-compact-tall:creative-037",
+   "thesis": "morph-compact-tall - branch, branch (branch+branch)",
+   "verbs": [
+    "branch",
+    "branch"
+   ],
+   "height_m": 14.77,
+   "footprint_m2": 1123.41,
+   "floor_area_m2": 3484.15,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-038": {
+   "trace": "book-llm01:morph-voided-low:creative-038",
+   "thesis": "morph-voided-low - expand, expand (expand+expand)",
+   "verbs": [
+    "expand",
+    "expand"
+   ],
+   "height_m": 25.0,
+   "footprint_m2": 802.98,
+   "floor_area_m2": 4169.68,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-low:creative-039": {
+   "trace": "book-llm01:morph-voided-low:creative-039",
+   "thesis": "morph-voided-low - shift, shift (shift+shift)",
+   "verbs": [
+    "shift",
+    "shift"
+   ],
+   "height_m": 15.58,
+   "footprint_m2": 1002.0,
+   "floor_area_m2": 4993.57,
+   "program": null
+  },
+  "book:book-llm01:morph-voided-mid:creative-040": {
+   "trace": "book-llm01:morph-voided-mid:creative-040",
+   "thesis": "morph-voided-mid - notch, notch (notch+notch)",
+   "verbs": [
+    "notch",
+    "notch"
+   ],
+   "height_m": 24.65,
+   "footprint_m2": 692.72,
+   "floor_area_m2": 4993.57,
+   "program": null
+  }
+ }
+}

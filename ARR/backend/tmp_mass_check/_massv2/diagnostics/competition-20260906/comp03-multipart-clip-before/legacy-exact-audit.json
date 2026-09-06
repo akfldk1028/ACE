@@ -1,0 +1,42 @@
+[
+  {
+    "role": "flat",
+    "clip": false,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "flat",
+    "clip": true,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "court",
+    "clip": false,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "court",
+    "clip": true,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "shed",
+    "clip": false,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "shed",
+    "clip": true,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "typed",
+    "clip": false,
+    "exact_volume_signatures_and_footprint": true
+  },
+  {
+    "role": "typed",
+    "clip": true,
+    "exact_volume_signatures_and_footprint": true
+  }
+]

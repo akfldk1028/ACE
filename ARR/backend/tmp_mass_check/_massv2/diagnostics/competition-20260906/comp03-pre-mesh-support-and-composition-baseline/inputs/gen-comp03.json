@@ -1,0 +1,373 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex",
+  "site_pnu": "4115011300106840001",
+  "assumptions": [
+    "공공1 주민센터의 공공 공간 구성 연구. 확정 실별 면적표와 정원은 아직 없다.",
+    "지구단위계획 도면에 등록한 건축한계선과 차량불허 구간을 공통 법규 경로에서 적용한다. 보행 전면은 등록 도로면의 동북동 방향이며, 개별 출입문과 차량 진입 배치는 아직 설계하지 않았다.",
+    "growth=plan은 저작 높이를 면적 확보를 위해 늘리지 않는 설계 정책이다. 실제 층수·피난·주차·장애인 접근·구조는 별도 검증한다."
+  ],
+  "schemes": [
+    {
+      "name": "sangok_c03_descending_civic_court",
+      "primary_language": "open_figure",
+      "secondary_language": "a continuous three-sided house descends toward the open side of its civic court",
+      "formal_principle": "닫힌 높은 중정 대신 한 면 전체가 열린 마당을 만든다. 높은 업무공간에서 낮은 주민 활동실까지 지붕이 연속으로 내려오며 두 팔 끝에서 바깥과 연결된다.",
+      "dominant_gesture": "바깥으로 낮아지는 한 지붕과 열린 세 면의 마당",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "열린 마당을 향해 내려오는 집",
+        "spatial_strategy": "작은 모서리 노치 대신 동측을 향한 한 면 전체를 비운 C자 평면을 직접 저작한다. 뒤쪽 세 층에서 앞쪽 두 층으로 낮아지는 연속 지붕이 활동실과 업무영역의 위계를 만든다.",
+        "tradeoff": "공공 공간의 개방성을 위해 상부 면적을 줄인다. 경사 지붕은 보행 테라스가 아니며, 실별 채광과 상층 유효 높이·배수·피난을 후속 평면에서 검토해야 한다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "업무와 주민 활동을 담는 최대 세 층의 연속된 집을 바탕으로 삼는다. 다음 평면 저작에서 바깥과 이어진 큰 마당을 만들고 앞쪽 층의 높이를 낮춘다."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  0.25
+                ],
+                [
+                  0.28,
+                  0.25
+                ],
+                [
+                  0.28,
+                  0.75
+                ],
+                [
+                  1,
+                  0.75
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                1.0
+              ],
+              [
+                1,
+                0,
+                -0.33
+              ]
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "도로 쪽 외부 공간에서 집 안 마당으로 직접 들어갈 수 있도록 국부 x=1 면을 크게 열고, 그 방향으로 지붕을 두 층 높이까지 낮춘다. 방이 들어갈 두께의 세 팔을 하나로 이어 공간의 연속성을 유지한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp02의 조각난 낮은 팔 대신 하나의 BaseVolume 평면 영역·지붕 표면으로 열린 중정의 연속성을 저작한다. 실제 진입면 관계는 등록 필지에서 검증한다."
+    },
+    {
+      "name": "sangok_c03_open_and_quiet_gardens",
+      "primary_language": "carved_body",
+      "secondary_language": "one low saddle roof links an open arrival garden and an enclosed quiet garden",
+      "formal_principle": "서로 비슷하게 닫힌 두 중정을 입구와 이어진 열린 정원, 조용히 닫힌 빛마당으로 구분한다. 두 공간은 낮은 하나의 몸체와 완만한 지붕으로 이어진다.",
+      "dominant_gesture": "열린 정원에서 조용한 빛마당으로 이어지는 하나의 낮은 집",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "열린 정원과 조용한 빛마당",
+        "spatial_strategy": "첫 마당을 외부로 터서 진입 공간으로 만들고 둘째 마당은 내부 활동실의 빛과 전망으로 남긴다. 낮은 지붕의 완만한 단면 차이로 두 영역의 공용 공간을 연결한다.",
+        "tradeoff": "전면부를 비워 면적을 줄였으므로 실 배치와 운영 구획을 먼저 검토한다. 곡면의 배수·방수와 낮은 처마의 유효 높이도 확인해야 한다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "주민이 가까이 접근할 수 있는 두 층의 낮고 연속된 집을 바탕으로 둔다."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  0.43
+                ],
+                [
+                  0.76,
+                  0.43
+                ],
+                [
+                  0.76,
+                  0.26
+                ],
+                [
+                  0.54,
+                  0.26
+                ],
+                [
+                  0.54,
+                  0.72
+                ],
+                [
+                  0.76,
+                  0.72
+                ],
+                [
+                  0.76,
+                  0.56
+                ],
+                [
+                  1,
+                  0.56
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              [
+                [
+                  0.34,
+                  0.34
+                ],
+                [
+                  0.14,
+                  0.34
+                ],
+                [
+                  0.14,
+                  0.76
+                ],
+                [
+                  0.34,
+                  0.76
+                ],
+                [
+                  0.34,
+                  0.34
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                1.0
+              ],
+              [
+                1,
+                0,
+                -0.16
+              ],
+              [
+                0,
+                1,
+                -0.16
+              ],
+              [
+                1,
+                1,
+                0.32
+              ]
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "첫 마당을 외곽과 연결한 평면 영역으로 직접 저작하고 둘째 마당만 안에 남긴다. 지붕의 안장 변화는 완만하게 낮춰 과도한 곡면 효과보다 두 정원의 서로 다른 쓰임이 먼저 읽히게 한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01의 두 닫힌 중정에 대한 진입 동선 비평을 반영한 BaseVolume 평면 영역과 typed surface 저작."
+    },
+    {
+      "name": "sangok_c03_hall_and_daily_street",
+      "primary_language": "open_figure",
+      "secondary_language": "a calm office bar and a vaulted community hall frame one generous civic street",
+      "formal_principle": "일상 민원 업무와 함께 모이는 주민 활동의 단면을 구분한다. 지붕 장식의 반복을 줄이고 두 몸 사이의 공공 길이 공통 입구와 바깥 대기 공간을 만든다.",
+      "dominant_gesture": "평평한 업무동과 한 번 부풀린 주민 홀 사이의 공공 길",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "일상의 동과 모임의 홀 사이",
+        "spatial_strategy": "큰 몸을 서로 다른 크기의 두 동으로 나누고 사이에 넓은 길을 둔다. 주민 홀에만 낮은 볼트 단면을 부여해 반복되는 복잡한 지붕을 줄인다.",
+        "tradeoff": "두 동 사이의 우천 접근, 보안, 장애인 동선과 별도 피난을 풀어야 한다. 외부 공간을 늘린 만큼 실별 면적 수용과 운영 효율을 확인한다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "공공 업무와 주민 활동을 나눌 세 층의 바탕을 만든다. 과도한 수직 성장 없이 각 몸의 역할을 단면으로 구분한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "civic",
+          "second": "community",
+          "gap": 9.4,
+          "contrast": 1.4,
+          "why": "폭과 높이가 다른 두 동 사이에 공공 길을 충분히 벌린다. 차도라고 선언하지 않고 대기·만남·진입의 외부 공간으로 검토한다."
+        },
+        {
+          "op": "vault",
+          "on": "community",
+          "rise": 0.25,
+          "bays": 1,
+          "along": "long",
+          "why": "작은 주민 활동동에만 하나의 완만한 볼트를 씌워 모임의 단면을 드러낸다. 나머지 업무동의 평평한 높이와 대비시키며 실제 지붕 구조를 후속 검토한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01 다중 볼트의 과도한 지붕 분절을 줄이고 프로그램과 단면 관계를 명료하게 한다."
+    },
+    {
+      "name": "sangok_c03_three_houses_common_ground",
+      "primary_language": "open_figure",
+      "secondary_language": "three compact public houses address shared outdoor ground with one larger gathering hall",
+      "formal_principle": "서로 운영 시간이 다른 민원·모임·조용한 활동을 세 집으로 나누어 같은 지상 마당에서 접근하게 한다. 가장 큰 모임의 집만 둥근 지붕으로 강조하고 작은 두 집은 낮게 남긴다.",
+      "dominant_gesture": "공통 지상 마당에 각자의 문을 갖는 세 집",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "마당에서 만나는 세 공공의 집",
+        "spatial_strategy": "하나의 큰 기단을 없애고 크기가 다른 세 집을 지상에 둔다. 집 사이를 바깥 활동과 대기의 공간으로 남기며 큰 모임의 집은 하나의 볼트로 인지한다.",
+        "tradeoff": "분동은 독립 운영과 채광에 유리하지만 공용 시설의 중복, 외부 이동의 우천 접근, 보안·피난과 주차 배치를 함께 풀어야 한다. 실별 프로그램 확정 전의 세 운영 단위 가설이다."
+      },
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "height": 0.6,
+          "storeys": 3,
+          "spread": 1.5,
+          "tie": 0,
+          "profile": "chamfered",
+          "why": "세 운영 단위의 다른 규모를 세 집으로 나누되 바닥을 잇는 기단을 두지 않는다. 최대 세 층에서 두 층으로 낮아지는 크기 차이를 두고 집 사이 지상 공간이 실제로 남는지 최종 형상에서 확인한다."
+        },
+        {
+          "op": "vault",
+          "on": "object_0",
+          "rise": 0.35,
+          "bays": 1,
+          "along": "long",
+          "why": "사람들이 함께 모이는 가장 큰 집에만 한 번 솟는 단면을 부여해 마당에서 공용 홀을 알아볼 수 있게 한다. 작은 집까지 지붕 장식을 반복하지 않으며 실제 장스팬 구조와 실별 층 구성을 확인한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp02의 기단 위 상자에서 벗어나 운영 단위별 지상 접근과 공통 외부 공간의 관계를 실험한다."
+    }
+  ],
+  "authoring_site_axis": {
+    "registration_id": "gosan-public1-decision15-frontages-20260906",
+    "basis": "official_plan_road_frontages",
+    "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate",
+    "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+    "edge_indices_0_based": [
+      3,
+      4,
+      5
+    ],
+    "segments_local_m": [
+      [
+        [
+          46.434598230640404,
+          61.34179168846458
+        ],
+        [
+          76.16706880752463,
+          44.32430054806173
+        ]
+      ],
+      [
+        [
+          76.16706880752463,
+          44.32430054806173
+        ],
+        [
+          78.23247281974182,
+          36.59896623622626
+        ]
+      ],
+      [
+        [
+          78.23247281974182,
+          36.59896623622626
+        ],
+        [
+          57.298764832085,
+          0.0
+        ]
+      ]
+    ],
+    "reference_ring_is_ccw": false,
+    "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+    "source_pdf_page_1_based": 6,
+    "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+    "evidence_grade": "official_plan_registered",
+    "survey_verified": false,
+    "vehicle_access_permission": null,
+    "vehicle_access_status": "not_assessed_by_pedestrian_orientation",
+    "source_basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+    "direction_world_xy": [
+      0.9846758322859253,
+      0.1743946825795459
+    ],
+    "method": "length_weighted_outward_normals"
+  }
+}

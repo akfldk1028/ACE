@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_two_gardens~full_ground^cross_open",
+  "shape_id": "e0efd2fcf3269d302770",
+  "anonymous_image": false,
+  "image_footer": "sangok_c04_two_gardens~full_ground^cross_open | e0efd2fcf3269d302770 | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    662.8531209857738,
+    662.8531209857738
+  ],
+  "section_area_m2": 223.79503199839505,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "9d617366211a47d701553ba3b6f1e0ca7e4cd30b931c6d35a8be2ed4edff17b4"
+}

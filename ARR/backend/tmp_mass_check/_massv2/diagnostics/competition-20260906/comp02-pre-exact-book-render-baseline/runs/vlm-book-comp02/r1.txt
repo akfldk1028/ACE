@@ -1,0 +1,177 @@
+TILE t01
+CONCEPT 3 | The staggered courtyard enclosure is clear, though its small projections weaken the simple figure.
+FEASIBILITY 5 | Low stacked wings provide straightforward load paths and modest spans.
+SITE 3 | The sheltered court offers a civic space, but the perimeter does little with the angled parcel.
+EDITABILITY 4 | Orthogonal wings and differentiated heights can accept rooms and cores while retaining the court.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 3 | The crenellated stack is recognizable, but many similar cuts compete with a single governing idea.
+FEASIBILITY 4 | The offsets appear buildable, although repeated transfers and corners would raise cost.
+SITE 2 | A centrally placed tower leaves residual ground without giving the parcel a clear public frontage.
+EDITABILITY 3 | Numerous narrow projections and small slots complicate room depths and facade regularization.
+WEIGHTED 3.05
+
+TILE t03
+CONCEPT 3 | One rectangular courtyard gives the compact block a legible but familiar identity.
+FEASIBILITY 5 | Aligned walls and a regular vertical stack suggest economical construction.
+SITE 2 | The freestanding rectangle barely acknowledges the clipped boundary or identifies an inviting approach.
+EDITABILITY 4 | The stable perimeter accepts floors and cores, though the tall narrow void needs careful daylight development.
+WEIGHTED 3.50
+
+TILE t04
+CONCEPT 2 | The tapered prism is coherent but offers little memorable articulation beyond its footprint.
+FEASIBILITY 5 | A continuous grounded prism allows conventional structure without unusual transfers.
+SITE 4 | Its taper responds directly to the irregular parcel and establishes a substantial edge.
+EDITABILITY 5 | The broad uninterrupted envelope can absorb a practical grid, circulation and facade treatment.
+WEIGHTED 3.75
+
+TILE t05
+CONCEPT 3 | The irregular opening makes a recognizable carved block, but several little cuts dilute its clarity.
+FEASIBILITY 4 | Most walls stack directly; the interrupted upper connections need localized transfer design.
+SITE 2 | Its compact upright placement leaves generic margins and no clearly formed public forecourt.
+EDITABILITY 3 | The pinched upper void and uneven wing widths constrain circulation and consistent room planning.
+WEIGHTED 3.05
+
+TILE t06
+CONCEPT 3 | The sliding stack is easy to read, although the very small shifts produce a restrained silhouette.
+FEASIBILITY 4 | The modest progressive offsets are plausible with ordinary cantilever and transfer detailing.
+SITE 2 | The stepped tower remains detached from the parcel geometry and does not shape an obvious gathering place.
+EDITABILITY 4 | Broad overlapping plates leave room for cores while preserving the offset sequence.
+WEIGHTED 3.25
+
+TILE t07
+CONCEPT 3 | The cruciform extrusion is immediately legible but remains a generic geometric emblem.
+FEASIBILITY 5 | Continuous vertical wings can use a simple repetitive structure.
+SITE 2 | The symmetrical cross treats the irregular parcel as a neutral setting.
+EDITABILITY 5 | A central core and repeatable wings could be developed without changing the basic figure.
+WEIGHTED 3.70
+
+TILE t08
+CONCEPT 2 | Shallow roof strips make a weak formal distinction within an otherwise ordinary box.
+FEASIBILITY 5 | The low compact block and small roof changes appear straightforward to construct.
+SITE 2 | The rectangular footprint and evenly residual setbacks offer little specific response to the site.
+EDITABILITY 4 | The main block accommodates practical floors easily, though facade work may visually absorb the subtle roof distinctions.
+WEIGHTED 3.15
+
+TILE t09
+CONCEPT 3 | Two long wings and a lower connecting bar make a clear, calm courtyard composition.
+FEASIBILITY 5 | Regular low wings and a grounded connecting bar suggest conventional construction.
+SITE 4 | The open-ended court creates a useful relationship between enclosure and the surrounding open ground.
+EDITABILITY 4 | Consistent linear wings allow room planning while the low connector can organize shared circulation.
+WEIGHTED 3.90
+
+TILE t10
+CONCEPT 3 | The tall U-shaped enclosure is clear, with a secondary elevated opening adding some spatial interest.
+FEASIBILITY 4 | Most of the mass stacks directly, with a localized transfer needed above the side opening.
+SITE 3 | The court opens toward a site margin, although its height makes the approach feel relatively confined.
+EDITABILITY 4 | Substantial wings can take cores and floors while retaining the principal opening and court.
+WEIGHTED 3.45
+
+TILE t11
+CONCEPT 3 | The stepped U maintains a clear courtyard figure with a restrained change of scale.
+FEASIBILITY 5 | Upper wings sit on broader lower masses, giving credible direct support.
+SITE 3 | The open court and setbacks soften the volume, but the shape is only loosely connected to the parcel edges.
+EDITABILITY 3 | Narrow upper wings leave limited depth for rooms and circulation around the court.
+WEIGHTED 3.50
+
+TILE t12
+CONCEPT 1 | The almost unmodified rectangular block has no distinguishing formal idea visible in the mass.
+FEASIBILITY 5 | A compact aligned block is highly compatible with economical conventional structure.
+SITE 2 | Its placement leaves open ground but neither frames it nor responds to the angled edges.
+EDITABILITY 5 | The simple uninterrupted volume provides substantial freedom for floors, cores and facade development.
+WEIGHTED 3.00
+
+TILE t13
+CONCEPT 4 | The curved open ring and shifting bands form a memorable sculptural silhouette.
+FEASIBILITY 4 | The moderate offsets look achievable, with curved construction and changing alignments adding cost.
+SITE 3 | The opening offers a recognizable approach and court, while the circular figure largely ignores the parcel.
+EDITABILITY 3 | Changing curved wing positions and narrow tips make repeated room layouts and vertical circulation less easy.
+WEIGHTED 3.60
+
+TILE t14
+CONCEPT 4 | The broad stair-step silhouette gives the building a strong, readable terrace concept.
+FEASIBILITY 5 | Successively smaller upper volumes have clear support from the levels beneath.
+SITE 4 | The descent creates a low approachable end and usable terraces while concentrating height at the other end.
+EDITABILITY 5 | A stable taller end can accommodate circulation, and the terraces remain legible after detailed planning.
+WEIGHTED 4.45
+
+TILE t15
+CONCEPT 2 | The small tower on a low plinth is readable but too generic to establish a strong civic identity.
+FEASIBILITY 5 | Both volumes appear directly supported with simple structural spans.
+SITE 2 | The isolated composition neither follows the site edges nor shapes a distinctive outdoor room.
+EDITABILITY 4 | The plinth and tower can be planned conventionally, though the small upper footprint limits flexibility.
+WEIGHTED 3.15
+
+TILE t16
+CONCEPT 3 | The nested stepped volumes express an unambiguous but familiar terrace figure.
+FEASIBILITY 5 | Each smaller volume is supported by a larger level below, allowing straightforward construction.
+SITE 3 | The low scale and terraces suit a community setting, but the rectangular nesting has little parcel specificity.
+EDITABILITY 5 | Aligned compact floor plates readily accept a core while preserving the stepped profile.
+WEIGHTED 3.90
+
+TILE t17
+CONCEPT 3 | The tall thin U is a strong enclosure, though its uninterrupted extrusion offers little further differentiation.
+FEASIBILITY 5 | The continuous grounded wings do not require unusual transfers or unsupported spans.
+SITE 3 | A large open court is clearly formed, but tall enclosing walls give it a severe scale.
+EDITABILITY 2 | Very narrow wings appear difficult to fit with rooms, circulation and cores without thickening the defining figure.
+WEIGHTED 3.30
+
+TILE t18
+CONCEPT 4 | The splayed fingers establish a clear fan-like composition with distinct spaces between wings.
+FEASIBILITY 4 | The grounded bars and limited offsets are plausible, with some complexity at their convergence.
+SITE 4 | The spreading wings engage a wider frontage and create several routes into the open site.
+EDITABILITY 3 | Straight outer portions are usable, but acute junctions and tapering gaps complicate circulation and room planning.
+WEIGHTED 3.80
+
+TILE t19
+CONCEPT 2 | The corner notch and partial undercut give only a weak identity to the dominant rectangular block.
+FEASIBILITY 4 | The supports look credible, with a localized transfer required over the recessed lower portion.
+SITE 2 | The undercut offers some shelter, but the volume otherwise has little relationship to parcel shape or outdoor space.
+EDITABILITY 4 | A broad regular upper block remains adaptable, with the recessed level requiring more careful core placement.
+WEIGHTED 2.90
+
+TILE t20
+CONCEPT 3 | The jagged front is memorable, but its many teeth obscure the quieter terraced idea behind it.
+FEASIBILITY 3 | Discontinuous jagged stacks introduce repeated local transfers and bespoke junctions without a clear structural rhythm.
+SITE 2 | The spiky frontage does not make a convincing relationship to the broad open ground or angled boundary.
+EDITABILITY 2 | Numerous acute corners and shifting pieces would be difficult to regularize without substantially changing the image.
+WEIGHTED 2.60
+
+TILE t21
+CONCEPT 3 | The low courtyard block has a clear main void, though the second small hole adds limited formal value.
+FEASIBILITY 5 | Compact aligned walls and low height support a straightforward structural solution.
+SITE 3 | The court and moderate height give useful civic scale, but the outer rectangle has little response to the parcel.
+EDITABILITY 5 | A substantial regular perimeter can accommodate rooms and cores while preserving the main courtyard.
+WEIGHTED 3.90
+
+TILE t22
+CONCEPT 4 | The open curved ring makes a strong, memorable civic enclosure despite a few distracting small cuts.
+FEASIBILITY 4 | The continuous grounded ring is structurally plausible, with curvature adding manageable construction complexity.
+SITE 4 | Its broad opening and central outdoor room create a clear public address at a moderate scale.
+EDITABILITY 4 | A consistent curved band can accept repeated bays and cores while keeping the enclosure legible.
+WEIGHTED 4.00
+
+TILE t23
+CONCEPT 4 | The rounded hinge and splayed slot give the tall mass a distinctive, coherent gesture.
+FEASIBILITY 3 | Large alternating end recesses require substantial transfers and careful support of the projecting upper portions.
+SITE 3 | The open slot creates an address, but its depth and tall enclosure limit the generosity of the ground relationship.
+EDITABILITY 3 | Tapered wings and alternating cutbacks restrict consistent circulation and room layouts through the stack.
+WEIGHTED 3.35
+
+TILE t24
+CONCEPT 3 | Two substantial wings and their cross-connection make a clear but familiar H-shaped composition.
+FEASIBILITY 5 | Broad vertically aligned masses provide credible and economical load paths.
+SITE 3 | The spaces between the wings break down the perimeter, though their relation to the irregular edges is limited.
+EDITABILITY 4 | Consistent wing depths and a connecting zone can accommodate practical rooms and circulation.
+WEIGHTED 3.70
+
+TILE t25
+CONCEPT 2 | The shifted rectangular volumes are understandable but create only a modestly distinctive silhouette.
+FEASIBILITY 5 | A broad grounded block with continuous walls should be straightforward to build.
+SITE 3 | Its extent helps define site edges, although the small notches do not establish a strong civic outdoor space.
+EDITABILITY 5 | Generous regular floor areas leave considerable freedom for cores, rooms and facade treatment.
+WEIGHTED 3.55
+
+RANKING: t14, t22, t09, t21, t16, t18, t04, t01, t24, t07, t13, t25, t03, t11, t10, t23, t17, t06, t08, t15, t05, t02, t12, t19, t20
+VERDICT: I would advance t14 and t22 for their legible spatial ideas, credible construction and useful civic scale. I would retain t09, t21 and t16 as practical reserves, with t18 deserving further study of its converging wings. The strongest entries make usable terraces or courts, while the weakest either remain generic blocks or rely on fragmentation that would be difficult to carry into detailed design.

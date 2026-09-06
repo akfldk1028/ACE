@@ -1,0 +1,18 @@
+{
+  "name": "court_quiet_terrace__creative_physical",
+  "shape_id": "c0dea7652032cd1705c1",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.63299043493595
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    501.1298648807454,
+    501.1298649708932
+  ],
+  "section_area_m2": 420.6944470363213,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "f1761b2e4172022d1741bfe6ddf7ac308e894f9c4e99c1801b6259ab77ea767a"
+}

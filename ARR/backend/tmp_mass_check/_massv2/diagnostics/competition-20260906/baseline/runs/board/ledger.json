@@ -1,0 +1,410 @@
+[
+ {
+  "track": "O",
+  "name": "spine_vault_arcade~dispersed_ground^to_open",
+  "score": 4.65,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "b9a99bd06c055a7d"
+ },
+ {
+  "track": "O",
+  "name": "spine_vault_arcade~dispersed_ground^centred",
+  "score": 4.47,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "8ae51e02539470ff"
+ },
+ {
+  "track": "O",
+  "name": "ring_warped_roofs~worked_ground^cross_open",
+  "score": 4.2,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "bc41bd79f6b43197"
+ },
+ {
+  "track": "O",
+  "name": "loop_shift_butterfly~full_ground^off_open",
+  "score": 4.04,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "44c9c211dd3e374a"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-005",
+  "score": 3.97,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "6b8ad5731c0177df"
+ },
+ {
+  "track": "O",
+  "name": "lodge_bridge_spine^centred",
+  "score": 3.97,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "3e6ce1b740b78497"
+ },
+ {
+  "track": "O",
+  "name": "ring_warped_roofs~held_ground^cross_open",
+  "score": 3.97,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "100ff251a77ca4df"
+ },
+ {
+  "track": "O",
+  "name": "intersecting_bars_cross~full_ground^to_open",
+  "score": 3.9,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "50efd0a38b10d698"
+ },
+ {
+  "track": "O",
+  "name": "cascade_ramp_tower~held_ground^centred",
+  "score": 3.75,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "f0103e1b4ba7d553"
+ },
+ {
+  "track": "O",
+  "name": "lifted_ring_fold~held_ground",
+  "score": 3.74,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "5ab85b5c5347ea13"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-033",
+  "score": 3.68,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "2ac0ce21f783c628"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-low:creative-025",
+  "score": 3.67,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "57f362adc99f18a6"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-tall:creative-012",
+  "score": 3.65,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "dda74e5c6e177602"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-bridge-low:creative-017",
+  "score": 3.62,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "d556ff090d4ab5b3"
+ },
+ {
+  "track": "O",
+  "name": "cascade_ramp_tower~full_ground^off_open",
+  "score": 3.62,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "6f4539caceef9f63"
+ },
+ {
+  "track": "O",
+  "name": "lifted_ring_fold~worked_ground^centred",
+  "score": 3.62,
+  "pass": true,
+  "round": "vlm-agent08",
+  "shape_id": "a4e90027ef3987df"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-003",
+  "score": 3.57,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "dcacfd1c28259f3b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-028",
+  "score": 3.55,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "3e38014d1b3e1218"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-low:creative-031",
+  "score": 3.53,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "f37bd90083c9c67e"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-038",
+  "score": 3.53,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "d8f9296c8a836a4b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-curved-tall:creative-036",
+  "score": 3.5,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "be37e3530b659a62"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-015",
+  "score": 3.5,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "824f6358b7e2d6de"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-022",
+  "score": 3.5,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "05d92efd406aa65b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-low:creative-001",
+  "score": 3.43,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "1979ac531c048c08"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-009",
+  "score": 3.4,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "4d826b36e2544eee"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-018",
+  "score": 3.4,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "d9b5c683ee72e60b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-035",
+  "score": 3.37,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "fabd161873fc5fad"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-039",
+  "score": 3.35,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "9409bcf21fbe1f9f"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-curved-mid:creative-024",
+  "score": 3.33,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "dfe809259d6f59fa"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-010",
+  "score": 3.33,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "28c4eb11c9b2daba"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-040",
+  "score": 3.3,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "c8b7f7b2836e69ef"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-low:creative-013",
+  "score": 3.27,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "0212335d0cb72824"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-006",
+  "score": 3.25,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "fe78c5d4de8396e9"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-026",
+  "score": 3.22,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "0918b897815816a2"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-020",
+  "score": 3.2,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "113a9a785e191db6"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-tall:creative-029",
+  "score": 3.2,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "218026d9d816e5fe"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-032",
+  "score": 3.12,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "39c171243c374e20"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-004",
+  "score": 3.05,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "4eb0644b064dc914"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-016",
+  "score": 3.0,
+  "pass": true,
+  "round": "vlm-book-llm01",
+  "shape_id": "e5a639491b573bff"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-014",
+  "score": 2.93,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "19f4af0848b3f34a"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-low:creative-007",
+  "score": 2.92,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "80c7968e891466e8"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-027",
+  "score": 2.9,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "cdd8b7ba5aca87ae"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-021",
+  "score": 2.88,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "f29a5980b8627809"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-034",
+  "score": 2.85,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "952bf89c6b41d5bf"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-030",
+  "score": 2.83,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "cfe998a62fe53674"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-tall:creative-037",
+  "score": 2.8,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "d6f1b7007508aa09"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-curved-low:creative-008",
+  "score": 2.73,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "8b44deeef06c9441"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-curved-tall:creative-011",
+  "score": 2.72,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "77d82b0db55ce4e3"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-low:creative-002",
+  "score": 2.6,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "dfbc53e88bbce1c5"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-compact-mid:creative-019",
+  "score": 2.58,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "53996dfd6e31e5ce"
+ },
+ {
+  "track": "O",
+  "name": "book:book-llm01:morph-voided-mid:creative-023",
+  "score": 2.48,
+  "pass": false,
+  "round": "vlm-book-llm01",
+  "shape_id": "81336542d0ca0950"
+ }
+]

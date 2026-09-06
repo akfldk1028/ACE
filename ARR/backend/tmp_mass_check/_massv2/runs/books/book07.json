@@ -1,0 +1,698 @@
+{
+ "book_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book07",
+ "entries": {
+  "book:book:bent:creative-001": {
+   "trace": "book:bent:creative-001",
+   "thesis": "bent - inflate (inflate)",
+   "verbs": [
+    "inflate"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 314.71,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-002": {
+   "trace": "book:carved_void:creative-002",
+   "thesis": "carved void - branch (branch)",
+   "verbs": [
+    "branch"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 302.46,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-003": {
+   "trace": "book:courtyard:creative-003",
+   "thesis": "courtyard - merge (merge)",
+   "verbs": [
+    "merge"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 267.94,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-004": {
+   "trace": "book:cross:creative-004",
+   "thesis": "cross - offset (offset)",
+   "verbs": [
+    "offset"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 287.92,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-005": {
+   "trace": "book:grid:creative-005",
+   "thesis": "grid - bend (bend)",
+   "verbs": [
+    "bend"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 350.8,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-006": {
+   "trace": "book:inflated:creative-006",
+   "thesis": "inflated - nest (nest)",
+   "verbs": [
+    "nest"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 0.13,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-007": {
+   "trace": "book:notch:creative-007",
+   "thesis": "notch - skew (skew)",
+   "verbs": [
+    "skew"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 269.31,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-008": {
+   "trace": "book:radial:creative-008",
+   "thesis": "radial - split (split)",
+   "verbs": [
+    "split"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 232.41,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-009": {
+   "trace": "book:split_wing:creative-009",
+   "thesis": "split wing - twist (twist)",
+   "verbs": [
+    "twist"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 355.22,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-010": {
+   "trace": "book:stepped:creative-010",
+   "thesis": "stepped - intersect (intersect)",
+   "verbs": [
+    "intersect"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 299.58,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-011": {
+   "trace": "book:triangular_shard:creative-011",
+   "thesis": "triangular shard - interlock (interlock)",
+   "verbs": [
+    "interlock"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 266.87,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-012": {
+   "trace": "book:oblique_crystal:creative-012",
+   "thesis": "oblique crystal - lift (lift)",
+   "verbs": [
+    "lift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 221.78,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-013": {
+   "trace": "book:thin_disc_cluster:creative-013",
+   "thesis": "thin disc cluster - lodge (lodge)",
+   "verbs": [
+    "lodge"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 93.55,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-014": {
+   "trace": "book:interlocking_tilted_discs:creative-014",
+   "thesis": "interlocking tilted discs - carve (carve)",
+   "verbs": [
+    "carve"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 28.53,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-015": {
+   "trace": "book:long_span_bridge:creative-015",
+   "thesis": "long span bridge - overlap (overlap)",
+   "verbs": [
+    "overlap"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 134.52,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-016": {
+   "trace": "book:bent:creative-016",
+   "thesis": "bent - rotate (rotate)",
+   "verbs": [
+    "rotate"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 328.14,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-017": {
+   "trace": "book:carved_void:creative-017",
+   "thesis": "carved void - inscribe, inscribe (inscribe+inscribe)",
+   "verbs": [
+    "inscribe",
+    "inscribe"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 209.7,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-018": {
+   "trace": "book:courtyard:creative-018",
+   "thesis": "courtyard - shift (shift)",
+   "verbs": [
+    "shift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 199.72,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-019": {
+   "trace": "book:cross:creative-019",
+   "thesis": "cross - fracture (fracture)",
+   "verbs": [
+    "fracture"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 452.06,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-020": {
+   "trace": "book:grid:creative-020",
+   "thesis": "grid - compress (compress)",
+   "verbs": [
+    "compress"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 484.12,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-021": {
+   "trace": "book:inflated:creative-021",
+   "thesis": "inflated - notch (notch)",
+   "verbs": [
+    "notch"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 179.81,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-022": {
+   "trace": "book:notch:creative-022",
+   "thesis": "notch - grade (grade)",
+   "verbs": [
+    "grade"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 206.49,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-023": {
+   "trace": "book:radial:creative-023",
+   "thesis": "radial - shear (shear)",
+   "verbs": [
+    "shear"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 481.86,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-024": {
+   "trace": "book:split_wing:creative-024",
+   "thesis": "split wing - pinch (pinch)",
+   "verbs": [
+    "pinch"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 416.54,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-025": {
+   "trace": "book:stepped:creative-025",
+   "thesis": "stepped - embed (embed)",
+   "verbs": [
+    "embed"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 327.88,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-026": {
+   "trace": "book:triangular_shard:creative-026",
+   "thesis": "triangular shard - taper (taper)",
+   "verbs": [
+    "taper"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 204.31,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-027": {
+   "trace": "book:oblique_crystal:creative-027",
+   "thesis": "oblique crystal - inscribe (inscribe)",
+   "verbs": [
+    "inscribe"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 504.16,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-028": {
+   "trace": "book:thin_disc_cluster:creative-028",
+   "thesis": "thin disc cluster - extract (extract)",
+   "verbs": [
+    "extract"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 102.48,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-029": {
+   "trace": "book:interlocking_tilted_discs:creative-029",
+   "thesis": "interlocking tilted discs - branch, branch (branch+branch)",
+   "verbs": [
+    "branch",
+    "branch"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 33.67,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-030": {
+   "trace": "book:long_span_bridge:creative-030",
+   "thesis": "long span bridge - puncture (puncture)",
+   "verbs": [
+    "puncture"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 175.97,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-031": {
+   "trace": "book:bent:creative-031",
+   "thesis": "bent - intersect, intersect (intersect+intersect)",
+   "verbs": [
+    "intersect",
+    "intersect"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 241.07,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-032": {
+   "trace": "book:carved_void:creative-032",
+   "thesis": "carved void - shift, shift (shift+shift)",
+   "verbs": [
+    "shift",
+    "shift"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 224.72,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-033": {
+   "trace": "book:courtyard:creative-033",
+   "thesis": "courtyard - split, split (split+split)",
+   "verbs": [
+    "split",
+    "split"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 308.12,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-034": {
+   "trace": "book:cross:creative-034",
+   "thesis": "cross - embed, embed (embed+embed)",
+   "verbs": [
+    "embed",
+    "embed"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 329.76,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-035": {
+   "trace": "book:grid:creative-035",
+   "thesis": "grid - taper, taper (taper+taper)",
+   "verbs": [
+    "taper",
+    "taper"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 276.13,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-036": {
+   "trace": "book:inflated:creative-036",
+   "thesis": "inflated - bend, bend (bend+bend)",
+   "verbs": [
+    "bend",
+    "bend"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 208.04,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-037": {
+   "trace": "book:notch:creative-037",
+   "thesis": "notch - notch, notch (notch+notch)",
+   "verbs": [
+    "notch",
+    "notch"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 359.54,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-038": {
+   "trace": "book:radial:creative-038",
+   "thesis": "radial - expand, expand (expand+expand)",
+   "verbs": [
+    "expand",
+    "expand"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 250.34,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-039": {
+   "trace": "book:split_wing:creative-039",
+   "thesis": "split wing - branch, expand (branch+expand)",
+   "verbs": [
+    "branch",
+    "expand"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 312.09,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-040": {
+   "trace": "book:stepped:creative-040",
+   "thesis": "stepped - inscribe, intersect (inscribe+intersect)",
+   "verbs": [
+    "inscribe",
+    "intersect"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 360.26,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-041": {
+   "trace": "book:triangular_shard:creative-041",
+   "thesis": "triangular shard - intersect, split (intersect+split)",
+   "verbs": [
+    "intersect",
+    "split"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 343.76,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-042": {
+   "trace": "book:oblique_crystal:creative-042",
+   "thesis": "oblique crystal - split, embed (split+embed)",
+   "verbs": [
+    "split",
+    "embed"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 423.93,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-043": {
+   "trace": "book:thin_disc_cluster:creative-043",
+   "thesis": "thin disc cluster - embed, taper (embed+taper)",
+   "verbs": [
+    "embed",
+    "taper"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 57.69,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-044": {
+   "trace": "book:interlocking_tilted_discs:creative-044",
+   "thesis": "interlocking tilted discs - bend, branch (bend+branch)",
+   "verbs": [
+    "bend",
+    "branch"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 27.43,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-045": {
+   "trace": "book:long_span_bridge:creative-045",
+   "thesis": "long span bridge - taper, bend (taper+bend)",
+   "verbs": [
+    "taper",
+    "bend"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 298.68,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:bent:creative-046": {
+   "trace": "book:bent:creative-046",
+   "thesis": "bent - shift, notch (shift+notch)",
+   "verbs": [
+    "shift",
+    "notch"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 210.5,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:carved_void:creative-047": {
+   "trace": "book:carved_void:creative-047",
+   "thesis": "carved void - expand, shift (expand+shift)",
+   "verbs": [
+    "expand",
+    "shift"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 449.36,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:courtyard:creative-048": {
+   "trace": "book:courtyard:creative-048",
+   "thesis": "courtyard - notch, twist (notch+twist)",
+   "verbs": [
+    "notch",
+    "twist"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 382.6,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:cross:creative-049": {
+   "trace": "book:cross:creative-049",
+   "thesis": "cross - skew, reflect, pack (skew)",
+   "verbs": [
+    "skew",
+    "reflect",
+    "pack"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 247.94,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:grid:creative-050": {
+   "trace": "book:grid:creative-050",
+   "thesis": "grid - expand, reflect (expand)",
+   "verbs": [
+    "expand",
+    "reflect"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 169.9,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:inflated:creative-051": {
+   "trace": "book:inflated:creative-051",
+   "thesis": "inflated - branch, pack, stack (branch)",
+   "verbs": [
+    "branch",
+    "pack",
+    "stack"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 403.61,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:notch:creative-052": {
+   "trace": "book:notch:creative-052",
+   "thesis": "notch - inflate, pack (inflate)",
+   "verbs": [
+    "inflate",
+    "pack"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 375.97,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:radial:creative-053": {
+   "trace": "book:radial:creative-053",
+   "thesis": "radial - bend, stack (bend)",
+   "verbs": [
+    "bend",
+    "stack"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 265.44,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:split_wing:creative-054": {
+   "trace": "book:split_wing:creative-054",
+   "thesis": "split wing - extrude (extrude)",
+   "verbs": [
+    "extrude"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 179.61,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:stepped:creative-055": {
+   "trace": "book:stepped:creative-055",
+   "thesis": "stepped - taper, array (taper)",
+   "verbs": [
+    "taper",
+    "array"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 627.53,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:triangular_shard:creative-056": {
+   "trace": "book:triangular_shard:creative-056",
+   "thesis": "triangular shard - rotate, array, stack (rotate)",
+   "verbs": [
+    "rotate",
+    "array",
+    "stack"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 368.48,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:oblique_crystal:creative-057": {
+   "trace": "book:oblique_crystal:creative-057",
+   "thesis": "oblique crystal - split, join (split)",
+   "verbs": [
+    "split",
+    "join"
+   ],
+   "height_m": 16.5,
+   "footprint_m2": 197.75,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:thin_disc_cluster:creative-058": {
+   "trace": "book:thin_disc_cluster:creative-058",
+   "thesis": "thin disc cluster - pinch, join, array (pinch)",
+   "verbs": [
+    "pinch",
+    "join",
+    "array"
+   ],
+   "height_m": 19.8,
+   "footprint_m2": 31.67,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:interlocking_tilted_discs:creative-059": {
+   "trace": "book:interlocking_tilted_discs:creative-059",
+   "thesis": "interlocking tilted discs - expand (expand)",
+   "verbs": [
+    "expand"
+   ],
+   "height_m": 9.9,
+   "footprint_m2": 51.05,
+   "floor_area_m2": 0.0,
+   "program": null
+  },
+  "book:book:long_span_bridge:creative-060": {
+   "trace": "book:long_span_bridge:creative-060",
+   "thesis": "long span bridge - expand (expand)",
+   "verbs": [
+    "expand"
+   ],
+   "height_m": 13.2,
+   "footprint_m2": 297.75,
+   "floor_area_m2": 0.0,
+   "program": null
+  }
+ }
+}

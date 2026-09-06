@@ -1,0 +1,42 @@
+﻿[
+    {
+        "file":  "massv2-sheet.png",
+        "sha256":  "45ab152739409437074d4b815b9852042e45342595da44f65d8aa56aec438a35",
+        "bytes":  32563
+    },
+    {
+        "file":  "massv2-summary.json",
+        "sha256":  "8c6402437519091d2509a7b314726834dcc6c93cc3277ef5beeea8e580a1b3c1",
+        "bytes":  2092335
+    },
+    {
+        "file":  "parti-15bcb3429e16-d52f9b5562f8f236e8be.json",
+        "sha256":  "a7dd81506a8da34e681d471006f6aa57fcdcc313d7aa296906c0ea827e65eeb1",
+        "bytes":  5747
+    },
+    {
+        "file":  "parti-15bcb3429e16-d52f9b5562f8f236e8be.png",
+        "sha256":  "0a3dcf89f285870d31cdd8fe1301bf293e7ac78ab41a14812a9623b139fbdf2b",
+        "bytes":  42373
+    },
+    {
+        "file":  "parti-7c6df111b2c3-403759564808447c0d4d.json",
+        "sha256":  "56389e536917296f27749fdbc6497ba82a11774af2e0032d02348f6524293640",
+        "bytes":  5750
+    },
+    {
+        "file":  "parti-7c6df111b2c3-403759564808447c0d4d.png",
+        "sha256":  "3b1eb5a237a3093a4981b11ed32df443176e50b4359315483a7c2e59fe54c87c",
+        "bytes":  44190
+    },
+    {
+        "file":  "parti-915cbb0163ec-4de0ff702cb5a6225c03.json",
+        "sha256":  "cf50773aa8f1d8050f69d7286a7e6bd4dbbb6713c723176d14182f0c46b3aa97",
+        "bytes":  5722
+    },
+    {
+        "file":  "parti-915cbb0163ec-4de0ff702cb5a6225c03.png",
+        "sha256":  "0923e6431c05e00d27cf8b80f185a319d8c253327567e9e6ca10e30beb065dcb",
+        "bytes":  35930
+    }
+]

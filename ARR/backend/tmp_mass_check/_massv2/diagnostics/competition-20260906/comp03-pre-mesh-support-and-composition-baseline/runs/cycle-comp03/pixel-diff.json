@@ -1,0 +1,790 @@
+{
+  "baseline": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\comp02-pre-exact-book-render-baseline",
+  "comparisons": [
+    {
+      "file": "C10.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C10",
+        "name": "twin_gable_bars^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C10",
+        "name": "twin_gable_bars^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.07324707602339181,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C10.png"
+    },
+    {
+      "file": "C11.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C11",
+        "name": "one_court_block^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C11",
+        "name": "one_court_block^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.009669590643274854,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C11.png"
+    },
+    {
+      "file": "C2.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C2",
+        "name": "one_wide_slab^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C2",
+        "name": "one_wide_slab^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.006549707602339181,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C2.png"
+    },
+    {
+      "file": "C5.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C5",
+        "name": "two_drums_one_court^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C5",
+        "name": "two_drums_one_court^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.17314473684210527,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C5.png"
+    },
+    {
+      "file": "C7.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C7",
+        "name": "lifted_round_disc^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C7",
+        "name": "lifted_round_disc^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.018457602339181287,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C7.png"
+    },
+    {
+      "file": "C8.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C8",
+        "name": "drum_that_steps_once^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C8",
+        "name": "drum_that_steps_once^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.018606725146198832,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C8.png"
+    },
+    {
+      "file": "C9.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C9",
+        "name": "one_gable_bar^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C9",
+        "name": "one_gable_bar^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.0071695906432748535,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\C9.png"
+    },
+    {
+      "file": "O1.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O1",
+        "name": "book:book-comp02:morph-curved-mid:creative-025",
+        "score": 4.45,
+        "round": "vlm-book-comp02",
+        "shape_id": "77713afe12499ac4eaa1",
+        "certificate_id": "f6248c7d4634d2c5b6e2"
+      },
+      "after_identity": {
+        "label": "O1",
+        "name": "book:book-comp03:morph-bridge-low:creative-018",
+        "score": 4.33,
+        "round": "vlm-book-comp03",
+        "shape_id": "0acc8c4adc70e3c86cfb",
+        "certificate_id": "19c618c4c489d1d5f67d"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1910438596491228,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O1.png"
+    },
+    {
+      "file": "O10.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O10",
+        "name": "book:book-comp02:morph-compact-tall:creative-013",
+        "score": 3.7,
+        "round": "vlm-book-comp02",
+        "shape_id": "0f92a71f8b4126a4fe49",
+        "certificate_id": "0b220fc4c8483a0cea3d"
+      },
+      "after_identity": {
+        "label": "O10",
+        "name": "book:book-comp03:morph-curved-mid:creative-025",
+        "score": 3.73,
+        "round": "vlm-book-comp03",
+        "shape_id": "77713afe12499ac4eaa1",
+        "certificate_id": "3f36d738d9a6373ce145"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.19710526315789473,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O10.png"
+    },
+    {
+      "file": "O11.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O11",
+        "name": "book:book-comp02:morph-voided-low:creative-001",
+        "score": 3.7,
+        "round": "vlm-book-comp02",
+        "shape_id": "41392ec7e99f209299ff",
+        "certificate_id": "65ae4a0b566480697db8"
+      },
+      "after_identity": {
+        "label": "O11",
+        "name": "book:book-comp03:morph-compact-low:creative-019",
+        "score": 3.68,
+        "round": "vlm-book-comp03",
+        "shape_id": "3434da0b5109f592f69a",
+        "certificate_id": "d78a3872017c3f577086"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2587616959064328,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O11.png"
+    },
+    {
+      "file": "O12.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O12",
+        "name": "book:book-comp02:morph-voided-low:creative-048",
+        "score": 3.62,
+        "round": "vlm-book-comp02",
+        "shape_id": "55a86ca97174921c5666",
+        "certificate_id": "f38f26521003e6f52192"
+      },
+      "after_identity": {
+        "label": "O12",
+        "name": "book:book-comp03:morph-voided-low:creative-048",
+        "score": 3.62,
+        "round": "vlm-book-comp03",
+        "shape_id": "55a86ca97174921c5666",
+        "certificate_id": "ad39fd9d3f6ac9cca7dd"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.18476754385964914,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O12.png"
+    },
+    {
+      "file": "O13.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O13",
+        "name": "book:book-comp02:morph-compact-low:creative-019",
+        "score": 3.57,
+        "round": "vlm-book-comp02",
+        "shape_id": "3434da0b5109f592f69a",
+        "certificate_id": "d42667accdd76ba7760d"
+      },
+      "after_identity": {
+        "label": "O13",
+        "name": "book:book-comp03:morph-voided-mid:creative-033",
+        "score": 3.57,
+        "round": "vlm-book-comp03",
+        "shape_id": "1448b97a7aff3c3db1f9",
+        "certificate_id": "614266059e77effd763b"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2545687134502924,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O13.png"
+    },
+    {
+      "file": "O14.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O14",
+        "name": "book:book-comp02:morph-curved-low:creative-043",
+        "score": 3.55,
+        "round": "vlm-book-comp02",
+        "shape_id": "58575b507d01970dcac6",
+        "certificate_id": "fc0fdd701eb2520e1536"
+      },
+      "after_identity": {
+        "label": "O14",
+        "name": "book:book-comp03:morph-curved-low:creative-043",
+        "score": 3.55,
+        "round": "vlm-book-comp03",
+        "shape_id": "58575b507d01970dcac6",
+        "certificate_id": "43b9a01ef66c894fd1f0"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.18966666666666668,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O14.png"
+    },
+    {
+      "file": "O15.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O15",
+        "name": "book:book-comp02:morph-oblique-low:creative-049",
+        "score": 3.55,
+        "round": "vlm-book-comp02",
+        "shape_id": "95c33d897880d5fbca59",
+        "certificate_id": "6818e17ede6ff152a6ca"
+      },
+      "after_identity": {
+        "label": "O15",
+        "name": "book:book-comp03:morph-voided-mid:creative-028",
+        "score": 3.55,
+        "round": "vlm-book-comp03",
+        "shape_id": "6be8230de312a4de01da",
+        "certificate_id": "f40a879cb956872b3e4b"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.20267543859649123,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O15.png"
+    },
+    {
+      "file": "O16.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O16",
+        "name": "sangok_c02_hall_and_daily_street~full_ground^to_open",
+        "score": 3.45,
+        "round": "vlm-comp02",
+        "shape_id": "3daa8e533946d2dd2e1e",
+        "certificate_id": "e49dd4aba82f54221016"
+      },
+      "after_identity": {
+        "label": "O16",
+        "name": "sangok_c03_three_houses_common_ground~full_ground^centred",
+        "score": 3.53,
+        "round": "vlm-comp03",
+        "shape_id": "b8d88d8ec599faea1d32",
+        "certificate_id": "868acae822608238f08d"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.13366081871345029,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O16.png"
+    },
+    {
+      "file": "O17.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O17",
+        "name": "sangok_c02_forum_with_corner_garden~worked_ground",
+        "score": 3.42,
+        "round": "vlm-comp02",
+        "shape_id": "e97f1053032429b4f139",
+        "certificate_id": "a66ac77844377fa148fd"
+      },
+      "after_identity": {
+        "label": "O17",
+        "name": "book:book-comp03:morph-curved-mid:creative-036",
+        "score": 3.45,
+        "round": "vlm-book-comp03",
+        "shape_id": "96c19ddb6b69ada79a18",
+        "certificate_id": "899151eeb936a53e9b6d"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.17099415204678362,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O17.png"
+    },
+    {
+      "file": "O18.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O18",
+        "name": "book:book-comp02:morph-voided-mid:creative-023",
+        "score": 3.38,
+        "round": "vlm-book-comp02",
+        "shape_id": "80e1b8f49fba8361751b",
+        "certificate_id": "c1e213d0568cc0d50d6d"
+      },
+      "after_identity": {
+        "label": "O18",
+        "name": "sangok_c03_hall_and_daily_street~worked_ground^to_open",
+        "score": 3.43,
+        "round": "vlm-comp03",
+        "shape_id": "9f49a54d14665783d24e",
+        "certificate_id": "f0ad84475e4dd0c74525"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.21488157894736842,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O18.png"
+    },
+    {
+      "file": "O19.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O19",
+        "name": "book:book-comp02:morph-voided-low:creative-014",
+        "score": 3.33,
+        "round": "vlm-book-comp02",
+        "shape_id": "8e57ca78a2f185af80cc",
+        "certificate_id": "70402746217211afdd63"
+      },
+      "after_identity": {
+        "label": "O19",
+        "name": "book:book-comp03:morph-voided-low:creative-021",
+        "score": 3.27,
+        "round": "vlm-book-comp03",
+        "shape_id": "b3a7931c3b16b69479b5",
+        "certificate_id": "2a4fb6838132e16680c8"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.22621198830409356,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O19.png"
+    },
+    {
+      "file": "O2.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O2",
+        "name": "book:book-comp02:morph-bridge-low:creative-018",
+        "score": 4.15,
+        "round": "vlm-book-comp02",
+        "shape_id": "0acc8c4adc70e3c86cfb",
+        "certificate_id": "6aec6a4711fe99bba84c"
+      },
+      "after_identity": {
+        "label": "O2",
+        "name": "book:book-comp03:morph-voided-low:creative-001",
+        "score": 4.08,
+        "round": "vlm-book-comp03",
+        "shape_id": "41392ec7e99f209299ff",
+        "certificate_id": "1d8c752afb0c2096d1c8"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1305877192982456,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O2.png"
+    },
+    {
+      "file": "O20.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O20",
+        "name": "book:book-comp02:morph-voided-mid:creative-005",
+        "score": 3.33,
+        "round": "vlm-book-comp02",
+        "shape_id": "ec12d646821d301984e4",
+        "certificate_id": "e5914ec86b3c2a44be8d"
+      },
+      "after_identity": {
+        "label": "O20",
+        "name": "book:book-comp03:morph-voided-mid:creative-005",
+        "score": 3.25,
+        "round": "vlm-book-comp03",
+        "shape_id": "ec12d646821d301984e4",
+        "certificate_id": "fa1dfd8d000fbe3de11e"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.17009795321637428,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O20.png"
+    },
+    {
+      "file": "O21.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O21",
+        "name": "book:book-comp02:morph-voided-mid:creative-028",
+        "score": 3.28,
+        "round": "vlm-book-comp02",
+        "shape_id": "6be8230de312a4de01da",
+        "certificate_id": "cb99df4eb668c79c2515"
+      },
+      "after_identity": {
+        "label": "O21",
+        "name": "book:book-comp03:morph-voided-low:creative-014",
+        "score": 3.22,
+        "round": "vlm-book-comp03",
+        "shape_id": "8e57ca78a2f185af80cc",
+        "certificate_id": "e50c990c5177494c84b5"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.10780701754385964,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O21.png"
+    },
+    {
+      "file": "O22.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O22",
+        "name": "book:book-comp02:morph-curved-mid:creative-011",
+        "score": 3.25,
+        "round": "vlm-book-comp02",
+        "shape_id": "b392af0bfa57edab52b0",
+        "certificate_id": "45bbd5845b79ed3a8021"
+      },
+      "after_identity": {
+        "label": "O22",
+        "name": "book:book-comp03:morph-voided-low:creative-003",
+        "score": 3.15,
+        "round": "vlm-book-comp03",
+        "shape_id": "acfbb1110e960215b24b",
+        "certificate_id": "63085d6cf1623a456fce"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.18005847953216375,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O22.png"
+    },
+    {
+      "file": "O23.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O23",
+        "name": "book:book-comp02:morph-compact-low:creative-031",
+        "score": 3.13,
+        "round": "vlm-book-comp02",
+        "shape_id": "6475c5ca9a75cd820813",
+        "certificate_id": "99004d8c8c422254d25a"
+      },
+      "after_identity": {
+        "label": "O23",
+        "name": "book:book-comp03:morph-compact-tall:creative-037",
+        "score": 3.13,
+        "round": "vlm-book-comp03",
+        "shape_id": "80164fc0d412bf6beed2",
+        "certificate_id": "a60a26ce49cc079031c9"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2572690058479532,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O23.png"
+    },
+    {
+      "file": "O24.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O24",
+        "name": "book:book-comp02:morph-compact-low:creative-007",
+        "score": 3.12,
+        "round": "vlm-book-comp02",
+        "shape_id": "64c05e010e8c48f68489",
+        "certificate_id": "b39e36bed2070ebef3e9"
+      },
+      "after_identity": {
+        "label": "O24",
+        "name": "book:book-comp03:morph-voided-mid:creative-023",
+        "score": 3.05,
+        "round": "vlm-book-comp03",
+        "shape_id": "80e1b8f49fba8361751b",
+        "certificate_id": "e44c131a597002f933e5"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2180906432748538,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O24.png"
+    },
+    {
+      "file": "O25.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O25",
+        "name": "book:book-comp02:morph-curved-mid:creative-036",
+        "score": 3.08,
+        "round": "vlm-book-comp02",
+        "shape_id": "96c19ddb6b69ada79a18",
+        "certificate_id": "a70908ac2b7047c5ce60"
+      },
+      "after_identity": {
+        "label": "O25",
+        "name": "book:book-comp03:morph-compact-low:creative-031",
+        "score": 3.0,
+        "round": "vlm-book-comp03",
+        "shape_id": "6475c5ca9a75cd820813",
+        "certificate_id": "c388ffcdbeee89ef762b"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.22300292397660818,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O25.png"
+    },
+    {
+      "file": "O26.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O26",
+        "name": "book:book-comp02:morph-voided-low:creative-022",
+        "score": 3.0,
+        "round": "vlm-book-comp02",
+        "shape_id": "bfcc958077c15d663264",
+        "certificate_id": "cecd3b8fdc01bcbf85b7"
+      },
+      "after_identity": {
+        "label": "O26",
+        "name": "book:book-comp03:morph-voided-low:creative-022",
+        "score": 3.0,
+        "round": "vlm-book-comp03",
+        "shape_id": "bfcc958077c15d663264",
+        "certificate_id": "17f013fae69695d9e1dc"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1119298245614035,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O26.png"
+    },
+    {
+      "file": "O3.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O3",
+        "name": "book:book-comp02:morph-voided-mid:creative-033",
+        "score": 4.05,
+        "round": "vlm-book-comp02",
+        "shape_id": "1448b97a7aff3c3db1f9",
+        "certificate_id": "fcc29669156a9961e8be"
+      },
+      "after_identity": {
+        "label": "O3",
+        "name": "book:book-comp03:morph-voided-tall:creative-030",
+        "score": 4.07,
+        "round": "vlm-book-comp03",
+        "shape_id": "f8df85c08b83d0871996",
+        "certificate_id": "5a407e948e4eb31b904e"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.16290058479532163,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O3.png"
+    },
+    {
+      "file": "O4.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O4",
+        "name": "book:book-comp02:morph-curved-low:creative-042",
+        "score": 3.95,
+        "round": "vlm-book-comp02",
+        "shape_id": "074153e3257416c5b971",
+        "certificate_id": "2ef7ceadba4f95d2529f"
+      },
+      "after_identity": {
+        "label": "O4",
+        "name": "book:book-comp03:morph-curved-low:creative-042",
+        "score": 4.0,
+        "round": "vlm-book-comp03",
+        "shape_id": "074153e3257416c5b971",
+        "certificate_id": "5244072a02ddd02ed318"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1427280701754386,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O4.png"
+    },
+    {
+      "file": "O5.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O5",
+        "name": "loop_butterfly_open__d07_bar+^centred",
+        "score": 3.93,
+        "round": "vlm-comp02",
+        "shape_id": "e3b61578954842dfd796",
+        "certificate_id": "313d22f42678c3c782b1"
+      },
+      "after_identity": {
+        "label": "O5",
+        "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+        "score": 3.93,
+        "round": "vlm-comp03",
+        "shape_id": "8cea48dc1e0f41f8f3da",
+        "certificate_id": "663a45dc906ad1be2503"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.0457719298245614,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O5.png"
+    },
+    {
+      "file": "O6.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O6",
+        "name": "book:book-comp02:morph-voided-tall:creative-030",
+        "score": 3.9,
+        "round": "vlm-book-comp02",
+        "shape_id": "f8df85c08b83d0871996",
+        "certificate_id": "7e31c2c58f6b7d4c30b3"
+      },
+      "after_identity": {
+        "label": "O6",
+        "name": "book:book-comp03:morph-voided-low:creative-040",
+        "score": 3.9,
+        "round": "vlm-book-comp03",
+        "shape_id": "af77b82df68fff6ed141",
+        "certificate_id": "1816cda2af5f5d68d418"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1389795321637427,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O6.png"
+    },
+    {
+      "file": "O7.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O7",
+        "name": "book:book-comp02:morph-voided-low:creative-040",
+        "score": 3.77,
+        "round": "vlm-book-comp02",
+        "shape_id": "af77b82df68fff6ed141",
+        "certificate_id": "d11e5712f975cd397a4f"
+      },
+      "after_identity": {
+        "label": "O7",
+        "name": "book:book-comp03:morph-oblique-low:creative-049",
+        "score": 3.82,
+        "round": "vlm-book-comp03",
+        "shape_id": "95c33d897880d5fbca59",
+        "certificate_id": "eb6e41d14f26c18a8e93"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.19508040935672516,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O7.png"
+    },
+    {
+      "file": "O8.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O8",
+        "name": "book:book-comp02:morph-voided-low:creative-021",
+        "score": 3.75,
+        "round": "vlm-book-comp02",
+        "shape_id": "b3a7931c3b16b69479b5",
+        "certificate_id": "a7f72e55990b09a72ab4"
+      },
+      "after_identity": {
+        "label": "O8",
+        "name": "book:book-comp03:morph-voided-mid:creative-006",
+        "score": 3.8,
+        "round": "vlm-book-comp03",
+        "shape_id": "14ab2c416e71cce98255",
+        "certificate_id": "d43ee62c83546afc4966"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2549736842105263,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O8.png"
+    },
+    {
+      "file": "O9.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O9",
+        "name": "book:book-comp02:morph-voided-mid:creative-006",
+        "score": 3.73,
+        "round": "vlm-book-comp02",
+        "shape_id": "14ab2c416e71cce98255",
+        "certificate_id": "233d8e63cc10162ae3a3"
+      },
+      "after_identity": {
+        "label": "O9",
+        "name": "book:book-comp03:morph-compact-tall:creative-013",
+        "score": 3.77,
+        "round": "vlm-book-comp03",
+        "shape_id": "0f92a71f8b4126a4fe49",
+        "certificate_id": "79d98720883ca8dc302c"
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2573391812865497,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\O9.png"
+    },
+    {
+      "file": "sheet_C.png",
+      "baseline_exists": true,
+      "before_identity": null,
+      "after_identity": null,
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.060161240786240786,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\sheet_C.png"
+    },
+    {
+      "file": "sheet_O.png",
+      "baseline_exists": true,
+      "before_identity": null,
+      "after_identity": null,
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.18734819234819236,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp03\\pixel-diff\\sheet_O.png"
+    }
+  ],
+  "interpretation": "Pixel change evidence only; a changed selection is not a same-geometry quality comparison."
+}

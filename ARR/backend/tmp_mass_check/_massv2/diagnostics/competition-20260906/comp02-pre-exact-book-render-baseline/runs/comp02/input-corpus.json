@@ -1,0 +1,284 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex",
+  "site_pnu": "4115011300106840001",
+  "assumptions": [
+    "공공1 주민센터의 공공 공간 구성 연구. 확정 실별 면적표와 정원은 아직 없다.",
+    "지구단위계획 도면에 등록한 건축한계선과 차량불허 구간은 공통 법규 경로에서 적용한다. 보행 진입 방향은 현장 출입 조건 검증 전 설계 가설이다.",
+    "growth=plan은 저작 높이를 면적 확보를 위해 늘리지 않는 설계 정책이다. 실제 층수·피난·주차·장애인 접근·구조는 별도 검증한다."
+  ],
+  "schemes": [
+    {
+      "name": "sangok_c02_low_arms_open_court",
+      "primary_language": "open_figure",
+      "secondary_language": "a three-sided civic court steps down toward its open public threshold",
+      "formal_principle": "중정의 높은 벽을 줄이고 바깥쪽 두 팔을 낮춘다. 열린 모서리에서 낮은 활동실을 지나 뒤쪽 업무공간까지 진입 깊이가 생기게 한다.",
+      "dominant_gesture": "낮은 두 팔이 바깥마당을 받아들이는 열린 중정",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "낮은 팔이 맞이하는 열린 마당",
+        "spatial_strategy": "지난 안의 폐쇄적인 중정 벽을 낮은 두 팔과 높은 뒤쪽 몸체로 나눈다. 큰 모서리 틈이 바깥마당과 안마당을 연결하고, 팔의 끝은 작은 주민 활동실의 주소가 된다.",
+        "tradeoff": "상부 면적을 줄이는 대신 마당의 개방성을 얻는다. 낮은 지붕의 테라스 사용 여부와 별도 피난, 마당의 계절별 일조를 확인해야 한다."
+      },
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.21,
+          "height": 0.52,
+          "storeys": 3,
+          "step": 0.6,
+          "why": "뒤쪽은 세 층 몸체로 두고 두 팔을 낮춰 중정의 벽 높이를 달리한다. 높이는 면적 최대화를 위해 다시 늘리지 않는다."
+        },
+        {
+          "op": "notch",
+          "size": 0.42,
+          "at": "open",
+          "why": "닫힌 테두리의 모서리를 넉넉히 걷어내 바깥과 마당의 연결을 읽게 한다. 단순한 작은 출입 틈보다 낮은 두 팔 사이 외부 공간이 먼저 보여야 한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01 독립 배심의 중정 폐쇄성·진입 지적에 따른 공간 수정. 특정 사무소의 완성 형태를 복제하지 않는다."
+    },
+    {
+      "name": "sangok_c02_open_and_quiet_gardens",
+      "primary_language": "carved_body",
+      "secondary_language": "one low saddle roof links an open arrival garden and an enclosed quiet garden",
+      "formal_principle": "서로 비슷하게 닫힌 두 중정을 입구와 이어진 열린 정원, 조용히 닫힌 빛마당으로 구분한다. 두 공간은 낮은 하나의 몸체와 완만한 지붕으로 이어진다.",
+      "dominant_gesture": "열린 정원에서 조용한 빛마당으로 이어지는 하나의 낮은 집",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "열린 정원과 조용한 빛마당",
+        "spatial_strategy": "첫 마당을 외부로 터서 진입 공간으로 만들고 둘째 마당은 내부 활동실의 빛과 전망으로 남긴다. 낮은 지붕의 완만한 단면 차이로 두 영역의 공용 공간을 연결한다.",
+        "tradeoff": "전면부를 비워 면적을 줄였으므로 실 배치와 운영 구획을 먼저 검토한다. 곡면의 배수·방수와 낮은 처마의 유효 높이도 확인해야 한다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "주민이 가까이 접근할 수 있는 두 층의 낮고 연속된 집을 바탕으로 둔다."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0.56
+                ],
+                [
+                  0.24,
+                  0.56
+                ],
+                [
+                  0.24,
+                  0.72
+                ],
+                [
+                  0.46,
+                  0.72
+                ],
+                [
+                  0.46,
+                  0.26
+                ],
+                [
+                  0.24,
+                  0.26
+                ],
+                [
+                  0.24,
+                  0.43
+                ],
+                [
+                  0,
+                  0.43
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              [
+                [
+                  0.66,
+                  0.34
+                ],
+                [
+                  0.66,
+                  0.76
+                ],
+                [
+                  0.86,
+                  0.76
+                ],
+                [
+                  0.86,
+                  0.34
+                ],
+                [
+                  0.66,
+                  0.34
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                0.84
+              ],
+              [
+                1,
+                0,
+                0.16
+              ],
+              [
+                0,
+                1,
+                0.16
+              ],
+              [
+                1,
+                1,
+                -0.32
+              ]
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "첫 마당을 외곽과 연결한 평면 영역으로 직접 저작하고 둘째 마당만 안에 남긴다. 지붕의 안장 변화는 완만하게 낮춰 과도한 곡면 효과보다 두 정원의 서로 다른 쓰임이 먼저 읽히게 한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01의 두 닫힌 중정에 대한 진입 동선 비평을 반영한 BaseVolume 평면 영역과 typed surface 저작."
+    },
+    {
+      "name": "sangok_c02_hall_and_daily_street",
+      "primary_language": "open_figure",
+      "secondary_language": "a calm office bar and a vaulted community hall frame one generous civic street",
+      "formal_principle": "일상 민원 업무와 함께 모이는 주민 활동의 단면을 구분한다. 지붕 장식의 반복을 줄이고 두 몸 사이의 공공 길이 공통 입구와 바깥 대기 공간을 만든다.",
+      "dominant_gesture": "평평한 업무동과 한 번 부풀린 주민 홀 사이의 공공 길",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "일상의 동과 모임의 홀 사이",
+        "spatial_strategy": "큰 몸을 서로 다른 크기의 두 동으로 나누고 사이에 넓은 길을 둔다. 주민 홀에만 낮은 볼트 단면을 부여해 반복되는 복잡한 지붕을 줄인다.",
+        "tradeoff": "두 동 사이의 우천 접근, 보안, 장애인 동선과 별도 피난을 풀어야 한다. 외부 공간을 늘린 만큼 실별 면적 수용과 운영 효율을 확인한다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "공공 업무와 주민 활동을 나눌 세 층의 바탕을 만든다. 과도한 수직 성장 없이 각 몸의 역할을 단면으로 구분한다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "civic",
+          "second": "community",
+          "gap": 9.4,
+          "contrast": 1.4,
+          "why": "폭과 높이가 다른 두 동 사이에 공공 길을 충분히 벌린다. 차도라고 선언하지 않고 대기·만남·진입의 외부 공간으로 검토한다."
+        },
+        {
+          "op": "vault",
+          "on": "community",
+          "rise": 0.25,
+          "bays": 1,
+          "along": "long",
+          "why": "작은 주민 활동동에만 하나의 완만한 볼트를 씌워 모임의 단면을 드러낸다. 나머지 업무동의 평평한 높이와 대비시키며 실제 지붕 구조를 후속 검토한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01 다중 볼트의 과도한 지붕 분절을 줄이고 프로그램과 단면 관계를 명료하게 한다."
+    },
+    {
+      "name": "sangok_c02_forum_with_corner_garden",
+      "primary_language": "solid_body",
+      "secondary_language": "a quiet raised room sits within a low forum opened by a large corner garden",
+      "formal_principle": "대지를 가득 덮던 포럼의 한 모서리를 공공 정원으로 돌려준다. 몸 안에 걸친 작은 회의실은 조용한 층의 방향을 만들고 낮은 공공 공간과 직접 맞닿는다.",
+      "dominant_gesture": "정원으로 열린 낮은 포럼 안의 작은 회의실",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "design_argument_ko": {
+        "title": "정원 모서리와 작은 회의실",
+        "spatial_strategy": "넓은 포럼의 모서리를 비워 정면의 주소와 외부 대기 공간을 만든다. 상부 회의실의 크기와 회전은 줄여 하부 공간과 실제 접촉하는 관계를 우선한다.",
+        "tradeoff": "회의실과 포럼의 접촉부 구조, 복수 피난 경로와 채광 깊이를 확인한다. 빈 모서리가 내부 동선을 끊지 않도록 실 배치가 필요하다."
+      },
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.34,
+          "storeys": 2,
+          "why": "민원과 일상 활동이 만나는 두 층의 낮은 포럼을 만든다. 이 바탕을 면적 때문에 다시 높은 청사로 만들지 않는다."
+        },
+        {
+          "op": "nest",
+          "size": 0.42,
+          "proud": 0.55,
+          "turn": 20,
+          "why": "포럼 내부와 접촉하는 작은 회의실을 부분적으로 들어 올려 조용한 영역을 만든다. 독립 부유물이나 과한 회전 효과가 되지 않도록 크기와 돌출을 줄인다."
+        },
+        {
+          "op": "notch",
+          "size": 0.34,
+          "at": "open",
+          "why": "큰 하부 몸의 모서리를 비워 공공 정원과 진입의 여지를 남긴다. 바깥에서 작은 회의실까지 공간의 깊이가 생겨야 한다."
+        }
+      ],
+      "reference_basis": "Codex 신작. comp01 포럼안의 과도한 지상 점유와 불명확한 외부 진입 관계를 수정한다."
+    },
+    {
+      "name": "loop_butterfly_open__d07_bar+",
+      "primary_language": "open_figure",
+      "secondary_language": "a four-storey loop ring whose every bar carries a butterfly roof draining toward the court - a basin of roofs over a garden of rain",
+      "formal_principle": "The court is the ring's centre but a flat ring drains rain away from it; giving every bar a butterfly that drains toward the court makes the court a rain garden that the building actively feeds - the building is organised around its own hydrological logic, the butterfly valleys as gutters pointing inward.",
+      "dominant_gesture": "a court ring of butterfly roofs draining to the court",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.265,
+          "height": 0.65,
+          "storeys": 4,
+          "why": "Input: a four-storey ring tall enough that the butterfly's valley is visible above the bar's eaves; height 0.65 declares mid-tall. Bar 0.23 gives each arm enough depth for a readable butterfly across its short dimension. Limit: four storeys keep the ring civic-scaled; bar 0.23 avoids making the arms too deep for the butterfly to register."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.55,
+          "at": 0.3,
+          "along": "cross",
+          "why": "Input: the butterfly valley runs along each bar's cross axis (parallel to the court edge) so the valley is the deepest point closest to the court; at 0.3 biases the valley toward the court face so the deep wing is over the court and the shallow wing faces outward. Limit: pitch 0.55 on bar depth 0.23 reads cleanly within the cap; along cross runs the valley perpendicular to each bar's own length."
+        }
+      ]
+    }
+  ],
+  "development_feedback": "D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/inputs/gen-develop.json"
+}

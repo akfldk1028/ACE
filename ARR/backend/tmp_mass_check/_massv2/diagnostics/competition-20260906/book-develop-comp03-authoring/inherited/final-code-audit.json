@@ -1,0 +1,262 @@
+{
+  "started_utc": "2026-09-06T02:01:55.208349+00:00",
+  "completed_utc": "2026-09-06T02:01:58.351844+00:00",
+  "input_sha256": "8ce58cdb13a9c3a3e3ea626d37700602f122d22c994bbda128ee12b4f64eac7d",
+  "code_sha256": {
+    "design/maas/book_development.py": "d94a15213dc9561499017096f40cffd80bb3a05c4eaeb501f9c09e1bb7957008",
+    "design/maas/creative_floor_portfolio.py": "32572c727ba21fecd852b5f8fe8c027956e517de624ee3a03b780a5b6081f0d9",
+    "design/maas/geometry_language/source_bridge.py": "5f6fb6d75799a3db93b3cad7e28a20e89990b1f72c7f9776934b2ba0f9f4ebe3",
+    "design/maas/geometry_language/compiler.py": "6035e3bfe05128e556667f90ab6647aa5edd42b2ead02f83e816b7cfc803803e",
+    "design/maas/geometry_language/export_mesh.py": "afbea50b6bbeceaf75f08db808530bcc6175c1b9692070e62aecb4540527b516",
+    "design/maas/source_geometry/ir.py": "0a64b38f672cfaa862b5ff587ab587ffe8d4362df09d6413d67e34affd6aa6f4",
+    "design/maas/massv2/render.py": "eacae368a6353dfe4d5388a18b68fa8839e5dde8982268563fb28d2343886034",
+    "design/maas/massv2/render_mesh.py": "2184ededf4f741f2b8d2cfc507e880ef914431f8b7e21657af006a2e96e5e4c7",
+    "design/maas/massv2/parcel_policy.py": "c4dfbbb6f9e2c6c9a4e2867ddede85fd460131b328b08ca541d0f6f4467adf13",
+    "design/maas/massv2/mesh_support.py": "1fbf235802f829344a9d9c62ac25b1209d4e01ed8ab1fcf9bf2d84a1408e8042",
+    "tmp_mass_check/_massv2/tools/book_import.py": "ee0dcd569ca20d90a6f04512fb2a6e2840a98f09f872d734923ad96b69e64f26",
+    "tmp_mass_check/_massv2/tools/vlm_shortlist.py": "cf02044662feae34e8db1bd03ee77690d664563f71ceb0a038688cbdb6651bf4",
+    "tmp_mass_check/_massv2/tools/presentation.py": "240c25623a315f44cba7015abf0ba701d767fc4db998ffde6e9852a9e2ad7661"
+  },
+  "code_bundle_sha256": "5105c50a1d4dc393f409713651ea0b9de8f959b76b819e78f3d5d06756b52d74",
+  "production_name_bound": true,
+  "results": [
+    {
+      "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+      "shape_id": "355b30ebb37b723be6cd",
+      "certificate_id": "6463f7ca06f837db5721",
+      "height_m": 15.446596255036876,
+      "storey_m": 5.148865416691251,
+      "floor_count": 3,
+      "gfa_m2": 988.7348336218442,
+      "minimum_critical_margin_m": 3.044723401904923,
+      "spatial_evidence": {
+        "authored_to_world_matrix4": [
+          [
+            -9.57484879721702,
+            -5.222295920716183,
+            0.0,
+            63.96498466598385
+          ],
+          [
+            5.489911213209126,
+            -9.108106101036858,
+            0.0,
+            34.43597204054485
+          ],
+          [
+            0.0,
+            0.0,
+            16.09020442716016,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "open_court_direction_world_xy": [
+          -0.8675174786594185,
+          0.4974066990103826
+        ],
+        "open_court_bearing_degrees_clockwise_from_north": 299.82857638841415,
+        "registered_road_outward_direction_world_xy": [
+          0.9846758322859253,
+          0.1743946825795459
+        ],
+        "opening_dot_road_direction": -0.767478411934695,
+        "road_connection_verified": false,
+        "open_mouth_road_ray_hits": [],
+        "gateway_actual_mesh": {
+          "clear_width_m": 3.1497138664126396,
+          "clear_height_m": 3.5398449823260307,
+          "section_free_area_m2": 11.149498825783505,
+          "section_cut_authored_x": 0.225,
+          "ground_connected": true,
+          "gate_outward_direction_world_xy": [
+            0.8675174786594185,
+            -0.4974066990103826
+          ]
+        }
+      }
+    },
+    {
+      "name": "book:book-develop-comp03:exact-authored-development:creative-002",
+      "shape_id": "48de076a29ede5f11a1c",
+      "certificate_id": "43cff28c23fece1d7877",
+      "height_m": 15.446596255036876,
+      "storey_m": 5.148865416691251,
+      "floor_count": 3,
+      "gfa_m2": 1026.3081489003132,
+      "minimum_critical_margin_m": 3.002516311009241,
+      "spatial_evidence": {
+        "authored_to_world_matrix4": [
+          [
+            -9.442118660408111,
+            -5.1499024987605875,
+            0.0,
+            63.70460317750346
+          ],
+          [
+            5.4138080097193955,
+            -8.981846123012044,
+            0.0,
+            34.40825524221883
+          ],
+          [
+            0.0,
+            0.0,
+            16.09020442716016,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "open_court_direction_world_xy": [
+          -0.8675174786594185,
+          0.49740669901038265
+        ],
+        "open_court_bearing_degrees_clockwise_from_north": 299.82857638841415,
+        "registered_road_outward_direction_world_xy": [
+          0.9846758322859253,
+          0.1743946825795459
+        ],
+        "opening_dot_road_direction": -0.767478411934695,
+        "road_connection_verified": false,
+        "open_mouth_road_ray_hits": []
+      }
+    },
+    {
+      "name": "book:book-develop-comp03:exact-authored-development:creative-003",
+      "shape_id": "7ed2aa067eb336fec703",
+      "certificate_id": "925830f2a6764fff6b7e",
+      "height_m": 15.446596255036876,
+      "storey_m": 5.148865416691251,
+      "floor_count": 3,
+      "gfa_m2": 1026.3081481236522,
+      "minimum_critical_margin_m": 3.0739731246613555,
+      "spatial_evidence": {
+        "authored_to_world_matrix4": [
+          [
+            -9.666831423780838,
+            -5.272464909387947,
+            0.0,
+            64.25347318053737
+          ],
+          [
+            5.542651101189384,
+            -9.195604871451515,
+            0.0,
+            34.33598957564525
+          ],
+          [
+            0.0,
+            0.0,
+            16.09020442716016,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "open_court_direction_world_xy": [
+          0.8675174786594185,
+          -0.49740669901038265
+        ],
+        "open_court_bearing_degrees_clockwise_from_north": 119.82857638841413,
+        "registered_road_outward_direction_world_xy": [
+          0.9846758322859253,
+          0.1743946825795459
+        ],
+        "opening_dot_road_direction": 0.767478411934695,
+        "road_connection_verified": false,
+        "open_mouth_road_ray_hits": [
+          {
+            "edge_index": 5,
+            "point_xy_m": [
+              68.01639291432588,
+              18.737918220013853
+            ],
+            "straight_line_distance_m": 11.022983823786994
+          }
+        ]
+      }
+    },
+    {
+      "name": "book:book-develop-comp03:exact-authored-development:creative-004",
+      "shape_id": "21620b62eaaa94280a60",
+      "certificate_id": "666c1a6a27906f0302a9",
+      "height_m": 15.446596255036876,
+      "storey_m": 5.148865416691251,
+      "floor_count": 3,
+      "gfa_m2": 1026.308151687104,
+      "minimum_critical_margin_m": 3.2462388785505945,
+      "spatial_evidence": {
+        "authored_to_world_matrix4": [
+          [
+            -9.549944726538351,
+            -5.208712790437862,
+            0.0,
+            63.91612945485843
+          ],
+          [
+            5.475632017812003,
+            -9.084416024174613,
+            0.0,
+            34.43077155754749
+          ],
+          [
+            0.0,
+            0.0,
+            16.09020442716016,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "open_court_direction_world_xy": [
+          -0.8675174786594184,
+          0.4974066990103826
+        ],
+        "open_court_bearing_degrees_clockwise_from_north": 299.82857638841415,
+        "registered_road_outward_direction_world_xy": [
+          0.9846758322859253,
+          0.1743946825795459
+        ],
+        "opening_dot_road_direction": -0.7674784119346949,
+        "road_connection_verified": false,
+        "open_mouth_road_ray_hits": [],
+        "lower_wing_storeys": {
+          "actual_floor_centers_m": [
+            2.5744329991728128,
+            7.723297997518438,
+            12.872163995864064
+          ],
+          "occupied_areas_at_centers_m2": [
+            224.78949740932288,
+            224.78949733563982,
+            0.0
+          ],
+          "wing_plan_m2": 224.78949758977788,
+          "ground_z_m": 0,
+          "roof_z_m": 10.297730833382502,
+          "nominal_storey_height_m": 5.148865416691251,
+          "two_storey_gross_height_m": 10.297730833382502,
+          "net_clear_heights_verified": false
+        }
+      }
+    }
+  ]
+}

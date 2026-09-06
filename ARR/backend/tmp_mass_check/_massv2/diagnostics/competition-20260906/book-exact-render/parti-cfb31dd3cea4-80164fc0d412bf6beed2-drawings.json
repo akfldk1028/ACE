@@ -1,0 +1,18 @@
+{
+  "name": "book:book-comp02:morph-compact-tall:creative-037",
+  "shape_id": "80164fc0d412bf6beed2",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.73472304028243
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    647.9148527910396,
+    569.5498442512105
+  ],
+  "section_area_m2": 442.1639557490122,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "d8566829a5007ee3521dd353c31ad1bc6d02483a60469730d29b7d2d69536188"
+}

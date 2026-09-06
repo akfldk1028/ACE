@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 2 | The offset upper box reads as a generic object on a broad podium, with the small notch too weak to unify the mass.
+FEASIBILITY 5 | Compact supported volumes and modest height suggest straightforward construction without demanding transfers.
+SITE 3 | The podium follows the irregular parcel, but the residual perimeter space has little apparent civic purpose.
+EDITABILITY 4 | Regular floor plates can absorb cores and rooms readily, though the weak formal hierarchy offers limited guidance.
+WEIGHTED 3.35
+
+TILE t02
+CONCEPT 3 | The diagonal division and raised sloping volume give the solid block a recognizable profile, but the split remains visually shallow.
+FEASIBILITY 4 | Continuous supporting mass makes the roof geometry credible, with some added complexity at its changing slopes and junctions.
+SITE 3 | The broad low form accommodates the parcel outline, while its mostly closed perimeter gives little emphasis to arrival or outdoor gathering.
+EDITABILITY 4 | The substantial base offers flexible floors and core locations, and the roof distinction could remain legible through development.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | A clear courtyard ring gains a memorable silhouette from its alternating folded roof edges.
+FEASIBILITY 4 | The courtyard walls provide credible support for the roof bands, although their intersecting slopes require careful detailing.
+SITE 4 | The ring fits the polygonal boundary while reserving a substantial central outdoor room, giving open space an explicit role.
+EDITABILITY 4 | A courtyard circulation system can accommodate rooms and cores while preserving the main idea, provided the corner roof junctions are resolved.
+WEIGHTED 4.00
+
+RANKING: t03, t02, t01
+VERDICT: Advance t03 for its legible courtyard organization and distinctive roof profile, with ground-level access and roof junctions requiring development. Keep t02 as a reserve if its diagonal division can gain a clearer spatial role; t01 is buildable but lacks comparable architectural identity.

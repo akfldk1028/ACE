@@ -1,0 +1,504 @@
+{
+  "run": "comp01",
+  "site": {
+    "schema_version": "arr.maas.massv2_legal_site.v1",
+    "pnu": "4115011300106840001",
+    "parcel_area_m2": 2499.69,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "floor_height_m": 3.8,
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "building_type": "업무시설",
+    "parcel_policy": {
+      "policy_id": "gosan-public1-molit-2026-334",
+      "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+      "max_storeys": 5,
+      "max_bcr_pct": 60.0,
+      "max_far_pct": 250.0,
+      "statutory_max_height_m": null,
+      "default_building_type": "업무시설",
+      "building_subtype": "공공업무시설",
+      "sources": [
+        {
+          "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+          "date": "2026-06-29",
+          "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+          "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+          "relevant_pdf_pages_1_based": [
+            6
+          ],
+          "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+          "bytes": 16093893,
+          "pdf_page_count": 6,
+          "retrieved_on": "2026-09-06",
+          "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+        },
+        {
+          "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+          "date": "2022-06-29",
+          "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+          "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+          "relevant_pdf_pages_1_based": [
+            13,
+            22
+          ],
+          "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+          "bytes": 446211,
+          "pdf_page_count": 32,
+          "retrieved_on": "2026-09-06",
+          "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+        },
+        {
+          "title": "의정부고산 9차 지구단위계획 시행지침",
+          "date": "2022-06-29",
+          "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+          "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+          "relevant_pdf_pages_1_based": [
+            47,
+            48,
+            49,
+            50,
+            56
+          ],
+          "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+          "bytes": 5813648,
+          "pdf_page_count": 79,
+          "retrieved_on": "2026-09-06",
+          "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+        },
+        {
+          "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+          "date": "2026-07-28",
+          "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+          "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+          "relevant_pdf_pages_1_based": [
+            3,
+            7
+          ],
+          "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+          "bytes": 137824,
+          "pdf_page_count": 12,
+          "retrieved_on": "2026-09-06",
+          "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+        }
+      ],
+      "unverified": [
+        "measured_terrain_datum",
+        "exact_building_line_geometry",
+        "detailed_floor_schedule",
+        "access_and_egress"
+      ],
+      "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+      "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+      "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+      "building_line_status": "2m_line_graphically_observed_on_specific_frontages; local_geometry_unregistered",
+      "vehicle_access_status": "prohibited_intervals_graphically_observed; local_geometry_unregistered",
+      "datum_measured": false
+    },
+    "datum_measured": false,
+    "exact_building_line_geometry_verified": false,
+    "legal_floor_section_count": 13
+  },
+  "alternatives": [
+    {
+      "label": "O2",
+      "name": "book:book-comp01:morph-bridge-low:creative-018",
+      "score": 4.45,
+      "round": "vlm-book-comp01",
+      "shape_id": "33d1e35f84b077f2f98f",
+      "certificate_id": "08d0e637f671394813c2",
+      "site_pnu": "4115011300106840001",
+      "ground_m2": 451.6955375060559,
+      "gross_m2": 2552.521405162711,
+      "storey_m": 5.1488654183456255,
+      "floor_area_basis": "BOOK retained floor schedule; each floor plan scaled by similarity squared",
+      "coverage_pct": 18.070057970171586,
+      "far_pct": 102.11349444818376,
+      "height_m": 15.446596255036876,
+      "storey_limit": {
+        "policy_id": "gosan-public1-molit-2026-334",
+        "max_storeys": 5,
+        "statutory_max_height_m": null,
+        "declared_storeys": null,
+        "book_floor_count": 3,
+        "candidate_storey_height_m": 5.1488654183456255,
+        "occupied_height_above_datum_m": 15.446596255036876,
+        "conceptual_storey_proxy": 3,
+        "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+        "actual_design_floor_count_verified": false,
+        "satisfied": true,
+        "reasons": [],
+        "policy_evidence": {
+          "policy_id": "gosan-public1-molit-2026-334",
+          "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+          "max_storeys": 5,
+          "max_bcr_pct": 60.0,
+          "max_far_pct": 250.0,
+          "statutory_max_height_m": null,
+          "default_building_type": "업무시설",
+          "building_subtype": "공공업무시설",
+          "sources": [
+            {
+              "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+              "date": "2026-06-29",
+              "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+              "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+              "relevant_pdf_pages_1_based": [
+                6
+              ],
+              "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+              "bytes": 16093893,
+              "pdf_page_count": 6,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+            },
+            {
+              "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                13,
+                22
+              ],
+              "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+              "bytes": 446211,
+              "pdf_page_count": 32,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+            },
+            {
+              "title": "의정부고산 9차 지구단위계획 시행지침",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                47,
+                48,
+                49,
+                50,
+                56
+              ],
+              "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+              "bytes": 5813648,
+              "pdf_page_count": 79,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+            },
+            {
+              "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+              "date": "2026-07-28",
+              "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+              "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+              "relevant_pdf_pages_1_based": [
+                3,
+                7
+              ],
+              "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+              "bytes": 137824,
+              "pdf_page_count": 12,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+            }
+          ],
+          "unverified": [
+            "measured_terrain_datum",
+            "exact_building_line_geometry",
+            "detailed_floor_schedule",
+            "access_and_egress"
+          ],
+          "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+          "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+          "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+          "building_line_status": "2m_line_graphically_observed_on_specific_frontages; local_geometry_unregistered",
+          "vehicle_access_status": "prohibited_intervals_graphically_observed; local_geometry_unregistered",
+          "datum_measured": false
+        }
+      },
+      "area_limits": {
+        "ground_m2": 451.6955375060559,
+        "gross_m2": 2552.521405162711,
+        "ground_capacity_m2": 1497.877,
+        "far_capacity_m2": 6241.962,
+        "satisfied": true,
+        "reasons": []
+      },
+      "strategy": "높이가 다른 부분의 단계적 결합",
+      "argument": "2개의 높이 단계를 통해 낮은 부분과 높은 부분의 관계를 만든다.",
+      "tradeoff": "각 단의 실내 깊이와 층간 연결을 발전시켜야 한다. 단차만으로 옥외 활동이나 동선이 성립한다고 판단하지 않는다.",
+      "author_intent": "morph-bridge-low - shift (shift)",
+      "tile": "parti-bc8f07078bdf-33d1e35f84b077f2f98f-mass.png",
+      "sequence": "parti-bc8f07078bdf-33d1e35f84b077f2f98f.png",
+      "drawings": "parti-bc8f07078bdf-33d1e35f84b077f2f98f-drawings.png",
+      "source_track": "BOOK"
+    },
+    {
+      "tile": "parti-eab273e72ba6-86ee19dddb637aab6202-mass.png",
+      "score": 4.45,
+      "corrected": 4.45,
+      "pass": true,
+      "correction": "none_no_anchors",
+      "name": "sangok_open_court_threshold^centred",
+      "coverage_pct": 31.742468007736026,
+      "shape_id": "86ee19dddb637aab6202",
+      "certificate_id": "88e9ae6161069039a14e",
+      "round": "vlm-comp01",
+      "site_pnu": "4115011300106840001",
+      "ground_m2": 793.4634837470287,
+      "gross_m2": 3967.3174187351433,
+      "storey_m": 3.6,
+      "floor_area_basis": "delivered geometry at authored storey height",
+      "far_pct": 158.7123400386801,
+      "height_m": 17.778,
+      "storey_limit": {
+        "policy_id": "gosan-public1-molit-2026-334",
+        "max_storeys": 5,
+        "statutory_max_height_m": null,
+        "declared_storeys": 3.0,
+        "book_floor_count": null,
+        "candidate_storey_height_m": 3.6,
+        "occupied_height_above_datum_m": 17.778,
+        "conceptual_storey_proxy": 5,
+        "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+        "actual_design_floor_count_verified": false,
+        "satisfied": true,
+        "reasons": [],
+        "policy_evidence": {
+          "policy_id": "gosan-public1-molit-2026-334",
+          "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+          "max_storeys": 5,
+          "max_bcr_pct": 60.0,
+          "max_far_pct": 250.0,
+          "statutory_max_height_m": null,
+          "default_building_type": "업무시설",
+          "building_subtype": "공공업무시설",
+          "sources": [
+            {
+              "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+              "date": "2026-06-29",
+              "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+              "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+              "relevant_pdf_pages_1_based": [
+                6
+              ],
+              "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+              "bytes": 16093893,
+              "pdf_page_count": 6,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+            },
+            {
+              "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                13,
+                22
+              ],
+              "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+              "bytes": 446211,
+              "pdf_page_count": 32,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+            },
+            {
+              "title": "의정부고산 9차 지구단위계획 시행지침",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                47,
+                48,
+                49,
+                50,
+                56
+              ],
+              "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+              "bytes": 5813648,
+              "pdf_page_count": 79,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+            },
+            {
+              "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+              "date": "2026-07-28",
+              "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+              "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+              "relevant_pdf_pages_1_based": [
+                3,
+                7
+              ],
+              "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+              "bytes": 137824,
+              "pdf_page_count": 12,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+            }
+          ],
+          "unverified": [
+            "measured_terrain_datum",
+            "exact_building_line_geometry",
+            "detailed_floor_schedule",
+            "access_and_egress"
+          ],
+          "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+          "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+          "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+          "building_line_status": "2m_line_graphically_observed_on_specific_frontages; local_geometry_unregistered",
+          "vehicle_access_status": "prohibited_intervals_graphically_observed; local_geometry_unregistered",
+          "datum_measured": false
+        }
+      },
+      "area_limits": {
+        "ground_m2": 793.4634837470287,
+        "gross_m2": 3967.3174187351433,
+        "ground_capacity_m2": 1497.877,
+        "far_capacity_m2": 6241.962,
+        "satisfied": true,
+        "reasons": []
+      },
+      "strategy": "바깥에서 안마당으로",
+      "argument": "연속된 몸체의 외곽과 잘려 나간 부분을 하나의 형상으로 읽는다.",
+      "tradeoff": "개방한 부분의 보안·야간 운영과 중정의 채광을 함께 조정해야 한다.",
+      "author_intent": "중정 테두리의 한 구석을 열어 외부 공간과 중정 사이에 진입 순서를 만든다.",
+      "sequence": "parti-eab273e72ba6-86ee19dddb637aab6202.png",
+      "drawings": "parti-eab273e72ba6-86ee19dddb637aab6202-drawings.png",
+      "source_track": "저작 문장"
+    },
+    {
+      "label": "O3",
+      "name": "book:book-comp01:morph-curved-low:creative-042",
+      "score": 4.25,
+      "round": "vlm-book-comp01",
+      "shape_id": "3391d626210085c7a82a",
+      "certificate_id": "0eddcd19d54ad3d7765b",
+      "site_pnu": "4115011300106840001",
+      "ground_m2": 496.8723930918131,
+      "gross_m2": 3370.2232500000005,
+      "storey_m": 5.916381619026566,
+      "floor_area_basis": "BOOK retained floor schedule; each floor plan scaled by similarity squared",
+      "coverage_pct": 19.87735587674822,
+      "far_pct": 134.82561691038092,
+      "height_m": 17.7491448570797,
+      "storey_limit": {
+        "policy_id": "gosan-public1-molit-2026-334",
+        "max_storeys": 5,
+        "statutory_max_height_m": null,
+        "declared_storeys": null,
+        "book_floor_count": 3,
+        "candidate_storey_height_m": 5.916381619026566,
+        "occupied_height_above_datum_m": 17.7491448570797,
+        "conceptual_storey_proxy": 3,
+        "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+        "actual_design_floor_count_verified": false,
+        "satisfied": true,
+        "reasons": [],
+        "policy_evidence": {
+          "policy_id": "gosan-public1-molit-2026-334",
+          "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+          "max_storeys": 5,
+          "max_bcr_pct": 60.0,
+          "max_far_pct": 250.0,
+          "statutory_max_height_m": null,
+          "default_building_type": "업무시설",
+          "building_subtype": "공공업무시설",
+          "sources": [
+            {
+              "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+              "date": "2026-06-29",
+              "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+              "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+              "relevant_pdf_pages_1_based": [
+                6
+              ],
+              "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+              "bytes": 16093893,
+              "pdf_page_count": 6,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+            },
+            {
+              "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                13,
+                22
+              ],
+              "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+              "bytes": 446211,
+              "pdf_page_count": 32,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+            },
+            {
+              "title": "의정부고산 9차 지구단위계획 시행지침",
+              "date": "2022-06-29",
+              "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+              "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+              "relevant_pdf_pages_1_based": [
+                47,
+                48,
+                49,
+                50,
+                56
+              ],
+              "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+              "bytes": 5813648,
+              "pdf_page_count": 79,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+            },
+            {
+              "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+              "date": "2026-07-28",
+              "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+              "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+              "relevant_pdf_pages_1_based": [
+                3,
+                7
+              ],
+              "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+              "bytes": 137824,
+              "pdf_page_count": 12,
+              "retrieved_on": "2026-09-06",
+              "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+            }
+          ],
+          "unverified": [
+            "measured_terrain_datum",
+            "exact_building_line_geometry",
+            "detailed_floor_schedule",
+            "access_and_egress"
+          ],
+          "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+          "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+          "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+          "building_line_status": "2m_line_graphically_observed_on_specific_frontages; local_geometry_unregistered",
+          "vehicle_access_status": "prohibited_intervals_graphically_observed; local_geometry_unregistered",
+          "datum_measured": false
+        }
+      },
+      "area_limits": {
+        "ground_m2": 496.8723930918131,
+        "gross_m2": 3370.2232500000005,
+        "ground_capacity_m2": 1497.877,
+        "far_capacity_m2": 6241.962,
+        "satisfied": true,
+        "reasons": []
+      },
+      "strategy": "하나의 몸체와 비워진 부분의 관계",
+      "argument": "연속된 몸체의 외곽과 잘려 나간 부분을 하나의 형상으로 읽는다.",
+      "tradeoff": "깊은 내부의 채광과 단면의 점유 가능성을 검토해야 한다. 용도와 실 배치는 확정되지 않았다.",
+      "author_intent": "morph-curved-low - intersect, split (intersect+split)",
+      "tile": "parti-f29d3090bcff-3391d626210085c7a82a-mass.png",
+      "sequence": "parti-f29d3090bcff-3391d626210085c7a82a.png",
+      "drawings": "parti-f29d3090bcff-3391d626210085c7a82a-drawings.png",
+      "source_track": "BOOK"
+    }
+  ],
+  "rejected": []
+}

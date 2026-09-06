@@ -1,0 +1,2393 @@
+{
+  "schema_version": "arr.maas.geometry_program_payload.v1",
+  "author": "Codex host; purpose-authored graphs, no recipe_fixture",
+  "geometry_programs": [
+    {
+      "name": "sangok_crescent_civic_court",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "하나의 낮은 곡선 테두리를 남쪽에서 열어 광장과 중정을 연속시킨다. 일정한 링보다 넓고 좁은 실의 차이를 계획한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.2727272727272725,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.3793103448275863,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2.214285714285714,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "outer",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "base"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "outer"
+        },
+        {
+          "id": "inner_box",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.95,
+                0,
+                0,
+                0.42
+              ],
+              [
+                0,
+                1.32,
+                0,
+                0.28
+              ],
+              [
+                0,
+                0,
+                0.9,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "inner_box"
+        },
+        {
+          "id": "inner",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "inner_box"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "inner"
+        },
+        {
+          "id": "ring",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "outer",
+            "inner"
+          ],
+          "parameters": {},
+          "semantic_role": "ring"
+        },
+        {
+          "id": "opening",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.05,
+                0,
+                0,
+                0.86
+              ],
+              [
+                0,
+                0.8,
+                0,
+                -0.25
+              ],
+              [
+                0,
+                0,
+                0.9,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "opening"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "ring",
+            "opening"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_three_oval_rooms",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "세 타원형 주민실을 낮은 연결 공간으로 엮어 각 방과 외부 마당이 번갈아 드러나는 낮은 청사를 만든다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.4636363636363636,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0.8620689655172414,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2.25,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "room_a",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "base"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "room_a"
+        },
+        {
+          "id": "second",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.18,
+                0,
+                0,
+                0.83
+              ],
+              [
+                0,
+                0.95,
+                0,
+                0.35
+              ],
+              [
+                0,
+                0,
+                0.48,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "second"
+        },
+        {
+          "id": "room_b",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "second"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "room_b"
+        },
+        {
+          "id": "third",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.95,
+                0,
+                0,
+                1.72
+              ],
+              [
+                0,
+                1.2,
+                0,
+                -0.06
+              ],
+              [
+                0,
+                0,
+                0.73,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "third"
+        },
+        {
+          "id": "room_c",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "third"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "room_c"
+        },
+        {
+          "id": "shared_gallery",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.6,
+                0,
+                0,
+                0.05
+              ],
+              [
+                0,
+                0.34,
+                0,
+                0.43
+              ],
+              [
+                0,
+                0,
+                0.3,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "shared_gallery"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "room_a",
+            "room_b",
+            "room_c",
+            "shared_gallery"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_diagonal_civic_forum",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "낮은 포럼을 가로지르는 사선 공동실이 두 바깥마당을 나누고, 그 아래와 옆에 공공 진입의 두 경로를 만든다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.1818181818181817,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.3103448275862069,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.0714285714285714,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "meeting_bar",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.330088464923126,
+                -0.20704138623121476,
+                0,
+                0.32
+              ],
+              [
+                0.7570916362186212,
+                0.6372078659177529,
+                0,
+                0.36
+              ],
+              [
+                0,
+                0,
+                0.55,
+                0.29
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "meeting_bar"
+        },
+        {
+          "id": "quiet_room",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.75,
+                0,
+                0,
+                1.66
+              ],
+              [
+                0,
+                0.7,
+                0,
+                1.06
+              ],
+              [
+                0,
+                0,
+                0.46,
+                0.29
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "quiet_room"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "meeting_bar",
+            "quiet_room"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_three_garden_fingers",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "bar",
+        "base_form_id": "cube",
+        "rationale": "긴 서비스 띠에서 깊이가 다른 세 주민실이 뻗으며 그 사이 두 정원이 같은 공용 진입부에 연결된다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.8,
+              0.62,
+              0.48
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0.8064516129032259,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.3541666666666667,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "hall",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.72,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.62,
+                0,
+                0.42
+              ],
+              [
+                0,
+                0,
+                0.71,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "hall"
+        },
+        {
+          "id": "workshop",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.5446474378078637,
+                0.1739663762000818,
+                0,
+                1.04
+              ],
+              [
+                -0.076545205528036,
+                1.237835085926963,
+                0,
+                0.42
+              ],
+              [
+                0,
+                0,
+                0.48,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "workshop"
+        },
+        {
+          "id": "library",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.74,
+                0,
+                0,
+                2.06
+              ],
+              [
+                0,
+                1.72,
+                0,
+                0.42
+              ],
+              [
+                0,
+                0,
+                0.58,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "library"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "hall",
+            "workshop",
+            "library"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_offset_double_court",
+      "root_id": "second_court",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "두 중정을 어긋나게 배치하고 사이의 넓은 실을 공통 거실로 남겨 같은 크기 방의 반복을 피한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.2727272727272725,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.4137931034482758,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2.2857142857142856,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "garden_one",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.83,
+                0,
+                0,
+                0.3
+              ],
+              [
+                0,
+                1.02,
+                0,
+                0.26
+              ],
+              [
+                0,
+                0,
+                1,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "garden_one"
+        },
+        {
+          "id": "garden_two",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.74,
+                0,
+                0,
+                1.72
+              ],
+              [
+                0,
+                0.88,
+                0,
+                0.93
+              ],
+              [
+                0,
+                0,
+                1,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "garden_two"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "base",
+            "garden_one"
+          ],
+          "parameters": {},
+          "semantic_role": "first_court"
+        },
+        {
+          "id": "second_court",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": ["result", "garden_two"],
+          "parameters": {},
+          "semantic_role": "two_courts"
+        }
+      ]
+    },
+    {
+      "name": "sangok_bridged_public_lane",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "bar",
+        "base_form_id": "cube",
+        "rationale": "두 실의 띠 사이에 외부 골목을 놓고 그 끝에서 주민 공동실이 두 띠를 연결한다. 고층 관문 대신 작은 공공 문턱을 의도한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.8,
+              0.62,
+              0.48
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.23928571428571432,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                3.629032258064516,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.2083333333333333,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "east_wing",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.81,
+                0,
+                0,
+                1.43
+              ],
+              [
+                0,
+                2.25,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0.77,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "east_wing"
+        },
+        {
+          "id": "connecting_room",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.7,
+                0,
+                0,
+                0.35
+              ],
+              [
+                0,
+                0.72,
+                0,
+                1.47
+              ],
+              [
+                0,
+                0,
+                0.39,
+                0.56
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "connecting_room"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "east_wing",
+            "connecting_room"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_rotating_public_platforms",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "큰 공공층 위에 방향과 크기가 다른 두 플랫폼을 놓아 공공 포럼, 집합실, 작은 회의실의 차이를 단면에서 읽게 한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.0909090909090908,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.2758620689655173,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.0714285714285714,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "assembly_platform",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.9310227340460622,
+                -0.18788368629608834,
+                0,
+                0.18
+              ],
+              [
+                0.27138754687212757,
+                1.33686189280112,
+                0,
+                0.2
+              ],
+              [
+                0,
+                0,
+                0.32,
+                0.29
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "assembly_platform"
+        },
+        {
+          "id": "reading_platform",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.3235023763974847,
+                0.13453363993459855,
+                0,
+                0.72
+              ],
+              [
+                -0.20962218315390937,
+                0.8494119729118185,
+                0,
+                0.55
+              ],
+              [
+                0,
+                0,
+                0.36,
+                0.6
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "reading_platform"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "assembly_platform",
+            "reading_platform"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_petal_learning_house",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "중앙 공용실에 방향과 크기가 다른 세 둥근 방을 붙여 방 사이의 바깥 공간이 여러 작은 정원이 되게 한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.5227272727272726,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0.793103448275862,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.607142857142857,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "commons",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "base"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "commons"
+        },
+        {
+          "id": "petal1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.1746157759823856,
+                0.2941373232600751,
+                0,
+                -0.55
+              ],
+              [
+                -0.4275251791570859,
+                0.8081356538758813,
+                0,
+                0.65
+              ],
+              [
+                0,
+                0,
+                0.7,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "petal1"
+        },
+        {
+          "id": "north_room",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "petal1"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "north_room"
+        },
+        {
+          "id": "petal2",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.0142221176035218,
+                -0.23811352149431908,
+                0,
+                0.9
+              ],
+              [
+                0.2717599973576468,
+                0.8886517601859429,
+                0,
+                0.66
+              ],
+              [
+                0,
+                0,
+                0.54,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "petal2"
+        },
+        {
+          "id": "east_room",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "petal2"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "east_room"
+        },
+        {
+          "id": "petal3",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.9292402206971153,
+                -0.26612696424673193,
+                0,
+                0.26
+              ],
+              [
+                0.19751610627687133,
+                1.2520289289392712,
+                0,
+                -0.75
+              ],
+              [
+                0,
+                0,
+                0.61,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "petal3"
+        },
+        {
+          "id": "south_room",
+          "kind": "modifier",
+          "operator": "circularize",
+          "inputs": [
+            "petal3"
+          ],
+          "parameters": {
+            "segments": 40
+          },
+          "semantic_role": "south_room"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "commons",
+            "north_room",
+            "east_room",
+            "south_room"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_ascending_gallery",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "낮은 공공 바닥 위로 두 방향의 경사진 갤러리를 놓아 높이와 접촉이 바뀌는 단면을 시험한다. 경사 통로의 접근성은 별도 검토한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.2727272727272725,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.206896551724138,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0.857142857142857,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "rising_gallery",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.55,
+                0,
+                0,
+                0.04
+              ],
+              [
+                0,
+                0.62,
+                0,
+                0.16
+              ],
+              [
+                0.22,
+                0,
+                0.34,
+                0.18
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "rising_gallery"
+        },
+        {
+          "id": "return_gallery",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.3,
+                0,
+                0,
+                0.35
+              ],
+              [
+                0,
+                0.63,
+                0,
+                0.98
+              ],
+              [
+                -0.13,
+                0,
+                0.3,
+                0.61
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "return_gallery"
+        },
+        {
+          "id": "landing",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.55,
+                0,
+                0,
+                2.23
+              ],
+              [
+                0,
+                1.45,
+                0,
+                0.14
+              ],
+              [
+                0,
+                0,
+                0.56,
+                0.22
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "landing"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "rising_gallery",
+            "return_gallery",
+            "landing"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_civic_gate_and_garden",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "앞마당에서 안마당으로 이어지는 낮은 문을 하나의 큰 몸 아래에 내어 공공 진입을 건물의 단면으로 만든다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.2045454545454544,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.2413793103448276,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                3.2857142857142856,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "sky_court",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.02,
+                0,
+                0,
+                0.81
+              ],
+              [
+                0,
+                0.91,
+                0,
+                0.66
+              ],
+              [
+                0,
+                0,
+                1.2,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "sky_court"
+        },
+        {
+          "id": "court_body",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "base",
+            "sky_court"
+          ],
+          "parameters": {},
+          "semantic_role": "court_body"
+        },
+        {
+          "id": "public_gate",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.8,
+                0,
+                0,
+                0.92
+              ],
+              [
+                0,
+                0.98,
+                0,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0.44,
+                -0.01
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "public_gate"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "court_body",
+            "public_gate"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_broken_ring_garden",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "낮은 정원 테두리의 한 모서리를 끊고 반대쪽에 더 높은 공동실을 놓아 입구와 집합의 장소를 서로 마주보게 한다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.25,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.3793103448275863,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1.7857142857142856,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "court",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.66,
+                0,
+                0,
+                0.55
+              ],
+              [
+                0,
+                1,
+                0,
+                0.5
+              ],
+              [
+                0,
+                0,
+                1.1,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "court"
+        },
+        {
+          "id": "ring",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "base",
+            "court"
+          ],
+          "parameters": {},
+          "semantic_role": "ring"
+        },
+        {
+          "id": "corner_entry",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.75,
+                0,
+                0,
+                -0.05
+              ],
+              [
+                0,
+                0.79,
+                0,
+                -0.05
+              ],
+              [
+                0,
+                0,
+                0.8,
+                -0.1
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "corner_entry"
+        },
+        {
+          "id": "open_ring",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "ring",
+            "corner_entry"
+          ],
+          "parameters": {},
+          "semantic_role": "open_ring"
+        },
+        {
+          "id": "assembly",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.38,
+                0,
+                0,
+                1.32
+              ],
+              [
+                0,
+                0.58,
+                0,
+                1.42
+              ],
+              [
+                0,
+                0,
+                0.46,
+                0.49
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "assembly"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "open_ring",
+            "assembly"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    },
+    {
+      "name": "sangok_shared_roof_rooms",
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_host",
+        "author_model": "GPT-6",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+        "base_seed": "slab",
+        "base_form_id": "cube",
+        "rationale": "세 개의 작은 상부 실 사이에서 넓은 공용 지붕이 여러 바깥방으로 나뉘는 낮은 주민시설을 만든다.",
+        "reference_basis": "저작 신작",
+        "site_pnu": "4115011300106840001"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1,
+            "depth": 1,
+            "height": 1
+          },
+          "semantic_role": "unitbox"
+        },
+        {
+          "id": "seed",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "scale": [
+              2.2,
+              1.45,
+              0.28
+            ]
+          },
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "seed"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.1818181818181817,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1.2413793103448276,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0.9285714285714285,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "base_volume"
+        },
+        {
+          "id": "upper_quiet",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.7189096596989119,
+                -0.12849965147352843,
+                0,
+                0.11
+              ],
+              [
+                0.12676316969685913,
+                0.7287577372290339,
+                0,
+                0.12
+              ],
+              [
+                0,
+                0,
+                0.46,
+                0.25
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "upper_quiet"
+        },
+        {
+          "id": "upper_class",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.8055627352483015,
+                0.06898878575665128,
+                0,
+                1.53
+              ],
+              [
+                -0.08466805524679931,
+                0.6563844509430604,
+                0,
+                0.11
+              ],
+              [
+                0,
+                0,
+                0.39,
+                0.25
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "upper_class"
+        },
+        {
+          "id": "upper_forum",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                1.26754312798921,
+                -0.08628732259524056,
+                0,
+                0.67
+              ],
+              [
+                0.17814156922888377,
+                0.6139662026197736,
+                0,
+                1.03
+              ],
+              [
+                0,
+                0,
+                0.55,
+                0.25
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "upper_forum"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "base",
+            "upper_quiet",
+            "upper_class",
+            "upper_forum"
+          ],
+          "parameters": {},
+          "semantic_role": "result"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_develop_rear_opening~full_ground^cross_open",
+  "shape_id": "7730c10a6f6377ee2a98",
+  "anonymous_image": false,
+  "image_footer": "sangok_c04_develop_rear_opening~full_ground^cross_open | 7730c10a6f6377ee2a98 | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    661.8479462300456,
+    661.8479462300456
+  ],
+  "section_area_m2": 214.09026179391884,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "7831e57b8a795d1c80ff11c45bfcbbc9c3a9b117f3a263a4b5a14af17dbd9208"
+}

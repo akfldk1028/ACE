@@ -1,0 +1,11 @@
+{
+  "parent": "book:book-comp03:morph-bridge-low:creative-018",
+  "parent_shape_id": "0acc8c4adc70e3c86cfb",
+  "parent_program_hash": "07f422f746b07d32bdb10c63208decd8fdb79b48077d2e588afcd8d285bdde6c",
+  "parent_certificate_id": "19c618c4c489d1d5f67d",
+  "site_pnu": "4115011300106840001",
+  "storey_count": 3,
+  "storey_height_m": 5.1488654183456255,
+  "target_gfa_m2": 1026.3081491435976,
+  "height_m": 15.446596255036876
+}

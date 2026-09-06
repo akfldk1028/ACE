@@ -1,0 +1,111 @@
+{
+  "slices": [
+    {
+      "z_m": 0,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 1.2,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 3,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 4.8,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 6.6,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 6.911,
+      "symmetric_difference_m2": 0.0,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 7.2,
+      "symmetric_difference_m2": 4.4875051581628386e-12,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 8.4,
+      "symmetric_difference_m2": 4.4875051581628386e-12,
+      "exact_wkb_equal": false
+    },
+    {
+      "z_m": 10.2,
+      "symmetric_difference_m2": 4.4875051581628386e-12,
+      "exact_wkb_equal": false
+    }
+  ],
+  "before_properties": [
+    6150.84130246309,
+    259062.02676383336,
+    195015.40851529938,
+    27986.49535696836
+  ],
+  "after_properties": [
+    6150.841302463101,
+    259062.02676383458,
+    195015.40851530037,
+    27986.495356968404
+  ],
+  "before_shape": "1688f4ef568ac9347596",
+  "after_shape": "d037d03aa66da8d2c8c8",
+  "pixels_exact_equal": true,
+  "removed_op": {
+    "op": "shape",
+    "on": "resident",
+    "plan_region": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0
+          ],
+          [
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ]
+        ]
+      ]
+    },
+    "top_surface": {
+      "type": "constant",
+      "height": 1
+    },
+    "bottom_surface": {
+      "type": "constant",
+      "height": 0
+    },
+    "why": "Complete the third house as a separate rectangle with an address to the common ground. Independent stairs and lifts remain a program cost, not solved detail."
+  },
+  "geometry_proposal_only": "Approved author-only redundant operation removal, applied to diagnostic draft; physical equivalence with changed representation identity",
+  "matrices_exact_equal": false,
+  "max_matrix_difference": 6.394884621840902e-14,
+  "projection_symmetric_difference_m2": 1.8081325295166628e-11,
+  "heights_exact_equal": true,
+  "before_delivery": [],
+  "after_delivery": []
+}

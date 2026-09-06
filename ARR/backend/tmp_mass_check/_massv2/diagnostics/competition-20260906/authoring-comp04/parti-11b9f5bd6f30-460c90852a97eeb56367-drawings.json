@@ -1,0 +1,18 @@
+{
+  "name": "sangok_c04_hall_daily_street",
+  "shape_id": "460c90852a97eeb56367",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    979.895344646472,
+    979.895344646472
+  ],
+  "section_area_m2": 385.9642978931667,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "2352da9287e5623531cae5a781f1b3f081e00532e624e6a2b6518f09d278bef1"
+}

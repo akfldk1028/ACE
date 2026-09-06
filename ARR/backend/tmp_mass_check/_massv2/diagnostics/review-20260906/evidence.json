@@ -1,0 +1,108 @@
+{
+  "scope": "existing-code review; workers stubbed; no production cycle or jury executed",
+  "cycle_authored_top": {
+    "original_script_sha256": "47d38fa9f589134175b9c75e8d0fe8a2ebbca095aeea8febf89b9cf411f9a2f6",
+    "copy_identical": true,
+    "requested_from": 8,
+    "brief_ran": true,
+    "run_ran": true,
+    "restaging_ran": true,
+    "fixture_authoring_ran": true,
+    "develop_generation_ran": true,
+    "develop_score_ran": false,
+    "reported_complete": true,
+    "trace_path": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\review-20260906\\harness\\authored_top\\trace.txt"
+  },
+  "cycle_book_top": {
+    "original_script_sha256": "47d38fa9f589134175b9c75e8d0fe8a2ebbca095aeea8febf89b9cf411f9a2f6",
+    "copy_identical": true,
+    "requested_from": 8,
+    "brief_ran": true,
+    "run_ran": true,
+    "restaging_ran": true,
+    "fixture_authoring_ran": true,
+    "develop_generation_ran": false,
+    "develop_score_ran": false,
+    "reported_complete": true,
+    "trace_path": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\review-20260906\\harness\\book_top\\trace.txt"
+  },
+  "sheet_picks": {
+    "agent08": [
+      [
+        "spine_vault_arcade~dispersed_ground^to_open",
+        4.65
+      ],
+      [
+        "ring_warped_roofs~worked_ground^cross_open",
+        4.2
+      ],
+      [
+        "loop_shift_butterfly~full_ground^off_open",
+        4.04
+      ]
+    ],
+    "book-llm01": [],
+    "skipped_books": []
+  },
+  "section_contract": {
+    "thin_sheet": {
+      "point": [
+        5,
+        5
+      ],
+      "z": 5,
+      "top_z": 10.0,
+      "bottom_z": 9.0,
+      "within_solid": false,
+      "returned_section_covers_point": true,
+      "returned_section_area": 100.0
+    },
+    "sag_body": {
+      "point": [
+        5,
+        5
+      ],
+      "z": 8,
+      "top_z": 6.0,
+      "bottom_z": 0,
+      "within_solid": false,
+      "returned_section_covers_point": true,
+      "returned_section_area": 100.0
+    }
+  },
+  "artifacts": {
+    "embedded_in_current_html": {
+      "runs/agent08/parti-spine_vault_arcade.png": true,
+      "runs/study-after/1-spine_vault_arcade.png": true
+    },
+    "board_O_seats": 35,
+    "board_BOOK_seats": 28,
+    "BOOK_passed": 28,
+    "agent08_provenance": {
+      "track": "overseas",
+      "programme": null,
+      "corpus": [
+        "gen-agent08.json"
+      ],
+      "sampled": 0,
+      "datum": {
+        "measured": false,
+        "case": "flat",
+        "basis": "elevation_fetch_failed",
+        "elevation_source": "failed"
+      },
+      "brief": null
+    }
+  },
+  "production_artifacts_unchanged": true,
+  "artifact_sha256": {
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\board-key.json": "7beb1c24a274aeac73b709c7d615e4b11d94bbc4d0a1b57ac6c26ceab74a164a",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\ledger.json": "72630dc026aae2db6361e4ff57640fec7013dbd57f7edefa07f7560e4118b7ad",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\era.json": "8c76ea64a73e9f22691d22cef6f3c6bf64daad5784e63139ab300745bb7eb35e",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\board\\sheet_O.png": "0852c0d5db9e7d94a8736235b72a69de9db94144e835c8ff50e4c4a0ab85c71e",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-after\\study.html": "335785988969e34f84a582aa46f1a50bf6e27074c3f5695a356bbeb45fe68a45",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\agent08\\parti-spine_vault_arcade.png": "cc2f74745234475e4c9f215a6814b3b19c70e879a794869d51098cf474184dd8",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-agent08\\vlm-shortlist.json": "b0f6486dbc203663abd5a09390d986e0ce8ec7e8bdf674db107db46b3609b0c3",
+    "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-llm01\\vlm-shortlist.json": "3cc251970cb73c475054d47bd576a4c6c2581b65e04df6d26bcdcf36673dae32"
+  }
+}

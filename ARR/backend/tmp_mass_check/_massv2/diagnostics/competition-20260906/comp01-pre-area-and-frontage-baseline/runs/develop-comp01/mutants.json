@@ -1,0 +1,56 @@
+{
+ "parent": "sangok_open_court_threshold^centred",
+ "parent_scheme": {
+  "name": "sangok_open_court_threshold",
+  "design_argument_ko": {
+   "title": "바깥에서 안마당으로",
+   "spatial_strategy": "중정 테두리의 한 구석을 열어 외부 공간과 중정 사이에 진입 순서를 만든다.",
+   "tradeoff": "개방한 부분의 보안·야간 운영과 중정의 채광을 함께 조정해야 한다."
+  },
+  "primary_language": "open_figure",
+  "secondary_language": "a courtyard perimeter is cut open at its public threshold",
+  "formal_principle": "중정을 둘러싼 세 층의 테두리를 한쪽에서 깊게 열어 바깥마당과 안마당이 하나의 진입 순서를 이룬다.",
+  "dominant_gesture": "닫힌 중정에서 열리는 공공 문턱",
+  "floor_height_m": 3.6,
+  "ops": [
+   {
+    "op": "loop",
+    "bar": 0.22,
+    "height": 0.52,
+    "storeys": 3,
+    "why": "외부와 내부를 모두 마주보는 실의 테두리를 세운다. 링의 팔이 지나치게 얇아지지 않게 실 깊이를 확인한다."
+   },
+   {
+    "op": "notch",
+    "size": 0.38,
+    "at": "open",
+    "why": "대지의 열린 방향에 테두리 일부를 걷어내 외부에서 중정으로 이어지는 문턱을 만든다. 실제 접도 확인 전에는 이 방향은 배치 가설이다."
+   }
+  ],
+  "reference_basis": "저작 신작 — 의정부 산곡동 필지의 공공시설 매스 연구. 확정 공모 과업지시서는 아님."
+ },
+ "parent_shape_id": "86ee19dddb637aab6202",
+ "run": "comp01",
+ "children": [
+  {
+   "name": "sangok_open_court_threshold__d01_height-",
+   "delivered": true,
+   "erased_by_delivery": true
+  },
+  {
+   "name": "sangok_open_court_threshold__d02_height-",
+   "delivered": true,
+   "erased_by_delivery": true
+  },
+  {
+   "name": "sangok_open_court_threshold__d03_height+",
+   "delivered": true,
+   "erased_by_delivery": true
+  },
+  {
+   "name": "sangok_open_court_threshold__d04_height+",
+   "delivered": true,
+   "erased_by_delivery": true
+  }
+ ]
+}

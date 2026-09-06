@@ -1,0 +1,18 @@
+{
+  "name": "court_gateway__creative_physical",
+  "shape_id": "5426cb77c4b10b112d5d",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.493789365554154
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    437.4112638500999,
+    399.42635868618333
+  ],
+  "section_area_m2": 196.0995069024874,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "b5be89b13f104a8891f3bd6d3c7c55e00979fed866d413d59a1b7ef2069967b5"
+}

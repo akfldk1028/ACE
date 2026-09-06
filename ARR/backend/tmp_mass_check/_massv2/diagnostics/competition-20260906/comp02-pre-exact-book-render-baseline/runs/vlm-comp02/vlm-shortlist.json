@@ -1,0 +1,35 @@
+[
+ {
+  "tile": "t03",
+  "score": 3.93,
+  "corrected": 3.93,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "loop_butterfly_open__d07_bar+^centred",
+  "coverage_pct": 33.3,
+  "shape_id": "e3b61578954842dfd796",
+  "certificate_id": "313d22f42678c3c782b1"
+ },
+ {
+  "tile": "t02",
+  "score": 3.45,
+  "corrected": 3.45,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c02_hall_and_daily_street~full_ground^to_open",
+  "coverage_pct": 52.0,
+  "shape_id": "3daa8e533946d2dd2e1e",
+  "certificate_id": "e49dd4aba82f54221016"
+ },
+ {
+  "tile": "t01",
+  "score": 3.42,
+  "corrected": 3.42,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c02_forum_with_corner_garden~worked_ground",
+  "coverage_pct": 43.6,
+  "shape_id": "e97f1053032429b4f139",
+  "certificate_id": "a66ac77844377fa148fd"
+ }
+]

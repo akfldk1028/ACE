@@ -1,0 +1,20 @@
+{
+  "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+  "shape_id": "8cea48dc1e0f41f8f3da",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    805.6375143964343,
+    805.6375143964343
+  ],
+  "section_area_m2": 200.98575970228904,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "5616cce65f4e643d6f9fd3da37f1517609e7299ff4fb33cc2c1b2221262f4a3e"
+}

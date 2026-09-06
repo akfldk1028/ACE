@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_civic_court",
+  "shape_id": "b78b8312c25d1095fd33",
+  "anonymous_image": false,
+  "image_footer": "sangok_c04_civic_court | b78b8312c25d1095fd33 | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    537.055098682683,
+    537.055098682683
+  ],
+  "section_area_m2": 110.83881227257035,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "a4c899db84a0d65005f120263ff4cda585c3d4d7a2f58689552f3e1da651c0c2"
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "name": "sangok_c02_forum_with_corner_garden~worked_ground",
+    "stage_shape_id": "e97f1053032429b4f139",
+    "gfa_matches_generation": true,
+    "ground_matches_generation": true,
+    "height_matches_generation": true,
+    "storey_gate": true,
+    "png_sha256": "0d23462814d22a7d80215b21c34f10157cb6c2ea5433a675a2db73cc2431aaff",
+    "final_sequence_matches": true,
+    "sequence_png_hash_matches": true,
+    "source_evidence_keys": [
+      "schema_version",
+      "basis",
+      "metadata",
+      "missing_metadata_fields"
+    ]
+  },
+  {
+    "name": "sangok_c02_hall_and_daily_street~full_ground^to_open",
+    "stage_shape_id": "3daa8e533946d2dd2e1e",
+    "gfa_matches_generation": true,
+    "ground_matches_generation": true,
+    "height_matches_generation": true,
+    "storey_gate": true,
+    "png_sha256": "840eaee1ef49cf4853e5a8d7ff6020a5f62306df920d42dbaafab1cf4f72d669",
+    "final_sequence_matches": true,
+    "sequence_png_hash_matches": true,
+    "source_evidence_keys": [
+      "schema_version",
+      "basis",
+      "metadata",
+      "missing_metadata_fields"
+    ]
+  },
+  {
+    "name": "loop_butterfly_open__d07_bar+^centred",
+    "stage_shape_id": "e3b61578954842dfd796",
+    "gfa_matches_generation": true,
+    "ground_matches_generation": true,
+    "height_matches_generation": true,
+    "storey_gate": true,
+    "png_sha256": "9acdbaf79d460c26214dbac9a92b70f321a425652d7cd2fe911eb6b811a02a1f",
+    "final_sequence_matches": true,
+    "sequence_png_hash_matches": true,
+    "source_evidence_keys": [
+      "schema_version",
+      "basis",
+      "metadata",
+      "missing_metadata_fields"
+    ]
+  }
+]

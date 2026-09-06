@@ -1,0 +1,18 @@
+{
+  "name": "court_common_room__creative_physical",
+  "shape_id": "a390392320d3954ba2de",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.348865331678959
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    465.12071208131897,
+    365.5606516911995
+  ],
+  "section_area_m2": 204.90407472316355,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "7e41bfd15fff42fbb3dd7ed805cff87be714d4446de9c8136ee914f6c25e1add"
+}

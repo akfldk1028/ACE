@@ -1,0 +1,21 @@
+{
+  "status": "pending",
+  "exit_code": 75,
+  "round": "comp02",
+  "step": 12,
+  "kind": "book-developer",
+  "agent_mode": "external",
+  "resume": "rerun the identical cycle.sh command",
+  "output": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-develop-comp02.json",
+  "parent": {
+    "label": "O1",
+    "name": "book:book-comp02:morph-curved-mid:creative-025",
+    "score": 4.45,
+    "round": "vlm-book-comp02",
+    "shape_id": "77713afe12499ac4eaa1",
+    "certificate_id": "f6248c7d4634d2c5b6e2"
+  },
+  "count": 4,
+  "contract": "BOOK geometry_programs payload; locally develop this exact parent's program, preserving its dominant move",
+  "registry": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\books"
+}

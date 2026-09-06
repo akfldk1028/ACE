@@ -1,0 +1,23 @@
+TILE t01
+CONCEPT 3 | The vaulted principal volume is recognizable, but the detached flat-topped block and attached smaller block do not resolve into an equally clear overall parti.
+FEASIBILITY 5 | All three compact volumes have direct ground support, and the principal curved roof appears achievable without implausible transfers or cantilevers.
+SITE 3 | The low dispersed grouping leaves generous open ground and acknowledges some parcel edges, but the intervening spaces lack a strong civic address or spatial hierarchy.
+EDITABILITY 4 | The simple blocks can accommodate floors and cores readily, while the vault can remain the identifying element if its upper space is handled carefully.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 4 | The enclosed court and continuous rising and falling roof form a memorable collective figure, although the corner peaks introduce some competing gestures.
+FEASIBILITY 4 | The courtyard perimeter offers a credible continuous support system; the intersecting roof slopes and raised corners require more careful detailing and drainage than the other schemes.
+SITE 4 | The ring establishes a protected communal exterior and a clear perimeter within the parcel, though a welcoming connection from the surrounding open ground into the court is not yet legible.
+EDITABILITY 4 | Repeated floor plates and distributed cores can reinforce the courtyard parti, provided development preserves the roof profile and makes the court accessible.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 2 | A large plain bar beside a low folded strip gives a readable height contrast, but the small roof gesture does not establish a compelling identity for the whole.
+FEASIBILITY 5 | The grounded bar and low companion volume offer straightforward load paths with no visible structural extravagance.
+SITE 3 | The long volumes follow the parcel direction and retain an open end, but their narrow separation and compressed edge spaces do not yet define convincing communal ground.
+EDITABILITY 4 | The main bar is easy to organize with ordinary floors and cores, while the tapering low strip will need care to remain useful without losing its shape.
+WEIGHTED 3.40
+
+RANKING: t02, t01, t03
+VERDICT: I would advance t02 for its coherent courtyard figure and recognizable roof silhouette, with the public entrance and roof junctions as the main development questions. I would retain t01 as a quieter alternative if its separate volumes can establish a stronger shared outdoor place; t03 needs a more consequential spatial idea before advancing.

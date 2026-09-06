@@ -1,0 +1,455 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex",
+  "site_pnu": "4115011300106840001",
+  "status": "authored payload prepared for comp04 pending; production run not executed by author",
+  "assumptions": [
+    "Unconfirmed neighborhood public office and resident gathering program.",
+    "Two to three storeys. Legal parking count, actual road entrance, fire egress, accessible cores and floor plans remain to be designed.",
+    "Public courts and a southeast vehicle-access reserve are spatially distinct. Reserve is not a parking layout or compliance certificate."
+  ],
+  "schemes": [
+    {
+      "name": "sangok_c04_civic_court",
+      "primary_language": "open_figure",
+      "secondary_language": "열린 공공마당을 감싸는 깊은 C형 청사",
+      "formal_principle": "동북동의 열린 보행 전면을 향해 뒤 3층 업무 몸과 앞 2층 주민 날개가 깊은 C형 공공마당을 감싸도록 구성한다.",
+      "dominant_gesture": "뒤쪽 3층에서 앞쪽 2층으로 한 번 낮아지는 지붕과 열린 C형 마당",
+      "reference_basis": "등록된 산곡동 공공1 필지와 comp03 실제 평단면 비평에 근거한 공간 가설. 확정 법정 프로그램이나 실별 면적표가 아님.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "Unconfirmed neighborhood-office use needs ordinary work rooms behind an accessible public court. Keep the rear to three storeys and the street ends to two, trading upper floor area for a welcoming court edge."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.27
+                ],
+                [
+                  0.32,
+                  0.27
+                ],
+                [
+                  0.32,
+                  0.72
+                ],
+                [
+                  0.94,
+                  0.72
+                ],
+                [
+                  0.94,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0,
+                1
+              ],
+              [
+                0.32,
+                1
+              ],
+              [
+                0.55,
+                0.6666666666666666
+              ],
+              [
+                1,
+                0.6666666666666666
+              ]
+            ],
+            "axis": [
+              1,
+              0
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "A 32-percent-deep rear work-and-meeting wing binds two genuinely room-deep arms; the whole eastern mouth opens toward the pedestrian address. A flat three-storey rear changes once into two-storey resident wings, keeping the court a legible outdoor room rather than decorating its roof. All rooms begin at ground; this is a spatial mass, not a verified program or structural design."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "열린 공공마당을 감싸는 깊은 C형 청사",
+        "spatial_strategy": "동북동 보행 전면을 향해 한 면 전체를 연다. 뒤 업무 몸은 10.8m의 최대 3층, 앞 주민 활동 날개는 7.2m의 2층 높이로 낮아진다. 깊은 뒤 몸과 양 날개가 하나의 공공마당을 감싸며, 마당에 면한 공용방과 일상 업무의 관계를 제안한다.",
+        "tradeoff": "경사지붕 아래 상층 끝의 실 구성과 코어는 미정이다. 주민센터 업무·모임 프로그램은 가설이며, 작은 실제 바닥 면적과 남는 대지의 사용을 주차·외부공간 계획과 함께 검토해야 한다."
+      }
+    },
+    {
+      "name": "sangok_c04_two_gardens",
+      "primary_language": "carved_body",
+      "secondary_language": "열린 주민 정원과 조용한 안쪽 정원",
+      "formal_principle": "넓게 열린 주민 정원과 조용한 내부 정원을 실제 방이 들어갈 중간 몸으로 구분하고 2층의 남북 실들로 연결한다.",
+      "dominant_gesture": "하나의 낮은 청사 안에 공공성과 크기가 다른 두 정원",
+      "reference_basis": "등록된 산곡동 공공1 필지와 comp03 실제 평단면 비평에 근거한 공간 가설. 확정 법정 프로그램이나 실별 면적표가 아님.",
+      "floor_height_m": 3.9,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "A public reception-and-meeting hypothesis and quieter daily work need different outdoor addresses. Two full storeys at 3.9 metres keep usable rooms around both gardens; no extra roof folds obscure this relation."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.69
+                ],
+                [
+                  1.0,
+                  0.69
+                ],
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                [
+                  0.2,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.28
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "A broad east-facing public garden is separated from a quiet west garden by a room-deep middle body. North and south rooms connect the two without forcing visitors through private work rooms. The public opening is a broad mouth, not the previous narrow keyhole. All rooms begin at ground; this is a spatial mass, not a verified program or structural design."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "열린 주민 정원과 조용한 안쪽 정원",
+        "spatial_strategy": "동쪽의 넓게 열린 공공 정원과 서쪽의 닫힌 작은 정원을 두고, 그 사이에 공용방이 들어갈 깊이의 몸을 둔다. 전체는 높이 7.8m, 자체 층고 3.9m의 2층 구상이다. 남북 실들이 두 정원 주변을 이어 업무와 주민 활동에 다른 외부 주소를 준다.",
+        "tradeoff": "중간 몸의 가설 벽체 차감 깊이는 약 5.08m여서 독립 복도와 방을 동시에 넣으면 좁아질 수 있다. 접수·라운지처럼 통과 가능한 공용방으로 쓸지 후속 평면에서 결정해야 하며, 안쪽 정원의 채광·프라이버시도 미확인이다."
+      }
+    },
+    {
+      "name": "sangok_c04_hall_daily_street",
+      "primary_language": "open_figure",
+      "secondary_language": "큰 주민 홀과 일상 업무길",
+      "formal_principle": "높이 7.2m의 깊은 주민 홀과 10.8m 업무동을 외부 일상길 양쪽에 세워 서로 다른 시간대의 독립 출입 가능성을 만든다.",
+      "dominant_gesture": "부속띠보다 깊고 높은 주민 홀과 업무동이 마주하는 일상길",
+      "reference_basis": "등록된 산곡동 공공1 필지와 comp03 실제 평단면 비평에 근거한 공간 가설. 확정 법정 프로그램이나 실별 면적표가 아님.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "The unconfirmed meeting program deserves comparable frontage and depth to the office. Hold office height at three storeys and hall envelope at two storeys; whether the hall is double-height or divided requires a later floor and egress plan."
+        },
+        {
+          "op": "split",
+          "ratio": 0.43,
+          "along": "cross",
+          "first": "hall",
+          "second": "office",
+          "gap": 9.4,
+          "contrast": 1.5,
+          "why": "A 7.14m authored daily street separates a room-deep hall from the larger office. The hall keeps a 7.2m envelope instead of the low strip criticized in comp03; fitting must preserve a real clear gap."
+        },
+        {
+          "op": "shape",
+          "on": "hall",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.94,
+                  0.0
+                ],
+                [
+                  0.94,
+                  1.0
+                ],
+                [
+                  0.08,
+                  1.0
+                ],
+                [
+                  0.08,
+                  0.0
+                ],
+                [
+                  0.94,
+                  0.0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "Give the evening hall a complete rectangular room with slightly shorter frontage than the office; leave its eastern end available for a distinct threshold."
+        },
+        {
+          "op": "shape",
+          "on": "office",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "Keep the three-storey daily office as a full room-depth body across the shared pedestrian street."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "큰 주민 홀과 일상 업무길",
+        "spatial_strategy": "지상에 서는 높이 7.2m의 주민 홀과 10.8m의 3층 업무동을 실제 외부길로 분리한다. 홀은 약 11.54m의 외곽 깊이를 가지며, 법규 배치 뒤 검증한 직사각형은 가설 벽체 차감 후 약 21.38×6.81m다. 서로 다른 시간대에 운영하는 두 몸의 독립 출입 가능성을 제안한다.",
+        "tradeoff": "최협 외부길은 실제 배치 후 약 4.35m다. 업무동의 내부 복도와 코어, 양쪽 출입문은 아직 그리지 않았다. 홀을 실제 이중높이로 비울지 두 층으로 나눌지 미정이며, 현재 면적 proxy는 두 층으로 계산한다."
+      }
+    },
+    {
+      "name": "sangok_c04_three_houses",
+      "primary_language": "porous_field",
+      "secondary_language": "실제로 분리된 세 집과 공통마당",
+      "formal_principle": "뒤 3층 업무집과 앞 2층 주민집·모임집을 실제로 분리하고 앞 두 집의 틈을 공통마당의 동북동 주소로 삼는다.",
+      "dominant_gesture": "서로 닿지 않는 세 개의 집이 하나의 공통 지상을 향하는 구성",
+      "reference_basis": "등록된 산곡동 공공1 필지와 comp03 실제 평단면 비평에 근거한 공간 가설. 확정 법정 프로그램이나 실별 면적표가 아님.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "Start from at most three storeys for the rear work house; the two smaller resident houses are lowered by the subsequent divisions."
+        },
+        {
+          "op": "split",
+          "ratio": 0.55,
+          "along": "long",
+          "first": "work",
+          "second": "front",
+          "gap": 8,
+          "contrast": 1.25,
+          "why": "Separate a rear work house from the street-side residents by a genuine ground-level gap; each side must hold rooms and an independent accessible core."
+        },
+        {
+          "op": "split",
+          "on": "front",
+          "ratio": 0.52,
+          "along": "cross",
+          "first": "gathering",
+          "second": "resident",
+          "gap": 12,
+          "contrast": 1.25,
+          "why": "Divide the front into two smaller houses with a broad middle entrance to the common ground, rather than letting two objects touch and count as one."
+        },
+        {
+          "op": "shape",
+          "on": "work",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.7,
+                  0.12
+                ],
+                [
+                  0.7,
+                  0.88
+                ],
+                [
+                  0.0,
+                  0.88
+                ],
+                [
+                  0.0,
+                  0.12
+                ],
+                [
+                  0.7,
+                  0.12
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "Shorten and deepen the rear work house; retreat its eastern face to make one common courtyard beyond the two separate front doors."
+        },
+        {
+          "op": "shape",
+          "on": "gathering",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.94,
+                  0.05
+                ],
+                [
+                  0.94,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.05
+                ],
+                [
+                  0.94,
+                  0.05
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "Give the southern gathering house a simple room plan while holding back its road-facing end from the southeast service allowance."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "실제로 분리된 세 집과 공통마당",
+        "spatial_strategy": "뒤 업무집 한 채와 앞 주민집·모임집 두 채가 모든 높이에서 분리된다. 뒤 집은 높이 10.8m의 최대 3층, 앞 두 집은 각각 6.912m의 2층 구상이며 자체 층고는 3.6m다. 두 앞집 사이의 틈이 뒤 집 앞 공통마당으로 이어져 각 집의 독립 출입 가능성을 만든다.",
+        "tradeoff": "세 집의 출입문·계단·승강기와 우천 시 이동은 미정이다. 앞집 상층의 바닥·보·설비 두께를 포함한 실제 유효높이를 더 검증해야 한다. 큰 공통마당은 완전히 닫힌 중정이 아니라 여러 틈으로 이어진 외부공간이다."
+      }
+    }
+  ]
+}

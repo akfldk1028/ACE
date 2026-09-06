@@ -1,0 +1,18 @@
+{
+  "name": "court_rear_gallery__creative_physical",
+  "shape_id": "7f2d1ac68ad9d23b3331",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.810837310381434
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    456.68075406604385,
+    399.42635917537166
+  ],
+  "section_area_m2": 174.25197673769526,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "2c94a5d5284c90c5eac67ab8ee54f013d7982180ca8b850e0fd34b024f57d973"
+}

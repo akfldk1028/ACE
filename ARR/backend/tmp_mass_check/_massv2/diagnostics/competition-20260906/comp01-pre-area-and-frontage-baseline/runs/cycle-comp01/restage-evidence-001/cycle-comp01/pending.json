@@ -1,0 +1,28 @@
+{
+  "status": "pending",
+  "exit_code": 75,
+  "round": "comp01",
+  "step": 7,
+  "kind": "round-jury",
+  "agent_mode": "external",
+  "resume": "rerun the identical cycle.sh command",
+  "stage": "comp01",
+  "requests": [
+    {
+      "juror": 1,
+      "input_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r1",
+      "output": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r1\\r1.txt"
+    },
+    {
+      "juror": 2,
+      "input_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r2",
+      "output": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r2\\r2.txt"
+    },
+    {
+      "juror": 3,
+      "input_dir": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r3",
+      "output": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp01\\jury\\comp01\\juror-r3\\r3.txt"
+    }
+  ],
+  "contract": "Three independent fresh jurors; only private PROMPT.txt and images"
+}

@@ -1,0 +1,177 @@
+TILE t01
+CONCEPT 3 | The interlocking courtyard volumes are clear, although small edge jogs weaken their unity.
+FEASIBILITY 5 | Short spans and predominantly aligned walls suggest straightforward construction.
+SITE 3 | The low courtyard mass leaves generous exterior space but only loosely addresses the parcel edges.
+EDITABILITY 4 | Usable bars and a central void can accommodate circulation and facades without losing the arrangement.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 3 | The toothed stack has a recognizable silhouette, but repeated notches become visual noise.
+FEASIBILITY 3 | Widening upper floors and numerous offsets require coordinated transfers across the vertical supports.
+SITE 2 | The tall central stack establishes little relationship with the open ground or irregular boundaries.
+EDITABILITY 3 | The main stack can survive development, although many narrow recesses would need consolidation.
+WEIGHTED 2.80
+
+TILE t03
+CONCEPT 2 | An atrium box is legible but too generic to remain memorable.
+FEASIBILITY 5 | Continuous vertical volumes and a regular envelope offer an economical structural scheme.
+SITE 2 | The freestanding cube does little to organize the surrounding parcel.
+EDITABILITY 5 | Regular floor plates and a persistent central opening make further development straightforward.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 2 | The single faceted extrusion is coherent but lacks a compelling spatial proposition.
+FEASIBILITY 5 | A continuous low volume should be simple to frame and construct.
+SITE 4 | The angled footprint responds directly to the parcel geometry, although its edges remain closed.
+EDITABILITY 4 | Floors and cores fit readily, but the broad plate needs careful daylight and entrance planning.
+WEIGHTED 3.55
+
+TILE t05
+CONCEPT 3 | The carved vertical slot gives the block identity, though the smaller cuts lack clear hierarchy.
+FEASIBILITY 4 | Most of the mass bears directly downward, with manageable local adjustments around the cuts.
+SITE 2 | The tall object offers little evidence of a specific relationship to the surrounding open ground.
+EDITABILITY 4 | The primary volumes are robust enough for floor plates and cores, with refinement needed at the slot.
+WEIGHTED 3.25
+
+TILE t06
+CONCEPT 3 | A gradually displaced stack is visible, but the shifts are too slight to create a strong civic figure.
+FEASIBILITY 4 | Small setbacks and overhangs appear achievable with an organized structural grid.
+SITE 2 | The stepped stack remains an object in the parcel rather than shaping a convincing exterior place.
+EDITABILITY 4 | The overlapping plates allow continuous cores while retaining the stepped silhouette.
+WEIGHTED 3.25
+
+TILE t07
+CONCEPT 3 | The cross-shaped prism is clear and recognizable, though formally elementary.
+FEASIBILITY 5 | An uninterrupted extrusion provides direct load paths and economical repetition.
+SITE 2 | Equal projecting arms do not visibly distinguish the parcel edges or a public approach.
+EDITABILITY 5 | The arms offer clear accommodation for rooms, daylight and a central circulation core.
+WEIGHTED 3.70
+
+TILE t08
+CONCEPT 3 | Parallel roof bands provide a readable rhythm but limited overall distinction.
+FEASIBILITY 5 | The compact lower block and modest upper steps should be straightforward to build.
+SITE 3 | Its low height is compatible with a civic setting, while the external spaces remain undifferentiated.
+EDITABILITY 4 | Regular lower floors and broad upper bands can accept services and facades with limited change.
+WEIGHTED 3.70
+
+TILE t09
+CONCEPT 4 | Two long bars and a low connecting wall establish a strong, easily understood courtyard parti.
+FEASIBILITY 5 | Simple bars and short connections provide clear structural and construction logic.
+SITE 4 | The elongated court and open end organize the site into a plausible shared outdoor room.
+EDITABILITY 5 | The bars can accommodate rooms and circulation while preserving the courtyard through development.
+WEIGHTED 4.45
+
+TILE t10
+CONCEPT 4 | The tall open court and horizontal aperture combine into a distinctive carved figure.
+FEASIBILITY 4 | The localized opening has substantial surrounding support and appears structurally achievable.
+SITE 3 | The open side establishes an orientation, although the height makes the court relatively enclosed.
+EDITABILITY 4 | The U-shaped plates can carry the programme, with coordination needed around the aperture.
+WEIGHTED 3.80
+
+TILE t11
+CONCEPT 4 | The stepped U-shaped enclosure communicates one strong idea with restrained means.
+FEASIBILITY 5 | The upper walls remain supported by the broader lower volumes.
+SITE 3 | The opening and terraces offer a useful hierarchy, but the tall sides give the court an inward character.
+EDITABILITY 4 | The U-shaped arrangement survives ordinary development, provided the narrow upper wings remain usable.
+WEIGHTED 4.05
+
+TILE t12
+CONCEPT 1 | A plain rectangular block offers almost no memorable formal idea.
+FEASIBILITY 5 | A regular prism with repeated floor plates is highly buildable.
+SITE 2 | The footprint sits generically within the parcel and gives no clear public orientation.
+EDITABILITY 5 | Its regular volume readily accepts floors, cores and a conventional facade.
+WEIGHTED 3.00
+
+TILE t13
+CONCEPT 4 | The layered crescent around an angular void is memorable and formally legible.
+FEASIBILITY 3 | Shifting curved plates and sharply tapered ends complicate economical structural repetition.
+SITE 3 | The open mouth offers orientation, but the curved object has a weak relationship to the parcel edges.
+EDITABILITY 2 | Thin pointed ends and varying plate geometry make practical rooms and circulation difficult to insert.
+WEIGHTED 3.15
+
+TILE t14
+CONCEPT 4 | The ascending sequence of broad terraces gives the mass a clear and memorable direction.
+FEASIBILITY 5 | The steps retain extensive bearing overlap and suggest conventional framing.
+SITE 4 | The low front and rising rear establish a useful relationship between approach, open space and height.
+EDITABILITY 5 | Broad terraces and regular rear volumes leave room for cores and occupied floors without losing the parti.
+WEIGHTED 4.45
+
+TILE t15
+CONCEPT 2 | A small tower on a broad podium is understandable but too generic to distinguish this proposal.
+FEASIBILITY 5 | Direct stacking and simple rectangular volumes support straightforward construction.
+SITE 2 | The podium and isolated upper block offer little visible response to the parcel or its open side.
+EDITABILITY 5 | The simple volumes can readily receive rooms, vertical circulation and facades.
+WEIGHTED 3.35
+
+TILE t16
+CONCEPT 3 | The three-tier pyramid has a clear hierarchy, though the idea remains familiar.
+FEASIBILITY 5 | Successively smaller supported plates provide uncomplicated load paths.
+SITE 3 | The low terraces moderate scale and offer outdoor space, but orientation remains weak.
+EDITABILITY 5 | Ample plate overlap permits a continuous core and useful terraces throughout development.
+WEIGHTED 3.90
+
+TILE t17
+CONCEPT 3 | The very thin U-shaped enclosure is forceful but reads more as walls than an inhabited civic volume.
+FEASIBILITY 4 | Continuous ground support is credible, though slender tall wings need lateral coordination.
+SITE 3 | The large open court establishes an exterior room, but the blank height makes it severe.
+EDITABILITY 2 | The narrow wings leave little depth for useful rooms, circulation and cores without changing the proportions.
+WEIGHTED 3.05
+
+TILE t18
+CONCEPT 5 | The splayed fingers create a memorable fan whose spatial idea is apparent immediately.
+FEASIBILITY 4 | The bars have clear ground support, with coordination needed where their angles converge.
+SITE 4 | Widening spaces between the fingers gather the open ground toward a distinct shared focus.
+EDITABILITY 4 | Linear wings can accept rooms and services while the convergence requires careful circulation planning.
+WEIGHTED 4.35
+
+TILE t19
+CONCEPT 3 | An upper block spanning a recessed ground edge is legible, though the corner incision feels incidental.
+FEASIBILITY 4 | The overhanging section has substantial end supports and appears achievable with planned transfer structure.
+SITE 3 | The ground recess creates a sheltered threshold, but the overall placement remains generic.
+EDITABILITY 4 | The broad plates can accommodate programme and cores while retaining the principal recess.
+WEIGHTED 3.45
+
+TILE t20
+CONCEPT 3 | The jagged stack is conspicuous, but competing notches and setbacks obscure a single governing idea.
+FEASIBILITY 3 | Numerous changing edges and narrow projections make framing and enclosure relatively costly.
+SITE 2 | The mass offers no clear public front or coherent response to the parcel geometry.
+EDITABILITY 2 | Frequent acute recesses and shifting profiles would need substantial simplification for usable floors.
+WEIGHTED 2.60
+
+TILE t21
+CONCEPT 3 | The large rectangular court gives a coherent parti, while the small extra puncture adds little.
+FEASIBILITY 5 | A compact supported courtyard block should be economical to frame and enclose.
+SITE 3 | The low courtyard volume offers a useful outdoor room but limited connection to the surrounding ground.
+EDITABILITY 5 | Broad regular wings and a stable courtyard geometry can absorb normal planning requirements.
+WEIGHTED 3.90
+
+TILE t22
+CONCEPT 4 | The open circular enclosure forms a memorable horseshoe, weakened slightly by the small rear appendages.
+FEASIBILITY 4 | Continuous bearing and repeated curved geometry are credible, though less economical than straight bars.
+SITE 4 | The opening focuses access into a defined shared court and the curve softens the parcel's hard edges.
+EDITABILITY 3 | The principal ring survives development, but narrow curved strips and tapered tips constrain room planning.
+WEIGHTED 3.80
+
+TILE t23
+CONCEPT 5 | The rounded fork and alternating deep cutouts create a strong sculptural identity.
+FEASIBILITY 3 | Large interrupted sections and projecting upper arms require significant structural coordination.
+SITE 3 | The open fork suggests a public direction, but the tall stacked voids provide a limited ground relationship.
+EDITABILITY 3 | Usable arms remain possible, although cores and circulation must negotiate tapering geometry and missing sections.
+WEIGHTED 3.70
+
+TILE t24
+CONCEPT 3 | The offset courtyard bars are readable, but the small facade steps offer little additional conceptual strength.
+FEASIBILITY 5 | Substantial aligned walls and conventional rectangular plates make the scheme credible.
+SITE 3 | The open side gives some orientation, while the tall front presents a relatively closed civic edge.
+EDITABILITY 4 | The broad bars can accommodate practical rooms and circulation without erasing the courtyard arrangement.
+WEIGHTED 3.70
+
+TILE t25
+CONCEPT 2 | Two slightly shifted bars merge into a familiar block with little memorable spatial character.
+FEASIBILITY 5 | A low compact extrusion with minor offsets is straightforward to construct.
+SITE 3 | The footprint uses the parcel efficiently, but its perimeter does not articulate a convincing public space.
+EDITABILITY 5 | Generous regular plates can accommodate floors, cores and facade development easily.
+WEIGHTED 3.55
+
+RANKING: t14, t09, t18, t11, t16, t21, t10, t22, t01, t08, t24, t07, t23, t04, t25, t19, t03, t15, t05, t06, t13, t17, t12, t02, t20
+VERDICT: Advance t14 and t09 for their clear spatial organization, practical structure and capacity to develop, together with t18 for its particularly memorable fan of civic wings. Keep t11 as a reserve; the set is strongest where simple bars shape useful courts or terraces, while narrow shells and heavily notched stacks struggle to become convincing occupied buildings.

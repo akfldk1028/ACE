@@ -1,5 +1,11 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**BOOK 계약 후속 수리 완료:** cycle/bridge가 live ARR prompt·schema·BOOK vocabulary와 회차 brief를 저자에게 전달하고 해시로 고정한다. payload 제출 후 계약 변조도 거절한다. 총괄 MassAgent Python 57건 통과(7.610초). 연구/구현 근거는 `recent-research-flow-review-20260906.md` 마지막 절. 아래 '수정 진행 중'은 이 완료 기록으로 갱신한다. 강제 슬롯 조작·분산 동 제한·programme/성장/선발·새 회차는 여전히 남아 있으며 comp04를 다시 생성하지 않았다.
+
+**최신 연구 대조 기록:** `agents/MassAgent/docs/reports/recent-research-flow-review-20260906.md`. CoMa/HouseMind(2026 arXiv v1), TileGPT/Experiential Views(2024)의 원문 방법·실험·한계를 읽고 FLOW 12단계와 비교했다. BOOK 저작 계약 전달 수정이 진행 중이며, 강제 BOOK 슬롯 투영·component_count 단일값 게이트는 실제 코드로 확인했지만 아직 수정하지 않았다. 연구를 읽은 것을 새 시트 개선 완료로 보고하지 않는다.
+
+**최신 사용자 정정 (2026-09-06):** 아래 과거 A/B 결정 대기는 해제됐다. 법규·입력된 필수 프로그램/면적을 지키되 용적률 최대화나 최초 저작 높이 보존을 일괄 강제하지 않는다. 한국 모드는 스페이스 프로그램에서 매스를 만들고, 해외 모드는 공간 구성·기하가 실질적으로 다른 현상설계 대안을 탐색한다. 사용자가 구현보다 먼저 매스 스터디 공부를 요청했다. `agents/MassAgent/docs/reports/massing-study-20260906.md`에 기존 문헌과 공식 사례 대조를 기록했다. 현재 comp04 시트는 그대로이며 새 개선 회차는 아직 실행하지 않았다. 다음은 기존 저작→컴파일→성장→선발→배심에서 구성 차이가 사라지는 지점의 증거 추적이다. 프롬프트 수정만으로 품질 개선 완료를 선언하지 않는다.
+
 대상: 다음 세션의 Claude, Codex 에이전트, MassAgent. 코드보다 이 파일과 `FLOW.md`를 먼저 읽는다.
 갱신: 2026-09-06 후속 전체 검토. **comp04의 12단계와 A3 PDF 3장은 보존했다. 총괄 직접 매스 검토와 전체 범위 테스트에서 미완료 사항을 확인했고, 회차 무결성과 저면적 선택 예외를 수리했다.** 전체 서비스 배포와 현상설계급 품질 목표는 아직 미완료다. 사용자 후속 지시로 자율 반복 개선과 IR 구현은 승인됐다. 아래 완료 회차를 다시 생성하지 않고 남은 일 순서로 진행한다.
 에이전트 폴더 정본: `D:/Data/25_ACE/agents/AGENTS.md` → `README.md` → `MassAgent/AGENTS.md` / `MASSAGENT.md`.

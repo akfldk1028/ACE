@@ -1,0 +1,1223 @@
+{
+  "schema_version": "arr.maas.creative_floor_portfolio.v1",
+  "author_mode": "payload",
+  "status": "materialized",
+  "choice_pool": true,
+  "candidate_count": 24,
+  "candidate_origin_counts": {
+    "authored_original": 12,
+    "book_exploration": 12
+  },
+  "capacity_ceiling_m2": 1497.877,
+  "capacity_authority": "user_supplied_prelegal_target",
+  "family_quotas": {
+    "morph-curved-low": 2,
+    "morph-oblique-mid": 1,
+    "morph-compact-mid": 9,
+    "morph-curved-mid": 4,
+    "morph-compact-low": 2,
+    "morph-voided-mid": 6
+  },
+  "capacity_band_quotas": {
+    "spatial_reserve": 6,
+    "balanced_yield": 6,
+    "brief_target": 6,
+    "maximum_target": 6
+  },
+  "legal_review_status": "not_evaluated",
+  "paid_vlm_request_count": 0,
+  "book_language_coverage": {
+    "schema_version": "arr.maas.creative_book_coverage.v1",
+    "candidate_count": 12,
+    "materialized_count": 12,
+    "distinct_principle_count": 12,
+    "principle_ids": [
+      "book:operative:bend",
+      "book:operative:branch",
+      "book:operative:expand",
+      "book:operative:extrude",
+      "book:operative:inflate",
+      "book:operative:interlock",
+      "book:operative:merge",
+      "book:operative:nest",
+      "book:operative:offset",
+      "book:operative:skew",
+      "book:operative:split",
+      "book:operative:twist"
+    ],
+    "base_operative_count": 12,
+    "combination_count": 0,
+    "aggregation_count": 0,
+    "missing_principle_ids": [
+      "book:aggregation:array+stack:rotate",
+      "book:aggregation:array:taper",
+      "book:aggregation:join+array:pinch",
+      "book:aggregation:join:split",
+      "book:aggregation:pack+stack:branch",
+      "book:aggregation:pack:inflate",
+      "book:aggregation:reflect+pack:skew",
+      "book:aggregation:reflect:expand",
+      "book:aggregation:stack:bend",
+      "book:combination:01:inscribe+inscribe",
+      "book:combination:02:intersect+intersect",
+      "book:combination:03:split+split",
+      "book:combination:04:embed+embed",
+      "book:combination:05:taper+taper",
+      "book:combination:06:bend+bend",
+      "book:combination:07:branch+branch",
+      "book:combination:08:expand+expand",
+      "book:combination:09:shift+shift",
+      "book:combination:10:notch+notch",
+      "book:combination:11:inscribe+intersect",
+      "book:combination:12:intersect+split",
+      "book:combination:13:split+embed",
+      "book:combination:14:embed+taper",
+      "book:combination:15:taper+bend",
+      "book:combination:16:bend+branch",
+      "book:combination:17:branch+expand",
+      "book:combination:18:expand+shift",
+      "book:combination:19:shift+notch",
+      "book:combination:20:notch+twist",
+      "book:operative:carve",
+      "book:operative:compress",
+      "book:operative:embed",
+      "book:operative:extract",
+      "book:operative:fracture",
+      "book:operative:grade",
+      "book:operative:inscribe",
+      "book:operative:intersect",
+      "book:operative:lift",
+      "book:operative:lodge",
+      "book:operative:notch",
+      "book:operative:overlap",
+      "book:operative:pinch",
+      "book:operative:puncture",
+      "book:operative:rotate",
+      "book:operative:shear",
+      "book:operative:shift",
+      "book:operative:taper"
+    ],
+    "principle_kind_counts": {
+      "base_operative": 12
+    },
+    "scope_counts": {
+      "1/1": 2,
+      "1/16": 2,
+      "1/2": 2,
+      "1/4": 2,
+      "1/8": 2,
+      "3/8": 2
+    }
+  },
+  "morphology_evidence": {
+    "schema_version": "arr.maas.creative_morphology.v1",
+    "decision": "accepted",
+    "accepted_count": 24,
+    "rejected_count": 0,
+    "global_threshold": 0.015,
+    "within_family_threshold": 0.025,
+    "nearest_distance_distribution": {
+      "count": 23,
+      "minimum": 0.079608596194,
+      "median": 0.13693950836,
+      "maximum": 1.0
+    }
+  },
+  "exploration_count": 12,
+  "original_count": 12,
+  "target_count_scope": "book_exploration",
+  "run_id": "book-comp08",
+  "pnu": "4115011300106840001",
+  "created_at": "2026-09-06T10:46:47.974258+00:00",
+  "candidates": [
+    {
+      "candidate_id": "creative-001",
+      "family": "morph-curved-low",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+      "geometry_hash": "7b721c33578c31dc94ad6b81de82c7a34227250dc0bef17cd3978f02f2cd0022",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "dc59cb848500de0cdc4332dc01f3ab1721f422e034df28b8f5466911cdd74784",
+      "normalized_source_program_hash": "dc59cb848500de0cdc4332dc01f3ab1721f422e034df28b8f5466911cdd74784",
+      "candidate_json": "candidates/creative-001.json",
+      "render_png": "renders/creative-001.png",
+      "mass_directory": "masses/creative-001",
+      "mass_manifest": "masses/creative-001/manifest.json",
+      "elevation_research_handoff": "masses/creative-001/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-002",
+      "family": "morph-oblique-mid",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "a6bda91529504485e7641966dfac2529a74a4052b7cefe45ee92849ad90217d8",
+      "geometry_hash": "45586a9d5eaa01ff110a210a1d5d7013739bdae655bb0c601dacadbe9c9217b0",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "273b9d0bcb2a3363de348fac217654389e5caa655b87b8a44986afbe6f9c8b5c",
+      "normalized_source_program_hash": "273b9d0bcb2a3363de348fac217654389e5caa655b87b8a44986afbe6f9c8b5c",
+      "candidate_json": "candidates/creative-002.json",
+      "render_png": "renders/creative-002.png",
+      "mass_directory": "masses/creative-002",
+      "mass_manifest": "masses/creative-002/manifest.json",
+      "elevation_research_handoff": "masses/creative-002/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-003",
+      "family": "morph-compact-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "1b7e70ef4ff75cdbcc687a272792cb5fb0bf74ac6c3db8b86f9bad44269650e4",
+      "geometry_hash": "c1c6f0ccec19bf2e00035d3b487bdeec82e62c9e1deb3239990059011189bb73",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "3123cc184a9634e1a71bf1d05a9f6c1373531aa28668c2d39c4076d162a304ad",
+      "normalized_source_program_hash": "3123cc184a9634e1a71bf1d05a9f6c1373531aa28668c2d39c4076d162a304ad",
+      "candidate_json": "candidates/creative-003.json",
+      "render_png": "renders/creative-003.png",
+      "mass_directory": "masses/creative-003",
+      "mass_manifest": "masses/creative-003/manifest.json",
+      "elevation_research_handoff": "masses/creative-003/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-004",
+      "family": "morph-curved-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "a9d14f37b828a7896efb86db065e6d45eb81ce13e5f07900efa9441a450b4586",
+      "geometry_hash": "a7e36c4d86efad6a270ceaae045c1d3f6116b1d794574c76788a8353ae811054",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "2547853b49ed5a201c10b49b4e132e1fca12cb28731bd7ae9d8ced472762f118",
+      "normalized_source_program_hash": "2547853b49ed5a201c10b49b4e132e1fca12cb28731bd7ae9d8ced472762f118",
+      "candidate_json": "candidates/creative-004.json",
+      "render_png": "renders/creative-004.png",
+      "mass_directory": "masses/creative-004",
+      "mass_manifest": "masses/creative-004/manifest.json",
+      "elevation_research_handoff": "masses/creative-004/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-005",
+      "family": "morph-compact-mid",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "e8d392c4c7e6c5e3d03fed260467f39e47b46e9bc25bd7335d929afd5291e735",
+      "geometry_hash": "f5841753924f7fa468a088c50e3522d4bca82152924b6c11e9e891628a43ed63",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "normalized_source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "candidate_json": "candidates/creative-005.json",
+      "render_png": "renders/creative-005.png",
+      "mass_directory": "masses/creative-005",
+      "mass_manifest": "masses/creative-005/manifest.json",
+      "elevation_research_handoff": "masses/creative-005/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-006",
+      "family": "morph-compact-low",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "a8a817590ea031793b3f8ed76f58738654dbc1db887e3d1f992ffb349ab65b1f",
+      "geometry_hash": "f84e50004182e7c3862416a5250811ecffa192371cd7b9c22ee7517abd381edc",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "8895e98e1e4cc380cb495801ed3a590a93d01027d4e7aa14e43097da6f45e112",
+      "normalized_source_program_hash": "8895e98e1e4cc380cb495801ed3a590a93d01027d4e7aa14e43097da6f45e112",
+      "candidate_json": "candidates/creative-006.json",
+      "render_png": "renders/creative-006.png",
+      "mass_directory": "masses/creative-006",
+      "mass_manifest": "masses/creative-006/manifest.json",
+      "elevation_research_handoff": "masses/creative-006/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-007",
+      "family": "morph-compact-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "60432ac4bb067cd606d5896178683a8f6a83b372ed241901132e47358e172dcc",
+      "geometry_hash": "8fb4294884a899839a7b86fc7ca6fd139b1083c7159a1957ba4acadf05683a34",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "d132e3839668ef13d2437b14d3a4b494577b05236d141fc6a1b1a187ba10bde3",
+      "normalized_source_program_hash": "d132e3839668ef13d2437b14d3a4b494577b05236d141fc6a1b1a187ba10bde3",
+      "candidate_json": "candidates/creative-007.json",
+      "render_png": "renders/creative-007.png",
+      "mass_directory": "masses/creative-007",
+      "mass_manifest": "masses/creative-007/manifest.json",
+      "elevation_research_handoff": "masses/creative-007/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-008",
+      "family": "morph-compact-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "e9d66601d1fd1e413222d7ed9be03fbb663125c137c52dd9c5dd95bb7a361588",
+      "geometry_hash": "cbdcdca660558c547003bfd26f912bfe1e67ada7cc599e8eb1480d0e91b22fd8",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "9c295390b8fe4e8ffe4cde67b440c8d95bd5b4386291e287c2ef0622a81f0754",
+      "normalized_source_program_hash": "9c295390b8fe4e8ffe4cde67b440c8d95bd5b4386291e287c2ef0622a81f0754",
+      "candidate_json": "candidates/creative-008.json",
+      "render_png": "renders/creative-008.png",
+      "mass_directory": "masses/creative-008",
+      "mass_manifest": "masses/creative-008/manifest.json",
+      "elevation_research_handoff": "masses/creative-008/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-009",
+      "family": "morph-compact-mid",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "175a9a927f2c2a293a2588679a95c746d0f61475437104339682fa467c30c0fc",
+      "geometry_hash": "54b74e6bea942a4d12ba43a486dbe34c0b00623d8f03cc7edc061b547786b7d0",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "470faa2c91cb02b146fb4bc67c1970c86ed10fa38cec4f4304f70b9ce9a6ba42",
+      "normalized_source_program_hash": "470faa2c91cb02b146fb4bc67c1970c86ed10fa38cec4f4304f70b9ce9a6ba42",
+      "candidate_json": "candidates/creative-009.json",
+      "render_png": "renders/creative-009.png",
+      "mass_directory": "masses/creative-009",
+      "mass_manifest": "masses/creative-009/manifest.json",
+      "elevation_research_handoff": "masses/creative-009/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-010",
+      "family": "morph-compact-mid",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "ed694b7f0988d8929385f9434a9e29d0c10db99a689c0e6f04b5fa82ac49cd0f",
+      "geometry_hash": "b6db918542d59844a6d1857f9478b73d7b47230f933580a57c2500084f62db08",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "00b6ca646917910b753eb1658140349790d1d5e21d740cd9cc4fa90fc72609b1",
+      "normalized_source_program_hash": "00b6ca646917910b753eb1658140349790d1d5e21d740cd9cc4fa90fc72609b1",
+      "candidate_json": "candidates/creative-010.json",
+      "render_png": "renders/creative-010.png",
+      "mass_directory": "masses/creative-010",
+      "mass_manifest": "masses/creative-010/manifest.json",
+      "elevation_research_handoff": "masses/creative-010/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-011",
+      "family": "morph-compact-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "f7e95c8ddd1804bcbfb0ee5a0cd9cf4e2ded09a2dfe6dfebd16ea12672595120",
+      "geometry_hash": "e61d7c5d608867de1ad1507469b81dda77719853538da89f226d5192ba60a00c",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "ad66bfc6028372f14d0ece40ab58650d83a5d9b6d5b74f8cb0f81daa506ab283",
+      "normalized_source_program_hash": "ad66bfc6028372f14d0ece40ab58650d83a5d9b6d5b74f8cb0f81daa506ab283",
+      "candidate_json": "candidates/creative-011.json",
+      "render_png": "renders/creative-011.png",
+      "mass_directory": "masses/creative-011",
+      "mass_manifest": "masses/creative-011/manifest.json",
+      "elevation_research_handoff": "masses/creative-011/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-012",
+      "family": "morph-compact-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "91ad7b8e8348996451719a829d0382c4b33345f59d9acfef1667850b56c7591d",
+      "geometry_hash": "30d713043d5982ec860671eb066cc4e3dcef99ecf8af08b48adfe7411c6fb1e8",
+      "candidate_origin": "authored_original",
+      "source_program_hash": "8dfd51652a6006c9837c88e66eee25ab52054dc11682fa0027cda18aacf07689",
+      "normalized_source_program_hash": "8dfd51652a6006c9837c88e66eee25ab52054dc11682fa0027cda18aacf07689",
+      "candidate_json": "candidates/creative-012.json",
+      "render_png": "renders/creative-012.png",
+      "mass_directory": "masses/creative-012",
+      "mass_manifest": "masses/creative-012/manifest.json",
+      "elevation_research_handoff": "masses/creative-012/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-013",
+      "family": "morph-compact-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "4fec5dbe2ae86f5ee2e97cd216f0d9c98bb9b4a31f0528dd9946bd427cfea551",
+      "geometry_hash": "8c3c2b97848e6d9b486b032a15b8d9ba192a1a3ca7e0ee9cc995a0665805c2ea",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "8dfd51652a6006c9837c88e66eee25ab52054dc11682fa0027cda18aacf07689",
+      "normalized_source_program_hash": "8dfd51652a6006c9837c88e66eee25ab52054dc11682fa0027cda18aacf07689",
+      "parent_program_hash": "8dfd51652a6006c9837c88e66eee25ab52054dc11682fa0027cda18aacf07689",
+      "candidate_json": "candidates/creative-013.json",
+      "render_png": "renders/creative-013.png",
+      "mass_directory": "masses/creative-013",
+      "mass_manifest": "masses/creative-013/manifest.json",
+      "elevation_research_handoff": "masses/creative-013/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-014",
+      "family": "morph-curved-low",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "8e2ca1d0fa47d71fd8b2e31bf40e032239105746e80b5d7d1453400c6ad3a99a",
+      "geometry_hash": "2ffeeaf1265a069c862100b0f71efe710465102db5fffa2aa4c33ba34a21bf7f",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "dc59cb848500de0cdc4332dc01f3ab1721f422e034df28b8f5466911cdd74784",
+      "normalized_source_program_hash": "dc59cb848500de0cdc4332dc01f3ab1721f422e034df28b8f5466911cdd74784",
+      "parent_program_hash": "dc59cb848500de0cdc4332dc01f3ab1721f422e034df28b8f5466911cdd74784",
+      "candidate_json": "candidates/creative-014.json",
+      "render_png": "renders/creative-014.png",
+      "mass_directory": "masses/creative-014",
+      "mass_manifest": "masses/creative-014/manifest.json",
+      "elevation_research_handoff": "masses/creative-014/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-015",
+      "family": "morph-voided-mid",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "6725dbb4a7a0e0c75b388ca9fb99bf9e3ceb20d543cbfcf37d14492233861dc7",
+      "geometry_hash": "90977188b7d2498dc6414071cfb3ed7baf91b7de14232142dfcb53be365fc1c4",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "273b9d0bcb2a3363de348fac217654389e5caa655b87b8a44986afbe6f9c8b5c",
+      "normalized_source_program_hash": "273b9d0bcb2a3363de348fac217654389e5caa655b87b8a44986afbe6f9c8b5c",
+      "parent_program_hash": "273b9d0bcb2a3363de348fac217654389e5caa655b87b8a44986afbe6f9c8b5c",
+      "candidate_json": "candidates/creative-015.json",
+      "render_png": "renders/creative-015.png",
+      "mass_directory": "masses/creative-015",
+      "mass_manifest": "masses/creative-015/manifest.json",
+      "elevation_research_handoff": "masses/creative-015/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-016",
+      "family": "morph-voided-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "cd051010cd73c91bca3c77a119358255801b1464aa175cd4be31ca6171055198",
+      "geometry_hash": "d62beac2ff1897088d83eb3947ad007302a2cc65230a951528893b7f9a90a538",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "3123cc184a9634e1a71bf1d05a9f6c1373531aa28668c2d39c4076d162a304ad",
+      "normalized_source_program_hash": "3123cc184a9634e1a71bf1d05a9f6c1373531aa28668c2d39c4076d162a304ad",
+      "parent_program_hash": "3123cc184a9634e1a71bf1d05a9f6c1373531aa28668c2d39c4076d162a304ad",
+      "candidate_json": "candidates/creative-016.json",
+      "render_png": "renders/creative-016.png",
+      "mass_directory": "masses/creative-016",
+      "mass_manifest": "masses/creative-016/manifest.json",
+      "elevation_research_handoff": "masses/creative-016/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-017",
+      "family": "morph-curved-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "808604df91c6d363d13a2e97fd5bc2e889b2f41ccbd1d2ae70f5a2994c794d97",
+      "geometry_hash": "6486658f03b449f99ee885c61d929085981c980cc58cab9ad43934acb9be5482",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "2547853b49ed5a201c10b49b4e132e1fca12cb28731bd7ae9d8ced472762f118",
+      "normalized_source_program_hash": "2547853b49ed5a201c10b49b4e132e1fca12cb28731bd7ae9d8ced472762f118",
+      "parent_program_hash": "2547853b49ed5a201c10b49b4e132e1fca12cb28731bd7ae9d8ced472762f118",
+      "candidate_json": "candidates/creative-017.json",
+      "render_png": "renders/creative-017.png",
+      "mass_directory": "masses/creative-017",
+      "mass_manifest": "masses/creative-017/manifest.json",
+      "elevation_research_handoff": "masses/creative-017/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-018",
+      "family": "morph-voided-mid",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "c9b24bf662d03f3b8b3e925ed1277ff21bcf8f0d1fbf3625d314688958b5caa9",
+      "geometry_hash": "8dc39eaa27f90c8798d4a62c1eb169b68e1b0428d23fe79be8bfb7e9e4a62b4b",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "normalized_source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "parent_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "candidate_json": "candidates/creative-018.json",
+      "render_png": "renders/creative-018.png",
+      "mass_directory": "masses/creative-018",
+      "mass_manifest": "masses/creative-018/manifest.json",
+      "elevation_research_handoff": "masses/creative-018/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-019",
+      "family": "morph-compact-low",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "ebfbb033acfa2423e046d1f63b234256fba02a833b7866f34cbd2c901216a285",
+      "geometry_hash": "babb310e7aa2b6712d1acaa3ef7410e8b0c43b95b2aeee224fc0d311b64be13f",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "8895e98e1e4cc380cb495801ed3a590a93d01027d4e7aa14e43097da6f45e112",
+      "normalized_source_program_hash": "8895e98e1e4cc380cb495801ed3a590a93d01027d4e7aa14e43097da6f45e112",
+      "parent_program_hash": "8895e98e1e4cc380cb495801ed3a590a93d01027d4e7aa14e43097da6f45e112",
+      "candidate_json": "candidates/creative-019.json",
+      "render_png": "renders/creative-019.png",
+      "mass_directory": "masses/creative-019",
+      "mass_manifest": "masses/creative-019/manifest.json",
+      "elevation_research_handoff": "masses/creative-019/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-020",
+      "family": "morph-curved-mid",
+      "capacity_band": "maximum_target",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "f76daf55c9cd33d39295b59cf0a56bdfaf69e60cf1f5ae2a21d99c5f2dacc33a",
+      "geometry_hash": "bd5fa49545540e7ab877dd43559aa8965c2569ad73e634994542cba0355b4ab2",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "9c295390b8fe4e8ffe4cde67b440c8d95bd5b4386291e287c2ef0622a81f0754",
+      "normalized_source_program_hash": "9c295390b8fe4e8ffe4cde67b440c8d95bd5b4386291e287c2ef0622a81f0754",
+      "parent_program_hash": "9c295390b8fe4e8ffe4cde67b440c8d95bd5b4386291e287c2ef0622a81f0754",
+      "candidate_json": "candidates/creative-020.json",
+      "render_png": "renders/creative-020.png",
+      "mass_directory": "masses/creative-020",
+      "mass_manifest": "masses/creative-020/manifest.json",
+      "elevation_research_handoff": "masses/creative-020/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-021",
+      "family": "morph-voided-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "c3def2d8dee1e3f625bad5fc298bef6cdf8484f17a554cdfbae8c7bec7c9e3b7",
+      "geometry_hash": "5fa6939e8c82d14addba4103cb13468fd74b49961dfa25fb179cbc3e38680192",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "d132e3839668ef13d2437b14d3a4b494577b05236d141fc6a1b1a187ba10bde3",
+      "normalized_source_program_hash": "d132e3839668ef13d2437b14d3a4b494577b05236d141fc6a1b1a187ba10bde3",
+      "parent_program_hash": "d132e3839668ef13d2437b14d3a4b494577b05236d141fc6a1b1a187ba10bde3",
+      "candidate_json": "candidates/creative-021.json",
+      "render_png": "renders/creative-021.png",
+      "mass_directory": "masses/creative-021",
+      "mass_manifest": "masses/creative-021/manifest.json",
+      "elevation_research_handoff": "masses/creative-021/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-022",
+      "family": "morph-voided-mid",
+      "capacity_band": "spatial_reserve",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "416210a5040838a4efbaba6c989d9f774bc3243a07aba8670ab0897307dae033",
+      "geometry_hash": "da2b3587e80a776479c57d90f979f547c47f6912eda330610f6c6036592c0849",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "470faa2c91cb02b146fb4bc67c1970c86ed10fa38cec4f4304f70b9ce9a6ba42",
+      "normalized_source_program_hash": "470faa2c91cb02b146fb4bc67c1970c86ed10fa38cec4f4304f70b9ce9a6ba42",
+      "parent_program_hash": "470faa2c91cb02b146fb4bc67c1970c86ed10fa38cec4f4304f70b9ce9a6ba42",
+      "candidate_json": "candidates/creative-022.json",
+      "render_png": "renders/creative-022.png",
+      "mass_directory": "masses/creative-022",
+      "mass_manifest": "masses/creative-022/manifest.json",
+      "elevation_research_handoff": "masses/creative-022/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-023",
+      "family": "morph-curved-mid",
+      "capacity_band": "balanced_yield",
+      "storeys": 5,
+      "legal_status": "not_evaluated",
+      "program_hash": "1c65a2b04883a82a6d7e15b5dfb3ea3f2e0ea1237b7c3ed624d733ba8d039741",
+      "geometry_hash": "b1a3bdaa0426e1d3008c2feed7d674f03827bd1f41e7f30ce891483baa6b9e5d",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "00b6ca646917910b753eb1658140349790d1d5e21d740cd9cc4fa90fc72609b1",
+      "normalized_source_program_hash": "00b6ca646917910b753eb1658140349790d1d5e21d740cd9cc4fa90fc72609b1",
+      "parent_program_hash": "00b6ca646917910b753eb1658140349790d1d5e21d740cd9cc4fa90fc72609b1",
+      "candidate_json": "candidates/creative-023.json",
+      "render_png": "renders/creative-023.png",
+      "mass_directory": "masses/creative-023",
+      "mass_manifest": "masses/creative-023/manifest.json",
+      "elevation_research_handoff": "masses/creative-023/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-024",
+      "family": "morph-voided-mid",
+      "capacity_band": "brief_target",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "1925c19f7feb311daa9d931c76646bfb13dc3a1cb7012e18690c336af9339b88",
+      "geometry_hash": "f049b8784ceed0c5be5b944281c56470b56aedd8ff8254599e4f80ff4733934a",
+      "candidate_origin": "book_exploration",
+      "source_program_hash": "ad66bfc6028372f14d0ece40ab58650d83a5d9b6d5b74f8cb0f81daa506ab283",
+      "normalized_source_program_hash": "ad66bfc6028372f14d0ece40ab58650d83a5d9b6d5b74f8cb0f81daa506ab283",
+      "parent_program_hash": "ad66bfc6028372f14d0ece40ab58650d83a5d9b6d5b74f8cb0f81daa506ab283",
+      "candidate_json": "candidates/creative-024.json",
+      "render_png": "renders/creative-024.png",
+      "mass_directory": "masses/creative-024",
+      "mass_manifest": "masses/creative-024/manifest.json",
+      "elevation_research_handoff": "masses/creative-024/elevation-research/handoff.json"
+    }
+  ],
+  "board": {
+    "path": "maas-creative-board.png",
+    "status": "pre_legal_not_evaluated",
+    "columns": 10,
+    "rows": 3,
+    "card_width_px": 300,
+    "card_height_px": 250,
+    "candidate_count": 24,
+    "target_count": null,
+    "acceptance_label": "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+  },
+  "vlm_pilot": {
+    "schema_version": "arr.maas.creative_vlm_pilot.v1",
+    "status": "not_requested",
+    "request_count": 0,
+    "max_request_count": 15,
+    "reference_limit_per_request": 3,
+    "candidate_image_detail": "low",
+    "records": [],
+    "events": []
+  },
+  "paid_author_request_count": 0,
+  "paid_author_request_count_authority": "confirmed_noncache_response_ids_in_current_llm_mode",
+  "acceptance_label": "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED",
+  "frontend_graph": {
+    "schema_version": "arr.maas.creative_frontend_graph.v1",
+    "graph_id": "creative:portfolio:book-comp08",
+    "root_node_ids": [
+      "creative:portfolio:book-comp08"
+    ],
+    "nodes": [
+      {
+        "id": "creative:portfolio:book-comp08",
+        "kind": "geometry_portfolio",
+        "identity": "book-comp08",
+        "label": "Creative authored choice pool · 24",
+        "attributes": {
+          "run_id": "book-comp08",
+          "pnu": "4115011300106840001",
+          "candidate_count": 24,
+          "choice_pool": true,
+          "legal_status": "not_evaluated"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-001",
+        "kind": "creative_mass_candidate",
+        "identity": "7b721c33578c31dc94ad6b81de82c7a34227250dc0bef17cd3978f02f2cd0022",
+        "label": "creative-001 · morph-curved-low",
+        "attributes": {
+          "candidate_id": "creative-001",
+          "family": "morph-curved-low",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+          "geometry_hash": "7b721c33578c31dc94ad6b81de82c7a34227250dc0bef17cd3978f02f2cd0022",
+          "candidate_json": "candidates/creative-001.json",
+          "render_png": "renders/creative-001.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-002",
+        "kind": "creative_mass_candidate",
+        "identity": "45586a9d5eaa01ff110a210a1d5d7013739bdae655bb0c601dacadbe9c9217b0",
+        "label": "creative-002 · morph-oblique-mid",
+        "attributes": {
+          "candidate_id": "creative-002",
+          "family": "morph-oblique-mid",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "a6bda91529504485e7641966dfac2529a74a4052b7cefe45ee92849ad90217d8",
+          "geometry_hash": "45586a9d5eaa01ff110a210a1d5d7013739bdae655bb0c601dacadbe9c9217b0",
+          "candidate_json": "candidates/creative-002.json",
+          "render_png": "renders/creative-002.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-003",
+        "kind": "creative_mass_candidate",
+        "identity": "c1c6f0ccec19bf2e00035d3b487bdeec82e62c9e1deb3239990059011189bb73",
+        "label": "creative-003 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-003",
+          "family": "morph-compact-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "1b7e70ef4ff75cdbcc687a272792cb5fb0bf74ac6c3db8b86f9bad44269650e4",
+          "geometry_hash": "c1c6f0ccec19bf2e00035d3b487bdeec82e62c9e1deb3239990059011189bb73",
+          "candidate_json": "candidates/creative-003.json",
+          "render_png": "renders/creative-003.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-004",
+        "kind": "creative_mass_candidate",
+        "identity": "a7e36c4d86efad6a270ceaae045c1d3f6116b1d794574c76788a8353ae811054",
+        "label": "creative-004 · morph-curved-mid",
+        "attributes": {
+          "candidate_id": "creative-004",
+          "family": "morph-curved-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "a9d14f37b828a7896efb86db065e6d45eb81ce13e5f07900efa9441a450b4586",
+          "geometry_hash": "a7e36c4d86efad6a270ceaae045c1d3f6116b1d794574c76788a8353ae811054",
+          "candidate_json": "candidates/creative-004.json",
+          "render_png": "renders/creative-004.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-005",
+        "kind": "creative_mass_candidate",
+        "identity": "f5841753924f7fa468a088c50e3522d4bca82152924b6c11e9e891628a43ed63",
+        "label": "creative-005 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-005",
+          "family": "morph-compact-mid",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "e8d392c4c7e6c5e3d03fed260467f39e47b46e9bc25bd7335d929afd5291e735",
+          "geometry_hash": "f5841753924f7fa468a088c50e3522d4bca82152924b6c11e9e891628a43ed63",
+          "candidate_json": "candidates/creative-005.json",
+          "render_png": "renders/creative-005.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-006",
+        "kind": "creative_mass_candidate",
+        "identity": "f84e50004182e7c3862416a5250811ecffa192371cd7b9c22ee7517abd381edc",
+        "label": "creative-006 · morph-compact-low",
+        "attributes": {
+          "candidate_id": "creative-006",
+          "family": "morph-compact-low",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "a8a817590ea031793b3f8ed76f58738654dbc1db887e3d1f992ffb349ab65b1f",
+          "geometry_hash": "f84e50004182e7c3862416a5250811ecffa192371cd7b9c22ee7517abd381edc",
+          "candidate_json": "candidates/creative-006.json",
+          "render_png": "renders/creative-006.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-007",
+        "kind": "creative_mass_candidate",
+        "identity": "8fb4294884a899839a7b86fc7ca6fd139b1083c7159a1957ba4acadf05683a34",
+        "label": "creative-007 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-007",
+          "family": "morph-compact-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "60432ac4bb067cd606d5896178683a8f6a83b372ed241901132e47358e172dcc",
+          "geometry_hash": "8fb4294884a899839a7b86fc7ca6fd139b1083c7159a1957ba4acadf05683a34",
+          "candidate_json": "candidates/creative-007.json",
+          "render_png": "renders/creative-007.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-008",
+        "kind": "creative_mass_candidate",
+        "identity": "cbdcdca660558c547003bfd26f912bfe1e67ada7cc599e8eb1480d0e91b22fd8",
+        "label": "creative-008 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-008",
+          "family": "morph-compact-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "e9d66601d1fd1e413222d7ed9be03fbb663125c137c52dd9c5dd95bb7a361588",
+          "geometry_hash": "cbdcdca660558c547003bfd26f912bfe1e67ada7cc599e8eb1480d0e91b22fd8",
+          "candidate_json": "candidates/creative-008.json",
+          "render_png": "renders/creative-008.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-009",
+        "kind": "creative_mass_candidate",
+        "identity": "54b74e6bea942a4d12ba43a486dbe34c0b00623d8f03cc7edc061b547786b7d0",
+        "label": "creative-009 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-009",
+          "family": "morph-compact-mid",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "175a9a927f2c2a293a2588679a95c746d0f61475437104339682fa467c30c0fc",
+          "geometry_hash": "54b74e6bea942a4d12ba43a486dbe34c0b00623d8f03cc7edc061b547786b7d0",
+          "candidate_json": "candidates/creative-009.json",
+          "render_png": "renders/creative-009.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-010",
+        "kind": "creative_mass_candidate",
+        "identity": "b6db918542d59844a6d1857f9478b73d7b47230f933580a57c2500084f62db08",
+        "label": "creative-010 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-010",
+          "family": "morph-compact-mid",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "ed694b7f0988d8929385f9434a9e29d0c10db99a689c0e6f04b5fa82ac49cd0f",
+          "geometry_hash": "b6db918542d59844a6d1857f9478b73d7b47230f933580a57c2500084f62db08",
+          "candidate_json": "candidates/creative-010.json",
+          "render_png": "renders/creative-010.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-011",
+        "kind": "creative_mass_candidate",
+        "identity": "e61d7c5d608867de1ad1507469b81dda77719853538da89f226d5192ba60a00c",
+        "label": "creative-011 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-011",
+          "family": "morph-compact-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "f7e95c8ddd1804bcbfb0ee5a0cd9cf4e2ded09a2dfe6dfebd16ea12672595120",
+          "geometry_hash": "e61d7c5d608867de1ad1507469b81dda77719853538da89f226d5192ba60a00c",
+          "candidate_json": "candidates/creative-011.json",
+          "render_png": "renders/creative-011.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-012",
+        "kind": "creative_mass_candidate",
+        "identity": "30d713043d5982ec860671eb066cc4e3dcef99ecf8af08b48adfe7411c6fb1e8",
+        "label": "creative-012 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-012",
+          "family": "morph-compact-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "91ad7b8e8348996451719a829d0382c4b33345f59d9acfef1667850b56c7591d",
+          "geometry_hash": "30d713043d5982ec860671eb066cc4e3dcef99ecf8af08b48adfe7411c6fb1e8",
+          "candidate_json": "candidates/creative-012.json",
+          "render_png": "renders/creative-012.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-013",
+        "kind": "creative_mass_candidate",
+        "identity": "8c3c2b97848e6d9b486b032a15b8d9ba192a1a3ca7e0ee9cc995a0665805c2ea",
+        "label": "creative-013 · morph-compact-mid",
+        "attributes": {
+          "candidate_id": "creative-013",
+          "family": "morph-compact-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "4fec5dbe2ae86f5ee2e97cd216f0d9c98bb9b4a31f0528dd9946bd427cfea551",
+          "geometry_hash": "8c3c2b97848e6d9b486b032a15b8d9ba192a1a3ca7e0ee9cc995a0665805c2ea",
+          "candidate_json": "candidates/creative-013.json",
+          "render_png": "renders/creative-013.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-014",
+        "kind": "creative_mass_candidate",
+        "identity": "2ffeeaf1265a069c862100b0f71efe710465102db5fffa2aa4c33ba34a21bf7f",
+        "label": "creative-014 · morph-curved-low",
+        "attributes": {
+          "candidate_id": "creative-014",
+          "family": "morph-curved-low",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "8e2ca1d0fa47d71fd8b2e31bf40e032239105746e80b5d7d1453400c6ad3a99a",
+          "geometry_hash": "2ffeeaf1265a069c862100b0f71efe710465102db5fffa2aa4c33ba34a21bf7f",
+          "candidate_json": "candidates/creative-014.json",
+          "render_png": "renders/creative-014.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-015",
+        "kind": "creative_mass_candidate",
+        "identity": "90977188b7d2498dc6414071cfb3ed7baf91b7de14232142dfcb53be365fc1c4",
+        "label": "creative-015 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-015",
+          "family": "morph-voided-mid",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "6725dbb4a7a0e0c75b388ca9fb99bf9e3ceb20d543cbfcf37d14492233861dc7",
+          "geometry_hash": "90977188b7d2498dc6414071cfb3ed7baf91b7de14232142dfcb53be365fc1c4",
+          "candidate_json": "candidates/creative-015.json",
+          "render_png": "renders/creative-015.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-016",
+        "kind": "creative_mass_candidate",
+        "identity": "d62beac2ff1897088d83eb3947ad007302a2cc65230a951528893b7f9a90a538",
+        "label": "creative-016 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-016",
+          "family": "morph-voided-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "cd051010cd73c91bca3c77a119358255801b1464aa175cd4be31ca6171055198",
+          "geometry_hash": "d62beac2ff1897088d83eb3947ad007302a2cc65230a951528893b7f9a90a538",
+          "candidate_json": "candidates/creative-016.json",
+          "render_png": "renders/creative-016.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-017",
+        "kind": "creative_mass_candidate",
+        "identity": "6486658f03b449f99ee885c61d929085981c980cc58cab9ad43934acb9be5482",
+        "label": "creative-017 · morph-curved-mid",
+        "attributes": {
+          "candidate_id": "creative-017",
+          "family": "morph-curved-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "808604df91c6d363d13a2e97fd5bc2e889b2f41ccbd1d2ae70f5a2994c794d97",
+          "geometry_hash": "6486658f03b449f99ee885c61d929085981c980cc58cab9ad43934acb9be5482",
+          "candidate_json": "candidates/creative-017.json",
+          "render_png": "renders/creative-017.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-018",
+        "kind": "creative_mass_candidate",
+        "identity": "8dc39eaa27f90c8798d4a62c1eb169b68e1b0428d23fe79be8bfb7e9e4a62b4b",
+        "label": "creative-018 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-018",
+          "family": "morph-voided-mid",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "c9b24bf662d03f3b8b3e925ed1277ff21bcf8f0d1fbf3625d314688958b5caa9",
+          "geometry_hash": "8dc39eaa27f90c8798d4a62c1eb169b68e1b0428d23fe79be8bfb7e9e4a62b4b",
+          "candidate_json": "candidates/creative-018.json",
+          "render_png": "renders/creative-018.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-019",
+        "kind": "creative_mass_candidate",
+        "identity": "babb310e7aa2b6712d1acaa3ef7410e8b0c43b95b2aeee224fc0d311b64be13f",
+        "label": "creative-019 · morph-compact-low",
+        "attributes": {
+          "candidate_id": "creative-019",
+          "family": "morph-compact-low",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "ebfbb033acfa2423e046d1f63b234256fba02a833b7866f34cbd2c901216a285",
+          "geometry_hash": "babb310e7aa2b6712d1acaa3ef7410e8b0c43b95b2aeee224fc0d311b64be13f",
+          "candidate_json": "candidates/creative-019.json",
+          "render_png": "renders/creative-019.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-020",
+        "kind": "creative_mass_candidate",
+        "identity": "bd5fa49545540e7ab877dd43559aa8965c2569ad73e634994542cba0355b4ab2",
+        "label": "creative-020 · morph-curved-mid",
+        "attributes": {
+          "candidate_id": "creative-020",
+          "family": "morph-curved-mid",
+          "capacity_band": "maximum_target",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "f76daf55c9cd33d39295b59cf0a56bdfaf69e60cf1f5ae2a21d99c5f2dacc33a",
+          "geometry_hash": "bd5fa49545540e7ab877dd43559aa8965c2569ad73e634994542cba0355b4ab2",
+          "candidate_json": "candidates/creative-020.json",
+          "render_png": "renders/creative-020.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-021",
+        "kind": "creative_mass_candidate",
+        "identity": "5fa6939e8c82d14addba4103cb13468fd74b49961dfa25fb179cbc3e38680192",
+        "label": "creative-021 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-021",
+          "family": "morph-voided-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "c3def2d8dee1e3f625bad5fc298bef6cdf8484f17a554cdfbae8c7bec7c9e3b7",
+          "geometry_hash": "5fa6939e8c82d14addba4103cb13468fd74b49961dfa25fb179cbc3e38680192",
+          "candidate_json": "candidates/creative-021.json",
+          "render_png": "renders/creative-021.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-022",
+        "kind": "creative_mass_candidate",
+        "identity": "da2b3587e80a776479c57d90f979f547c47f6912eda330610f6c6036592c0849",
+        "label": "creative-022 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-022",
+          "family": "morph-voided-mid",
+          "capacity_band": "spatial_reserve",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "416210a5040838a4efbaba6c989d9f774bc3243a07aba8670ab0897307dae033",
+          "geometry_hash": "da2b3587e80a776479c57d90f979f547c47f6912eda330610f6c6036592c0849",
+          "candidate_json": "candidates/creative-022.json",
+          "render_png": "renders/creative-022.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-023",
+        "kind": "creative_mass_candidate",
+        "identity": "b1a3bdaa0426e1d3008c2feed7d674f03827bd1f41e7f30ce891483baa6b9e5d",
+        "label": "creative-023 · morph-curved-mid",
+        "attributes": {
+          "candidate_id": "creative-023",
+          "family": "morph-curved-mid",
+          "capacity_band": "balanced_yield",
+          "storeys": 5,
+          "legal_status": "not_evaluated",
+          "program_hash": "1c65a2b04883a82a6d7e15b5dfb3ea3f2e0ea1237b7c3ed624d733ba8d039741",
+          "geometry_hash": "b1a3bdaa0426e1d3008c2feed7d674f03827bd1f41e7f30ce891483baa6b9e5d",
+          "candidate_json": "candidates/creative-023.json",
+          "render_png": "renders/creative-023.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-024",
+        "kind": "creative_mass_candidate",
+        "identity": "f049b8784ceed0c5be5b944281c56470b56aedd8ff8254599e4f80ff4733934a",
+        "label": "creative-024 · morph-voided-mid",
+        "attributes": {
+          "candidate_id": "creative-024",
+          "family": "morph-voided-mid",
+          "capacity_band": "brief_target",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "1925c19f7feb311daa9d931c76646bfb13dc3a1cb7012e18690c336af9339b88",
+          "geometry_hash": "f049b8784ceed0c5be5b944281c56470b56aedd8ff8254599e4f80ff4733934a",
+          "candidate_json": "candidates/creative-024.json",
+          "render_png": "renders/creative-024.png"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "creative:member:creative-001",
+        "source": "creative:candidate:creative-001",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-002",
+        "source": "creative:candidate:creative-002",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-003",
+        "source": "creative:candidate:creative-003",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-004",
+        "source": "creative:candidate:creative-004",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-005",
+        "source": "creative:candidate:creative-005",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-006",
+        "source": "creative:candidate:creative-006",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-007",
+        "source": "creative:candidate:creative-007",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-008",
+        "source": "creative:candidate:creative-008",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-009",
+        "source": "creative:candidate:creative-009",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-010",
+        "source": "creative:candidate:creative-010",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-011",
+        "source": "creative:candidate:creative-011",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-012",
+        "source": "creative:candidate:creative-012",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-013",
+        "source": "creative:candidate:creative-013",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-014",
+        "source": "creative:candidate:creative-014",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-015",
+        "source": "creative:candidate:creative-015",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-016",
+        "source": "creative:candidate:creative-016",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-017",
+        "source": "creative:candidate:creative-017",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-018",
+        "source": "creative:candidate:creative-018",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-019",
+        "source": "creative:candidate:creative-019",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-020",
+        "source": "creative:candidate:creative-020",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-021",
+        "source": "creative:candidate:creative-021",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-022",
+        "source": "creative:candidate:creative-022",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-023",
+        "source": "creative:candidate:creative-023",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-024",
+        "source": "creative:candidate:creative-024",
+        "target": "creative:portfolio:book-comp08",
+        "kind": "member_of"
+      }
+    ]
+  },
+  "filter_facets": {
+    "family": [
+      {
+        "value": "morph-compact-low",
+        "count": 2
+      },
+      {
+        "value": "morph-compact-mid",
+        "count": 9
+      },
+      {
+        "value": "morph-curved-low",
+        "count": 2
+      },
+      {
+        "value": "morph-curved-mid",
+        "count": 4
+      },
+      {
+        "value": "morph-oblique-mid",
+        "count": 1
+      },
+      {
+        "value": "morph-voided-mid",
+        "count": 6
+      }
+    ],
+    "capacity_band": [
+      {
+        "value": "balanced_yield",
+        "count": 6
+      },
+      {
+        "value": "brief_target",
+        "count": 6
+      },
+      {
+        "value": "maximum_target",
+        "count": 6
+      },
+      {
+        "value": "spatial_reserve",
+        "count": 6
+      }
+    ],
+    "storeys": [
+      {
+        "value": "3",
+        "count": 12
+      },
+      {
+        "value": "5",
+        "count": 12
+      }
+    ],
+    "legal_status": [
+      {
+        "value": "not_evaluated",
+        "count": 24
+      }
+    ]
+  },
+  "artifact_contract": {
+    "candidate_json_contains_full_program_trace_and_mesh": true,
+    "individual_render": "deterministic_four_view_png",
+    "mass_research_folder": "program_matrix_mesh_obj_csv_six_views_elevation_handoff",
+    "legal_authority": "not_evaluated",
+    "paid_provider_calls": 0
+  }
+}

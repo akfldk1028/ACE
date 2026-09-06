@@ -1,0 +1,342 @@
+{
+  "schema_version": "arr.maas.creative_floor_portfolio.v1",
+  "author_mode": "payload",
+  "status": "materialized",
+  "choice_pool": true,
+  "candidate_count": 4,
+  "candidate_origin_counts": {
+    "exact-authored-development": 4
+  },
+  "capacity_ceiling_m2": 1975.142479,
+  "capacity_authority": "user_supplied_prelegal_target",
+  "family_quotas": {
+    "exact-authored-development": 4
+  },
+  "capacity_band_quotas": {
+    "inherited_parent": 4
+  },
+  "legal_review_status": "not_evaluated",
+  "paid_vlm_request_count": 0,
+  "book_language_coverage": {
+    "schema_version": "arr.maas.creative_book_coverage.v1",
+    "candidate_count": 4,
+    "materialized_count": 0,
+    "distinct_principle_count": 0,
+    "principle_ids": [],
+    "base_operative_count": 0,
+    "combination_count": 0,
+    "aggregation_count": 0,
+    "missing_principle_ids": [
+      "book:aggregation:array+stack:rotate",
+      "book:aggregation:array:taper",
+      "book:aggregation:join+array:pinch",
+      "book:aggregation:join:split",
+      "book:aggregation:pack+stack:branch",
+      "book:aggregation:pack:inflate",
+      "book:aggregation:reflect+pack:skew",
+      "book:aggregation:reflect:expand",
+      "book:aggregation:stack:bend",
+      "book:combination:01:inscribe+inscribe",
+      "book:combination:02:intersect+intersect",
+      "book:combination:03:split+split",
+      "book:combination:04:embed+embed",
+      "book:combination:05:taper+taper",
+      "book:combination:06:bend+bend",
+      "book:combination:07:branch+branch",
+      "book:combination:08:expand+expand",
+      "book:combination:09:shift+shift",
+      "book:combination:10:notch+notch",
+      "book:combination:11:inscribe+intersect",
+      "book:combination:12:intersect+split",
+      "book:combination:13:split+embed",
+      "book:combination:14:embed+taper",
+      "book:combination:15:taper+bend",
+      "book:combination:16:bend+branch",
+      "book:combination:17:branch+expand",
+      "book:combination:18:expand+shift",
+      "book:combination:19:shift+notch",
+      "book:combination:20:notch+twist",
+      "book:operative:bend",
+      "book:operative:branch",
+      "book:operative:carve",
+      "book:operative:compress",
+      "book:operative:embed",
+      "book:operative:expand",
+      "book:operative:extract",
+      "book:operative:extrude",
+      "book:operative:fracture",
+      "book:operative:grade",
+      "book:operative:inflate",
+      "book:operative:inscribe",
+      "book:operative:interlock",
+      "book:operative:intersect",
+      "book:operative:lift",
+      "book:operative:lodge",
+      "book:operative:merge",
+      "book:operative:nest",
+      "book:operative:notch",
+      "book:operative:offset",
+      "book:operative:overlap",
+      "book:operative:pinch",
+      "book:operative:puncture",
+      "book:operative:rotate",
+      "book:operative:shear",
+      "book:operative:shift",
+      "book:operative:skew",
+      "book:operative:split",
+      "book:operative:taper",
+      "book:operative:twist"
+    ],
+    "principle_kind_counts": {},
+    "scope_counts": {}
+  },
+  "morphology_evidence": {
+    "decision": "not_a_development_gate",
+    "distinctness_authority": "final delivered shape identity before pair rendering"
+  },
+  "development_contract": {
+    "parent": "book:book-comp08:morph-curved-low:creative-001",
+    "parent_shape_id": "a9f195967d9b9a1f4430",
+    "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+    "parent_certificate_id": "1e29520ea877cbce6cf4",
+    "site_pnu": "4115011300106840001",
+    "storey_count": 3,
+    "storey_height_m": 5.916381619026566,
+    "target_gfa_m2": 1975.1424786905304,
+    "height_m": 17.7491448570797
+  },
+  "run_id": "book-develop-comp08",
+  "pnu": "4115011300106840001",
+  "created_at": "2026-09-06T10:58:32.532011+00:00",
+  "candidates": [
+    {
+      "candidate_id": "creative-001",
+      "family": "exact-authored-development",
+      "capacity_band": "inherited_parent",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+      "geometry_hash": "0750be29ea524c11d1cd3e1fb440cd571c984e06e0bb4248e31cb9454692ae06",
+      "candidate_json": "candidates/creative-001.json",
+      "render_png": "renders/creative-001.png",
+      "mass_directory": "masses/creative-001",
+      "mass_manifest": "masses/creative-001/manifest.json",
+      "elevation_research_handoff": "masses/creative-001/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-002",
+      "family": "exact-authored-development",
+      "capacity_band": "inherited_parent",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "5e0362ae2b248a58e81c38628da65e0360b9ab773eba54659580b1f6a2926e38",
+      "geometry_hash": "738391d2c0c4b4dd10742781f11641ecb7d2a2451d741405c13fc85f1d864d42",
+      "candidate_json": "candidates/creative-002.json",
+      "render_png": "renders/creative-002.png",
+      "mass_directory": "masses/creative-002",
+      "mass_manifest": "masses/creative-002/manifest.json",
+      "elevation_research_handoff": "masses/creative-002/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-003",
+      "family": "exact-authored-development",
+      "capacity_band": "inherited_parent",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "dd7ab5c5233b1fa3216a7ec11a98d7ba314861d8142ec55b85a8ea073c60e7eb",
+      "geometry_hash": "f96faa790e29af113e631088073b00274e2c671a3cda19451a88943ddb57fb97",
+      "candidate_json": "candidates/creative-003.json",
+      "render_png": "renders/creative-003.png",
+      "mass_directory": "masses/creative-003",
+      "mass_manifest": "masses/creative-003/manifest.json",
+      "elevation_research_handoff": "masses/creative-003/elevation-research/handoff.json"
+    },
+    {
+      "candidate_id": "creative-004",
+      "family": "exact-authored-development",
+      "capacity_band": "inherited_parent",
+      "storeys": 3,
+      "legal_status": "not_evaluated",
+      "program_hash": "b7ecbccc3bd2aeadb708042e970d0dcbdb3677ab203ce938370d4575e78c69ec",
+      "geometry_hash": "2d1668ee4f2f4d435c77fdd3c480d1ff628d4aa1b3de6855328e7ef96eb02c3f",
+      "candidate_json": "candidates/creative-004.json",
+      "render_png": "renders/creative-004.png",
+      "mass_directory": "masses/creative-004",
+      "mass_manifest": "masses/creative-004/manifest.json",
+      "elevation_research_handoff": "masses/creative-004/elevation-research/handoff.json"
+    }
+  ],
+  "board": {
+    "path": "maas-creative-board.png",
+    "status": "pre_legal_not_evaluated",
+    "columns": 10,
+    "rows": 1,
+    "card_width_px": 300,
+    "card_height_px": 250,
+    "candidate_count": 4,
+    "target_count": null,
+    "acceptance_label": "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
+  },
+  "vlm_pilot": {
+    "schema_version": "arr.maas.creative_vlm_pilot.v1",
+    "status": "not_requested",
+    "request_count": 0,
+    "max_request_count": 15,
+    "reference_limit_per_request": 3,
+    "candidate_image_detail": "low",
+    "records": [],
+    "events": []
+  },
+  "paid_author_request_count": 0,
+  "paid_author_request_count_authority": "confirmed_noncache_response_ids_in_current_llm_mode",
+  "acceptance_label": "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED",
+  "frontend_graph": {
+    "schema_version": "arr.maas.creative_frontend_graph.v1",
+    "graph_id": "creative:portfolio:book-develop-comp08",
+    "root_node_ids": [
+      "creative:portfolio:book-develop-comp08"
+    ],
+    "nodes": [
+      {
+        "id": "creative:portfolio:book-develop-comp08",
+        "kind": "geometry_portfolio",
+        "identity": "book-develop-comp08",
+        "label": "Creative authored choice pool · 4",
+        "attributes": {
+          "run_id": "book-develop-comp08",
+          "pnu": "4115011300106840001",
+          "candidate_count": 4,
+          "choice_pool": true,
+          "legal_status": "not_evaluated"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-001",
+        "kind": "creative_mass_candidate",
+        "identity": "0750be29ea524c11d1cd3e1fb440cd571c984e06e0bb4248e31cb9454692ae06",
+        "label": "creative-001 · exact-authored-development",
+        "attributes": {
+          "candidate_id": "creative-001",
+          "family": "exact-authored-development",
+          "capacity_band": "inherited_parent",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+          "geometry_hash": "0750be29ea524c11d1cd3e1fb440cd571c984e06e0bb4248e31cb9454692ae06",
+          "candidate_json": "candidates/creative-001.json",
+          "render_png": "renders/creative-001.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-002",
+        "kind": "creative_mass_candidate",
+        "identity": "738391d2c0c4b4dd10742781f11641ecb7d2a2451d741405c13fc85f1d864d42",
+        "label": "creative-002 · exact-authored-development",
+        "attributes": {
+          "candidate_id": "creative-002",
+          "family": "exact-authored-development",
+          "capacity_band": "inherited_parent",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "5e0362ae2b248a58e81c38628da65e0360b9ab773eba54659580b1f6a2926e38",
+          "geometry_hash": "738391d2c0c4b4dd10742781f11641ecb7d2a2451d741405c13fc85f1d864d42",
+          "candidate_json": "candidates/creative-002.json",
+          "render_png": "renders/creative-002.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-003",
+        "kind": "creative_mass_candidate",
+        "identity": "f96faa790e29af113e631088073b00274e2c671a3cda19451a88943ddb57fb97",
+        "label": "creative-003 · exact-authored-development",
+        "attributes": {
+          "candidate_id": "creative-003",
+          "family": "exact-authored-development",
+          "capacity_band": "inherited_parent",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "dd7ab5c5233b1fa3216a7ec11a98d7ba314861d8142ec55b85a8ea073c60e7eb",
+          "geometry_hash": "f96faa790e29af113e631088073b00274e2c671a3cda19451a88943ddb57fb97",
+          "candidate_json": "candidates/creative-003.json",
+          "render_png": "renders/creative-003.png"
+        }
+      },
+      {
+        "id": "creative:candidate:creative-004",
+        "kind": "creative_mass_candidate",
+        "identity": "2d1668ee4f2f4d435c77fdd3c480d1ff628d4aa1b3de6855328e7ef96eb02c3f",
+        "label": "creative-004 · exact-authored-development",
+        "attributes": {
+          "candidate_id": "creative-004",
+          "family": "exact-authored-development",
+          "capacity_band": "inherited_parent",
+          "storeys": 3,
+          "legal_status": "not_evaluated",
+          "program_hash": "b7ecbccc3bd2aeadb708042e970d0dcbdb3677ab203ce938370d4575e78c69ec",
+          "geometry_hash": "2d1668ee4f2f4d435c77fdd3c480d1ff628d4aa1b3de6855328e7ef96eb02c3f",
+          "candidate_json": "candidates/creative-004.json",
+          "render_png": "renders/creative-004.png"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "creative:member:creative-001",
+        "source": "creative:candidate:creative-001",
+        "target": "creative:portfolio:book-develop-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-002",
+        "source": "creative:candidate:creative-002",
+        "target": "creative:portfolio:book-develop-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-003",
+        "source": "creative:candidate:creative-003",
+        "target": "creative:portfolio:book-develop-comp08",
+        "kind": "member_of"
+      },
+      {
+        "id": "creative:member:creative-004",
+        "source": "creative:candidate:creative-004",
+        "target": "creative:portfolio:book-develop-comp08",
+        "kind": "member_of"
+      }
+    ]
+  },
+  "filter_facets": {
+    "family": [
+      {
+        "value": "exact-authored-development",
+        "count": 4
+      }
+    ],
+    "capacity_band": [
+      {
+        "value": "inherited_parent",
+        "count": 4
+      }
+    ],
+    "storeys": [
+      {
+        "value": "3",
+        "count": 4
+      }
+    ],
+    "legal_status": [
+      {
+        "value": "not_evaluated",
+        "count": 4
+      }
+    ]
+  },
+  "artifact_contract": {
+    "candidate_json_contains_full_program_trace_and_mesh": true,
+    "individual_render": "deterministic_four_view_png",
+    "mass_research_folder": "program_matrix_mesh_obj_csv_six_views_elevation_handoff",
+    "legal_authority": "not_evaluated",
+    "paid_provider_calls": 0
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "round": "comp08",
+  "status": "fresh_track_juries_pending",
+  "generation": {
+    "compiled": 181,
+    "considered": 179,
+    "chosen": 8,
+    "names": [
+      "sangok_c04_develop_perforated_base~full_ground^cross_open",
+      "sangok_c07_grounded_wings_common_roof~full_ground^to_open",
+      "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+      "loop_butterfly_open__d07_bar+~held_ground^to_open",
+      "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+      "sangok_c07_four_rotated_occupied_blocks~held_ground",
+      "sangok_c07_continuous_court_section~dispersed_ground^to_open",
+      "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open"
+    ]
+  },
+  "book_imported": 18,
+  "new_book_originals": [
+    {
+      "candidate": "book:book-comp08:morph-oblique-mid:creative-002",
+      "tile": "t02",
+      "shape_id": "e6b0a404fb56c41022a8",
+      "directly_viewed_by_root": true,
+      "image_sha256": "dab79dd96e80aff77fa342ee4b3e5ad20f532068c4ed6064277b5d074c13e701"
+    },
+    {
+      "candidate": "book:book-comp08:morph-compact-mid:creative-003",
+      "tile": "t03",
+      "shape_id": "26d7967165a8a6e4bb8e",
+      "directly_viewed_by_root": true,
+      "image_sha256": "f68cf949cef3144455ca98f147ad69ceb122037a6c912404066d8e341dfcf778"
+    },
+    {
+      "candidate": "book:book-comp08:morph-compact-mid:creative-007",
+      "tile": "t07",
+      "shape_id": "be18ee11aab65171d469",
+      "directly_viewed_by_root": true,
+      "image_sha256": "e969b5ad0b09d72036c8d8a358ccef035cea37499ab365c042affc62770f7d72"
+    },
+    {
+      "candidate": "book:book-comp08:morph-compact-mid:creative-009",
+      "tile": "t08",
+      "shape_id": "cf6dd25f161c8aa30eaa",
+      "directly_viewed_by_root": true,
+      "image_sha256": "009e0058fd59fe057bb3446001858bb84c503e88dca1e7aa6fcc27e31bc15ba5"
+    }
+  ]
+}

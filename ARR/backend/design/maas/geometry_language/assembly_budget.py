@@ -54,5 +54,3 @@ def assembly_budget_nodes(program: GeometryProgram, *, eligible_node_ids: set[st
         roots.add(root)
         implementation.update(members - {root})
     return roots - implementation, implementation
-
-

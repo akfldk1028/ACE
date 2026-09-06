@@ -113,7 +113,9 @@ class CreativeFloorPortfolioCommandTests(SimpleTestCase):
             )
 
         self.assertEqual(payload["status"], "partial")
-        self.assertEqual(payload["candidate_count"], 2)
+        self.assertEqual(payload["candidate_count"], 4)
+        self.assertEqual(ledger['deficit'], 18)
+        self.assertEqual(ledger['stage_counts']['authored_original_retained'], 2)
         self.assertEqual(payload["author_supply"]["counts"]["http_429"], 1)
         self.assertEqual(
             payload["author_supply"]["counts"][
@@ -133,7 +135,7 @@ class CreativeFloorPortfolioCommandTests(SimpleTestCase):
         self.assertEqual(
             ledger["affine_authority_counts"],
             {
-                "candidate_count": 2,
+                "candidate_count": 4,
                 "missing_unitbox_count": 0,
                 "missing_matrix4_count": 0,
                 "shorthand_node_count": 0,
@@ -160,7 +162,8 @@ class CreativeFloorPortfolioCommandTests(SimpleTestCase):
         result = json.loads(output.getvalue())
         self.assertEqual(result["author_input"], 2)
         self.assertEqual(result["morphology_retained"], 2)
-        self.assertEqual(result["candidate_count"], 2)
+        self.assertEqual(result["candidate_count"], 4)
+        self.assertEqual(result['authored_original_retained'], 2)
 
     def test_cache_pool_reads_only_unique_accepted_exact_llm_programs(self):
         first_builder = GeometryProgramBuilder("cache_pool_first")
@@ -328,8 +331,9 @@ class CreativeFloorPortfolioCommandTests(SimpleTestCase):
                 run_directory / "maas-creative-portfolio.json"
             ).read_text(encoding="utf-8"))
 
-        self.assertEqual(len(candidates), 2)
+        self.assertEqual(len(candidates), 4)
         self.assertEqual(portfolio["paid_author_request_count"], 0)
+
         self.assertEqual(portfolio["paid_vlm_request_count"], 0)
         self.assertEqual(portfolio["legal_review_status"], "not_evaluated")
 
@@ -422,6 +426,12 @@ class CreativeFloorPortfolioCommandTests(SimpleTestCase):
         self.assertTrue(candidate["family"].startswith("morph-"))
         self.assertIn("paid_author_request_count", portfolio)
         self.assertEqual(portfolio["paid_author_request_count"], 0)
+        # Preserve a selectable original as well as explored children.
+        self.assertEqual(candidate['candidate_origin'], 'authored_original')
+        self.assertEqual(candidate['source_program_hash'], program.program_hash())
+        self.assertEqual(candidate['authored_geometry_program']['nodes'], program.to_dict()['nodes'])
+        self.assertEqual(portfolio['candidates'][0]['candidate_origin'], 'authored_original')
+        self.assertEqual(portfolio['candidates'][0]['source_program_hash'], program.program_hash())
 
     def test_llm_author_mode_missing_credentials_fails_without_fixture_fallback(
         self,

@@ -275,6 +275,42 @@ class ThinDiscPortfolioRegressionTests(unittest.TestCase):
 
 
 class CreativeFloorPortfolioReportTests(unittest.TestCase):
+    def test_author_original_survives_as_option_with_linked_exploration(self):
+        module = importlib.import_module(MODULE)
+        authored = self.valid_authored("only")
+        report = module.build_creative_floor_portfolio_report(
+            target_count=1, capacity_ceiling_m2=332.322,
+            authored_programs=(authored,),
+        )
+        originals = [r for r in report.candidates if r.get("candidate_origin") == "authored_original"]
+        children = [r for r in report.candidates if r.get("candidate_origin") == "book_exploration"]
+        self.assertEqual(len(originals), 1)
+        self.assertEqual(len(children), 1)
+        self.assertEqual(originals[0]["source_program_hash"], authored.program.program_hash())
+        self.assertEqual(originals[0]["authored_geometry_program"], authored.program.to_dict())
+        self.assertEqual(
+            originals[0]["normalized_authored_mesh_hash"],
+            module._normalized_mesh_hash(module.compile_geometry_program(authored.program)),
+        )
+        self.assertEqual(children[0]["parent_program_hash"], originals[0]["source_program_hash"])
+        self.assertEqual(children[0]["parent_geometry_program"], authored.program.to_dict())
+        self.assertFalse(originals[0].get("book_language_evidence"))
+        self.assertEqual(len({r["candidate_id"] for r in report.candidates}), 2)
+        self.assertEqual(report.exploration_count, 1)
+
+    def test_failed_exploration_cannot_erase_original_or_claim_completion(self):
+        module = importlib.import_module(MODULE)
+        with patch.object(module, "project_creative_book_program", side_effect=ValueError("no feasible projection")):
+            report = module.build_creative_floor_portfolio_report(
+                target_count=1, capacity_ceiling_m2=332.322,
+                authored_programs=(self.valid_authored("only"),),
+            )
+        self.assertEqual(len(report.candidates), 1)
+        self.assertEqual(report.candidates[0]["candidate_origin"], "authored_original")
+        self.assertEqual(report.status, "partial")
+        self.assertEqual(report.deficit, 1)
+        self.assertEqual(report.language_coverage["materialized_count"], 0)
+
     @staticmethod
     def _author_evidence(label: str) -> dict:
         return {
@@ -379,11 +415,13 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
         self.assertEqual(report.stage_counts["structural_pass"], 2)
         self.assertEqual(report.rejection_counts["duplicate_program_hash"], 1)
         self.assertEqual(report.stage_counts["morphology_retained"], 2)
-        self.assertEqual(len(report.candidates), 2)
+        self.assertEqual(len(report.candidates), 4)
+        self.assertEqual(report.exploration_count, 2)
         self.assertEqual(
             [
                 row["book_language_evidence"]["principle_id"]
                 for row in report.candidates
+                if row["candidate_origin"] == "book_exploration"
             ],
             [
                 item.principle_id
@@ -410,7 +448,10 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
         )
 
         self.assertEqual(report.status, "complete")
-        self.assertEqual(len(report.candidates), 20)
+        self.assertEqual(len(report.candidates), 40)
+        self.assertEqual(report.exploration_count, 20)
+        self.assertEqual(len({r["candidate_id"] for r in report.candidates}), 40)
+        self.assertEqual(len({r["geometry_hash"] for r in report.candidates}), 40)
         self.assertEqual(
             report.language_coverage["distinct_principle_count"],
             20,
@@ -422,6 +463,7 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
         self.assertTrue(all(
             row["book_language_evidence"]["materialized"]
             for row in report.candidates
+            if row["candidate_origin"] == "book_exploration"
         ))
 
     def test_report_returns_partial_instead_of_raising_when_supply_is_short(
@@ -449,18 +491,20 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
         )
 
         self.assertEqual(report.status, "complete")
-        self.assertEqual(len(report.candidates), 2)
+        self.assertEqual(len(report.candidates), 3)
+        self.assertEqual(report.exploration_count, 2)
         self.assertEqual(
             len({
                 row["normalized_authored_mesh_hash"]
                 for row in report.candidates
             }),
-            2,
+            3,
         )
         self.assertEqual(
             len({
                 row["book_language_evidence"]["principle_id"]
                 for row in report.candidates
+                if row["candidate_origin"] == "book_exploration"
             }),
             2,
         )

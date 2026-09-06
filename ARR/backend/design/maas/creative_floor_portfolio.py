@@ -95,8 +95,12 @@ class CreativeFloorPortfolioReport:
     language_coverage: dict[str, Any]
 
     @property
+    def exploration_count(self) -> int:
+        return sum(row.get("candidate_origin") == "book_exploration" for row in self.candidates)
+
+    @property
     def deficit(self) -> int:
-        return max(0, self.target_count - len(self.candidates))
+        return max(0, self.target_count - self.exploration_count)
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -106,6 +110,9 @@ class CreativeFloorPortfolioReport:
             "status": self.status,
             "target_count": self.target_count,
             "candidate_count": len(self.candidates),
+            "exploration_count": self.exploration_count,
+            "original_count": sum(row.get("candidate_origin") == "authored_original" for row in self.candidates),
+            "target_count_scope": "book_exploration",
             "deficit": self.deficit,
             "stage_counts": dict(sorted(self.stage_counts.items())),
             "rejection_counts": dict(sorted(self.rejection_counts.items())),
@@ -193,7 +200,11 @@ def build_creative_floor_portfolio_report(
         GeometryProgram | CreativeAuthoredProgram
     ],
 ) -> CreativeFloorPortfolioReport:
-    """Compile oversupplied authored programs and retain up to target_count."""
+    """Keep up to target originals plus target explicitly derived BOOK options.
+
+    Target and completion refer to exploration supply, never to its parents.
+    Originals remain eligible even when no BOOK slot can transform them.
+    """
 
     target = int(target_count)
     ceiling = float(capacity_ceiling_m2)
@@ -217,6 +228,7 @@ def build_creative_floor_portfolio_report(
         "unique_geometry_hash": 0,
         "unique_normalized_mesh_hash": 0,
         "morphology_retained": 0,
+        "authored_original_retained": 0,
     }
     rejection_counts: Counter[str] = Counter()
     rejections: list[CreativePortfolioRejection] = []
@@ -294,6 +306,55 @@ def build_creative_floor_portfolio_report(
         stage_counts["structural_pass"] += 1
         eligible.append((input_index, authored, source_program_hash))
 
+    # Preserve genuine author alternatives before exploring BOOK assignments.
+    # Physical materialization may scale a programme into metres; the exact
+    # authored AST is retained separately so that this never poses as a rewrite.
+    originals: list[dict[str, Any]] = []
+    for input_index, authored, source_program_hash in eligible:
+        if len(originals) >= target:
+            break
+        try:
+            compilation = compile_geometry_program(authored.program)
+            candidate = _compile_candidate(
+                authored_program_result(authored),
+                family=posthoc_family_label(authored.program, compilation),
+                source_family="llm_authored",
+                family_index=input_index,
+                variation_index=input_index,
+                candidate_index=len(candidates),
+                capacity_band=CAPACITY_BANDS[input_index % len(CAPACITY_BANDS)],
+                capacity_ceiling_m2=ceiling,
+                author_evidence=dict(authored.author_evidence),
+            )
+        except (RuntimeError, TypeError, ValueError):
+            candidate = None
+        if candidate is None:
+            reject(input_index, "original_physical_candidate", "original_physical_candidate", program_hash=source_program_hash)
+            continue
+        geometry_hash = str(candidate["geometry_hash"])
+        mesh_hash = str(candidate["normalized_authored_mesh_hash"])
+        if geometry_hash in geometry_hashes or mesh_hash in normalized_mesh_hashes:
+            reject(input_index, "original_unique_geometry", "original_duplicate_geometry", program_hash=source_program_hash, geometry_hash=geometry_hash)
+            continue
+        decision = accept_morphology(candidate, originals)
+        if not decision:
+            reject(input_index, "original_morphology_retained", "original_morphology_distance", program_hash=source_program_hash, geometry_hash=geometry_hash)
+            continue
+        candidate["morphology_evidence"]["decision"] = decision.to_dict()
+        candidate["morphology_evidence"]["comparison_scope"] = "authored_originals"
+        candidate["candidate_origin"] = "authored_original"
+        raw_program = getattr(inputs[input_index], "program", inputs[input_index])
+        candidate["source_program_hash"] = raw_program.program_hash()
+        candidate["normalized_source_program_hash"] = source_program_hash
+        candidate["authored_geometry_program"] = raw_program.to_dict()
+        # Only actual author-supplied BOOK lineage can be credited here.
+        candidate["book_language_evidence"] = creative_book_evidence(authored.program)
+        originals.append(candidate)
+        candidates.append(candidate)
+        geometry_hashes.add(geometry_hash)
+        normalized_mesh_hashes.add(mesh_hash)
+        stage_counts["authored_original_retained"] += 1
+
     # Phase B: match figures to book slots. A slot is one operative at one
     # fraction scope; whether a figure can carry it is only known by
     # projecting, compiling and checking it stands, so feasibility is
@@ -311,7 +372,7 @@ def build_creative_floor_portfolio_report(
         if key in pair_cache:
             return pair_cache[key]
         pairs_tried[e_index] += 1
-        _input_index, authored, source_program_hash = eligible[e_index]
+        input_index, authored, source_program_hash = eligible[e_index]
         assignment = book_schedule[slot_index]
         try:
             projected = project_creative_book_program(
@@ -343,8 +404,31 @@ def build_creative_floor_portfolio_report(
                         result = ("fail", assignment, "book_structural_pass",
                                   f"book_{reason}", projected_hash,
                                   compilation.geometry_hash)
+                    elif _normalized_mesh_hash(compilation) in normalized_mesh_hashes:
+                        result = ("fail", assignment, "book_projection_pass",
+                                  "book_duplicates_original", projected_hash,
+                                  compilation.geometry_hash)
                     else:
-                        result = ("ok", assignment, projected, evidence, compilation)
+                        try:
+                            physical_candidate = _compile_candidate(
+                                authored_program_result(replace(authored, program=projected)),
+                                family=posthoc_family_label(projected, compilation),
+                                source_family="llm_authored",
+                                family_index=input_index,
+                                variation_index=input_index,
+                                candidate_index=0,
+                                capacity_band=CAPACITY_BANDS[input_index % len(CAPACITY_BANDS)],
+                                capacity_ceiling_m2=ceiling,
+                                author_evidence=dict(authored.author_evidence),
+                            )
+                        except (RuntimeError, TypeError, ValueError):
+                            physical_candidate = None
+                        if physical_candidate is None:
+                            result = ("fail", assignment, "physical_candidate_pass", "physical_candidate", projected_hash, compilation.geometry_hash)
+                        elif (str(physical_candidate["geometry_hash"]) in geometry_hashes or str(physical_candidate["normalized_authored_mesh_hash"]) in normalized_mesh_hashes):
+                            result = ("fail", assignment, "book_projection_pass", "book_duplicates_original", projected_hash, compilation.geometry_hash)
+                        else:
+                            result = ("ok", assignment, projected, evidence, compilation, physical_candidate)
         pair_cache[key] = result
         return result
 
@@ -394,10 +478,11 @@ def build_creative_floor_portfolio_report(
 
     # Phase C: the matched pairs, in slot order, through the stages that
     # depend on what came before them - exactly as the single pass ran them.
+    explorations: list[dict[str, Any]] = []
     for slot_index in sorted(slot_owner):
         e_index = slot_owner[slot_index]
         input_index, authored, source_program_hash = eligible[e_index]
-        _kind, assignment, projected_program, book_evidence, authored_compilation = (
+        _kind, assignment, projected_program, book_evidence, authored_compilation, candidate = (
             pair(e_index, slot_index)
         )
         for stage in ("book_projection_pass", "book_authority_pass",
@@ -405,26 +490,7 @@ def build_creative_floor_portfolio_report(
             stage_counts[stage] += 1
         authored = replace(authored, program=projected_program)
         program_hash = authored.program.program_hash()
-        try:
-            family = posthoc_family_label(
-                authored.program,
-                authored_compilation,
-            )
-            candidate = _compile_candidate(
-                authored_program_result(authored),
-                family=family,
-                source_family="llm_authored",
-                family_index=input_index,
-                variation_index=input_index,
-                candidate_index=len(candidates),
-                capacity_band=CAPACITY_BANDS[
-                    input_index % len(CAPACITY_BANDS)
-                ],
-                capacity_ceiling_m2=ceiling,
-                author_evidence=dict(authored.author_evidence),
-            )
-        except (RuntimeError, TypeError, ValueError):
-            candidate = None
+        candidate["candidate_id"] = f"creative-{len(candidates) + 1:03d}"
         if candidate is None:
             reject(
                 input_index,
@@ -461,11 +527,12 @@ def build_creative_floor_portfolio_report(
             continue
         normalized_mesh_hashes.add(normalized_mesh_hash)
         stage_counts["unique_normalized_mesh_hash"] += 1
-        morphology_decision = accept_morphology(candidate, candidates)
+        morphology_decision = accept_morphology(candidate, explorations)
         candidate["book_language_evidence"] = book_evidence
         candidate["morphology_evidence"]["decision"] = (
             morphology_decision.to_dict()
         )
+        candidate["morphology_evidence"]["comparison_scope"] = "book_explorations"
         if not morphology_decision:
             reject(
                 input_index,
@@ -481,10 +548,18 @@ def build_creative_floor_portfolio_report(
             "scope_label": assignment.scope_label,
             "pairs_tried": int(pairs_tried[e_index]),
         }
+        candidate["candidate_origin"] = "book_exploration"
+        raw_parent = getattr(inputs[input_index], "program", inputs[input_index])
+        candidate["source_program_hash"] = raw_parent.program_hash()
+        candidate["parent_program_hash"] = raw_parent.program_hash()
+        candidate["normalized_source_program_hash"] = source_program_hash
+        candidate["parent_geometry_program"] = raw_parent.to_dict()
+        candidate["authored_geometry_program"] = projected_program.to_dict()
         candidates.append(candidate)
+        explorations.append(candidate)
         stage_counts["morphology_retained"] += 1
 
-    language_coverage = _book_language_coverage(candidates)
+    language_coverage = _book_language_coverage(explorations)
     coverage_complete = (
         target != 20
         or (
@@ -496,7 +571,7 @@ def build_creative_floor_portfolio_report(
     return CreativeFloorPortfolioReport(
         status=(
             "complete"
-            if len(candidates) >= target and coverage_complete
+            if len(explorations) >= target and coverage_complete
             else "partial"
         ),
         target_count=target,
@@ -534,13 +609,18 @@ def build_creative_floor_portfolio(
         if report.status != "complete":
             raise RuntimeError(
                 "authored creative portfolio incomplete: "
-                f"{len(report.candidates)}/{requested_count}"
+                f"{report.exploration_count}/{requested_count} explorations"
             )
-        return _creative_portfolio_payload(
+        payload = _creative_portfolio_payload(
             list(report.candidates),
             capacity_ceiling_m2=ceiling,
             author_mode="authored_programs",
         )
+        payload["book_language_coverage"] = report.language_coverage
+        evidence = report.evidence()
+        for key in ("exploration_count", "original_count", "target_count_scope"):
+            payload[key] = evidence[key]
+        return payload
 
     program_hashes: set[str] = set()
     geometry_hashes: set[str] = set()
@@ -734,6 +814,7 @@ def _creative_portfolio_payload(
         "status": "materialized",
         "choice_pool": True,
         "candidate_count": len(candidates),
+        "candidate_origin_counts": dict(Counter(row.get("candidate_origin", author_mode) for row in candidates)),
         "capacity_ceiling_m2": round(capacity_ceiling_m2, 6),
         "capacity_authority": "user_supplied_prelegal_target",
         "family_quotas": dict(family_counts),

@@ -202,7 +202,8 @@ class Command(BaseCommand):
                         ),
                         authored_programs=programs,
                     )
-                    return len(report.candidates)
+                    return sum(c.get('candidate_origin') != 'authored_original'
+                               for c in report.candidates)
 
                 author_supply = collect_creative_author_supply(
                     target_count=count,
@@ -260,20 +261,7 @@ class Command(BaseCommand):
         ) as exc:
             raise CommandError(str(exc)) from exc
         candidates = portfolio.get("candidates")
-        if (
-            not isinstance(candidates, list)
-            or (
-                author_mode != "hybrid"
-                and len(candidates) != count
-            )
-            or (
-                author_mode == "hybrid"
-                and len(candidates) > count
-            )
-        ):
-            raise CommandError(
-                "creative portfolio candidate count does not match request"
-            )
+        _validate_candidate_supply(candidates, count=count, hybrid=author_mode == 'hybrid')
 
         persisted_candidates: list[dict[str, Any]] = []
         preview_items: list[tuple[str, Path]] = []
@@ -369,6 +357,9 @@ class Command(BaseCommand):
                     "legal_status": candidate["legal_review"]["status"],
                     "program_hash": candidate["program_hash"],
                     "geometry_hash": candidate["geometry_hash"],
+                    **{key: candidate[key] for key in (
+                        'candidate_origin', 'source_program_hash',
+                        'normalized_source_program_hash', 'parent_program_hash') if key in candidate},
                     "candidate_json": candidate["candidate_json"],
                     "render_png": candidate["render_png"],
                     "mass_directory": candidate["mass_directory"],
@@ -515,6 +506,49 @@ def _affine_authority_counts(
     }
 
 
+def _validate_candidate_supply(candidates, *, count, hybrid):
+    """Bound exploration separately from preserved author originals."""
+    error = 'creative portfolio candidate count or lineage does not match request'
+    if not isinstance(candidates, list) or any(not isinstance(c, dict) for c in candidates):
+        raise CommandError(error)
+    tagged = any('candidate_origin' in c for c in candidates)
+    if not tagged:
+        if len(candidates) > count or (not hybrid and len(candidates) != count):
+            raise CommandError(error)
+        return
+    originals = 0
+    explored = 0
+    ids = set()
+    for candidate in candidates:
+        identity = candidate.get('candidate_id')
+        source = candidate.get('source_program_hash')
+        if not identity or identity in ids or not source:
+            raise CommandError(error)
+        ids.add(identity)
+        if candidate.get('candidate_origin') == 'authored_original':
+            originals += 1
+            try:
+                authored_hash = GeometryProgram.from_dict(candidate.get('authored_geometry_program') or {}).program_hash()
+            except (TypeError, ValueError, KeyError) as exc:
+                raise CommandError(error) from exc
+            if authored_hash != source:
+                raise CommandError(error)
+        elif candidate.get('candidate_origin') == 'book_exploration':
+            explored += 1
+            if candidate.get('parent_program_hash') != source:
+                raise CommandError(error)
+            try:
+                parent_hash = GeometryProgram.from_dict(candidate.get('parent_geometry_program') or {}).program_hash()
+            except (TypeError, ValueError, KeyError) as exc:
+                raise CommandError(error) from exc
+            if parent_hash != source:
+                raise CommandError(error)
+        else:
+            raise CommandError(error)
+    if originals > count or explored > count or (not hybrid and explored != count):
+        raise CommandError(error)
+
+
 def _hybrid_portfolio_payload(
     report,
     *,
@@ -545,6 +579,9 @@ def _hybrid_portfolio_payload(
             "PRE-LEGAL / NOT LAW, PARKING, CAPACITY OR VLM ACCEPTED"
         ),
         "author_supply": author_supply,
+        "exploration_count": report.exploration_count,
+        "original_count": sum(c.get('candidate_origin') == 'authored_original' for c in candidates),
+        "target_count_scope": "book_exploration",
         "stage_counts": dict(report.stage_counts),
         "rejection_counts": dict(report.rejection_counts),
         "rejections": [item.evidence() for item in report.rejections],

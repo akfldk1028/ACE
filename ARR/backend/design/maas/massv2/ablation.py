@@ -25,6 +25,10 @@ and `_scope` then finds nothing and the operation is silent. That is not a flaw
 in the measurement, it is the measurement: a word the rest of the sentence
 depends on is load-bearing, and the number says so.
 
+An operation that requires a selected body can instead report a typed missing
+dependency. Only the shortened counterfactual maps that condition to no mass;
+the original sentence and malformed geometry still fail normally.
+
 Cost is one extra pipeline run per word, at sentence level rather than per
 delivered variant - about three runs for a typical sentence. The coverage and
 siting copies of one sentence share its words, so they share this number.
@@ -42,7 +46,7 @@ from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.source_geometry.ir import SourceMass
 
 from .compile import compile_matrix_form
-from .execute import execute as execute_parti
+from .execute import MissingOperationDependency, execute as execute_parti
 from .fill import fill_to_site
 from .grammar import JOINT_CLEARANCE_M
 from .postcondition import changed_share
@@ -94,16 +98,24 @@ IDLE_BELOW = 0.05
 
 
 def _delivered(
-    parti, *, buildable, axis, height_m, site, storey_height_m: float
+    parti, *, buildable, axis, height_m, site, storey_height_m: float,
+    allow_missing_dependency: bool = False,
 ) -> SourceMass | None:
     """The mass this sentence actually puts on the sheet, clip and growth included."""
 
     if not parti.ops:
         return None
-    form = execute_parti(
-        parti, buildable=buildable, axis=axis, height_m=height_m,
-        storey_height_m=storey_height_m,
-    )
+    try:
+        form = execute_parti(
+            parti, buildable=buildable, axis=axis, height_m=height_m,
+            storey_height_m=storey_height_m,
+        )
+    except MissingOperationDependency:
+        # Only a shortened, already-valid sentence may lose its creator.
+        # Invalid authored payloads and errors in the whole sentence propagate.
+        if allow_missing_dependency:
+            return None
+        raise
     if form is None:
         return None
     filled = fill_to_site(form, site)
@@ -133,7 +145,7 @@ def ablate(
         )
         without = _delivered(
             shorter, buildable=buildable, axis=axis, height_m=height_m,
-            site=site, storey_height_m=storey_height_m,
+            site=site, storey_height_m=storey_height_m, allow_missing_dependency=True,
         )
         # A sentence that will not stand without this word is entirely this
         # word's, which is the strongest thing the measure can say.
@@ -185,21 +197,56 @@ def gap_survived(
     # delivers 1.82 m exactly - its second gap, intact - and was being failed
     # against its first. What this gate exists to catch is a declared
     # separation that came out fused, and min against min catches that.
-    claims = [
-        float(op.params.get("gap") or 0.0) * JOINT_CLEARANCE_M
-        for op in parti.ops
-        if float(op.params.get("gap") or 0.0) > 0.0
-    ]
-    declared = min(claims) if claims else 0.0
+    declared = declared_gap_m(parti)
     if declared <= 0.0:
         return (0.0, 0.0)
     source = _delivered(
         parti, buildable=buildable, axis=axis, height_m=height_m,
         site=site, storey_height_m=storey_height_m,
     )
-    if source is None:
-        return (declared, 0.0)
+    evidence = gap_evidence(source, declaration=parti)
+    return evidence['declared_m'], evidence['delivered_m']
 
+
+def declared_gap_m(declaration):
+    """Read either Parti or its compiler-preserved operation evidence."""
+    if hasattr(declaration, 'ops'):
+        operations = declaration.ops
+    else:
+        declaration = declaration or {}
+        declaration = declaration.get('parti') or declaration
+        operations = declaration.get('operations') or declaration.get('ops') or ()
+    claims = []
+    for operation in operations:
+        params = operation.params if hasattr(operation, 'params') else operation.get('params', operation)
+        value = float(params.get('gap') or 0.)
+        if value > 0.:
+            claims.append(value * JOINT_CLEARANCE_M)
+    return min(claims) if claims else 0.
+
+
+def gap_satisfied(declared_m, delivered_m):
+    """The existing space-or-reveal rule, shared by fitting and delivery."""
+    return not (declared_m > 0. and delivered_m < min(declared_m, GAP_IS_A_SPACE_M) - GAP_TOLERANCE_M)
+
+
+def gap_evidence(source, *, declaration=None):
+    """Measure the actual delivered SourceMass using the existing band-gap rule.
+
+    This is the widest level's narrowest separation, not proof of a traversable
+    path, entry location or clearance between individually named split roles.
+    """
+    if declaration is None:
+        declaration = source.metadata if source is not None else {}
+    declared = declared_gap_m(declaration)
+    delivered = _source_gap_m(source) if source is not None and declared > 0. else 0.
+    return {'declared_m': declared, 'delivered_m': delivered,
+            'required_m': min(declared, GAP_IS_A_SPACE_M), 'tolerance_m': GAP_TOLERANCE_M,
+            'satisfied': gap_satisfied(declared, delivered),
+            'basis': 'widest band-level narrowest component separation; not verified circulation'}
+
+
+def _source_gap_m(source):
     # A gap is the narrowest separation in the storey that has one, not the
     # distance between the two furthest pieces - the first version measured the
     # latter and reported every sentence at over 100% because the two ends of a
@@ -226,7 +273,7 @@ def gap_survived(
             for two in pieces[index + 1:]
         )
         widest = max(widest, narrowest)
-    return (declared, widest)
+    return widest
 
 
 # How wide the surviving gap has to be to still be a gap.
@@ -252,4 +299,4 @@ GAP_TOLERANCE_M = 0.05
 
 
 __all__ = ["Ablation", "ablate", "gap_survived", "IDLE_BELOW", "GAP_IS_A_SPACE_M",
-           "GAP_TOLERANCE_M"]
+           "GAP_TOLERANCE_M", "gap_evidence", "declared_gap_m", "gap_satisfied"]

@@ -71,22 +71,61 @@ OPEN_SIDE_SITINGS: tuple[Siting, ...] = (
 )
 
 
+def site_open_side_evidence(site) -> dict:
+    """One site-aware owner for authoring, siting and delivered rebuilds.
+
+    Registered road geometry takes precedence over cadastral-neighbour guesses.
+    The fallback compares the original parcel with its original shared edges;
+    an inset buildable outline is never a frontage observation.
+    """
+    from .parcel_policy import registered_road_frontage_evidence
+    registered = registered_road_frontage_evidence(site)
+    if registered is not None:
+        sum_x = sum_y = 0.0
+        for start, end in registered['segments_local_m']:
+            dx, dy = end[0] - start[0], end[1] - start[1]
+            # Unit outward normal times edge length. Orientation is that of
+            # the registered ring, independent of the caller's ring winding.
+            nx, ny = ((dy, -dx) if registered['reference_ring_is_ccw']
+                      else (-dy, dx))
+            sum_x += nx
+            sum_y += ny
+        axis = _unit((sum_x, sum_y))
+        return {**registered, 'basis': 'official_plan_road_frontages',
+                'source_basis': registered['basis'],
+                'direction_world_xy': axis if axis != (0., 0.) else None,
+                'method': 'length_weighted_outward_normals',
+                'vehicle_access_permission': None,
+                'vehicle_access_status': 'not_assessed_by_pedestrian_orientation'}
+    parcel = getattr(site, 'site_local_utm', None)
+    shared = getattr(site, 'shared_edges', ())
+    axis = open_side_direction(parcel, shared) if shared else None
+    return {'basis': 'original_parcel_unshared_boundary' if shared else 'unavailable',
+            'direction_world_xy': axis if axis != (0., 0.) else None,
+            'method': 'cadastral_complement_inference',
+            'evidence_grade': 'inferred_not_road_verified',
+            'vehicle_access_permission': None,
+            'vehicle_access_status': 'not_assessed_by_pedestrian_orientation'}
+
+
+def site_open_side_direction(site) -> tuple[float, float] | None:
+    """The site's documented pedestrian address direction, or explicit fallback."""
+    return site_open_side_evidence(site)['direction_world_xy']
+
+
 def open_side_direction(buildable, shared_edges) -> tuple[float, float] | None:
-    """Which way the parcel is open, from the edges no neighbour shares.
+    """Low-level cadastral complement; callers with a site use the owner above.
 
-    A parcel's frontage is not in the zoning data. What is available is the
-    neighbours, each carrying the edge it shares with this parcel, and the
-    boundary that is left over is the side nothing is built against - the street
-    in almost every case, and in any case the side the building faces.
+    `buildable` is a legacy parameter name: production passes the ORIGINAL
+    parcel through site_open_side_direction, never an inset legal plan.
 
-    Measured on 4115011300106840001 the road layer returns nothing at all, so
-    reading frontage off the roads would have left this parcel with no context
-    to site against. Its five neighbours are there, and what they do not touch
-    is the answer.
+    This is an inference from cadastral adjacency, not a road or entrance
+    verification. An adjacent parcel can itself be a road, and an unshared
+    edge can face a river or green space. The public1 source audit demonstrates
+    both why original coordinates matter and why registered evidence wins.
 
-    Returned as a unit vector from the parcel's centre toward the middle of the
-    open boundary, weighted by how much of it there is - a parcel open on two
-    sides points at the corner between them, which is where its entrance goes.
+    The result points from the parcel's area centroid toward the length-weighted
+    midpoint of unmatched original boundary edges. It grants no access rights.
     """
 
     if buildable is None or buildable.is_empty:
@@ -277,4 +316,5 @@ def spread_across_siting(
     return out
 
 
-__all__ = ["SITINGS", "Siting", "place_on_site", "principal_axes", "spread_across_siting"]
+__all__ = ["SITINGS", "Siting", "place_on_site", "principal_axes", "spread_across_siting",
+           "site_open_side_direction", "site_open_side_evidence"]

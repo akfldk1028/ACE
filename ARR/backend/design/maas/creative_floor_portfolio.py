@@ -804,6 +804,7 @@ def _compile_candidate(
     capacity_band: str,
     capacity_ceiling_m2: float,
     author_evidence: dict[str, Any] | None = None,
+    physical_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     resolved_author_evidence = author_evidence or {
         "schema_version": "arr.maas.creative_author_evidence.v1",
@@ -824,9 +825,12 @@ def _compile_candidate(
     if not normalized_authored_mesh_hash:
         return None
 
-    storey_count = 3 + ((family_index + variation_index) % 4)
-    target_height_m = storey_count * STOREY_HEIGHT_M
-    target_gfa_m2 = (
+    storey_count = (int(physical_contract["storey_count"]) if physical_contract is not None
+                    else 3 + ((family_index + variation_index) % 4))
+    storey_height_m = (float(physical_contract["storey_height_m"]) if physical_contract is not None
+                       else STOREY_HEIGHT_M)
+    target_height_m = storey_count * storey_height_m
+    target_gfa_m2 = float(physical_contract["target_gfa_m2"]) if physical_contract is not None else (
         capacity_ceiling_m2 * CAPACITY_TARGET_RATIOS[capacity_band]
     )
     normalized_bounds = authored_compilation.metrics.get("bounds") or ()
@@ -875,6 +879,7 @@ def _compile_candidate(
         physical_envelope,
         bounds=physical_bounds,
         storey_count=storey_count,
+        storey_height_m=storey_height_m,
     )
     compilation = compile_geometry_program(physical)
     if not _connected_compilation(compilation):
@@ -896,7 +901,7 @@ def _compile_candidate(
         return None
     candidate_id = f"creative-{candidate_index + 1:03d}"
     elevations = [
-        round(index * STOREY_HEIGHT_M, 6)
+        round(index * storey_height_m, 6)
         for index in range(storey_count + 1)
     ]
     actual_gfa = sum(actual_floor_areas)
@@ -962,14 +967,23 @@ def _compile_candidate(
             "component_count": int(metrics.get("component_count") or 0),
             "bounds": metrics.get("bounds"),
             "triangle_count": int(metrics.get("triangle_count") or 0),
+            # The GATE reads these three and is fail-closed on a missing key,
+            # so dropping them from the persisted evidence made every archived
+            # candidate fail on self_intersection_unchecked / inverted_normals /
+            # empty_or_tiny_solid while its own mesh was watertight and manifold.
+            "self_intersection_checked_by_kernel": (
+                metrics.get("self_intersection_checked_by_kernel") is True
+            ),
+            "outward_normals": metrics.get("outward_normals") is True,
+            "volume": float(metrics.get("volume") or 0.0),
         },
         "storey_evidence": {
             "schema_version": "arr.maas.creative_storey_evidence.v1",
             "storey_count": storey_count,
-            "typical_storey_height_m": STOREY_HEIGHT_M,
+            "typical_storey_height_m": storey_height_m,
             "floor_elevations_m": elevations,
             "floor_center_elevations_m": [
-                round((index + 0.5) * STOREY_HEIGHT_M, 6)
+                round((index + 0.5) * storey_height_m, 6)
                 for index in range(storey_count)
             ],
             "actual_floor_areas_m2": [
@@ -1107,6 +1121,7 @@ def _with_occupied_floor_plates(
     *,
     bounds: tuple[Any, Any] | list[Any],
     storey_count: int,
+    storey_height_m: float = STOREY_HEIGHT_M,
 ) -> tuple[GeometryProgram, tuple[str, ...], tuple[str, ...]]:
     minimum, maximum = bounds
     minimum_x, minimum_y, minimum_z = (
@@ -1123,7 +1138,7 @@ def _with_occupied_floor_plates(
     span_y = maximum_y - minimum_y
     height = maximum_z - minimum_z
     unitbox = _canonical_unitbox(program)
-    cutter_thickness = min(0.12, STOREY_HEIGHT_M * 0.04)
+    cutter_thickness = min(0.12, storey_height_m * 0.04)
     margin = max(span_x, span_y, 1.0) * 0.02
     nodes = list(program.nodes)
     cutter_ids: list[str] = []

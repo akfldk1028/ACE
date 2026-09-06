@@ -1,13 +1,9 @@
 """Draw a compiled mass so a person can judge it.
 
-Deliberately self-contained: no MAAS renderer import, no certificate, no
-`profiled_` surfaces. The existing preview path raises unless an authored mesh
-carries a projected-visual certificate, and arming that layer is exactly what
-this package is avoiding while the form language is being proven.
-
-Bands are drawn back to front as extruded prisms under a fixed axonometric.
-That is enough to tell a stacked tower from a courtyard block, which is the only
-question being asked here.
+Mesh-authoritative BOOK sources draw their complete SourceSurface triangles
+with depth testing. Their band proxies are never a visual replacement.
+Ordinary authored sources retain the IR surface/prism renderer, including
+courtyards and sunken ground. Both paths use the same orthographic camera.
 """
 
 from __future__ import annotations
@@ -24,6 +20,7 @@ from design.maas.source_geometry.ir import (
     SourceMass,
     profile_height,
 )
+from .render_mesh import is_mesh_authoritative, physical_triangles, actual_xy_projection, paint_mesh
 
 
 _YAW = math.radians(-35.0)
@@ -317,6 +314,8 @@ def _slope_of(volume, low: float, high: float):
     meets `high` at the rear edge and `high - drop` at the front edge exactly.
     """
 
+    if volume.section_kind() == "surface":
+        return _Slope(("S",), volume, low, high)
     drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
     if drop <= 0.0:
         return None
@@ -334,10 +333,9 @@ def _slope_fields(volume, low: float, high: float, drop: float):
         nu = math.hypot(ux, uy) or 1.0
         nv = math.hypot(vx, vy) or 1.0
         ux, uy, vx, vy = ux / nu, uy / nu, vx / nv, vy / nv
-        coords = list(volume.footprint.exterior.coords)
-        us = [x * ux + y * uy for x, y in coords]
-        vs = [x * vx + y * vy for x, y in coords]
-        return ("W", high - low, ux, uy, vx, vy, min(us), max(us), min(vs), max(vs),
+        ulo, uhi = volume._extent_along(ux, uy)
+        vlo, vhi = volume._extent_along(vx, vy)
+        return ("W", high - low, ux, uy, vx, vy, ulo, uhi, vlo, vhi,
                 tuple(float(c) for c in corners), bool(plate), sag)
     points = getattr(volume, "top_profile", None)
     across = getattr(volume, "profile_across", None)
@@ -358,15 +356,51 @@ def _slope_fields(volume, low: float, high: float, drop: float):
         rx, ry = ridge
         norm = math.hypot(rx, ry) or 1.0
         px, py = -ry / norm, rx / norm
-        values = [x * px + y * py for x, y in volume.footprint.exterior.coords]
-        lo_p, hi_p = min(values), max(values)
+        lo_p, hi_p = volume._extent_along(px, py)
         return ("R", drop * (high - low), px, py,
                 (lo_p + hi_p) / 2.0, (hi_p - lo_p) / 2.0)
     if volume.drop_toward is None:
         return None
     ux, uy = volume.drop_toward
-    values = [x * ux + y * uy for x, y in volume.footprint.exterior.coords]
-    return (drop * (high - low), ux, uy, min(values), max(values))
+    lo_p, hi_p = volume._extent_along(ux, uy)
+    return (drop * (high - low), ux, uy, lo_p, hi_p)
+
+
+def _aperture_walls(court, aperture_points, low, high, slope):
+    """Only the parts of real inner walls visible through the roof opening.
+
+    Clip both fills and their authored edges in screen space. This does not
+    create a floor or change source geometry; the opening hides the walls
+    behind the front roof/facade just as an opaque courtyard ring does.
+    """
+    from shapely.geometry import LineString, Polygon
+
+    aperture = Polygon(aperture_points)
+    if not aperture.is_valid:
+        aperture = aperture.buffer(0)
+
+    def parts(geometry):
+        if geometry.is_empty:
+            return
+        if hasattr(geometry, 'geoms'):
+            for part in geometry.geoms:
+                yield from parts(part)
+        else:
+            yield geometry
+
+    for points, color, seam in _walls(court, low, high, slope):
+        face = Polygon(points) if len(points) >= 3 else LineString(points)
+        if color is not None:
+            for part in parts(face.intersection(aperture)):
+                if part.geom_type == 'Polygon':
+                    yield list(part.exterior.coords[:-1]), color, False
+        if seam:
+            edges = face.boundary if face.geom_type == 'Polygon' else face
+            for part in parts(edges.intersection(aperture)):
+                if part.geom_type in ('LineString', 'LinearRing'):
+                    coords = list(part.coords)
+                    for first, second in zip(coords, coords[1:]):
+                        yield [first, second], None, True
 
 
 def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = False):
@@ -389,47 +423,23 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
     if folds:
         # A vertex on every fold, or the end face loses its peak.
         outer = _ridge_points(outer, slope)
-    if slope is not None and slope[0] == "W":
+    if slope is not None and slope[0] in ("W", "S"):
         # A warped surface's edges are straight only along its own axes; a
         # long edge is drawn as a polyline so the sweep of the eave shows.
         outer = _densified(outer, 6)
+        # An elevated plate can expose its underside; use the material mesh.
+        for triangle in slope.volume.surface_mesh:
+            yield ([_project(x,y,low+(high-low)*bottom) for x,y,bottom,_top in triangle],
+                   _PAL.wall, False)
     yield from _walls(outer, low, high, slope)
-    for interior in polygon.interiors:
-        court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
-        if len(court) >= 3 and not pit_walls:
-            if folds:
-                court = _ridge_points(court, slope)
-            yield from _walls(court, low, high, slope)
-    # The roof is the ring minus its holes. Painting the hole in the background
-    # colour is the cheapest correct answer for a filled polygon renderer.
-    if slope is not None and slope[0] == "W":
-        # The roof as a seamless grid of bilinear cells (each cell is near
-        # enough planar to paint flat), then one outlined ring over it so the
-        # surface has a silhouette - the same trick the vault needed.
-        from shapely.geometry import Polygon as _Poly
-        _tag, _band_m, ux, uy, vx, vy, ulo, uhi, vlo, vhi, _corners, _plate, _sag = slope
-        ring_poly = _Poly(outer)
-        steps = 8
-        for i in range(steps):
-            for j in range(steps):
-                u0, u1 = ulo + (uhi - ulo) * i / steps, ulo + (uhi - ulo) * (i + 1) / steps
-                v0, v1 = vlo + (vhi - vlo) * j / steps, vlo + (vhi - vlo) * (j + 1) / steps
-                # the cell's world corners from its (u, v) extents
-                def _pt(u, v):
-                    # solve x*ux + y*uy = u, x*vx + y*vy = v
-                    det = ux * vy - uy * vx
-                    return ((u * vy - v * uy) / det, (ux * v - vx * u) / det)
-                cell = _Poly([_pt(u0, v0), _pt(u1, v0), _pt(u1, v1), _pt(u0, v1)])
-                part = cell.intersection(ring_poly)
-                if part.is_empty or part.area < 1e-6:
-                    continue
-                parts = list(part.geoms) if hasattr(part, "geoms") else [part]
-                for piece in parts:
-                    if piece.geom_type != "Polygon":
-                        continue
-                    pts = [(float(x), float(y)) for x, y in piece.exterior.coords[:-1]]
-                    yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in pts],
-                           _PAL.roof, False)
+    # Draw the roof first. Each opening's background and aperture-clipped inner
+    # walls follow it, so the solid roof cannot erase their visible depth.
+    if slope is not None and slope[0] in ("W", "S"):
+        # Shared triangulation retains holes and the same sampled heights used
+        # by occupied sections and material volume.
+        for triangle in slope.volume.surface_mesh:
+            yield ([_project(x,y,low+(high-low)*top) for x,y,_bottom,top in triangle],
+                   top_tone, False)
         yield ([_project(x, y, _top_at(x, y, high, slope)) for x, y in outer], None, True)
     elif folds and slope[0] == "R":
         # Two planes, drawn as two polygons so the ridge is a drawn line.
@@ -466,12 +476,23 @@ def _faces(polygon, low: float, high: float, slope=None, *, pit_walls: bool = Fa
     for interior in polygon.interiors:
         court = [(float(x), float(y)) for x, y in interior.coords[:-1]]
         if len(court) >= 3:
-            yield [_project(x, y, _top_at(x, y, high, slope)) for x, y in court], _PAL.court, True
+            if not pit_walls:
+                if folds:
+                    court = _ridge_points(court, slope)
+                if slope is not None and slope[0] in ('W', 'S'):
+                    court = _densified(court, 6)
+            aperture = [_project(x, y, _top_at(x, y, high, slope)) for x, y in court]
+            yield aperture, _PAL.court, True
             if pit_walls:
                 # A pit in the earth: its walls are drawn AFTER the ground
                 # face so the far walls show inside the hole and the court
                 # reads as sunken, not as a flat mark on the ground.
                 yield from _walls(court, low, high, slope)
+            else:
+                # Draw after the opening's background; drawing these before
+                # the solid roof erased their depth and leaked onto facades.
+                yield from _aperture_walls(court, aperture, low, high, slope)
+                yield aperture, None, True
 
 
 def render_masses(
@@ -576,6 +597,9 @@ def render_sequence(
         source = frame.get("source")
         if source is None:
             continue
+        if is_mesh_authoritative(source):
+            world.extend(_project(*p) for triangle in physical_triangles(source) for p in triangle)
+            continue
         height = float(source.metadata.get("authored_height_m") or 0.0)
         for volume in source.volumes:
             low = float(volume.bottom_fraction) * height
@@ -640,7 +664,11 @@ def _render_frame(
             draw.line(points, fill=_PAL.party_wall, width=4)
 
     source = frame.get("source")
-    if source is not None:
+    if source is not None and is_mesh_authoritative(source):
+        paint_mesh(panel, physical_triangles(source), project=_project, to_screen=to_screen,
+                   yaw=_YAW, pitch=_PITCH, palette=_PAL, smooth_turn_cos=_SMOOTH_TURN_COS)
+        draw = ImageDraw.Draw(panel)
+    elif source is not None:
         height = float(source.metadata.get("authored_height_m") or 0.0)
         ordered = sorted(
             source.volumes,
@@ -744,6 +772,28 @@ def _correspondence(rings) -> list | None:
     return paired
 
 
+def _is_full_band_prism(volume):
+    """Recognize exact constant fields without sampling a varying surface.
+
+    Authored constants acquire coordinate wrappers during placement. They
+    remain ordinary prisms and retain the established edge/merge rendering.
+    """
+    from ..source_geometry.solid import AffineSurface, ConstantSurface
+
+    def constant(surface, default):
+        if surface is None:
+            return default
+        if isinstance(surface, ConstantSurface):
+            return surface.height
+        if isinstance(surface, AffineSurface):
+            value = constant(surface.surface, None)
+            return None if value is None else surface.offset + surface.scale * value
+        return None
+
+    return (constant(volume.top_surface, 1.0) == 1.0
+            and constant(volume.bottom_surface, 0.0) == 0.0)
+
+
 def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
     """Consecutive bands with the same plan, drawn as one prism.
 
@@ -766,7 +816,8 @@ def _merged_runs(volumes) -> list[tuple[float, float, Any]]:
         # (low, high, footprint) rows, which is exactly how the first gable
         # ever compiled - two wedges, both carrying their tilt - was drawn as
         # two offset flat slabs. The tilt survived compile and died here.
-        if float(getattr(volume, "top_drop", 0.0) or 0.0) > 0.0:
+        if ((volume.section_kind() == "surface" and not _is_full_band_prism(volume))
+                or float(getattr(volume, "top_drop", 0.0) or 0.0) > 0.0):
             runs.append((float(volume.bottom_fraction), float(volume.top_fraction),
                          volume.footprint, volume))
             continue
@@ -803,7 +854,11 @@ def _draw_plan(draw, source, box, site_ring) -> None:
     """
 
     left, top, width, height = box
-    shapes = [row[2] for row in _merged_runs(source.volumes)]
+    if is_mesh_authoritative(source):
+        projection = actual_xy_projection(source)
+        shapes = list(projection.geoms) if hasattr(projection, 'geoms') else [projection]
+    else:
+        shapes = [row[2] for row in _merged_runs(source.volumes)]
     if not shapes:
         return
     rings = [list(site_ring)] if site_ring else []
@@ -877,7 +932,8 @@ def _render_one(
     # Painter's algorithm on the band's own depth: farther bands first, and
     # within a band the lower one first, so an upper volume overlaps the one
     # holding it up rather than the other way round.
-    ordered = sorted(_merged_runs(source.volumes),
+    mesh_triangles = physical_triangles(source) if is_mesh_authoritative(source) else None
+    ordered = sorted([] if mesh_triangles is not None else _merged_runs(source.volumes),
                      key=lambda item: (
                          item[0],
                          _depth(item[2].centroid.x, item[2].centroid.y),
@@ -953,6 +1009,8 @@ def _render_one(
     polygons.extend(above)
 
     flat = [point for shape, _colour, _seam in polygons for point in shape]
+    if mesh_triangles is not None:
+        flat.extend(_project(*p) for triangle in mesh_triangles for p in triangle)
     if not flat:
         return panel
     min_x = min(px for px, _py in flat)
@@ -982,6 +1040,10 @@ def _render_one(
             [to_screen(point) for point in shape], fill=colour,
             outline=_PAL.edge if seam else colour,
         )
+    if mesh_triangles is not None:
+        paint_mesh(panel, mesh_triangles, project=_project, to_screen=to_screen,
+                   yaw=_YAW, pitch=_PITCH, palette=_PAL, smooth_turn_cos=_SMOOTH_TURN_COS)
+        draw = ImageDraw.Draw(panel)
 
     # Room for a plan only where there is room: the contact sheet's tile is a
     # thumbnail and an inset in it would be a smudge. The large drawing per

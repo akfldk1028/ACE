@@ -159,7 +159,9 @@ def generate_parking_layout_candidate(
         required_spaces=required_spaces,
         accessible_spaces=accessible_spaces,
         strategy=strategy,
+        drive_polygon=drive_polygon,
     )
+    rejected_module = (candidate if candidate.get('drive_envelope_check', {}).get('satisfied') is False else None)
     if (
         candidate["provided_spaces"] < required_spaces
         and required_spaces <= SMALL_ATTACHED_PARKING_MAX_SPACES
@@ -198,6 +200,8 @@ def generate_parking_layout_candidate(
         if _layout_rank(parallel_candidate) > _layout_rank(candidate):
             candidate = parallel_candidate
     candidate["small_attached_parking_relief"] = relief
+    if rejected_module is not None and candidate is not rejected_module:
+        candidate['rejected_layouts'] = [rejected_module]
     _attach_authority_review_check(candidate, relief)
     _attach_basement_ramp_review(candidate, strategy, road_context)
     return candidate
@@ -493,6 +497,7 @@ def _place_internal_90_degree_stalls(
     required_spaces: int,
     accessible_spaces: int,
     strategy: str,
+    drive_polygon: Polygon | None = None,
 ) -> dict[str, Any]:
     origin, u, v, length, depth = _oriented_frame(polygon)
     row_offsets: list[float] = []
@@ -517,15 +522,40 @@ def _place_internal_90_degree_stalls(
         accessible_spaces=accessible_spaces,
         mode=mode,
     )
-    return _layout_result(
+    drive_cells = []
+    drive_area = drive_polygon if drive_polygon is not None else polygon
+    if stalls and row_offsets:
+        # The exact unrounded row intervals define the full shared 6 m aisle.
+        # Check the same full polygon that the result's operability owner sees;
+        # never clip it around an obstruction and retain the width claim.
+        intervals = [(stall.pop('_frame_start_u_m'), stall['width_m']) for stall in stalls]
+        start = min(offset for offset, width in intervals)
+        stop = max(offset + width for offset, width in intervals)
+        drive_cells = [_rect_from_frame(origin=origin, u=u, v=v,
+            start_u=start, start_v=DEFAULT_STALL_LENGTH_M,
+            width_u=stop-start, width_v=DEFAULT_AISLE_WIDTH_M)]
+    drive_satisfied = all(drive_area.buffer(1e-7).contains(cell) for cell in drive_cells)
+    result = _layout_result(
         status="pass" if len(stalls) >= required_spaces else "fail",
         strategy=strategy,
         placement_mode=mode,
         required_spaces=required_spaces,
         accessible_spaces=accessible_spaces,
         stalls=stalls,
+        drive_cells=drive_cells,
         reason=None if len(stalls) >= required_spaces else "insufficient_internal_module_capacity",
     )
+    result['drive_geometry_basis'] = 'existing_internal_module_frame; full_aisle_checked_before_ranking'
+    result['drive_envelope_check'] = {'satisfied':drive_satisfied,
+        'outside_envelope_m2':sum(cell.difference(drive_area).area for cell in drive_cells),
+        'basis':'same polygon.buffer(1e-7).contains as existing stall and grid drive checks'}
+    if not drive_satisfied:
+        result['status'] = 'fail'
+        result['reason'] = 'internal_aisle_outside_envelope'
+        result['drive_aisle_clearance']['status'] = 'fail'
+        result['turning_clearance']['status'] = 'needs_swept_path_review'
+        result['turning_clearance']['reason'] = 'internal_aisle_outside_envelope'
+    return result
 
 
 def _place_single_row_aisle_review_stalls(
@@ -1510,7 +1540,7 @@ def _site_boundary_edges(drive_area: Polygon) -> list[LineString]:
         return []
 
 
-def _layout_rank(layout: dict[str, Any]) -> tuple[int, int, int, int]:
+def _layout_rank(layout: dict[str, Any]) -> tuple[int, int, int, int, int]:
     status = str(layout.get("status") or "")
     unmet = int(layout.get("unmet_spaces") or 0)
     provided = int(layout.get("provided_spaces") or 0)
@@ -1528,7 +1558,8 @@ def _layout_rank(layout: dict[str, Any]) -> tuple[int, int, int, int]:
         else 2 if status == "needs_aisle_review"
         else 0
     )
-    return (1 if unmet == 0 else 0, compact_score, status_score, provided)
+    spatially_clear = layout.get('drive_envelope_check', {}).get('satisfied') is not False
+    return (1 if spatially_clear else 0, 1 if unmet == 0 else 0, compact_score, status_score, provided)
 
 
 def _fill_rows(
@@ -1572,6 +1603,8 @@ def _fill_rows(
                     "mode": mode,
                     "polygon": _polygon_coordinates(stall_polygon),
                 })
+                if mode.startswith('internal_'):
+                    stalls[-1]['_frame_start_u_m'] = cursor
                 if is_accessible:
                     remaining_accessible -= 1
             cursor += width
@@ -1677,6 +1710,10 @@ def _layout_result(
         "unmet_spaces": unmet,
         "unmet_accessible_spaces": unmet_accessible,
         "stalls": stalls,
+        "drive_cells": [_polygon_coordinates(cell) for cell in canonical_drive_cells],
+        "entrance_connector_polygon": (_polygon_coordinates(entrance_access['connector_polygon'])
+            if entrance_access and isinstance(entrance_access.get('connector_polygon'), Polygon) else None),
+        "coordinate_precision_m": 10.0 ** -LAYOUT_COORDINATE_DECIMAL_PLACES,
         "layout_formula": _layout_formula_metadata(placement_mode, required_spaces=required_spaces),
         "adjacency": adjacency,
         "column_clearance": operability["column_clearance"],
@@ -2422,8 +2459,12 @@ def _frame_point(
     )
 
 
+LAYOUT_COORDINATE_DECIMAL_PLACES = 4
+
+
 def _polygon_coordinates(polygon: Polygon) -> list[list[float]]:
-    return [[round(x, 4), round(y, 4)] for x, y in polygon.exterior.coords]
+    return [[round(x, LAYOUT_COORDINATE_DECIMAL_PLACES), round(y, LAYOUT_COORDINATE_DECIMAL_PLACES)]
+            for x, y in polygon.exterior.coords]
 
 
 def _module_capacity(*, length: float, depth: float, module_depth: float, rows_per_module: int) -> int:

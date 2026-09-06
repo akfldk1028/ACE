@@ -43,7 +43,19 @@ def resolve_candidate_parking_requirement(
         return _unresolved("needs_metric", "Candidate facility area is required for parking count.")
 
     opts = options or {}
-    rule_id = _string_or_none(opts.get("parking_rule_id")) or _rule_id_for_building_type(building_type)
+    use_code = _string_or_none(opts.get("building_use_code"))
+    explicit_rule = _string_or_none(opts.get("parking_rule_id"))
+    use_rules = {
+        "appendix1_03_ba": "parking_appendix1_row_11",
+        "appendix1_14_a": "parking_appendix1_row_02",
+    }
+    if not use_code and not explicit_rule and any(
+        token in (building_type or "") for token in ("주민센터", "행정복지센터", "동사무소")
+    ):
+        return _unresolved("needs_use_classification", "Public service label alone does not distinguish neighborhood facilities from public offices.")
+    # The full sa category differs between national and municipal appendices.
+    # Defer its mapping until the selected jurisdiction's reviewed rows load.
+    rule_id = explicit_rule or use_rules.get(use_code) or _rule_id_for_building_type(building_type)
     if not rule_id:
         return _unresolved(
             "needs_use_mapping",
@@ -66,25 +78,51 @@ def resolve_candidate_parking_requirement(
             "graph_status": loaded.get("graph_status"),
         }
 
+    applicable_local = [r for r in rules.get("local", [])
+                        if r.get("pnu_prefix") and pnu.startswith(str(r["pnu_prefix"]))]
+    local_use_maps = [(len(str(r["pnu_prefix"])), r.get("building_use_code_overrides", {}))
+                      for r in applicable_local]
+    for _, mapping in sorted(local_use_maps, key=lambda item: item[0]):
+        use_rules.update(mapping)
+    if use_code:
+        if use_code not in use_rules:
+            return _unresolved("needs_use_classification", "The supplied building use code has no reviewed mapping for this jurisdiction and facility subtype.")
+        rule_id = explicit_rule or use_rules[use_code]
+    if any(token in (building_type or "") for r in applicable_local
+           for token in r.get("excluded_area_ratio_use_tokens", [])):
+        return _unresolved("needs_use_specific_rule", "This municipal use requires a unit-based rule rather than a general area ratio.")
     rule = _select_rule(rules, pnu, rule_id)
 
     if not rule:
         return _unresolved("needs_graph_rule", f"Parking rule {rule_id} is not loaded for PNU {pnu}.")
+    if use_code and (rule.get("base_rule_id") or rule.get("rule_id")) != use_rules[use_code]:
+        return _unresolved("conflicting_use_classification", "The explicit parking rule conflicts with the supplied building use classification.")
+    if not rule.get("base_rule_id") and any(
+        pnu.startswith(prefix) for prefix in rules.get("reviewed_local_jurisdictions", [])
+    ):
+        return _unresolved("needs_local_rule", "A municipal ordinance applies, but this facility row has not been reviewed or loaded.")
+    if any(token in building_type for token in rule.get("excluded_area_ratio_use_tokens", [])):
+        return _unresolved("needs_use_specific_rule", "This municipal use requires a unit-based rule rather than the general area ratio.")
 
     try:
         if rule.get("requires_external_rule") and (rule.get("base_rule_id") or rule.get("rule_id")) == "parking_appendix1_row_05":
             calc = _calculate_housing_required_spaces(rule, opts, float(metric_value))
         else:
             calc = calculate_required_spaces(rule, metric, float(metric_value))
-        accessible = calculate_accessible_spaces(calc.get("required_spaces"))
+        accessible = calculate_accessible_spaces(
+            calc.get("required_spaces"), local_rule=rule.get("accessible_count_rule"),
+            applicable=opts.get("accessible_parking_applicable"))
     except Exception as exc:
         return _unresolved("calculation_failed", f"Parking requirement calculation failed: {exc}")
 
     return {
         "status": calc.get("status"),
+        "assessment_scope": "count_for_declared_use_and_facility_area; not_final_building_approval",
         "pnu": pnu,
         "jurisdiction_code": pnu[:5],
         "building_type": building_type,
+        "building_use_code": use_code,
+        "use_basis": "caller_classification" if use_code else "explicit_rule" if explicit_rule else "building_type_mapping",
         "selected_rule_id": rule.get("rule_id"),
         "base_rule_id": rule.get("base_rule_id") or rule_id,
         "metric": metric,
@@ -108,6 +146,9 @@ def resolve_candidate_parking_requirement(
             "source_appendix": rule.get("source_appendix"),
             "source_ordinance": rule.get("source_ordinance"),
             "source_parse_status": rule.get("source_parse_status"),
+            "source_url": rule.get("source_url"),
+            "source_sha256": rule.get("source_sha256"),
+            "effective_date": rule.get("effective_date"),
         },
         "reason": calc.get("reason"),
     }
@@ -224,10 +265,19 @@ def load_parking_requirement_rules(*, options: dict[str, Any] | None = None) -> 
     try:
         driver = GraphDatabase.driver(uri, auth=(user, password), connection_timeout=2.0)
         with driver.session() as session:
+            graph_rules = _load_rules(session)
+            # Reviewed source attachments remain available when the opt-in graph
+            # predates the local source intake. This changes no graph records.
+            seed = _load_structured_seed_rules() or {}
+            reviewed = [r for r in seed.get("local", []) if r.get("source_sha256")]
+            keys = {(r["pnu_prefix"], r["base_rule_id"]) for r in reviewed}
+            graph_rules["local"] = reviewed + [r for r in graph_rules.get("local", [])
+                if (r.get("pnu_prefix"), r.get("base_rule_id")) not in keys]
+            graph_rules["reviewed_local_jurisdictions"] = seed.get("reviewed_local_jurisdictions", [])
             return {
                 "status": "loaded",
-                "rules": _load_rules(session),
-                "source": "neo4j",
+                "rules": graph_rules,
+                "source": "neo4j_with_reviewed_local_sources" if reviewed else "neo4j",
                 "graph_status": "available",
             }
     except Exception as exc:
@@ -250,10 +300,11 @@ def _load_structured_seed_rules() -> dict[str, Any] | None:
     """Load reviewed local JSON seed rules when Neo4j is unavailable."""
     root = Path(__file__).resolve().parents[2] / "law" / "data" / "structured"
     national_path = root / "parking_appendix_rules.json"
-    seoul_path = root / "seoul_parking_ordinance_rules.json"
+    local_paths = (root / "seoul_parking_ordinance_rules.json",
+                   root / "uijeongbu_parking_ordinance_rules.json")
     try:
         national_raw = json.loads(national_path.read_text(encoding="utf-8"))
-        seoul_raw = json.loads(seoul_path.read_text(encoding="utf-8"))
+        local_sources = [json.loads(path.read_text(encoding="utf-8")) for path in local_paths]
     except Exception:
         return None
 
@@ -266,18 +317,30 @@ def _load_structured_seed_rules() -> dict[str, Any] | None:
         national[str(item["rule_id"])] = item
 
     local = []
-    for rule in seoul_raw.get("local_parking_rules") or []:
-        if not isinstance(rule, dict) or not rule.get("rule_id"):
-            continue
-        item = dict(rule)
-        item["base_rule_id"] = item.get("base_rule_id") or item.get("overrides_rule_id")
-        item["pnu_prefix"] = item.get("pnu_prefix") or "11"
-        item.setdefault("source_parse_status", "official_pdf_text_extracted_manual_review")
-        local.append(item)
+    for document in local_sources:
+        source = document.get("ordinance_source") or {}
+        accessible = document.get("local_accessible_parking_count_rule") or {}
+        for rule in document.get("local_parking_rules") or []:
+            if not isinstance(rule, dict) or not rule.get("rule_id"):
+                continue
+            item = dict(rule)
+            item["base_rule_id"] = item.get("base_rule_id") or item.get("overrides_rule_id")
+            item["pnu_prefix"] = item.get("pnu_prefix") or source.get("pnu_prefix")
+            if not item["pnu_prefix"]:
+                continue
+            item.setdefault("source_parse_status", source.get("structured_by") or "official_pdf_text_extracted_manual_review")
+            item.setdefault("source_ordinance", source.get("source_title"))
+            for field in ("source_url", "source_sha256", "effective_date"):
+                item.setdefault(field, source.get(field))
+            if accessible.get("status") == "reviewed":
+                item["accessible_count_rule"] = dict(accessible)
+            local.append(item)
 
     if not national:
         return None
-    return {"national": national, "local": local}
+    return {"national": national, "local": local,
+            "reviewed_local_jurisdictions": sorted({item["pnu_prefix"] for item in local
+                                                     if item.get("source_sha256")})}
 
 
 def apply_parking_requirement_to_props(props: dict[str, Any], requirement: dict[str, Any]) -> None:

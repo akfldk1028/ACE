@@ -648,7 +648,14 @@ def choose(
         # target: a scheme that cannot reach it has failed at the thing the
         # growth loop exists to do, and saying so here keeps the judgement in
         # one place rather than adding a second opinion about the same number.
-        standing = [item for item in pool if item.far_utilization >= MINIMUM_DELIVERED_SHARE]
+        # Explicit plan-only authorship says that height is a design decision,
+        # so low FAR alone is not evidence that this candidate failed to grow.
+        # It must still pass physical eligibility, an actual programme brief,
+        # and the ordinary balance/diversity selection. An inferred legacy
+        # growth mode does not make this explicit design claim.
+        standing = [item for item in pool
+                    if item.far_utilization >= MINIMUM_DELIVERED_SHARE
+                    or (item.form.extra.get('parti') or {}).get('growth') == 'plan']
         if standing:
             pool = standing
     keys = _balance_keys(pool)

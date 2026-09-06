@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from functools import cached_property
 import hashlib
 import json
 from typing import Any
 
-from shapely.geometry import Polygon, box as _box, mapping
+from shapely.geometry import Point, Polygon, box as _box, mapping
 from shapely.ops import unary_union
+
+from .solid import (AffineSurface, ConstantSurface, HeightSurface,
+                    inverse_plan_affine, mesh_mass_properties, plan_mesh, sampled_slice)
 
 
 # A top profile with more vertices than this is a sampled curve, not a set of
@@ -104,6 +108,72 @@ class SourceVolume:
     # their heights, the eaves between them curve: the flying eave.
     warp: tuple | None = None
 
+    # Explicit surfaces are shares of this volume's height band in authored
+    # plan coordinates. They override legacy top/underside fields independently.
+    top_surface: HeightSurface | None = None
+    bottom_surface: HeightSurface | None = None
+    # This domain is frozen BEFORE clipping. dataclasses.replace preserves it.
+    # Legacy callers need not supply it; compile supplies the uncut plan.
+    authored_domain: Polygon | None = None
+
+    def __post_init__(self):
+        if self.authored_domain is None and self.section_kind() != "flat":
+            object.__setattr__(self, "authored_domain", self.footprint)
+
+    def projection(self):
+        """Declared plan region (holes retained), independent of slice height.
+
+        Authored top/bottom pairs must define nonnegative thickness throughout
+        this region. This is the conservative legal projection, not floor area.
+        """
+        return self.footprint
+
+    def contains_point(self, x, y, z, low, high):
+        return (self.footprint.covers(Point(x, y))
+                and self.bottom_z(x, y, low, high) - 1e-9 <= z
+                <= self.top_z(x, y, low, high) + 1e-9)
+
+    @cached_property
+    def surface_mesh(self):
+        """Shared normalized triangles for curved slices, drawing and mass.
+
+        Each vertex is (x, y, bottom_share, top_share). Profiles are split at
+        their authored folds, so their volume integrals are exact as well.
+        """
+        kind = self.section_kind()
+        lines = self.creases()
+        triangles = plan_mesh(self.footprint, self.authored_domain or self.footprint,
+                              curved=kind in ("warp", "surface"), break_lines=lines)
+        return tuple(tuple((x, y, self.bottom_z(x, y, 0, 1), self.top_share(x, y))
+                           for x, y in triangle) for triangle in triangles)
+
+    def solid_volume_m3(self, low, high):
+        """Material volume, never the floor-area or full-band proxy."""
+        if self.section_kind() == "flat":
+            return self.footprint.area * max(0.0, high-low)
+        return self.mass_properties(low, high)[0]
+
+    def mass_properties(self, low, high):
+        """Uniform-density (volume, x moment, y moment, z moment)."""
+        if self.section_kind() == "flat":
+            mass = self.footprint.area * max(0.0, high-low)
+            centre = self.footprint.centroid
+            return mass, mass*centre.x, mass*centre.y, mass*(low+high)/2
+        return mesh_mass_properties(self.surface_mesh, low, high)
+
+    def transformed_plan(self, matrix):
+        """Move/rotate/scale the plan and its authored surface frame together.
+
+        ``matrix`` is a Shapely 2D affine. Out-of-plane tilts require a different
+        solid representation and are deliberately not approximated by this API.
+        """
+        from shapely import affinity
+        inverse = inverse_plan_affine(matrix)
+        return replace(self, footprint=affinity.affine_transform(self.footprint, matrix),
+                       authored_domain=affinity.affine_transform(self.authored_domain or self.footprint, matrix),
+                       top_surface=AffineSurface(_LegacySurface(self, False), inverse),
+                       bottom_surface=AffineSurface(_LegacySurface(self, True), inverse))
+
     # ---- The section as a height field: one owner for every consumer ----
     #
     # A volume's top is a function top(x, y) over its footprint; the flat
@@ -116,6 +186,8 @@ class SourceVolume:
     def section_kind(self) -> str:
         """flat | warp | profile | ridge | drop - which shape the top takes."""
 
+        if self.top_surface is not None or self.bottom_surface is not None:
+            return "surface"
         if float(self.top_drop or 0.0) <= 0.0:
             return "flat"
         if self.warp is not None:
@@ -133,14 +205,29 @@ class SourceVolume:
         norm = (vx * vx + vy * vy) ** 0.5 or 1.0
         return vx / norm, vy / norm
 
+    @cached_property
+    def _extent_cache(self) -> dict[tuple[float, float], tuple[float, float]]:
+        # Instance-local derived data, just like surface_mesh. A replacement
+        # or transformed volume starts fresh while retaining its authored domain.
+        return {}
+
     def _extent_along(self, ux: float, uy: float) -> tuple[float, float]:
-        values = [x * ux + y * uy for x, y in self.footprint.exterior.coords]
-        return min(values), max(values)
+        key = (ux, uy)
+        if key not in self._extent_cache:
+            domain = self.authored_domain if self.authored_domain is not None else self.footprint
+            values = [x * ux + y * uy for x, y in domain.exterior.coords]
+            self._extent_cache[key] = min(values), max(values)
+        return self._extent_cache[key]
 
     def top_share(self, x: float, y: float) -> float:
         """The top's height at a plan point as a share of the band (1 = top)."""
 
+        if self.top_surface is not None:
+            return self.top_surface.value(x, y)
         kind = self.section_kind()
+        if kind == "surface":
+            # Only an underside override: retain the legacy top adapter.
+            return replace(self, bottom_surface=None).top_share(x, y)
         if kind == "flat":
             return 1.0
         drop = min(max(float(self.top_drop), 0.0), 1.0)
@@ -182,7 +269,9 @@ class SourceVolume:
     def bottom_z(self, x: float, y: float, low: float, high: float) -> float:
         """World height of the underside - flat except for a warped plate."""
 
-        if self.section_kind() == "warp" and bool(self.warp[3]):
+        if self.bottom_surface is not None:
+            return low + (high-low)*self.bottom_surface.value(x, y)
+        if self.warp is not None and self.top_drop > 0 and bool(self.warp[3]):
             # A plate is a SHEET: its underside follows its top at the
             # plate's own thickness (warp[5], a share of the band), not at
             # the band's full depth. The band is thin + rise, so following at
@@ -203,6 +292,9 @@ class SourceVolume:
         """
 
         kind = self.section_kind()
+        if kind == "surface":
+            return [line for surface in (self.top_surface,self.bottom_surface)
+                    if surface is not None for line in surface.break_lines()]
         if kind == "ridge":
             rx, ry = self._unit(self.ridge_along)
             px, py = -ry, rx
@@ -217,7 +309,23 @@ class SourceVolume:
         return []
 
     def plan_at(self, z: float, low: float, high: float):
-        """The part of the footprint whose top is still above z.
+        """Horizontal occupied section: bottom(x,y) <= z <= top(x,y).
+
+        Flat prisms and legacy profiles are analytic; curved/explicit surface
+        sections use the same triangulation as volume integration and rendering.
+        None means no positive-area material at this level. Plan projection and
+        floor-area accounting are separate queries, not implicit slice behavior.
+        """
+        if high <= low:
+            return None
+        if self.section_kind() in ("warp", "surface"):
+            return sampled_slice(self.surface_mesh, z, low, high)
+        if z < low - 1e-9 or z > high + 1e-9:
+            return None
+        return self._analytic_plan_at(z, low, high)
+
+    def _analytic_plan_at(self, z: float, low: float, high: float):
+        """Legacy analytic section for flat, drop, ridge and linear profiles.
 
         A band with a tilted top is solid where top(x, y) >= z and gone
         where the roof has already descended below the sample. The three
@@ -231,24 +339,6 @@ class SourceVolume:
         band = max(high - low, 1e-9)
         drop = min(max(float(self.top_drop), 0.0), 1.0)
         drop_m = drop * band
-        if kind == "warp":
-            if z <= low + band * min(self.top_share(x, y) for x, y in self.footprint.exterior.coords) - 1e-9:
-                return self.footprint
-            minx, miny, maxx, maxy = self.footprint.bounds
-            step = max(0.5, max(maxx - minx, maxy - miny) / 48.0)
-            cells = []
-            yy = miny
-            while yy < maxy:
-                xx = minx
-                while xx < maxx:
-                    if self.top_z(xx + step / 2.0, yy + step / 2.0, low, high) >= z:
-                        cells.append(_box(xx, yy, xx + step, yy + step))
-                    xx += step
-                yy += step
-            if not cells:
-                return None
-            cut = self.footprint.intersection(unary_union(cells))
-            return cut if not cut.is_empty else None
         if kind == "profile":
             rel = (z - low) / band
             points = self.top_profile
@@ -350,7 +440,34 @@ class SourceVolume:
             data["top_profile"] = [
                 (round(u, 4), round(h, 4)) for u, h in self.top_profile
             ]
+        if self.section_kind() != "flat":
+            data["solid_query_version"] = 1
+            data["top_drop"] = self.top_drop
+            data["ridge_along"] = self.ridge_along
+            data["profile_across"] = self.profile_across
+            data["profile_span"] = self.profile_span
+            data["warp"] = self.warp
+            data["authored_domain"] = mapping(self.authored_domain or self.footprint)
+            data["top_surface"] = self.top_surface.signature() if self.top_surface is not None else None
+            data["bottom_surface"] = self.bottom_surface.signature() if self.bottom_surface is not None else None
         return data
+
+
+@dataclass(frozen=True)
+class _LegacySurface:
+    """Typed adapter for an existing SourceVolume height field."""
+    volume: SourceVolume
+    underside: bool
+
+    def value(self, x, y):
+        return self.volume.bottom_z(x, y, 0, 1) if self.underside else self.volume.top_share(x, y)
+
+    def break_lines(self):
+        return tuple(self.volume.creases())
+
+    def signature(self):
+        return {"type": "legacy_adapter", "underside": self.underside,
+                "volume": self.volume.signature()}
 
 
 def profile_height(points: tuple[tuple[float, float], ...], u: float) -> float:
@@ -421,6 +538,32 @@ class SourceMass:
     status: str = "compiled"
     fallback_reason: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def plan_at(self, z: float):
+        """Occupied sections in metres above the mass base; ground is datum_m.
+
+        Separate volumes can occupy several intervals on one vertical line.
+        """
+        height = float(self.metadata.get("authored_height_m") or 0.0)
+        if height <= 0:
+            return None
+        parts = [v.plan_at(z, v.bottom_fraction*height, v.top_fraction*height)
+                 for v in self.volumes]
+        parts = [p for p in parts if p is not None and not p.is_empty]
+        return unary_union(parts) if parts else None
+
+    def contains_point(self, x: float, y: float, z: float):
+        height = float(self.metadata.get("authored_height_m") or 0.0)
+        return any(v.contains_point(x, y, z, v.bottom_fraction*height, v.top_fraction*height)
+                   for v in self.volumes) if height > 0 else False
+
+    def mass_properties(self, height_m=None):
+        from .solid import union_mass_properties
+        height = float(height_m if height_m is not None else self.metadata.get("authored_height_m") or 0)
+        return union_mass_properties(self.volumes,height) if height > 0 else (0,0,0,0)
+
+    def solid_volume_m3(self):
+        return self.mass_properties()[0]
 
     def body_height_m(self) -> float:
         """The tallest single body, in metres: a column of bands that share a

@@ -30,7 +30,6 @@ from design.maas.massv2 import composition as composition_module
 # positions, so a full sheet reported itself as 24/16.
 _CELL_COUNT = len(STATURE_BANDS) * len(composition_module.COMPOSITION_BANDS)
 from design.maas.massv2.measure import gross_floor_area_m2
-from design.maas.massv2 import plausibility as plaus
 from design.maas.massv2 import ablation as ablate_module
 from design.maas.massv2 import postcondition
 from design.maas.massv2 import program as programme
@@ -41,6 +40,7 @@ from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.execute import delivered as delivered_form
 from design.maas.massv2.fill import fill_to_site
+from design.maas.massv2.delivery_gate import assess_delivery, stamp_authored_composition
 from design.maas.massv2.legal_fit import fit_to_site
 from design.maas.massv2.sampler import read_facts, sample_sentences
 from design.maas.massv2.render import render_masses
@@ -49,7 +49,7 @@ from design.maas.massv2.seeds import seed_forms
 from design.maas.massv2.siting import (
     OPEN_SIDE_SITINGS,
     SITINGS,
-    open_side_direction,
+    site_open_side_direction,
     place_on_site,
     spread_across_siting,
 )
@@ -152,99 +152,23 @@ _AIM_KEYS = ("on", "at", "toward", "align", "to")
 
 
 def _sequence_sheet(item, *, book, site, buildable, axis, out_dir):
-    """One sheet for one scheme, a frame per word of its sentence.
-
-    The grid this command writes is a workbench: forty-two tiles, one scheme per
-    cell of the coverage x void space, each shown only as the thing it finally
-    became. `massing-study/` records that this is not how the work is published.
-    A Korean 매스 다이어그램 is one sheet per scheme carrying its operation
-    sequence, and BIG, OMA and SANAA publish the same way - the argument is the
-    order of the moves, and only the last one was ever drawn.
-
-    Nothing here is new. `execute_steps` has returned the form after every word
-    since the sequence was first wanted, `render_sequence` draws them on one
-    shared scale, and `render_parti_sequence` has been a separate command all
-    along. The run simply never called them, so a drawing it could already make
-    was being thrown away every time.
-    """
-
-    from design.maas.massv2.execute import execute_steps
-    from design.maas.massv2.render import render_sequence
-
+    """Publish the exact selected variant, never a sentence-only cached strip."""
+    import sys
+    tools_dir = Path(__file__).resolve().parents[3] / "tmp_mass_check" / "_massv2" / "tools"
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from presentation import write_sequence
     record = book.get(_sentence_of(item))
     if record is None:
         return None
-    parti = parti_from_record(record)
-    storey = float(parti.floor_height_m or site.floor_height_m)
-    asked = max((float(op.params.get("storeys") or 0.0) for op in parti.ops), default=0.0)
-    height = max(
-        site.floor_height_m * max(
-            1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))),
-        asked * storey,
-    )
-    steps = execute_steps(
-        parti, buildable=buildable, axis=axis, height_m=height, storey_height_m=storey,
-    )
-    if not steps:
-        return None
-
-    frames = []
-    for op, form in steps:
-        # Through the same clip the delivered mass is measured through: a parti
-        # that reads as lawful only until its last frame is not the argument.
-        source = compile_matrix_form(
-            form, storey_height_m=storey, allowed_at=site.plan_at)
-        if source is None:
-            continue
-        frames.append({
-            "source": source,
-            "verb": op.verb,
-            "aim": " · ".join(
-                f"{key}: {op.params[key]}" for key in _AIM_KEYS if op.params.get(key)),
-            "why": op.why,
-        })
-    if not frames:
-        return None
-
-    # The delivered mass last. The jump from the final authored move to this one
-    # is the law and the capacity acting, which is the part of the argument that
-    # belongs to this package rather than to the sentence.
-    delivered = compile_matrix_form(
+    storey = float(record.get("floor_height_m") or site.floor_height_m)
+    source = compile_matrix_form(
         delivered_form(item.form, axis=axis, storey_m=storey),
         storey_height_m=storey, allowed_at=site.plan_at)
-    if delivered is not None:
-        measurement = measure_form(delivered)
-        gfa = gross_floor_area_m2(delivered, floor_height_m=storey)
-        frames.append({
-            "source": delivered,
-            "verb": "법정 한도까지",
-            "aim": item.cell,
-            "why": (
-                "문장은 비례만 정한다. 치수는 이 필지가 정한다 — 법규선이 매스를 "
-                "자르고, 건폐율과 용적률 중 먼저 닿는 쪽에서 멈춘다."
-            ),
-            "numbers": (
-                f"건폐율 {item.ground_take * site.ground_capacity_m2 / site.parcel_area_m2 * 100:.0f}%  "
-                f"용적률 {gfa / site.parcel_area_m2 * 100:.0f}%  "
-                f"높이 {measurement.height_m:.1f}m"
-            ),
-        })
-
-    target = Path(out_dir) / f"parti-{_sentence_of(item)}.png"
-    try:
-        # A drawing is not worth losing a run over: the grid, the summary and
-        # every gate reading are already computed by the time this is called.
-        render_sequence(
-            frames, target,
-            site_ring=list(site.plan_at(0.0).exterior.coords),
-            party_edges=site.shared_edges,
-            heading=_sentence_of(item).replace("_", " "),
-            subheading=" · ".join(
-                part for part in (parti.formal_principle, parti.reference_basis) if part),
-        )
-    except Exception:
+    if source is None:
         return None
-    return target
+    return write_sequence(item.form.name, source, book=book, site=site,
+                          buildable=buildable, axis=axis, out_dir=out_dir)
 
 
 class Command(BaseCommand):
@@ -253,7 +177,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--pnu", required=True)
         parser.add_argument("--output-dir", required=True)
-        parser.add_argument("--building-type", default="제1종근린생활시설")
+        parser.add_argument("--building-type", default=None,
+                            help="Explicit use, or the evidence-backed parcel study default.")
         parser.add_argument(
             "--track",
             choices=("overseas", "korea"),
@@ -457,7 +382,7 @@ class Command(BaseCommand):
         parti_book: dict[str, dict] = {}
         if options["parti_json"] or options["sample"]:
             buildable = site.plan_at(0.0)
-            axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+            axis = site_open_side_direction(site) or (1.0, 0.0)
             sentences = []
             for path in options["parti_json"] or ():
                 sentences.extend(
@@ -543,7 +468,9 @@ class Command(BaseCommand):
                 # The declaration's own budget has one owner (grammar), read
                 # here and by every rebuild tool.
                 return max(budget, grammar_module.declared_height_m(record, storey))
-            for record in sentences:
+            for sentence_index, record in enumerate(sentences, 1):
+                self.stdout.write(f"author {sentence_index}/{len(sentences)}: {record.get('name', '?')}")
+                self.stdout.flush()
                 wrong = grammar_module.mistyped_words(record)
                 if wrong:
                     mistyped.append((record.get("name"), wrong))
@@ -608,7 +535,7 @@ class Command(BaseCommand):
                     # finite - the four sitings - so each is asked directly,
                     # and the sentence lives only at the placements where
                     # every word speaks.
-                    open_side = open_side_direction(buildable, site.shared_edges)
+                    open_side = site_open_side_direction(site)
                     sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
                     best = None
                     for siting in sitings:
@@ -650,8 +577,7 @@ class Command(BaseCommand):
                 # 20 cm reveal owes 20 cm. `sanaa_bocconi` wrote 0.2 m, built
                 # 2.0 m, and the first version of this refused it for delivering
                 # ten times what it asked.
-                owed = min(declared_gap, ablate_module.GAP_IS_A_SPACE_M)
-                if declared_gap > 0.0 and built_gap < owed - ablate_module.GAP_TOLERANCE_M:
+                if not ablate_module.gap_satisfied(declared_gap, built_gap):
                     closed.append((parti.name, declared_gap, built_gap))
                     continue
                 built = execute_parti(
@@ -731,17 +657,8 @@ class Command(BaseCommand):
                     # siting, growth loop or legal clip touched it. Compared
                     # against the delivered reading below, this is what says
                     # whether the pipeline kept the argument or ate it.
-                    authored_source = compile_matrix_form(
-                        built, storey_height_m=storey, allowed_at=site.plan_at)
-                    if authored_source is not None:
-                        built = built.__class__(**{
-                            **built.__dict__,
-                            "extra": {
-                                **dict(built.extra),
-                                "authored_composition": composition_module.band_id(
-                                    composition_module.read(authored_source)),
-                            },
-                        })
+                    built = stamp_authored_composition(
+                        built, storey_m=storey)
                     pending_force.append(
                         (len(written), tuple(spoken.declared), tuple(word_blends))
                     )
@@ -899,7 +816,7 @@ class Command(BaseCommand):
             # for everything, by centring it. A low-coverage scheme has room to
             # hold one end and leave a yard, and that is a different proposal.
             buildable = site.plan_at(0.0)
-            open_side = open_side_direction(buildable, site.shared_edges)
+            open_side = site_open_side_direction(site)
             self.stdout.write(
                 f"open side: {open_side}"
                 if open_side
@@ -942,7 +859,9 @@ class Command(BaseCommand):
         crushed = 0
         implausible = 0
 
-        for form in forms:
+        for form_index, form in enumerate(forms, 1):
+            self.stdout.write(f"fit {form_index}/{len(forms)}: {form.name}")
+            self.stdout.flush()
             # A brief asks for a size; the law only forbids one. Growth aims at
             # whichever of the two the scheme actually has.
             wanted = form.extra.get("programme_target")
@@ -975,15 +894,9 @@ class Command(BaseCommand):
                 records.append({"name": form.name, "status": "compile_failed"})
                 continue
             measurement = measure_form(source)
-            standing = plaus.assess(
-                source,
-                parcel_area_m2=site.parcel_area_m2,
-                max_slenderness=plaus.slenderness_limit(
-                    far_capacity_m2=site.far_capacity_m2,
-                    ground_capacity_m2=site.ground_capacity_m2,
-                ),
-                floor_height_m=form_storey,
-            )
+            eligibility = assess_delivery(source, site, storey_m=form_storey,
+                                          declaration=form.extra)
+            standing = eligibility.plausibility
             storey_h = float(
                 source.metadata.get("authored_floor_height_m") or site.floor_height_m
             )
@@ -991,7 +904,7 @@ class Command(BaseCommand):
             far_use = gfa / max(site.far_capacity_m2, 1e-9)
             take = fit.ground_area_m2 / max(site.ground_capacity_m2, 1e-9)
             # Read before the cell, because the cell is now made of it.
-            composition_read = composition_module.read(source)
+            composition_read = eligibility.composition
             # With a brief, the coverage axis stops meaning anything: a
             # 1,428 m² schedule on a 2,500 m² parcel cannot reach the full
             # band however it is composed, and the grid emptied. What the
@@ -1007,7 +920,7 @@ class Command(BaseCommand):
             # arrives as one body is not that scheme - the same standard a
             # declared gap and declared storeys are already held to.
             authored_band = form.extra.get("authored_composition")
-            parti_kept = authored_band is None or authored_band == composed_band
+            parti_kept = eligibility.composition_kept
             if schedule is not None:
                 cell = (
                     f"{programme.large_span_strategy(source, storey_height_m=site.floor_height_m)}"
@@ -1067,53 +980,12 @@ class Command(BaseCommand):
                 "ablation": form.extra.get("ablation"),
                 "spoken_force": form.extra.get("spoken_force"),
             })
-            declared = float(form.extra.get("declared_storeys") or 0.0)
-            # On unit-openers (aggregate/stack) `storeys` sizes the UNIT and
-            # the pile legitimately totals more - vitrahaus declares two and
-            # stands five. On extrude/loop the declaration IS the building,
-            # and there over-delivery is the same dishonesty as crushing:
-            # a declared two-storey gabled ring grown to four storeys keeps
-            # its pitch and loses its parti - the gable reads as a parapet.
-            stature_is_building = bool(form.extra.get("stature_is_building"))
-            # The declaration names the BODY, and total extent is not the
-            # body: a lift's clearance is empty metres, yet it was billed as
-            # delivered storeys and a declared-3 bar over a 1-storey
-            # undercroft tripped the 5/3 gate arithmetically (ovs17: 122 of
-            # 134 "crushed", almost all honest pilotis). Stature is the
-            # tallest single volume's own span.
-            # A body is a COLUMN of bands, not one band: the compiler cuts at
-            # every height where anything changes, so a gable is storeys plus
-            # a roof band and reading one band called a four-storey house 5.1 m
-            # tall. `SourceMass.body_height_m` owns the definition - bands that
-            # share a plan and touch are one body, structure left out, so a
-            # lift's empty clearance is still not billed as storeys.
-            body_height = source.body_height_m() if source is not None else 0.0
-            if body_height <= 0.0:
-                spans = [max(0.0, float(v.top_fraction) - float(v.bottom_fraction))
-                         for v in (getattr(source, "volumes", ()) or ())]
-                body_height = measurement.height_m * (max(spans) if spans else 1.0)
-            # fill grows a declared building to exactly this ceiling, and the
-            # compiled band edges are rounded to 1e-4 - a strict > retired
-            # about half of the variants that reached it. One centimetre.
-            over = (declared > 0.0 and stature_is_building
-                    and body_height > (5.0 / 3.0) * declared * form_storey + 0.01)
-            if (declared > 0.0
-                    and body_height < (2.0 / 3.0) * declared * form_storey) or over:
-                # Declared stature is held like a declared gap: a sentence
-                # that asked for eight storeys and delivered four is not that
-                # sentence - and one that asked for two and delivered five is
-                # not it either. The variant stays measured and recorded; it
-                # just cannot represent the sentence on the sheet. The verdict
-                # rides the record too: the counter alone lived only in
-                # stdout, and the arbitration tools were free to rebuild a
-                # variant this gate had already retired.
+            records[-1]['gap'] = eligibility.gap
+            if not eligibility.gap['satisfied']:
+                records[-1]['delivery_refusal'] = 'declared_gap_closed'
+            elif eligibility.stature["crushed"]:
                 crushed += 1
-                records[-1]["stature"] = {
-                    "declared_storeys": declared,
-                    "delivered_body_m": round(body_height, 2),
-                    "crushed": True,
-                    "over": over,
-                }
+                records[-1]["stature"] = eligibility.stature
             elif not parti_kept:
                 # Held exactly the way declared stature and a declared gap
                 # are: a scheme authored as a body with subordinates and

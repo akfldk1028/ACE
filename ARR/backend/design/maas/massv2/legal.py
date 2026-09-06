@@ -1,10 +1,9 @@
 """The parcel's own limits, fetched once and handed to the form language.
 
-This is a thin adapter, deliberately. Every number here is produced by the
-existing legal stack - Vworld boundary, zoning limits, setback lines, the north
-sunlight envelope, and the per-floor legal field. Nothing is recomputed and
-nothing is approximated, because the legal engine is the part of this project
-that is already ahead of the published work and must not be forked.
+This adapter combines the existing legal stack (Vworld boundary, zoning,
+setbacks, sunlight, and legal floor fields) with source-registered parcel plan
+controls owned by parcel_policy. Cartographic registration is reported as such;
+it is not a measured survey or complete permit assessment.
 
 There is no synthetic fallback. A parcel that cannot be resolved raises, rather
 than quietly handing back a rectangle that would make every downstream number
@@ -14,7 +13,8 @@ meaningless.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from types import SimpleNamespace
 from typing import Any
 
 from shapely.affinity import translate
@@ -33,6 +33,7 @@ from design.services.site_geometry import (
     geojson_to_polygon,
     wgs84_to_utm,
 )
+from .parcel_policy import policy_for, default_building_type, registered_buildable, frontage_evidence
 
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,27 @@ logger = logging.getLogger(__name__)
 
 class LegalSiteUnavailable(RuntimeError):
     """The parcel could not be resolved from live data."""
+
+
+def apply_registered_parcel_plan(pnu, parcel, context):
+    """Intersect the existing legal context with source-registered plan controls."""
+    site = SimpleNamespace(pnu=pnu, site_local_utm=parcel)
+    try:
+        registered = registered_buildable(site)
+    except ValueError as error:
+        raise LegalSiteUnavailable(str(error)) from error
+    if registered is None:
+        return context
+    buildable = context.generation_site.intersection(registered)
+    if context.envelope.buildable_footprint is not None:
+        buildable = buildable.intersection(context.envelope.buildable_footprint)
+    if buildable.is_empty:
+        raise LegalSiteUnavailable('registered building line leaves no generation site')
+    return replace(context,
+        envelope=replace(context.envelope, buildable_footprint=buildable),
+        generation_site=buildable,
+        evidence={**context.evidence, 'generation_site_area_m2': round(buildable.area, 3),
+                  'frontage_constraints': frontage_evidence(site)})
 
 
 @dataclass(frozen=True)
@@ -58,13 +80,16 @@ class LegalSite:
     # What is being built. It reached the capacity calculation and stopped
     # there, so every gate downstream judged a 근린생활시설 by rules written
     # for a dwelling - see `plausibility.daylight_is_required_for`.
-    building_type: str = "제1종근린생활시설"
+    building_type: str | None = None
     # Which ground plane the envelope was measured from. The datum computation
     # falls back to a flat 0 m when it cannot read an elevation, and the run
     # sheet had no way to tell that apart from a parcel that is genuinely flat:
     # the Uijeongbu parcel sits 25.5 km north of the only DEM on this machine,
     # so every grid so far was measured on the fallback while the flag read on.
     datum: dict[str, Any] | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, 'building_type', default_building_type(self.pnu, self.building_type))
 
     @property
     def datum_is_measured(self) -> bool:
@@ -82,11 +107,23 @@ class LegalSite:
     def ground_capacity_m2(self) -> float:
         """건축면적 ceiling - 건축법 시행령 제119조 제1항 제2호."""
 
-        return float(self.floor_field.get("bcr_footprint_capacity_m2") or 0.0)
+        measured = float(self.floor_field.get("bcr_footprint_capacity_m2") or 0.0)
+        cap = (policy_for(self.pnu) or {}).get('max_bcr_pct')
+        return min(measured, self.parcel_area_m2 * cap / 100) if cap is not None else measured
 
     @property
     def far_capacity_m2(self) -> float:
-        return float(self.floor_field.get("statutory_far_capacity_m2") or 0.0)
+        measured = float(self.floor_field.get("statutory_far_capacity_m2") or 0.0)
+        cap = (policy_for(self.pnu) or {}).get('max_far_pct')
+        return min(measured, self.parcel_area_m2 * cap / 100) if cap is not None else measured
+
+    @property
+    def max_storeys(self):
+        return (policy_for(self.pnu) or {}).get('max_storeys')
+
+    @property
+    def statutory_max_height_m(self):
+        return (policy_for(self.pnu) or {}).get('statutory_max_height_m')
 
     @property
     def floor_height_m(self) -> float:
@@ -108,10 +145,18 @@ class LegalSite:
             cache = {}
             object.__setattr__(self, "_plan_at_cache", cache)
         if key not in cache:
-            cache[key] = generation_site_at_height(self.context, key)
+            plan = generation_site_at_height(self.context, key)
+            registered = registered_buildable(self)
+            if registered is not None and plan is not None:
+                plan = plan.intersection(registered)
+                if plan.is_empty:
+                    plan = None
+            cache[key] = plan
         return cache[key]
 
     def evidence(self) -> dict[str, Any]:
+        from .siting import site_open_side_evidence
+        frontages = frontage_evidence(self)
         return {
             "schema_version": "arr.maas.massv2_legal_site.v1",
             "pnu": self.pnu,
@@ -119,15 +164,25 @@ class LegalSite:
             "ground_capacity_m2": round(self.ground_capacity_m2, 3),
             "far_capacity_m2": round(self.far_capacity_m2, 3),
             "floor_height_m": self.floor_height_m,
+            'max_storeys': self.max_storeys,
+            'statutory_max_height_m': self.statutory_max_height_m,
+            'building_type': self.building_type,
+            'parcel_policy': policy_for(self.pnu),
+            'datum_measured': self.datum_is_measured,
+            'exact_building_line_geometry_verified': False,
+            'building_line_geometry_registered': frontages is not None,
+            'frontage_constraints': frontages,
+            'authoring_frontage': site_open_side_evidence(self),
             "legal_floor_section_count": len(
                 self.floor_field.get("legal_floor_section_areas_m2") or ()
             ),
         }
 
 
-def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설") -> LegalSite:
+def load_legal_site(pnu: str, *, building_type: str | None = None) -> LegalSite:
     """Resolve one parcel into the limits the form language generates against."""
 
+    building_type = default_building_type(pnu, building_type)
     boundary = fetch_parcel_boundary(pnu)
     if boundary is None:
         raise LegalSiteUnavailable(
@@ -214,6 +269,7 @@ def load_legal_site(pnu: str, *, building_type: str = "제1종근린생활시설
         constraints=constraints,
         sunlight_envelope=setback_lines.get("sunlight_envelope"),
     )
+    context = apply_registered_parcel_plan(pnu, local_site, context)
     floor_field = materialize_legal_floor_field(
         context, site_local_utm=local_site, pnu=pnu
     )

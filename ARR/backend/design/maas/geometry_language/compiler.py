@@ -16,6 +16,7 @@ from .ast import GeometryIssue, GeometryNode, GeometryProgram
 from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_lists
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
 from .gate import GeometryGatePolicy, compilation_gate
+from .export_mesh import EXPORT_DECIMAL_PLACES, repair_export_collinearity
 from .host_face_relations import resolve_face_attachment
 from .section_profiles import section_profile_controls
 from .unitbox_normalization import normalize_unitbox_program
@@ -85,7 +86,7 @@ def _canonicalize_export_mesh(
     tuple[tuple[float, float, float], ...],
     tuple[tuple[int, int, int], ...],
 ]:
-    """Weld only exact 8-decimal export duplicates and zero-area faces."""
+    """Weld export duplicates and repair exact collinearity before zero cleanup."""
 
     vertices: list[tuple[float, float, float]] = []
     canonical_index: dict[tuple[float, float, float], int] = {}
@@ -95,7 +96,7 @@ def _canonicalize_export_mesh(
             if len(raw_vertex) < 3:
                 raise ValueError
             vertex = tuple(
-                round(float(raw_vertex[axis]), 8)
+                round(float(raw_vertex[axis]), EXPORT_DECIMAL_PLACES)
                 for axis in range(3)
             )
         except (TypeError, ValueError, IndexError) as exc:
@@ -137,17 +138,8 @@ def _canonicalize_export_mesh(
         triangle = tuple(old_to_welded[index] for index in source_indices)
         if len(set(triangle)) < 3:
             continue
-        a, b, c = (vertices[index] for index in triangle)
-        ab = tuple(b[axis] - a[axis] for axis in range(3))
-        ac = tuple(c[axis] - a[axis] for axis in range(3))
-        cross = (
-            ab[1] * ac[2] - ab[2] * ac[1],
-            ab[2] * ac[0] - ab[0] * ac[2],
-            ab[0] * ac[1] - ab[1] * ac[0],
-        )
-        if cross == (0.0, 0.0, 0.0):
-            continue
         triangles.append(triangle)
+    triangles = repair_export_collinearity(vertices, triangles)
     if not triangles:
         raise GeometryCompileError(
             "empty_mesh_export",

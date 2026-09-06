@@ -80,6 +80,8 @@ class LegalFitResult:
     plan_scale_applied: float
     volumes_pulled_in: int
     satisfied: bool
+    storey_limit: dict | None = None
+    area_limits: dict | None = None
 
     def evidence(self) -> dict[str, Any]:
         return {
@@ -98,6 +100,8 @@ class LegalFitResult:
             "plan_scale_applied": round(self.plan_scale_applied, 5),
             "volumes_pulled_in": self.volumes_pulled_in,
             "satisfied": self.satisfied,
+            'storey_limit': self.storey_limit,
+            'area_limits': self.area_limits,
             "method": "per_volume_affine_no_csg",
         }
 
@@ -469,8 +473,15 @@ def _scaled_composition(form: MatrixForm, factor: float,
 
         before = _gaps(form.placements)
         after = _gaps(scaled)
-        if any(gap > _BODY_SEPARATION_M
-               and after.get(pair, gap) < _BODY_SEPARATION_M
+        # A declared lane already has a clearance policy. Section restoration
+        # must not close it merely because the generic body split remains >1.5m.
+        # Local import avoids ablation -> fill -> legal_fit initialization cycle.
+        from .ablation import declared_gap_m, gap_satisfied
+        declared_gap = declared_gap_m(form.extra)
+        if any((gap > _BODY_SEPARATION_M
+                and after.get(pair, gap) < _BODY_SEPARATION_M)
+               or (declared_gap > 0 and gap_satisfied(declared_gap, gap)
+                   and not gap_satisfied(declared_gap, after.get(pair, gap)))
                for pair, gap in before.items()):
             # Only the no-court exemption is dropped, not the carrier rule.
             # `carries` holds volumes for two reasons, and a genuine carrier
@@ -815,6 +826,10 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
     final_gfa = _gross_floor_area(
         fitted, floor_height_m=floor_height, allowed_at=allowed_at
     )
+    from .parcel_policy import storey_limit_evidence, area_limit_evidence
+    final_source = compile_matrix_form(fitted, storey_height_m=floor_height, allowed_at=allowed_at)
+    storey_gate = storey_limit_evidence(final_source, site, storey_m=floor_height) if final_source else {'satisfied': False}
+    area_gate = area_limit_evidence(final_source, site, final_gfa) if final_source else {'satisfied': False}
     return LegalFitResult(
         form=fitted,
         ground_area_m2=final_area,
@@ -824,8 +839,12 @@ def fit_to_site(form: MatrixForm, site: LegalSite) -> LegalFitResult:
         passes=passes,
         plan_scale_applied=total_scale,
         volumes_pulled_in=pulled,
+        storey_limit=storey_gate,
+        area_limits=area_gate,
         satisfied=(
             bool(fitted.additive())
+            and storey_gate['satisfied']
+            and area_gate['satisfied']
             and (capacity <= 0.0 or final_area <= capacity + 1e-6)
             and (far_capacity <= 0.0 or final_gfa <= far_capacity + 1e-6)
         ),

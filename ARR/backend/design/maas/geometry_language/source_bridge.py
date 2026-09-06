@@ -2753,6 +2753,13 @@ def _compile_geometry_program_to_source_mass(
     else:
         band_count = max(1, min(64, requested_band_count))
     band_boundaries = tuple(index / band_count for index in range(band_count + 1))
+    # Measure the complete exported mesh with the solid kernel. Polygonizing
+    # triangle/plane edges includes coplanar caps at some authored floor
+    # centers and can turn a void into occupied area.
+    try:
+        section_solid = mesh_section_solid(world_vertices, compilation.triangles)
+    except ValueError:
+        return None
     volume_records: list[SourceVolume] = []
     proxy_band_part_counts: list[int] = []
     site_bound_legal = host.buffer(1e-7) if preserve_site_bound_bands else None
@@ -2762,11 +2769,7 @@ def _compile_geometry_program_to_source_mass(
         # each band: union of lower/middle/upper measured mesh sections.
         epsilon = max(1e-5, (top - bottom) * 0.03)
         sections = tuple(
-            _mesh_section_polygon(
-                world_vertices,
-                compilation.triangles,
-                sample,
-            )
+            solid_section_polygon(section_solid, sample)
             for sample in (
                 bottom + epsilon,
                 (bottom + top) / 2.0,
@@ -2807,21 +2810,14 @@ def _compile_geometry_program_to_source_mass(
             )
         ):
             return None
-        retained_parts = (
-            parts
-            if preserve_site_bound_bands
-            else parts[: max(1, 4 - len(volume_records))]
-        )
+        # A height-band limit is not a polygon-component limit. One connected
+        # solid can have several disjoint sections above its connecting base.
+        retained_parts = parts
         band_part_count = 0
         for part_index, part in enumerate(retained_parts):
-            clipped = (
-                part
-                if preserve_site_bound_bands
-                else repair_source_polygon(
-                    part.intersection(host),
-                    minimum_area=max(0.2, host.area * 0.002),
-                )
-            )
+            # The complete mesh has already passed host containment. Do not
+            # simplify away occupied slivers or discard small connected parts.
+            clipped = part
             if clipped is None:
                 if preserve_site_bound_bands:
                     return None
@@ -2840,17 +2836,13 @@ def _compile_geometry_program_to_source_mass(
         if preserve_site_bound_bands:
             if band_part_count != len(parts) or band_part_count < 1:
                 return None
-            proxy_band_part_counts.append(band_part_count)
+        proxy_band_part_counts.append(band_part_count)
     if (
         preserve_site_bound_bands
         and len(proxy_band_part_counts) != band_count
     ):
         return None
-    volumes = (
-        tuple(volume_records)
-        if preserve_site_bound_bands
-        else _merge_equal_band_footprints(tuple(volume_records))
-    )
+    volumes = tuple(volume_records)
     if not volumes:
         if preserve_site_bound_bands:
             return None
@@ -2861,11 +2853,6 @@ def _compile_geometry_program_to_source_mass(
         if clipped_plan is None:
             return None
         volumes = (SourceVolume(volume_role, clipped_plan, 0.0, 1.0, "geometry_program"),)
-    if (
-        not preserve_site_bound_bands
-        and len(volumes) > max(1, min(64, int(max_volume_bands)))
-    ):
-        volumes = tuple(sorted(volumes, key=lambda value: value.footprint.area, reverse=True)[:max_volume_bands])
     footprint_union = unary_union([volume.footprint for volume in volumes if volume.bottom_fraction <= 1e-6])
     footprint = repair_source_polygon(footprint_union, minimum_area=0.2)
     if footprint is None:
@@ -4239,6 +4226,65 @@ def _search_legal_attachment(
         return None
     _score, geometry, xoff, yoff = max(candidates, key=lambda item: item[0])
     return geometry, xoff, yoff
+
+
+def mesh_section_solid(vertices, triangles):
+    """Recover a closed kernel solid from the exact delivered triangle mesh."""
+    import manifold3d as m3d
+    import numpy as np
+    points, lookup, faces = [], {}, []
+    for triangle in triangles:
+        face = []
+        for index in triangle:
+            point = tuple(float(x) for x in vertices[index])
+            if point not in lookup:
+                lookup[point] = len(points)
+                points.append(point)
+            face.append(lookup[point])
+        faces.append(face)
+    solid = m3d.Manifold(m3d.Mesh64(np.array(points, dtype=np.float64),
+                                  np.array(faces, dtype=np.uint64)))
+    if solid.status() != m3d.Error.NoError or solid.is_empty():
+        raise ValueError(f'delivered mesh cannot be sectioned: {solid.status()}')
+    return solid
+
+
+def solid_section_polygon(solid, z):
+    """Kernel section with all nested contours, including holes and islands."""
+    contours = solid.slice(float(z)).to_polygons()
+    region = None
+    for contour in contours:
+        ring = Polygon(contour)
+        if ring.is_empty or ring.area <= 0:
+            continue
+        region = ring if region is None else region.symmetric_difference(ring)
+    return region
+
+
+def section_export_area_resolution(section, matrix):
+    """Area comparison resolution derived from the compiler's export grid.
+
+    This never changes a mesh or sampling plane. A larger mismatch refuses
+    the floor certificate, including discontinuous slices at rounded steps.
+    """
+    from .export_mesh import EXPORT_DECIMAL_PLACES
+    quantum = 10.0 ** -EXPORT_DECIMAL_PLACES
+    axis_scale = max(hypot(matrix[0][i], matrix[1][i]) for i in (0, 1))
+    displacement = quantum * max(1.0, axis_scale)
+    return float(section.length) * displacement + pi * displacement ** 2
+
+
+def section_coplanar_skin_area(vertices, triangles, z, matrix):
+    """Area of a horizontal skin coincident with a floor at export resolution.
+
+    At this discontinuity tiny export rounding can choose either side of the
+    floor. Report ambiguity instead of moving the authored measurement plane.
+    """
+    from .export_mesh import EXPORT_DECIMAL_PLACES
+    z_resolution = 10.0 ** -EXPORT_DECIMAL_PLACES * abs(matrix[2][2])
+    return sum(Polygon([(vertices[i][0], vertices[i][1]) for i in face]).area
+               for face in triangles
+               if all(abs(vertices[i][2] - z) <= z_resolution for i in face))
 
 
 def _mesh_section_polygon(

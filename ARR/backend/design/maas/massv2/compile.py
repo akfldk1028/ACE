@@ -1,37 +1,11 @@
-"""Turn placed volumes into the `SourceMass` the rest of the pipeline expects.
+"""Compile placed plans into height-bounded source solids.
 
-There is no 3D CSG here and that is the point. A `SourceVolume` in this codebase
-is already (plan polygon x normalized height band), so a matrix-placed box lands
-in it directly: transform the eight corners, take the plan hull and the z span,
-cut bands at the z values the volumes themselves declare, and resolve each band
-with 2D shapely. For comparison, the eleven BOOK macros spend 23 boolean kernel
-calls and 11 `decompose()` traversals to produce one solid, and `exact_compile`
-is 96% of a portfolio run's wall clock.
-
-Subtraction is per band, so a court that is roofed over still reads as a court
-in the bands below the roof - the flattened-union measurement that hid exactly
-that case is what this representation avoids by construction.
-
-What it cannot say, so that the next person does not spend the afternoon again:
-a roof that is not flat. Every `SourceVolume` is (plan polygon x height band),
-which is a prism with a level top and a level bottom, and there is no plane
-term anywhere to tilt one. A pitched roof - 박공, and the vaults Kimbell is
-named for - has no representation here at all.
-
-Approximating one by stacking thin tapering slabs was tried and measured, and
-it gets worse with resolution rather than better: the same bar at 5 steps came
-out at 0.29 articulation over 0.81 ground take, and at 24 steps at 0.09 over
-0.94 - a corrugated pad, not a roof, because `taper` scales about the centre so
-every added slab sits nearer full size. The stripes are the renderer stroking
-each slab, but smoothing only the drawing would be worse than the stripes:
-`measure`, `plausibility` and `legal_fit` all read the steps, so the picture
-would stop agreeing with every number under it.
-
-A designed roof needs a sloped top on the volume itself - a plane term on
-`SourceVolume` and every consumer of it - and until that exists the silhouettes
-this package produces are flat tops with whatever the sunlight envelope sliced
-off them. Which is what the critics keep saying: `roof-is-envelope-residue`,
-22 times across 30 comparisons, their most frequent complaint by a wide margin.
+Flat placements retain exact band booleans. Legacy roofs and typed top/bottom
+surfaces stay separate so each keeps its authored coordinates through clipping.
+Explicit unit plans carry arbitrary polygon boundaries and holes. Curves are
+sampled, upright height fields; out-of-plane surface transforms and partial-
+height cutters through explicit surfaces require interval CSG and are refused.
+Legal envelope and floor-area paths remain conservative band/plan proxies.
 """
 
 from __future__ import annotations
@@ -39,10 +13,11 @@ from __future__ import annotations
 from typing import Any
 
 from shapely import affinity
-from shapely.geometry import MultiPolygon, Polygon
+from shapely.geometry import GeometryCollection, MultiPolygon, Polygon
 from shapely.ops import unary_union
 
 from design.maas.source_geometry.ir import SourceMass, SourceVolume
+from design.maas.source_geometry.solid import AffineSurface, contact_region, inverse_plan_affine, plan_mesh
 
 from dataclasses import replace
 from design.maas.geometry_language.affine_matrix import (
@@ -85,7 +60,8 @@ def _ring_at(placement: Placement, level: float) -> list[tuple[float, float]]:
         (x, y)
         for x, y, _z in (
             transform_point3(placement.matrix, (corner[0], corner[1], level))
-            for corner in unit_plan(placement.plan)
+            for corner in (placement.plan_region.exterior.coords[:-1]
+                           if placement.plan_region is not None else unit_plan(placement.plan))
         )
     ]
 
@@ -129,7 +105,7 @@ def _plan(placement: Placement) -> Polygon:
     """
 
     if _stands_upright(placement):
-        return _ordered(_ring_at(placement, 0.0))
+        return _upright_plan(placement)
     hull = Polygon([(x, y) for x, y, _z in placement.corners()]).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()
 
@@ -157,12 +133,20 @@ def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
     if _stands_upright(placement):
         # Same plan at every height, so the slice is the whole plan and the
         # ring in order is exact - hulling it would fill a concave profile in.
-        return _ordered(_ring_at(placement, 0.0))
+        return _upright_plan(placement)
     lower = max(0.0, min(1.0, (low - low_z) / span))
     upper = max(0.0, min(1.0, (high - low_z) / span))
     points = _ring_at(placement, lower) + _ring_at(placement, upper)
     hull = Polygon(points).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()
+
+
+def _upright_plan(placement):
+    if placement.plan_region is None:
+        return _ordered(_ring_at(placement, 0.0))
+    m = placement.matrix
+    return affinity.affine_transform(placement.plan_region,
+                                    (m[0][0],m[0][1],m[1][0],m[1][1],m[0][3],m[1][3]))
 
 
 def _sheets_settled(form: MatrixForm) -> MatrixForm:
@@ -199,11 +183,28 @@ def _sheets_settled(form: MatrixForm) -> MatrixForm:
                 best, shared = other, area
         if best is None:
             continue
-        low, _high = item.z_span()
-        crest = best.z_span()[1]
-        if abs(crest - low) > 1e-6:
+        low, high = item.z_span()
+        host_low, host_high = best.z_span()
+        def material(placement):
+            m = placement.matrix
+            inverse = inverse_plan_affine((m[0][0],m[0][1],m[1][0],m[1][1],m[0][3],m[1][3]))
+            return SourceVolume(placement.role,_plan(placement),0,1,"seat",
+                top_drop=placement.top_drop,drop_toward=placement.drop_toward,
+                ridge_along=placement.ridge_along,top_profile=placement.top_profile,
+                profile_across=placement.profile_across,warp=placement.warp,
+                top_surface=AffineSurface(placement.top_surface,inverse) if placement.top_surface is not None else None,
+                bottom_surface=AffineSurface(placement.bottom_surface,inverse) if placement.bottom_surface is not None else None)
+        plate, host = material(item), material(best)
+        shared_plan = plan.intersection(host.footprint)
+        mesh = plan_mesh(shared_plan,plan,curved=True,break_lines=host.creases()+plate.creases())
+        gaps = [plate.bottom_z(x,y,low,high)-host.top_z(x,y,host_low,host_high)
+                for triangle in mesh for x,y in triangle]
+        if not gaps:
+            continue
+        clearance = min(gaps)
+        if abs(clearance) > 1e-6:
             items[index] = replace(item, matrix=validate_matrix4(compose_matrix4(
-                item.matrix, translation_matrix4((0.0, 0.0, crest - low)))))
+                item.matrix, translation_matrix4((0.0, 0.0, -clearance)))))
             changed = True
     return replace(form, placements=tuple(items)) if changed else form
 
@@ -234,6 +235,11 @@ def _own_figure(plan, clipped, allowed):
 
     if plan is None or plan.is_empty or clipped.is_empty:
         return clipped
+    # Shrinking a single outline is only an optional Polygon heuristic. A
+    # disconnected clip or boundary-only contact must retain its exact result;
+    # choosing one component or reconnecting it would change the legal cut.
+    if not isinstance(plan, Polygon) or not isinstance(clipped, Polygon):
+        return clipped
     if len(clipped.exterior.coords) <= len(plan.exterior.coords):
         return clipped
     if allowed.contains(plan):
@@ -252,6 +258,15 @@ def _own_figure(plan, clipped, allowed):
     if best is None or best.area < _FIGURE_KEEPS_SHARE * clipped.area:
         return clipped
     return best
+
+
+def _polygon_parts(geometry):
+    """Keep all material polygons, including mixed boundary-contact results."""
+    if isinstance(geometry, Polygon):
+        yield geometry
+    elif isinstance(geometry, (MultiPolygon, GeometryCollection)):
+        for part in geometry.geoms:
+            yield from _polygon_parts(part)
 
 
 def _without_clip_waste(form: MatrixForm, low: float, high: float,
@@ -403,7 +418,7 @@ def _band_parts(
         shape = shape.difference(unary_union(cutters))
     if shape.is_empty:
         return []
-    parts = list(shape.geoms) if isinstance(shape, MultiPolygon) else [shape]
+    parts = list(_polygon_parts(shape))
     return [
         part
         for part in parts
@@ -461,11 +476,12 @@ def compile_matrix_form(
     # with their own tilt carried directly.
     tilted = [
         item for item in form.additive()
-        if float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
+        if item.top_surface is not None or item.bottom_surface is not None or (
+        float(getattr(item, "top_drop", 0.0) or 0.0) > 0.0
         and (item.drop_toward is not None
              or getattr(item, "ridge_along", None) is not None
              or getattr(item, "top_profile", None) is not None
-             or getattr(item, "warp", None) is not None)
+             or getattr(item, "warp", None) is not None))
     ]
     flat_form = replace(
         form,
@@ -505,8 +521,10 @@ def compile_matrix_form(
 
         def _tilted_piece(item, lo: float, hi: float, *, drop: float, toward,
                           ridge=None, profile=None, across=None,
-                          clip_at: float | None = None, warp=None) -> bool:
+                          clip_at: float | None = None, warp=None,
+                          top_surface=None, bottom_surface=None) -> bool:
             plan = _plan_between(item, lo, hi)
+            authored_domain = plan
             # The profile's authored range, read off the UNCLIPPED plan: a
             # fragment must remember where its stations came from or it draws
             # the whole arc across its own leftover width.
@@ -537,7 +555,7 @@ def compile_matrix_form(
             if plan.is_empty:
                 return False
             made = False
-            pieces = list(plan.geoms) if isinstance(plan, MultiPolygon) else [plan]
+            pieces = _polygon_parts(plan)
             for piece in pieces:
                 if not isinstance(piece, Polygon) or piece.area < _MINIMUM_BAND_AREA_M2:
                     continue
@@ -579,11 +597,33 @@ def compile_matrix_form(
                     profile_span=span,
                     top_walkable=bool(getattr(item, "top_walkable", False)),
                     warp=warp,
+                    top_surface=top_surface,
+                    bottom_surface=bottom_surface,
+                    authored_domain=authored_domain if (drop > 0 or top_surface is not None
+                                                        or bottom_surface is not None) else None,
                 ))
             return made
 
         for item in tilted:
             if not _spans(item, low, high):
+                continue
+            if item.top_surface is not None or item.bottom_surface is not None:
+                # Preserve the local authored frame and the entire vertical
+                # band. Several bands of the same surface would duplicate its
+                # material and incorrectly flatten its underside.
+                z0, z1 = item.z_span()
+                if not low-_EDGE_TOLERANCE_M <= z0 < high-_EDGE_TOLERANCE_M:
+                    continue
+                if any(min(cutter.z_span()[1],z1) > max(cutter.z_span()[0],z0)+1e-6 and
+                       _plan(cutter).intersection(_plan(item)).area > 1e-9 and
+                       (cutter.z_span()[0] > z0+1e-6 or cutter.z_span()[1] < z1-1e-6)
+                       for cutter in form.subtractive()):
+                    raise ValueError("partial-height cutters through explicit surfaces require interval CSG")
+                m = item.matrix
+                inverse = inverse_plan_affine((m[0][0],m[0][1],m[1][0],m[1][1],m[0][3],m[1][3]))
+                emitted |= _tilted_piece(item, z0, z1, drop=0, toward=None,
+                    top_surface=AffineSurface(item.top_surface, inverse) if item.top_surface is not None else None,
+                    bottom_surface=AffineSurface(item.bottom_surface, inverse) if item.bottom_surface is not None else None)
                 continue
             # `top_drop` is declared as a share of the volume's own height
             # (form.py) and the renderer reads a volume's drop as a share of
@@ -653,7 +693,8 @@ def compile_matrix_form(
     if structural and DROP_ORPHAN_STRUCTURE:
         keep: list[int] = []
         for index, item in enumerate(volumes):
-            if index not in structural or item.bottom_fraction <= 1e-6:
+            if index not in structural or item.plan_at(max(0.0,-ground),
+                    item.bottom_fraction*height,item.top_fraction*height) is not None:
                 # Rooms always; and structure standing on the ground is
                 # never an orphan - a leg at the rim of the tier it holds
                 # up overlaps that tier by less than a square metre and
@@ -665,15 +706,16 @@ def compile_matrix_form(
             # tolerance of 1e-4 read that as a gap - four legs dropped.
             # Overlap relative to the smaller piece, so a slender column
             # under a wide tier still counts.
-            tol = 0.05 / max(height, 1e-6)
-            touches = any(
-                other is not item
-                and min(item.top_fraction, other.top_fraction)
-                >= max(item.bottom_fraction, other.bottom_fraction) - tol
-                and item.footprint.buffer(0.05).intersection(other.footprint).area
-                > min(1.0, 0.25 * min(item.footprint.area, other.footprint.area))
-                for other in volumes
-            )
+            touches = False
+            for other in volumes:
+                if other is item:
+                    continue
+                contact = contact_region(item, other,
+                    (item.bottom_fraction*height,item.top_fraction*height),
+                    (other.bottom_fraction*height,other.top_fraction*height),.05)
+                if contact is not None and contact.area > min(1.0,.25*min(item.footprint.area,other.footprint.area)):
+                    touches = True
+                    break
             if touches:
                 keep.append(index)
         if len(keep) != len(volumes):

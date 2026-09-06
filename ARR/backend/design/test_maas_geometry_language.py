@@ -7809,7 +7809,9 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             source = compile_geometry_program_to_source_mass(program, host)
             self.assertIsNotNone(source, name)
             assert source is not None
-            self.assertLessEqual(len(source.volumes), 3)
+            # A band can contain several occupied polygon components.
+            self.assertLessEqual(len({(v.bottom_fraction, v.top_fraction)
+                                      for v in source.volumes}), 3)
             self.assertTrue(source.surfaces)
             self.assertTrue(all(host.covers(volume.footprint) for volume in source.volumes))
             self.assertLessEqual(int(source.signature()["effective_surface_count"]), 48)

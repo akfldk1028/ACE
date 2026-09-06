@@ -65,7 +65,10 @@ def retarget_ground_take(
         _programme_lift(
             form, factor=factor, far_capacity_m2=far_capacity_m2, floor_height_m=floor_height_m
         )
-        if hold_programme
+        # Explicit plan-only authorship holds the authored section while the
+        # footprint changes. Omitted policy retains legacy inferred field
+        # behavior; its historical coverage lift is not reinterpreted here.
+        if hold_programme and (form.extra.get("parti") or {}).get("growth") != "plan"
         else 1.0
     )
     scaled = _scaled_composition(form, factor, anchor)

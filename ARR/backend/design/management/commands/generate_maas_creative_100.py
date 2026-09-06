@@ -88,6 +88,8 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument("--author-payload", default="", type=str)
+        parser.add_argument("--development-parent-contract", default="", type=str,
+                            help="Explicit exact-authored development with a verified parent contract; no BOOK exploration.")
         parser.add_argument("--author-cache-root", default="", type=str)
         parser.add_argument("--author-model", default="", type=str)
         parser.add_argument(
@@ -113,6 +115,8 @@ class Command(BaseCommand):
         if not pnu:
             raise CommandError("--pnu is required")
         author_mode = str(options["author_mode"])
+        if options.get('development_parent_contract') and author_mode != 'payload':
+            raise CommandError('exact development requires payload author mode')
         max_fresh_author_requests = int(
             options.get("max_fresh_author_requests") or 0
         )
@@ -222,21 +226,31 @@ class Command(BaseCommand):
                     author_supply=author_supply.evidence(),
                 )
             else:
-                authored_programs = _resolve_authored_programs(
-                    mode=author_mode,
-                    payload_path=str(options.get("author_payload") or ""),
-                    cache_root=str(options.get("author_cache_root") or ""),
-                    model=str(options.get("author_model") or ""),
-                    count=count,
-                    context=context,
-                )
-                portfolio = build_creative_floor_portfolio(
-                    count=count,
-                    capacity_ceiling_m2=float(
-                        options["capacity_ceiling_m2"]
-                    ),
-                    authored_programs=authored_programs,
-                )
+                development_contract = str(options.get('development_parent_contract') or '')
+                if development_contract:
+                    if author_mode != 'payload':
+                        raise ValueError('exact development requires payload author mode')
+                    from design.maas.book_development import build_exact_development_portfolio
+                    portfolio = build_exact_development_portfolio(
+                        json.loads(Path(options['author_payload']).read_text(encoding='utf-8')),
+                        json.loads(Path(development_contract).read_text(encoding='utf-8')),
+                        expected_count=count)
+                else:
+                    authored_programs = _resolve_authored_programs(
+                        mode=author_mode,
+                        payload_path=str(options.get("author_payload") or ""),
+                        cache_root=str(options.get("author_cache_root") or ""),
+                        model=str(options.get("author_model") or ""),
+                        count=count,
+                        context=context,
+                    )
+                    portfolio = build_creative_floor_portfolio(
+                        count=count,
+                        capacity_ceiling_m2=float(
+                            options["capacity_ceiling_m2"]
+                        ),
+                        authored_programs=authored_programs,
+                    )
         except (
             GeometryAuthorError,
             OSError,

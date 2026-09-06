@@ -133,7 +133,7 @@ def storeys_in(band_height_m: float, *, floor_height_m: float) -> int:
 
 
 def gross_floor_area_m2(source: SourceMass, *, floor_height_m: float) -> float:
-    """연면적: every band's plan area times the storeys it holds.
+    """Conservative floor-area proxy: band plans times declared storey counts.
 
     A scheme that claims a third of the allowed footprint and a fifth of the
     allowed floor area is not a proposal an architect would put forward, it is
@@ -151,15 +151,30 @@ def gross_floor_area_m2(source: SourceMass, *, floor_height_m: float) -> float:
     # parcel's ground, which the compiler stamps as `datum_m` above the
     # mass's own base.
     datum = float(source.metadata.get("datum_m") or 0.0)
-    return sum(
-        float(volume.footprint.area)
-        * storeys_in(
-            (float(volume.top_fraction) - float(volume.bottom_fraction)) * height,
-            floor_height_m=floor_height_m,
-        )
-        for volume in source.volumes
-        if (float(volume.top_fraction) + float(volume.bottom_fraction)) / 2.0 * height >= datum
-    )
+    # Curved/explicit members need not be pre-unioned by the compiler. Union
+    # their floor proxies instead of double billing coincident material. A
+    # band's storey count is fixed BEFORE overlap partitioning: rounding every
+    # resulting sliver would let many small overlap edges erase whole floors.
+    # The maximum overlapping floor-equivalent density is conservative for
+    # each original band. This deliberately does not infer usable floor area
+    # from a roof/underside slice, which would change the established legal rule.
+    bands = []
+    for volume in source.volumes:
+        low,high = volume.bottom_fraction*height,volume.top_fraction*height
+        floors = storeys_in(high-low,floor_height_m=floor_height_m)
+        if floors and (low+high)/2 >= datum:
+            bands.append((low,high,floors/(high-low),volume.projection()))
+    edges = sorted({z for low,high,_,_ in bands for z in (low,high)})
+    total = 0.0
+    for low,high in zip(edges,edges[1:]):
+        middle = (low+high)/2
+        active = sorted((b for b in bands if b[0] <= middle <= b[1]),key=lambda b:-b[2])
+        covered = None
+        for _bottom,_top,density,plan in active:
+            fresh = plan if covered is None else plan.difference(covered)
+            total += fresh.area*density*(high-low)
+            covered = plan if covered is None else covered.union(plan)
+    return total
 
 
 def _section_change(grouped: dict[tuple[float, float], list[Polygon]]) -> float:
@@ -212,12 +227,7 @@ def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMe
     # the bar and false of the building. Regroup by the band's own fractions.
     grouped: dict[tuple[float, float], list[Polygon]] = {}
     for volume in bands:
-        drop = float(getattr(volume, "top_drop", 0.0) or 0.0)
-        if drop > 0.0 and (
-            volume.drop_toward is not None
-            or getattr(volume, "ridge_along", None) is not None
-            or getattr(volume, "top_profile", None) is not None
-        ):
+        if volume.section_kind() != "flat":
             # A tilted band is a continuous section event, and grouped by its
             # flat footprint it measured as none at all: the first sloped roof
             # this language drew compiled to one band, read articulation ~0,
@@ -228,6 +238,12 @@ def measure_form(source: SourceMass, *, height_m: float | None = None) -> FormMe
             from .postcondition import _sliced_by_tilt
             b0, t0 = float(volume.bottom_fraction), float(volume.top_fraction)
             height = float(source.metadata.get("authored_height_m") or 1.0)
+            if volume.section_kind() in ("warp", "surface"):
+                vertices = [p for triangle in volume.surface_mesh for p in triangle]
+                if not vertices:
+                    continue
+                b0, t0 = (b0+(t0-b0)*min(p[2] for p in vertices),
+                          b0+(t0-b0)*max(p[3] for p in vertices))
             for step in range(4):
                 lo = b0 + (t0 - b0) * step / 4.0
                 hi = b0 + (t0 - b0) * (step + 1) / 4.0

@@ -296,10 +296,12 @@ def _select_rule(rules: dict[str, Any], pnu: str, rule_id: str) -> dict[str, Any
     local_candidates = [
         rule
         for rule in rules["local"]
-        if pnu.startswith(str(rule.get("pnu_prefix", "")))
+        if rule.get("pnu_prefix") and pnu.startswith(str(rule["pnu_prefix"]))
         and (rule.get("base_rule_id") == rule_id or rule.get("rule_id") == rule_id)
     ]
     if local_candidates:
+        longest = max(len(str(rule["pnu_prefix"])) for rule in local_candidates)
+        local_candidates = [rule for rule in local_candidates if len(str(rule["pnu_prefix"])) == longest]
         return _prefer_local_rule(rule_id, local_candidates)
     return rules["national"].get(rule_id)
 
@@ -347,11 +349,26 @@ def calculate_required_spaces(rule: dict[str, Any], metric: str, value: float) -
     }
 
 
-def calculate_accessible_spaces(required_spaces: int | None) -> dict[str, Any]:
+def calculate_accessible_spaces(required_spaces: int | None, *,
+                                local_rule: dict[str, Any] | None = None,
+                                applicable: bool | None = None) -> dict[str, Any]:
     if required_spaces is None:
         return {"status": "needs_external_rule", "accessible_min": None, "accessible_max": None}
     if required_spaces < 10:
         return {"status": "not_applicable_under_10", "accessible_min": 0, "accessible_max": 0}
+    if local_rule and local_rule.get("status") == "reviewed":
+        ratio = float(local_rule["ratio"])
+        if not 0 < ratio <= 1:
+            raise ValueError("invalid reviewed accessible parking ratio")
+        count = math.ceil(required_spaces * ratio)
+        evidence = {"source_appendix": local_rule.get("source_appendix"),
+                    "applicability": local_rule.get("applicability"), "ratio": ratio}
+        if applicable is True:
+            return {**evidence, "status": "computed", "accessible_min": count, "accessible_max": count}
+        if applicable is False:
+            return {**evidence, "status": "not_applicable_to_facility", "accessible_min": 0, "accessible_max": 0}
+        return {**evidence, "status": "needs_facility_applicability", "conditional_spaces": count,
+                "accessible_min": None, "accessible_max": None}
     return {
         "status": "needs_local_ordinance_ratio",
         "accessible_min": math.ceil(required_spaces * 0.02),

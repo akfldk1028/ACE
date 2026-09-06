@@ -91,6 +91,7 @@ class Operation:
 
 # The operations, with the plot relationship each one carries.
 PLOT_MODES: dict[str, PlotMode] = {
+    "shape": "impose",
     "split": "inherit",
     "extrude": "inherit",
     "stack": "inherit",
@@ -202,6 +203,7 @@ class Parti:
     dominant_gesture: str = ""
     reference_basis: str = ""
     floor_height_m: float | None = None
+    growth: str | None = None
 
     def plot_mode(self) -> PlotMode:
         return plot_mode_of(self.ops)
@@ -212,6 +214,7 @@ class Parti:
             "name": self.name,
             "plot_mode": self.plot_mode(),
             "operations": [op.evidence() for op in self.ops],
+            **({"growth": self.growth} if self.growth is not None else {}),
         }
 
 
@@ -233,12 +236,17 @@ _ENUMERATED: dict[str, frozenset[str]] = {
     "method": frozenset({"pack", "stack"}),
     "unit": frozenset({"slab", "house"}),
 }
+GROWTH_POLICIES = frozenset({"plan", "both"})
 
 
 def mistyped_words(record: dict[str, Any]) -> list[tuple[str, str, str]]:
     """Arguments outside their fixed list, as (verb, parameter, value)."""
 
     found: list[tuple[str, str, str]] = []
+    if "growth" in record:
+        value = record["growth"]
+        if not isinstance(value, str) or value not in GROWTH_POLICIES:
+            found.append(("parti", "growth", repr(value)))
     for item in record.get("ops") or ():
         verb = str(item.get("op") or "").strip()
         for key, allowed in _ENUMERATED.items():
@@ -336,6 +344,7 @@ def parti_from_record(record: dict[str, Any]) -> Parti | None:
         dominant_gesture=str(record.get("dominant_gesture") or ""),
         reference_basis=str(record.get("reference_basis") or ""),
         floor_height_m=record.get("floor_height_m"),
+        growth=record.get("growth"),
     )
 
 

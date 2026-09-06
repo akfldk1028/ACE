@@ -25,6 +25,10 @@ from functools import lru_cache
 from math import radians, tan
 from typing import Any, Iterable, Literal
 
+from shapely.geometry import Polygon, mapping, shape
+from design.maas.source_geometry.solid import (HeightSurface, ConstantSurface,
+                                               surface_from_record, surface_bounds, thickness_bounds)
+
 from .profiles import unit_plan
 
 from design.maas.geometry_language.affine_matrix import (
@@ -119,9 +123,74 @@ class Placement:
     # the gates downstream had no way to tell a column from a sliver of floor.
     occupiable: bool = True
 
+    # Explicit authored unit-plan boundary (including holes). Curves arrive as
+    # sampled polylines; no preset-name restriction. Surface coordinates use the
+    # same local XY frame, and their values are shares of the placement height.
+    plan_region: Polygon | None = None
+    top_surface: HeightSurface | None = None
+    bottom_surface: HeightSurface | None = None
+
+    def __post_init__(self):
+        if self.plan_region is not None and (not isinstance(self.plan_region, Polygon)
+                or self.plan_region.is_empty or not self.plan_region.is_valid):
+            raise ValueError("plan_region must be a nonempty valid Polygon with optional holes")
+        if self.plan_region is not None and any(abs(self.matrix[r][c]) > 1e-9
+                                                for r,c in ((0,2),(1,2),(2,0),(2,1))):
+            raise ValueError("custom plan regions require upright planar transforms; a hull would erase their holes")
+        if self.top_surface is not None or self.bottom_surface is not None:
+            if self.kind != "additive":
+                raise ValueError("surface-bounded cutters require interval CSG; use prismatic cutters")
+            if any(abs(self.matrix[r][c]) > 1e-9 for r,c in ((0,2),(1,2),(2,0),(2,1))) or self.matrix[2][2] <= 0:
+                raise ValueError("surface placements support positive vertical scale and invertible planar affine transforms")
+
+    @classmethod
+    def from_record(cls, record):
+        """Data-only external geometry import; all normal downstream gates apply."""
+        if not isinstance(record, dict) or not record.get("role"):
+            raise ValueError("placement record requires a role")
+        try:
+            kwargs = {name:record[name] for name in ("role","kind","plan","occupiable",
+                      "top_drop","drop_toward","ridge_along","top_profile","profile_across",
+                      "warp","top_walkable") if name in record}
+            kwargs["matrix"] = validate_matrix4(record["matrix4"])
+            if kwargs.get("kind","additive") not in ("additive","subtractive"):
+                raise ValueError("invalid placement kind")
+            if "plan_region" in record:
+                kwargs["plan_region"] = shape(record["plan_region"])
+            for name in ("top_surface","bottom_surface"):
+                if record.get(name) is not None:
+                    kwargs[name] = surface_from_record(record[name])
+            item = cls(**kwargs)
+            if item.top_surface is not None or item.bottom_surface is not None:
+                region = item.plan_region if item.plan_region is not None else Polygon(unit_plan(item.plan))
+                top = item.top_surface or ConstantSurface(1)
+                bottom = item.bottom_surface or ConstantSurface(0)
+                for surface in (top,bottom):
+                    low,high = surface_bounds(surface,region.bounds)
+                    if low < -1e-9 or high > 1+1e-9:
+                        raise ValueError("surface escapes its declared height band; split or normalize the authored patch")
+                # Admit only a guaranteed noninverted pair. Conservative range
+                # overlap may need decomposition into smaller authored patches.
+                if thickness_bounds(top,bottom,region.bounds)[0] < -1e-9:
+                    raise ValueError("surface pair has no certified nonnegative thickness; split the authored patch")
+            return item
+        except (KeyError,TypeError,IndexError) as exc:
+            raise ValueError("malformed placement record") from exc
+
+    def to_record(self):
+        record = self.evidence()
+        record["occupiable"] = self.occupiable
+        for name in ("top_drop","drop_toward","ridge_along","top_profile","profile_across","warp","top_walkable"):
+            value = getattr(self,name)
+            if value is not None:
+                record[name] = value
+        return record
+
     def unit_corners(self) -> tuple[tuple[float, float, float], ...]:
         """The unit solid before posing: this placement's plan, at z 0 and 1."""
 
+        if self.plan_region is not None:
+            return tuple((x,y,z) for z in (0.0,1.0) for x,y in self.plan_region.exterior.coords[:-1])
         return _unit_corners(self.plan)
 
     def corners(self) -> tuple[tuple[float, float, float], ...]:
@@ -160,7 +229,7 @@ class Placement:
 
     def evidence(self) -> dict[str, Any]:
         low, high = self.z_span()
-        return {
+        record = {
             "role": self.role,
             "kind": self.kind,
             "plan": self.plan,
@@ -168,6 +237,13 @@ class Placement:
             "z_high": round(high, 4),
             "matrix4": [list(row) for row in self.matrix],
         }
+        if self.plan_region is not None:
+            record["plan_region"] = mapping(self.plan_region)
+        for name in ("top_surface", "bottom_surface"):
+            surface = getattr(self, name)
+            if surface is not None:
+                record[name] = surface.signature()
+        return record
 
 
 def section_held_through_height_scale(item: Placement, factor: float) -> Placement:
@@ -240,6 +316,24 @@ class MatrixForm:
     floor_height_m: float | None = None
     notes: tuple[str, ...] = ()
     extra: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_record(cls, record):
+        if not isinstance(record,dict) or record.get("schema_version") != "arr.maas.matrix_form.v1":
+            raise ValueError("matrix form requires arr.maas.matrix_form.v1")
+        items = record.get("placements")
+        if not isinstance(items,(list,tuple)) or not 1 <= len(items) <= 256:
+            raise ValueError("matrix form requires 1..256 placements")
+        return cls(name=str(record.get("name") or "authored"),
+                   placements=tuple(Placement.from_record(item) for item in items),
+                   primary_language=str(record.get("primary_language") or "authored_surface"),
+                   **{name:record[name] for name in ("secondary_language","formal_principle","dominant_gesture",
+                       "reference_basis","floor_height_m","extra") if name in record},
+                   notes=tuple(record.get("notes") or ()))
+
+    def to_record(self):
+        return {**self.evidence(), "placements":[item.to_record() for item in self.placements],
+                "reference_basis":self.reference_basis,"notes":self.notes,"extra":self.extra}
 
     def additive(self) -> tuple[Placement, ...]:
         return tuple(item for item in self.placements if item.kind == "additive")

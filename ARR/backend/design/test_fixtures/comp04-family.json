@@ -1,0 +1,459 @@
+{
+  "source_path": "tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\authoring-comp04\\draft.json",
+  "source_sha256": "b4aa2a24fd4b122b60ee79d06e042f25097adbb3ab0c2d0b22330312625b8c5f",
+  "payload": {
+    "schema_version": "arr.massv2.authored.v1",
+    "author": "Codex",
+    "site_pnu": "4115011300106840001",
+    "status": "authored payload prepared for comp04 pending; production run not executed by author",
+    "assumptions": [
+      "Unconfirmed neighborhood public office and resident gathering program.",
+      "Two to three storeys. Legal parking count, actual road entrance, fire egress, accessible cores and floor plans remain to be designed.",
+      "Public courts and a southeast vehicle-access reserve are spatially distinct. Reserve is not a parking layout or compliance certificate."
+    ],
+    "schemes": [
+      {
+        "name": "sangok_c04_civic_court",
+        "primary_language": "open_figure",
+        "secondary_language": "\uc5f4\ub9b0 \uacf5\uacf5\ub9c8\ub2f9\uc744 \uac10\uc2f8\ub294 \uae4a\uc740 C\ud615 \uccad\uc0ac",
+        "formal_principle": "\ub3d9\ubd81\ub3d9\uc758 \uc5f4\ub9b0 \ubcf4\ud589 \uc804\uba74\uc744 \ud5a5\ud574 \ub4a4 3\uce35 \uc5c5\ubb34 \ubab8\uacfc \uc55e 2\uce35 \uc8fc\ubbfc \ub0a0\uac1c\uac00 \uae4a\uc740 C\ud615 \uacf5\uacf5\ub9c8\ub2f9\uc744 \uac10\uc2f8\ub3c4\ub85d \uad6c\uc131\ud55c\ub2e4.",
+        "dominant_gesture": "\ub4a4\ucabd 3\uce35\uc5d0\uc11c \uc55e\ucabd 2\uce35\uc73c\ub85c \ud55c \ubc88 \ub0ae\uc544\uc9c0\ub294 \uc9c0\ubd95\uacfc \uc5f4\ub9b0 C\ud615 \ub9c8\ub2f9",
+        "reference_basis": "\ub4f1\ub85d\ub41c \uc0b0\uace1\ub3d9 \uacf5\uacf51 \ud544\uc9c0\uc640 comp03 \uc2e4\uc81c \ud3c9\ub2e8\uba74 \ube44\ud3c9\uc5d0 \uadfc\uac70\ud55c \uacf5\uac04 \uac00\uc124. \ud655\uc815 \ubc95\uc815 \ud504\ub85c\uadf8\ub7a8\uc774\ub098 \uc2e4\ubcc4 \uba74\uc801\ud45c\uac00 \uc544\ub2d8.",
+        "floor_height_m": 3.6,
+        "growth": "plan",
+        "ops": [
+          {
+            "op": "extrude",
+            "height": 0.6,
+            "storeys": 3,
+            "why": "Unconfirmed neighborhood-office use needs ordinary work rooms behind an accessible public court. Keep the rear to three storeys and the street ends to two, trading upper floor area for a welcoming court edge."
+          },
+          {
+            "op": "shape",
+            "on": "body",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.27
+                  ],
+                  [
+                    0.32,
+                    0.27
+                  ],
+                  [
+                    0.32,
+                    0.72
+                  ],
+                  [
+                    0.94,
+                    0.72
+                  ],
+                  [
+                    0.94,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "profile",
+              "points": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0.32,
+                  1
+                ],
+                [
+                  0.55,
+                  0.6666666666666666
+                ],
+                [
+                  1,
+                  0.6666666666666666
+                ]
+              ],
+              "axis": [
+                1,
+                0
+              ],
+              "span": [
+                0,
+                1
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "A 32-percent-deep rear work-and-meeting wing binds two genuinely room-deep arms; the whole eastern mouth opens toward the pedestrian address. A flat three-storey rear changes once into two-storey resident wings, keeping the court a legible outdoor room rather than decorating its roof. All rooms begin at ground; this is a spatial mass, not a verified program or structural design."
+          }
+        ],
+        "design_argument_ko": {
+          "title": "\uc5f4\ub9b0 \uacf5\uacf5\ub9c8\ub2f9\uc744 \uac10\uc2f8\ub294 \uae4a\uc740 C\ud615 \uccad\uc0ac",
+          "spatial_strategy": "\ub3d9\ubd81\ub3d9 \ubcf4\ud589 \uc804\uba74\uc744 \ud5a5\ud574 \ud55c \uba74 \uc804\uccb4\ub97c \uc5f0\ub2e4. \ub4a4 \uc5c5\ubb34 \ubab8\uc740 10.8m\uc758 \ucd5c\ub300 3\uce35, \uc55e \uc8fc\ubbfc \ud65c\ub3d9 \ub0a0\uac1c\ub294 7.2m\uc758 2\uce35 \ub192\uc774\ub85c \ub0ae\uc544\uc9c4\ub2e4. \uae4a\uc740 \ub4a4 \ubab8\uacfc \uc591 \ub0a0\uac1c\uac00 \ud558\ub098\uc758 \uacf5\uacf5\ub9c8\ub2f9\uc744 \uac10\uc2f8\uba70, \ub9c8\ub2f9\uc5d0 \uba74\ud55c \uacf5\uc6a9\ubc29\uacfc \uc77c\uc0c1 \uc5c5\ubb34\uc758 \uad00\uacc4\ub97c \uc81c\uc548\ud55c\ub2e4.",
+          "tradeoff": "\uacbd\uc0ac\uc9c0\ubd95 \uc544\ub798 \uc0c1\uce35 \ub05d\uc758 \uc2e4 \uad6c\uc131\uacfc \ucf54\uc5b4\ub294 \ubbf8\uc815\uc774\ub2e4. \uc8fc\ubbfc\uc13c\ud130 \uc5c5\ubb34\u00b7\ubaa8\uc784 \ud504\ub85c\uadf8\ub7a8\uc740 \uac00\uc124\uc774\uba70, \uc791\uc740 \uc2e4\uc81c \ubc14\ub2e5 \uba74\uc801\uacfc \ub0a8\ub294 \ub300\uc9c0\uc758 \uc0ac\uc6a9\uc744 \uc8fc\ucc28\u00b7\uc678\ubd80\uacf5\uac04 \uacc4\ud68d\uacfc \ud568\uaed8 \uac80\ud1a0\ud574\uc57c \ud55c\ub2e4."
+        }
+      },
+      {
+        "name": "sangok_c04_two_gardens",
+        "primary_language": "carved_body",
+        "secondary_language": "\uc5f4\ub9b0 \uc8fc\ubbfc \uc815\uc6d0\uacfc \uc870\uc6a9\ud55c \uc548\ucabd \uc815\uc6d0",
+        "formal_principle": "\ub113\uac8c \uc5f4\ub9b0 \uc8fc\ubbfc \uc815\uc6d0\uacfc \uc870\uc6a9\ud55c \ub0b4\ubd80 \uc815\uc6d0\uc744 \uc2e4\uc81c \ubc29\uc774 \ub4e4\uc5b4\uac08 \uc911\uac04 \ubab8\uc73c\ub85c \uad6c\ubd84\ud558\uace0 2\uce35\uc758 \ub0a8\ubd81 \uc2e4\ub4e4\ub85c \uc5f0\uacb0\ud55c\ub2e4.",
+        "dominant_gesture": "\ud558\ub098\uc758 \ub0ae\uc740 \uccad\uc0ac \uc548\uc5d0 \uacf5\uacf5\uc131\uacfc \ud06c\uae30\uac00 \ub2e4\ub978 \ub450 \uc815\uc6d0",
+        "reference_basis": "\ub4f1\ub85d\ub41c \uc0b0\uace1\ub3d9 \uacf5\uacf51 \ud544\uc9c0\uc640 comp03 \uc2e4\uc81c \ud3c9\ub2e8\uba74 \ube44\ud3c9\uc5d0 \uadfc\uac70\ud55c \uacf5\uac04 \uac00\uc124. \ud655\uc815 \ubc95\uc815 \ud504\ub85c\uadf8\ub7a8\uc774\ub098 \uc2e4\ubcc4 \uba74\uc801\ud45c\uac00 \uc544\ub2d8.",
+        "floor_height_m": 3.9,
+        "growth": "plan",
+        "ops": [
+          {
+            "op": "extrude",
+            "height": 0.4,
+            "storeys": 2,
+            "why": "A public reception-and-meeting hypothesis and quieter daily work need different outdoor addresses. Two full storeys at 3.9 metres keep usable rooms around both gardens; no extra roof folds obscure this relation."
+          },
+          {
+            "op": "shape",
+            "on": "body",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.3
+                  ],
+                  [
+                    0.61,
+                    0.3
+                  ],
+                  [
+                    0.61,
+                    0.69
+                  ],
+                  [
+                    1.0,
+                    0.69
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ]
+                ],
+                [
+                  [
+                    0.2,
+                    0.28
+                  ],
+                  [
+                    0.43,
+                    0.28
+                  ],
+                  [
+                    0.43,
+                    0.72
+                  ],
+                  [
+                    0.2,
+                    0.72
+                  ],
+                  [
+                    0.2,
+                    0.28
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "constant",
+              "height": 1
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "A broad east-facing public garden is separated from a quiet west garden by a room-deep middle body. North and south rooms connect the two without forcing visitors through private work rooms. The public opening is a broad mouth, not the previous narrow keyhole. All rooms begin at ground; this is a spatial mass, not a verified program or structural design."
+          }
+        ],
+        "design_argument_ko": {
+          "title": "\uc5f4\ub9b0 \uc8fc\ubbfc \uc815\uc6d0\uacfc \uc870\uc6a9\ud55c \uc548\ucabd \uc815\uc6d0",
+          "spatial_strategy": "\ub3d9\ucabd\uc758 \ub113\uac8c \uc5f4\ub9b0 \uacf5\uacf5 \uc815\uc6d0\uacfc \uc11c\ucabd\uc758 \ub2eb\ud78c \uc791\uc740 \uc815\uc6d0\uc744 \ub450\uace0, \uadf8 \uc0ac\uc774\uc5d0 \uacf5\uc6a9\ubc29\uc774 \ub4e4\uc5b4\uac08 \uae4a\uc774\uc758 \ubab8\uc744 \ub454\ub2e4. \uc804\uccb4\ub294 \ub192\uc774 7.8m, \uc790\uccb4 \uce35\uace0 3.9m\uc758 2\uce35 \uad6c\uc0c1\uc774\ub2e4. \ub0a8\ubd81 \uc2e4\ub4e4\uc774 \ub450 \uc815\uc6d0 \uc8fc\ubcc0\uc744 \uc774\uc5b4 \uc5c5\ubb34\uc640 \uc8fc\ubbfc \ud65c\ub3d9\uc5d0 \ub2e4\ub978 \uc678\ubd80 \uc8fc\uc18c\ub97c \uc900\ub2e4.",
+          "tradeoff": "\uc911\uac04 \ubab8\uc758 \uac00\uc124 \ubcbd\uccb4 \ucc28\uac10 \uae4a\uc774\ub294 \uc57d 5.08m\uc5ec\uc11c \ub3c5\ub9bd \ubcf5\ub3c4\uc640 \ubc29\uc744 \ub3d9\uc2dc\uc5d0 \ub123\uc73c\uba74 \uc881\uc544\uc9c8 \uc218 \uc788\ub2e4. \uc811\uc218\u00b7\ub77c\uc6b4\uc9c0\ucc98\ub7fc \ud1b5\uacfc \uac00\ub2a5\ud55c \uacf5\uc6a9\ubc29\uc73c\ub85c \uc4f8\uc9c0 \ud6c4\uc18d \ud3c9\uba74\uc5d0\uc11c \uacb0\uc815\ud574\uc57c \ud558\uba70, \uc548\ucabd \uc815\uc6d0\uc758 \ucc44\uad11\u00b7\ud504\ub77c\uc774\ubc84\uc2dc\ub3c4 \ubbf8\ud655\uc778\uc774\ub2e4."
+        }
+      },
+      {
+        "name": "sangok_c04_hall_daily_street",
+        "primary_language": "open_figure",
+        "secondary_language": "\ud070 \uc8fc\ubbfc \ud640\uacfc \uc77c\uc0c1 \uc5c5\ubb34\uae38",
+        "formal_principle": "\ub192\uc774 7.2m\uc758 \uae4a\uc740 \uc8fc\ubbfc \ud640\uacfc 10.8m \uc5c5\ubb34\ub3d9\uc744 \uc678\ubd80 \uc77c\uc0c1\uae38 \uc591\ucabd\uc5d0 \uc138\uc6cc \uc11c\ub85c \ub2e4\ub978 \uc2dc\uac04\ub300\uc758 \ub3c5\ub9bd \ucd9c\uc785 \uac00\ub2a5\uc131\uc744 \ub9cc\ub4e0\ub2e4.",
+        "dominant_gesture": "\ubd80\uc18d\ub760\ubcf4\ub2e4 \uae4a\uace0 \ub192\uc740 \uc8fc\ubbfc \ud640\uacfc \uc5c5\ubb34\ub3d9\uc774 \ub9c8\uc8fc\ud558\ub294 \uc77c\uc0c1\uae38",
+        "reference_basis": "\ub4f1\ub85d\ub41c \uc0b0\uace1\ub3d9 \uacf5\uacf51 \ud544\uc9c0\uc640 comp03 \uc2e4\uc81c \ud3c9\ub2e8\uba74 \ube44\ud3c9\uc5d0 \uadfc\uac70\ud55c \uacf5\uac04 \uac00\uc124. \ud655\uc815 \ubc95\uc815 \ud504\ub85c\uadf8\ub7a8\uc774\ub098 \uc2e4\ubcc4 \uba74\uc801\ud45c\uac00 \uc544\ub2d8.",
+        "floor_height_m": 3.6,
+        "growth": "plan",
+        "ops": [
+          {
+            "op": "extrude",
+            "height": 0.6,
+            "storeys": 3,
+            "why": "The unconfirmed meeting program deserves comparable frontage and depth to the office. Hold office height at three storeys and hall envelope at two storeys; whether the hall is double-height or divided requires a later floor and egress plan."
+          },
+          {
+            "op": "split",
+            "ratio": 0.43,
+            "along": "cross",
+            "first": "hall",
+            "second": "office",
+            "gap": 9.4,
+            "contrast": 1.5,
+            "why": "A 7.14m authored daily street separates a room-deep hall from the larger office. The hall keeps a 7.2m envelope instead of the low strip criticized in comp03; fitting must preserve a real clear gap."
+          },
+          {
+            "op": "shape",
+            "on": "hall",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.94,
+                    0.0
+                  ],
+                  [
+                    0.94,
+                    1.0
+                  ],
+                  [
+                    0.08,
+                    1.0
+                  ],
+                  [
+                    0.08,
+                    0.0
+                  ],
+                  [
+                    0.94,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "constant",
+              "height": 1
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "Give the evening hall a complete rectangular room with slightly shorter frontage than the office; leave its eastern end available for a distinct threshold."
+          },
+          {
+            "op": "shape",
+            "on": "office",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    1.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1.0,
+                    0.0
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "constant",
+              "height": 1
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "Keep the three-storey daily office as a full room-depth body across the shared pedestrian street."
+          }
+        ],
+        "design_argument_ko": {
+          "title": "\ud070 \uc8fc\ubbfc \ud640\uacfc \uc77c\uc0c1 \uc5c5\ubb34\uae38",
+          "spatial_strategy": "\uc9c0\uc0c1\uc5d0 \uc11c\ub294 \ub192\uc774 7.2m\uc758 \uc8fc\ubbfc \ud640\uacfc 10.8m\uc758 3\uce35 \uc5c5\ubb34\ub3d9\uc744 \uc2e4\uc81c \uc678\ubd80\uae38\ub85c \ubd84\ub9ac\ud55c\ub2e4. \ud640\uc740 \uc57d 11.54m\uc758 \uc678\uacfd \uae4a\uc774\ub97c \uac00\uc9c0\uba70, \ubc95\uaddc \ubc30\uce58 \ub4a4 \uac80\uc99d\ud55c \uc9c1\uc0ac\uac01\ud615\uc740 \uac00\uc124 \ubcbd\uccb4 \ucc28\uac10 \ud6c4 \uc57d 21.38\u00d76.81m\ub2e4. \uc11c\ub85c \ub2e4\ub978 \uc2dc\uac04\ub300\uc5d0 \uc6b4\uc601\ud558\ub294 \ub450 \ubab8\uc758 \ub3c5\ub9bd \ucd9c\uc785 \uac00\ub2a5\uc131\uc744 \uc81c\uc548\ud55c\ub2e4.",
+          "tradeoff": "\ucd5c\ud611 \uc678\ubd80\uae38\uc740 \uc2e4\uc81c \ubc30\uce58 \ud6c4 \uc57d 4.35m\ub2e4. \uc5c5\ubb34\ub3d9\uc758 \ub0b4\ubd80 \ubcf5\ub3c4\uc640 \ucf54\uc5b4, \uc591\ucabd \ucd9c\uc785\ubb38\uc740 \uc544\uc9c1 \uadf8\ub9ac\uc9c0 \uc54a\uc558\ub2e4. \ud640\uc744 \uc2e4\uc81c \uc774\uc911\ub192\uc774\ub85c \ube44\uc6b8\uc9c0 \ub450 \uce35\uc73c\ub85c \ub098\ub20c\uc9c0 \ubbf8\uc815\uc774\uba70, \ud604\uc7ac \uba74\uc801 proxy\ub294 \ub450 \uce35\uc73c\ub85c \uacc4\uc0b0\ud55c\ub2e4."
+        }
+      },
+      {
+        "name": "sangok_c04_three_houses",
+        "primary_language": "porous_field",
+        "secondary_language": "\uc2e4\uc81c\ub85c \ubd84\ub9ac\ub41c \uc138 \uc9d1\uacfc \uacf5\ud1b5\ub9c8\ub2f9",
+        "formal_principle": "\ub4a4 3\uce35 \uc5c5\ubb34\uc9d1\uacfc \uc55e 2\uce35 \uc8fc\ubbfc\uc9d1\u00b7\ubaa8\uc784\uc9d1\uc744 \uc2e4\uc81c\ub85c \ubd84\ub9ac\ud558\uace0 \uc55e \ub450 \uc9d1\uc758 \ud2c8\uc744 \uacf5\ud1b5\ub9c8\ub2f9\uc758 \ub3d9\ubd81\ub3d9 \uc8fc\uc18c\ub85c \uc0bc\ub294\ub2e4.",
+        "dominant_gesture": "\uc11c\ub85c \ub2ff\uc9c0 \uc54a\ub294 \uc138 \uac1c\uc758 \uc9d1\uc774 \ud558\ub098\uc758 \uacf5\ud1b5 \uc9c0\uc0c1\uc744 \ud5a5\ud558\ub294 \uad6c\uc131",
+        "reference_basis": "\ub4f1\ub85d\ub41c \uc0b0\uace1\ub3d9 \uacf5\uacf51 \ud544\uc9c0\uc640 comp03 \uc2e4\uc81c \ud3c9\ub2e8\uba74 \ube44\ud3c9\uc5d0 \uadfc\uac70\ud55c \uacf5\uac04 \uac00\uc124. \ud655\uc815 \ubc95\uc815 \ud504\ub85c\uadf8\ub7a8\uc774\ub098 \uc2e4\ubcc4 \uba74\uc801\ud45c\uac00 \uc544\ub2d8.",
+        "floor_height_m": 3.6,
+        "growth": "plan",
+        "ops": [
+          {
+            "op": "extrude",
+            "height": 0.6,
+            "storeys": 3,
+            "why": "Start from at most three storeys for the rear work house; the two smaller resident houses are lowered by the subsequent divisions."
+          },
+          {
+            "op": "split",
+            "ratio": 0.55,
+            "along": "long",
+            "first": "work",
+            "second": "front",
+            "gap": 8,
+            "contrast": 1.25,
+            "why": "Separate a rear work house from the street-side residents by a genuine ground-level gap; each side must hold rooms and an independent accessible core."
+          },
+          {
+            "op": "split",
+            "on": "front",
+            "ratio": 0.52,
+            "along": "cross",
+            "first": "gathering",
+            "second": "resident",
+            "gap": 12,
+            "contrast": 1.25,
+            "why": "Divide the front into two smaller houses with a broad middle entrance to the common ground, rather than letting two objects touch and count as one."
+          },
+          {
+            "op": "shape",
+            "on": "work",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.7,
+                    0.12
+                  ],
+                  [
+                    0.7,
+                    0.88
+                  ],
+                  [
+                    0.0,
+                    0.88
+                  ],
+                  [
+                    0.0,
+                    0.12
+                  ],
+                  [
+                    0.7,
+                    0.12
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "constant",
+              "height": 1
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "Shorten and deepen the rear work house; retreat its eastern face to make one common courtyard beyond the two separate front doors."
+          },
+          {
+            "op": "shape",
+            "on": "gathering",
+            "plan_region": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0.94,
+                    0.05
+                  ],
+                  [
+                    0.94,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    1.0
+                  ],
+                  [
+                    0.0,
+                    0.05
+                  ],
+                  [
+                    0.94,
+                    0.05
+                  ]
+                ]
+              ]
+            },
+            "top_surface": {
+              "type": "constant",
+              "height": 1
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0
+            },
+            "why": "Give the southern gathering house a simple room plan while holding back its road-facing end from the southeast service allowance."
+          }
+        ],
+        "design_argument_ko": {
+          "title": "\uc2e4\uc81c\ub85c \ubd84\ub9ac\ub41c \uc138 \uc9d1\uacfc \uacf5\ud1b5\ub9c8\ub2f9",
+          "spatial_strategy": "\ub4a4 \uc5c5\ubb34\uc9d1 \ud55c \ucc44\uc640 \uc55e \uc8fc\ubbfc\uc9d1\u00b7\ubaa8\uc784\uc9d1 \ub450 \ucc44\uac00 \ubaa8\ub4e0 \ub192\uc774\uc5d0\uc11c \ubd84\ub9ac\ub41c\ub2e4. \ub4a4 \uc9d1\uc740 \ub192\uc774 10.8m\uc758 \ucd5c\ub300 3\uce35, \uc55e \ub450 \uc9d1\uc740 \uac01\uac01 6.912m\uc758 2\uce35 \uad6c\uc0c1\uc774\uba70 \uc790\uccb4 \uce35\uace0\ub294 3.6m\ub2e4. \ub450 \uc55e\uc9d1 \uc0ac\uc774\uc758 \ud2c8\uc774 \ub4a4 \uc9d1 \uc55e \uacf5\ud1b5\ub9c8\ub2f9\uc73c\ub85c \uc774\uc5b4\uc838 \uac01 \uc9d1\uc758 \ub3c5\ub9bd \ucd9c\uc785 \uac00\ub2a5\uc131\uc744 \ub9cc\ub4e0\ub2e4.",
+          "tradeoff": "\uc138 \uc9d1\uc758 \ucd9c\uc785\ubb38\u00b7\uacc4\ub2e8\u00b7\uc2b9\uac15\uae30\uc640 \uc6b0\ucc9c \uc2dc \uc774\ub3d9\uc740 \ubbf8\uc815\uc774\ub2e4. \uc55e\uc9d1 \uc0c1\uce35\uc758 \ubc14\ub2e5\u00b7\ubcf4\u00b7\uc124\ube44 \ub450\uaed8\ub97c \ud3ec\ud568\ud55c \uc2e4\uc81c \uc720\ud6a8\ub192\uc774\ub97c \ub354 \uac80\uc99d\ud574\uc57c \ud55c\ub2e4. \ud070 \uacf5\ud1b5\ub9c8\ub2f9\uc740 \uc644\uc804\ud788 \ub2eb\ud78c \uc911\uc815\uc774 \uc544\ub2c8\ub77c \uc5ec\ub7ec \ud2c8\uc73c\ub85c \uc774\uc5b4\uc9c4 \uc678\ubd80\uacf5\uac04\uc774\ub2e4."
+        }
+      }
+    ]
+  }
+}

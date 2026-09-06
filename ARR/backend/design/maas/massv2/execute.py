@@ -1655,6 +1655,43 @@ _VERBS = {
 }
 
 
+class MissingOperationDependency(ValueError):
+    """A valid operation has no selected body because its creator is absent."""
+
+
+def _shape(frame: _Frame, op: Operation) -> None:
+    """Apply an authored local region and bounded surfaces to selected bodies.
+
+    Data uses Placement.from_record's public schema, so parser, production and
+    sequence execution all deliver the same material. Existing legal, room and
+    structural gates continue to read the compiled result.
+    """
+    fields = {"plan_region": op.params.get("plan_region"),
+              "top_surface": op.params.get("top_surface"),
+              "bottom_surface": op.params.get("bottom_surface")}
+    fields = {key:value for key,value in fields.items() if value is not None}
+    if not fields:
+        raise ValueError("shape requires plan_region, top_surface or bottom_surface")
+    picked, rest = _scope(frame, op)
+    rest += [item for item in picked if item.kind != "additive"]
+    picked = [item for item in picked if item.kind == "additive"]
+    if not picked:
+        raise MissingOperationDependency("shape requires an existing selected body")
+    shaped = []
+    for item in picked:
+        record = {**item.to_record(), **fields}
+        if "top_surface" in fields:
+            # A declared surface takes full ownership of its top. Old roof
+            # tags must not make the new underside follow an unrelated warp.
+            record.update(top_drop=0.0, drop_toward=None, ridge_along=None,
+                          top_profile=None, profile_across=None, warp=None)
+        shaped.append(Placement.from_record(record))
+    frame.placements = rest + shaped
+
+
+_VERBS["shape"] = _shape
+
+
 def execute(
     parti: Parti,
     *,
@@ -1739,13 +1776,13 @@ def _form_from(frame: _Frame, parti: Parti) -> MatrixForm | None:
             # area with height and they come back as a bundle of sticks on a
             # plinth, which is what they did. If a field cannot fill its 용적률
             # lying down, the honest answer is that it does not fill it.
-            "growth": "plan"
+            "growth": parti.growth if parti.growth is not None else ("plan"
             if any(
                 op.verb == "aggregate"
                 and str(op.params.get("method") or "pack") != "stack"
                 for op in parti.ops
             )
-            else "both",
+            else "both"),
             # A stacked aggregation grows by rising - that is what stacking
             # IS - and labelling every aggregate "plan" locked the vitrahaus
             # pile out of height growth while the coverage lift crushed it:

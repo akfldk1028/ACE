@@ -42,6 +42,7 @@ from .legal_fit import (
     fit_to_site,
 )
 from .variations import _stretched
+from .delivery_gate import stature_ceiling_m
 
 
 # A scheme within this much of its floor-area ceiling is full; chasing the rest
@@ -308,6 +309,8 @@ def fill_to_site(
     """
 
     best = fit_to_site(form, site)
+    if best.storey_limit and not best.storey_limit.get('satisfied', False):
+        return FillResult(best, 0, 0, 0, 'parcel_storey_limit_refused', 0.0)
     capacity = site.far_capacity_m2
     if capacity <= 0.0:
         return FillResult(best, 0, 0, 0, "no_far_capacity", 0.0)
@@ -422,9 +425,12 @@ def fill_to_site(
     # "over" their own sentence. Every other scheme keeps the parcel rule.
     declared_storeys = float(form.extra.get("declared_storeys") or 0.0)
     if declared_storeys > 0.0 and form.extra.get("stature_is_building"):
-        volume_ceiling = (5.0 / 3.0) * declared_storeys * storey
+        volume_ceiling = stature_ceiling_m(declared_storeys, storey)
     else:
         volume_ceiling = storeys_allowed * storey * _VOLUME_HEIGHT_SLACK
+    if getattr(site, 'max_storeys', None) is not None:
+        # Search budget at THIS candidate's storey, never a legal metre cap.
+        volume_ceiling = min(volume_ceiling, site.max_storeys * storey)
 
 
     # Settle an over-tall scheme onto the parcel before growing it. Stopping

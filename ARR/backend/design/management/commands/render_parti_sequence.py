@@ -31,7 +31,7 @@ from design.maas.massv2.grammar import parti_from_record
 from design.maas.massv2.legal import LegalSiteUnavailable, load_legal_site
 from design.maas.massv2.measure import gross_floor_area_m2
 from design.maas.massv2.render import render_sequence
-from design.maas.massv2.siting import open_side_direction
+from design.maas.massv2.siting import site_open_side_direction
 
 
 # What the author aimed the move at. Magnitude is geometric and belongs to the
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             raise CommandError(str(error)) from error
 
         buildable = site.plan_at(0.0)
-        axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+        axis = site_open_side_direction(site) or (1.0, 0.0)
         height = site.floor_height_m * max(
             1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
         )

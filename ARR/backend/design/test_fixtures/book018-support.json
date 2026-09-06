@@ -1,0 +1,3335 @@
+{
+  "provenance": {
+    "name": "book:book-comp03:morph-bridge-low:creative-018",
+    "shape_id": "0acc8c4adc70e3c86cfb",
+    "certificate_id": "19c618c4c489d1d5f67d",
+    "purpose": "Frozen complete BOOK018 surface export and its pre-existing band proxies; no production fixture dependency"
+  },
+  "footprint": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          33.09384089708328,
+          29.21436907351017
+        ],
+        [
+          31.732236742973328,
+          26.839621394872665
+        ],
+        [
+          25.706674806773663,
+          30.294485352933407
+        ],
+        [
+          27.211605720221996,
+          32.91920647025108
+        ],
+        [
+          28.151593379676342,
+          32.380247697234154
+        ],
+        [
+          29.513197533786297,
+          34.75499537587166
+        ],
+        [
+          33.46619535237551,
+          43.652536518871784
+        ],
+        [
+          36.157777562737465,
+          48.3468734100461
+        ],
+        [
+          38.565220504822086,
+          46.96652284476903
+        ],
+        [
+          39.65584962069988,
+          48.86866815388203
+        ],
+        [
+          64.80823858827353,
+          34.44709502160549
+        ],
+        [
+          61.4706766307354,
+          28.626117266714573
+        ],
+        [
+          38.80551507262197,
+          41.62159397829358
+        ],
+        [
+          35.062336675822735,
+          33.1963214725256
+        ],
+        [
+          34.617687295668816,
+          32.42081702261079
+        ],
+        [
+          55.566034100949764,
+          20.409706823527813
+        ],
+        [
+          52.44379872828722,
+          14.964276015758514
+        ],
+        [
+          32.67222440242767,
+          26.300662614405155
+        ],
+        [
+          34.03382855653763,
+          28.67541030049324
+        ],
+        [
+          33.09384089708328,
+          29.21436907351017
+        ]
+      ]
+    ]
+  },
+  "metadata": {
+    "authored_height_m": 15.446596255036876,
+    "datum_m": 0,
+    "geometry_program_bridge_evidence": {
+      "schema_version": "arr.maas.geometry_program_source_bridge.v1",
+      "status": "materialized",
+      "authoritative_visual_geometry": "manifold_compilation_mesh",
+      "hard_gate_proxy": "measured_horizontal_mesh_sections",
+      "proxy_section_mode": "conservative_band_vertical_occupancy_union",
+      "geometry_hash": "d9dd9b128222816bdc32d7951b32b0e2df86e0a556da5252454032a573c24aa4",
+      "program_hash": "07f422f746b07d32bdb10c63208decd8fdb79b48077d2e588afcd8d285bdde6c",
+      "operator_path": [
+        "box",
+        "matrix4",
+        "matrix4",
+        "bridge",
+        "book_base_volume",
+        "difference",
+        "shift_related",
+        "union",
+        "matrix4",
+        "matrix4",
+        "intersection",
+        "matrix4",
+        "intersection",
+        "matrix4",
+        "intersection",
+        "union"
+      ],
+      "proxy_volume_count": 4,
+      "requested_proxy_band_count": 3,
+      "exported_proxy_band_count": 3,
+      "exported_proxy_part_count": 4,
+      "proxy_band_part_counts": [
+        1,
+        2,
+        1
+      ],
+      "proxy_volume_payload_hash": "e6dce48ff94e696507848d41bcaacd9cc84803accc4fc715d57e2e2cb5fb8872",
+      "raw_mesh_triangle_count": 102,
+      "exported_surface_count": 102,
+      "surface_export_complete": true,
+      "surface_payload_hash": "8a636ff984794e808822f04980510f7dea85869d0c6ef9e49f5ede648a08ec4d",
+      "surface_coordinate_frame": "source_footprint_centroid_local",
+      "host_fit_matrix4": [
+        [
+          -0.8395344188761549,
+          -0.5031007247603051,
+          0.0,
+          45.25745654994271
+        ],
+        [
+          0.48136211001084744,
+          -0.8774483197032209,
+          0.0,
+          32.37079027000106
+        ],
+        [
+          0.0,
+          0.0,
+          0.10101010101010101,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "host_fit_matrix4_exact": true,
+      "host_contains_all_proxy_volumes": true,
+      "parcel_coordinates_in_program": false,
+      "legal_fit_mode": "principal_frame_bounded",
+      "legal_fit_strength": 0.0,
+      "base_seed_plan_occupancy_fraction": 0.6162,
+      "effective_target_plan_area": 1123.4078,
+      "explicit_target_plan_area_overrides_seed_occupancy_prior": true,
+      "minimum_plan_area_target": 1123.4078,
+      "achieved_mesh_plan_projection_area": 451.6955,
+      "minimum_plan_area_target_satisfied": false,
+      "minimum_plan_area_shortfall_ratio": 0.5979
+    }
+  },
+  "surfaces": [
+    {
+      "role": "recursive_mesh_0",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          1.0
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_1",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          0.125284738384
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_2",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          1.0
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_3",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.125284738384
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_4",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.58086560404
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_5",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ],
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_6",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_7",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ],
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_8",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_9",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_10",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.125284738384
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_11",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_12",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.125284738384
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_13",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_14",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_15",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_16",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_17",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          0.125284738384
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ],
+        [
+          20.686136875788407,
+          1.176574456511048,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_18",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          1.0
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_19",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          1.0
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_20",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.0
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_21",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.58086560404
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_22",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          1.0
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_23",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_24",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_25",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.58086560404
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_26",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_27",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.58086560404
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_28",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.58086560404
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_29",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ],
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_30",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_31",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.125284738384
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ],
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_32",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.58086560404
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_33",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.58086560404
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.58086560404
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_34",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_35",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_36",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_37",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          0.125284738384
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          1.0
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_38",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          20.686136875788407,
+          1.176574456511048,
+          0.125284738384
+        ],
+        [
+          20.686136875788407,
+          1.176574456511048,
+          1.0
+        ],
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_39",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_40",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_41",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.125284738384
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.125284738384
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_42",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          1.0
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_43",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.0
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_44",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.58086560404
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_45",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_46",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_47",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_48",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_49",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ],
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_50",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.0
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_51",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_52",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          17.34857492361141,
+          -4.644403297472952,
+          0.125284738384
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_53",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.125284738384
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_54",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.125284738384
+        ],
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_55",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.125284738384
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.58086560404
+        ],
+        [
+          8.321697019163409,
+          -18.30624454520695,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_56",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.250569475758
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_57",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_58",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_59",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.250569475758
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_60",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          1.0
+        ],
+        [
+          -7.803814039627589,
+          9.777169839892046,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_61",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_62",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ],
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          1.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_63",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.0
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.0
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_64",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.58086560404
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.0
+        ],
+        [
+          -18.415426899826592,
+          -2.9760352102569527,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_65",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_66",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.0
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_67",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_68",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.58086560404
+        ],
+        [
+          -12.389864967048592,
+          -6.43089916907595,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_69",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:2"
+    },
+    {
+      "role": "recursive_mesh_70",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.0
+        ],
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_71",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.0
+        ],
+        [
+          -10.655906359269594,
+          10.382015956580048,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_72",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.125284738384
+        ],
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_73",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.449877308187595,
+          -6.969857945130951,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_74",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.250569475758
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_75",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_76",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_77",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          11.44393239442941,
+          -12.86081374196095,
+          0.58086560404
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_78",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.58086560404
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_79",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:0:0:-2"
+    },
+    {
+      "role": "recursive_mesh_80",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ],
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.250569475758
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_81",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.250569475758
+        ],
+        [
+          -14.608904175152592,
+          1.484474814030051,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_82",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_83",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ],
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_84",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.0
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.0
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_85",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.0
+        ],
+        [
+          -16.91049599165759,
+          -0.35131409249095213,
+          0.58086560404
+        ],
+        [
+          -15.970508332797593,
+          -0.8902728685449546,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_86",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.125284738384
+        ],
+        [
+          -5.316586635672593,
+          8.351073417488045,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_87",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_88",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.0
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_89",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_90",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -7.964324142855595,
+          15.076352849576047,
+          0.0
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_91",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.0
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.125284738384
+        ],
+        [
+          -3.4728261173035904,
+          12.501071934253048,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_92",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -4.4662520874505915,
+          15.59814759387605,
+          0.125284738384
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.125284738384
+        ],
+        [
+          -5.556881203980595,
+          13.696002280580046,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_93",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ],
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.250569475758
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_94",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_95",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_96",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.0
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.125284738384
+        ],
+        [
+          -8.58334224237359,
+          -1.9703891447889532,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:1:2:0"
+    },
+    {
+      "role": "recursive_mesh_97",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.250569475758
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_98",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.250569475758
+        ],
+        [
+          -12.167557663003592,
+          0.08468502348304696,
+          0.58086560404
+        ],
+        [
+          -11.911857353550594,
+          0.5306470263870509,
+          0.58086560404
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-2:1:0"
+    },
+    {
+      "role": "recursive_mesh_99",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.0
+        ],
+        [
+          -10.08827315054259,
+          -4.595110262555952,
+          0.125284738384
+        ],
+        [
+          -11.02826080940359,
+          -4.056151486500951,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:-1:-2:0"
+    },
+    {
+      "role": "recursive_mesh_100",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.05976503390859,
+          -0.07419909030095084,
+          0.0
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.250569475758
+        ],
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    },
+    {
+      "role": "recursive_mesh_101",
+      "volume_role": "recursive_solid_primary",
+      "verb": "geometry_program",
+      "surface_type": "profiled_recursive_solid_mesh",
+      "vertex_count": 3,
+      "vertices_m": [
+        [
+          -9.504414414675594,
+          -0.8497035426089496,
+          0.125284738384
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.125284738384
+        ],
+        [
+          -9.760114724128591,
+          -1.29566554551295,
+          0.0
+        ]
+      ],
+      "operator": "union",
+      "semantic_patch_id": "recursive_solid_primary:recursive_normal:2:-1:0"
+    }
+  ],
+  "volumes": [
+    {
+      "role": "recursive_solid_primary",
+      "footprint": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              32.703158400952816,
+              28.532987222075462
+            ],
+            [
+              31.732236742973328,
+              26.839621394872665
+            ],
+            [
+              31.628502555191517,
+              26.899099245667458
+            ],
+            [
+              25.706674806773663,
+              30.294485352933407
+            ],
+            [
+              25.732583224773407,
+              30.339671730995178
+            ],
+            [
+              27.211605720221996,
+              32.91920647025108
+            ],
+            [
+              27.426058781007857,
+              32.796245962854954
+            ],
+            [
+              28.151593379676342,
+              32.380247697234154
+            ],
+            [
+              28.7552734836936,
+              33.43311458826065
+            ],
+            [
+              28.817887936518055,
+              33.542319253463596
+            ],
+            [
+              29.12251503020525,
+              34.07361352443695
+            ],
+            [
+              29.37140864952151,
+              34.50770410588224
+            ],
+            [
+              29.48975658416748,
+              34.71411246806383
+            ],
+            [
+              29.513197533786297,
+              34.75499537587166
+            ],
+            [
+              30.836852855980396,
+              37.73432353883982
+            ],
+            [
+              32.083318857160045,
+              40.53991135307998
+            ],
+            [
+              33.308434799313545,
+              43.297443740069866
+            ],
+            [
+              33.46619535237551,
+              43.652536518871784
+            ],
+            [
+              33.573613949120045,
+              43.839883238077164
+            ],
+            [
+              36.157777562737465,
+              48.3468734100461
+            ],
+            [
+              36.25385642796755,
+              48.29178487509489
+            ],
+            [
+              36.34993528574705,
+              48.23669634014368
+            ],
+            [
+              38.565220504822086,
+              46.96652284476903
+            ],
+            [
+              38.67111208289862,
+              47.15120631456375
+            ],
+            [
+              39.65584962069988,
+              48.86866815388203
+            ],
+            [
+              40.845784679055214,
+              48.186397559940815
+            ],
+            [
+              64.80823858827353,
+              34.44709502160549
+            ],
+            [
+              64.05256472527981,
+              33.12913874536753
+            ],
+            [
+              61.4706766307354,
+              28.626117266714573
+            ],
+            [
+              60.280741572380066,
+              29.308387860655785
+            ],
+            [
+              53.98430510610342,
+              32.9185625910759
+            ],
+            [
+              46.514387959519254,
+              37.2015735078505
+            ],
+            [
+              38.80551507262197,
+              41.62159397829358
+            ],
+            [
+              38.32211657133884,
+              40.53354428718737
+            ],
+            [
+              37.569131910800934,
+              38.83870095014572
+            ],
+            [
+              35.062336675822735,
+              33.1963214725256
+            ],
+            [
+              34.76657746732235,
+              32.680493511259556
+            ],
+            [
+              34.638240038294505,
+              32.45666266682881
+            ],
+            [
+              34.617687295668816,
+              32.42081702261079
+            ],
+            [
+              37.35549800097942,
+              30.851044170558453
+            ],
+            [
+              39.23258402943611,
+              29.774783246219158
+            ],
+            [
+              55.566034100949764,
+              20.409706823527813
+            ],
+            [
+              55.282431058585644,
+              19.915080197155476
+            ],
+            [
+              52.44379872828722,
+              14.964276015758514
+            ],
+            [
+              34.46814239025116,
+              25.270940840244293
+            ],
+            [
+              32.67222440242767,
+              26.300662614405155
+            ],
+            [
+              33.91014951467514,
+              28.45970405638218
+            ],
+            [
+              34.03382855653763,
+              28.67541030049324
+            ],
+            [
+              33.586737775191004,
+              28.931757815172364
+            ],
+            [
+              33.09384089708328,
+              29.21436907351017
+            ],
+            [
+              32.703158400952816,
+              28.532987222075462
+            ]
+          ]
+        ]
+      },
+      "bottom_fraction": 0.0,
+      "top_fraction": 0.3333333333333333,
+      "verb": "geometry_program"
+    },
+    {
+      "role": "recursive_solid_primary",
+      "footprint": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              37.223475360158915,
+              44.62641088490219
+            ],
+            [
+              37.42911756038666,
+              44.98506750166416
+            ],
+            [
+              37.738644554159144,
+              45.524907591160165
+            ],
+            [
+              38.70021762698889,
+              47.20196873694658
+            ],
+            [
+              39.65584962069988,
+              48.86866815388203
+            ],
+            [
+              45.9258249104023,
+              45.27366542071104
+            ],
+            [
+              64.80823858827353,
+              34.44709502160549
+            ],
+            [
+              62.78069867193699,
+              30.910901561379433
+            ],
+            [
+              61.4706766307354,
+              28.626117266714573
+            ],
+            [
+              46.190818674862385,
+              37.387097753584385
+            ],
+            [
+              40.12687505820426,
+              40.86396854104322
+            ],
+            [
+              37.977699264883995,
+              42.096237011253834
+            ],
+            [
+              36.318287670612335,
+              43.04769039899111
+            ],
+            [
+              36.731408178806305,
+              43.76820595562458
+            ],
+            [
+              37.223475360158915,
+              44.62641088490219
+            ]
+          ]
+        ]
+      },
+      "bottom_fraction": 0.3333333333333333,
+      "top_fraction": 0.6666666666666666,
+      "verb": "geometry_program"
+    },
+    {
+      "role": "recursive_solid_primary",
+      "footprint": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              32.67222440242767,
+              26.300662614405155
+            ],
+            [
+              32.91390913724899,
+              26.72218033671379
+            ],
+            [
+              34.03382855653763,
+              28.67541030049324
+            ],
+            [
+              33.77831488153143,
+              28.821913647926436
+            ],
+            [
+              33.09384089708328,
+              29.21436907351017
+            ],
+            [
+              31.976072979291153,
+              27.264891497152128
+            ],
+            [
+              31.732236742973328,
+              26.839621394872665
+            ],
+            [
+              26.545527555048466,
+              29.813514091074467
+            ],
+            [
+              25.706674806773663,
+              30.294485352933407
+            ],
+            [
+              26.817816679749807,
+              32.23240656220424
+            ],
+            [
+              27.211605720221996,
+              32.91920647025108
+            ],
+            [
+              27.820271449034664,
+              32.57021706100674
+            ],
+            [
+              28.151593379676342,
+              32.380247697234154
+            ],
+            [
+              28.341150030493736,
+              32.710849821567535
+            ],
+            [
+              28.433595557869,
+              32.87208228660464
+            ],
+            [
+              28.708391584455967,
+              33.351348765194416
+            ],
+            [
+              29.00904521467348,
+              33.87571298905623
+            ],
+            [
+              29.513197533786297,
+              34.75499537587166
+            ],
+            [
+              30.11090651154518,
+              34.41228821873665
+            ],
+            [
+              31.95454404503107,
+              33.355205588042736
+            ],
+            [
+              32.13843077421188,
+              33.67591890692711
+            ],
+            [
+              32.21024435758591,
+              33.80116759240627
+            ],
+            [
+              49.847892463207245,
+              23.688305847346783
+            ],
+            [
+              50.43730090558529,
+              23.350357949733734
+            ],
+            [
+              55.566034100949764,
+              20.409706823527813
+            ],
+            [
+              54.07168021798134,
+              17.803432881832123
+            ],
+            [
+              52.44379872828722,
+              14.964276015758514
+            ],
+            [
+              47.695722709604375,
+              17.686670525594586
+            ],
+            [
+              32.67222440242767,
+              26.300662614405155
+            ]
+          ]
+        ]
+      },
+      "bottom_fraction": 0.3333333333333333,
+      "top_fraction": 0.6666666666666666,
+      "verb": "geometry_program"
+    },
+    {
+      "role": "recursive_solid_primary",
+      "footprint": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              62.704386711120605,
+              30.77780733257532
+            ],
+            [
+              61.82644057800672,
+              29.246598337029
+            ],
+            [
+              61.50883261114359,
+              28.69266437739134
+            ],
+            [
+              61.4706766307354,
+              28.626117266714573
+            ],
+            [
+              41.11077845096588,
+              40.29982989281416
+            ],
+            [
+              36.87142486870289,
+              42.73053926974535
+            ],
+            [
+              36.318287670612335,
+              43.04769039899111
+            ],
+            [
+              38.21589621901512,
+              46.35727306455374
+            ],
+            [
+              38.83801647986578,
+              47.44230106804052
+            ],
+            [
+              38.913605600595474,
+              47.57413460314274
+            ],
+            [
+              39.413303427398205,
+              48.44564799964428
+            ],
+            [
+              39.63114060148881,
+              48.82557362835909
+            ],
+            [
+              39.64129684865475,
+              48.8432869464159
+            ],
+            [
+              39.65584962069988,
+              48.86866815388203
+            ],
+            [
+              57.04050355788405,
+              38.90086515334776
+            ],
+            [
+              64.80823858827353,
+              34.44709502160549
+            ],
+            [
+              62.704386711120605,
+              30.77780733257532
+            ]
+          ]
+        ]
+      },
+      "bottom_fraction": 0.6666666666666666,
+      "top_fraction": 1.0,
+      "verb": "geometry_program"
+    }
+  ]
+}

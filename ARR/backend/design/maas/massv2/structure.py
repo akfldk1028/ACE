@@ -33,10 +33,12 @@ from dataclasses import dataclass
 from math import hypot
 from typing import Any, Iterable
 
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon, shape as geometry_shape
 from shapely.ops import nearest_points, unary_union
 
 from design.maas.source_geometry.ir import SourceMass
+from design.maas.source_geometry.solid import contact_region
+from .render_mesh import is_mesh_authoritative
 
 
 # A cantilever reaches about its own backspan and a half when it is designed
@@ -95,41 +97,61 @@ _MEANINGFUL_OVERHANG_M2 = 1.0
 # every other question on its own.
 MAX_SEPARATE_BODIES = 10
 
+# Certificates bind the policy as well as the geometry and measured values.
+STRUCTURE_POLICY_VERSION = 'arr.maas.structure_policy.v2'
+
 
 @dataclass(frozen=True)
 class Standing:
-    """What holds this mass up, and by how much."""
+    """Geometric screen result; acceptance is not structural design approval."""
 
-    grounded_share: float
-    body_count: int
-    cantilever_ratio: float
-    cantilever_reach_m: float
-    span_to_depth: float
-    overturning_margin_m: float
-    centre_of_mass_height_m: float
-    potential_well_m: float
+    grounded_share: float | None
+    body_count: int | None
+    cantilever_ratio: float | None
+    cantilever_reach_m: float | None
+    span_to_depth: float | None
+    overturning_margin_m: float | None
+    centre_of_mass_height_m: float | None
+    potential_well_m: float | None
     reasons: tuple[str, ...]
+    measurement_basis: str = 'typed_source_solids'
+    mesh_support: dict[str, Any] | None = None
+    measurement_error: str | None = None
+    requirements: tuple[str, ...] = ()
 
     @property
     def stands(self) -> bool:
         return not self.reasons
 
     def evidence(self) -> dict[str, Any]:
+        def rounded(value):
+            return round(value, 3) if value is not None else None
+        mesh = self.measurement_basis == 'complete_export_mesh'
         return {
-            "schema_version": "arr.maas.massv2_structure.v1",
-            "grounded_share": round(self.grounded_share, 3),
+            "schema_version": "arr.maas.massv2_structure.v2",
+            "policy_version": STRUCTURE_POLICY_VERSION,
+            "measurement_basis": self.measurement_basis,
+            "measurement_status": 'unknown' if self.measurement_error else 'measured',
+            "measurement_error": self.measurement_error,
+            "member_capacity_status": 'unverified' if mesh else 'typed_geometry_screen',
+            "grounded_share": rounded(self.grounded_share),
+            "grounded_share_basis": 'material_volume' if mesh else 'occupied_band_area',
             "body_count": self.body_count,
-            "cantilever_ratio": round(self.cantilever_ratio, 3),
-            "cantilever_reach_m": round(self.cantilever_reach_m, 3),
+            "cantilever_ratio": rounded(self.cantilever_ratio),
+            "cantilever_reach_m": rounded(self.cantilever_reach_m),
             "cantilever_limit_ratio": round(CANTILEVER_BACKSPAN_RATIO, 3),
-            "span_to_depth": round(self.span_to_depth, 3),
+            "span_to_depth": rounded(self.span_to_depth),
             "span_to_depth_limit": round(SPAN_TO_DEPTH_RATIO, 3),
-            "overturning_margin_m": round(self.overturning_margin_m, 3),
-            "centre_of_mass_height_m": round(self.centre_of_mass_height_m, 3),
-            "potential_well_m": round(self.potential_well_m, 3),
+            "overturning_margin_m": rounded(self.overturning_margin_m),
+            "centre_of_mass_height_m": rounded(self.centre_of_mass_height_m),
+            "potential_well_m": rounded(self.potential_well_m),
+            "potential_well_basis": 'minimum_component_margin_minus_component_com_height' if mesh else 'support_margin_minus_com_height',
             "stands": self.stands,
             "reasons": list(self.reasons),
-            "basis": "AISC cantilever rule of thumb + Mezghanni CVPR 2021 support polygon",
+            "requirements": list(self.requirements),
+            "mesh_support": self.mesh_support,
+            "basis": ('complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified'
+                      if mesh else "AISC cantilever rule of thumb + Mezghanni CVPR 2021 support polygon"),
         }
 
 
@@ -217,10 +239,14 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
     }
     for index in range(len(bands)):
         low, high, plan = bands[index]
-        if low <= 1e-6 or plan.is_empty:
-            # Grounded bands answer to the earth, not to a neighbour.
+        if plan.is_empty:
             continue
         if (round(low, 4), round(high, 4)) not in asked:
+            continue
+        members = [v for i,v in enumerate(source.volumes) if i not in structural
+                   and (round(v.bottom_fraction,4),round(v.top_fraction,4)) == (round(low,4),round(high,4))]
+        nonflat = any(v.section_kind() != "flat" for v in members)
+        if not nonflat and low <= 1e-6:
             continue
         # Support is what this band actually touches from below: every band
         # that ends at its bottom, and every band that runs past it - a taller
@@ -229,11 +255,37 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
         # another object's heel the moment a field's members differed in
         # height, and a village of saltboxes was refused as unsupported by a
         # sliver it never stood on.
-        parts = [
-            other for low2, high2, other in bands
-            if (abs(high2 - low) <= 2e-3 or (low2 < low - 1e-6 and high2 > low + 1e-6))
-            and other is not plan
-        ]
+        if nonflat:
+            # A conservative band may begin at ground while its material is a
+            # one-metre slab nine metres above it. Ask the actual underside for
+            # bearing, and its material thickness for member depth.
+            parts = []
+            datum = float(source.metadata.get("datum_m") or 0)
+            thicknesses = []
+            for member in members:
+                band = (member.bottom_fraction*height_m,member.top_fraction*height_m)
+                ground_part = member.plan_at(datum,*band)
+                if ground_part is not None:
+                    parts.append(ground_part)
+                thicknesses.extend((p[3]-p[2])*(band[1]-band[0])
+                                   for triangle in member.surface_mesh for p in triangle)
+                for other in source.volumes:
+                    if any(other is own for own in members):
+                        continue
+                    contact = contact_region(member,other,band,
+                        (other.bottom_fraction*height_m,other.top_fraction*height_m),_CONTACT_TOLERANCE_M)
+                    if contact is not None:
+                        parts.append(contact)
+            depth_m = max(0,min(thicknesses,default=0))
+        else:
+            parts = [v.plan_at(min(low, v.top_fraction)*height_m,
+                           v.bottom_fraction*height_m, v.top_fraction*height_m)
+                 for v in source.volumes
+                 if (round(v.bottom_fraction,4), round(v.top_fraction,4)) != (round(low,4), round(high,4))
+                 and (abs(v.top_fraction-low) <= 2e-3
+                     or v.bottom_fraction < low-1e-6 < v.top_fraction)]
+            depth_m = max(0,high-low)*height_m
+        parts = [p for p in parts if p is not None and not p.is_empty]
         if not parts:
             return float("inf"), 0.0, worst_slenderness
         support = parts[0] if len(parts) == 1 else unary_union(parts)
@@ -251,8 +303,7 @@ def worst_members(source: SourceMass, *, height_m: float) -> tuple[float, float,
                 # a line - volumes in this IR abut flush, and a bar bridging
                 # two towers touches each on an edge. The span-to-depth rule
                 # is the judge of whether that bridge is credible.
-                depth = max(0.0, high - low) * height_m
-                slenderness = _span_to_depth(piece, contacts, depth)
+                slenderness = _span_to_depth(piece, contacts, depth_m)
                 worst_slenderness = max(worst_slenderness, slenderness)
                 continue
             tip = max(
@@ -331,20 +382,31 @@ def _span_to_depth(piece: Polygon, contacts: list[Polygon], depth_m: float) -> f
 
 
 def centre_of_mass(source: SourceMass, *, height_m: float) -> tuple[float, float, float]:
-    """Volume-weighted centre of the built bands, in site-local metres."""
+    """Uniform-density COM of the authoritative solid, in site-local metres."""
+
+    if is_mesh_authoritative(source):
+        from .mesh_support import measure_mesh_support
+        return tuple(measure_mesh_support(source, critical_heights=False)['uniform_density_com_xyz_m'])
 
     total = 0.0
     sum_x = sum_y = sum_z = 0.0
-    for low, high, plan in bands_of(source):
-        thickness = max(0.0, high - low) * height_m
-        weight = float(plan.area) * thickness
+    # Flat band unions retain the exact legacy path. Nonflat members integrate
+    # their actual top and bottom rather than the full bounding prism.
+    if all(v.section_kind() == "flat" for v in source.volumes):
+        records = [(plan.area*(high-low)*height_m,
+                    plan.area*(high-low)*height_m*plan.centroid.x,
+                    plan.area*(high-low)*height_m*plan.centroid.y,
+                    plan.area*(high-low)*height_m*(low+high)/2*height_m)
+                   for low,high,plan in bands_of(source)]
+    else:
+        records = [source.mass_properties(height_m)]
+    for weight, mx, my, mz in records:
         if weight <= 1e-9:
             continue
-        centre = plan.centroid
         total += weight
-        sum_x += weight * float(centre.x)
-        sum_y += weight * float(centre.y)
-        sum_z += weight * ((low + high) / 2.0 * height_m)
+        sum_x += mx
+        sum_y += my
+        sum_z += mz
     if total <= 1e-9:
         return 0.0, 0.0, 0.0
     return sum_x / total, sum_y / total, sum_z / total
@@ -366,7 +428,15 @@ def support_polygon(source: SourceMass) -> Polygon | None:
     balanced anywhere on the ground it touches.
     """
 
-    grounded = [plan for low, _high, plan in bands_of(source) if low <= 1e-6]
+    if is_mesh_authoritative(source):
+        from .mesh_support import measure_mesh_support
+        evidence = measure_mesh_support(source, critical_heights=False)
+        contacts = [geometry_shape(c['ground_contact']['geometry_xy_m'])
+                    for c in evidence['components'] if c['has_ground_contact']]
+        return unary_union(contacts).convex_hull if contacts else None
+    datum = float(source.metadata.get("datum_m") or 0.0)
+    contact = source.plan_at(datum)
+    grounded = _polygons(contact)
     if not grounded:
         return None
     shape = grounded[0] if len(grounded) == 1 else unary_union(grounded)
@@ -375,6 +445,15 @@ def support_polygon(source: SourceMass) -> Polygon | None:
     hull = shape.convex_hull
     return hull if isinstance(hull, Polygon) and not hull.is_empty else None
 
+
+
+class _SolidPart(tuple):
+    """Legacy tuple interface with the material query attached."""
+    def __new__(cls, volume, height):
+        obj = super().__new__(cls, (round(float(volume.bottom_fraction), 4),
+                                    round(float(volume.top_fraction), 4), volume.footprint))
+        obj.volume, obj.height = volume, height
+        return obj
 
 
 def band_parts(source: SourceMass) -> list[tuple[float, float, Polygon]]:
@@ -391,9 +470,7 @@ def band_parts(source: SourceMass) -> list[tuple[float, float, Polygon]]:
         piece = volume.footprint
         if piece is None or piece.is_empty:
             continue
-        out.append(
-            (round(float(volume.bottom_fraction), 4), round(float(volume.top_fraction), 4), piece)
-        )
+        out.append(_SolidPart(volume, float(source.metadata.get("authored_height_m") or 1.0)))
     return sorted(out, key=lambda item: (item[0], item[1]))
 
 
@@ -407,6 +484,12 @@ def _touching(a: tuple[float, float, Polygon], b: tuple[float, float, Polygon]) 
 
     a_low, a_high, a_plan = a
     b_low, b_high, b_plan = b
+    if isinstance(a, _SolidPart) and isinstance(b, _SolidPart):
+        contact = contact_region(a.volume, b.volume,
+            (a.volume.bottom_fraction*a.height, a.volume.top_fraction*a.height),
+            (b.volume.bottom_fraction*b.height, b.volume.top_fraction*b.height),
+            _CONTACT_TOLERANCE_M)
+        return contact is not None and contact.area > _MEANINGFUL_OVERHANG_M2
     if min(a_high, b_high) < max(a_low, b_low) - 1e-9:
         return False
     if a_plan.is_empty or b_plan.is_empty:
@@ -428,16 +511,23 @@ def connectivity(source: SourceMass) -> tuple[float, int]:
     Touching means overlapping in plan *and* in height, so a block hovering
     above another block is not resting on it.
 
-    Returns (share of floor area with a path down, number of separate bodies).
+    Returns (grounded share, separate bodies). Mesh authority uses material
+    volume; ordinary typed solids retain the occupied-band-area measure.
     """
 
+    if is_mesh_authoritative(source):
+        from .mesh_support import measure_mesh_support
+        evidence = measure_mesh_support(source, critical_heights=False)
+        return evidence['grounded_volume_share'], evidence['component_count']
     pieces = band_parts(source)
     if not pieces:
         return 0.0, 0
 
-    ground = min(low for low, _high, _plan in pieces)
+    datum = float(source.metadata.get("datum_m") or 0.0)
     reached = {
-        index for index, (low, _high, _plan) in enumerate(pieces) if low <= ground + 1e-6
+        index for index, part in enumerate(pieces)
+        if part.volume.plan_at(datum, part.volume.bottom_fraction*part.height,
+                               part.volume.top_fraction*part.height) is not None
     }
     frontier = list(reached)
     while frontier:
@@ -529,8 +619,62 @@ def bodies_of(source: SourceMass) -> list[tuple[float, float, Polygon]]:
     return bodies
 
 
+def _assess_mesh_standing(source: SourceMass) -> Standing:
+    """Existing gravity policy on actual material; member capacity is unknown."""
+    from .mesh_support import measure_mesh_support
+    requirements = ['structural_capacity_and_anchorage_unverified',
+                    'mesh_member_span_and_backspan_unverified']
+    try:
+        measured = measure_mesh_support(source)
+    except Exception as exc:
+        return Standing(None, None, None, None, None, None, None, None,
+            ('authoritative_mesh_support_measurement_unknown',),
+            measurement_basis='complete_export_mesh',
+            measurement_error=f'{type(exc).__name__}: {exc}', requirements=tuple(requirements))
+    reasons, wells = [], []
+    for body in measured['components']:
+        index = body['component_index']
+        if not body['has_ground_contact']:
+            reasons.append(f'mesh_component_{index}_without_positive_area_ground_contact')
+            continue
+        margin = body['ground_margin_m']
+        well = margin-body['com_height_above_ground_m']
+        wells.append(well)
+        if margin <= 0:
+            reasons.append(f'mesh_component_{index}_centre_of_mass_{-margin:.1f}m_outside_support')
+        elif well < POTENTIAL_WELL_FLOOR_M:
+            reasons.append(f'mesh_component_{index}_potential_well_{well:.1f}m_under_{POTENTIAL_WELL_FLOOR_M:.0f}')
+    if measured['component_count'] > MAX_SEPARATE_BODIES:
+        reasons.append(f"{measured['component_count']}_separate_bodies_not_one_building")
+    critical = measured['minimum_critical_margin_m']
+    if critical is not None and critical <= 0:
+        requirements.append('moment_transfer_review_required')
+    if 'upper_component_without_bearing_at_sample' in measured['observations']:
+        requirements.append('upper_body_load_path_review_required')
+    summary = {k: measured[k] for k in (
+        'schema_version', 'coordinate_authority', 'mesh_sha256', 'datum_m', 'mass_model',
+        'closed_oriented_mesh', 'triangle_count', 'component_count', 'volume_m3',
+        'uniform_density_com_xyz_m', 'ground_contact_area_m2', 'grounded_volume_share',
+        'minimum_ground_margin_m', 'minimum_critical_margin_m', 'observations', 'limitations')}
+    summary['critical_section_count'] = len(measured['critical_sections'])
+    summary['components'] = [{k: c[k] for k in (
+        'component_index', 'volume_m3', 'uniform_density_com_xyz_m', 'has_ground_contact',
+        'ground_margin_m', 'com_height_above_ground_m')} | {
+            'ground_contact_area_m2': c['ground_contact']['area_m2'],
+            'ground_contact_hull_area_m2': c['ground_contact']['hull_area_m2']}
+        for c in measured['components']]
+    return Standing(measured['grounded_volume_share'], measured['component_count'],
+        None, None, None, measured['minimum_ground_margin_m'],
+        measured['uniform_density_com_xyz_m'][2]-measured['datum_m'],
+        min(wells) if wells else None, tuple(reasons),
+        measurement_basis='complete_export_mesh', mesh_support=summary, requirements=tuple(requirements))
+
+
 def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
-    """Two physical questions, asked of the compiled bands."""
+    """Geometric gravity/member screen, using complete mesh when authoritative."""
+
+    if is_mesh_authoritative(source):
+        return _assess_mesh_standing(source)
 
     reasons: list[str] = []
 
@@ -587,6 +731,7 @@ def assess_standing(source: SourceMass, *, height_m: float) -> Standing:
 
 
 __all__ = [
+    "STRUCTURE_POLICY_VERSION",
     "CANTILEVER_BACKSPAN_RATIO",
     "band_parts",
     "connectivity",

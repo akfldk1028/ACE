@@ -20,6 +20,119 @@ _tower and plinth_slender_turned all collapse to (extrude, relational, low)
 - which is exactly what both judges said of them.
 """
 
+from itertools import groupby
+import json
+
+
+# Reference geometry for the metric executor, not a size acceptance cutoff.
+# Family keys retain topology and variation kinds, never measured dimensions.
+SHAPE_FAMILY_REFERENCE_SPAN_M = 100.0
+
+
+def _surface_family(surface, region, vertical_sign=1):
+    """Variation over the actual authored region, independent of coefficients."""
+    from shapely import affinity
+    from design.maas.source_geometry.ir import profile_height
+    from design.maas.source_geometry.solid import (
+        AffineSurface, ConstantSurface, PolynomialSurface, ProfileSurface, surface_bounds)
+    if surface is None or isinstance(surface, ConstantSurface):
+        return 'flat'
+    if isinstance(surface, AffineSurface):
+        if surface.scale == 0:
+            return 'flat'
+        return _surface_family(surface.surface,
+            affinity.affine_transform(region, surface.world_to_authored),
+            vertical_sign*(1 if surface.scale > 0 else -1))
+    low, high = surface_bounds(surface, region.bounds)
+    if low == high:
+        return 'flat'
+    if isinstance(surface, ProfileSurface):
+        span = surface.span[1]-surface.span[0]
+        stations = [min(1., max(0., (x*surface.axis[0]+y*surface.axis[1]-surface.span[0])/span))
+                    for x, y in region.exterior.coords]
+        left, right = min(stations), max(stations)
+        samples = sorted({left, right} | {u for u, _ in surface.points if left < u < right})
+        heights = [vertical_sign*profile_height(surface.points, u) for u in samples]
+        signs = tuple(k for k, _ in groupby((b > a)-(b < a) for a, b in zip(heights, heights[1:])))
+        if not signs or signs == (0,):
+            return 'flat'
+        if len(signs) == 1:
+            return 'slope'
+        # Reversing the horizontal direction preserves ridge/valley identity.
+        signs = min(signs, tuple(-s for s in reversed(signs)))
+        return 'profile:'+','.join(map(str, signs))
+    if isinstance(surface, PolynomialSurface):
+        terms = {}
+        for x, y, coefficient in surface.terms:
+            terms[x, y] = terms.get((x, y), 0)+coefficient*vertical_sign
+        powers = sorted((x, y, 1 if c > 0 else -1) for (x, y), c in terms.items() if c != 0 and x+y > 0)
+        if not powers:
+            return 'flat'
+        if max(x+y for x, y, _ in powers) == 1:
+            return 'slope'
+        powers = min(powers, sorted((y, x, sign) for x, y, sign in powers))
+        return 'polynomial:'+json.dumps(powers, separators=(',', ':'))
+    raise ValueError('unsupported bounded surface family')
+
+
+def shape_family_evidence(scheme: dict) -> dict:
+    """Read a neutral execution through existing geometry owners; no site fit.
+
+    This describes authored topology, not site feasibility or a similarity
+    distance. The current surface approximation/boolean policies remain owned
+    by the executor and compiler; no family-area or feature-size threshold is
+    introduced. Invalid/unexecutable shapes have one unresolved descriptor.
+    """
+    from shapely.geometry import Polygon, box
+    from shapely.ops import unary_union
+    from design.maas.source_geometry.solid import polygons
+    from .compile import compile_matrix_form
+    from .execute import execute
+    from .grammar import parti_from_record
+    from .profiles import unit_plan
+    reference = SHAPE_FAMILY_REFERENCE_SPAN_M
+    try:
+        form = execute(parti_from_record(scheme), buildable=box(0, 0, reference, reference),
+                       axis=(1., 0.), height_m=reference)
+        if form is None:
+            raise ValueError('neutral execution produced no material')
+        source = compile_matrix_form(form, storey_height_m=0.)
+        if source is None:
+            raise ValueError('neutral compilation produced no material')
+        projection = unary_union([v.footprint for v in source.volumes])
+        plans = sorted((len(p.interiors), p.equals(p.convex_hull)) for p in polygons(projection))
+        sections = set()
+        for item in form.additive():
+            region = item.plan_region if item.plan_region is not None else Polygon(unit_plan(item.plan))
+            top = _surface_family(item.top_surface, region)
+            bottom = _surface_family(item.bottom_surface, region)
+            if item.top_surface is None and item.top_drop > 0:
+                # A legacy roof may coexist with typed plans. Keep its existing
+                # section vocabulary instead of pretending the top is flat.
+                top = ('warp' if item.warp is not None else 'profile' if item.top_profile is not None
+                       else 'gable' if item.ridge_along is not None else 'slope')
+            if top != 'flat' or bottom != 'flat':
+                sections.add((top, bottom))
+        return {'status': 'measured', 'basis': 'neutral_execute_and_source_geometry',
+                'reference_span_m': reference, 'plan_components': plans,
+                'sections': sorted(sections)}
+    except (ValueError, TypeError, KeyError, AttributeError, IndexError) as exc:
+        return {'status': 'unresolved', 'basis': 'neutral_execute_and_source_geometry',
+                'reference_span_m': reference, 'error_type': type(exc).__name__}
+
+
+def _shape_move(evidence):
+    if evidence['status'] != 'measured':
+        return 'shape-unresolved'
+    plans, sections = evidence['plan_components'], evidence['sections']
+    # A single convex flat solid is still an extrusion. Merely spelling its
+    # constant surfaces or its rectangle does not create another family.
+    if plans == [(0, True)] and not sections:
+        return None
+    plan = '+'.join(f'{holes}{"c" if convex else "n"}' for holes, convex in plans)
+    section = '+'.join(f'{top}|{bottom}' for top, bottom in sections) or 'flat'
+    return f'shape-plan[{plan}]-section[{section}]'
+
 FAMILY_OF_VERB = {
     # what kind of statement a verb is, at the level a jury reads
     "nest": "relational", "lodge": "relational", "overlap": "relational",
@@ -60,6 +173,10 @@ def family_key(scheme: dict) -> tuple:
         for op in ops
         if str(op.get("op") or op.get("verb") or "") in FAMILY_OF_VERB
     }
+    # The open shape contract can change plan or section. Read its actual
+    # fields so a shaped body is not filed as an unmodified extrusion.
+    shapes = [op for op in ops if str(op.get("op") or op.get("verb") or "") == "shape"]
+    shaped_move = _shape_move(shape_family_evidence(scheme)) if shapes else None
     # One dominant move names the family. A marquee added to a plinth-and-
     # turned-tower does not make it a different building - the judges read
     # the strongest statement, so the key does too.
@@ -79,6 +196,8 @@ def family_key(scheme: dict) -> tuple:
         }
         moves = section_verbs or moves
     stature = "low" if height < 0.42 else ("mid" if height < 0.72 else "tall")
+    if shaped_move is not None:
+        moves = {shaped_move}
     return (opener, frozenset(moves), stature)
 
 
@@ -86,7 +205,7 @@ def family_tag(scheme: dict) -> str:
     """The key as one printable word, for ledgers and selector maps."""
 
     opener, moves, stature = family_key(scheme)
-    return f"{opener}/{next(iter(moves), '-')}/{stature}"
+    return f"{opener}/{'+'.join(sorted(moves)) or '-'}/{stature}"
 
 
 def one_per_family(entries, *, key_of, score_of):

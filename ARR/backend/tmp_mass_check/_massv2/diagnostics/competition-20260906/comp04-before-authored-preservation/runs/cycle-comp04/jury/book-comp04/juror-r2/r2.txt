@@ -1,0 +1,164 @@
+TILE t01
+CONCEPT 3 | The open courtyard and changing parapet heights give a coherent, if familiar, composition.
+FEASIBILITY 4 | The low continuous wings provide credible support without major transfers.
+SITE 4 | The open end addresses the unbuilt side of the parcel and establishes a sheltered exterior space.
+EDITABILITY 4 | The courtyard can remain legible as floors and circulation are developed; the minor edge notches are expendable.
+WEIGHTED 3.65
+
+TILE t02
+CONCEPT 4 | The fluted shaft and swollen crown make a memorable single silhouette.
+FEASIBILITY 3 | The inclined crown has continuous support, but its repeated offsets and narrow intervening slots complicate a civic structure.
+SITE 2 | The freestanding vertical object leaves residual setbacks with little response to the parcel shape or open side.
+EDITABILITY 3 | Regular lower floors are possible, while fitting circulation around the many slots and shifting upper perimeter needs care.
+WEIGHTED 3.15
+
+TILE t03
+CONCEPT 3 | The large roof funnel is legible, though the principal street-level impression remains a plain tower.
+FEASIBILITY 4 | The broad continuous perimeter supports a credible structure, with the sloping roof cavity requiring localized resolution.
+SITE 2 | The centered rectangular footprint does little to distinguish the parcel's different edges.
+EDITABILITY 4 | The main block accepts conventional floors and cores, and the roof depression can survive enclosure development.
+WEIGHTED 3.25
+
+TILE t04
+CONCEPT 2 | The tapered solid reads clearly but offers little formal identity beyond following the site.
+FEASIBILITY 5 | The low unbroken prism has an uncomplicated load path and no demanding suspended elements.
+SITE 4 | Its long diagonal face and clipped ends respond directly to the irregular boundary, although outdoor space is mostly peripheral.
+EDITABILITY 5 | A broad consistent floor plate leaves considerable freedom for cores, rooms and facade development.
+WEIGHTED 3.75
+
+TILE t05
+CONCEPT 3 | The tall notched block and roof cuts compete, weakening the hierarchy of the main idea.
+FEASIBILITY 3 | The main walls are well grounded, but the projecting roof fragment and intersecting cuts need clearer structural continuity.
+SITE 2 | The inward cuts barely organize the surrounding site, which remains a generic margin.
+EDITABILITY 3 | The main volume can accommodate floors, but several roof gestures would need careful adjustment to remain useful.
+WEIGHTED 2.80
+
+TILE t06
+CONCEPT 2 | The leaning prism is recognizable, but the tiny incisions contribute little to a compelling civic identity.
+FEASIBILITY 3 | The sloping walls remain connected to a broad base, although their eccentric loads complicate an otherwise simple building.
+SITE 2 | The compact object has no clear alignment or opening that gives the surrounding ground a purpose.
+EDITABILITY 3 | Floors and cores are possible, but the moving perimeter and narrow cuts reduce the freedom of development.
+WEIGHTED 2.45
+
+TILE t07
+CONCEPT 3 | The cruciform extrusion is immediately legible but remains a familiar diagram.
+FEASIBILITY 5 | Continuous vertical wings and repeated plans offer straightforward structural support.
+SITE 2 | The equal arms produce undifferentiated setbacks and scarcely acknowledge the parcel's asymmetry.
+EDITABILITY 4 | The intersection can organize circulation and the arms can accept regular floors without losing the cross.
+WEIGHTED 3.50
+
+TILE t08
+CONCEPT 4 | The repeated sawtooth roof gives the otherwise simple block a strong, readable rhythm.
+FEASIBILITY 4 | The roof profile sits on a continuous grounded mass and presents a credible conventional construction problem.
+SITE 2 | Its low height is appropriate, but the rectangular footprint leaves the site's distinctive edges largely unanswered.
+EDITABILITY 4 | The repeated roof bays and regular footprint can accommodate enclosure and internal subdivision while retaining the silhouette.
+WEIGHTED 3.60
+
+TILE t09
+CONCEPT 4 | The deep U-shaped court and large punched opening establish a clear relationship between solid and void.
+FEASIBILITY 4 | Grounded continuous wings support the mass; the large wall aperture requires a substantial but plausible lintel.
+SITE 3 | The court opens toward available ground, though its tall enclosure limits the generosity of that gesture.
+EDITABILITY 4 | The substantial wings can accept floors and circulation while preserving both the court and the principal aperture.
+WEIGHTED 3.80
+
+TILE t10
+CONCEPT 3 | The U-shaped enclosure remains legible, but the diagonal slit and stacked offsets fragment its clarity.
+FEASIBILITY 2 | The continuous diagonal separation leaves a substantial upper front band without a clearly demonstrated local support path.
+SITE 3 | The open court responds to the free side, although the thin tall wings create a severe enclosure.
+EDITABILITY 2 | Narrow floor strips and the diagonal interruption leave limited room for cores and regular floors without altering the gesture.
+WEIGHTED 2.55
+
+TILE t11
+CONCEPT 1 | The external mass is a generic rectangular block; the sectional voids do not give it a memorable overall form.
+FEASIBILITY 4 | The simple outer shell is credible, with the concealed internal cut requiring some bridging.
+SITE 2 | The bar has adequate surrounding space but offers no strong response to the parcel or public approach.
+EDITABILITY 4 | Its broad regular volume permits flexible subdivision, although the shown internal void must be coordinated with floors.
+WEIGHTED 2.55
+
+TILE t12
+CONCEPT 4 | The rising wedge and side notch form one emphatic, memorable profile.
+FEASIBILITY 4 | The wedge is continuously grounded and the inclined upper surface can be built with a conventional supporting frame.
+SITE 3 | Its low end and rising back establish a useful directional scale change, but the ground remains weakly organized.
+EDITABILITY 3 | The main idea survives enclosure, while fitting horizontal floors beneath the steep incline constrains usable depth.
+WEIGHTED 3.60
+
+TILE t13
+CONCEPT 2 | The tower on a low plinth has a clear hierarchy but little distinctive formal invention.
+FEASIBILITY 5 | Both volumes are compact and directly stacked, with an uncomplicated route for loads to the ground.
+SITE 3 | The low base moderates the site's scale, though its rectangular placement does not respond closely to the irregular boundary.
+EDITABILITY 4 | The two simple volumes can take floors, cores and facades without losing their basic relationship.
+WEIGHTED 3.35
+
+TILE t14
+CONCEPT 4 | The nested terraces create a strong and easily remembered stepped silhouette.
+FEASIBILITY 5 | Each smaller tier bears on a broader tier below, giving the scheme a direct and credible structural logic.
+SITE 3 | The low perimeter reduces the building's impact and leaves open ground, although the terraces are not strongly oriented to a particular edge.
+EDITABILITY 4 | The stepped parti can survive floor and facade development; access to the shrinking upper tiers still needs resolution.
+WEIGHTED 4.05
+
+TILE t15
+CONCEPT 3 | The tall thin U is clear, but the small rooftop addition dilutes an otherwise singular enclosure.
+FEASIBILITY 3 | Continuous walls can support the form, while their extreme slenderness over several levels requires careful stability and floor connections.
+SITE 3 | The large open court addresses one side of the parcel, but the tall narrow enclosure gives it an imposing scale.
+EDITABILITY 2 | The very narrow occupied strips shown in plan leave little depth for rooms, circulation and cores without thickening the mass.
+WEIGHTED 2.80
+
+TILE t16
+CONCEPT 3 | The fanned bars suggest a clear directional idea, but their disconnected levels weaken the whole.
+FEASIBILITY 1 | At least one long elevated bar appears detached from any visible support, and the ground plan provides no supporting footprint beneath it.
+SITE 2 | The bars gesture across the site but fail to establish a clearly grounded sequence of exterior spaces.
+EDITABILITY 2 | Adding the missing supports and usable vertical connections would substantially change the floating-bar composition.
+WEIGHTED 2.10
+
+TILE t17
+CONCEPT 2 | The broad notched block is understandable, but the pinched corner reads as an isolated flourish.
+FEASIBILITY 4 | The main volume has broad continuous bearing areas and no major visibly unsupported piece.
+SITE 3 | The recess offers some relation to the open ground, while the small corner pinch has little site-scale effect.
+EDITABILITY 4 | The substantial wings permit normal planning and enclosure, with the small corner manipulation needing only localized coordination.
+WEIGHTED 3.10
+
+TILE t18
+CONCEPT 4 | The contrast between a jagged face and ordered terraces is distinctive, though many small projections compete for attention.
+FEASIBILITY 3 | The stepped body is well supported, but the tall narrow projections and repeated abrupt reductions make structural detailing demanding.
+SITE 3 | The descending terraces establish a lower side to the mass, but the jagged edge does not clearly explain its relation to the parcel.
+EDITABILITY 3 | The main terrace structure is durable as an idea, while the many slender teeth are vulnerable to practical floor and facade requirements.
+WEIGHTED 3.35
+
+TILE t19
+CONCEPT 4 | The stepped depression within a thick square rim is a clear and memorable sectional idea.
+FEASIBILITY 4 | The low continuous body provides credible bearing beneath the steps, with localized projecting pieces requiring attention.
+SITE 2 | The inward-facing roof space does little to connect the building with its surrounding ground or differentiated edges.
+EDITABILITY 3 | The stepped void can survive development, but floor levels and circulation must be reconciled with its descending geometry.
+WEIGHTED 3.40
+
+TILE t20
+CONCEPT 4 | The pinched U and large interlocking internal void create a forceful sculptural enclosure.
+FEASIBILITY 3 | The main arms are grounded, but the upper lip and intermediate projection need explicit support and transfer design.
+SITE 3 | The widening opening addresses the free ground, while the tight end of the court limits its spatial generosity.
+EDITABILITY 3 | The broad arms offer usable volume, although the taper and large sectional cuts constrain regular floors and connections.
+WEIGHTED 3.35
+
+TILE t21
+CONCEPT 3 | The unequal-height wings make a readable ensemble, but the small front notches add little to it.
+FEASIBILITY 3 | The grounded bars are credible, while the raised rear portion requires a clearer connection and support strategy.
+SITE 3 | The separation between the wings gives the ground a useful opening, though the tall front remains imposing.
+EDITABILITY 4 | The substantial wing widths allow floors and cores to be inserted while retaining the difference in heights.
+WEIGHTED 3.20
+
+TILE t22
+CONCEPT 4 | The large angular bite gives the low solid a memorable single gesture.
+FEASIBILITY 3 | The main block is stable, but the deep wedge-shaped recess leaves a thin projecting roof edge requiring careful structural resolution.
+SITE 3 | The principal cut marks one outward-facing side, although it remains elevated and does not demonstrate a ground-level route.
+EDITABILITY 3 | The regular body is adaptable, but preserving the deep recess limits adjacent floor positions and facade subdivision.
+WEIGHTED 3.35
+
+TILE t23
+CONCEPT 3 | The paired low bars and linking piece make a clear, restrained parti, though not an exceptional silhouette.
+FEASIBILITY 5 | The broad grounded bars and modest connection present a straightforward structural proposition.
+SITE 4 | The long open slot and low height create a generous relationship with the surrounding ground and the parcel's open side.
+EDITABILITY 4 | The two bars can take conventional floors and cores while preserving the central exterior space and their connecting relationship.
+WEIGHTED 3.90
+
+RANKING: t14, t23, t09, t04, t01, t12, t08, t07, t19, t20, t22, t18, t13, t03, t21, t02, t17, t05, t15, t10, t11, t06, t16
+VERDICT: I would advance t14 and t23 for their clear, developable forms, with t09 as the stronger enclosed-court alternative. Across the set, the most convincing proposals give simple grounded volumes a useful relationship to outdoor space; several more sculptural entries still need to demonstrate support or viable occupied depth.
+

@@ -1,0 +1,49 @@
+{
+  "round": "comp07",
+  "status": "retracted_before_production",
+  "prompt_contract": "arr.maas.geometry_llm_author.v33_graph_assembly_body_budget",
+  "payload": "tmp_mass_check\\_massv2\\inputs\\book-comp07.json",
+  "payload_sha256": "0630105a22bd2e95a7f284c818cd8aa187f74184fc2a7464ed24cfb97f2e8f06",
+  "adopted_sha256": "0630105a22bd2e95a7f284c818cd8aa187f74184fc2a7464ed24cfb97f2e8f06",
+  "byte_identical_to_adopted": true,
+  "contract_files": [
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\PROMPT.txt",
+      "sha256": "f42f5381768088d8ef43bef57f881807c21699f25f2e52b108b8f6a8ef51cabc",
+      "bytes": 110177
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\schema.json",
+      "sha256": "6fa29e6e5ab4c13bd4df80ffa9766b06052a8f6ae80e3143b8c531740a333c90",
+      "bytes": 561412
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\context.json",
+      "sha256": "663508bf74f0270487b2500a1531c3d33a1ff4687d376d005b88779113624cfe",
+      "bytes": 61662
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp07\\brief.md",
+      "sha256": "8c91dd81d9a87974fea1dfb2abecff42717ea88d0d0657e6be0f153d52c65149",
+      "bytes": 42734
+    }
+  ],
+  "validation": {
+    "schema": "pass",
+    "offered_unique_paths": 12,
+    "decoded_programs": 12,
+    "authored_originals": 12,
+    "book_explorations": 12,
+    "rejections": 0
+  },
+  "adopted_revision": "Program3 path only changed to unused offered interlock 3/8 vertical path; initial adopted bytes preserved in adopted-before-frozen-contract.json. No geometric node changed.",
+  "production_executed": false,
+  "limitations": [
+    "Actual-site import and fresh VLM are pending in the cycle.",
+    "Programme and access design remain unverified."
+  ],
+  "reason": "Root stopped comp07 after discovering per-cell selector dropped valid parti organizations. Await comp08 frozen contract; no production used this payload.",
+  "official_comp07_path_present": false,
+  "next_adopted_payload": "ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp08.adopted.json",
+  "next_adopted_sha256": "0630105a22bd2e95a7f284c818cd8aa187f74184fc2a7464ed24cfb97f2e8f06"
+}

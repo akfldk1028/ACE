@@ -1,0 +1,20 @@
+{
+  "name": "book:book-comp08:morph-voided-mid:creative-022",
+  "shape_id": "e018b01f5128fd41d3f6",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.470150275529123
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    428.94920785922926,
+    428.9492079055556
+  ],
+  "section_area_m2": 283.868136130561,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "e738ea7fca95c5959f17c17bcf7739f9988fcb74adf7c24a9fa8029c74d2c3ff"
+}

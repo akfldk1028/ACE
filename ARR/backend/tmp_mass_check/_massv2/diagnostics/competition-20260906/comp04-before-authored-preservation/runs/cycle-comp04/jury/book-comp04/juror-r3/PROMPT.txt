@@ -1,0 +1,31 @@
+아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.
+타일 위쪽은 배달된 매스(백색 모형 액소노메트릭 + 배치도)입니다. 아래에 띠가 있으면 기본 조작 연구와 선택 변형의 연결입니다. 마지막 프레임이 위쪽 매스와 같은 최종 형상이며, 앞 프레임은 기본 조작 연구입니다. PLAN과 SECTION은 같은 최종 형상의 지상·상층 점유와 표시 절단선의 단면입니다. 그림에서 지지와 진입을 확인하되, 표시되지 않은 방·문·계단을 있다고 추정하지 마십시오. 조작 띠가 없는 타일은 순서 기록이 없는 안이며, 그것만으로 감점하지 마십시오.
+
+You are a juror on an international architecture competition panel reviewing massing alternatives.
+
+Site: 2,500 m2 parcel, coverage limit 60%, FAR limit 250%. Programme: a civic community centre, roughly 1,500-6,000 m2 - in this edition the form decides the size; there is no fixed area schedule.
+
+Each tile is one alternative: a white-model axonometric on its site, a small plan diagram, one sentence stating what the scheme is for, and its coverage/FAR.
+
+Score each tile 1-5 on four counts.
+
+**CONCEPT (weight 0.35)** - Is there one strong formal idea, legible from the mass alone without the caption? Would this image be remembered after fifty boards?
+**FEASIBILITY (weight 0.25)** - Could this stand and be built at a civic budget? Cantilevers, transfers, thin blades and floating pieces cost points only where they are structurally implausible, not where they are merely bold.
+**SITE (weight 0.20)** - Does the mass respond to its parcel - its edges, its open side, its scale - or could it sit anywhere?
+**EDITABILITY (weight 0.20)** - Does the parti survive development? Can floors, cores and a facade be added without dissolving the idea?
+
+Output EXACTLY this format, nothing before or after:
+
+TILE <id>
+CONCEPT <score> | <one line>
+FEASIBILITY <score> | <one line>
+SITE <score> | <one line>
+EDITABILITY <score> | <one line>
+WEIGHTED <weighted mean, two decimals>
+
+After all tiles:
+
+RANKING: <best tile first, comma-separated>
+VERDICT: <two or three sentences on the set - which would advance>
+
+⚠️ You do not know which tiles are old or new, or which edition produced them. Do not try to infer it; judge only what you see.

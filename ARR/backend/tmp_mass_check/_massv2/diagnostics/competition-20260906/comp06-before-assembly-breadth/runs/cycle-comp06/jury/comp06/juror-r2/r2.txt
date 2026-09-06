@@ -1,0 +1,51 @@
+TILE t01
+CONCEPT 4 | Overlapping rotated blocks establish a clear stepped composition, although the junctions compete with the dominant upper plate.
+FEASIBILITY 3 | Broad upper projections and limited overlap require transfer design; the located section does not establish a complete support system.
+SITE 3 | The blocks occupy opposing parts of the parcel and leave a large pointed remainder, but their rotations only partly reinforce its edges.
+EDITABILITY 3 | Substantial floor plates are usable, but changing alignments and separated lower footprints complicate continuous cores and circulation.
+WEIGHTED 3.35
+
+TILE t02
+CONCEPT 4 | A compact mass combines an enclosed court, an open recess and ground-level cuts into a legible solid-void composition.
+FEASIBILITY 4 | Mostly aligned walls and modest height appear plausible, with local transfers needed where the ground cuts interrupt the upper ring.
+SITE 4 | The clipped outline addresses the irregular parcel while the open recess and remaining perimeter space give the placement some direction.
+EDITABILITY 4 | Continuous upper bands offer a clear development framework, although the ground interruptions constrain vertical connections.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 4 | Thin rotated volumes form a coherent alternating stack with visible terraces and a pronounced upper plate.
+FEASIBILITY 3 | The shifted footprints and projecting plates demand a resolved transfer strategy that is not demonstrated in the supplied cut.
+SITE 4 | The faceted lower perimeter and spread of the volumes respond to several parcel directions while retaining an open pointed end.
+EDITABILITY 3 | Broad plates allow subdivision, but rotated upper occupancy and separated lower masses restrict straightforward vertical planning.
+WEIGHTED 3.55
+
+TILE t04
+CONCEPT 4 | A continuous courtyard ring gains a strong sectional hierarchy from its descending roof and unequal opposing heights.
+FEASIBILITY 5 | Repeated ground and upper footprints provide a direct structural basis with no major projecting or detached elements visible.
+SITE 3 | The compact ring preserves substantial open ground, but its rectangular court and offset placement give only a partial response to the irregular parcel.
+EDITABILITY 4 | A connected perimeter supports continuous circulation and core placement, with the sloping upper envelope requiring local floor adjustments.
+WEIGHTED 4.05
+
+TILE t05
+CONCEPT 3 | Three pitched volumes establish a recognizable family and size hierarchy, but their shared open space is less strongly defined.
+FEASIBILITY 5 | Separate grounded blocks with repeated footprints and straightforward roof forms present no evident major transfer problem.
+SITE 4 | The three masses spread toward distinct parcel edges and frame a central gap, making their placement more responsive than a single isolated object.
+EDITABILITY 3 | Individual blocks are straightforward to subdivide, but their separation requires independent vertical circulation or additional connections.
+WEIGHTED 3.70
+
+TILE t06
+CONCEPT 3 | Three low pitched blocks share a consistent language, though the reduced volumes and loose spacing weaken the collective hierarchy.
+FEASIBILITY 5 | Compact grounded volumes and aligned floor footprints are structurally straightforward at the massing level.
+SITE 3 | Generous surrounding space is retained, but the small inward-set blocks provide relatively weak definition of the parcel edges.
+EDITABILITY 3 | Simple individual envelopes are adaptable, while small separated footprints make shared circulation and core allocation less efficient.
+WEIGHTED 3.50
+
+TILE t07
+CONCEPT 4 | A tall courtyard ring has a distinctive folded crown, though most sectional variation is concentrated at the roof.
+FEASIBILITY 4 | Aligned perimeter occupancy supports plausible vertical construction; the intersecting roof folds require careful geometric resolution.
+SITE 3 | Concentration toward one end creates a large open remainder, but the placement offers limited articulation of the longer parcel boundaries.
+EDITABILITY 3 | Continuous bands support a circulation loop, but their narrow appearance and elaborate roof intersections constrain cores and upper-floor planning.
+WEIGHTED 3.60
+
+RANKING: t04, t02, t05, t07, t03, t06, t01
+VERDICT: Advance t04 for its clear courtyard idea, sectional hierarchy and continuous development framework, with t02 close behind for its richer ground-level solid-void relationships. The stacked alternatives have expressive positive volumes but need stronger evidence of support and vertical continuity, while the pavilion groups offer straightforward construction with weaker collective spatial definition. These judgments concern visible massing; exact building-line compliance and statutory height remain unverified.

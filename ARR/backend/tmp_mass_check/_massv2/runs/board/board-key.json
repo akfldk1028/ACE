@@ -1,163 +1,179 @@
 [
  {
   "label": "O1",
-  "name": "sangok_c04_two_gardens~full_ground^cross_open",
-  "score": 4.13,
-  "round": "vlm-comp04",
-  "shape_id": "e0efd2fcf3269d302770",
-  "certificate_id": "2f163ad8a71a2a02e084"
+  "name": "book:book-comp09:morph-curved-low:creative-001",
+  "score": 4.25,
+  "round": "vlm-book-comp09",
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate_id": "acba4f59647784c56b27"
  },
  {
   "label": "O2",
-  "name": "book:book-comp04:morph-voided-tall:creative-030",
-  "score": 4.05,
-  "round": "vlm-book-comp04",
-  "shape_id": "f8df85c08b83d0871996",
-  "certificate_id": "0d49fbacff8c745d0aec"
+  "name": "book:book-develop-comp06:exact-authored-development:creative-002",
+  "score": 4.08,
+  "round": "vlm-book-comp09",
+  "shape_id": "ea62d184a62fe7cef597",
+  "certificate_id": "76a9dd7e900120abdb2a"
  },
  {
   "label": "O3",
-  "name": "sangok_c04_three_houses^cross_open",
-  "score": 3.97,
-  "round": "vlm-comp04",
-  "shape_id": "c3e46aaebcffab294545",
-  "certificate_id": "c74e3fdef69d317197ff"
- },
- {
-  "label": "O4",
   "name": "book:book-develop-comp03:exact-authored-development:creative-001",
-  "score": 3.83,
-  "round": "vlm-book-comp04",
+  "score": 4.07,
+  "round": "vlm-book-comp09",
   "shape_id": "355b30ebb37b723be6cd",
   "certificate_id": "efa427a310fcc96b861f"
  },
  {
+  "label": "O4",
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "score": 4.0,
+  "round": "vlm-comp09",
+  "shape_id": "64c94edfe13ebcdc018e",
+  "certificate_id": "1f9e9d919af107b31378"
+ },
+ {
   "label": "O5",
-  "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+  "name": "book:book-comp09:morph-compact-mid:creative-007",
   "score": 3.8,
-  "round": "vlm-comp04",
-  "shape_id": "8cea48dc1e0f41f8f3da",
-  "certificate_id": "3494badd9e35bbcffe13"
+  "round": "vlm-book-comp09",
+  "shape_id": "a6d538b20ff30bda1021",
+  "certificate_id": "6350fb4b4ae5c4426764"
  },
  {
   "label": "O6",
-  "name": "book:book-comp04:morph-compact-low:creative-019",
-  "score": 3.8,
-  "round": "vlm-book-comp04",
-  "shape_id": "3434da0b5109f592f69a",
-  "certificate_id": "b43f9131d968a665e319"
+  "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+  "score": 3.78,
+  "round": "vlm-comp09",
+  "shape_id": "7d3f2e4b92afe8526709",
+  "certificate_id": "5250875ba26b27f4ed9a"
  },
  {
   "label": "O7",
-  "name": "sangok_c04_hall_daily_street~full_ground^centred",
-  "score": 3.67,
-  "round": "vlm-comp04",
-  "shape_id": "57c2b01b0c870f71d8dc",
-  "certificate_id": "9dc8c0eda34d89acec2c"
+  "name": "book:book-comp09:morph-compact-mid:creative-009",
+  "score": 3.77,
+  "round": "vlm-book-comp09",
+  "shape_id": "6986b5f575dbc867aefb",
+  "certificate_id": "46849eef297b78e94aba"
  },
  {
   "label": "O8",
-  "name": "book:book-comp04:morph-compact-tall:creative-013",
-  "score": 3.63,
-  "round": "vlm-book-comp04",
-  "shape_id": "0f92a71f8b4126a4fe49",
-  "certificate_id": "cb67199bda6fd67be341"
+  "name": "sangok_c07_continuous_court_section~dispersed_ground^to_open",
+  "score": 3.75,
+  "round": "vlm-comp09",
+  "shape_id": "4022df470e28a8bfaede",
+  "certificate_id": "b489226f6f3b2f341ea7"
  },
  {
   "label": "O9",
-  "name": "book:book-comp04:morph-voided-mid:creative-006",
-  "score": 3.62,
-  "round": "vlm-book-comp04",
-  "shape_id": "14ab2c416e71cce98255",
-  "certificate_id": "007d847664edb1467d07"
+  "name": "book:book-comp09:morph-compact-low:creative-006",
+  "score": 3.7,
+  "round": "vlm-book-comp09",
+  "shape_id": "7eb610212c8594efa9ee",
+  "certificate_id": "0ddc2903010ced3b24fe"
  },
  {
   "label": "O10",
-  "name": "book:book-comp04:morph-curved-mid:creative-025",
-  "score": 3.6,
-  "round": "vlm-book-comp04",
-  "shape_id": "77713afe12499ac4eaa1",
-  "certificate_id": "dc862cdcd66a64f43403"
+  "name": "book:book-comp09:morph-compact-low:creative-005",
+  "score": 3.7,
+  "round": "vlm-book-comp09",
+  "shape_id": "81f24c49fd99a2f213c3",
+  "certificate_id": "1ecbe073923e19a48a19"
  },
  {
   "label": "O11",
-  "name": "book:book-comp04:morph-voided-low:creative-001",
-  "score": 3.6,
-  "round": "vlm-book-comp04",
-  "shape_id": "41392ec7e99f209299ff",
-  "certificate_id": "075d7bb65d60872c6ae9"
+  "name": "book:book-develop-comp08:exact-authored-development:creative-001",
+  "score": 3.7,
+  "round": "vlm-book-comp09",
+  "shape_id": "6ef088218ed6fbc0c1cc",
+  "certificate_id": "6567d45c096b0b1b5518"
  },
  {
   "label": "O12",
-  "name": "book:book-comp04:morph-oblique-low:creative-049",
-  "score": 3.57,
-  "round": "vlm-book-comp04",
-  "shape_id": "95c33d897880d5fbca59",
-  "certificate_id": "d896f61fb64b80cea439"
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "score": 3.67,
+  "round": "vlm-comp09",
+  "shape_id": "40115b02b09902f83d13",
+  "certificate_id": "d5daa53a0e5d499ddf13"
  },
  {
   "label": "O13",
-  "name": "book:book-comp04:morph-voided-low:creative-040",
-  "score": 3.53,
-  "round": "vlm-book-comp04",
-  "shape_id": "af77b82df68fff6ed141",
-  "certificate_id": "b094f5469482053617a0"
+  "name": "book:book-comp09:morph-curved-low:creative-013",
+  "score": 3.55,
+  "round": "vlm-book-comp09",
+  "shape_id": "eefb8d5cfff57c74e997",
+  "certificate_id": "473a9a17bf12d5702f43"
  },
  {
   "label": "O14",
-  "name": "book:book-comp04:morph-voided-low:creative-014",
-  "score": 3.53,
-  "round": "vlm-book-comp04",
-  "shape_id": "8e57ca78a2f185af80cc",
-  "certificate_id": "be4f175bab1d24885f1a"
+  "name": "book:book-comp09:morph-compact-mid:creative-011",
+  "score": 3.52,
+  "round": "vlm-book-comp09",
+  "shape_id": "ce63ea701f8ca3bb4096",
+  "certificate_id": "495bd7274049059a97cb"
  },
  {
   "label": "O15",
-  "name": "book:book-comp04:morph-curved-low:creative-043",
-  "score": 3.47,
-  "round": "vlm-book-comp04",
-  "shape_id": "58575b507d01970dcac6",
-  "certificate_id": "5a7020de52f826055f4b"
+  "name": "book:book-comp09:morph-curved-mid:creative-004",
+  "score": 3.45,
+  "round": "vlm-book-comp09",
+  "shape_id": "d8c7681d14fdb92697f1",
+  "certificate_id": "fa585c3d92d5dca3f51f"
  },
  {
   "label": "O16",
-  "name": "book:book-comp04:morph-voided-low:creative-048",
-  "score": 3.37,
-  "round": "vlm-book-comp04",
-  "shape_id": "55a86ca97174921c5666",
-  "certificate_id": "13ee64dbe5e20fcb3130"
+  "name": "book:book-comp09:morph-compact-mid:creative-019",
+  "score": 3.43,
+  "round": "vlm-book-comp09",
+  "shape_id": "f0ddd9d576d6eb773324",
+  "certificate_id": "3522537b52b2785f191d"
  },
  {
   "label": "O17",
-  "name": "book:book-comp04:morph-curved-mid:creative-036",
-  "score": 3.33,
-  "round": "vlm-book-comp04",
-  "shape_id": "96c19ddb6b69ada79a18",
-  "certificate_id": "4038675e49f33641641a"
+  "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+  "score": 3.35,
+  "round": "vlm-comp09",
+  "shape_id": "41a8739e010fce1dbb40",
+  "certificate_id": "9673e6ce544dd6a1af60"
  },
  {
   "label": "O18",
-  "name": "book:book-comp04:morph-voided-mid:creative-028",
-  "score": 3.33,
-  "round": "vlm-book-comp04",
-  "shape_id": "6be8230de312a4de01da",
-  "certificate_id": "0ac67c5a6d1ab6a788f6"
+  "name": "book:book-comp09:morph-compact-mid:creative-012",
+  "score": 3.35,
+  "round": "vlm-book-comp09",
+  "shape_id": "86ea51c512a1849ccb73",
+  "certificate_id": "2d96126ec23a9ef48e59"
  },
  {
   "label": "O19",
-  "name": "book:book-comp04:morph-voided-mid:creative-005",
-  "score": 3.25,
-  "round": "vlm-book-comp04",
-  "shape_id": "ec12d646821d301984e4",
-  "certificate_id": "e938d214d67358e8fe4b"
+  "name": "book:book-comp09:morph-oblique-mid:creative-002",
+  "score": 3.35,
+  "round": "vlm-book-comp09",
+  "shape_id": "27b052d1ca884a5599b2",
+  "certificate_id": "68af1ae31f2c9f6ffea0"
  },
  {
   "label": "O20",
-  "name": "book:book-comp04:morph-voided-low:creative-003",
-  "score": 3.15,
-  "round": "vlm-book-comp04",
-  "shape_id": "acfbb1110e960215b24b",
-  "certificate_id": "2b45f969476b1f0c6833"
+  "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+  "score": 3.05,
+  "round": "vlm-comp09",
+  "shape_id": "11e2e6eec15a6f8b60ee",
+  "certificate_id": "8f8a0555145d746ac031"
+ },
+ {
+  "label": "O21",
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "score": 3.0,
+  "round": "vlm-comp09",
+  "shape_id": "70050afda2ba70381aa3",
+  "certificate_id": "e83977d4f93a66b785de"
+ },
+ {
+  "label": "O22",
+  "name": "book:book-comp09:morph-compact-mid:creative-003",
+  "score": 3.0,
+  "round": "vlm-book-comp09",
+  "shape_id": "4abaecbf93d355347425",
+  "certificate_id": "0129e6f8ecb5389b209d"
  },
  {
   "label": "C1",

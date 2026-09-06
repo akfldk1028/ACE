@@ -1,0 +1,79 @@
+TILE t01
+CONCEPT 4 | The continuous crescent makes a strong concave exterior space, although its section remains a uniform extrusion.
+FEASIBILITY 5 | Matching ground and upper footprints provide a straightforward continuous mass without visible transfers.
+SITE 4 | The bent footprint frames a substantial open portion of the parcel and keeps its arms within the shown site.
+EDITABILITY 4 | A continuous band offers a workable development framework, with faceted bends requiring local planning care.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 3 | The twisting solid has a legible sculptural identity but little differentiated solid-void or sectional hierarchy.
+FEASIBILITY 4 | The compact continuous body is plausible, while shifting perimeter geometry adds structural and facade complexity.
+SITE 3 | The freestanding footprint leaves peripheral space but demonstrates limited response to particular parcel edges.
+EDITABILITY 4 | Broad continuous plates can accommodate architectural development, with changing edges needing coordination.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 3 | An angular reentrant notch divides the volume into recognizable arms, but the uniform height limits hierarchy.
+FEASIBILITY 5 | The repeated footprint and grounded continuous volumes show no substantial transfer condition.
+SITE 3 | The footprint fits the parcel with open margins, although the narrow tapered notch has limited spatial generosity.
+EDITABILITY 4 | Substantial connected arms are adaptable, with the pointed recess requiring refinement for practical enclosure.
+WEIGHTED 3.70
+
+TILE t04
+CONCEPT 3 | A bent two-arm composition establishes an open side, but small pointed perimeter interruptions weaken its clarity.
+FEASIBILITY 4 | The grounded extrusion is broadly plausible, with thin projections needing resolution at construction scale.
+SITE 3 | The concavity reserves an open portion of the site, without a demonstrated frontage or orientation strategy.
+EDITABILITY 3 | The unequal arms can be developed, but acute notches and narrow tips complicate repeatable planning and facades.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 4 | Offset upper and lower blocks produce a clear low sectional composition with both overhang and exposed ledge.
+FEASIBILITY 4 | Substantial overlap makes the offset plausible, although the overhanging edge requires a developed structural solution.
+SITE 3 | The compact low mass preserves ample open ground but offers only a general relationship to the parcel geometry.
+EDITABILITY 5 | Simple substantial plates allow planning and facade development while retaining the defining sectional offset.
+WEIGHTED 4.00
+
+TILE t06
+CONCEPT 4 | A deep inclined horizontal incision gives the block a distinctive upper-lower relationship visible in section.
+FEASIBILITY 3 | The large upper mass extending over the incision implies a consequential cantilever or transfer requiring resolution.
+SITE 3 | The compact placement leaves perimeter space, but the incision is not visibly tied to a specific site condition.
+EDITABILITY 3 | The inclined cut constrains floor alignment and continuous vertical organization if its geometry is preserved.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 4 | The horizontal recess and vertical steps create a legible articulated block with a retained solid side.
+FEASIBILITY 3 | The section shows a deep recess under a substantial upper volume, demanding careful transfer and support development.
+SITE 3 | The mass occupies the parcel coherently, though its strong recess has no demonstrated relationship to frontage.
+EDITABILITY 4 | Broad plates and a continuous side offer development latitude while keeping the principal recess intact.
+WEIGHTED 3.55
+
+TILE t08
+CONCEPT 3 | The bent volume is readable, but jagged edges and the small roof projection do not establish a stronger hierarchy.
+FEASIBILITY 4 | Continuous grounded arms are plausible, with local pointed geometry and the roof projection needing detailing.
+SITE 3 | The open side preserves exterior space within the parcel, without further evidenced orientation or edge response.
+EDITABILITY 3 | Acute perimeter changes complicate planning, and the small roof element supplies no demonstrated organizational benefit.
+WEIGHTED 3.25
+
+TILE t09
+CONCEPT 3 | The twisting main body remains legible, but its small roof block reads as an additive feature rather than spatial hierarchy.
+FEASIBILITY 4 | A compact continuous mass supports plausible development, with changing perimeter alignment requiring coordination.
+SITE 3 | Peripheral open ground is maintained, but the overall form shows limited specific engagement with parcel edges.
+EDITABILITY 3 | The changing perimeter and additional roof block add coordination demands without a clear planning framework beyond the solid body.
+WEIGHTED 3.25
+
+TILE t10
+CONCEPT 3 | The offset low blocks give sectional definition, but narrow surface fissures distract from the primary composition.
+FEASIBILITY 3 | The overlapping blocks are plausible, while sharp thin fissures introduce unresolved local geometry alongside the overhang.
+SITE 3 | The low compact footprint leaves considerable open space but does not articulate a particular parcel relationship.
+EDITABILITY 3 | Basic plates remain usable, though preserving the narrow cuts would complicate enclosure and local floor continuity.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 4 | Two long bars and a short connection define a strong open-ended void with clear positive-volume hierarchy.
+FEASIBILITY 5 | Substantial grounded bars and largely repeated footprints show a straightforward mass without large visible transfers.
+SITE 4 | The elongated paired arrangement gives the open ground a deliberate form and relates coherently to the parcel alignment.
+EDITABILITY 4 | Regular bars support flexible architectural development, while the short connection needs careful circulation resolution.
+WEIGHTED 4.25
+
+RANKING: t11, t01, t05, t03, t07, t02, t06, t04, t08, t09, t10
+VERDICT: Advance t11 and t01 for their clear relationships between substantial volumes and exterior voids, with t05 as the strongest compact sectional alternative. The deeply incised blocks warrant further structural development, while small spikes, roof additions and fissures contribute less to a coherent architectural framework. These rankings assess visible massing potential and do not establish legal compliance or an undisclosed programme.

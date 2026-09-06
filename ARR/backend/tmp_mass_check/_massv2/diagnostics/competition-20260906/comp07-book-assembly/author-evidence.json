@@ -1,0 +1,33 @@
+{
+  "source_payload": "ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp06.json",
+  "source_sha256": "21fdb6884601dedc7c9034c905e969b6e65a576bc709183e7fadd6ad370d0e63",
+  "adopted_payload": "ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp07.adopted.json",
+  "adopted_sha256": "6b42a2d0f113750dfdae27a23e33685bb5009d9673d39b2a4cf7dbf4ec2998d7",
+  "program_count": 12,
+  "new_positions_one_based": [
+    2,
+    3,
+    7,
+    9
+  ],
+  "unchanged_positions_one_based": [
+    1,
+    4,
+    5,
+    6,
+    8,
+    10,
+    11,
+    12
+  ],
+  "validation": {
+    "decoded": 12,
+    "physical_originals": 12,
+    "book_explorations": 12,
+    "portfolio_rejections": 0,
+    "normalized_new_source_support_pass": 4,
+    "actual_site_import": "not_run",
+    "new_frozen_cycle_contract": "not_yet_created"
+  },
+  "visual_review": "Author directly opened all four normalized four-view renders. Rotated stacked bodies, unequal paired ground wings with upper connection, grounded two-support hall, and asymmetric interlocking walls are visibly distinct; structural members, circulation and programme remain unverified."
+}

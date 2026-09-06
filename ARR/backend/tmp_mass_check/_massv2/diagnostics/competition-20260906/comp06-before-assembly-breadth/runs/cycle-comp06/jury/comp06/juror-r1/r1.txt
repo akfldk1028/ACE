@@ -1,0 +1,51 @@
+TILE t01
+CONCEPT 4 | Offset polygonal plates establish a clear stacked composition, with a dominant upper projection and recesses between volumes.
+FEASIBILITY 3 | Substantial overlaps offer potential support, but the projecting upper plate and narrow support shown in section need a resolved transfer strategy.
+SITE 3 | Lower volumes pick up parts of the parcel geometry and leave a broad open end, while upper rotations have a less clear relationship to its edges.
+EDITABILITY 2 | Separate lower footprints and offset elevated volumes complicate continuous cores and circulation without altering the composition.
+WEIGHTED 3.15
+
+TILE t02
+CONCEPT 4 | The combination of an enclosed court, an open notch and ground-level interruptions creates a legible family of solid-void relationships.
+FEASIBILITY 4 | The low continuous upper mass is plausible, although its bridges across the interrupted ground footprint require structural development.
+SITE 4 | The elongated bars respond to the parcel's oblique geometry while preserving open ground around the compact footprint.
+EDITABILITY 4 | Connected upper bands provide a workable circulation framework, with ground discontinuities and the narrower links requiring careful core placement.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 4 | The stepped stack and rotated plates form a coherent horizontal composition with a readable upper-volume hierarchy.
+FEASIBILITY 3 | The mass has useful overlap between tiers, but the upper overhang and small bearing zone in the section remain unresolved.
+SITE 3 | Polygonal lower edges relate to the parcel, while the rotated upper footprints provide no equally clear additional site response.
+EDITABILITY 3 | Broad plates can accommodate subdivision, but their changing orientation and separated footprints constrain consistent vertical circulation.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 4 | A single courtyard ring gains sectional hierarchy from its strongly varying height, making the void and positive mass mutually legible.
+FEASIBILITY 5 | Matching ground and upper ring footprints provide direct vertical support without evident transfers or detached elements.
+SITE 4 | The compact ring leaves a substantial contiguous open area and its oblique placement acknowledges the parcel geometry.
+EDITABILITY 4 | Continuous bands allow a coherent circulation loop and stacked cores, though narrow band widths and the changing roof height need careful development.
+WEIGHTED 4.25
+
+TILE t05
+CONCEPT 3 | Three differently sized gabled blocks form a recognizable ensemble, but their separation produces limited sectional or connecting spatial hierarchy.
+FEASIBILITY 5 | Each simple block bears directly on a matching footprint, with conventional roof forms and no evident transfer demands.
+SITE 3 | The blocks distribute around an open central area and approach different parcel edges, but the resulting external-space hierarchy remains loose.
+EDITABILITY 3 | Individual blocks can be developed readily, although their separation would require independent circulation arrangements or additional connections.
+WEIGHTED 3.50
+
+TILE t06
+CONCEPT 3 | The compact gabled trio has a consistent architectural vocabulary, but its low volumes and loose spacing offer modest hierarchy.
+FEASIBILITY 5 | Small directly grounded blocks with consistent upper footprints and simple roofs appear straightforward to develop structurally.
+SITE 3 | Generous surrounding open ground is retained, although the compact scattered footprints have a weak relationship to the parcel perimeter.
+EDITABILITY 4 | Regular independent blocks permit straightforward floor and facade development, with inter-block circulation still to be established.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A tall courtyard ring has a distinctive folded crown, although much of its articulation is concentrated at the roof above uniform walls.
+FEASIBILITY 4 | Consistent ring footprints support direct load paths, while the folded roof intersections need more detailed geometric resolution.
+SITE 3 | Placement toward one end preserves a large contiguous open area, but the tall compact ring has a limited visible response to the remaining parcel edges.
+EDITABILITY 3 | The continuous ring offers circulation continuity, but relatively narrow bands and the articulated upper profile constrain core and top-floor development.
+WEIGHTED 3.60
+
+RANKING: t04, t02, t06, t07, t05, t03, t01
+VERDICT: Advance t04 for its coherent courtyard, sectional hierarchy and direct structural organization, with t02 as a strong alternative offering richer ground-level voids. The gabled ensembles are plausible but less spatially distinctive, while the stacked plates need more convincing support and circulation resolution before advancement.

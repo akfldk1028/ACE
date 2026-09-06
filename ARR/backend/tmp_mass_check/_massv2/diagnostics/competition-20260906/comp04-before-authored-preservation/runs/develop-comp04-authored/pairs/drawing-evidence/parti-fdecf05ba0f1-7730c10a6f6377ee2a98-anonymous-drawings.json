@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_develop_rear_opening",
+  "shape_id": "7730c10a6f6377ee2a98",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    661.8479462300456,
+    661.8479462300456
+  ],
+  "section_area_m2": 214.09026179391884,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "e7dd685e8eca8e798fffe46c38da6f7f57720d3c404b7ea0573617e41168ece8"
+}

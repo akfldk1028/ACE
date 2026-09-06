@@ -1,0 +1,30 @@
+TILE t01
+CONCEPT 4 | A compact continuous mass contrasts an enclosed courtyard with an outward-facing recess, making the subtraction legible in both plan and silhouette.
+FEASIBILITY 5 | Matching ground and upper footprints show direct support throughout, with a low mass and no implausible cantilevers or transfers.
+SITE 4 | The open recess addresses a parcel edge while the clipped perimeter and generous setbacks mediate the irregular site; access to the enclosed court is unshown.
+EDITABILITY 4 | A consistent height and connected wings can accept floors and facade articulation while preserving both voids, although the smaller court constrains adjoining accommodation.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | A complete courtyard ring gains a memorable folded roof profile, although the uneven peaks make the formal rule less disciplined.
+FEASIBILITY 4 | The ring remains supported at ground level and needs no evident floating structure; the changing roof geometry introduces manageable construction complexity.
+SITE 3 | The large internal court provides a clear spatial centre, but the closed ground footprint shows no passage into it and engages the irregular perimeter mainly through corner clipping.
+EDITABILITY 4 | Continuous wings allow a coherent floor and facade system, with additional coordination needed where the changing roof heights meet the uppermost accommodation.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 3 | Three detached blocks clearly establish a small campus and branching gaps, but the individual volumes do not produce a particularly distinctive overall figure.
+FEASIBILITY 5 | All three compact volumes have aligned ground and upper footprints, straightforward vertical support and no exceptional structural demands.
+SITE 4 | The gaps visibly connect the central open space to the perimeter, and the clipped blocks distribute the building around the parcel rather than enclosing its centre.
+EDITABILITY 4 | Each block can accept conventional floors and facade treatment, but future enclosed connections could weaken the open-space network that organizes the scheme.
+WEIGHTED 3.90
+
+TILE t04
+CONCEPT 2 | Two broad parallel bars and a narrow separating slot are understandable in plan but merge into a largely undifferentiated bulk in the main view.
+FEASIBILITY 5 | Broad, vertically aligned footprints and uncomplicated heights suggest direct load paths and routine construction without unusual transfers.
+SITE 3 | The bars follow the parcel orientation and leave an edge-to-edge gap, though that tight slot and the surrounding residual wedges offer limited spatial hierarchy.
+EDITABILITY 5 | The simple bars readily accommodate floor subdivisions, cores and facade development while retaining the split as their organizing idea.
+WEIGHTED 3.55
+
+RANKING: t01, t03, t02, t04
+VERDICT: Advance t01 for its legible pairing of open and enclosed voids, supported by a simple buildable mass. Retain t03 as the strongest alternative for its connected exterior spaces; t02 needs a clearer ground-level relationship between court and site, while t04 needs a more distinctive spatial proposition.

@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_three_houses^cross_open",
+  "shape_id": "c3e46aaebcffab294545",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    846.6004269410189,
+    846.6004269410189
+  ],
+  "section_area_m2": 270.2405939989355,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "67d5401cad91580260b69c0ec17d03c0201379a990ba2dc434616ec6fe04ebc6"
+}

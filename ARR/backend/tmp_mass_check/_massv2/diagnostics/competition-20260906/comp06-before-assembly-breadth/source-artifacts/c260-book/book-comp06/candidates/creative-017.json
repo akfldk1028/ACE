@@ -1,0 +1,2164 @@
+{
+  "candidate_id": "creative-017",
+  "family": "morph-voided-mid",
+  "source_family": "llm_authored",
+  "posthoc_family": "morph-voided-mid",
+  "form_class": "posthoc_morphology",
+  "variation_index": 4,
+  "capacity_band": "spatial_reserve",
+  "program_hash": "983b8e64064681048110967e88756d814e5a23c96822370ed148050c6b045c54",
+  "geometry_hash": "d0ba566a4d9cfe98c6425d5538fc678493753c42072f7703c9a0c4919f4944f6",
+  "normalized_authored_mesh_hash": "d9d2b72a3aa9056f473ec2c650d550c2e78b8f4028d7757033ba22ea47319a08",
+  "geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_diverging_wings__book_1_8_merge__creative_physical",
+    "root_id": "creative_occupied_storeys_union",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base",
+            "global_pose"
+          ]
+        }
+      },
+      {
+        "id": "organization_1",
+        "kind": "macro",
+        "operator": "book_split",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.24,
+          "angle_degrees": 28.0,
+          "terminal_ratio": 0.6
+        },
+        "semantic_role": "dominant_mass",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "book01_book_base_volume",
+        "kind": "modifier",
+        "operator": "book_base_volume",
+        "inputs": [
+          "organization_1"
+        ],
+        "parameters": {
+          "label": "1/8",
+          "orientation": "vertical"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book02_difference",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "organization_1",
+          "book01_book_base_volume"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book03_merge_related",
+        "kind": "macro",
+        "operator": "merge_related",
+        "inputs": [
+          "book01_book_base_volume"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.1984,
+          "unit_scale": 0.4506
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "merge",
+          "book_call_index": 1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book04_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "book02_difference",
+          "book03_merge_related"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "recompose_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "book04_union"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              19.253598426439332,
+              0.0,
+              0.0,
+              -0.0009626799213218606
+            ],
+            [
+              0.0,
+              19.253598426439332,
+              0.0,
+              -2.1473249521031397
+            ],
+            [
+              0.0,
+              0.0,
+              9.898020395920815,
+              4.949999999999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "physical_storey_capacity_fit",
+        "provenance": {
+          "creative_family": "morph-voided-mid",
+          "capacity_band": "spatial_reserve",
+          "storey_count": 3,
+          "target_gfa_m2": 1048.5139
+        }
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              20.19760776,
+              0.0,
+              0.0,
+              -10.09880388
+            ],
+            [
+              0.0,
+              24.49417776,
+              0.0,
+              -12.24709188
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              1.59
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 1,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 1,
+          "center_elevation_m": 1.65,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              20.19760776,
+              0.0,
+              0.0,
+              -10.09880388
+            ],
+            [
+              0.0,
+              24.49417776,
+              0.0,
+              -12.24709188
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              4.890000000000001
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 2,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 2,
+          "center_elevation_m": 4.95,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              20.19760776,
+              0.0,
+              0.0,
+              -10.09880388
+            ],
+            [
+              0.0,
+              24.49417776,
+              0.0,
+              -12.24709188
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              8.19
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 3,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 3,
+          "center_elevation_m": 8.25,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate"
+        ],
+        "parameters": {},
+        "semantic_role": "connected_mass_with_occupied_floor_plates",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate"
+          ],
+          "set_identity": "host_union_subsets_equals_host",
+          "legal_certified": false
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:dfbf81995ea510ccee2aa31dffbf03a3dd3dfcb167a0153d116724dbf65599f0",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_matrix4_book_split",
+      "base_seed": "block",
+      "base_form_id": "cube",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "matrix4",
+        "book_split"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass global_pose = matrix4(base, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass organization_1 = book_split(global_pose, angle_degrees=28.0, axis='x', gap_ratio=0.24, terminal_ratio=0.6)",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4",
+      "book_recursive_projection": {
+        "active": true,
+        "scope_label": "1/8",
+        "scope_fraction": 0.125,
+        "scope_orientation": "vertical",
+        "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+        "ordered_verbs": [
+          "merge"
+        ],
+        "geometry_authority": "recursive_manifold_ast",
+        "parcel_coordinates_hardcoded": false,
+        "application_order": "program_solid_then_book_scope_and_operations",
+        "program_relation_suffix_node_ids": [],
+        "program_section_node_id": "",
+        "parameter_projection": {
+          "schema_version": "arr.maas.book_kernel_parameter_projection.v1",
+          "coordinate_system": "selected_live_solid_normalized_bounds",
+          "projections": [],
+          "relation_invariants": []
+        },
+        "chassis_compatibility": {
+          "schema_version": "arr.maas.book_chassis_compatibility.v1",
+          "status": "compatible",
+          "source_chassis_operators": [
+            "book_split",
+            "box",
+            "matrix4"
+          ],
+          "book_verbs": [
+            "merge"
+          ],
+          "checked_relations": [],
+          "parcel_coordinates_used": false,
+          "completed_form_template_used": false
+        }
+      },
+      "pre_book_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "creative_book_assignment": {
+        "principle_id": "book:operative:merge",
+        "principle_kind": "base_operative",
+        "execution_verbs": [
+          "merge"
+        ],
+        "aggregation_methods": [],
+        "scope_label": "1/8",
+        "orientation": "vertical"
+      },
+      "creative_capacity_band": "spatial_reserve",
+      "creative_storey_count": 3,
+      "creative_target_gfa_m2": 1048.5139,
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate"
+      ]
+    }
+  },
+  "author_evidence": {
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program",
+    "provider": "structured_geometry_dsl_payload",
+    "model": "",
+    "response_id": "",
+    "cache_hit": false,
+    "prompt_contract": ""
+  },
+  "matrix4_trace": [
+    {
+      "node_id": "global_pose",
+      "semantic_role": "global_pose",
+      "matrix4": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit",
+      "matrix4": [
+        [
+          19.253598426439332,
+          0.0,
+          0.0,
+          -0.0009626799213218606
+        ],
+        [
+          0.0,
+          19.253598426439332,
+          0.0,
+          -2.1473249521031397
+        ],
+        [
+          0.0,
+          0.0,
+          9.898020395920815,
+          4.949999999999999
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          20.19760776,
+          0.0,
+          0.0,
+          -10.09880388
+        ],
+        [
+          0.0,
+          24.49417776,
+          0.0,
+          -12.24709188
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          1.59
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          20.19760776,
+          0.0,
+          0.0,
+          -10.09880388
+        ],
+        [
+          0.0,
+          24.49417776,
+          0.0,
+          -12.24709188
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          4.890000000000001
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          20.19760776,
+          0.0,
+          0.0,
+          -10.09880388
+        ],
+        [
+          0.0,
+          24.49417776,
+          0.0,
+          -12.24709188
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          8.19
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "mesh": {
+    "vertices": [
+      [
+        -9.62776189,
+        -11.77412417,
+        0.0009898
+      ],
+      [
+        -2.59827311,
+        -11.77604953,
+        0.0
+      ],
+      [
+        -2.59827311,
+        -11.77412417,
+        0.0009898
+      ],
+      [
+        -2.59827311,
+        -2.3153411,
+        0.0009898
+      ],
+      [
+        -2.59827311,
+        -2.3153411,
+        0.0
+      ],
+      [
+        -2.32667851,
+        -2.36122174,
+        0.0
+      ],
+      [
+        -1.92439716,
+        -2.14732495,
+        0.0009898
+      ],
+      [
+        -1.92439716,
+        -2.14732495,
+        0.0
+      ],
+      [
+        -1.25052122,
+        -2.14732495,
+        0.0009898
+      ],
+      [
+        -1.25052122,
+        -1.78901876,
+        0.0009898
+      ],
+      [
+        -9.62776189,
+        -11.77412417,
+        9.8990102
+      ],
+      [
+        -2.59827311,
+        -11.77604953,
+        9.9
+      ],
+      [
+        -2.59827311,
+        -11.77412417,
+        9.8990102
+      ],
+      [
+        -2.59827311,
+        -2.3153411,
+        9.8990102
+      ],
+      [
+        -2.59827311,
+        -2.3153411,
+        9.9
+      ],
+      [
+        -2.32667851,
+        -2.36122174,
+        9.9
+      ],
+      [
+        -1.92439716,
+        -2.14732495,
+        9.8990102
+      ],
+      [
+        -1.92439716,
+        -2.14732495,
+        9.9
+      ],
+      [
+        -1.25052122,
+        -2.14732495,
+        9.8990102
+      ],
+      [
+        -1.25052122,
+        -1.78901876,
+        9.8990102
+      ],
+      [
+        -9.62776189,
+        7.47947426,
+        0.0009898
+      ],
+      [
+        -7.03890278,
+        6.03626865,
+        0.0
+      ],
+      [
+        -7.03890278,
+        6.03626865,
+        0.0009898
+      ],
+      [
+        -4.32462778,
+        7.47947426,
+        0.0009898
+      ],
+      [
+        -9.62776189,
+        7.47947426,
+        9.8990102
+      ],
+      [
+        -7.03890278,
+        6.03626865,
+        9.9
+      ],
+      [
+        -7.03890278,
+        6.03626865,
+        9.8990102
+      ],
+      [
+        -4.32462778,
+        7.47947426,
+        9.8990102
+      ],
+      [
+        9.62776189,
+        -11.77604953,
+        0.0
+      ],
+      [
+        9.62776189,
+        -2.14732495,
+        0.0
+      ],
+      [
+        9.62776189,
+        -11.77604953,
+        9.9
+      ],
+      [
+        9.62776189,
+        -2.14732495,
+        9.9
+      ],
+      [
+        3.7560454,
+        11.77604441,
+        0.0
+      ],
+      [
+        8.27555387,
+        3.27608521,
+        0.0
+      ],
+      [
+        2.11412889,
+        -2.56e-06,
+        4.95
+      ],
+      [
+        0.0,
+        -2.56e-06,
+        9.9
+      ],
+      [
+        2.11412889,
+        -2.56e-06,
+        9.9
+      ],
+      [
+        3.7560454,
+        11.77604441,
+        4.95
+      ],
+      [
+        0.0,
+        9.77891964,
+        9.9
+      ],
+      [
+        3.7560454,
+        11.77604441,
+        9.9
+      ],
+      [
+        8.27555387,
+        3.27608521,
+        4.95
+      ],
+      [
+        8.04059364,
+        3.71798113,
+        5.715765
+      ],
+      [
+        8.72938524,
+        4.08421812,
+        5.715765
+      ],
+      [
+        8.04059364,
+        3.71798113,
+        9.134235
+      ],
+      [
+        8.27555387,
+        3.27608521,
+        9.9
+      ],
+      [
+        8.72938524,
+        4.08421812,
+        9.134235
+      ],
+      [
+        4.91942109,
+        9.58805295,
+        5.715765
+      ],
+      [
+        5.60821269,
+        9.95428994,
+        5.715765
+      ],
+      [
+        4.91942109,
+        9.58805295,
+        6.22418938
+      ],
+      [
+        5.4397146,
+        8.60952317,
+        9.134235
+      ],
+      [
+        4.91942109,
+        9.58805295,
+        8.34273276
+      ],
+      [
+        4.91942109,
+        9.58805295,
+        9.134235
+      ],
+      [
+        5.60821269,
+        9.95428994,
+        9.134235
+      ]
+    ],
+    "triangles": [
+      [
+        0,
+        2,
+        12
+      ],
+      [
+        0,
+        20,
+        2
+      ],
+      [
+        2,
+        22,
+        3
+      ],
+      [
+        6,
+        9,
+        8
+      ],
+      [
+        0,
+        12,
+        10
+      ],
+      [
+        10,
+        12,
+        13
+      ],
+      [
+        0,
+        10,
+        24
+      ],
+      [
+        10,
+        13,
+        26
+      ],
+      [
+        16,
+        18,
+        19
+      ],
+      [
+        2,
+        20,
+        22
+      ],
+      [
+        0,
+        24,
+        20
+      ],
+      [
+        20,
+        23,
+        22
+      ],
+      [
+        20,
+        24,
+        23
+      ],
+      [
+        10,
+        26,
+        24
+      ],
+      [
+        23,
+        24,
+        27
+      ],
+      [
+        24,
+        26,
+        27
+      ],
+      [
+        6,
+        7,
+        9
+      ],
+      [
+        9,
+        36,
+        19
+      ],
+      [
+        16,
+        19,
+        17
+      ],
+      [
+        17,
+        19,
+        36
+      ],
+      [
+        3,
+        22,
+        21
+      ],
+      [
+        21,
+        22,
+        23
+      ],
+      [
+        3,
+        21,
+        4
+      ],
+      [
+        4,
+        21,
+        5
+      ],
+      [
+        5,
+        21,
+        7
+      ],
+      [
+        7,
+        21,
+        33
+      ],
+      [
+        21,
+        23,
+        32
+      ],
+      [
+        23,
+        27,
+        32
+      ],
+      [
+        14,
+        25,
+        26
+      ],
+      [
+        25,
+        27,
+        26
+      ],
+      [
+        13,
+        14,
+        26
+      ],
+      [
+        14,
+        15,
+        25
+      ],
+      [
+        15,
+        17,
+        25
+      ],
+      [
+        17,
+        35,
+        25
+      ],
+      [
+        25,
+        35,
+        38
+      ],
+      [
+        27,
+        38,
+        32
+      ],
+      [
+        25,
+        38,
+        27
+      ],
+      [
+        7,
+        33,
+        9
+      ],
+      [
+        9,
+        34,
+        36
+      ],
+      [
+        17,
+        36,
+        35
+      ],
+      [
+        9,
+        33,
+        34
+      ],
+      [
+        21,
+        32,
+        33
+      ],
+      [
+        33,
+        40,
+        34
+      ],
+      [
+        32,
+        40,
+        33
+      ],
+      [
+        32,
+        37,
+        40
+      ],
+      [
+        32,
+        38,
+        39
+      ],
+      [
+        37,
+        39,
+        48
+      ],
+      [
+        39,
+        51,
+        48
+      ],
+      [
+        39,
+        44,
+        51
+      ],
+      [
+        44,
+        49,
+        51
+      ],
+      [
+        37,
+        48,
+        50
+      ],
+      [
+        37,
+        50,
+        39
+      ],
+      [
+        34,
+        44,
+        36
+      ],
+      [
+        36,
+        44,
+        35
+      ],
+      [
+        44,
+        38,
+        35
+      ],
+      [
+        46,
+        37,
+        39
+      ],
+      [
+        46,
+        39,
+        48
+      ],
+      [
+        39,
+        38,
+        44
+      ],
+      [
+        39,
+        50,
+        48
+      ],
+      [
+        34,
+        40,
+        44
+      ],
+      [
+        41,
+        40,
+        46
+      ],
+      [
+        41,
+        43,
+        40
+      ],
+      [
+        43,
+        44,
+        40
+      ],
+      [
+        43,
+        49,
+        44
+      ],
+      [
+        46,
+        40,
+        37
+      ],
+      [
+        41,
+        42,
+        43
+      ],
+      [
+        42,
+        45,
+        43
+      ],
+      [
+        43,
+        45,
+        49
+      ],
+      [
+        46,
+        52,
+        47
+      ],
+      [
+        46,
+        48,
+        52
+      ],
+      [
+        42,
+        47,
+        45
+      ],
+      [
+        45,
+        47,
+        52
+      ],
+      [
+        45,
+        51,
+        49
+      ],
+      [
+        45,
+        52,
+        51
+      ],
+      [
+        52,
+        48,
+        51
+      ],
+      [
+        8,
+        9,
+        19
+      ],
+      [
+        8,
+        19,
+        18
+      ],
+      [
+        1,
+        2,
+        4
+      ],
+      [
+        1,
+        12,
+        2
+      ],
+      [
+        2,
+        3,
+        4
+      ],
+      [
+        1,
+        4,
+        5
+      ],
+      [
+        6,
+        8,
+        7
+      ],
+      [
+        1,
+        11,
+        12
+      ],
+      [
+        11,
+        13,
+        12
+      ],
+      [
+        11,
+        14,
+        13
+      ],
+      [
+        11,
+        15,
+        14
+      ],
+      [
+        16,
+        17,
+        18
+      ],
+      [
+        1,
+        5,
+        28
+      ],
+      [
+        1,
+        28,
+        11
+      ],
+      [
+        5,
+        7,
+        29
+      ],
+      [
+        7,
+        8,
+        29
+      ],
+      [
+        28,
+        29,
+        30
+      ],
+      [
+        5,
+        29,
+        28
+      ],
+      [
+        8,
+        31,
+        29
+      ],
+      [
+        11,
+        30,
+        15
+      ],
+      [
+        8,
+        18,
+        31
+      ],
+      [
+        15,
+        30,
+        17
+      ],
+      [
+        17,
+        31,
+        18
+      ],
+      [
+        11,
+        28,
+        30
+      ],
+      [
+        29,
+        31,
+        30
+      ],
+      [
+        17,
+        30,
+        31
+      ],
+      [
+        41,
+        46,
+        47
+      ],
+      [
+        41,
+        47,
+        42
+      ]
+    ]
+  },
+  "mesh_evidence": {
+    "connected": true,
+    "watertight": true,
+    "manifold": true,
+    "closed_solid": true,
+    "component_count": 1,
+    "bounds": [
+      [
+        -9.627762,
+        -11.77605,
+        0.0
+      ],
+      [
+        9.627762,
+        11.776044,
+        9.9
+      ]
+    ],
+    "triangle_count": 103,
+    "self_intersection_checked_by_kernel": true,
+    "outward_normals": true,
+    "volume": 3460.48764
+  },
+  "storey_evidence": {
+    "schema_version": "arr.maas.creative_storey_evidence.v1",
+    "storey_count": 3,
+    "typical_storey_height_m": 3.3,
+    "floor_elevations_m": [
+      0.0,
+      3.3,
+      6.6,
+      9.9
+    ],
+    "floor_center_elevations_m": [
+      1.65,
+      4.95,
+      8.25
+    ],
+    "actual_floor_areas_m2": [
+      347.775851,
+      347.775851,
+      352.962196
+    ],
+    "actual_gfa_m2": 1048.513897,
+    "target_gfa_m2": 1048.5139,
+    "capacity_band": "spatial_reserve",
+    "capacity_authority": "user_supplied_prelegal_target",
+    "floor_cutter_node_ids": [
+      "creative_floor_01_cutter_matrix4",
+      "creative_floor_02_cutter_matrix4",
+      "creative_floor_03_cutter_matrix4"
+    ],
+    "floor_plate_node_ids": [
+      "creative_floor_01_occupied_plate",
+      "creative_floor_02_occupied_plate",
+      "creative_floor_03_occupied_plate"
+    ],
+    "floor_plate_compiled_volumes_m3": [
+      41.733102,
+      41.733102,
+      42.355463
+    ],
+    "authority": "authored_prelegal_horizontal_sections",
+    "legal_certified": false,
+    "measurement": "final_manifold_occupied_floor_plate_center_slice"
+  },
+  "connectivity_evidence": {
+    "schema_version": "arr.maas.creative_contact_witness.v1",
+    "hard_pass": true,
+    "contact_type": "compiled_connected_solid",
+    "witness_node_id": "book04_union",
+    "witness_operator": "union",
+    "witness_compiled_volume": 0.943116,
+    "final_component_count": 1,
+    "compiled_component_count": 1,
+    "measurement": "compiler_trace_positive_volume_and_final_component_count"
+  },
+  "morphology_evidence": {
+    "schema_version": "arr.maas.creative_morphology.v1",
+    "descriptor": {
+      "schema_version": "arr.maas.creative_morphology.v1",
+      "axis_ratios": [
+        0.601886100852,
+        0.736187607796,
+        0.309452625985
+      ],
+      "z_slice_occupancies": [
+        0.0,
+        0.0,
+        0.239703205558,
+        0.257173260718,
+        0.2938276864,
+        0.209295847324,
+        0.0,
+        0.0
+      ],
+      "floor_area_profile": [
+        0.124469656281,
+        0.124469656281,
+        0.124469656281,
+        0.12446965628,
+        0.12473482814,
+        0.125265171859,
+        0.125795515579,
+        0.126325859298
+      ],
+      "convexity": 0.882335030231,
+      "void_fraction": 0.229243410449,
+      "normal_bins": [
+        0.122116860928,
+        0.152523260991,
+        0.119982321186,
+        0.180583614759,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.36578341519,
+        0.0,
+        0.059010526945,
+        0.0
+      ],
+      "radial_bins": [
+        0.0,
+        0.017024080661,
+        0.107301956592,
+        0.101678210465,
+        0.2561513452,
+        0.221745975224,
+        0.189119442535,
+        0.106978989322
+      ],
+      "silhouette_front": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_side": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_isometric": [
+        0.111111111111,
+        0.666666666667,
+        0.666666666667,
+        0.111111111111,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.222222222222,
+        0.888888888889,
+        0.333333333333,
+        0.111111111111
+      ],
+      "component_count": 1,
+      "contact_topology": "compiled_connected_solid"
+    },
+    "decision": {
+      "decision": "accepted",
+      "accepted": true,
+      "nearest_distance": 0.098332269986,
+      "nearest_within_family_distance": null,
+      "threshold": 0.015,
+      "within_family_threshold": 0.025,
+      "closest_candidate_id": "creative-013",
+      "closest_family_candidate_id": null,
+      "failed_components": [],
+      "distance": {
+        "total": 0.098332269986,
+        "components": {
+          "component": 0.0,
+          "axis": 0.107052355887,
+          "z_slice": 0.160945833629,
+          "floor": 0.067127252065,
+          "convexity": 0.04167609972,
+          "void": 0.014431599419,
+          "normal": 0.149129988276,
+          "radial": 0.223537306503,
+          "silhouette": 0.037037037037,
+          "contact": 0.0
+        },
+        "weighted_components": {
+          "component": 0.0,
+          "axis": 0.012846282706,
+          "z_slice": 0.019313500035,
+          "floor": 0.008055270248,
+          "convexity": 0.003334087978,
+          "void": 0.001154527954,
+          "normal": 0.020878198359,
+          "radial": 0.02682447678,
+          "silhouette": 0.005925925926,
+          "contact": 0.0
+        }
+      },
+      "diagnostic": "morphology accepted; closest_candidate=creative-013; distance=0.098332; failed_components=none"
+    },
+    "comparison_scope": "book_explorations"
+  },
+  "legal_review": {
+    "schema_version": "arr.maas.prelegal_review.v1",
+    "status": "not_evaluated",
+    "hard_pass": false,
+    "capacity_ceiling_m2": 1497.877,
+    "capacity_authority": "user_supplied_prelegal_target",
+    "required_authorities": [
+      "neo4j_law_agent",
+      "exact_geometry_gate"
+    ]
+  },
+  "lineage": {
+    "schema_version": "arr.maas.creative_lineage.v1",
+    "stages": [
+      "llm_authored_geometry_program",
+      "canonical_unitbox",
+      "physical_storey_capacity_matrix4",
+      "typed_book_relation",
+      "connected_mass",
+      "storey_contract",
+      "legal_review_pending"
+    ],
+    "unitbox_node_id": "unit",
+    "relation_node_id": "book04_union",
+    "physical_envelope_node_id": "creative_physical_storey_capacity_matrix4",
+    "physical_root_node_id": "creative_occupied_storeys_union"
+  },
+  "book_language_evidence": {
+    "schema_version": "arr.maas.creative_book_evidence.v1",
+    "materialized": true,
+    "principle_id": "book:operative:merge",
+    "principle_kind": "base_operative",
+    "execution_verbs": [
+      "merge"
+    ],
+    "aggregation_methods": [],
+    "scope_label": "1/8",
+    "orientation": "vertical",
+    "selector_node_id": "book01_book_base_volume",
+    "projected_node_ids": [
+      "book02_difference",
+      "book03_merge_related",
+      "book04_union"
+    ]
+  },
+  "book_slot_search": {
+    "slot": 4,
+    "principle_id": "book:operative:merge",
+    "scope_label": "1/8",
+    "pairs_tried": 2
+  },
+  "candidate_origin": "book_exploration",
+  "source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+  "parent_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+  "normalized_source_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+  "parent_geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_diverging_wings",
+    "root_id": "organization_1",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base",
+            "global_pose"
+          ]
+        }
+      },
+      {
+        "id": "organization_1",
+        "kind": "macro",
+        "operator": "book_split",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.24,
+          "angle_degrees": 28.0,
+          "terminal_ratio": 0.6
+        },
+        "semantic_role": "dominant_mass",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:dfbf81995ea510ccee2aa31dffbf03a3dd3dfcb167a0153d116724dbf65599f0",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_matrix4_book_split",
+      "base_seed": "block",
+      "base_form_id": "cube",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "matrix4",
+        "book_split"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass global_pose = matrix4(base, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass organization_1 = book_split(global_pose, angle_degrees=28.0, axis='x', gap_ratio=0.24, terminal_ratio=0.6)",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4"
+    }
+  },
+  "authored_geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_diverging_wings__book_1_8_merge",
+    "root_id": "book04_union",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base",
+            "global_pose"
+          ]
+        }
+      },
+      {
+        "id": "organization_1",
+        "kind": "macro",
+        "operator": "book_split",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.24,
+          "angle_degrees": 28.0,
+          "terminal_ratio": 0.6
+        },
+        "semantic_role": "dominant_mass",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "book01_book_base_volume",
+        "kind": "modifier",
+        "operator": "book_base_volume",
+        "inputs": [
+          "organization_1"
+        ],
+        "parameters": {
+          "label": "1/8",
+          "orientation": "vertical"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book02_difference",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "organization_1",
+          "book01_book_base_volume"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book03_merge_related",
+        "kind": "macro",
+        "operator": "merge_related",
+        "inputs": [
+          "book01_book_base_volume"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.1984,
+          "unit_scale": 0.4506
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "merge",
+          "book_call_index": 1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book04_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "book02_difference",
+          "book03_merge_related"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "recompose_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/8",
+          "scope_fraction": 0.125,
+          "scope_orientation": "vertical",
+          "normalized_parameters_only": true
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:dfbf81995ea510ccee2aa31dffbf03a3dd3dfcb167a0153d116724dbf65599f0",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_matrix4_book_split",
+      "base_seed": "block",
+      "base_form_id": "cube",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "matrix4",
+        "book_split"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass global_pose = matrix4(base, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass organization_1 = book_split(global_pose, angle_degrees=28.0, axis='x', gap_ratio=0.24, terminal_ratio=0.6)",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4",
+      "book_recursive_projection": {
+        "active": true,
+        "scope_label": "1/8",
+        "scope_fraction": 0.125,
+        "scope_orientation": "vertical",
+        "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+        "ordered_verbs": [
+          "merge"
+        ],
+        "geometry_authority": "recursive_manifold_ast",
+        "parcel_coordinates_hardcoded": false,
+        "application_order": "program_solid_then_book_scope_and_operations",
+        "program_relation_suffix_node_ids": [],
+        "program_section_node_id": "",
+        "parameter_projection": {
+          "schema_version": "arr.maas.book_kernel_parameter_projection.v1",
+          "coordinate_system": "selected_live_solid_normalized_bounds",
+          "projections": [],
+          "relation_invariants": []
+        },
+        "chassis_compatibility": {
+          "schema_version": "arr.maas.book_chassis_compatibility.v1",
+          "status": "compatible",
+          "source_chassis_operators": [
+            "book_split",
+            "box",
+            "matrix4"
+          ],
+          "book_verbs": [
+            "merge"
+          ],
+          "checked_relations": [],
+          "parcel_coordinates_used": false,
+          "completed_form_template_used": false
+        }
+      },
+      "pre_book_program_hash": "97f55be3e19c7377fab0490e983f0eeb16bef9712b912df985bd67d2788c99d7",
+      "creative_book_assignment": {
+        "principle_id": "book:operative:merge",
+        "principle_kind": "base_operative",
+        "execution_verbs": [
+          "merge"
+        ],
+        "aggregation_methods": [],
+        "scope_label": "1/8",
+        "orientation": "vertical"
+      }
+    }
+  },
+  "run_id": "book-comp06",
+  "pnu": "4115011300106840001",
+  "identity": {
+    "schema_version": "arr.maas.creative_candidate_identity.v1",
+    "candidate_id": "creative-017",
+    "program_hash": "983b8e64064681048110967e88756d814e5a23c96822370ed148050c6b045c54",
+    "geometry_hash": "d0ba566a4d9cfe98c6425d5538fc678493753c42072f7703c9a0c4919f4944f6"
+  },
+  "candidate_json": "candidates/creative-017.json",
+  "render_png": "renders/creative-017.png",
+  "mass_directory": "masses/creative-017",
+  "mass_manifest": "masses/creative-017/manifest.json",
+  "elevation_research_handoff": "masses/creative-017/elevation-research/handoff.json"
+}

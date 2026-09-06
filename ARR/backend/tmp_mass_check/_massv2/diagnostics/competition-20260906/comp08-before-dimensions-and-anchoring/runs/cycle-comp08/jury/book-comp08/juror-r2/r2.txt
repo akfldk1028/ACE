@@ -1,0 +1,128 @@
+TILE t01
+CONCEPT 4 | A continuous crescent establishes a clear positive mass and a generous concave exterior space, although the section is uniform.
+FEASIBILITY 5 | Repeated ground and upper footprints and uninterrupted vertical mass offer a straightforward structural starting point.
+SITE 4 | The crescent shapes a substantial open area within the irregular parcel while maintaining visible perimeter space.
+EDITABILITY 4 | A continuous band can accommodate floors and circulation while retaining its identity, with curved facade and core placement requiring development.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | Alternating displaced layers produce a strong vertical rhythm and multiple recesses, though their hierarchy is somewhat busy.
+FEASIBILITY 3 | Considerable overlapping mass makes development plausible, but rotated cantilevers and transfers require explicit structural resolution.
+SITE 3 | The compact stack preserves surrounding open ground but shows limited direct response to the irregular parcel edges.
+EDITABILITY 3 | Usable broad layers remain, while shifting outlines complicate continuous cores and the articulation of intermediate levels.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 4 | Low parallel bars and an elevated transverse volume establish a legible layered composition with sectional variation.
+FEASIBILITY 3 | The low mass is plausible, but the transverse upper element requires careful resolution of its overlap and projecting ends.
+SITE 4 | The dispersed low volumes leave substantial open ground and establish a directional relationship between occupied and unoccupied strips.
+EDITABILITY 3 | Rectilinear bars are developable, though their differing heights and connections constrain circulation continuity.
+WEIGHTED 3.55
+
+TILE t04
+CONCEPT 3 | A subtly twisted solid is coherent, but its architectural identity relies predominantly on the exterior envelope.
+FEASIBILITY 4 | The continuous broad mass is credible, with changing perimeter geometry requiring a rational structural and facade strategy.
+SITE 3 | The centered footprint leaves perimeter space but does not visibly organize a distinctive relationship with the parcel.
+EDITABILITY 4 | Substantial continuous floor areas allow flexible development, subject to coordinating the changing outer skin.
+WEIGHTED 3.45
+
+TILE t05
+CONCEPT 3 | A deep triangular incision gives the otherwise uniform extrusion a recognizable directional gesture.
+FEASIBILITY 5 | Continuous ground and upper occupancy avoid major transfers and provide a robust basis for conventional development.
+SITE 3 | The notch creates exterior relief, but its narrow termination and the broad surrounding solid only moderately shape the site.
+EDITABILITY 4 | The connected floorplate is adaptable, though the acute inner tip will require careful circulation and facade treatment.
+WEIGHTED 3.70
+
+TILE t06
+CONCEPT 2 | The tall extruded outline combines a major recess with small serrations without a convincing hierarchy.
+FEASIBILITY 4 | Repeated footprints support a plausible vertical structure, though thin projections and acute corners require refinement.
+SITE 3 | The compact footprint preserves open ground, but the irregular outline has no clearly demonstrated relationship to the parcel edges.
+EDITABILITY 3 | Broad portions support floor planning, while the narrow arm and incidental notches complicate preserving every formal gesture.
+WEIGHTED 2.90
+
+TILE t07
+CONCEPT 4 | Two grounded bars and a spanning upper mass create a clear portal and an emphatic sectional void.
+FEASIBILITY 3 | The bridge appears developable but demands a substantial spanning system that is not demonstrated by the mass alone.
+SITE 3 | The central gap organizes exterior space, although its relationship to actual frontage or access is not established.
+EDITABILITY 3 | Parallel bars are useful planning elements, but circulation between them and through the upper span needs careful integration.
+WEIGHTED 3.35
+
+TILE t08
+CONCEPT 4 | A taller bent bar and a lower opposing bar form a strong open-sided court with clear volumetric hierarchy.
+FEASIBILITY 4 | Broad rectilinear volumes and substantial overlap are plausible, with the upper arm's projection needing structural development.
+SITE 4 | The open-sided composition gives the remaining ground a defined spatial role while retaining clear perimeter room.
+EDITABILITY 4 | Distinct wings and heights support a coherent floor and facade strategy, with the elbow offering room to study connections.
+WEIGHTED 4.00
+
+TILE t09
+CONCEPT 3 | Two offset volumes create an intelligible step in section, though the positive mass remains fairly generic.
+FEASIBILITY 4 | Broad overlap and low overall mass make the displacement plausible with localized transfer design.
+SITE 3 | The compact form leaves ample open ground but provides limited shaping or differentiation of that ground.
+EDITABILITY 4 | Simple connected floor areas should accept cores and facade development while preserving the principal offset.
+WEIGHTED 3.45
+
+TILE t10
+CONCEPT 4 | A sloping horizontal incision clearly separates upper and lower masses while preserving a strong monolithic outline.
+FEASIBILITY 3 | The remaining side connection makes the gesture conceivable, but the deep cut creates a significant cantilever and transfer challenge.
+SITE 3 | The modest footprint preserves space around the building, with little further evidence of an edge-specific response.
+EDITABILITY 3 | Broad floor areas remain, but floor levels and vertical circulation must work around the oblique incision.
+WEIGHTED 3.35
+
+TILE t11
+CONCEPT 4 | A deep sectional slot intersecting a stepped outline creates a strong interlocking relationship between upper and lower volumes.
+FEASIBILITY 3 | The continuous rear mass offers a plausible load path, while the projecting upper portion requires substantial structural study.
+SITE 3 | The footprint fits comfortably within the shown parcel but its notches do not clearly organize the surrounding site.
+EDITABILITY 3 | The large connected mass is usable, though slot geometry and perimeter steps limit unconstrained circulation and facade planning.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 3 | Alternating layers convey movement, but warped edges and small irregularities dilute the clarity of the larger stack.
+FEASIBILITY 2 | Multiple displaced layers, tapered edges and inclined connections compound transfer and envelope challenges without a clear supporting system.
+SITE 3 | A compact stack leaves surrounding open space, but its elaborate geometry has little demonstrated site rationale.
+EDITABILITY 2 | Maintaining the many distortions while introducing regular floors, cores and facade modules would be difficult.
+WEIGHTED 2.55
+
+TILE t13
+CONCEPT 3 | The twisted monolith reads coherently overall, although the local sectional protrusion weakens its otherwise continuous envelope.
+FEASIBILITY 3 | Broad vertical continuity is plausible, but the curved perimeter and localized upper projection add unresolved construction complexity.
+SITE 3 | The footprint retains perimeter space without a strongly differentiated response to the parcel geometry.
+EDITABILITY 3 | Large floor areas permit development, though preserving both the changing skin and local protrusion complicates rationalization.
+WEIGHTED 3.00
+
+TILE t14
+CONCEPT 3 | The incised block has a clear primary form, but the isolated small roof projection contributes little to its hierarchy.
+FEASIBILITY 4 | The main extruded mass is straightforward, while the thin roof element lacks sufficient evidence for confident development.
+SITE 3 | The recess offers some external space definition without establishing a strong relation to the shown parcel edges.
+EDITABILITY 3 | Broad connected floors are usable, but the acute notch and unexplained thin projection are less resilient to architectural development.
+WEIGHTED 3.25
+
+TILE t15
+CONCEPT 3 | Taller and lower wings create a promising open court, but splitting one arm with an acute notch weakens the main composition.
+FEASIBILITY 3 | The primary rectilinear masses are plausible, while the divided projecting arm introduces narrow members and less direct load paths.
+SITE 4 | The arrangement gives open ground a clear court-like shape and maintains substantial space within the parcel.
+EDITABILITY 3 | The main wings can support planning, but the split arm creates awkward terminal spaces and facade junctions.
+WEIGHTED 3.20
+
+TILE t16
+CONCEPT 2 | The main sectional offset is legible, but small front-edge teeth fragment a composition that lacks a stronger secondary hierarchy.
+FEASIBILITY 4 | Broad overlapping low volumes are credible, although the narrow edge details need refinement.
+SITE 3 | The compact footprint leaves substantial open space but gives it little distinctive organization.
+EDITABILITY 3 | Main floor areas are straightforward, but preserving minor protrusions and incisions would complicate facade and perimeter planning.
+WEIGHTED 2.90
+
+TILE t17
+CONCEPT 4 | Unequal parallel bars frame a strong linear void, with a low connection providing clear sectional differentiation.
+FEASIBILITY 4 | The bars are substantially grounded and structurally plausible, while their narrow connecting portion needs further definition.
+SITE 4 | The elongated central open space and differing bar heights give a convincing spatial order to the remaining parcel.
+EDITABILITY 4 | Regular wings provide workable floor and facade zones, although circulation between them must respect the limited connecting mass.
+WEIGHTED 4.00
+
+TILE t18
+CONCEPT 4 | A crescent and a deep end incision combine a clear enclosing gesture with a distinct sectional event.
+FEASIBILITY 3 | Much of the crescent remains vertically continuous, but the cut end introduces a substantial upper projection requiring structural resolution.
+SITE 4 | The concave mass shapes a generous exterior space and the end cut adds articulation at its termination.
+EDITABILITY 4 | The continuous curved band remains developable, provided floors and circulation can preserve the localized incision.
+WEIGHTED 3.75
+
+RANKING: t01, t08, t17, t18, t05, t03, t09, t04, t07, t10, t11, t02, t14, t15, t13, t16, t06, t12
+VERDICT: I would advance t01, t08 and t17 for their clear solid-void relationships and credible paths toward architectural development, with t18 as a reserve requiring stronger structural evidence at the cut end. The more elaborate stacks demonstrate energy but are less convincing where formal complexity overwhelms sectional hierarchy; all assessments remain provisional because exact building-line geometry, statutory height and programme are unverified or unavailable.

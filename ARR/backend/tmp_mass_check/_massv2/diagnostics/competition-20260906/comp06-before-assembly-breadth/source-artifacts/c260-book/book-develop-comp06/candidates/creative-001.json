@@ -1,0 +1,3525 @@
+{
+  "candidate_id": "creative-001",
+  "family": "exact-authored-development",
+  "source_family": "llm_authored",
+  "posthoc_family": "morph-curved-low",
+  "form_class": "posthoc_morphology",
+  "variation_index": 0,
+  "capacity_band": "inherited_parent",
+  "program_hash": "50caf4198a3e6788a33d80c73a6b813fd1dcc5c82a435bbd79d075995dec27a5",
+  "geometry_hash": "2c8d39745a974cc092578e30b12b570f14b523b87fe6eb0cd6bebff53382efaf",
+  "normalized_authored_mesh_hash": "3107e9e92a45d0bf1f5425319ba2b095db274ae8b2011db56b140901b20218ed",
+  "geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp06_develop_crescent_ground_passage__creative_physical",
+    "root_id": "creative_occupied_storeys_union",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              2.8,
+              0.0,
+              0.0,
+              -1.4
+            ],
+            [
+              0.0,
+              0.62,
+              0.0,
+              -0.31
+            ],
+            [
+              0.0,
+              0.0,
+              0.48,
+              -0.24
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base",
+            "global_pose"
+          ]
+        }
+      },
+      {
+        "id": "organization_1",
+        "kind": "modifier",
+        "operator": "bend",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "axis": "x",
+          "angle_degrees": 65.0,
+          "subdivisions": 5.0
+        },
+        "semantic_role": "dominant_mass",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "ground_passage_cutter",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              0.34,
+              0,
+              0,
+              -0.91
+            ],
+            [
+              0,
+              2.5,
+              0,
+              -0.5
+            ],
+            [
+              0,
+              0,
+              0.19,
+              -0.25
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "semantic_role": "authored_void_cutter",
+        "provenance": {}
+      },
+      {
+        "id": "ground_passage",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "organization_1",
+          "ground_passage_cutter"
+        ],
+        "parameters": {},
+        "semantic_role": "public_threshold",
+        "provenance": {}
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "ground_passage"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              19.98872700727692,
+              0.0,
+              0.0,
+              2.820039589277138
+            ],
+            [
+              0.0,
+              19.98872700727692,
+              0.0,
+              -12.453596576070748
+            ],
+            [
+              0.0,
+              0.0,
+              36.97738511891604,
+              8.87457242853985
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "physical_storey_capacity_fit",
+        "provenance": {
+          "creative_family": "exact-authored-development",
+          "capacity_band": "inherited_parent",
+          "storey_count": 3,
+          "target_gfa_m2": 1975.142479
+        }
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              52.34149336,
+              0.0,
+              0.0,
+              -26.17074518
+            ],
+            [
+              0.0,
+              39.31334736,
+              0.0,
+              -19.65666918
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              2.898190833333333
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 1,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 1,
+          "center_elevation_m": 2.958191,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              52.34149336,
+              0.0,
+              0.0,
+              -26.17074518
+            ],
+            [
+              0.0,
+              39.31334736,
+              0.0,
+              -19.65666918
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              8.814572499999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 2,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 2,
+          "center_elevation_m": 8.874572,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              52.34149336,
+              0.0,
+              0.0,
+              -26.17074518
+            ],
+            [
+              0.0,
+              39.31334736,
+              0.0,
+              -19.65666918
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              14.730954166666665
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 3,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 3,
+          "center_elevation_m": 14.790954,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate"
+        ],
+        "parameters": {},
+        "semantic_role": "connected_mass_with_occupied_floor_plates",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate"
+          ],
+          "set_identity": "host_union_subsets_equals_host",
+          "legal_certified": false
+        }
+      }
+    ],
+    "metadata": {
+      "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+      "parent_shape_id": "a9f195967d9b9a1f4430",
+      "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+      "author_provider": "codex_authored_exact_development",
+      "changed_fields": [
+        "ground_passage_cutter",
+        "ground_passage"
+      ],
+      "expected_effect": "A substantial ground-level passage connects the outer edge to the concavity through the lower part of the curved band; the upper band stays continuous. Clear dimensions must be measured after delivery.",
+      "tradeoff": "Lower occupied area and a bridge-like transfer over the passage; geometry alone does not prove access or structural feasibility.",
+      "programme_status": "unknown",
+      "inherited_dimensions_authority": "verified_book_development_parent_contract",
+      "base_volume_authority": "1/1 UnitBox",
+      "affine_authority": "explicit_matrix4",
+      "book_exact_development": {
+        "mode": "exact-authored-development",
+        "parent_contract": {
+          "parent": "book:book-comp06:morph-curved-low:creative-001",
+          "parent_shape_id": "a9f195967d9b9a1f4430",
+          "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+          "parent_certificate_id": "ebf58693de1a33c880e6",
+          "site_pnu": "4115011300106840001",
+          "storey_count": 3,
+          "storey_height_m": 5.916381619026566,
+          "target_gfa_m2": 1975.1424786905304,
+          "height_m": 17.7491448570797
+        },
+        "parent_contract_hash": "daefe69c75a4b216046addb10ccb12dca20b0c8f81d05dbef7eebe0def3190cc",
+        "authored_program": {
+          "schema_version": "arr.maas.geometry_program.v1",
+          "name": "comp06_develop_crescent_ground_passage",
+          "root_id": "ground_passage",
+          "nodes": [
+            {
+              "id": "unit",
+              "kind": "primitive",
+              "operator": "box",
+              "inputs": [],
+              "parameters": {
+                "width": 1.0,
+                "depth": 1.0,
+                "height": 1.0
+              },
+              "semantic_role": "base_authority",
+              "provenance": {
+                "source": "openai_llm_geometry_author",
+                "representation": "typed_json_ast",
+                "canonical_base_model": "1/1 UnitBox",
+                "unitbox_authority": true
+              }
+            },
+            {
+              "id": "global_pose",
+              "kind": "transform",
+              "operator": "matrix4",
+              "inputs": [
+                "unit"
+              ],
+              "parameters": {
+                "matrix4": [
+                  [
+                    2.8,
+                    0.0,
+                    0.0,
+                    -1.4
+                  ],
+                  [
+                    0.0,
+                    0.62,
+                    0.0,
+                    -0.31
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.48,
+                    -0.24
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ]
+              },
+              "semantic_role": "global_pose",
+              "provenance": {
+                "source": "openai_llm_geometry_author",
+                "representation": "typed_json_ast",
+                "canonical_base_model": "1/1 UnitBox",
+                "authored_operator": "box",
+                "authored_box_parameters": {
+                  "width": 1.0,
+                  "depth": 1.0,
+                  "height": 1.0,
+                  "center": true
+                },
+                "lowered_affine_operator": "scale",
+                "composed_matrix4_node_ids": [
+                  "unit_matrix4",
+                  "base",
+                  "global_pose"
+                ]
+              }
+            },
+            {
+              "id": "organization_1",
+              "kind": "modifier",
+              "operator": "bend",
+              "inputs": [
+                "global_pose"
+              ],
+              "parameters": {
+                "axis": "x",
+                "angle_degrees": 65.0,
+                "subdivisions": 5.0
+              },
+              "semantic_role": "dominant_mass",
+              "provenance": {
+                "source": "openai_llm_geometry_author",
+                "representation": "typed_json_ast"
+              }
+            },
+            {
+              "id": "ground_passage_cutter",
+              "kind": "transform",
+              "operator": "matrix4",
+              "inputs": [
+                "unit"
+              ],
+              "parameters": {
+                "matrix4": [
+                  [
+                    0.34,
+                    0,
+                    0,
+                    -0.91
+                  ],
+                  [
+                    0,
+                    2.5,
+                    0,
+                    -0.5
+                  ],
+                  [
+                    0,
+                    0,
+                    0.19,
+                    -0.25
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              "semantic_role": "authored_void_cutter",
+              "provenance": {}
+            },
+            {
+              "id": "ground_passage",
+              "kind": "boolean",
+              "operator": "difference",
+              "inputs": [
+                "organization_1",
+                "ground_passage_cutter"
+              ],
+              "parameters": {},
+              "semantic_role": "public_threshold",
+              "provenance": {}
+            }
+          ],
+          "metadata": {
+            "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+            "parent_shape_id": "a9f195967d9b9a1f4430",
+            "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+            "author_provider": "codex_authored_exact_development",
+            "changed_fields": [
+              "ground_passage_cutter",
+              "ground_passage"
+            ],
+            "expected_effect": "A substantial ground-level passage connects the outer edge to the concavity through the lower part of the curved band; the upper band stays continuous. Clear dimensions must be measured after delivery.",
+            "tradeoff": "Lower occupied area and a bridge-like transfer over the passage; geometry alone does not prove access or structural feasibility.",
+            "programme_status": "unknown",
+            "inherited_dimensions_authority": "verified_book_development_parent_contract"
+          }
+        },
+        "authored_program_hash": "ba2546777e4776c22f343f72fa65d95f3a0a9c417e7074441fed32bdb8178fe3"
+      },
+      "creative_capacity_band": "inherited_parent",
+      "creative_storey_count": 3,
+      "creative_target_gfa_m2": 1975.142479,
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate"
+      ]
+    }
+  },
+  "author_evidence": {
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program",
+    "provider": "codex_authored_exact_development",
+    "model": "",
+    "response_id": "",
+    "cache_hit": false,
+    "prompt_contract": ""
+  },
+  "matrix4_trace": [
+    {
+      "node_id": "global_pose",
+      "semantic_role": "global_pose",
+      "matrix4": [
+        [
+          2.8,
+          0.0,
+          0.0,
+          -1.4
+        ],
+        [
+          0.0,
+          0.62,
+          0.0,
+          -0.31
+        ],
+        [
+          0.0,
+          0.0,
+          0.48,
+          -0.24
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "ground_passage_cutter",
+      "semantic_role": "authored_void_cutter",
+      "matrix4": [
+        [
+          0.34,
+          0,
+          0,
+          -0.91
+        ],
+        [
+          0,
+          2.5,
+          0,
+          -0.5
+        ],
+        [
+          0,
+          0,
+          0.19,
+          -0.25
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit",
+      "matrix4": [
+        [
+          19.98872700727692,
+          0.0,
+          0.0,
+          2.820039589277138
+        ],
+        [
+          0.0,
+          19.98872700727692,
+          0.0,
+          -12.453596576070748
+        ],
+        [
+          0.0,
+          0.0,
+          36.97738511891604,
+          8.87457242853985
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          52.34149336,
+          0.0,
+          0.0,
+          -26.17074518
+        ],
+        [
+          0.0,
+          39.31334736,
+          0.0,
+          -19.65666918
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          2.898190833333333
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          52.34149336,
+          0.0,
+          0.0,
+          -26.17074518
+        ],
+        [
+          0.0,
+          39.31334736,
+          0.0,
+          -19.65666918
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          8.814572499999999
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          52.34149336,
+          0.0,
+          0.0,
+          -26.17074518
+        ],
+        [
+          0.0,
+          39.31334736,
+          0.0,
+          -19.65666918
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          14.730954166666665
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "mesh": {
+    "vertices": [
+      [
+        -25.16417822,
+        -18.65010195,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -18.65010195,
+        3.54982897
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        3.54982897
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        3.54982897
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        3.54982897
+      ],
+      [
+        -15.36970199,
+        -17.53416234,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -18.65010195,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        7.09965794
+      ],
+      [
+        -15.36970199,
+        -17.53416234,
+        6.65592932
+      ],
+      [
+        -12.67237625,
+        -17.22684089,
+        6.65592932
+      ],
+      [
+        -12.67237625,
+        -17.22684089,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        0.0
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        3.54982897
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        3.54982897
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        0.0
+      ],
+      [
+        -15.36970199,
+        -5.11941622,
+        0.0
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        3.54982897
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        7.09965794
+      ],
+      [
+        -15.36970199,
+        -5.11941622,
+        6.65592932
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        7.09965794
+      ],
+      [
+        -8.5735348,
+        -15.77536501,
+        0.0
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        0.0
+      ],
+      [
+        -1.90745009,
+        -10.80226104,
+        0.0
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        3.54982897
+      ],
+      [
+        -8.5735348,
+        -15.77536501,
+        6.65592932
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        7.09965794
+      ],
+      [
+        -8.5735348,
+        -2.7127672,
+        0.0
+      ],
+      [
+        -4.08054542,
+        -6.34675533,
+        0.0
+      ],
+      [
+        -2.99399775,
+        -8.57450819,
+        0.0
+      ],
+      [
+        -5.16709309,
+        -4.11900248,
+        0.0
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        0.0
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        3.54982897
+      ],
+      [
+        -8.5735348,
+        -2.7127672,
+        6.65592932
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        7.09965794
+      ],
+      [
+        -25.16417822,
+        -18.65010195,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        10.64948691
+      ],
+      [
+        -12.67237625,
+        -17.22684089,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -18.65010195,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -18.65010195,
+        17.74914486
+      ],
+      [
+        -25.16417822,
+        -16.1714998,
+        17.74914486
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -13.69289765,
+        17.74914486
+      ],
+      [
+        -25.16417822,
+        -11.2142955,
+        17.74914486
+      ],
+      [
+        -12.67237625,
+        -17.22684089,
+        14.19931589
+      ],
+      [
+        -12.67237625,
+        -17.22684089,
+        17.74914486
+      ],
+      [
+        -13.22994041,
+        -14.81176516,
+        17.74914486
+      ],
+      [
+        -13.78750458,
+        -12.39668942,
+        17.74914486
+      ],
+      [
+        -14.34506875,
+        -9.98161368,
+        17.74914486
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        10.64948691
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        10.64948691
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        14.19931589
+      ],
+      [
+        -25.16417822,
+        -8.73569335,
+        17.74914486
+      ],
+      [
+        -25.16417822,
+        -6.2570912,
+        17.74914486
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        14.19931589
+      ],
+      [
+        -14.90263291,
+        -7.56653795,
+        17.74914486
+      ],
+      [
+        -15.46019708,
+        -5.15146221,
+        17.74914486
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        10.64948691
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        14.19931589
+      ],
+      [
+        -0.82090242,
+        -13.0300139,
+        17.74914486
+      ],
+      [
+        -1.90745009,
+        -10.80226104,
+        17.74914486
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        10.64948691
+      ],
+      [
+        -4.08054542,
+        -6.34675533,
+        17.74914486
+      ],
+      [
+        -2.99399775,
+        -8.57450819,
+        17.74914486
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        14.19931589
+      ],
+      [
+        -5.16709309,
+        -4.11900248,
+        17.74914486
+      ],
+      [
+        -6.25364075,
+        -1.89124963,
+        17.74914486
+      ],
+      [
+        5.10323362,
+        -0.49604283,
+        0.0
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        0.0
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        3.54982897
+      ],
+      [
+        6.66306849,
+        -2.42227848,
+        0.0
+      ],
+      [
+        8.22290337,
+        -4.34851413,
+        0.0
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        7.09965794
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        10.64948691
+      ],
+      [
+        5.10323362,
+        -0.49604283,
+        17.74914486
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        14.19931589
+      ],
+      [
+        9.78273824,
+        -6.27474978,
+        17.74914486
+      ],
+      [
+        6.66306849,
+        -2.42227848,
+        17.74914486
+      ],
+      [
+        8.22290337,
+        -4.34851413,
+        17.74914486
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        0.0
+      ],
+      [
+        3.54339875,
+        1.43019282,
+        0.0
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        3.54982897
+      ],
+      [
+        10.7823439,
+        8.79659693,
+        0.0
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        7.09965794
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        0.0
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        3.54982897
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        7.09965794
+      ],
+      [
+        16.64183935,
+        4.21865737,
+        0.0
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        0.0
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        3.54982897
+      ],
+      [
+        14.6886742,
+        5.74463722,
+        0.0
+      ],
+      [
+        12.73550905,
+        7.27061708,
+        0.0
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        7.09965794
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        0.0
+      ],
+      [
+        16.178675,
+        17.60260893,
+        0.0
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        0.0
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        3.54982897
+      ],
+      [
+        16.178675,
+        17.60260893,
+        3.54982897
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        3.54982897
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        0.0
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        3.54982897
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        0.0
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        0.0
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        3.54982897
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        3.54982897
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        7.09965794
+      ],
+      [
+        16.178675,
+        17.60260893,
+        7.09965794
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        7.09965794
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        7.09965794
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        7.09965794
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        7.09965794
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        10.64948691
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        14.19931589
+      ],
+      [
+        1.98356387,
+        3.35642847,
+        17.74914486
+      ],
+      [
+        3.54339875,
+        1.43019282,
+        17.74914486
+      ],
+      [
+        10.7823439,
+        8.79659693,
+        17.74914486
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        10.64948691
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        14.19931589
+      ],
+      [
+        8.82917876,
+        10.32257679,
+        17.74914486
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        10.64948691
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        14.19931589
+      ],
+      [
+        16.64183935,
+        4.21865737,
+        17.74914486
+      ],
+      [
+        18.59500449,
+        2.69267751,
+        17.74914486
+      ],
+      [
+        14.6886742,
+        5.74463722,
+        17.74914486
+      ],
+      [
+        12.73550905,
+        7.27061708,
+        17.74914486
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        10.64948691
+      ],
+      [
+        16.178675,
+        17.60260893,
+        10.64948691
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        10.64948691
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        10.64948691
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        10.64948691
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        10.64948691
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        14.19931589
+      ],
+      [
+        16.178675,
+        17.60260893,
+        14.19931589
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        14.19931589
+      ],
+      [
+        13.93229857,
+        18.65011146,
+        17.74914486
+      ],
+      [
+        16.178675,
+        17.60260893,
+        17.74914486
+      ],
+      [
+        18.42505142,
+        16.5551064,
+        17.74914486
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        14.19931589
+      ],
+      [
+        25.16418071,
+        13.4125988,
+        17.74914486
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        14.19931589
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        14.19931589
+      ],
+      [
+        20.67142785,
+        15.50760386,
+        17.74914486
+      ],
+      [
+        22.91780428,
+        14.46010133,
+        17.74914486
+      ]
+    ],
+    "triangles": [
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        1,
+        6,
+        4
+      ],
+      [
+        0,
+        1,
+        8
+      ],
+      [
+        1,
+        4,
+        8
+      ],
+      [
+        4,
+        5,
+        8
+      ],
+      [
+        0,
+        2,
+        3
+      ],
+      [
+        1,
+        3,
+        6
+      ],
+      [
+        0,
+        13,
+        2
+      ],
+      [
+        4,
+        7,
+        5
+      ],
+      [
+        5,
+        18,
+        16
+      ],
+      [
+        5,
+        16,
+        8
+      ],
+      [
+        16,
+        17,
+        8
+      ],
+      [
+        4,
+        6,
+        7
+      ],
+      [
+        5,
+        7,
+        18
+      ],
+      [
+        0,
+        8,
+        13
+      ],
+      [
+        17,
+        20,
+        8
+      ],
+      [
+        2,
+        10,
+        3
+      ],
+      [
+        2,
+        9,
+        10
+      ],
+      [
+        3,
+        11,
+        6
+      ],
+      [
+        3,
+        10,
+        11
+      ],
+      [
+        2,
+        13,
+        9
+      ],
+      [
+        9,
+        42,
+        10
+      ],
+      [
+        10,
+        43,
+        11
+      ],
+      [
+        9,
+        15,
+        41
+      ],
+      [
+        6,
+        12,
+        7
+      ],
+      [
+        6,
+        11,
+        12
+      ],
+      [
+        7,
+        23,
+        18
+      ],
+      [
+        7,
+        12,
+        23
+      ],
+      [
+        11,
+        44,
+        12
+      ],
+      [
+        12,
+        59,
+        23
+      ],
+      [
+        9,
+        13,
+        15
+      ],
+      [
+        15,
+        13,
+        14
+      ],
+      [
+        16,
+        19,
+        17
+      ],
+      [
+        16,
+        18,
+        19
+      ],
+      [
+        17,
+        19,
+        22
+      ],
+      [
+        17,
+        22,
+        20
+      ],
+      [
+        20,
+        21,
+        8
+      ],
+      [
+        20,
+        22,
+        21
+      ],
+      [
+        22,
+        25,
+        21
+      ],
+      [
+        18,
+        24,
+        19
+      ],
+      [
+        18,
+        23,
+        24
+      ],
+      [
+        19,
+        24,
+        26
+      ],
+      [
+        23,
+        60,
+        24
+      ],
+      [
+        19,
+        26,
+        22
+      ],
+      [
+        22,
+        26,
+        25
+      ],
+      [
+        24,
+        61,
+        26
+      ],
+      [
+        26,
+        39,
+        25
+      ],
+      [
+        28,
+        30,
+        27
+      ],
+      [
+        28,
+        27,
+        33
+      ],
+      [
+        30,
+        32,
+        27
+      ],
+      [
+        15,
+        14,
+        31
+      ],
+      [
+        15,
+        31,
+        32
+      ],
+      [
+        15,
+        32,
+        45
+      ],
+      [
+        32,
+        31,
+        27
+      ],
+      [
+        36,
+        33,
+        37
+      ],
+      [
+        37,
+        33,
+        39
+      ],
+      [
+        37,
+        39,
+        38
+      ],
+      [
+        28,
+        33,
+        29
+      ],
+      [
+        29,
+        33,
+        35
+      ],
+      [
+        34,
+        35,
+        33
+      ],
+      [
+        34,
+        82,
+        35
+      ],
+      [
+        34,
+        33,
+        36
+      ],
+      [
+        34,
+        36,
+        79
+      ],
+      [
+        36,
+        37,
+        92
+      ],
+      [
+        37,
+        38,
+        93
+      ],
+      [
+        38,
+        39,
+        40
+      ],
+      [
+        26,
+        40,
+        39
+      ],
+      [
+        26,
+        73,
+        40
+      ],
+      [
+        38,
+        40,
+        95
+      ],
+      [
+        9,
+        41,
+        42
+      ],
+      [
+        10,
+        42,
+        43
+      ],
+      [
+        41,
+        47,
+        42
+      ],
+      [
+        41,
+        46,
+        47
+      ],
+      [
+        42,
+        50,
+        43
+      ],
+      [
+        42,
+        47,
+        50
+      ],
+      [
+        41,
+        45,
+        46
+      ],
+      [
+        11,
+        43,
+        44
+      ],
+      [
+        12,
+        44,
+        59
+      ],
+      [
+        43,
+        51,
+        44
+      ],
+      [
+        43,
+        50,
+        51
+      ],
+      [
+        44,
+        62,
+        59
+      ],
+      [
+        44,
+        51,
+        62
+      ],
+      [
+        15,
+        45,
+        41
+      ],
+      [
+        45,
+        54,
+        46
+      ],
+      [
+        46,
+        49,
+        47
+      ],
+      [
+        47,
+        52,
+        50
+      ],
+      [
+        46,
+        54,
+        48
+      ],
+      [
+        46,
+        48,
+        49
+      ],
+      [
+        47,
+        49,
+        52
+      ],
+      [
+        48,
+        55,
+        49
+      ],
+      [
+        49,
+        56,
+        52
+      ],
+      [
+        50,
+        53,
+        51
+      ],
+      [
+        51,
+        64,
+        62
+      ],
+      [
+        50,
+        52,
+        53
+      ],
+      [
+        51,
+        53,
+        64
+      ],
+      [
+        52,
+        57,
+        53
+      ],
+      [
+        53,
+        58,
+        64
+      ],
+      [
+        48,
+        54,
+        55
+      ],
+      [
+        49,
+        55,
+        56
+      ],
+      [
+        52,
+        56,
+        57
+      ],
+      [
+        53,
+        57,
+        58
+      ],
+      [
+        23,
+        59,
+        60
+      ],
+      [
+        24,
+        60,
+        61
+      ],
+      [
+        59,
+        63,
+        60
+      ],
+      [
+        59,
+        62,
+        63
+      ],
+      [
+        60,
+        63,
+        66
+      ],
+      [
+        60,
+        66,
+        61
+      ],
+      [
+        62,
+        65,
+        63
+      ],
+      [
+        62,
+        64,
+        65
+      ],
+      [
+        64,
+        67,
+        65
+      ],
+      [
+        63,
+        65,
+        68
+      ],
+      [
+        63,
+        68,
+        66
+      ],
+      [
+        58,
+        67,
+        64
+      ],
+      [
+        65,
+        67,
+        68
+      ],
+      [
+        45,
+        69,
+        54
+      ],
+      [
+        32,
+        69,
+        45
+      ],
+      [
+        54,
+        69,
+        70
+      ],
+      [
+        54,
+        70,
+        55
+      ],
+      [
+        55,
+        71,
+        56
+      ],
+      [
+        56,
+        72,
+        57
+      ],
+      [
+        57,
+        75,
+        58
+      ],
+      [
+        55,
+        70,
+        71
+      ],
+      [
+        56,
+        71,
+        72
+      ],
+      [
+        57,
+        72,
+        75
+      ],
+      [
+        26,
+        61,
+        73
+      ],
+      [
+        61,
+        66,
+        76
+      ],
+      [
+        61,
+        76,
+        73
+      ],
+      [
+        40,
+        73,
+        123
+      ],
+      [
+        73,
+        76,
+        124
+      ],
+      [
+        58,
+        74,
+        67
+      ],
+      [
+        67,
+        77,
+        68
+      ],
+      [
+        58,
+        75,
+        74
+      ],
+      [
+        67,
+        74,
+        77
+      ],
+      [
+        66,
+        78,
+        76
+      ],
+      [
+        66,
+        68,
+        78
+      ],
+      [
+        68,
+        77,
+        78
+      ],
+      [
+        74,
+        75,
+        89
+      ],
+      [
+        76,
+        78,
+        125
+      ],
+      [
+        74,
+        86,
+        77
+      ],
+      [
+        77,
+        126,
+        78
+      ],
+      [
+        37,
+        91,
+        92
+      ],
+      [
+        37,
+        93,
+        91
+      ],
+      [
+        38,
+        95,
+        93
+      ],
+      [
+        40,
+        123,
+        95
+      ],
+      [
+        73,
+        124,
+        123
+      ],
+      [
+        76,
+        125,
+        124
+      ],
+      [
+        78,
+        126,
+        125
+      ],
+      [
+        28,
+        29,
+        80
+      ],
+      [
+        28,
+        80,
+        30
+      ],
+      [
+        30,
+        81,
+        32
+      ],
+      [
+        32,
+        84,
+        69
+      ],
+      [
+        29,
+        35,
+        83
+      ],
+      [
+        29,
+        83,
+        80
+      ],
+      [
+        35,
+        82,
+        83
+      ],
+      [
+        30,
+        80,
+        81
+      ],
+      [
+        34,
+        79,
+        82
+      ],
+      [
+        36,
+        92,
+        79
+      ],
+      [
+        80,
+        83,
+        100
+      ],
+      [
+        82,
+        99,
+        83
+      ],
+      [
+        32,
+        81,
+        84
+      ],
+      [
+        80,
+        100,
+        81
+      ],
+      [
+        81,
+        100,
+        101
+      ],
+      [
+        81,
+        101,
+        84
+      ],
+      [
+        84,
+        101,
+        104
+      ],
+      [
+        84,
+        104,
+        85
+      ],
+      [
+        69,
+        85,
+        70
+      ],
+      [
+        70,
+        87,
+        71
+      ],
+      [
+        71,
+        88,
+        72
+      ],
+      [
+        69,
+        84,
+        85
+      ],
+      [
+        70,
+        85,
+        87
+      ],
+      [
+        72,
+        90,
+        75
+      ],
+      [
+        71,
+        87,
+        88
+      ],
+      [
+        72,
+        88,
+        90
+      ],
+      [
+        75,
+        90,
+        89
+      ],
+      [
+        74,
+        89,
+        86
+      ],
+      [
+        77,
+        86,
+        126
+      ],
+      [
+        88,
+        134,
+        90
+      ],
+      [
+        89,
+        90,
+        133
+      ],
+      [
+        85,
+        104,
+        131
+      ],
+      [
+        85,
+        131,
+        87
+      ],
+      [
+        87,
+        131,
+        132
+      ],
+      [
+        87,
+        132,
+        88
+      ],
+      [
+        88,
+        132,
+        134
+      ],
+      [
+        91,
+        94,
+        92
+      ],
+      [
+        91,
+        93,
+        97
+      ],
+      [
+        79,
+        102,
+        82
+      ],
+      [
+        79,
+        92,
+        103
+      ],
+      [
+        79,
+        103,
+        102
+      ],
+      [
+        92,
+        94,
+        103
+      ],
+      [
+        91,
+        96,
+        94
+      ],
+      [
+        91,
+        97,
+        96
+      ],
+      [
+        93,
+        95,
+        98
+      ],
+      [
+        93,
+        98,
+        97
+      ],
+      [
+        95,
+        128,
+        98
+      ],
+      [
+        94,
+        96,
+        106
+      ],
+      [
+        96,
+        97,
+        108
+      ],
+      [
+        96,
+        108,
+        105
+      ],
+      [
+        97,
+        98,
+        117
+      ],
+      [
+        97,
+        117,
+        108
+      ],
+      [
+        98,
+        137,
+        117
+      ],
+      [
+        83,
+        99,
+        100
+      ],
+      [
+        82,
+        102,
+        99
+      ],
+      [
+        99,
+        102,
+        114
+      ],
+      [
+        99,
+        111,
+        100
+      ],
+      [
+        100,
+        111,
+        101
+      ],
+      [
+        101,
+        112,
+        104
+      ],
+      [
+        104,
+        120,
+        131
+      ],
+      [
+        94,
+        107,
+        103
+      ],
+      [
+        102,
+        103,
+        113
+      ],
+      [
+        103,
+        107,
+        113
+      ],
+      [
+        96,
+        105,
+        106
+      ],
+      [
+        94,
+        106,
+        107
+      ],
+      [
+        105,
+        109,
+        106
+      ],
+      [
+        106,
+        110,
+        107
+      ],
+      [
+        105,
+        108,
+        109
+      ],
+      [
+        106,
+        109,
+        110
+      ],
+      [
+        99,
+        114,
+        111
+      ],
+      [
+        102,
+        113,
+        114
+      ],
+      [
+        111,
+        114,
+        112
+      ],
+      [
+        101,
+        111,
+        112
+      ],
+      [
+        107,
+        115,
+        113
+      ],
+      [
+        113,
+        116,
+        114
+      ],
+      [
+        107,
+        110,
+        115
+      ],
+      [
+        113,
+        115,
+        116
+      ],
+      [
+        112,
+        114,
+        116
+      ],
+      [
+        108,
+        118,
+        109
+      ],
+      [
+        108,
+        117,
+        118
+      ],
+      [
+        109,
+        119,
+        110
+      ],
+      [
+        109,
+        118,
+        119
+      ],
+      [
+        117,
+        138,
+        118
+      ],
+      [
+        118,
+        139,
+        119
+      ],
+      [
+        104,
+        112,
+        120
+      ],
+      [
+        112,
+        116,
+        120
+      ],
+      [
+        120,
+        122,
+        140
+      ],
+      [
+        110,
+        121,
+        115
+      ],
+      [
+        110,
+        119,
+        121
+      ],
+      [
+        115,
+        121,
+        122
+      ],
+      [
+        115,
+        122,
+        116
+      ],
+      [
+        116,
+        122,
+        120
+      ],
+      [
+        119,
+        141,
+        121
+      ],
+      [
+        121,
+        142,
+        122
+      ],
+      [
+        95,
+        123,
+        128
+      ],
+      [
+        123,
+        124,
+        129
+      ],
+      [
+        123,
+        129,
+        128
+      ],
+      [
+        125,
+        126,
+        127
+      ],
+      [
+        124,
+        125,
+        130
+      ],
+      [
+        86,
+        89,
+        135
+      ],
+      [
+        86,
+        136,
+        126
+      ],
+      [
+        86,
+        135,
+        136
+      ],
+      [
+        124,
+        130,
+        129
+      ],
+      [
+        126,
+        136,
+        127
+      ],
+      [
+        125,
+        127,
+        130
+      ],
+      [
+        98,
+        128,
+        137
+      ],
+      [
+        128,
+        129,
+        143
+      ],
+      [
+        128,
+        143,
+        137
+      ],
+      [
+        129,
+        130,
+        146
+      ],
+      [
+        127,
+        147,
+        130
+      ],
+      [
+        129,
+        146,
+        143
+      ],
+      [
+        131,
+        140,
+        132
+      ],
+      [
+        90,
+        134,
+        133
+      ],
+      [
+        89,
+        133,
+        135
+      ],
+      [
+        133,
+        154,
+        135
+      ],
+      [
+        132,
+        149,
+        134
+      ],
+      [
+        133,
+        134,
+        150
+      ],
+      [
+        117,
+        137,
+        138
+      ],
+      [
+        118,
+        138,
+        139
+      ],
+      [
+        137,
+        144,
+        138
+      ],
+      [
+        137,
+        143,
+        144
+      ],
+      [
+        138,
+        145,
+        139
+      ],
+      [
+        138,
+        144,
+        145
+      ],
+      [
+        120,
+        140,
+        131
+      ],
+      [
+        132,
+        140,
+        149
+      ],
+      [
+        140,
+        142,
+        149
+      ],
+      [
+        119,
+        139,
+        141
+      ],
+      [
+        121,
+        141,
+        142
+      ],
+      [
+        122,
+        142,
+        140
+      ],
+      [
+        139,
+        151,
+        141
+      ],
+      [
+        139,
+        145,
+        151
+      ],
+      [
+        141,
+        151,
+        152
+      ],
+      [
+        141,
+        152,
+        142
+      ],
+      [
+        142,
+        152,
+        149
+      ],
+      [
+        127,
+        136,
+        148
+      ],
+      [
+        135,
+        153,
+        136
+      ],
+      [
+        136,
+        153,
+        148
+      ],
+      [
+        143,
+        147,
+        144
+      ],
+      [
+        144,
+        148,
+        145
+      ],
+      [
+        130,
+        147,
+        146
+      ],
+      [
+        127,
+        148,
+        147
+      ],
+      [
+        143,
+        146,
+        147
+      ],
+      [
+        144,
+        147,
+        148
+      ],
+      [
+        149,
+        152,
+        150
+      ],
+      [
+        133,
+        150,
+        154
+      ],
+      [
+        135,
+        154,
+        153
+      ],
+      [
+        134,
+        149,
+        150
+      ],
+      [
+        145,
+        153,
+        151
+      ],
+      [
+        151,
+        154,
+        152
+      ],
+      [
+        145,
+        148,
+        153
+      ],
+      [
+        151,
+        153,
+        154
+      ],
+      [
+        150,
+        152,
+        154
+      ],
+      [
+        8,
+        21,
+        13
+      ],
+      [
+        14,
+        13,
+        25
+      ],
+      [
+        13,
+        21,
+        25
+      ],
+      [
+        27,
+        31,
+        39
+      ],
+      [
+        14,
+        25,
+        31
+      ],
+      [
+        33,
+        27,
+        39
+      ],
+      [
+        25,
+        39,
+        31
+      ]
+    ]
+  },
+  "mesh_evidence": {
+    "connected": true,
+    "watertight": true,
+    "manifold": true,
+    "closed_solid": true,
+    "component_count": 1,
+    "bounds": [
+      [
+        -25.164178,
+        -18.650102,
+        0.0
+      ],
+      [
+        25.164181,
+        18.650111,
+        17.749145
+      ]
+    ],
+    "triangle_count": 306,
+    "self_intersection_checked_by_kernel": true,
+    "outward_normals": true,
+    "volume": 11620.689011
+  },
+  "storey_evidence": {
+    "schema_version": "arr.maas.creative_storey_evidence.v1",
+    "storey_count": 3,
+    "typical_storey_height_m": 5.916381619026566,
+    "floor_elevations_m": [
+      0.0,
+      5.916382,
+      11.832763,
+      17.749145
+    ],
+    "floor_center_elevations_m": [
+      2.958191,
+      8.874572,
+      14.790954
+    ],
+    "actual_floor_areas_m2": [
+      599.779582,
+      687.681447,
+      687.681447
+    ],
+    "actual_gfa_m2": 1975.142475,
+    "target_gfa_m2": 1975.142479,
+    "capacity_band": "inherited_parent",
+    "capacity_authority": "verified_parent_delivery_target; final imported area is measured separately",
+    "floor_cutter_node_ids": [
+      "creative_floor_01_cutter_matrix4",
+      "creative_floor_02_cutter_matrix4",
+      "creative_floor_03_cutter_matrix4"
+    ],
+    "floor_plate_node_ids": [
+      "creative_floor_01_occupied_plate",
+      "creative_floor_02_occupied_plate",
+      "creative_floor_03_occupied_plate"
+    ],
+    "floor_plate_compiled_volumes_m3": [
+      71.97355,
+      82.521774,
+      82.521774
+    ],
+    "authority": "authored_prelegal_horizontal_sections",
+    "legal_certified": false,
+    "measurement": "final_manifold_occupied_floor_plate_center_slice"
+  },
+  "connectivity_evidence": {
+    "schema_version": "arr.maas.creative_contact_witness.v1",
+    "hard_pass": true,
+    "contact_type": "compiled_connected_solid",
+    "witness_node_id": "ground_passage",
+    "witness_operator": "difference",
+    "witness_compiled_volume": 0.786548,
+    "final_component_count": 1,
+    "compiled_component_count": 1,
+    "measurement": "compiler_trace_positive_volume_and_final_component_count"
+  },
+  "morphology_evidence": {
+    "schema_version": "arr.maas.creative_morphology.v1",
+    "descriptor": {
+      "schema_version": "arr.maas.creative_morphology.v1",
+      "axis_ratios": [
+        0.772977099215,
+        0.572881996845,
+        0.272603414836
+      ],
+      "z_slice_occupancies": [
+        0.0,
+        0.0,
+        0.154885931362,
+        0.354743392514,
+        0.31278513532,
+        0.177585540804,
+        0.0,
+        0.0
+      ],
+      "floor_area_profile": [
+        0.113154578756,
+        0.117892747255,
+        0.122630915755,
+        0.127369084254,
+        0.129738168501,
+        0.129738168497,
+        0.129738168493,
+        0.129738168489
+      ],
+      "convexity": 0.735002321801,
+      "void_fraction": 0.651237036795,
+      "normal_bins": [
+        0.078142074261,
+        0.211437906843,
+        0.07925561114,
+        0.275993326149,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.301114950022,
+        0.0,
+        0.054056131585,
+        0.0
+      ],
+      "radial_bins": [
+        0.008953202078,
+        0.027987632826,
+        0.137198160456,
+        0.232058044345,
+        0.158514975374,
+        0.12457942733,
+        0.193687449388,
+        0.117021108203
+      ],
+      "silhouette_front": [
+        0.666666666667,
+        0.666666666667,
+        1.0,
+        1.0,
+        0.888888888889,
+        0.888888888889,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_side": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_isometric": [
+        0.777777777778,
+        1.0,
+        0.444444444444,
+        0.111111111111,
+        1.0,
+        1.0,
+        1.0,
+        0.888888888889,
+        0.0,
+        0.555555555556,
+        1.0,
+        1.0,
+        0.0,
+        0.222222222222,
+        1.0,
+        0.888888888889
+      ],
+      "component_count": 1,
+      "contact_topology": "compiled_connected_solid"
+    },
+    "decision": {
+      "accepted": true,
+      "nearest_distance": 0.0,
+      "reason": "local_development; final delivered shape distinctness checked before pairs"
+    }
+  },
+  "legal_review": {
+    "schema_version": "arr.maas.prelegal_review.v1",
+    "status": "not_evaluated",
+    "hard_pass": false,
+    "capacity_ceiling_m2": 1975.142479,
+    "capacity_authority": "user_supplied_prelegal_target",
+    "required_authorities": [
+      "neo4j_law_agent",
+      "exact_geometry_gate"
+    ]
+  },
+  "lineage": {
+    "schema_version": "arr.maas.creative_lineage.v1",
+    "stages": [
+      "llm_authored_geometry_program",
+      "canonical_unitbox",
+      "physical_storey_capacity_matrix4",
+      "connected_mass",
+      "storey_contract",
+      "legal_review_pending",
+      "exact_authored_development"
+    ],
+    "unitbox_node_id": "unit",
+    "relation_node_id": "ground_passage",
+    "physical_envelope_node_id": "creative_physical_storey_capacity_matrix4",
+    "physical_root_node_id": "creative_occupied_storeys_union"
+  },
+  "development_lineage": {
+    "mode": "exact-authored-development",
+    "parent_contract": {
+      "parent": "book:book-comp06:morph-curved-low:creative-001",
+      "parent_shape_id": "a9f195967d9b9a1f4430",
+      "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+      "parent_certificate_id": "ebf58693de1a33c880e6",
+      "site_pnu": "4115011300106840001",
+      "storey_count": 3,
+      "storey_height_m": 5.916381619026566,
+      "target_gfa_m2": 1975.1424786905304,
+      "height_m": 17.7491448570797
+    },
+    "parent_contract_hash": "daefe69c75a4b216046addb10ccb12dca20b0c8f81d05dbef7eebe0def3190cc",
+    "authored_program": {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp06_develop_crescent_ground_passage",
+      "root_id": "ground_passage",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "ground_passage_cutter",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.34,
+                0,
+                0,
+                -0.91
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.19,
+                -0.25
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "ground_passage",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "ground_passage_cutter"
+          ],
+          "parameters": {},
+          "semantic_role": "public_threshold",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+        "parent_shape_id": "a9f195967d9b9a1f4430",
+        "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+        "author_provider": "codex_authored_exact_development",
+        "changed_fields": [
+          "ground_passage_cutter",
+          "ground_passage"
+        ],
+        "expected_effect": "A substantial ground-level passage connects the outer edge to the concavity through the lower part of the curved band; the upper band stays continuous. Clear dimensions must be measured after delivery.",
+        "tradeoff": "Lower occupied area and a bridge-like transfer over the passage; geometry alone does not prove access or structural feasibility.",
+        "programme_status": "unknown",
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    "authored_program_hash": "ba2546777e4776c22f343f72fa65d95f3a0a9c417e7074441fed32bdb8178fe3"
+  },
+  "run_id": "book-develop-comp06",
+  "pnu": "4115011300106840001",
+  "identity": {
+    "schema_version": "arr.maas.creative_candidate_identity.v1",
+    "candidate_id": "creative-001",
+    "program_hash": "50caf4198a3e6788a33d80c73a6b813fd1dcc5c82a435bbd79d075995dec27a5",
+    "geometry_hash": "2c8d39745a974cc092578e30b12b570f14b523b87fe6eb0cd6bebff53382efaf"
+  },
+  "candidate_json": "candidates/creative-001.json",
+  "render_png": "renders/creative-001.png",
+  "mass_directory": "masses/creative-001",
+  "mass_manifest": "masses/creative-001/manifest.json",
+  "elevation_research_handoff": "masses/creative-001/elevation-research/handoff.json"
+}

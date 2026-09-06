@@ -1,0 +1,20 @@
+{
+  "name": "book:book-comp04:morph-voided-tall:creative-030",
+  "shape_id": "f8df85c08b83d0871996",
+  "anonymous_image": false,
+  "image_footer": "book:book-comp04:morph-voided-tall:creative-030 | f8df85c08b83d0871996 | common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.595676442465997
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    664.2342302203385,
+    371.2488140943166
+  ],
+  "section_area_m2": 224.55411928757061,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "58fc029c70ee46b980cd24d70efc3096567011506400a5cbcdba5810b775823a"
+}

@@ -1,0 +1,30 @@
+TILE t01
+CONCEPT 3 | The combination of an enclosed court and an open notch is legible, but the uniform low block lacks a particularly memorable silhouette.
+FEASIBILITY 5 | Continuous grounded walls and matching floor footprints suggest straightforward construction without conspicuous transfers or cantilevers.
+SITE 3 | The clipped perimeter acknowledges the parcel and the notch opens outward, though the remaining corner spaces have little visible spatial definition.
+EDITABILITY 4 | The low courtyard block can accept ordinary floors and facades, while its relatively small enclosed void would require care during subdivision.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 4 | A continuous courtyard ring with a folded, rising and falling roof edge gives this alternative the clearest distinctive silhouette.
+FEASIBILITY 4 | The ring is visibly grounded with repeated lower footprints; the angular roof transitions add detailing demands without showing an implausible support condition.
+SITE 3 | The perimeter is trimmed to the parcel, but the enclosed ground-level ring provides no visible opening connecting its court to the surrounding open space.
+EDITABILITY 4 | Repeated ring floors offer a durable framework, although cores and top-floor accommodation would need to preserve the folded roof profile.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 3 | Three unequal pavilions establish a clear cluster around crossing gaps, but their individual shapes remain fairly conventional.
+FEASIBILITY 5 | Each compact volume bears directly on the ground and retains its footprint above, with no visible structural gymnastics.
+SITE 4 | The separated volumes define routes through the parcel and their clipped outer corners register its boundaries at a comfortable collective scale.
+EDITABILITY 4 | The simple volumes allow ordinary floors, cores and facades, though later connections would need to preserve the open gaps that organize the ensemble.
+WEIGHTED 3.90
+
+TILE t04
+CONCEPT 2 | Two parallel clipped bars communicate a simple split, but the overlapping axonometric silhouette gives the scheme limited identity.
+FEASIBILITY 5 | Broad grounded volumes and matching lower and upper outlines suggest an economical, conventional structural arrangement.
+SITE 3 | The bars follow the parcel edges and leave a through-gap, but the narrow separation and leftover corner spaces offer a modest response to the site.
+EDITABILITY 5 | The generous uncomplicated bars can accommodate floors, cores and facade development while retaining their basic separation.
+WEIGHTED 3.55
+
+RANKING: t03, t02, t01, t04
+VERDICT: I would advance t03 for its buildable pavilion ensemble and the visible routes between its volumes, with t02 close behind for the stronger architectural image of its folded courtyard ring. The next review should establish actual entries and circulation, particularly access to t02's enclosed court; t01 and t04 currently offer less distinctive formal propositions.

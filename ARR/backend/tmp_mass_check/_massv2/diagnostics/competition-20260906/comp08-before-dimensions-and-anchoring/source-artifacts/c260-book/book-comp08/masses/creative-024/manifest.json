@@ -1,0 +1,91 @@
+{
+  "artifacts": {
+    "author_evidence": {
+      "path": "program/author-evidence.json",
+      "sha256": "d01cb0d4bab6326aa6b38b8d77ffee4737a12929ae4b1ffd46287c691c193b4b"
+    },
+    "camera_poses": {
+      "path": "elevation-research/camera-poses.json",
+      "sha256": "bd8687962560f4dc79830881cb8f6cb05b8b692d9f7d9c3b2f2eab0b1c423e28"
+    },
+    "elevation_handoff": {
+      "path": "elevation-research/handoff.json",
+      "sha256": "9afc4a243b489834c82f6e9859208d389c888b5f61f1aad6d8ec55e33bd60b9a"
+    },
+    "facade_planes": {
+      "path": "elevation-research/facade-planes.json",
+      "sha256": "db5652eb7022217c3977cd445da1629eaebf3fd7d9bd4dae9a9619d4604fa3db"
+    },
+    "floor_guides": {
+      "path": "elevation-research/floor-guides.json",
+      "sha256": "e0c50b676f582d29a80e5a531de0342015b026d68620f63a87a7e7f7b83d6371"
+    },
+    "geometry_program": {
+      "path": "program/geometry-program.json",
+      "sha256": "5d1db42c5934c2387762fe80fc5495fa99ce3433737abc8aaff62d6f734a4b2c"
+    },
+    "indexed_mesh": {
+      "path": "mesh/indexed-mesh.json",
+      "sha256": "dd0f04c16c504ec448fbbd9fa416cb3939fa9df432404eaf69a144d092ba320d"
+    },
+    "matrix4_trace": {
+      "path": "transforms/matrix4-trace.json",
+      "sha256": "9a0881aa09f7d3c9bd21015dbb904ef48828f8d69595cacb5789a56bc9fffe39"
+    },
+    "obj": {
+      "path": "mesh/mass.obj",
+      "sha256": "013b393c6b5ba6a4789c932d11f11375c97fb12d1726088f4ca80b869281a0bc"
+    },
+    "surface_normals": {
+      "path": "elevation-research/surface-normals.json",
+      "sha256": "9cd7d6a9331998bc8c5155a941d7219ec9161eb3d24f61aedc6416e40ee59e3d"
+    },
+    "triangles_csv": {
+      "path": "mesh/triangles.csv",
+      "sha256": "3d09ba05409f5e2a2cad7f3f92c0605c3acbb0ed6418ed514998405bb9da8e93"
+    },
+    "vertices_csv": {
+      "path": "mesh/vertices.csv",
+      "sha256": "0c6d963802bf7693f28f4a7149e09f6538f456011d264cc6c45432f6448586d2"
+    },
+    "views": {
+      "paths": {
+        "axon": {
+          "path": "views/axon.png",
+          "sha256": "74015304560ecb5a9ab94fcdedb4aeadf63fb24ba9f9094fe2a26943e061aef6"
+        },
+        "back": {
+          "path": "views/back.png",
+          "sha256": "55f2c12d2343c44b09a39914f8e3c297d8d083b9f32bace8d401387920dcccc9"
+        },
+        "front": {
+          "path": "views/front.png",
+          "sha256": "247c1d410b7519c7113aad57d166d1d70efe00e697b6a4aa66149f32cd42bb07"
+        },
+        "left": {
+          "path": "views/left.png",
+          "sha256": "10d5b4965ef3d4452882a951fbea6efe851c8c21a0b9faf9443dc85e4be2af8a"
+        },
+        "right": {
+          "path": "views/right.png",
+          "sha256": "1dc24914dc5ce7db314e424870871d367d918de495cac6c2bd9656c0f9e5ce1c"
+        },
+        "top": {
+          "path": "views/top.png",
+          "sha256": "a5d0edc1cba8ec63edc1f6838c8a45976921a6ee9e9ef9444a3a559bb3346742"
+        }
+      }
+    }
+  },
+  "geometry_authority": "indexed_mesh_from_compiled_geometry_program",
+  "geometry_mutation_allowed": false,
+  "identity": {
+    "candidate_id": "creative-024",
+    "geometry_hash": "f049b8784ceed0c5be5b944281c56470b56aedd8ff8254599e4f80ff4733934a",
+    "pnu": "4115011300106840001",
+    "program_hash": "1925c19f7feb311daa9d931c76646bfb13dc3a1cb7012e18690c336af9339b88",
+    "run_id": "book-comp08"
+  },
+  "schema_version": "arr.maas.creative_mass_research_bundle.v1",
+  "status": "prelegal_research_ready"
+}

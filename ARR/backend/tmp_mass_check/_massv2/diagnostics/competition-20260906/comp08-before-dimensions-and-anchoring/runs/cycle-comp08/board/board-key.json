@@ -1,0 +1,244 @@
+[
+ {
+  "label": "O1",
+  "name": "book:book-comp08:morph-curved-low:creative-001",
+  "score": 4.25,
+  "round": "vlm-book-comp08",
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate_id": "1e29520ea877cbce6cf4"
+ },
+ {
+  "label": "O2",
+  "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+  "score": 4.17,
+  "round": "vlm-book-comp08",
+  "shape_id": "355b30ebb37b723be6cd",
+  "certificate_id": "efa427a310fcc96b861f"
+ },
+ {
+  "label": "O3",
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "score": 4.0,
+  "round": "vlm-comp08",
+  "shape_id": "64c94edfe13ebcdc018e",
+  "certificate_id": "1f9e9d919af107b31378"
+ },
+ {
+  "label": "O4",
+  "name": "book:book-develop-comp06:exact-authored-development:creative-002",
+  "score": 3.92,
+  "round": "vlm-book-comp08",
+  "shape_id": "ea62d184a62fe7cef597",
+  "certificate_id": "76a9dd7e900120abdb2a"
+ },
+ {
+  "label": "O5",
+  "name": "sangok_c07_continuous_court_section~dispersed_ground^to_open",
+  "score": 3.73,
+  "round": "vlm-comp08",
+  "shape_id": "4022df470e28a8bfaede",
+  "certificate_id": "b489226f6f3b2f341ea7"
+ },
+ {
+  "label": "O6",
+  "name": "book:book-comp08:morph-compact-mid:creative-005",
+  "score": 3.7,
+  "round": "vlm-book-comp08",
+  "shape_id": "8b128c6e580495b195ef",
+  "certificate_id": "d304bded964a4c30c471"
+ },
+ {
+  "label": "O7",
+  "name": "book:book-comp08:morph-compact-mid:creative-009",
+  "score": 3.7,
+  "round": "vlm-book-comp08",
+  "shape_id": "cf6dd25f161c8aa30eaa",
+  "certificate_id": "6923a35cc8e1305269ba"
+ },
+ {
+  "label": "O8",
+  "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+  "score": 3.65,
+  "round": "vlm-comp08",
+  "shape_id": "7d3f2e4b92afe8526709",
+  "certificate_id": "5250875ba26b27f4ed9a"
+ },
+ {
+  "label": "O9",
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "score": 3.6,
+  "round": "vlm-comp08",
+  "shape_id": "40115b02b09902f83d13",
+  "certificate_id": "d5daa53a0e5d499ddf13"
+ },
+ {
+  "label": "O10",
+  "name": "book:book-comp08:morph-compact-mid:creative-007",
+  "score": 3.52,
+  "round": "vlm-book-comp08",
+  "shape_id": "be18ee11aab65171d469",
+  "certificate_id": "3b4f1370b361d788a98c"
+ },
+ {
+  "label": "O11",
+  "name": "book:book-comp08:morph-compact-mid:creative-011",
+  "score": 3.45,
+  "round": "vlm-book-comp08",
+  "shape_id": "ce63ea701f8ca3bb4096",
+  "certificate_id": "362047a2ec4c057fcc9a"
+ },
+ {
+  "label": "O12",
+  "name": "book:book-comp08:morph-curved-mid:creative-004",
+  "score": 3.45,
+  "round": "vlm-book-comp08",
+  "shape_id": "d8c7681d14fdb92697f1",
+  "certificate_id": "b8f7abc6a3c172c9d0fb"
+ },
+ {
+  "label": "O13",
+  "name": "book:book-comp08:morph-voided-mid:creative-018",
+  "score": 3.38,
+  "round": "vlm-book-comp08",
+  "shape_id": "92582c6ed5e38a29ab34",
+  "certificate_id": "e74953b8eea9d403918d"
+ },
+ {
+  "label": "O14",
+  "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+  "score": 3.35,
+  "round": "vlm-comp08",
+  "shape_id": "41a8739e010fce1dbb40",
+  "certificate_id": "9673e6ce544dd6a1af60"
+ },
+ {
+  "label": "O15",
+  "name": "book:book-comp08:morph-compact-mid:creative-013",
+  "score": 3.35,
+  "round": "vlm-book-comp08",
+  "shape_id": "16c3e63ecdd0f7f0a953",
+  "certificate_id": "a097756aab4d45db816d"
+ },
+ {
+  "label": "O16",
+  "name": "book:book-comp08:morph-compact-mid:creative-012",
+  "score": 3.35,
+  "round": "vlm-book-comp08",
+  "shape_id": "86ea51c512a1849ccb73",
+  "certificate_id": "17a35cd445d1d4de1557"
+ },
+ {
+  "label": "O17",
+  "name": "book:book-comp08:morph-oblique-mid:creative-002",
+  "score": 3.35,
+  "round": "vlm-book-comp08",
+  "shape_id": "e6b0a404fb56c41022a8",
+  "certificate_id": "ac42853296ed5c030f8d"
+ },
+ {
+  "label": "O18",
+  "name": "book:book-comp08:morph-curved-mid:creative-017",
+  "score": 3.23,
+  "round": "vlm-book-comp08",
+  "shape_id": "532bc33ea6d4c92af541",
+  "certificate_id": "b870e8e444f57ba759ff"
+ },
+ {
+  "label": "O19",
+  "name": "book:book-comp08:morph-compact-mid:creative-003",
+  "score": 3.18,
+  "round": "vlm-book-comp08",
+  "shape_id": "26d7967165a8a6e4bb8e",
+  "certificate_id": "0e93dfe39e245a92cc59"
+ },
+ {
+  "label": "O20",
+  "name": "book:book-comp08:morph-compact-low:creative-006",
+  "score": 3.13,
+  "round": "vlm-book-comp08",
+  "shape_id": "a67900bd1640561f0967",
+  "certificate_id": "44fa74a892a47bbdda11"
+ },
+ {
+  "label": "O21",
+  "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+  "score": 3.12,
+  "round": "vlm-comp08",
+  "shape_id": "11e2e6eec15a6f8b60ee",
+  "certificate_id": "8f8a0555145d746ac031"
+ },
+ {
+  "label": "O22",
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "score": 3.12,
+  "round": "vlm-comp08",
+  "shape_id": "70050afda2ba70381aa3",
+  "certificate_id": "e83977d4f93a66b785de"
+ },
+ {
+  "label": "C1",
+  "name": "one_round_tower^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C2",
+  "name": "one_wide_slab^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C3",
+  "name": "slab_on_pilotis^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C4",
+  "name": "stadium_slab_tower^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C5",
+  "name": "two_drums_one_court^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C6",
+  "name": "round_tower_low_plate^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C7",
+  "name": "lifted_round_disc^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C8",
+  "name": "drum_that_steps_once^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C9",
+  "name": "one_gable_bar^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C10",
+  "name": "twin_gable_bars^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C11",
+  "name": "one_court_block^centred",
+  "score": null,
+  "round": "canon"
+ }
+]

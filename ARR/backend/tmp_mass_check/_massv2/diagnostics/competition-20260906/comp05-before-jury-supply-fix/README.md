@@ -1,0 +1,1 @@
+Incomplete comp05 diagnostic baseline. Steps 1-4 completed; step 5 external BOOK author pending. No jury or completed-cycle claim. Frozen artifacts retained because pre-jury shortlist and typed composition identity hide valid alternatives. comp04-before-authored-preservation remains the certified board baseline for the next era.

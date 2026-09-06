@@ -1,0 +1,49 @@
+{
+  "round": "comp08",
+  "status": "pending_payload_ready",
+  "prompt_contract": "arr.maas.geometry_llm_author.v33_graph_assembly_body_budget",
+  "payload": "tmp_mass_check\\_massv2\\inputs\\book-comp08.json",
+  "payload_sha256": "0630105a22bd2e95a7f284c818cd8aa187f74184fc2a7464ed24cfb97f2e8f06",
+  "byte_identical_to_adopted": true,
+  "contract_files": [
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp08\\book-author\\PROMPT.txt",
+      "sha256": "3b61ae43e5cffcf97e07acf8a39000f5be18c0bf85ac93751af6ad3f8fc1b71d",
+      "bytes": 110177
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp08\\book-author\\schema.json",
+      "sha256": "6fa29e6e5ab4c13bd4df80ffa9766b06052a8f6ae80e3143b8c531740a333c90",
+      "bytes": 561412
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp08\\book-author\\context.json",
+      "sha256": "8f9f06ff62d760202cc09610e44efe6a2a5bc88b749f3c60e8c1158722e202ec",
+      "bytes": 61662
+    },
+    {
+      "path": "tmp_mass_check\\_massv2\\runs\\cycle-comp08\\brief.md",
+      "sha256": "8c91dd81d9a87974fea1dfb2abecff42717ea88d0d0657e6be0f153d52c65149",
+      "bytes": 42734
+    }
+  ],
+  "review": "New prompt/context differ from reviewed comp07 only by round name; full schema and brief identical. Newly loaded full schema, context and path offer validated.",
+  "validation": {
+    "schema": "pass",
+    "english_payload": "pass",
+    "offered_unique_paths": 12,
+    "actual_context_decoded_programs": 12,
+    "compiler_geometry_gate_pass": 12
+  },
+  "provenance": "8 retained comp06 originals plus 4 newly authored explicit assemblies. Program3 path revision preserved in prior diagnostics.",
+  "prior_isolated_portfolio": {
+    "authored_originals": 12,
+    "book_explorations": 12,
+    "rejections": 0
+  },
+  "production_executed": false,
+  "limitations": [
+    "Actual-site import and fresh VLM remain pending in coordinator.",
+    "Programme, parking and member capacity are unverified."
+  ]
+}

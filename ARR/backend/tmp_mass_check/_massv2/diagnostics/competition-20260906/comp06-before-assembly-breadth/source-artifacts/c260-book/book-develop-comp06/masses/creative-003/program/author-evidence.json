@@ -1,0 +1,18 @@
+{
+  "author_evidence": {
+    "cache_hit": false,
+    "model": "",
+    "prompt_contract": "",
+    "provider": "codex_authored_exact_development",
+    "response_id": "",
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program"
+  },
+  "identity": {
+    "candidate_id": "creative-003",
+    "geometry_hash": "36c2429f9310525aa12bcdad94119d48abd34e5e3e26e936d458ee97ac718ece",
+    "pnu": "4115011300106840001",
+    "program_hash": "cbbfe91dbd3ffd91e9ab440b924d110000b902e70c4c73a3506d23c27f45f44b",
+    "run_id": "book-develop-comp06"
+  }
+}

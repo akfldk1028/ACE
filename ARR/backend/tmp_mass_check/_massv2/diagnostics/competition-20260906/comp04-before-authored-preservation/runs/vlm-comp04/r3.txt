@@ -1,0 +1,30 @@
+TILE t01
+CONCEPT 4 | A compact carved figure combines an enclosed court with a large open notch, producing a clear and recognizable silhouette.
+FEASIBILITY 5 | The two-storey mass has continuous ground support and matching floor footprints, with no apparent structural gymnastics.
+SITE 4 | The clipped perimeter follows the parcel while the open notch and surrounding clear ground give the low mass several spatial relationships to its site.
+EDITABILITY 5 | Regular-depth wings and vertically aligned voids can accommodate floors and enclosure while retaining the carved figure.
+WEIGHTED 4.45
+
+TILE t02
+CONCEPT 4 | The lifted and folded crown makes the courtyard ring memorable, although its competing peaks weaken the unity of the gesture.
+FEASIBILITY 4 | The grounded ring provides credible support, but the intersecting roof slopes and abrupt changes in profile add junction complexity at a civic budget.
+SITE 3 | The perimeter acknowledges the parcel and encloses a substantial court, but the ground plan shows no open passage connecting that court to the exterior.
+EDITABILITY 4 | Repeated ring-shaped floor plates are workable, while development of the upper floors must preserve the folded crown that supplies the scheme's identity.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 3 | Three detached, differently sized pavilions make a legible cluster, but the massing remains a familiar arrangement rather than a singular image.
+FEASIBILITY 5 | Each volume bears directly on the ground and retains its footprint upstairs, suggesting straightforward independent construction.
+SITE 4 | Open gaps connect through the cluster and the clipped blocks address different parcel edges, creating a convincing distribution of built and open ground.
+EDITABILITY 5 | The uncomplicated pavilions can accept floors, cores and facades with little threat to the cluster's defining separation and scale differences.
+WEIGHTED 4.10
+
+TILE t04
+CONCEPT 3 | A straight cleft divides two broad bars into a coherent pair, but the split is much more evident in plan than in the principal massing view.
+FEASIBILITY 5 | Both low-rise bars have direct ground support and consistent floor outlines, with no visible transfer or cantilever demands.
+SITE 3 | Clipped ends follow the parcel and the cleft connects opposite sides, but the broad bars leave a narrow, weakly differentiated outdoor passage.
+EDITABILITY 5 | The simple bar volumes offer substantial freedom for internal organization and facade development while preserving the central cleft.
+WEIGHTED 3.90
+
+RANKING: t01, t03, t04, t02
+VERDICT: Advance t01 for its clear relationship between a compact built figure and two distinct voids, supported by straightforward construction. Retain t03 as the strongest alternative for a permeable pavilion arrangement; t04 is robust but less memorable, while t02 needs its folded crown and courtyard access resolved before advancing.

@@ -1,0 +1,4 @@
+PAIR p01: B, the visible ground-level opening connects the outer approach to the courtyard while the continuous upper mass preserves the composition.
+PAIR p02: A, its straight roof edges and consistent section are more coherent than B's shallow waviness, which gives no clear spatial benefit in the cuts.
+PAIR p03: B, the full-height slot makes the courtyard approach legible and adds a clear threshold between the two ends of the otherwise continuous mass.
+PAIR p04: A, its clean court boundary and uninterrupted wing form a clearer outdoor enclosure than B's narrow stepped recess.

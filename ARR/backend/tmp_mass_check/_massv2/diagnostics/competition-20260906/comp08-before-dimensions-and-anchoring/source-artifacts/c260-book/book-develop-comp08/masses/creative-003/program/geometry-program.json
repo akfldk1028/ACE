@@ -1,0 +1,607 @@
+{
+  "geometry_program": {
+    "metadata": {
+      "affine_authority": "explicit_matrix4",
+      "author_provider": "codex_authored_exact_development",
+      "base_volume_authority": "1/1 UnitBox",
+      "book_exact_development": {
+        "authored_program": {
+          "metadata": {
+            "author_provider": "codex_authored_exact_development",
+            "changed_fields": [
+              "threshold",
+              "through_threshold_cut"
+            ],
+            "expected_effect": "A substantial ground passage crosses the crescent between its outer and concave edges while the upper mass bridges the opening. This changes ground connectivity while keeping the curved silhouette.",
+            "inherited_dimensions_authority": "verified_book_development_parent_contract",
+            "parent_name": "book:book-comp08:morph-curved-low:creative-001",
+            "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+            "parent_shape_id": "a9f195967d9b9a1f4430",
+            "programme_status": "unknown",
+            "tradeoff": "Requires explicit bridge structure and measured access design; the support screen is not structural engineering proof."
+          },
+          "name": "comp08_develop_through_threshold",
+          "nodes": [
+            {
+              "id": "unit",
+              "inputs": [],
+              "kind": "primitive",
+              "operator": "box",
+              "parameters": {
+                "depth": 1.0,
+                "height": 1.0,
+                "width": 1.0
+              },
+              "provenance": {
+                "canonical_base_model": "1/1 UnitBox",
+                "representation": "typed_json_ast",
+                "source": "openai_llm_geometry_author",
+                "unitbox_authority": true
+              },
+              "semantic_role": "base_authority"
+            },
+            {
+              "id": "global_pose",
+              "inputs": [
+                "unit"
+              ],
+              "kind": "transform",
+              "operator": "matrix4",
+              "parameters": {
+                "matrix4": [
+                  [
+                    2.8,
+                    0.0,
+                    0.0,
+                    -1.4
+                  ],
+                  [
+                    0.0,
+                    0.62,
+                    0.0,
+                    -0.31
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.48,
+                    -0.24
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ]
+              },
+              "provenance": {
+                "authored_box_parameters": {
+                  "center": true,
+                  "depth": 1.0,
+                  "height": 1.0,
+                  "width": 1.0
+                },
+                "authored_operator": "box",
+                "canonical_base_model": "1/1 UnitBox",
+                "composed_matrix4_node_ids": [
+                  "unit_matrix4",
+                  "base",
+                  "global_pose"
+                ],
+                "lowered_affine_operator": "scale",
+                "representation": "typed_json_ast",
+                "source": "openai_llm_geometry_author"
+              },
+              "semantic_role": "global_pose"
+            },
+            {
+              "id": "organization_1",
+              "inputs": [
+                "global_pose"
+              ],
+              "kind": "modifier",
+              "operator": "bend",
+              "parameters": {
+                "angle_degrees": 65.0,
+                "axis": "x",
+                "subdivisions": 5.0
+              },
+              "provenance": {
+                "representation": "typed_json_ast",
+                "source": "openai_llm_geometry_author"
+              },
+              "semantic_role": "dominant_mass"
+            },
+            {
+              "id": "threshold",
+              "inputs": [
+                "unit"
+              ],
+              "kind": "transform",
+              "operator": "matrix4",
+              "parameters": {
+                "matrix4": [
+                  [
+                    0.43,
+                    0,
+                    0,
+                    -0.78
+                  ],
+                  [
+                    0,
+                    2.5,
+                    0,
+                    -0.5
+                  ],
+                  [
+                    0,
+                    0,
+                    0.18,
+                    -0.25
+                  ],
+                  [
+                    0,
+                    0,
+                    0,
+                    1
+                  ]
+                ]
+              },
+              "provenance": {},
+              "semantic_role": "authored_void_cutter"
+            },
+            {
+              "id": "through_threshold_cut",
+              "inputs": [
+                "organization_1",
+                "threshold"
+              ],
+              "kind": "boolean",
+              "operator": "difference",
+              "parameters": {},
+              "provenance": {},
+              "semantic_role": "dominant_mass"
+            }
+          ],
+          "root_id": "through_threshold_cut",
+          "schema_version": "arr.maas.geometry_program.v1"
+        },
+        "authored_program_hash": "e39e4a322e75b634222e98a914aa2033c1e744f351f52df786df94f7c474a3e8",
+        "mode": "exact-authored-development",
+        "parent_contract": {
+          "height_m": 17.7491448570797,
+          "parent": "book:book-comp08:morph-curved-low:creative-001",
+          "parent_certificate_id": "1e29520ea877cbce6cf4",
+          "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+          "parent_shape_id": "a9f195967d9b9a1f4430",
+          "site_pnu": "4115011300106840001",
+          "storey_count": 3,
+          "storey_height_m": 5.916381619026566,
+          "target_gfa_m2": 1975.1424786905304
+        },
+        "parent_contract_hash": "3e46d8534d421f8f4ac125604859ae90f8f63ae2de5d4451eec3aedcbbabce1d"
+      },
+      "changed_fields": [
+        "threshold",
+        "through_threshold_cut"
+      ],
+      "creative_capacity_band": "inherited_parent",
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate"
+      ],
+      "creative_storey_count": 3,
+      "creative_target_gfa_m2": 1975.142479,
+      "expected_effect": "A substantial ground passage crosses the crescent between its outer and concave edges while the upper mass bridges the opening. This changes ground connectivity while keeping the curved silhouette.",
+      "inherited_dimensions_authority": "verified_book_development_parent_contract",
+      "parent_name": "book:book-comp08:morph-curved-low:creative-001",
+      "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+      "parent_shape_id": "a9f195967d9b9a1f4430",
+      "programme_status": "unknown",
+      "tradeoff": "Requires explicit bridge structure and measured access design; the support screen is not structural engineering proof."
+    },
+    "name": "comp08_develop_through_threshold__creative_physical",
+    "nodes": [
+      {
+        "id": "unit",
+        "inputs": [],
+        "kind": "primitive",
+        "operator": "box",
+        "parameters": {
+          "depth": 1.0,
+          "height": 1.0,
+          "width": 1.0
+        },
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "representation": "typed_json_ast",
+          "source": "openai_llm_geometry_author",
+          "unitbox_authority": true
+        },
+        "semantic_role": "base_authority"
+      },
+      {
+        "id": "global_pose",
+        "inputs": [
+          "unit"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              2.8,
+              0.0,
+              0.0,
+              -1.4
+            ],
+            [
+              0.0,
+              0.62,
+              0.0,
+              -0.31
+            ],
+            [
+              0.0,
+              0.0,
+              0.48,
+              -0.24
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authored_box_parameters": {
+            "center": true,
+            "depth": 1.0,
+            "height": 1.0,
+            "width": 1.0
+          },
+          "authored_operator": "box",
+          "canonical_base_model": "1/1 UnitBox",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base",
+            "global_pose"
+          ],
+          "lowered_affine_operator": "scale",
+          "representation": "typed_json_ast",
+          "source": "openai_llm_geometry_author"
+        },
+        "semantic_role": "global_pose"
+      },
+      {
+        "id": "organization_1",
+        "inputs": [
+          "global_pose"
+        ],
+        "kind": "modifier",
+        "operator": "bend",
+        "parameters": {
+          "angle_degrees": 65.0,
+          "axis": "x",
+          "subdivisions": 5.0
+        },
+        "provenance": {
+          "representation": "typed_json_ast",
+          "source": "openai_llm_geometry_author"
+        },
+        "semantic_role": "dominant_mass"
+      },
+      {
+        "id": "threshold",
+        "inputs": [
+          "unit"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              0.43,
+              0,
+              0,
+              -0.78
+            ],
+            [
+              0,
+              2.5,
+              0,
+              -0.5
+            ],
+            [
+              0,
+              0,
+              0.18,
+              -0.25
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "provenance": {},
+        "semantic_role": "authored_void_cutter"
+      },
+      {
+        "id": "through_threshold_cut",
+        "inputs": [
+          "organization_1",
+          "threshold"
+        ],
+        "kind": "boolean",
+        "operator": "difference",
+        "parameters": {},
+        "provenance": {},
+        "semantic_role": "dominant_mass"
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "inputs": [
+          "through_threshold_cut"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              20.116353118321125,
+              0.0,
+              0.0,
+              2.838045272462421
+            ],
+            [
+              0.0,
+              20.116353118321125,
+              0.0,
+              -12.53311159966073
+            ],
+            [
+              0.0,
+              0.0,
+              36.97738511891604,
+              8.87457242853985
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "capacity_band": "inherited_parent",
+          "creative_family": "exact-authored-development",
+          "storey_count": 3,
+          "target_gfa_m2": 1975.142479
+        },
+        "semantic_role": "physical_storey_capacity_fit"
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              52.67568904,
+              0.0,
+              0.0,
+              -26.33784302
+            ],
+            [
+              0.0,
+              39.56436004,
+              0.0,
+              -19.78217502
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              2.898190833333333
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 1
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 2.958191,
+          "legal_certified": false,
+          "storey_number": 1
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              52.67568904,
+              0.0,
+              0.0,
+              -26.33784302
+            ],
+            [
+              0.0,
+              39.56436004,
+              0.0,
+              -19.78217502
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              8.814572499999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 2
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 8.874572,
+          "legal_certified": false,
+          "storey_number": 2
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              52.67568904,
+              0.0,
+              0.0,
+              -26.33784302
+            ],
+            [
+              0.0,
+              39.56436004,
+              0.0,
+              -19.78217502
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              14.730954166666665
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 3
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 14.790954,
+          "legal_certified": false,
+          "storey_number": 3
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate"
+        ],
+        "kind": "boolean",
+        "operator": "union",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate"
+          ],
+          "legal_certified": false,
+          "set_identity": "host_union_subsets_equals_host"
+        },
+        "semantic_role": "connected_mass_with_occupied_floor_plates"
+      }
+    ],
+    "root_id": "creative_occupied_storeys_union",
+    "schema_version": "arr.maas.geometry_program.v1"
+  },
+  "identity": {
+    "candidate_id": "creative-003",
+    "geometry_hash": "f96faa790e29af113e631088073b00274e2c671a3cda19451a88943ddb57fb97",
+    "pnu": "4115011300106840001",
+    "program_hash": "dd7ab5c5233b1fa3216a7ec11a98d7ba314861d8142ec55b85a8ea073c60e7eb",
+    "run_id": "book-develop-comp08"
+  }
+}

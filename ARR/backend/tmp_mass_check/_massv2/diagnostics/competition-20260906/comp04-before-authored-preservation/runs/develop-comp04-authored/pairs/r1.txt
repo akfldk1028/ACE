@@ -1,0 +1,4 @@
+PAIR p01: B, the visible ground-level opening connects the exterior to the courtyard while retaining a continuous upper mass and roof.
+PAIR p02: A, the straight roof and courtyard edges form a more coherent composition than B's wavering perimeter and uneven section profile.
+PAIR p03: B, the full-height gap gives the courtyard a clear connection to the exterior and makes the approach more legible.
+PAIR p04: A, the uninterrupted edge frames the open court cleanly, whereas B's narrow recess adds complexity without clarifying access or usable space.

@@ -1,0 +1,63 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex / comp05 independent parti author",
+  "site_pnu": "4115011300106840001",
+  "assumptions": [
+    "Programme and required floor area are unknown. None of these alternatives certifies programme compliance.",
+    "Registered road-facing edges support a public-address question; precise entrances, access, survey datum, parking, cores and structure remain unverified.",
+    "The four propositions compare continuous enclosure, folded section, grounded radial wings and bearing stacked bars. Lower density is a tradeoff, never a merit by itself."
+  ],
+  "schemes": [
+    {
+      "name": "sangok_c05_inhabited_inclined_ring",
+      "primary_language": "open_figure",
+      "secondary_language": "One inhabited ring with a rising sectional edge",
+      "formal_principle": "하나의 넓은 중정을 감싸는 몸이 낮은 전면에서 높은 뒤쪽으로 이어지며 열린 하늘과 실내 깊이의 관계를 단면으로 만든다.",
+      "dominant_gesture": "Continuous inhabited ring with one rising roof profile",
+      "reference_basis": "Original authorship: provisional public-address hypothesis on the registered parcel; no prescribed rooms or required area supplied.",
+      "floor_height_m": 3.6,
+      "ops": [
+        {"op":"extrude","height":1,"storeys":4,"why":"A road-facing public address must coexist with interior depth; establish a four-storey maximum working volume, then organize it around a single sky opening. Actual programme remains unknown."},
+        {"op":"shape","on":"body","plan_region":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]],[[0.23,0.24],[0.23,0.76],[0.77,0.76],[0.77,0.24],[0.23,0.24]]]},"top_surface":{"type":"profile","points":[[0,1],[0.25,1],[0.8,0.5],[1,0.5]],"axis":[1,0],"span":[0,1]},"bottom_surface":{"type":"constant","height":0},"why":"The need for a legible collective interior suggests one courtyard rather than separate garden pockets; a deep inhabited ring falls continuously from four-storey rear capacity to a two-storey edge. This makes enclosure and sectional asymmetry visible; roof access, actual upper floor layouts and entrance cuts are not established."}
+      ]
+    },
+    {
+      "name":"sangok_c05_folded_room_comb",
+      "primary_language":"carved_body",
+      "secondary_language":"Three deep room fingers tied by a common spine and folded section",
+      "formal_principle":"세 개의 깊은 실내 날개와 하나의 연결 몸이 두 외부 틈을 만들고 반복되는 접힌 단면이 각 날개의 공간적 크기를 드러낸다.",
+      "dominant_gesture":"Room-depth comb with repeated folded roof sections",
+      "reference_basis":"Original authorship: a provisional alternative to a deep undifferentiated public building, not a verified programme schedule.",
+      "floor_height_m":3.9,
+      "ops":[
+        {"op":"extrude","height":1,"storeys":3,"why":"A public-office classification supplies no room schedule; test whether three substantial room fingers can give a deep building shorter edges to open air. Three storeys establish useful depth without claiming required area."},
+        {"op":"shape","on":"body","plan_region":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,0.23],[0.3,0.23],[0.3,0.38],[0.92,0.38],[0.92,0.62],[0.3,0.62],[0.3,0.77],[1,0.77],[1,1],[0,1],[0,0]]]},"top_surface":{"type":"profile","points":[[0,0.75],[0.115,1],[0.23,0.75],[0.38,0.75],[0.5,1],[0.62,0.75],[0.77,0.75],[0.885,1],[1,0.75]],"axis":[0,1],"span":[0,1]},"bottom_surface":{"type":"constant","height":0},"why":"An undifferentiated deep plate gives no hierarchy to its interior; two full-depth external slots separate three occupied fingers while a broad rear spine keeps one building. A folded top aligns each ridge to one finger, making section follow organization; daylight performance, roof structure and rooms under sloping ceilings need later verification."}
+      ]
+    },
+    {
+      "name":"sangok_c05_radial_three_wings",
+      "primary_language":"porous_field",
+      "secondary_language":"Three grounded radial wings address a shared open centre",
+      "formal_principle":"서로 다른 크기의 세 날개가 열린 중심을 향해 돌아서며 하나의 기단 없이도 건물 사이의 접근과 독립성을 구성한다.",
+      "dominant_gesture":"Three grounded wings turn toward a common centre",
+      "reference_basis":"Original authorship: tests separated public-building wings as a spatial hypothesis; programme allocation and enclosed connections remain unknown.",
+      "floor_height_m":3.6,
+      "ops":[
+        {"op":"aggregate","n":3,"method":"pack","arrangement":"radial","spread":1.3,"height":1,"storeys":3,"tie":0,"why":"The parcel has several registered street edges, so a single front is only one possible address; place three substantial wings around an open centre with their own ground contact and differing sizes. This creates a multi-address ensemble rather than the previous flat-topped orthogonal pavilion grid; access rights, travel distances and room allocations remain unverified."},
+        {"op":"gable","pitch":0.35,"along":"long","why":"Separated wings need coherent occupied sections rather than unrelated rooftop ornaments; ridge each wing along its own local long axis, letting the rotated 4x4 placements carry its section with it. The resulting roof family unifies the ensemble without a connecting slab; roof structure and upper-level headroom require design."}
+      ]
+    },
+    {
+      "name":"sangok_c05_bearing_bar_assembly",
+      "primary_language":"solid_body",
+      "secondary_language":"Three levels of bearing bars with alternating modest rotation",
+      "formal_principle":"낮게 펼친 두 받침 몸 위로 긴 실내 몸들을 엇놓아 쌓아 지상 여유와 상부의 방향성을 하나의 입체적 집합으로 만든다.",
+      "dominant_gesture":"Bearing bars alternate direction across three occupied levels",
+      "reference_basis":"Original authorship: compact multi-level alternative for the same unquantified public-office brief; not a structural design or maximum-FAR target.",
+      "floor_height_m":3.9,
+      "ops":[
+        {"op":"aggregate","n":5,"method":"stack","levels":3,"storeys":1,"unit":"slab","spread":1.15,"height":1,"tie":0,"turn":12,"reach":0.16,"why":"The same parcel can reserve ground by placing occupied bars above a broader bearing base; distribute five one-storey bars over three levels and alternate their local rotation, with modest longitudinal displacement. The spatial proposition is the inhabited stacked assembly itself, not a block plus small appendages; support overlap, cores, egress and the usefulness of each floor remain to be tested, and no floor-area sufficiency is asserted."}
+      ]
+    }
+  ]
+}

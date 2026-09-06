@@ -1,0 +1,79 @@
+TILE t01
+CONCEPT 4 | The continuous crescent makes a clear relationship between a substantial enclosing volume and an open concavity, although its section is uniform.
+FEASIBILITY 5 | Matching ground and upper footprints and vertical walls provide a straightforward mass for structural development.
+SITE 4 | The concavity gives the remaining parcel a distinct spatial focus while the outer arc maintains visible space to the boundary.
+EDITABILITY 4 | Continuous floor plates can accommodate circulation and cores, with faceted curved edges requiring some planning discipline.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 3 | The changing perimeter produces an identifiable twisted solid but little sectional or solid-void hierarchy.
+FEASIBILITY 3 | A continuous central mass is plausible, while shifting exterior edges require resolution of inclined structure and floor setbacks.
+SITE 3 | The freestanding compact footprint leaves perimeter space but shows limited differentiation toward the parcel edges.
+EDITABILITY 3 | A central circulation system is conceivable, but changing floor outlines and inclined facades constrain repetition.
+WEIGHTED 3.00
+
+TILE t03
+CONCEPT 3 | The deep tapered notch articulates an otherwise uniform extrusion, with a weak hierarchy between its broad wings.
+FEASIBILITY 5 | The constant footprint and grounded vertical volumes offer a simple structural basis without visible transfers.
+SITE 3 | The notch introduces an opening into the mass, but its narrow termination limits the clarity of the exterior space it defines.
+EDITABILITY 4 | The connected floor plate is adaptable, although the acute internal notch would require careful room and facade development.
+WEIGHTED 3.70
+
+TILE t04
+CONCEPT 3 | Two unequal wings establish an open recess, but small pointed projections distract from the principal figure and the section remains flat.
+FEASIBILITY 4 | Vertically repeated occupancy is structurally credible, with narrow tips and reentrant corners needing rationalization.
+SITE 3 | The opening gives the footprint a directional character, though a specific frontage response is not demonstrated.
+EDITABILITY 3 | Broad wing areas are usable, but thin projections and irregular junctions complicate circulation and facade modules.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 4 | The displaced upper and lower blocks form a concise sectional composition with a legible overhang and opposite terrace step.
+FEASIBILITY 4 | Substantial overlap provides a plausible load path, while the projecting upper edge still requires cantilever design.
+SITE 3 | The low compact mass leaves ample surrounding parcel space, but its displacement has no demonstrated edge-specific purpose.
+EDITABILITY 4 | Simple rectangular plates and a generous overlap allow architectural development while retaining the sectional offset.
+WEIGHTED 3.80
+
+TILE t06
+CONCEPT 4 | A continuous sloping incision clearly separates upper and lower mass while retaining a solid end connection.
+FEASIBILITY 3 | The deep slot concentrates support and transfer demands at the retained mass; no additional support is shown.
+SITE 3 | The compact footprint fits within the depicted parcel, but the incision's relationship to frontage or surrounding space is unresolved.
+EDITABILITY 3 | The sloping slot is distinctive but complicates floor continuity and circulation across its sectional interruption.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 4 | The recessed vertical edge and horizontal slot combine into a readable interlocking composition with a substantial solid flank.
+FEASIBILITY 3 | The upper projection is substantial and needs a transfer strategy, despite the clearly retained supporting flank.
+SITE 3 | A directional opening is present, but the broad block otherwise shows only a general relationship to the parcel geometry.
+EDITABILITY 4 | Rectilinear plates and the retained full-height flank offer a workable basis for cores and circulation while preserving the opening.
+WEIGHTED 3.55
+
+TILE t08
+CONCEPT 3 | The winged extrusion has a clear large recess, but pointed perimeter details and a tiny roof projection do not strengthen its hierarchy.
+FEASIBILITY 4 | Repeated ground and upper outlines support straightforward vertical construction, with narrow details requiring resolution.
+SITE 3 | The open-sided footprint shapes some external space, without enough evidence to establish a stronger frontage response.
+EDITABILITY 3 | Large connected areas are developable, but sharp corners and the unexplained roof element add coordination without clear spatial benefit.
+WEIGHTED 3.25
+
+TILE t09
+CONCEPT 3 | A sculpted twisting body is legible, while the small roof volume adds only a modest secondary accent.
+FEASIBILITY 3 | The continuous body appears developable, but changing edges and the roof addition need explicit structural coordination.
+SITE 3 | The compact object leaves open space around it, with no clear parcel-edge hierarchy in the available views.
+EDITABILITY 3 | Irregular successive plates and nonvertical facades make repetition harder, and the roof volume's circulation is not established.
+WEIGHTED 3.00
+
+TILE t10
+CONCEPT 3 | The main sectional offset is readable, but thin roof and facade cuts weaken the simplicity without establishing substantial usable voids.
+FEASIBILITY 3 | The overlapping blocks are plausible, while narrow incisions and a projecting upper edge introduce unresolved local construction conditions.
+SITE 3 | The low compact footprint preserves surrounding space but provides little evidence of an intentional relationship to particular edges.
+EDITABILITY 3 | Broad rectangular areas remain adaptable, although the fine cuts would need resolution to preserve them through floors and facades.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 4 | Parallel bars and an intervening open slot establish a strong solid-void figure, with the lower connection adding sectional hierarchy.
+FEASIBILITY 4 | The bars are grounded and largely vertical; the connecting portion is plausible but its precise floor integration needs development.
+SITE 4 | The elongated void organizes the parcel's open space and the bars establish a clearer directional relationship than a compact object.
+EDITABILITY 4 | Regular bar widths support repeated floors and facades, while circulation between the bars must respect the open upper slot.
+WEIGHTED 4.00
+
+RANKING: t01, t11, t05, t03, t07, t06, t04, t08, t02, t09, t10
+VERDICT: Advance t01 and t11 for their clear positive volumes and coherent external voids, with t05 offering the strongest concise sectional alternative. The slotted taller masses have architectural promise but need their transfer and circulation relationships demonstrated; the finer incisions and roof additions contribute less to the principal ideas. These rankings assess visible architectural potential and do not establish legal compliance or a programme fit.

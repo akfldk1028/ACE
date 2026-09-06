@@ -1,0 +1,4140 @@
+{
+  "candidate_id": "creative-022",
+  "family": "morph-voided-mid",
+  "source_family": "llm_authored",
+  "posthoc_family": "morph-voided-mid",
+  "form_class": "posthoc_morphology",
+  "variation_index": 8,
+  "capacity_band": "spatial_reserve",
+  "program_hash": "04da64343a98c01061e832e60ebd3d2d32f5a5e140daf4680225f675bd65b342",
+  "geometry_hash": "f990d5cb2d430b275d705ec6e94ae9fad9a6899452105b05aacafbfa64354987",
+  "normalized_authored_mesh_hash": "271069bffe15fb19579e808f1aa1a02816170d30fcb9f93f9c5810a08ddaeeb3",
+  "geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_concave_round_body__book_1_4_split__creative_physical",
+    "root_id": "creative_occupied_storeys_union",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "base",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "base_seed",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base"
+          ]
+        }
+      },
+      {
+        "id": "base_form",
+        "kind": "modifier",
+        "operator": "ellipsoidize",
+        "inputs": [
+          "base"
+        ],
+        "parameters": {},
+        "semantic_role": "base_form",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "base_form"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "threshold",
+        "kind": "macro",
+        "operator": "courtyard",
+        "inputs": [
+          "book04_union"
+        ],
+        "parameters": {
+          "margin_ratio": 0.29,
+          "open_side": "south"
+        },
+        "semantic_role": "public_threshold",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "program_invariant": true,
+          "program_invariant_kind": "access_relation"
+        }
+      },
+      {
+        "id": "book01_book_base_volume",
+        "kind": "modifier",
+        "operator": "book_base_volume",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "label": "1/4",
+          "orientation": "short_axis"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book02_difference",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "global_pose",
+          "book01_book_base_volume"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book03_book_split",
+        "kind": "macro",
+        "operator": "book_split",
+        "inputs": [
+          "book01_book_base_volume"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.2488,
+          "terminal_ratio": 0.7584,
+          "angle_degrees": 17.9136,
+          "outward_sign": 1.0,
+          "branch_sign": 1.0,
+          "split_generation": 0,
+          "access_side": "south"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "split",
+          "book_call_index": 1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book04_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "book02_difference",
+          "book03_book_split"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "recompose_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "threshold"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              30.5727677297538,
+              0.0,
+              0.0,
+              -0.0015286383864875216
+            ],
+            [
+              0.0,
+              30.5727677297538,
+              0.0,
+              -1.410872085192679
+            ],
+            [
+              0.0,
+              0.0,
+              10.424421365641317,
+              4.686746875042777
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "physical_storey_capacity_fit",
+        "provenance": {
+          "creative_family": "morph-voided-mid",
+          "capacity_band": "spatial_reserve",
+          "storey_count": 3,
+          "target_gfa_m2": 1048.5139
+        }
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              31.91185104,
+              0.0,
+              0.0,
+              -15.95592552
+            ],
+            [
+              0.0,
+              34.736651040000005,
+              0.0,
+              -17.368325520000003
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              1.5899975
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 1,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 1,
+          "center_elevation_m": 1.649998,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              31.91185104,
+              0.0,
+              0.0,
+              -15.95592552
+            ],
+            [
+              0.0,
+              34.736651040000005,
+              0.0,
+              -17.368325520000003
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              4.8899985
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 2,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 2,
+          "center_elevation_m": 4.949998,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              31.91185104,
+              0.0,
+              0.0,
+              -15.95592552
+            ],
+            [
+              0.0,
+              34.736651040000005,
+              0.0,
+              -17.368325520000003
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              8.189999499999999
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 3,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 3,
+          "center_elevation_m": 8.249999,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate"
+        ],
+        "parameters": {},
+        "semantic_role": "connected_mass_with_occupied_floor_plates",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate"
+          ],
+          "set_identity": "host_union_subsets_equals_host",
+          "legal_certified": false
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:2f971be29f0d428a9879b1c00948ac738f8921db4163797414074d894ac8efb9",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_ellipsoidize_matrix4_courtyard",
+      "base_seed": "block",
+      "base_form_id": "elliptical",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "ellipsoidize",
+        "matrix4",
+        "courtyard"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass base_form = ellipsoidize(base)\nmass global_pose = matrix4(base_form, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass threshold = courtyard(global_pose, margin_ratio=0.29, open_side='south')",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4",
+      "book_recursive_projection": {
+        "active": true,
+        "scope_label": "1/4",
+        "scope_fraction": 0.25,
+        "scope_orientation": "short_axis",
+        "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+        "ordered_verbs": [
+          "split"
+        ],
+        "geometry_authority": "recursive_manifold_ast",
+        "parcel_coordinates_hardcoded": false,
+        "application_order": "base_body_then_book_scope_and_operations_then_program_relation_suffix",
+        "program_relation_suffix_node_ids": [
+          "threshold"
+        ],
+        "program_section_node_id": "",
+        "parameter_projection": {
+          "schema_version": "arr.maas.book_kernel_parameter_projection.v1",
+          "coordinate_system": "selected_live_solid_normalized_bounds",
+          "projections": [],
+          "relation_invariants": []
+        },
+        "chassis_compatibility": {
+          "schema_version": "arr.maas.book_chassis_compatibility.v1",
+          "status": "compatible",
+          "source_chassis_operators": [
+            "box",
+            "courtyard",
+            "ellipsoidize",
+            "matrix4"
+          ],
+          "book_verbs": [
+            "split"
+          ],
+          "checked_relations": [],
+          "parcel_coordinates_used": false,
+          "completed_form_template_used": false
+        }
+      },
+      "pre_book_program_hash": "8c9699493cd48113c416f3676ce12cafc85d8d052c28ac983445c14dd87b5e12",
+      "creative_book_assignment": {
+        "principle_id": "book:operative:split",
+        "principle_kind": "base_operative",
+        "execution_verbs": [
+          "split"
+        ],
+        "aggregation_methods": [],
+        "scope_label": "1/4",
+        "orientation": "short_axis"
+      },
+      "creative_capacity_band": "spatial_reserve",
+      "creative_storey_count": 3,
+      "creative_target_gfa_m2": 1048.5139,
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate"
+      ]
+    }
+  },
+  "author_evidence": {
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program",
+    "provider": "structured_geometry_dsl_payload",
+    "model": "",
+    "response_id": "",
+    "cache_hit": false,
+    "prompt_contract": ""
+  },
+  "matrix4_trace": [
+    {
+      "node_id": "base",
+      "semantic_role": "base_seed",
+      "matrix4": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "global_pose",
+      "semantic_role": "global_pose",
+      "matrix4": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit",
+      "matrix4": [
+        [
+          30.5727677297538,
+          0.0,
+          0.0,
+          -0.0015286383864875216
+        ],
+        [
+          0.0,
+          30.5727677297538,
+          0.0,
+          -1.410872085192679
+        ],
+        [
+          0.0,
+          0.0,
+          10.424421365641317,
+          4.686746875042777
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          31.91185104,
+          0.0,
+          0.0,
+          -15.95592552
+        ],
+        [
+          0.0,
+          34.736651040000005,
+          0.0,
+          -17.368325520000003
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          1.5899975
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          31.91185104,
+          0.0,
+          0.0,
+          -15.95592552
+        ],
+        [
+          0.0,
+          34.736651040000005,
+          0.0,
+          -17.368325520000003
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          4.8899985
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          31.91185104,
+          0.0,
+          0.0,
+          -15.95592552
+        ],
+        [
+          0.0,
+          34.736651040000005,
+          0.0,
+          -17.368325520000003
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          8.189999499999999
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "mesh": {
+    "vertices": [
+      [
+        -8.82712648,
+        -10.23646992,
+        1.67747563
+      ],
+      [
+        -11.96017742,
+        -9.86691373,
+        3.19425993
+      ],
+      [
+        -13.2399254,
+        -9.05406402,
+        4.68674688
+      ],
+      [
+        -8.45757029,
+        -13.36952087,
+        3.19425993
+      ],
+      [
+        -7.64472057,
+        -14.64926884,
+        4.68674688
+      ],
+      [
+        -10.81063433,
+        -12.21997778,
+        4.68674688
+      ],
+      [
+        -11.96017742,
+        -5.78804133,
+        1.80348351
+      ],
+      [
+        -13.2399254,
+        -1.41087209,
+        2.08064153
+      ],
+      [
+        -8.45757029,
+        -5.78804133,
+        0.60919672
+      ],
+      [
+        -10.81063433,
+        -1.41087209,
+        1.00115736
+      ],
+      [
+        -7.64472057,
+        -1.41087209,
+        0.17284001
+      ],
+      [
+        -14.08194511,
+        -5.6189241,
+        3.25192397
+      ],
+      [
+        -14.7670416,
+        -5.36727936,
+        4.68674688
+      ],
+      [
+        -14.7670416,
+        -1.41087209,
+        3.33772748
+      ],
+      [
+        -15.2879125,
+        -1.41087209,
+        4.68674688
+      ],
+      [
+        -6.42092325,
+        -10.03657298,
+        1.09963199
+      ],
+      [
+        -6.42092325,
+        -11.93117113,
+        1.74563466
+      ],
+      [
+        -6.42092325,
+        -13.36952087,
+        2.49982274
+      ],
+      [
+        -6.42092325,
+        -14.38677662,
+        3.22190626
+      ],
+      [
+        -6.42092325,
+        -14.94924541,
+        4.17557922
+      ],
+      [
+        -6.42092325,
+        -15.15618229,
+        4.68674688
+      ],
+      [
+        -6.42092325,
+        -7.82468837,
+        0.60919672
+      ],
+      [
+        -6.42092325,
+        -5.70696013,
+        0.2623422
+      ],
+      [
+        -6.42092325,
+        -2.9100258,
+        0.07055676
+      ],
+      [
+        -6.42092325,
+        -1.41087209,
+        -2.67e-06
+      ],
+      [
+        -11.96017742,
+        -9.86691373,
+        6.17923382
+      ],
+      [
+        -8.45757029,
+        -13.36952087,
+        6.17923382
+      ],
+      [
+        -8.82712648,
+        -10.23646992,
+        7.69601812
+      ],
+      [
+        -14.08194511,
+        -5.6189241,
+        6.12156978
+      ],
+      [
+        -14.7670416,
+        -1.41087209,
+        6.03576627
+      ],
+      [
+        -13.2399254,
+        -1.41087209,
+        7.29285222
+      ],
+      [
+        -11.96017742,
+        -5.78804133,
+        7.57001024
+      ],
+      [
+        -8.45757029,
+        -5.78804133,
+        8.76429703
+      ],
+      [
+        -10.81063433,
+        -1.41087209,
+        8.37233639
+      ],
+      [
+        -7.64472057,
+        -1.41087209,
+        9.20065374
+      ],
+      [
+        -6.42092325,
+        -14.94924541,
+        5.19791453
+      ],
+      [
+        -6.42092325,
+        -14.38677662,
+        6.15158749
+      ],
+      [
+        -6.42092325,
+        -13.36952087,
+        6.87367101
+      ],
+      [
+        -6.42092325,
+        -11.93117113,
+        7.62785909
+      ],
+      [
+        -6.42092325,
+        -10.03657298,
+        8.27386176
+      ],
+      [
+        -6.42092325,
+        -7.82468837,
+        8.76429703
+      ],
+      [
+        -6.42092325,
+        -5.70696013,
+        9.11115155
+      ],
+      [
+        -6.42092325,
+        -2.9100258,
+        9.30293699
+      ],
+      [
+        -6.42092325,
+        -1.41087209,
+        9.37349642
+      ],
+      [
+        -11.96017742,
+        2.96629716,
+        1.80348351
+      ],
+      [
+        -8.45757029,
+        2.96629716,
+        0.60919672
+      ],
+      [
+        -8.82712648,
+        7.41472575,
+        1.67747563
+      ],
+      [
+        -14.08194511,
+        2.79717993,
+        3.25192397
+      ],
+      [
+        -14.7670416,
+        2.54553519,
+        4.68674688
+      ],
+      [
+        -11.96017742,
+        7.04516956,
+        3.19425993
+      ],
+      [
+        -13.2399254,
+        6.23231985,
+        4.68674688
+      ],
+      [
+        -8.45757029,
+        10.5477767,
+        3.19425993
+      ],
+      [
+        -10.81063433,
+        9.39823361,
+        4.68674688
+      ],
+      [
+        -7.64472057,
+        11.82752467,
+        4.68674688
+      ],
+      [
+        -6.42092325,
+        0.08828163,
+        0.07055676
+      ],
+      [
+        -6.42092325,
+        2.88521596,
+        0.2623422
+      ],
+      [
+        -6.42092325,
+        5.0029442,
+        0.60919672
+      ],
+      [
+        -6.42092325,
+        7.01413131,
+        1.05513187
+      ],
+      [
+        -4.40973614,
+        7.01413131,
+        0.60919672
+      ],
+      [
+        -4.37746222,
+        7.01413131,
+        0.6039107
+      ],
+      [
+        -4.37869789,
+        7.04516956,
+        0.60919672
+      ],
+      [
+        -4.21155791,
+        7.01413131,
+        0.59253466
+      ],
+      [
+        -0.00152864,
+        7.01413131,
+        0.37739012
+      ],
+      [
+        -4.37869789,
+        10.5477767,
+        1.80348351
+      ],
+      [
+        -0.00152864,
+        9.39823361,
+        1.00115736
+      ],
+      [
+        -0.00152864,
+        11.82752467,
+        2.08064153
+      ],
+      [
+        -4.20958065,
+        12.66954439,
+        3.25192397
+      ],
+      [
+        -3.95793591,
+        13.35464088,
+        4.68674688
+      ],
+      [
+        -0.00152864,
+        13.35464088,
+        3.33772748
+      ],
+      [
+        -0.00152864,
+        13.87551178,
+        4.68674688
+      ],
+      [
+        -14.08194511,
+        2.79717993,
+        6.12156978
+      ],
+      [
+        -11.96017742,
+        7.04516956,
+        6.17923382
+      ],
+      [
+        -11.96017742,
+        2.96629716,
+        7.57001024
+      ],
+      [
+        -8.45757029,
+        2.96629716,
+        8.76429703
+      ],
+      [
+        -8.82712648,
+        7.41472575,
+        7.69601812
+      ],
+      [
+        -8.45757029,
+        10.5477767,
+        6.17923382
+      ],
+      [
+        -6.42092325,
+        0.08828163,
+        9.30293699
+      ],
+      [
+        -6.42092325,
+        2.88521596,
+        9.11115155
+      ],
+      [
+        -6.42092325,
+        7.01413131,
+        8.31836188
+      ],
+      [
+        -6.42092325,
+        5.0029442,
+        8.76429703
+      ],
+      [
+        -4.40973614,
+        7.01413131,
+        8.76429703
+      ],
+      [
+        -4.37869789,
+        7.04516956,
+        8.76429703
+      ],
+      [
+        -4.37746222,
+        7.01413131,
+        8.76958305
+      ],
+      [
+        -4.21155791,
+        7.01413131,
+        8.78095909
+      ],
+      [
+        -0.15325571,
+        7.01413131,
+        8.98834994
+      ],
+      [
+        -0.15325571,
+        7.01413131,
+        9.9
+      ],
+      [
+        -4.20958065,
+        12.66954439,
+        6.12156978
+      ],
+      [
+        -1.82729569,
+        12.19285567,
+        6.78466247
+      ],
+      [
+        -1.56174628,
+        11.37136562,
+        7.39164365
+      ],
+      [
+        -0.00152864,
+        13.45950552,
+        5.76417413
+      ],
+      [
+        -0.65510568,
+        13.24823456,
+        6.04909291
+      ],
+      [
+        -0.32593253,
+        13.35464088,
+        5.92515401
+      ],
+      [
+        -2.02527746,
+        12.80532194,
+        6.25799849
+      ],
+      [
+        -4.37869789,
+        10.5477767,
+        7.57001024
+      ],
+      [
+        -1.00949461,
+        9.66294814,
+        8.1875783
+      ],
+      [
+        -0.78736692,
+        8.97578528,
+        8.44270554
+      ],
+      [
+        -2.02527746,
+        12.80532194,
+        9.9
+      ],
+      [
+        6.42092325,
+        -10.03682696,
+        1.10036619
+      ],
+      [
+        6.42092325,
+        -11.92901787,
+        1.74554806
+      ],
+      [
+        6.42092325,
+        -13.36952087,
+        2.50086519
+      ],
+      [
+        6.42092325,
+        -14.38524958,
+        3.22186475
+      ],
+      [
+        6.42092325,
+        -14.94849601,
+        4.17685621
+      ],
+      [
+        6.42092325,
+        -16.70031323,
+        4.68570443
+      ],
+      [
+        6.42092325,
+        -15.15449391,
+        4.68570443
+      ],
+      [
+        7.63916756,
+        -14.6498806,
+        4.68570443
+      ],
+      [
+        7.64223104,
+        -14.64837499,
+        4.68570443
+      ],
+      [
+        6.42092325,
+        -7.82163109,
+        0.60919672
+      ],
+      [
+        6.42092325,
+        -5.70708184,
+        0.26286288
+      ],
+      [
+        6.42092325,
+        -2.90628063,
+        0.07081228
+      ],
+      [
+        6.42092325,
+        -1.41087209,
+        0.00042912
+      ],
+      [
+        7.64166329,
+        -1.41087209,
+        0.17284001
+      ],
+      [
+        6.42092325,
+        -1.41087209,
+        4.68674688
+      ],
+      [
+        6.42092325,
+        -0.52961743,
+        4.68674688
+      ],
+      [
+        8.8240692,
+        -10.23646992,
+        1.67747563
+      ],
+      [
+        8.45451301,
+        -13.36952087,
+        3.19425993
+      ],
+      [
+        10.80593353,
+        -12.22078069,
+        4.68570443
+      ],
+      [
+        10.80837996,
+        -12.21833426,
+        4.68570443
+      ],
+      [
+        15.2879125,
+        -16.70031323,
+        4.68570443
+      ],
+      [
+        11.95712014,
+        -9.86691373,
+        3.19425993
+      ],
+      [
+        13.23597427,
+        -9.05463176,
+        4.68570443
+      ],
+      [
+        13.23747987,
+        -9.05156828,
+        4.68570443
+      ],
+      [
+        8.45451301,
+        -5.78804133,
+        0.60919672
+      ],
+      [
+        10.80757705,
+        -1.41087209,
+        1.00115736
+      ],
+      [
+        11.95712014,
+        -5.78804133,
+        1.80348351
+      ],
+      [
+        13.23686812,
+        -1.41087209,
+        2.08064153
+      ],
+      [
+        14.07888784,
+        -5.6189241,
+        3.25192397
+      ],
+      [
+        14.76348658,
+        -5.36746219,
+        4.68570443
+      ],
+      [
+        14.76398433,
+        -5.36422208,
+        4.68570443
+      ],
+      [
+        14.76398433,
+        -1.41087209,
+        3.33772748
+      ],
+      [
+        15.2879125,
+        -1.41087209,
+        4.68570443
+      ],
+      [
+        15.28485523,
+        -1.41087209,
+        4.68674688
+      ],
+      [
+        15.28445273,
+        -1.41087209,
+        4.68570443
+      ],
+      [
+        6.42092325,
+        -16.70031323,
+        9.9
+      ],
+      [
+        6.42092325,
+        -1.41087209,
+        9.9
+      ],
+      [
+        6.42092325,
+        -0.52961743,
+        9.9
+      ],
+      [
+        15.2879125,
+        -16.70031323,
+        9.9
+      ],
+      [
+        15.2879125,
+        -1.41087209,
+        9.9
+      ],
+      [
+        6.42092325,
+        0.08453646,
+        0.07081228
+      ],
+      [
+        6.42092325,
+        2.88533767,
+        0.26286288
+      ],
+      [
+        4.20850063,
+        7.01413131,
+        0.59253466
+      ],
+      [
+        4.37440494,
+        7.01413131,
+        0.6039107
+      ],
+      [
+        4.37564061,
+        7.04516956,
+        0.60919672
+      ],
+      [
+        4.40667886,
+        7.01413131,
+        0.60919672
+      ],
+      [
+        6.42092325,
+        4.99988692,
+        0.60919672
+      ],
+      [
+        6.42092325,
+        7.01413131,
+        1.05580975
+      ],
+      [
+        4.37564061,
+        10.5477767,
+        1.80348351
+      ],
+      [
+        0.91207527,
+        13.75483105,
+        4.68570443
+      ],
+      [
+        0.91296006,
+        13.75511706,
+        4.68674688
+      ],
+      [
+        7.63916756,
+        11.82813643,
+        4.68570443
+      ],
+      [
+        7.64223104,
+        11.82663082,
+        4.68570443
+      ],
+      [
+        4.20652338,
+        12.66954439,
+        3.25192397
+      ],
+      [
+        3.95182136,
+        13.35464088,
+        4.68570443
+      ],
+      [
+        3.95506146,
+        13.35414314,
+        4.68570443
+      ],
+      [
+        8.45451301,
+        2.96629716,
+        0.60919672
+      ],
+      [
+        8.8240692,
+        7.41472575,
+        1.67747563
+      ],
+      [
+        11.95712014,
+        2.96629716,
+        1.80348351
+      ],
+      [
+        14.07888784,
+        2.79717993,
+        3.25192397
+      ],
+      [
+        14.72589096,
+        2.15499118,
+        4.68674688
+      ],
+      [
+        14.76398433,
+        2.54553519,
+        4.68674688
+      ],
+      [
+        11.95712014,
+        7.04516956,
+        3.19425993
+      ],
+      [
+        13.23747987,
+        6.22982411,
+        4.68570443
+      ],
+      [
+        13.23597427,
+        6.23288759,
+        4.68570443
+      ],
+      [
+        14.01562375,
+        4.35223744,
+        4.68674688
+      ],
+      [
+        14.0171235,
+        4.3475979,
+        4.68570443
+      ],
+      [
+        8.45451301,
+        10.5477767,
+        3.19425993
+      ],
+      [
+        10.80593353,
+        9.39903652,
+        4.68570443
+      ],
+      [
+        10.80837996,
+        9.39659008,
+        4.68570443
+      ],
+      [
+        10.02406704,
+        16.70031288,
+        4.68570443
+      ],
+      [
+        6.42092325,
+        7.01413131,
+        9.9
+      ],
+      [
+        14.72589096,
+        2.15499118,
+        9.9
+      ],
+      [
+        10.02406704,
+        16.70031288,
+        9.9
+      ]
+    ],
+    "triangles": [
+      [
+        0,
+        1,
+        6
+      ],
+      [
+        0,
+        17,
+        3
+      ],
+      [
+        1,
+        5,
+        2
+      ],
+      [
+        3,
+        4,
+        5
+      ],
+      [
+        0,
+        3,
+        1
+      ],
+      [
+        1,
+        3,
+        5
+      ],
+      [
+        6,
+        11,
+        7
+      ],
+      [
+        6,
+        7,
+        9
+      ],
+      [
+        6,
+        9,
+        8
+      ],
+      [
+        0,
+        8,
+        21
+      ],
+      [
+        0,
+        6,
+        8
+      ],
+      [
+        8,
+        9,
+        10
+      ],
+      [
+        1,
+        11,
+        6
+      ],
+      [
+        1,
+        2,
+        11
+      ],
+      [
+        2,
+        12,
+        11
+      ],
+      [
+        7,
+        11,
+        13
+      ],
+      [
+        7,
+        13,
+        47
+      ],
+      [
+        11,
+        12,
+        13
+      ],
+      [
+        12,
+        14,
+        13
+      ],
+      [
+        13,
+        14,
+        48
+      ],
+      [
+        0,
+        21,
+        15
+      ],
+      [
+        0,
+        15,
+        16
+      ],
+      [
+        0,
+        16,
+        17
+      ],
+      [
+        3,
+        17,
+        18
+      ],
+      [
+        3,
+        18,
+        19
+      ],
+      [
+        4,
+        19,
+        20
+      ],
+      [
+        4,
+        20,
+        35
+      ],
+      [
+        3,
+        19,
+        4
+      ],
+      [
+        8,
+        22,
+        21
+      ],
+      [
+        8,
+        23,
+        22
+      ],
+      [
+        8,
+        10,
+        23
+      ],
+      [
+        10,
+        24,
+        23
+      ],
+      [
+        10,
+        54,
+        24
+      ],
+      [
+        2,
+        5,
+        25
+      ],
+      [
+        4,
+        26,
+        5
+      ],
+      [
+        5,
+        26,
+        25
+      ],
+      [
+        25,
+        26,
+        27
+      ],
+      [
+        25,
+        27,
+        31
+      ],
+      [
+        26,
+        37,
+        27
+      ],
+      [
+        2,
+        28,
+        12
+      ],
+      [
+        2,
+        25,
+        28
+      ],
+      [
+        25,
+        31,
+        28
+      ],
+      [
+        28,
+        31,
+        30
+      ],
+      [
+        12,
+        29,
+        14
+      ],
+      [
+        12,
+        28,
+        29
+      ],
+      [
+        14,
+        29,
+        48
+      ],
+      [
+        28,
+        30,
+        29
+      ],
+      [
+        29,
+        30,
+        70
+      ],
+      [
+        30,
+        31,
+        33
+      ],
+      [
+        27,
+        32,
+        31
+      ],
+      [
+        31,
+        32,
+        33
+      ],
+      [
+        27,
+        40,
+        32
+      ],
+      [
+        32,
+        34,
+        33
+      ],
+      [
+        4,
+        35,
+        26
+      ],
+      [
+        26,
+        35,
+        36
+      ],
+      [
+        26,
+        36,
+        37
+      ],
+      [
+        27,
+        37,
+        38
+      ],
+      [
+        27,
+        38,
+        39
+      ],
+      [
+        27,
+        39,
+        40
+      ],
+      [
+        32,
+        40,
+        41
+      ],
+      [
+        32,
+        41,
+        42
+      ],
+      [
+        32,
+        42,
+        34
+      ],
+      [
+        34,
+        42,
+        43
+      ],
+      [
+        34,
+        43,
+        76
+      ],
+      [
+        7,
+        44,
+        9
+      ],
+      [
+        7,
+        47,
+        44
+      ],
+      [
+        9,
+        44,
+        45
+      ],
+      [
+        10,
+        9,
+        45
+      ],
+      [
+        45,
+        46,
+        56
+      ],
+      [
+        44,
+        46,
+        45
+      ],
+      [
+        44,
+        49,
+        46
+      ],
+      [
+        13,
+        48,
+        47
+      ],
+      [
+        47,
+        48,
+        50
+      ],
+      [
+        44,
+        47,
+        49
+      ],
+      [
+        47,
+        50,
+        49
+      ],
+      [
+        49,
+        50,
+        52
+      ],
+      [
+        46,
+        49,
+        51
+      ],
+      [
+        49,
+        52,
+        51
+      ],
+      [
+        51,
+        52,
+        53
+      ],
+      [
+        10,
+        45,
+        54
+      ],
+      [
+        45,
+        55,
+        54
+      ],
+      [
+        45,
+        56,
+        55
+      ],
+      [
+        46,
+        57,
+        56
+      ],
+      [
+        46,
+        60,
+        57
+      ],
+      [
+        60,
+        59,
+        58
+      ],
+      [
+        60,
+        61,
+        59
+      ],
+      [
+        60,
+        58,
+        57
+      ],
+      [
+        46,
+        63,
+        60
+      ],
+      [
+        60,
+        64,
+        61
+      ],
+      [
+        64,
+        62,
+        61
+      ],
+      [
+        46,
+        51,
+        63
+      ],
+      [
+        60,
+        63,
+        64
+      ],
+      [
+        63,
+        66,
+        65
+      ],
+      [
+        63,
+        65,
+        64
+      ],
+      [
+        51,
+        53,
+        66
+      ],
+      [
+        51,
+        66,
+        63
+      ],
+      [
+        53,
+        67,
+        66
+      ],
+      [
+        65,
+        66,
+        68
+      ],
+      [
+        66,
+        67,
+        68
+      ],
+      [
+        67,
+        69,
+        68
+      ],
+      [
+        29,
+        70,
+        48
+      ],
+      [
+        48,
+        70,
+        50
+      ],
+      [
+        30,
+        72,
+        70
+      ],
+      [
+        50,
+        70,
+        71
+      ],
+      [
+        50,
+        71,
+        52
+      ],
+      [
+        70,
+        72,
+        71
+      ],
+      [
+        71,
+        72,
+        74
+      ],
+      [
+        71,
+        74,
+        75
+      ],
+      [
+        30,
+        33,
+        72
+      ],
+      [
+        33,
+        73,
+        72
+      ],
+      [
+        33,
+        34,
+        73
+      ],
+      [
+        72,
+        73,
+        74
+      ],
+      [
+        73,
+        79,
+        74
+      ],
+      [
+        52,
+        71,
+        75
+      ],
+      [
+        52,
+        75,
+        53
+      ],
+      [
+        34,
+        76,
+        73
+      ],
+      [
+        73,
+        76,
+        77
+      ],
+      [
+        73,
+        77,
+        79
+      ],
+      [
+        74,
+        81,
+        93
+      ],
+      [
+        74,
+        79,
+        78
+      ],
+      [
+        74,
+        78,
+        81
+      ],
+      [
+        81,
+        78,
+        80
+      ],
+      [
+        81,
+        80,
+        82
+      ],
+      [
+        81,
+        82,
+        83
+      ],
+      [
+        81,
+        83,
+        84
+      ],
+      [
+        81,
+        84,
+        95
+      ],
+      [
+        53,
+        75,
+        86
+      ],
+      [
+        74,
+        93,
+        75
+      ],
+      [
+        75,
+        93,
+        86
+      ],
+      [
+        53,
+        86,
+        67
+      ],
+      [
+        86,
+        93,
+        87
+      ],
+      [
+        87,
+        93,
+        88
+      ],
+      [
+        67,
+        86,
+        91
+      ],
+      [
+        86,
+        92,
+        90
+      ],
+      [
+        67,
+        89,
+        69
+      ],
+      [
+        67,
+        91,
+        89
+      ],
+      [
+        86,
+        90,
+        91
+      ],
+      [
+        86,
+        87,
+        92
+      ],
+      [
+        81,
+        94,
+        93
+      ],
+      [
+        81,
+        95,
+        94
+      ],
+      [
+        93,
+        94,
+        88
+      ],
+      [
+        113,
+        97,
+        106
+      ],
+      [
+        113,
+        98,
+        97
+      ],
+      [
+        113,
+        99,
+        98
+      ],
+      [
+        114,
+        100,
+        99
+      ],
+      [
+        114,
+        101,
+        100
+      ],
+      [
+        104,
+        103,
+        101
+      ],
+      [
+        104,
+        101,
+        114
+      ],
+      [
+        121,
+        106,
+        107
+      ],
+      [
+        121,
+        107,
+        108
+      ],
+      [
+        110,
+        121,
+        108
+      ],
+      [
+        110,
+        108,
+        109
+      ],
+      [
+        110,
+        109,
+        137
+      ],
+      [
+        113,
+        114,
+        99
+      ],
+      [
+        113,
+        123,
+        118
+      ],
+      [
+        104,
+        114,
+        105
+      ],
+      [
+        105,
+        114,
+        115
+      ],
+      [
+        113,
+        118,
+        114
+      ],
+      [
+        114,
+        118,
+        115
+      ],
+      [
+        115,
+        118,
+        116
+      ],
+      [
+        116,
+        118,
+        119
+      ],
+      [
+        118,
+        120,
+        119
+      ],
+      [
+        113,
+        106,
+        121
+      ],
+      [
+        121,
+        122,
+        123
+      ],
+      [
+        113,
+        121,
+        123
+      ],
+      [
+        110,
+        122,
+        121
+      ],
+      [
+        123,
+        124,
+        125
+      ],
+      [
+        122,
+        124,
+        123
+      ],
+      [
+        118,
+        123,
+        125
+      ],
+      [
+        118,
+        125,
+        120
+      ],
+      [
+        120,
+        125,
+        126
+      ],
+      [
+        125,
+        127,
+        126
+      ],
+      [
+        124,
+        128,
+        125
+      ],
+      [
+        124,
+        156,
+        128
+      ],
+      [
+        125,
+        128,
+        127
+      ],
+      [
+        127,
+        128,
+        131
+      ],
+      [
+        128,
+        158,
+        131
+      ],
+      [
+        130,
+        131,
+        158
+      ],
+      [
+        64,
+        141,
+        62
+      ],
+      [
+        141,
+        139,
+        62
+      ],
+      [
+        110,
+        137,
+        153
+      ],
+      [
+        153,
+        137,
+        138
+      ],
+      [
+        153,
+        138,
+        143
+      ],
+      [
+        141,
+        140,
+        139
+      ],
+      [
+        141,
+        142,
+        140
+      ],
+      [
+        141,
+        144,
+        142
+      ],
+      [
+        141,
+        154,
+        144
+      ],
+      [
+        154,
+        143,
+        144
+      ],
+      [
+        141,
+        145,
+        154
+      ],
+      [
+        64,
+        145,
+        141
+      ],
+      [
+        64,
+        65,
+        145
+      ],
+      [
+        65,
+        150,
+        145
+      ],
+      [
+        145,
+        164,
+        154
+      ],
+      [
+        65,
+        68,
+        150
+      ],
+      [
+        68,
+        69,
+        146
+      ],
+      [
+        68,
+        146,
+        151
+      ],
+      [
+        69,
+        147,
+        146
+      ],
+      [
+        68,
+        151,
+        150
+      ],
+      [
+        145,
+        150,
+        164
+      ],
+      [
+        148,
+        164,
+        150
+      ],
+      [
+        150,
+        151,
+        152
+      ],
+      [
+        148,
+        150,
+        152
+      ],
+      [
+        110,
+        153,
+        122
+      ],
+      [
+        122,
+        153,
+        155
+      ],
+      [
+        153,
+        143,
+        154
+      ],
+      [
+        153,
+        154,
+        155
+      ],
+      [
+        154,
+        159,
+        155
+      ],
+      [
+        122,
+        155,
+        124
+      ],
+      [
+        124,
+        155,
+        156
+      ],
+      [
+        154,
+        164,
+        159
+      ],
+      [
+        128,
+        156,
+        158
+      ],
+      [
+        156,
+        163,
+        158
+      ],
+      [
+        158,
+        163,
+        162
+      ],
+      [
+        155,
+        159,
+        156
+      ],
+      [
+        156,
+        159,
+        160
+      ],
+      [
+        159,
+        166,
+        161
+      ],
+      [
+        159,
+        161,
+        160
+      ],
+      [
+        156,
+        160,
+        163
+      ],
+      [
+        159,
+        164,
+        166
+      ],
+      [
+        148,
+        149,
+        164
+      ],
+      [
+        149,
+        165,
+        164
+      ],
+      [
+        164,
+        165,
+        166
+      ],
+      [
+        69,
+        89,
+        147
+      ],
+      [
+        130,
+        112,
+        111
+      ],
+      [
+        130,
+        157,
+        112
+      ],
+      [
+        130,
+        158,
+        157
+      ],
+      [
+        157,
+        158,
+        162
+      ],
+      [
+        95,
+        84,
+        85
+      ],
+      [
+        92,
+        96,
+        90
+      ],
+      [
+        91,
+        90,
+        96
+      ],
+      [
+        89,
+        91,
+        96
+      ],
+      [
+        87,
+        88,
+        96
+      ],
+      [
+        94,
+        96,
+        88
+      ],
+      [
+        95,
+        85,
+        96
+      ],
+      [
+        94,
+        95,
+        96
+      ],
+      [
+        87,
+        96,
+        92
+      ],
+      [
+        146,
+        167,
+        151
+      ],
+      [
+        146,
+        147,
+        167
+      ],
+      [
+        151,
+        167,
+        152
+      ],
+      [
+        148,
+        152,
+        167
+      ],
+      [
+        161,
+        166,
+        167
+      ],
+      [
+        165,
+        167,
+        166
+      ],
+      [
+        148,
+        167,
+        149
+      ],
+      [
+        149,
+        167,
+        165
+      ],
+      [
+        160,
+        161,
+        167
+      ],
+      [
+        162,
+        163,
+        167
+      ],
+      [
+        160,
+        167,
+        163
+      ],
+      [
+        96,
+        168,
+        169
+      ],
+      [
+        89,
+        170,
+        147
+      ],
+      [
+        147,
+        170,
+        167
+      ],
+      [
+        96,
+        85,
+        168
+      ],
+      [
+        89,
+        96,
+        170
+      ],
+      [
+        96,
+        169,
+        170
+      ],
+      [
+        157,
+        169,
+        112
+      ],
+      [
+        157,
+        162,
+        169
+      ],
+      [
+        162,
+        167,
+        169
+      ],
+      [
+        169,
+        134,
+        112
+      ],
+      [
+        169,
+        168,
+        134
+      ],
+      [
+        167,
+        170,
+        169
+      ],
+      [
+        117,
+        102,
+        103
+      ],
+      [
+        104,
+        117,
+        103
+      ],
+      [
+        104,
+        105,
+        117
+      ],
+      [
+        105,
+        115,
+        117
+      ],
+      [
+        115,
+        116,
+        117
+      ],
+      [
+        116,
+        119,
+        117
+      ],
+      [
+        117,
+        119,
+        120
+      ],
+      [
+        117,
+        120,
+        126
+      ],
+      [
+        117,
+        126,
+        127
+      ],
+      [
+        117,
+        127,
+        129
+      ],
+      [
+        127,
+        131,
+        129
+      ],
+      [
+        129,
+        131,
+        130
+      ],
+      [
+        117,
+        135,
+        102
+      ],
+      [
+        117,
+        129,
+        135
+      ],
+      [
+        135,
+        132,
+        102
+      ],
+      [
+        135,
+        136,
+        132
+      ],
+      [
+        130,
+        111,
+        133
+      ],
+      [
+        129,
+        130,
+        136
+      ],
+      [
+        136,
+        133,
+        132
+      ],
+      [
+        129,
+        136,
+        135
+      ],
+      [
+        130,
+        133,
+        136
+      ],
+      [
+        17,
+        39,
+        18
+      ],
+      [
+        17,
+        16,
+        40
+      ],
+      [
+        15,
+        21,
+        42
+      ],
+      [
+        21,
+        22,
+        42
+      ],
+      [
+        15,
+        42,
+        16
+      ],
+      [
+        23,
+        42,
+        22
+      ],
+      [
+        23,
+        24,
+        76
+      ],
+      [
+        24,
+        54,
+        76
+      ],
+      [
+        18,
+        39,
+        19
+      ],
+      [
+        19,
+        39,
+        20
+      ],
+      [
+        35,
+        20,
+        39
+      ],
+      [
+        35,
+        39,
+        36
+      ],
+      [
+        36,
+        39,
+        37
+      ],
+      [
+        17,
+        40,
+        39
+      ],
+      [
+        16,
+        41,
+        40
+      ],
+      [
+        37,
+        39,
+        38
+      ],
+      [
+        16,
+        42,
+        41
+      ],
+      [
+        23,
+        43,
+        42
+      ],
+      [
+        23,
+        76,
+        43
+      ],
+      [
+        54,
+        55,
+        79
+      ],
+      [
+        55,
+        56,
+        79
+      ],
+      [
+        56,
+        57,
+        78
+      ],
+      [
+        58,
+        78,
+        57
+      ],
+      [
+        59,
+        61,
+        80
+      ],
+      [
+        58,
+        59,
+        80
+      ],
+      [
+        54,
+        77,
+        76
+      ],
+      [
+        54,
+        79,
+        77
+      ],
+      [
+        56,
+        78,
+        79
+      ],
+      [
+        58,
+        80,
+        78
+      ],
+      [
+        61,
+        82,
+        80
+      ],
+      [
+        61,
+        83,
+        82
+      ],
+      [
+        61,
+        84,
+        83
+      ],
+      [
+        99,
+        111,
+        98
+      ],
+      [
+        99,
+        100,
+        111
+      ],
+      [
+        101,
+        111,
+        100
+      ],
+      [
+        97,
+        111,
+        106
+      ],
+      [
+        106,
+        111,
+        107
+      ],
+      [
+        107,
+        111,
+        108
+      ],
+      [
+        108,
+        111,
+        109
+      ],
+      [
+        109,
+        111,
+        137
+      ],
+      [
+        97,
+        98,
+        111
+      ],
+      [
+        111,
+        112,
+        137
+      ],
+      [
+        103,
+        102,
+        132
+      ],
+      [
+        101,
+        103,
+        133
+      ],
+      [
+        103,
+        132,
+        133
+      ],
+      [
+        101,
+        133,
+        111
+      ],
+      [
+        137,
+        112,
+        138
+      ],
+      [
+        138,
+        112,
+        143
+      ],
+      [
+        143,
+        112,
+        144
+      ],
+      [
+        140,
+        142,
+        144
+      ],
+      [
+        62,
+        168,
+        61
+      ],
+      [
+        62,
+        139,
+        168
+      ],
+      [
+        139,
+        140,
+        168
+      ],
+      [
+        140,
+        144,
+        168
+      ],
+      [
+        61,
+        168,
+        84
+      ],
+      [
+        112,
+        168,
+        144
+      ],
+      [
+        84,
+        168,
+        85
+      ],
+      [
+        112,
+        134,
+        168
+      ]
+    ]
+  },
+  "mesh_evidence": {
+    "connected": true,
+    "watertight": true,
+    "manifold": true,
+    "closed_solid": true,
+    "component_count": 1,
+    "bounds": [
+      [
+        -15.287913,
+        -16.700313,
+        -3e-06
+      ],
+      [
+        15.287913,
+        16.700313,
+        9.9
+      ]
+    ],
+    "triangle_count": 338,
+    "self_intersection_checked_by_kernel": true,
+    "outward_normals": true,
+    "volume": 3283.258044
+  },
+  "storey_evidence": {
+    "schema_version": "arr.maas.creative_storey_evidence.v1",
+    "storey_count": 3,
+    "typical_storey_height_m": 3.3,
+    "floor_elevations_m": [
+      0.0,
+      3.3,
+      6.6,
+      9.9
+    ],
+    "floor_center_elevations_m": [
+      1.65,
+      4.95,
+      8.25
+    ],
+    "actual_floor_areas_m2": [
+      209.543178,
+      489.517519,
+      349.453202
+    ],
+    "actual_gfa_m2": 1048.513899,
+    "target_gfa_m2": 1048.5139,
+    "capacity_band": "spatial_reserve",
+    "capacity_authority": "user_supplied_prelegal_target",
+    "floor_cutter_node_ids": [
+      "creative_floor_01_cutter_matrix4",
+      "creative_floor_02_cutter_matrix4",
+      "creative_floor_03_cutter_matrix4"
+    ],
+    "floor_plate_node_ids": [
+      "creative_floor_01_occupied_plate",
+      "creative_floor_02_occupied_plate",
+      "creative_floor_03_occupied_plate"
+    ],
+    "floor_plate_compiled_volumes_m3": [
+      25.143851,
+      58.741862,
+      41.934758
+    ],
+    "authority": "authored_prelegal_horizontal_sections",
+    "legal_certified": false,
+    "measurement": "final_manifold_occupied_floor_plate_center_slice"
+  },
+  "connectivity_evidence": {
+    "schema_version": "arr.maas.creative_contact_witness.v1",
+    "hard_pass": true,
+    "contact_type": "compiled_connected_solid",
+    "witness_node_id": "threshold",
+    "witness_operator": "courtyard",
+    "witness_compiled_volume": 0.336964,
+    "final_component_count": 1,
+    "compiled_component_count": 1,
+    "measurement": "compiler_trace_positive_volume_and_final_component_count"
+  },
+  "morphology_evidence": {
+    "schema_version": "arr.maas.creative_morphology.v1",
+    "descriptor": {
+      "schema_version": "arr.maas.creative_morphology.v1",
+      "axis_ratios": [
+        0.659646431526,
+        0.720589021693,
+        0.213583817718
+      ],
+      "z_slice_occupancies": [
+        0.0,
+        0.0,
+        0.0,
+        0.371369721608,
+        0.628630278392,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "floor_area_profile": [
+        0.070886166022,
+        0.097946811302,
+        0.125007456581,
+        0.152068101861,
+        0.15882953489,
+        0.145291755669,
+        0.131753976448,
+        0.118216197227
+      ],
+      "convexity": 0.533906501512,
+      "void_fraction": 0.675259157343,
+      "normal_bins": [
+        0.162849036539,
+        0.058602471799,
+        0.110752021647,
+        0.101581126321,
+        0.015086604325,
+        0.029625841065,
+        0.0197844097,
+        0.009884552567,
+        0.203232287831,
+        0.11833850086,
+        0.129097138275,
+        0.041166009071
+      ],
+      "radial_bins": [
+        0.0,
+        0.0,
+        0.121824036562,
+        0.180653904452,
+        0.251037235711,
+        0.276556807938,
+        0.117465159073,
+        0.052462856265
+      ],
+      "silhouette_front": [
+        0.333333333333,
+        0.666666666667,
+        0.666666666667,
+        0.333333333333,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.888888888889,
+        1.0,
+        1.0,
+        1.0,
+        0.333333333333,
+        0.666666666667,
+        1.0,
+        1.0
+      ],
+      "silhouette_side": [
+        0.333333333333,
+        0.888888888889,
+        0.777777777778,
+        0.222222222222,
+        0.666666666667,
+        1.0,
+        1.0,
+        0.666666666667,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.888888888889,
+        1.0,
+        1.0
+      ],
+      "silhouette_isometric": [
+        0.444444444444,
+        1.0,
+        0.222222222222,
+        0.0,
+        1.0,
+        0.777777777778,
+        0.888888888889,
+        0.888888888889,
+        0.666666666667,
+        1.0,
+        1.0,
+        0.666666666667,
+        0.333333333333,
+        0.777777777778,
+        0.444444444444,
+        0.0
+      ],
+      "component_count": 1,
+      "contact_topology": "compiled_connected_solid"
+    },
+    "decision": {
+      "decision": "accepted",
+      "accepted": true,
+      "nearest_distance": 0.189822691448,
+      "nearest_within_family_distance": 0.228994296657,
+      "threshold": 0.015,
+      "within_family_threshold": 0.025,
+      "closest_candidate_id": "creative-014",
+      "closest_family_candidate_id": "creative-017",
+      "failed_components": [],
+      "distance": {
+        "total": 0.189822691448,
+        "components": {
+          "component": 0.0,
+          "axis": 0.108040972254,
+          "z_slice": 0.102103716941,
+          "floor": 0.076440022539,
+          "convexity": 0.239280228514,
+          "void": 0.029170291823,
+          "normal": 0.4771751719,
+          "radial": 0.260216953511,
+          "silhouette": 0.224537037037,
+          "contact": 0.0
+        },
+        "weighted_components": {
+          "component": 0.0,
+          "axis": 0.01296491667,
+          "z_slice": 0.012252446033,
+          "floor": 0.009172802705,
+          "convexity": 0.019142418281,
+          "void": 0.002333623346,
+          "normal": 0.066804524066,
+          "radial": 0.031226034421,
+          "silhouette": 0.035925925926,
+          "contact": 0.0
+        }
+      },
+      "diagnostic": "morphology accepted; closest_candidate=creative-014; distance=0.189823; failed_components=none"
+    },
+    "comparison_scope": "book_explorations"
+  },
+  "legal_review": {
+    "schema_version": "arr.maas.prelegal_review.v1",
+    "status": "not_evaluated",
+    "hard_pass": false,
+    "capacity_ceiling_m2": 1497.877,
+    "capacity_authority": "user_supplied_prelegal_target",
+    "required_authorities": [
+      "neo4j_law_agent",
+      "exact_geometry_gate"
+    ]
+  },
+  "lineage": {
+    "schema_version": "arr.maas.creative_lineage.v1",
+    "stages": [
+      "llm_authored_geometry_program",
+      "canonical_unitbox",
+      "physical_storey_capacity_matrix4",
+      "typed_book_relation",
+      "connected_mass",
+      "storey_contract",
+      "legal_review_pending"
+    ],
+    "unitbox_node_id": "unit",
+    "relation_node_id": "threshold",
+    "physical_envelope_node_id": "creative_physical_storey_capacity_matrix4",
+    "physical_root_node_id": "creative_occupied_storeys_union"
+  },
+  "book_language_evidence": {
+    "schema_version": "arr.maas.creative_book_evidence.v1",
+    "materialized": true,
+    "principle_id": "book:operative:split",
+    "principle_kind": "base_operative",
+    "execution_verbs": [
+      "split"
+    ],
+    "aggregation_methods": [],
+    "scope_label": "1/4",
+    "orientation": "short_axis",
+    "selector_node_id": "book01_book_base_volume",
+    "projected_node_ids": [
+      "book02_difference",
+      "book03_book_split",
+      "book04_union"
+    ]
+  },
+  "book_slot_search": {
+    "slot": 9,
+    "principle_id": "book:operative:split",
+    "scope_label": "1/4",
+    "pairs_tried": 3
+  },
+  "candidate_origin": "book_exploration",
+  "source_program_hash": "8c9699493cd48113c416f3676ce12cafc85d8d052c28ac983445c14dd87b5e12",
+  "parent_program_hash": "8c9699493cd48113c416f3676ce12cafc85d8d052c28ac983445c14dd87b5e12",
+  "normalized_source_program_hash": "8c9699493cd48113c416f3676ce12cafc85d8d052c28ac983445c14dd87b5e12",
+  "parent_geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_concave_round_body",
+    "root_id": "threshold",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "base",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "base_seed",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base"
+          ]
+        }
+      },
+      {
+        "id": "base_form",
+        "kind": "modifier",
+        "operator": "ellipsoidize",
+        "inputs": [
+          "base"
+        ],
+        "parameters": {},
+        "semantic_role": "base_form",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "base_form"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "threshold",
+        "kind": "macro",
+        "operator": "courtyard",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "margin_ratio": 0.29,
+          "open_side": "south"
+        },
+        "semantic_role": "public_threshold",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "program_invariant": true,
+          "program_invariant_kind": "access_relation"
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:2f971be29f0d428a9879b1c00948ac738f8921db4163797414074d894ac8efb9",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_ellipsoidize_matrix4_courtyard",
+      "base_seed": "block",
+      "base_form_id": "elliptical",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "ellipsoidize",
+        "matrix4",
+        "courtyard"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass base_form = ellipsoidize(base)\nmass global_pose = matrix4(base_form, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass threshold = courtyard(global_pose, margin_ratio=0.29, open_side='south')",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4"
+    }
+  },
+  "authored_geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp05_book_concave_round_body__book_1_4_split",
+    "root_id": "threshold",
+    "nodes": [
+      {
+        "id": "unit",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "base",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "unit"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1.0,
+              0.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              1.0,
+              0.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              -0.5
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "base_seed",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0,
+            "center": true
+          },
+          "lowered_affine_operator": "scale",
+          "composed_matrix4_node_ids": [
+            "unit_matrix4",
+            "base"
+          ]
+        }
+      },
+      {
+        "id": "base_form",
+        "kind": "modifier",
+        "operator": "ellipsoidize",
+        "inputs": [
+          "base"
+        ],
+        "parameters": {},
+        "semantic_role": "base_form",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "global_pose",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "base_form"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              1,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              1
+            ]
+          ]
+        },
+        "semantic_role": "global_pose",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast"
+        }
+      },
+      {
+        "id": "threshold",
+        "kind": "macro",
+        "operator": "courtyard",
+        "inputs": [
+          "book04_union"
+        ],
+        "parameters": {
+          "margin_ratio": 0.29,
+          "open_side": "south"
+        },
+        "semantic_role": "public_threshold",
+        "provenance": {
+          "source": "openai_llm_geometry_author",
+          "representation": "typed_json_ast",
+          "program_invariant": true,
+          "program_invariant_kind": "access_relation"
+        }
+      },
+      {
+        "id": "book01_book_base_volume",
+        "kind": "modifier",
+        "operator": "book_base_volume",
+        "inputs": [
+          "global_pose"
+        ],
+        "parameters": {
+          "label": "1/4",
+          "orientation": "short_axis"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book02_difference",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "global_pose",
+          "book01_book_base_volume"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "select_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book03_book_split",
+        "kind": "macro",
+        "operator": "book_split",
+        "inputs": [
+          "book01_book_base_volume"
+        ],
+        "parameters": {
+          "axis": "x",
+          "gap_ratio": 0.2488,
+          "terminal_ratio": 0.7584,
+          "angle_degrees": 17.9136,
+          "outward_sign": 1.0,
+          "branch_sign": 1.0,
+          "split_generation": 0,
+          "access_side": "south"
+        },
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "split",
+          "book_call_index": 1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      },
+      {
+        "id": "book04_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "book02_difference",
+          "book03_book_split"
+        ],
+        "parameters": {},
+        "semantic_role": "book_mutated_dominant",
+        "provenance": {
+          "source": "book_recursive_projection",
+          "book_verb": "recompose_book_scope",
+          "book_call_index": -1,
+          "scope_label": "1/4",
+          "scope_fraction": 0.25,
+          "scope_orientation": "short_axis",
+          "normalized_parameters_only": true
+        }
+      }
+    ],
+    "metadata": {
+      "authored_structured_ast": true,
+      "book_composition_path_id": "book:path:2f971be29f0d428a9879b1c00948ac738f8921db4163797414074d894ac8efb9",
+      "canonicalized_identity_boolean_node_ids": [],
+      "contract_lowered_node_kind_corrections": [],
+      "contract_lowered_parameter_type_corrections": [],
+      "language_layer": "llm_authored_recursive_geometry",
+      "family": "llm_ellipsoidize_matrix4_courtyard",
+      "base_seed": "block",
+      "base_form_id": "elliptical",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "operator_path": [
+        "ellipsoidize",
+        "matrix4",
+        "courtyard"
+      ],
+      "author_provider": "structured_geometry_dsl_payload",
+      "parcel_coordinates_in_program": false,
+      "completed_building_template": false,
+      "author_representation": "typed_json_ast",
+      "canonical_dsl": "mass unit = box(center=True, depth=1.0, height=1.0, width=1.0)\nmass base = scale(unit, vector=[1.0, 1.0, 1.0])\nmass base_form = ellipsoidize(base)\nmass global_pose = matrix4(base_form, matrix4=[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])\nmass threshold = courtyard(global_pose, margin_ratio=0.29, open_side='south')",
+      "author_batch_requested_count": 12,
+      "author_batch_valid_count": 12,
+      "author_batch_rejected_count": 0,
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4",
+      "book_recursive_projection": {
+        "active": true,
+        "scope_label": "1/4",
+        "scope_fraction": 0.25,
+        "scope_orientation": "short_axis",
+        "outward_direction_source": "oriented_p3_cell_volume_weighted_center",
+        "ordered_verbs": [
+          "split"
+        ],
+        "geometry_authority": "recursive_manifold_ast",
+        "parcel_coordinates_hardcoded": false,
+        "application_order": "base_body_then_book_scope_and_operations_then_program_relation_suffix",
+        "program_relation_suffix_node_ids": [
+          "threshold"
+        ],
+        "program_section_node_id": "",
+        "parameter_projection": {
+          "schema_version": "arr.maas.book_kernel_parameter_projection.v1",
+          "coordinate_system": "selected_live_solid_normalized_bounds",
+          "projections": [],
+          "relation_invariants": []
+        },
+        "chassis_compatibility": {
+          "schema_version": "arr.maas.book_chassis_compatibility.v1",
+          "status": "compatible",
+          "source_chassis_operators": [
+            "box",
+            "courtyard",
+            "ellipsoidize",
+            "matrix4"
+          ],
+          "book_verbs": [
+            "split"
+          ],
+          "checked_relations": [],
+          "parcel_coordinates_used": false,
+          "completed_form_template_used": false
+        }
+      },
+      "pre_book_program_hash": "8c9699493cd48113c416f3676ce12cafc85d8d052c28ac983445c14dd87b5e12",
+      "creative_book_assignment": {
+        "principle_id": "book:operative:split",
+        "principle_kind": "base_operative",
+        "execution_verbs": [
+          "split"
+        ],
+        "aggregation_methods": [],
+        "scope_label": "1/4",
+        "orientation": "short_axis"
+      }
+    }
+  },
+  "run_id": "book-comp06",
+  "pnu": "4115011300106840001",
+  "identity": {
+    "schema_version": "arr.maas.creative_candidate_identity.v1",
+    "candidate_id": "creative-022",
+    "program_hash": "04da64343a98c01061e832e60ebd3d2d32f5a5e140daf4680225f675bd65b342",
+    "geometry_hash": "f990d5cb2d430b275d705ec6e94ae9fad9a6899452105b05aacafbfa64354987"
+  },
+  "candidate_json": "candidates/creative-022.json",
+  "render_png": "renders/creative-022.png",
+  "mass_directory": "masses/creative-022",
+  "mass_manifest": "masses/creative-022/manifest.json",
+  "elevation_research_handoff": "masses/creative-022/elevation-research/handoff.json"
+}

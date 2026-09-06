@@ -1,0 +1,20 @@
+{
+  "inputs\\book-comp05.json": "d688d52992c67df833ce97a2646479f8915272094b06cdef9901f4faf20ad2b0",
+  "inputs\\gen-comp05.json": "9682161fe1d79b1fbc99d41266c27defdebf41807a9eec228ea1afa0f8bd9ec5",
+  "runs\\comp05\\input-corpus.json": "3d8a368175ba7aabffdf9d6876fdcb4cb086a983a854ff2806ebf9ca5e3d0645",
+  "runs\\comp05\\massv2-sheet.png": "63a36669e8691c6362aeff2caab0f6a5b47a7a3c8a4111e2a611f63771ffbbd0",
+  "runs\\comp05\\massv2-summary.json": "20f6e88585a5789af3c6469b9eb827912b37dbce3f0b3d1afd99336683e54aa6",
+  "runs\\comp05\\parti-59019297bb62-40115b02b09902f83d13.json": "373c8df39477924c346ac8e84153988c98d98052580d5a38977255c1f5dd7975",
+  "runs\\comp05\\parti-59019297bb62-40115b02b09902f83d13.png": "04b11ad2197f842dc6598b516b5f4a3d3f3f90c4a50b584c123c6c7d5a6c4b2a",
+  "runs\\comp05\\parti-e229e8895d68-64c94edfe13ebcdc018e.json": "1ddfa046016d8fef73838efb6172f6184c7e81e8e26c000568d7b3a02fa877df",
+  "runs\\comp05\\parti-e229e8895d68-64c94edfe13ebcdc018e.png": "548e89c4367850fd6433c2a15de543d86e7f7d5c784163226bbec1e5e613d90d",
+  "runs\\comp05\\parti-f73d33938811-a7a6c46b0e58f5fce1f2.json": "1a4534bbb834013934e91ac0ce31db968cc9c389619e51aa1f7bfbd4e09b4f9b",
+  "runs\\comp05\\parti-f73d33938811-a7a6c46b0e58f5fce1f2.png": "f236246b138d9ee0a1a43b18ef8027e927e3f6f233ff437339e6b463ffb809f3",
+  "runs\\cycle-comp05\\brief.md": "77e30a65dafa840926c687c24b4bce6b5b5b469e05d039671ea72872083bdde4",
+  "runs\\cycle-comp05\\era.json": "07ce8e89212ff7fcff0c33deeda9425ca77405d63ce633cd078b144e5a741c27",
+  "runs\\cycle-comp05\\pending.json": "8b34f86a2e671bd4ae01dd4c5f9c82465db620e9cbca01c024e5af05d8d8169c",
+  "runs\\cycle-comp05\\state.json": "044b69488c6f21a2cb3078850e5d0524cd8e4eae2358e99d1c4ba15222a73f4a",
+  "runs\\cycle-comp05\\book-author\\context.json": "1f0d22c2081ca0052b65da8bd79ebf074415b3be414b7418c1e802c96c535e32",
+  "runs\\cycle-comp05\\book-author\\PROMPT.txt": "9c3092109ca3e0a5dd0f85bf3c45941572d8a2d6fc45072f234b42328a805600",
+  "runs\\cycle-comp05\\book-author\\schema.json": "6fa29e6e5ab4c13bd4df80ffa9766b06052a8f6ae80e3143b8c531740a333c90"
+}

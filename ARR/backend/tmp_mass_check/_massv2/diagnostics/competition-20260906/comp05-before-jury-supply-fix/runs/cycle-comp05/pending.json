@@ -1,0 +1,16 @@
+{
+  "status": "pending",
+  "exit_code": 75,
+  "round": "comp05",
+  "step": 5,
+  "kind": "book-author",
+  "agent_mode": "external",
+  "resume": "rerun the identical cycle.sh command",
+  "output": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp05.json",
+  "count": 12,
+  "prompt": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\PROMPT.txt",
+  "schema": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\schema.json",
+  "context": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\context.json",
+  "project_brief": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\brief.md",
+  "contract": "Use project_brief for project facts and design policy only. The live BOOK schema takes precedence over parti output instructions. Return its JSON object, not parti schemes."
+}

@@ -1,0 +1,20 @@
+{
+  "name": "book:book-comp04:morph-curved-mid:creative-036",
+  "shape_id": "96c19ddb6b69ada79a18",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    6.551576875950747
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    553.3004654259294,
+    553.3004654274735
+  ],
+  "section_area_m2": 542.7376725685248,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "cf257d980d1c2bc8b204aa70eb8536e1a14786568534a20575793d1675a68699"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_develop_entry_recess",
+  "shape_id": "0ba065ff709c7a5385b9",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    663.893565505416,
+    663.893565505416
+  ],
+  "section_area_m2": 213.03749630680602,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "5a0bb70288213842e4b67874b519ea5bddce7618a2934eb7e76ed808e289769b"
+}

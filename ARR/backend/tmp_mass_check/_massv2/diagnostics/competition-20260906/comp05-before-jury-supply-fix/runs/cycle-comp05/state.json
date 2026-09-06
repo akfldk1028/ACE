@@ -1,0 +1,55 @@
+{
+  "schema": 2,
+  "config": {
+    "round": "comp05",
+    "count": 4,
+    "book_count": 12,
+    "develop_count": 4,
+    "book_payload": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp05.json",
+    "pnu": "4115011300106840001",
+    "track": "overseas",
+    "building_type": "업무시설",
+    "new_era": "authored-originals-and-book-explorations",
+    "baseline": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\comp04-before-authored-preservation"
+  },
+  "actions": {
+    "new-era": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\era.json": "07ce8e89212ff7fcff0c33deeda9425ca77405d63ce633cd078b144e5a741c27"
+      }
+    },
+    "brief": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\brief.md": "77e30a65dafa840926c687c24b4bce6b5b5b469e05d039671ea72872083bdde4"
+      }
+    },
+    "validate": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp05.json": "9682161fe1d79b1fbc99d41266c27defdebf41807a9eec228ea1afa0f8bd9ec5"
+      }
+    },
+    "run": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\comp05\\massv2-summary.json": "20f6e88585a5789af3c6469b9eb827912b37dbce3f0b3d1afd99336683e54aa6"
+      }
+    },
+    "book-author-contract": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\PROMPT.txt": "9c3092109ca3e0a5dd0f85bf3c45941572d8a2d6fc45072f234b42328a805600",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\schema.json": "6fa29e6e5ab4c13bd4df80ffa9766b06052a8f6ae80e3143b8c531740a333c90",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\book-author\\context.json": "1f0d22c2081ca0052b65da8bd79ebf074415b3be414b7418c1e802c96c535e32",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp05\\brief.md": "77e30a65dafa840926c687c24b4bce6b5b5b469e05d039671ea72872083bdde4"
+      }
+    }
+  },
+  "steps": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "status": "pending",
+  "attempts": {
+    "run": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c05_radial_three_wings~held_ground",
+  "shape_id": "9488af685a38c2c075f9",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    383.4684710952858,
+    383.4684710952858
+  ],
+  "section_area_m2": 100.9414097361177,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "a3a723ffc2b3d5da8afeb5cb94f051e36820bdd9d683f19e99ff0ba147e2675e"
+}

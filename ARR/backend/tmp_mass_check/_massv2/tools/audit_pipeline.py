@@ -23,7 +23,7 @@ from design.maas.massv2.legal_fit import fit_to_site  # noqa: E402
 from design.maas.massv2.measure import gross_floor_area_m2, measure_form  # noqa: E402
 from design.maas.massv2.plausibility import assess, slenderness_limit  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
-    OPEN_SIDE_SITINGS, SITINGS, open_side_direction, place_on_site,
+    OPEN_SIDE_SITINGS, SITINGS, site_open_side_direction, place_on_site,
 )
 from design.maas.massv2.variations import spread_across_coverage  # noqa: E402
 
@@ -53,7 +53,7 @@ def corpus() -> dict:
 CORPUS = corpus()
 SITE = load_legal_site(PNU, building_type=BUILDING_TYPE)
 BUILDABLE = SITE.plan_at(0.0)
-AXIS = open_side_direction(BUILDABLE, SITE.shared_edges) or (1.0, 0.0)
+AXIS = site_open_side_direction(SITE) or (1.0, 0.0)
 BUDGET = SITE.floor_height_m * max(
     1, int(SITE.far_capacity_m2 // max(1.0, SITE.ground_capacity_m2)))
 
@@ -151,7 +151,7 @@ def _siting():
             floor_height_m=SITE.floor_height_m)),
         key=lambda f: compile_matrix_form(
             f, storey_height_m=3.0, allowed_at=SITE.plan_at).footprint.area)
-    open_side = open_side_direction(BUILDABLE, SITE.shared_edges)
+    open_side = site_open_side_direction(SITE)
     sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
     centres, refused = set(), 0
     for s in sitings:

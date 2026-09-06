@@ -33,7 +33,7 @@ from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.measure import measure_form  # noqa: E402
 from design.maas.massv2.plausibility import assess  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 
 def main() -> int:
@@ -44,7 +44,7 @@ def main() -> int:
 
     site = load_legal_site(pnu, building_type="제1종근린생활시설")
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     storeys = max(1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     height = site.floor_height_m * storeys
 

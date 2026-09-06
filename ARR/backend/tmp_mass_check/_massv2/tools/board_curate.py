@@ -210,6 +210,7 @@ def main() -> int:
                 "pass": passed, "round": rel.split("/")[1],
                 # The picture this score was given to; an anchor ride checks it.
                 **({"shape_id": row["shape_id"]} if row.get("shape_id") else {}),
+                **({"certificate_id": row["certificate_id"]} if row.get("certificate_id") else {}),
             }
     passers = [item for item in ledger.values() if item["pass"]]
     # BOOK masses are repertoire, not alternatives for this parcel. They come
@@ -386,7 +387,8 @@ def main() -> int:
             board.append({"label": f"{track}{counters[track]}",
                           "name": item["name"], "score": item["score"],
                           "round": item["round"],
-                          **({"shape_id": item["shape_id"]} if item.get("shape_id") else {})})
+                          **({"shape_id": item["shape_id"]} if item.get("shape_id") else {}),
+                          **({"certificate_id": item["certificate_id"]} if item.get("certificate_id") else {})})
     # The canon is not a contestant. Section 11 promises the standard
     # repertoire is ALWAYS present, and for a season it wasn't: the canon
     # round was authored, closed-looped and never juried, so the wide slab,

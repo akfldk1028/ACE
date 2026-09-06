@@ -33,36 +33,51 @@ ROOT = Path(__file__).resolve().parents[1]
 PASS_CUT = 3.0
 
 
-def rubric_for(track: str) -> str:
-    """The ruler for a track, from its owner file - never retyped.
-
-    Korea: inputs/judge-prompts.json["rubric"] (a 주민센터 with a fixed
-    소요면적표). Overseas: inputs/judge-prompts-overseas.json["rubric"] - the
-    international panel, CONCEPT 0.35 / FEASIBILITY 0.25 / SITE 0.20 /
-    EDITABILITY 0.20, where a cantilever costs only where it is
-    implausible. From 09-01 to 09-02 every overseas round read a
-    "rubric_overseas" that was the Korean rubric with the schedule removed
-    (Aesthetics 0.15, Feasibility 0.35, Compliance 0.25) - a buildability
-    ruler that dropped the twisting tower and seated the boxes; the real
-    international rubric had no reader. One owner, read by every stage.
-    """
-
-    if track == "korea":
-        return json.loads((ROOT / "inputs" / "judge-prompts.json")
-                          .read_text(encoding="utf-8"))["rubric"]
-    return json.loads((ROOT / "inputs" / "judge-prompts-overseas.json")
-                      .read_text(encoding="utf-8"))["rubric"]
+def rubric_for(track: str, site=None) -> str:
+    """Canonical score contract plus anonymous, whitelisted site input data."""
+    filename = 'judge-prompts.json' if track == 'korea' else 'judge-prompts-overseas.json'
+    rubric = json.loads((ROOT / 'inputs' / filename).read_text(encoding='utf8'))['rubric']
+    if site is None:
+        return ('SITE INPUT DATA\nSite, legal limits, programme and budget are not supplied. '
+                'Do not substitute a sample parcel or programme.\n\n' + rubric)
+    evidence = site.evidence()
+    unknown = 'unknown_or_not_established'
+    def value(key):
+        result = evidence.get(key)
+        return unknown if result is None else result
+    data = {
+        'parcel_area_m2':value('parcel_area_m2'),
+        'ground_capacity_m2':value('ground_capacity_m2'),
+        'far_capacity_m2':value('far_capacity_m2'),
+        'max_storeys':value('max_storeys'),
+        'statutory_max_height_m':value('statutory_max_height_m'),
+        'site_default_floor_height_m':value('floor_height_m'),
+        'building_use_input':value('building_type'),
+        'terrain_datum_measured':value('datum_measured'),
+        'building_line_geometry_registered':value('building_line_geometry_registered'),
+        'exact_building_line_geometry_verified':value('exact_building_line_geometry_verified'),
+        'programme_schedule':'not supplied by LegalSite evidence',
+        'construction_budget':'not supplied by LegalSite evidence',
+    }
+    return ('SITE INPUT DATA\n```json\n' + json.dumps(data, ensure_ascii=False, indent=2) +
+            '\n```\nStorey count, floor height and a statutory height cap are different quantities. '
+            'Unknown does not mean unrestricted or verified. Building use is supplied input, '
+            'not a verified room schedule.\n\n' + rubric)
 
 
 # A tile is now the mass over its own operation sequence, so the rubric has to
 # say what the strip is - a juror shown an unexplained band of small drawings
 # reads it as clutter and marks the scheme down for it.
 BLIND_PREAMBLE = (
-    "아래 타일 전부를 Read 도구로 실제로 보고 채점하십시오. key.json은 열지 마십시오.\n"
-    "타일 위쪽은 배달된 매스(백색 모형 액소노메트릭 + 배치도)입니다. 아래에 띠가 있으면 "
-    "그 매스가 만들어진 조작 순서입니다 - 문장의 단어 하나가 프레임 하나이고, 마지막 "
-    "프레임이 법규 한도까지 자란 결과입니다. 띠는 논지의 증거이지 별개의 안이 아닙니다. "
-    "띠가 없는 타일은 순서 기록이 없는 안이며, 그것만으로 감점하지 마십시오.\n\n"
+    "Directly view every assigned tile before scoring. Never open key.json.\n"
+    "This is an architectural massing review. Assess positive volumes, sectional hierarchy, "
+    "articulation, solid-void relationships and plausible architectural development. "
+    "The upper image shows the delivered mass and site plan. An optional sequence strip "
+    "connects base operation studies to the selected variant; only its last frame is the "
+    "same final geometry as the upper mass. PLAN and SECTION panels show actual ground/upper "
+    "occupancy and the located section of that same final source. "
+    "Do not assume undrawn rooms, doors, stairs or supports. A missing sequence means no "
+    "intermediate record was retained and is not itself a reason to deduct points.\n\n"
 )
 
 
@@ -95,14 +110,92 @@ def certified_caption(source, site, thesis: str, *,
     gross = (float(gross_m2) if gross_m2 is not None
              else gross_floor_area_m2(
                  source,
-                 floor_height_m=float(storey_m or site.floor_height_m)))
+                 floor_height_m=float(source.metadata.get('authored_floor_height_m') or storey_m or site.floor_height_m)))
     parcel = float(site.parcel_area_m2)
-    return {"thesis": str(thesis or "")[:180],
+    caption = {"thesis": str(thesis or "")[:180],
             "건폐율": f"{ground / parcel * 100:.0f}%",
             "용적률": f"{gross / parcel * 100:.0f}%"}
+    if getattr(site, 'max_storeys', None) is not None:
+        from design.maas.massv2.parcel_policy import storey_limit_evidence
+        is_book = 'book_height_certificate' in source.metadata
+        count = storey_limit_evidence(source, site,
+                storey_m=source.metadata.get('book_storey_height_m') if is_book else storey_m,
+                book_floor_count=source.metadata.get('book_floor_count'), source_kind='book' if is_book else 'authored')
+        caption['층수 proxy'] = f"{count['conceptual_storey_proxy']} / 한도 {count['max_storeys']}"
+    return caption
 
 
-def rebuild_seat(name: str, book: dict, site, buildable, axis, base):
+def jury_caption(source, site, *, gross_m2=None, storey_m=None):
+    """The anonymous numeric caption; no author's argument enters a jury image."""
+    return certified_caption(source, site, '', gross_m2=gross_m2, storey_m=storey_m)
+
+
+def seat_certificate(name, source, book, site, *, book_entry=None):
+    """Numeric evidence and exact source identity, shared by all delivery views.
+
+    BOOK retains its imported floor-area certificate (not a new count at the
+    parcel's default storey). Projection is always measured on delivered solids.
+    """
+    from shapely.ops import unary_union
+    from design.maas.massv2.measure import gross_floor_area_m2
+    ground = float(unary_union([v.footprint for v in source.volumes]).area)
+    storey = None
+    floor_count = None
+    if name.startswith('book:'):
+        from book_import import registry
+        entry = book_entry if book_entry is not None else (registry().get(name) or {})
+        gross = float(entry.get('floor_area_m2') or 0)
+        if gross <= 0:
+            raise ValueError(f'{name}: missing BOOK floor-area certificate')
+        from book_import import delivered_floor_evidence
+        retained = entry.get('delivered_floor_evidence')
+        if not retained:
+            raise ValueError(f'{name}: missing BOOK floor-area measurement evidence')
+        fresh = delivered_floor_evidence(source, source.metadata.get('book_original_storey_evidence') or {},
+                    floor_count=entry.get('book_floor_count'),
+                    storey_m=entry.get('original_book_storey_height_m'))
+        if (retained != fresh or not fresh['measurement_consistent']
+                or gross != fresh['actual_gfa_m2']
+                or source.metadata.get('book_delivered_floor_evidence') != fresh):
+            raise ValueError(f'{name}: BOOK floor-area measurement evidence does not match delivered geometry')
+        storey = entry.get('book_storey_height_m') or source.metadata.get('book_storey_height_m')
+        floor_count = entry.get('book_floor_count') or source.metadata.get('book_floor_count')
+        basis = fresh['basis']
+    else:
+        record = book.get(name.split('~')[0].split('^')[0]) or {}
+        storey = float(source.metadata.get('authored_floor_height_m') or record.get('floor_height_m') or site.floor_height_m)
+        gross = gross_floor_area_m2(source, floor_height_m=storey)
+        basis = 'delivered geometry at authored storey height'
+    parcel = float(site.parcel_area_m2)
+    from design.maas.massv2.parcel_policy import storey_limit_evidence
+    storey_gate = storey_limit_evidence(source, site, storey_m=storey,
+                    book_floor_count=floor_count, source_kind='book' if name.startswith('book:') else 'authored')
+    if not storey_gate['satisfied']:
+        raise ValueError(f"{name}: parcel storey gate: {', '.join(storey_gate['reasons'])}")
+    from design.maas.massv2.parcel_policy import area_limit_evidence
+    area_gate = area_limit_evidence(source, site, gross)
+    if not area_gate['satisfied']:
+        raise ValueError(f"{name}: parcel area gate: {', '.join(area_gate['reasons'])}")
+    ground = area_gate['ground_m2']
+    cert = {'name': name, 'shape_id': shape_id(source), 'site_pnu': getattr(site, 'pnu', None), 'ground_m2': ground,
+            'gross_m2': gross, 'storey_m': storey, 'floor_area_basis': basis,
+            'coverage_pct': ground / parcel * 100, 'far_pct': gross / parcel * 100,
+            'height_m': float(source.metadata.get('authored_height_m') or 0),
+            'storey_limit': storey_gate, 'area_limits': area_gate}
+    if name.startswith('book:'):
+        cert['delivered_floor_evidence'] = fresh
+    from design.maas.massv2.structure import assess_standing
+    from design.maas.massv2.render_mesh import is_mesh_authoritative
+    standing = assess_standing(source, height_m=cert['height_m'])
+    if is_mesh_authoritative(source) and not standing.stands:
+        raise ValueError(f"{name}: mesh gravity screen: {', '.join(standing.reasons)}")
+    cert['structure'] = standing.evidence()
+    import hashlib
+    cert['certificate_id'] = hashlib.sha256(json.dumps(cert, sort_keys=True).encode()).hexdigest()[:20]
+    return cert
+
+
+def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule=None):
     """A board seat's delivered geometry and its caption, whatever its stack.
 
     massv2 names rebuild through finalists.rebuild at the declaration's own
@@ -120,23 +213,22 @@ def rebuild_seat(name: str, book: dict, site, buildable, axis, base):
         source = book_rebuild(name, site, buildable)
         if source is None:
             return None, None
-        return source, certified_caption(
-            source, site, entry.get("thesis", ""),
-            ground_m2=entry.get("footprint_m2") or None,
-            gross_m2=entry.get("floor_area_m2") or None)
+        cert = seat_certificate(name, source, book, site)
+        return source, certified_caption(source, site, entry.get("thesis", ""),
+                                        ground_m2=cert['ground_m2'], gross_m2=cert['gross_m2'])
     from finalists import rebuild as _rebuild  # noqa: E402
-    from design.maas.massv2.grammar import declared_height_m  # noqa: E402
     family = name.split("~")[0].split("^")[0]
     parti = book.get(family)
     if parti is None:
         return None, None
-    storey = float(parti.get("floor_height_m") or site.floor_height_m)
-    source = _rebuild(name, book, site, buildable, axis,
-                      max(base, declared_height_m(parti, site.floor_height_m)))
+    # finalists.rebuild alone adds the declaration at the scheme's own storey.
+    # Pre-inflating it with the site ruler cannot be undone by its max().
+    source = _rebuild(name, book, site, buildable, axis, base, schedule=schedule)
     if source is None:
         return None, None
+    cert = seat_certificate(name, source, book, site)
     return source, certified_caption(source, site, parti.get("formal_principle") or "",
-                                     storey_m=storey)
+                                     ground_m2=cert['ground_m2'], gross_m2=cert['gross_m2'])
 
 
 def shape_id(source) -> str:
@@ -154,26 +246,29 @@ def shape_id(source) -> str:
     """
 
     import hashlib
-    rows = []
-    for v in source.volumes:
-        fp = v.footprint
-        ring = () if fp is None or fp.is_empty else tuple(
-            (round(x, 3), round(y, 3)) for x, y in fp.exterior.coords)
-        rows.append((
-            ring, round(float(v.bottom_fraction), 4), round(float(v.top_fraction), 4),
-            getattr(v, "role", ""), getattr(v, "verb", ""),
-            round(float(getattr(v, "top_drop", 0.0) or 0.0), 4),
-            getattr(v, "drop_toward", None), getattr(v, "ridge_along", None),
-            getattr(v, "top_profile", None), getattr(v, "profile_across", None),
-            getattr(v, "profile_span", None), bool(getattr(v, "top_walkable", False)),
-            getattr(v, "warp", None),
-        ))
+    from dataclasses import fields, is_dataclass
+
+    def canonical(value):
+        if hasattr(value, 'geom_type'):
+            # Includes interior rings; coordinate order is normalised, not rounded.
+            return value.normalize().wkb_hex
+        if is_dataclass(value):
+            return {'type': f'{type(value).__module__}.{type(value).__qualname__}',
+                    'fields': {f.name: canonical(getattr(value, f.name)) for f in fields(value)}}
+        if hasattr(value, 'signature'):
+            return canonical(value.signature())
+        if isinstance(value, dict):
+            return {str(k): canonical(v) for k, v in sorted(value.items())}
+        if isinstance(value, (list, tuple)):
+            return [canonical(v) for v in value]
+        return value
+
     meta = source.metadata or {}
-    rows.sort(key=repr)
-    text = repr((rows, round(float(meta.get("authored_height_m") or 0.0), 3),
-                 round(float(meta.get("datum_m") or 0.0), 3),
-                 tuple(sorted(meta.get("structural_bands") or ()))))
-    return hashlib.sha1(text.encode("utf-8")).hexdigest()[:16]
+    payload = {'schema': 2, 'volumes': canonical(source.volumes),
+               'surfaces': canonical(getattr(source, 'surfaces', ())),
+               'metadata': {k: canonical(meta.get(k)) for k in
+                            ('authored_height_m', 'datum_m', 'structural_bands')}}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:20]
 
 
 def seat_context(site=None):
@@ -184,12 +279,12 @@ def seat_context(site=None):
     from band_probe import corpus as _corpus  # noqa: E402
     from finalists import PNU as _PNU, BUILDING_TYPE  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
-    from design.maas.massv2.siting import open_side_direction  # noqa: E402
+    from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
     book = _corpus()
     if site is None:
         site = load_legal_site(_PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     return book, site, buildable, axis, base
@@ -215,7 +310,7 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
     from finalists import PNU as _PNU, BUILDING_TYPE  # noqa: E402
     from design.maas.massv2.legal import load_legal_site  # noqa: E402
     from design.maas.massv2.render import render_masses  # noqa: E402
-    from design.maas.massv2.siting import open_side_direction  # noqa: E402
+    from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
     seats = [row for row in json.loads(board_path.read_text(encoding="utf-8"))
              if row["label"].startswith("O")]
     # Top, middle and bottom of the board first, so the anchors span the
@@ -253,21 +348,31 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
         if known != current:
             print(f"   anchor {row['name'][:48]}: picture changed since it was scored - not riding it")
             continue
+        certificate = seat_certificate(row['name'], source, book, site)
+        if row.get('certificate_id') != certificate['certificate_id']:
+            print(f"   anchor {row['name'][:48]}: numeric certificate changed - not riding it")
+            continue
         index += 1
         tile = f"t{index:02d}"
         render_masses(
-            [(tile, source, caption)],
+            [(tile, source, {**caption, 'thesis': ''})],
             out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 820), style="massing")
+        from presentation import append_jury_drawings
+        drawings = append_jury_drawings(out / f'{tile}.png',
+            [(row['name'], source, certificate['storey_m'])], buildable)
+        import hashlib
         key_rows.append({"tile": tile, "name": row["name"], "anchor": row["score"],
-                         "shape_id": current})
+                         "shape_id": current, 'certificate': certificate, 'jury_drawings': drawings,
+                         'certificate_id': certificate['certificate_id'],
+                         'png_sha256': hashlib.sha256((out / f'{tile}.png').read_bytes()).hexdigest()})
         added += 1
     if added < 3:
         print(f"   WARNING: only {added} anchor(s) rode - the session ruler is weaker")
     return added
 
 
-def _with_sequence(tile_png: Path, run: str, name: str) -> None:
+def _with_sequence(tile_png: Path, run: str, name: str, expected_shape: str | None = None) -> None:
     """Paste the scheme's operation sequence under its axonometric, in place.
 
     The sequence sheet is wide and short; the tile is tall. Scaled to the
@@ -279,8 +384,9 @@ def _with_sequence(tile_png: Path, run: str, name: str) -> None:
 
     from PIL import Image  # noqa: E402  (Pillow is already a render dependency)
 
-    strip_path = ROOT / "runs" / run / f"parti-{name}.png"
-    if not strip_path.exists() or not tile_png.exists():
+    from presentation import bound_sequence
+    strip_path = bound_sequence(ROOT / 'runs' / run, name, expected_shape)
+    if strip_path is None or not tile_png.exists():
         return
     tile = Image.open(tile_png).convert("RGB")
     strip = Image.open(strip_path).convert("RGB")
@@ -310,8 +416,6 @@ def stage(run: str, count: int) -> int:
     track = (json.loads((ROOT / "runs" / run / "massv2-summary.json")
                         .read_text(encoding="utf-8"))
              .get("provenance") or {}).get("track")
-    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for(track or "overseas"),
-                                    encoding="utf-8")
     # Anchors: two or three seated board entries ride along as ordinary
     # anonymous tiles. Absolute scores drift by judge session (measured
     # -0.9 to -0.007 across rounds with an unchanged rubric), so a raw 3.0
@@ -322,12 +426,32 @@ def stage(run: str, count: int) -> int:
     # Every contest tile records the identity of the picture it was judged
     # as, so it can serve as an anchor later only while that picture holds.
     book, site, buildable, axis, base = seat_context()
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for(track or "overseas", site=site),
+                                    encoding="utf-8")
+    from band_probe import schedule_of
+    from design.maas.massv2.render import render_masses
+    from presentation import write_sequence
+    schedule = schedule_of(run) if track == 'korea' else None
     for row in key_rows:
-        if row.get("anchor") is not None or row.get("shape_id"):
+        if row.get("anchor") is not None:
             continue
-        source, _caption = rebuild_seat(row["name"], book, site, buildable, axis, base)
-        if source is not None:
-            row["shape_id"] = shape_id(source)
+        source, caption = rebuild_seat(row["name"], book, site, buildable, axis, base, schedule=schedule)
+        if source is None:
+            raise ValueError(f"cannot bind staged tile to source: {row['name']}")
+        # Render and stamp the same object. Rebuilding only for the hash would
+        # silently certify a different picture produced by judge_tiles.
+        render_masses([(row['tile'], source, {**caption, 'thesis': ''})],
+                      out / f"{row['tile']}.png", site_ring=list(buildable.exterior.coords),
+                      columns=1, tile=(900, 820), style='massing')
+        row['shape_id'] = shape_id(source)
+        row['certificate'] = seat_certificate(row['name'], source, book, site)
+        row['certificate_id'] = row['certificate']['certificate_id']
+        from presentation import append_jury_drawings
+        row['jury_drawings'] = append_jury_drawings(out / f"{row['tile']}.png",
+            [(row['name'], source, row['certificate']['storey_m'])], buildable)
+        write_sequence(row['name'], source, book=book, site=site,
+                       buildable=buildable, axis=axis, out_dir=ROOT / 'runs' / run,
+                       certificate=row['certificate'], anonymous=True)
     if track != "korea":
         ride_anchors(out, key_rows, site=site)
     (out / "key.json").write_text(
@@ -336,8 +460,11 @@ def stage(run: str, count: int) -> int:
     for row in json.loads((out / "key.json").read_text(encoding="utf-8")):
         if row.get("anchor") is not None:
             continue
-        family = str(row["name"]).split("~")[0].split("^")[0]
-        _with_sequence(out / f"{row['tile']}.png", run, family)
+        _with_sequence(out / f"{row['tile']}.png", run, row['name'], row.get('shape_id'))
+    import hashlib
+    for row in key_rows:
+        row['png_sha256'] = hashlib.sha256((out / f"{row['tile']}.png").read_bytes()).hexdigest()
+    (out / 'key.json').write_text(json.dumps(key_rows, ensure_ascii=False, indent=1), encoding='utf-8')
     tiles = sorted(p.name for p in out.glob("t*.png"))
     print(f"{len(tiles)} tiles staged -> {out}")
     print(f"judges read: {out / 'PROMPT.txt'} + the tiles; "
@@ -427,6 +554,12 @@ def read_verdict(path: Path, key_tiles) -> dict[str, float]:
 def score(run: str, paths: list[str]) -> int:
     out = ROOT / "runs" / f"vlm-{run}"
     key = {r["tile"]: r for r in json.loads((out / "key.json").read_text(encoding="utf-8"))}
+    import hashlib
+    for tile, row in key.items():
+        if row.get('png_sha256'):
+            picture = out / f'{tile}.png'
+            if not picture.exists() or hashlib.sha256(picture.read_bytes()).hexdigest() != row['png_sha256']:
+                raise ValueError(f'{tile}: staged image changed; restage and rejudge')
     per_tile: dict[str, list[float]] = {t: [] for t in key}
     for path in paths:
         seen = read_verdict(Path(path), key)
@@ -479,6 +612,7 @@ def score(run: str, paths: list[str]) -> int:
         **({"anchor_spread": round(spread, 2)} if spread > 1.0 else {}),
         "name": key[t]["name"], "coverage_pct": key[t].get("coverage_pct"),
         **({"shape_id": key[t]["shape_id"]} if key[t].get("shape_id") else {}),
+        **({"certificate_id": key[t]["certificate_id"]} if key[t].get("certificate_id") else {}),
         # Anchors calibrate the session; they are not contestants. Without
         # this flag the curator re-recorded each anchor's ride-corrected
         # score as its current score, and the ruler measured itself: anchor

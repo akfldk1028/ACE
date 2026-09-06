@@ -23,7 +23,7 @@ from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -72,7 +72,7 @@ def main(round_name: str, scope: str = "") -> int:
     book = corpus()
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     parcel = float(site.parcel_area_m2)
@@ -88,7 +88,7 @@ def main(round_name: str, scope: str = "") -> int:
         stale.unlink()
     key = []
     made = 0
-    from vlm_shortlist import rebuild_seat  # noqa: E402
+    from vlm_shortlist import rebuild_seat, seat_certificate, shape_id  # noqa: E402
     for name in names:
         # One rebuild for every seat, book or massv2, with the certified
         # caption every jury tile carries (this round used to caption the
@@ -100,15 +100,19 @@ def main(round_name: str, scope: str = "") -> int:
         made += 1
         tile = f"t{made:02d}"
         render_masses(
-            [(tile, source, caption)],
+            [(tile, source, {**caption, 'thesis': ''})],
             out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
             columns=1, tile=(900, 820), style="massing",
         )
-        key.append({"tile": tile, "name": name})
+        import hashlib
+        certificate = seat_certificate(name, source, book, site)
+        key.append({"tile": tile, "name": name, 'shape_id': shape_id(source),
+                    'certificate': certificate, 'certificate_id': certificate['certificate_id'],
+                    'png_sha256': hashlib.sha256((out / f'{tile}.png').read_bytes()).hexdigest()})
 
     # The overseas ruler from its owner (vlm_shortlist.rubric_for).
     from vlm_shortlist import BLIND_PREAMBLE, rubric_for  # noqa: E402
-    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas"), encoding="utf-8")
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas", site=site), encoding="utf-8")
     (out / "key.json").write_text(
         json.dumps(key, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{made} tiles staged -> {out}")

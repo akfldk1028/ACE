@@ -8,13 +8,16 @@ OWN sentence locally (proportions, extremity, FAR attainment), deliver every
 mutant down the same legal path, and stage parent-vs-mutant pairs for blind
 pairwise judging - keep the child only when a judge prefers it.
 
-Deterministic by construction: mutants vary by index, never by dice.
+Without a payload, deterministic mutants vary by index. An authored payload
+provides complete child records bound to the exact scored parent instead.
 
     python tools/develop.py <run> <variant-name> [count]
+    python tools/develop.py <run> <variant-name> <count> --authored-payload <json>
       -> runs/develop-<family>/ : mutant tiles + pairs/ + mutants.json
 """
 
 import copy
+import hashlib
 import json
 import re
 import sys
@@ -26,7 +29,9 @@ from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
+from design.maas.massv2.delivery_gate import assess_delivery
+from design.maas.massv2.grammar import declared_stature
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -100,91 +105,117 @@ def mutants_of(scheme: dict, count: int) -> list[dict]:
     return out
 
 
-def main(run: str, variant: str, count: str = "24") -> int:
+def _read_authored_payload(path, *, parent, count, expected_shape_id=None):
+    """Validate an exact, parent-bound author response before touching outputs."""
+    from design.maas.massv2.grammar import PLOT_MODES, parti_from_record
+
+    path = Path(path).resolve()
+    raw = path.read_bytes()
+    payload = json.loads(raw.decode('utf-8'))
+    if not isinstance(payload, dict) or payload.get('parent') != parent:
+        raise ValueError('authored development payload must name the exact parent variant')
+    bound = payload.get('parent_shape_id')
+    if not isinstance(bound, str) or not bound or (expected_shape_id and bound != expected_shape_id):
+        raise ValueError('authored development payload parent_shape_id differs from the scored parent')
+    children = payload.get('schemes')
+    if int(count) <= 0 or not isinstance(children, list) or len(children) != int(count):
+        raise ValueError(f'authored development requires exactly {count} schemes')
+    names = set()
+    family = parent.split('~')[0].split('^')[0]
+    for child in children:
+        if not isinstance(child, dict):
+            raise ValueError('each authored child must be a full scheme record')
+        name = child.get('name')
+        if (not isinstance(name, str) or not name.strip() or name != name.strip()
+                or any(marker in name for marker in ('~', '^')) or name.startswith('book:')
+                or name == family or name in names):
+            raise ValueError('authored child names must be unique base names distinct from the parent')
+        names.add(name)
+        ops = child.get('ops')
+        if (not isinstance(ops, list) or not ops or any(
+                not isinstance(op, dict) or not isinstance(op.get('op'), str)
+                or op.get('op') not in PLOT_MODES for op in ops)
+                or parti_from_record(child) is None):
+            raise ValueError(f'{name}: invalid authored operations; unknown verbs cannot be dropped')
+    return payload, {'path': str(path), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+
+def main(run: str, variant: str, count: str = "24", output_dir=None,
+         expected_shape_id=None, authored_payload=None) -> int:
+    authored, author_evidence = (None, None)
+    if authored_payload is not None:
+        authored, author_evidence = _read_authored_payload(
+            authored_payload, parent=variant, count=count, expected_shape_id=expected_shape_id)
     summary = json.loads((ROOT / "runs" / run / "massv2-summary.json")
                          .read_text(encoding="utf-8"))
     book = corpus()
     schedule = schedule_of(run)
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     parcel = float(summary["site"]["parcel_area_m2"])
 
     family = variant.split("~")[0].split("^")[0]
     parent_scheme = book[family]
-    out = ROOT / "runs" / f"develop-{family[:28]}"
-    (out / "pairs").mkdir(parents=True, exist_ok=True)
-    # A juror reads the folder, not mutants.json: a run that stages three
-    # pairs where the last staged thirteen would be judged on ten images
-    # nothing points at any more.
-    for stale in (out / "pairs").glob("p*.png"):
-        stale.unlink()
+    out = Path(output_dir) if output_dir else ROOT / "runs" / f"develop-{family[:28]}"
+    if authored and any(child['name'] in book for child in authored['schemes']):
+        raise ValueError('authored child name already exists in the corpus; use a new name')
+
+    delivery_diagnostics = {}
 
     def deliver(scheme, name_for_pipeline):
         local_book = dict(book)
         local_book[scheme["name"].split("~")[0].split("^")[0]] = scheme
-        asked = max((float(op.get("storeys") or 0) for op in scheme["ops"]),
-                    default=0.0)
-        return rebuild(name_for_pipeline, local_book, site, buildable, axis,
-                       max(base, asked * site.floor_height_m),
-                       schedule=schedule)
+        details = {}
+        source = rebuild(name_for_pipeline, local_book, site, buildable, axis,
+                         base, schedule=schedule, diagnostics=details)
+        delivery_diagnostics[name_for_pipeline] = details
+        return source
 
     parent_source = deliver(parent_scheme, variant)
     if parent_source is None:
         print("parent rebuild failed"); return 1
+    from vlm_shortlist import shape_id
+    if expected_shape_id and shape_id(parent_source) != expected_shape_id:
+        print("parent shape differs from scored board identity; re-stage and rejudge first")
+        return 1
+    if authored and shape_id(parent_source) != authored['parent_shape_id']:
+        print('parent shape differs from authored payload binding; reauthor for the current parent')
+        return 1
 
-    def delivered_shape(source) -> tuple:
-        """What the mass actually is, to the metre - plans and their heights.
+    # Execute every authored record before output cleanup as well. Nested shape
+    # payload errors are owned by the executor, and must not erase an old stage.
+    children = authored['schemes'] if authored else mutants_of(parent_scheme, int(count))
+    prepared = []
+    for child in children:
+        child_variant = child['name'] + variant[len(family):]
+        prepared.append((child, child_variant, deliver(child, child_variant)))
 
-        Two mutants that differ only in a parameter the growth loop then
-        normalises away deliver this same tuple, and staging them as a choice
-        asks a juror to compare an image with itself.
-        """
+    (out / "pairs").mkdir(parents=True, exist_ok=True)
+    for stale in (out / "pairs").glob("p*.png"):
+        stale.unlink()
 
-        height = float(source.metadata.get("authored_height_m") or 0.0)
-
-        def section_of(volume) -> tuple:
-            # A pitch, a warp or a walkable slope changes the building without
-            # moving a footprint or an elevation: `gabled_halves` applies a
-            # pitch by replacing top_drop and ridge_along on the same volume.
-            # Hashing plans alone called every such mutant a duplicate.
-            return (
-                round(float(getattr(volume, "top_drop", 0.0) or 0.0), 3),
-                tuple(round(v, 3) for v in (getattr(volume, "drop_toward", None) or ())),
-                tuple(round(v, 3) for v in (getattr(volume, "ridge_along", None) or ())),
-                tuple((round(u, 3), round(h, 3))
-                      for u, h in (getattr(volume, "top_profile", None) or ())),
-                bool(getattr(volume, "top_walkable", False)),
-                getattr(volume, "warp", None) is not None,
-                str(getattr(volume, "verb", "")),
-            )
-
-        return tuple(sorted(
-            (round(volume.footprint.area, 1),
-             tuple(round(value, 1) for value in volume.footprint.bounds),
-             round(float(volume.bottom_fraction) * height, 1),
-             round(float(volume.top_fraction) * height, 1),
-             # The plan's own shape, not just its box: a notch moved from one
-             # end to the other is a mirror with the same area and bounds.
-             tuple(sorted((round(x, 1), round(y, 1))
-                          for x, y in volume.footprint.exterior.coords)),
-             section_of(volume))
-            for volume in source.volumes
-        ))
+    def delivered_shape(source):
+        # Share the jury geometry identity, including holes and surface functions.
+        return shape_id(source)
 
     ledger = []
     kept = 0
     erased = 0
     seen_shapes = {delivered_shape(parent_source)}
-    for child in mutants_of(parent_scheme, int(count)):
+    for child, child_variant, child_source in prepared:
         child_family = child["name"]
         # the mutant keeps the parent's variant suffixes (siting/coverage)
-        child_variant = variant.replace(family, child_family, 1)
-        child_source = deliver(child, child_variant)
+        child_record = {'name': child_family, 'scheme': child, 'variant': child_variant}
         if child_source is None:
-            ledger.append({"name": child["name"], "delivered": False})
+            details = delivery_diagnostics.get(child_variant) or {}
+            gap = details.get('gap')
+            ledger.append({**child_record, "delivered": False,
+                           'eligibility': {'accepted': False,
+                               'reasons': ['declared_gap_closed'] if gap and not gap['satisfied']
+                                          else ['legal_fit_or_compile_failed'], **details}})
             continue
         shape = delivered_shape(child_source)
         if shape in seen_shapes:
@@ -192,8 +223,16 @@ def main(run: str, variant: str, count: str = "24") -> int:
             # inside what the growth loop normalises, so there is nothing to
             # judge.
             erased += 1
-            ledger.append({"name": child["name"], "delivered": True,
+            ledger.append({**child_record, "delivered": True,
                            "erased_by_delivery": True})
+            continue
+        eligibility = assess_delivery(child_source, site,
+            storey_m=float(child.get('floor_height_m') or site.floor_height_m),
+            declaration={**child_source.metadata, **declared_stature(child)},
+            parcel_area_m2=parcel)
+        if not eligibility.accepted:
+            ledger.append({**child_record, 'delivered': True, 'shape_id': shape,
+                           'eligibility': eligibility.evidence()})
             continue
         seen_shapes.add(shape)
         kept += 1
@@ -202,10 +241,19 @@ def main(run: str, variant: str, count: str = "24") -> int:
             [("A", parent_source, {}), ("B", child_source, {})],
             pair, site_ring=list(buildable.exterior.coords),
             columns=2, tile=(620, 560), style="massing")
-        ledger.append({"name": child["name"], "delivered": True,
-                       "pair": pair.name})
+        from presentation import append_jury_drawings
+        drawings = append_jury_drawings(pair, [
+            (variant, parent_source, parent_scheme.get('floor_height_m') or site.floor_height_m),
+            (child['name'], child_source, child.get('floor_height_m') or site.floor_height_m)], buildable)
+        ledger.append({**child_record, "delivered": True,
+                       "pair": pair.name, "shape_id": shape_id(child_source),
+                       'eligibility': eligibility.evidence(), 'jury_drawings': drawings})
     (out / "mutants.json").write_text(
-        json.dumps({"parent": variant, "children": ledger},
+        json.dumps({"parent": variant, "parent_scheme": parent_scheme,
+                    "parent_shape_id": shape_id(parent_source), "run": run,
+                    'author_mode': 'payload' if authored else 'deterministic',
+                    'authored_payload': author_evidence,
+                    "children": ledger},
                    ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{kept} delivered mutants, pairs -> {out / 'pairs'}")
     if erased:
@@ -231,10 +279,13 @@ def _mutation_change(parent: dict, child: dict) -> str:
     """
 
     moves = []
-    for index, (before, after) in enumerate(zip(parent["ops"], child["ops"])):
+    for index, after in enumerate(child['ops']):
+        before = parent['ops'][index] if index < len(parent['ops']) else {}
         for key, value in after.items():
             if key != "why" and before.get(key) != value:
                 moves.append(f"ops[{index}].{key} {before.get(key)} -> {value}")
+    for index in range(len(child['ops']), len(parent['ops'])):
+        moves.append(f"ops[{index}] removed: {parent['ops'][index].get('op')}")
     return ", ".join(moves) or "no parameter moved"
 
 
@@ -250,9 +301,12 @@ def _champion_pair(record: dict) -> tuple[dict, dict] | None:
     """
 
     family = str(record["parent"]).split("~")[0].split("^")[0]
-    parent = corpus().get(family)
+    parent = record.get("parent_scheme") or corpus().get(family)
     if parent is None:
         return None
+    for row in record["children"]:
+        if row["name"] == record["champion"] and row.get("scheme"):
+            return parent, row["scheme"]
     for child in mutants_of(parent, len(record["children"])):
         if child["name"] == record["champion"]:
             return parent, child
@@ -270,7 +324,8 @@ def _with_developed_why(parent: dict, child: dict) -> dict:
     """
 
     ops = []
-    for before, after in zip(parent["ops"], child["ops"]):
+    for index, after in enumerate(child["ops"]):
+        before = parent['ops'][index] if index < len(parent['ops']) else {}
         after = dict(after)
         moves = [f"{key} {before.get(key)} -> {value}"
                  for key, value in after.items()
@@ -304,6 +359,20 @@ def _seat_in_corpus(scheme: dict) -> str:
     return f"seated in {path.name}: {scheme['name']}"
 
 
+def _read_pair_ballots(paths, expected):
+    if len(paths) != 3 or len({Path(p).resolve() for p in paths}) != 3 or not expected:
+        raise ValueError("three distinct ballots and at least one pair are required")
+    votes = {pair: [] for pair in expected}
+    for path in paths:
+        rows = re.findall(r"^PAIR\s+(p\d+):\s*([AB])\b",
+                          Path(path).read_text(encoding="utf-8"), re.M)
+        if len(rows) != len(expected) or {p for p, _ in rows} != expected:
+            raise ValueError(f"incomplete, duplicate or unknown pair ballot: {path}")
+        for pair, choice in rows:
+            votes[pair].append(choice)
+    return votes
+
+
 def score(family_dir: str, verdict_paths: list[str]) -> int:
     """Aggregate blind pairwise verdicts; a child wins only unanimously.
 
@@ -317,11 +386,12 @@ def score(family_dir: str, verdict_paths: list[str]) -> int:
     out = ROOT / "runs" / family_dir
     record = json.loads((out / "mutants.json").read_text(encoding="utf-8"))
     jurors = len(verdict_paths)
-    votes: dict[str, list[str]] = {}
-    for path in verdict_paths:
-        for pair, choice in re.findall(r"PAIR\s+(p\d+):\s*([AB])",
-                                       Path(path).read_text(encoding="utf-8")):
-            votes.setdefault(pair, []).append(choice)
+    expected = {Path(c["pair"]).stem for c in record["children"] if c.get("pair")}
+    try:
+        votes = _read_pair_ballots(verdict_paths, expected)
+    except (OSError, ValueError) as exc:
+        print(f"REFUSED: {exc}")
+        return 1
     winners: list[tuple[int, int, str]] = []
     for child in record["children"]:
         if not child.get("delivered"):
@@ -358,13 +428,21 @@ def score(family_dir: str, verdict_paths: list[str]) -> int:
     if record["champion"]:
         pair = _champion_pair(record)
         if pair is None:
-            seated = (f"champion {record['champion']} not seated - the corpus "
-                      f"has no parent named {record['parent']}")
+            print(f"REFUSED: champion {record['champion']} cannot resolve its authored parent")
+            return 1
         else:
             parent_scheme, champion_scheme = pair
             record["champion_change"] = _mutation_change(parent_scheme,
                                                          champion_scheme)
             seated = _seat_in_corpus(_with_developed_why(parent_scheme, champion_scheme))
+    else:
+        family = str(record["parent"]).split("~")[0].split("^")[0]
+        parent_scheme = record.get("parent_scheme") or corpus().get(family)
+        if parent_scheme is None:
+            print("REFUSED: retained parent cannot be fed into the next corpus")
+            return 1
+        seated = _seat_in_corpus(parent_scheme)
+    record["feedback_written"] = True
     (out / "champion.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"pairs judged {len(votes)}, jurors {jurors}, "
@@ -382,4 +460,14 @@ if __name__ == "__main__":
     if "--score" in sys.argv:
         i = sys.argv.index("--score")
         sys.exit(score(sys.argv[1], sys.argv[i + 1:]))
-    sys.exit(main(*sys.argv[1:4]))
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('run')
+    parser.add_argument('variant')
+    parser.add_argument('count', nargs='?', default='24')
+    parser.add_argument('--output-dir', type=Path)
+    parser.add_argument('--expected-shape-id')
+    parser.add_argument('--authored-payload', type=Path)
+    args = parser.parse_args()
+    sys.exit(main(args.run, args.variant, args.count, output_dir=args.output_dir,
+                  expected_shape_id=args.expected_shape_id, authored_payload=args.authored_payload))

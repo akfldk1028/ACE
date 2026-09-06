@@ -30,16 +30,15 @@ from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.execute import delivered as delivered_form  # noqa: E402
 from design.maas.massv2.fill import fill_to_site  # noqa: E402
+from design.maas.massv2.delivery_gate import stamp_authored_composition
 from design.maas.massv2.grammar import (  # noqa: E402
     declared_height_m, declared_stature, parti_from_record,
 )
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
-    OPEN_SIDE_SITINGS,
-    SITINGS,
-    open_side_direction,
-    place_on_site,
+    site_open_side_direction,
+    spread_across_siting,
 )
 from design.maas.massv2.variations import spread_across_coverage  # noqa: E402
 
@@ -49,7 +48,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # for a bare tool run, and the reason a parcel change once moved mass-run
 # but not judging or baking.
 PNU = os.environ.get("PNU") or "4115011300106840001"
-BUILDING_TYPE = os.environ.get("BUILDING_TYPE") or "제1종근린생활시설"
+from design.maas.massv2.parcel_policy import default_building_type
+BUILDING_TYPE = default_building_type(PNU, os.environ.get("BUILDING_TYPE"))
 
 
 def scheme_of(name: str) -> str:
@@ -57,7 +57,7 @@ def scheme_of(name: str) -> str:
 
 
 def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
-            programme_weight: float = 1.0):
+            programme_weight: float = 1.0, diagnostics=None):
     """One variant's delivered geometry, down the same path the grid walked."""
 
     rec = corpus.get(scheme_of(name))
@@ -67,10 +67,10 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     if parti is None:
         return None
     storey = float(parti.floor_height_m or site.floor_height_m)
-    # Callers pass max(base, asked * floor_height); the run divides the
-    # declaration by the sentence's height share (grammar.declared_height_m),
-    # so the same owner is read here and the caller's figure only ever
-    # rises to it. Same stamp, same budget, same shape.
+    # Callers supply only the parcel base or an actual external brief budget.
+    # This owner applies the declaration at the scheme's own storey height,
+    # just as the generator does. A site-ruler declaration precomputed by a
+    # caller would silently inflate the source and cannot be undone by max().
     height = max(float(height), declared_height_m(rec, storey))
     form = execute_parti(
         parti, buildable=buildable, axis=axis, height_m=height,
@@ -88,6 +88,7 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
                 default=0.0)
     if asked > 0.0:
         form = replace(form, extra={**dict(form.extra), **declared_stature(rec)})
+    form = stamp_authored_composition(form, storey_m=storey)
     # Before the variants, exactly where the grid does it: the command sizes a
     # scheme to its 실별 소요면적표 and only then spreads it across coverage
     # bands and sitings. Applying the brief afterwards instead reshaped a
@@ -106,15 +107,11 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
         far_capacity_m2=site.far_capacity_m2,
         floor_height_m=site.floor_height_m,
     )
-    open_side = open_side_direction(buildable, site.shared_edges)
-    sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
+    open_side = site_open_side_direction(site)
     for base in list(candidates):
-        for siting in sitings:
-            moved = place_on_site(base, buildable, siting, open_side=open_side)
-            if moved is not None:
-                candidates.append(replace(
-                    moved, name=f"{base.name}^{siting.siting_id}",
-                ))
+        # The shared owner stamps extra['siting']; without it fit_to_site
+        # would seat this already-positioned variant a second time.
+        candidates.extend(spread_across_siting(base, buildable=buildable, open_side=open_side))
     target = next((c for c in candidates if c.name == name), None)
     if target is None:
         return None
@@ -130,18 +127,29 @@ def rebuild(name: str, corpus, site, buildable, axis, height, schedule=None,
     # a share of the parcel's cap. Rebuilding without it grew every tile to the
     # language default instead - 0.85 of 6,242 m2 against a 1,546 m2 brief, so
     # a_one_bend was drawn at 4,127 m2 beside a row saying 1,547.
-    grown = fill_to_site(
+    fitted = fill_to_site(
         target, site,
         target_utilization=(float(wanted) / max(site.far_capacity_m2, 1e-9)
                             if wanted else None),
-    ).fit.form
+    ).fit
+    if not fitted.satisfied:
+        return None
+    grown = fitted.form
     # The same last step the command takes, so what this tool measures is what
     # the run ships. A named line survives as an intent through the growth loop
     # rather than as a position, and it is re-asserted here.
-    return compile_matrix_form(
+    source = compile_matrix_form(
         delivered_form(grown, axis=axis, storey_m=storey),
         storey_height_m=storey, allowed_at=site.plan_at,
     )
+    if source is not None:
+        from design.maas.massv2.ablation import gap_evidence
+        gap = gap_evidence(source)
+        if diagnostics is not None:
+            diagnostics['gap'] = gap
+        if not gap['satisfied']:
+            return None
+    return source
 
 
 def plan(run: str) -> int:
@@ -159,7 +167,7 @@ def plan(run: str) -> int:
 
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     height = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
     )
@@ -303,7 +311,7 @@ def repechage(run: str) -> int:
             corpus[s["name"]] = s
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     height = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
     )

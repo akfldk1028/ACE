@@ -82,6 +82,7 @@ def records_of(book_dir: Path) -> list[dict]:
                 + (f" ({principle.split(':')[-1]})" if principle else "")
             ),
             "geometry_artifact": {
+                'storeyEvidence': dict(candidate.get('storey_evidence') or {}),
                 "authoredGeometryProgram": program,
                 # The portfolio states the physical height as the top of the
                 # mesh bounds and the storeys it was cut into; the older
@@ -127,19 +128,17 @@ BOOK_GROUND_SHARE = 0.75
 
 
 def _to_parcel_size(footprint_m2: float, gross_m2: float, height_m: float,
-                    site) -> tuple[float, float]:
+                    site, *, storey_m=None) -> tuple[float, float]:
     """The book's figure at this parcel's size: (plan area, height).
 
-    One uniform factor, so every proportion the book states survives it. Gross
-    floor area goes as plan area times floor count, and a uniform scale s
-    multiplies plan by s squared and height (so floors) by s, which is why the
-    factor is the cube root of the ratio wanted.
+    This proposes a similarity budget, not the executed placement. The bridge
+    may fit XY independently; delivered_floor_evidence measures actual areas.
     """
 
     if site is None or footprint_m2 <= 1e-6 or gross_m2 <= 1e-6 or height_m <= 1e-6:
         return footprint_m2, height_m
     target = float(site.far_capacity_m2) * BOOK_FAR_SHARE
-    scale = (target / gross_m2) ** (1.0 / 3.0)
+    scale = (target / gross_m2) ** 0.5
     ground_cap = float(site.ground_capacity_m2) * BOOK_GROUND_SHARE
     if footprint_m2 * scale * scale > ground_cap:
         scale = (ground_cap / footprint_m2) ** 0.5
@@ -151,6 +150,125 @@ def _to_parcel_size(footprint_m2: float, gross_m2: float, height_m: float,
     if height_m * scale > ceiling:
         scale = ceiling / height_m
     return footprint_m2 * scale * scale, height_m * scale
+
+
+def scaled_book_metrics(gross_m2, storey_m, floor_count, scale):
+    """Retain the floor schedule under uniform similarity, including downsizing."""
+    return {'floor_area_m2': float(gross_m2) * float(scale) ** 2,
+            'book_storey_height_m': float(storey_m) * scale if storey_m is not None else None,
+            'book_floor_count': floor_count}
+
+
+def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
+    """Measure the exported mesh at the executed authored floor centers.
+
+    Host fitting controls XY independently of requested stature. Its exact
+    affine map is the transport authority; a height ratio is not an area scale.
+    The volume bands remain conservative occupancy proxies, not floor areas.
+    """
+    from math import isfinite
+    from shapely.ops import unary_union
+    from design.maas.geometry_language.source_bridge import (
+        mesh_section_solid, solid_section_polygon, _mesh_plan_projection_area,
+        section_export_area_resolution, _compile_geometry_program_cached,
+        section_coplanar_skin_area,
+    )
+    bridge = source.metadata['geometry_program_bridge_evidence']
+    matrix = bridge['host_fit_matrix4']
+    if not bridge.get('host_fit_matrix4_exact') or any(
+            matrix[i][j] != 0 for i, j in ((0, 2), (1, 2), (2, 0), (2, 1))):
+        raise ValueError('BOOK floor schedule requires an exact horizontal affine placement')
+    count = int(floor_count)
+    original_centers = storeys.get('floor_center_elevations_m')
+    center_basis = 'authored_floor_center_elevations_m'
+    if original_centers is None:
+        original_centers = [(i + .5) * float(storey_m) for i in range(count)]
+        center_basis = 'authored_count_and_typical_storey_height'
+    centers = [float(z) for z in original_centers]
+    if len(centers) != count or any(not isfinite(z) for z in centers) or any(
+            a >= b for a, b in zip(centers, centers[1:])):
+        raise ValueError('invalid authored BOOK floor-center schedule')
+    fractions = [matrix[2][2] * z + matrix[2][3] for z in centers]
+    if any(not 0 < z < 1 for z in fractions):
+        raise ValueError('authored BOOK floor center outside delivered solid height')
+    vertices = tuple(p for s in source.surfaces for p in s.vertices_m)
+    triangles = tuple((i, i+1, i+2) for i in range(0, len(vertices), 3))
+    if not vertices or any(len(s.vertices_m) != 3 for s in source.surfaces):
+        raise ValueError('BOOK requires a complete triangle mesh')
+    solid = mesh_section_solid(vertices, triangles)
+    sections = [solid_section_polygon(solid, z) for z in fractions]
+    if any(p is None or p.is_empty or p.area <= 0 for p in sections):
+        raise ValueError('authored BOOK floor has no delivered occupied section')
+    areas = [float(p.area) for p in sections]
+    height = float(source.metadata['authored_height_m'])
+    origin = source.footprint.centroid
+    from shapely.affinity import translate
+    proxy_areas, missing_areas = [], []
+    for z, section in zip(fractions, sections):
+        proxy = unary_union([v.footprint for v in source.volumes
+                             if v.bottom_fraction <= z <= v.top_fraction])
+        proxy_areas.append(float(proxy.area))
+        missing_areas.append(float(translate(section, xoff=origin.x, yoff=origin.y).difference(proxy).area))
+    from design.maas.geometry_language.ast import GeometryProgram
+    original = _compile_geometry_program_cached(GeometryProgram.from_dict(source.metadata['geometry_program']))
+    physical_matrix = [list(row) for row in matrix]
+    physical_matrix[2] = [value * height for value in physical_matrix[2]]
+    transformed = original._solid.transform(physical_matrix[:3])
+    original_areas = [float(transformed.slice(z * height).area()) for z in fractions]
+    resolutions = [section_export_area_resolution(p, matrix) for p in sections]
+    coplanar_areas = [section_coplanar_skin_area(vertices, triangles, z, matrix) for z in fractions]
+    area_scale = abs(matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0])
+    authored_areas = storeys.get('actual_floor_areas_m2')
+    if authored_areas is not None and len(authored_areas) != count:
+        raise ValueError('authored BOOK floor-area schedule count mismatch')
+    transported_areas = [float(a) * area_scale for a in authored_areas] if authored_areas is not None else None
+    # A published decimal floor schedule has its own last-place rounding.
+    # Derive that resolution from the supplied values, not another hardcoded
+    # geometry tolerance or a duplicate of the portfolio writer's precision.
+    from decimal import Decimal
+    authored_resolutions = [resolution + .5 * 10.0 ** Decimal(str(a)).as_tuple().exponent * area_scale
+                            for a, resolution in zip(authored_areas, resolutions)] if authored_areas is not None else None
+    issues = []
+    for index, (actual, reference, missing, resolution) in enumerate(zip(
+            areas, original_areas, missing_areas, resolutions), 1):
+        if abs(actual - reference) > resolution:
+            issues.append(f'floor_{index}_original_export_area_mismatch:{reference:.9f}->{actual:.9f}')
+        if missing > resolution:
+            issues.append(f'floor_{index}_mesh_area_missing_from_proxy:{missing:.9f}')
+        if coplanar_areas[index-1] > resolution:
+            issues.append(f'floor_{index}_ambiguous_horizontal_skin_at_center:{coplanar_areas[index-1]:.9f}')
+        if transported_areas is not None and (
+                not isfinite(transported_areas[index-1])
+                or abs(actual - transported_areas[index-1]) > authored_resolutions[index-1]):
+            issues.append(f'floor_{index}_authored_export_area_mismatch:{transported_areas[index-1]:.9f}->{actual:.9f}')
+    from vlm_shortlist import shape_id
+    return {
+        'schema': 'arr.maas.book_delivered_floor_measurement.v1',
+        'basis': 'delivered SourceSurface mesh at transformed authored floor centers',
+        'placement_policy': 'host-fitted XY affine; independently requested Z stature',
+        'center_basis': center_basis,
+        'original_floor_center_elevations_m': centers,
+        'delivered_floor_center_elevations_m': [z * height for z in fractions],
+        'actual_floor_areas_m2': areas,
+        'actual_gfa_m2': sum(areas),
+        'source_shape_id': shape_id(source),
+        'original_transformed_floor_areas_m2': original_areas,
+        'authored_floor_areas_at_executed_xy_m2': transported_areas,
+        'authored_floor_area_comparison_resolution_m2': authored_resolutions,
+        'coplanar_skin_area_at_floor_center_m2': coplanar_areas,
+        'export_area_comparison_resolution_m2': resolutions,
+        'measurement_consistent': not issues,
+        'measurement_issues': issues,
+        'mesh_projection_m2': _mesh_plan_projection_area(vertices, triangles),
+        'proxy_floor_areas_m2': proxy_areas,
+        'mesh_floor_area_missing_from_proxy_m2': missing_areas,
+        'xy_area_scale': area_scale,
+        'z_scale': matrix[2][2] * height,
+        'normalized_host_fit_matrix4': matrix,
+        'requested_plan_area_m2': bridge.get('effective_target_plan_area'),
+        'plan_area_target_satisfied': bridge.get('minimum_plan_area_target_satisfied'),
+        'plan_area_shortfall_ratio': bridge.get('minimum_plan_area_shortfall_ratio'),
+    }
 
 
 def _compile_record(rec: dict, buildable, site=None):
@@ -172,14 +290,38 @@ def _compile_record(rec: dict, buildable, site=None):
     if not payload:
         return None, "no geometry program"
     metrics = ((art.get("hardGates") or {}).get("projectedMetrics") or {})
+    storeys = art.get('storeyEvidence') or {}
+    floor_count = storeys.get('storey_count') or metrics.get('floor_count')
+    if floor_count is None and storeys.get('actual_floor_areas_m2'):
+        floor_count = len(storeys['actual_floor_areas_m2'])
+    storey_m = storeys.get('typical_storey_height_m') or metrics.get('floor_height_m')
     footprint_m2 = float(metrics.get("footprint_area_m2") or 0.0)
     book_gross_m2 = float(metrics.get("floor_area_m2") or 0.0)
     book_height_m = float(
         (art.get("projectedVisualCertificate") or {}).get("physical_height_m")
         or metrics.get("height_m") or 0.0)
     # The figure is the book's, the size is the parcel's.
-    footprint_m2, scaled_height_m = _to_parcel_size(
-        footprint_m2, book_gross_m2, book_height_m, site)
+    from design.maas.book_development import exact_dimensions
+    from math import isclose
+    try:
+        exact = exact_dimensions(payload)
+        if exact is not None:
+            if str(getattr(site, 'pnu', '')) != exact['site_pnu']:
+                raise ValueError('exact development parcel frame mismatch')
+            if (floor_count != exact['storey_count']
+                    or not isclose(float(storey_m or 0), exact['storey_height_m'], rel_tol=1e-8)
+                    or not isclose(book_height_m, exact['height_m'], rel_tol=1e-8, abs_tol=1e-5)
+                    or not isclose(book_gross_m2, exact['target_gfa_m2'], rel_tol=1e-5, abs_tol=1e-3)):
+                raise ValueError('exact development inherited dimensions mismatch')
+            # The legacy portfolio display bounds are rounded to six places.
+            # Exact inheritance carries the verified full-precision ruler.
+            book_height_m = float(exact['height_m'])
+            scaled_height_m = book_height_m
+        else:
+            footprint_m2, scaled_height_m = _to_parcel_size(
+                footprint_m2, book_gross_m2, book_height_m, site, storey_m=storey_m)
+    except (KeyError, TypeError, ValueError) as exc:
+        return None, f'exact development evidence: {exc}'
     try:
         program = GeometryProgram.from_dict(payload)
         # At the book's own plan size. Left to its default the shared
@@ -189,7 +331,8 @@ def _compile_record(rec: dict, buildable, site=None):
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
-            minimum_plan_area=footprint_m2 or None)
+            minimum_plan_area=footprint_m2 or None,
+            max_volume_bands=int(floor_count) if floor_count else 3)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:
@@ -215,9 +358,38 @@ def _compile_record(rec: dict, buildable, site=None):
     # Scaled with the plan, so the book's proportion survives.
     if scaled_height_m > 0.0:
         height_m = scaled_height_m
+    scaled = scaled_book_metrics(book_gross_m2, storey_m, floor_count,
+                                  height_m / book_height_m if book_height_m > 1e-6 else 1)
     source = replace(source, metadata={**dict(source.metadata),
-                                       "authored_height_m": round(height_m, 3),
+                                       "authored_height_m": float(height_m),
+                                       'book_floor_count': floor_count,
+                                       'book_storey_height_m': scaled['book_storey_height_m'],
+                                       'book_floor_area_m2': scaled['floor_area_m2'],
+                                       'book_original_storey_evidence': storeys,
                                        "book_height_certificate": certificate})
+    from design.maas.massv2.parcel_policy import storey_limit_evidence
+    storey_gate = storey_limit_evidence(source, site, storey_m=scaled['book_storey_height_m'],
+                                        book_floor_count=floor_count, source_kind='book')
+    if not storey_gate['satisfied']:
+        return None, 'parcel storey gate: ' + ', '.join(storey_gate['reasons'])
+    try:
+        floors = delivered_floor_evidence(source, storeys, floor_count=floor_count,
+                                          storey_m=storey_m)
+    except (KeyError, TypeError, ValueError) as exc:
+        return None, f'BOOK delivered floor measurement: {exc}'
+    if not floors['measurement_consistent']:
+        return None, 'BOOK delivered floor measurement: ' + '; '.join(floors['measurement_issues'])
+    # Replace the unexecuted similarity estimate with actual mesh sections.
+    scaled['floor_area_m2'] = floors['actual_gfa_m2']
+    scaled['book_storey_height_m'] = float(storey_m) * floors['z_scale']
+    source = replace(source, metadata={**dict(source.metadata),
+                      'book_floor_area_m2': scaled['floor_area_m2'],
+                      'book_storey_height_m': scaled['book_storey_height_m'],
+                      'book_delivered_floor_evidence': floors})
+    from design.maas.massv2.parcel_policy import area_limit_evidence
+    area_gate = area_limit_evidence(source, site, scaled['floor_area_m2'])
+    if not area_gate['satisfied']:
+        return None, 'parcel area gate: ' + ', '.join(area_gate['reasons'])
     verbs = list(((payload.get("metadata") or {}).get("book_recursive_projection") or {})
                  .get("ordered_verbs") or [])
     entry = {
@@ -231,16 +403,16 @@ def _compile_record(rec: dict, buildable, site=None):
                       or art.get("bookScope") or "book principle"),
         "verbs": verbs,
         "height_m": round(height_m, 2),
-        "footprint_m2": round(footprint_m2, 2),
-        # The book's gross at the size it was actually staged. Recorded
-        # unscaled, the caption printed the toy's 용적률 beside the scaled
-        # mass - 40% coverage next to 42% floor area ratio, which is
-        # arithmetically impossible on any parcel. Gross goes as the cube of
-        # a uniform scale, and the height ratio is that scale.
-        "floor_area_m2": round(
-            float(metrics.get("floor_area_m2") or 0.0)
-            * ((height_m / book_height_m) ** 3 if book_height_m > 1e-6 else 1.0), 2),
+        "footprint_m2": floors['mesh_projection_m2'],
+        "requested_footprint_m2": footprint_m2,
+        "floor_area_m2": scaled['floor_area_m2'],
+        "delivered_floor_evidence": floors,
         "program": art.get("programType"),
+        'book_floor_count': floor_count,
+        'book_storey_height_m': scaled['book_storey_height_m'],
+        'original_book_storey_height_m': storey_m,
+        'original_storey_evidence': storeys,
+        'storey_limit': storey_gate,
     }
     return source, entry
 
@@ -259,13 +431,27 @@ def _refused(source, site) -> str:
     from design.maas.massv2.plausibility import slenderness_limit  # noqa: E402
 
     height_m = float(source.metadata.get("authored_height_m") or 0.0)
+    from design.maas.massv2.parcel_policy import storey_limit_evidence
+    is_book = 'book_height_certificate' in source.metadata
+    gate = storey_limit_evidence(source, site,
+            storey_m=source.metadata.get('book_storey_height_m') if is_book else source.metadata.get('authored_floor_height_m'),
+            book_floor_count=source.metadata.get('book_floor_count'), source_kind='book' if is_book else 'authored')
+    if not gate['satisfied']:
+        return 'parcel storey gate: ' + ', '.join(gate['reasons'])
+    if is_book:
+        from design.maas.massv2.parcel_policy import area_limit_evidence
+        area = area_limit_evidence(source, site, source.metadata.get('book_floor_area_m2') or 0)
+        if not area['satisfied']:
+            return 'parcel area gate: ' + ', '.join(area['reasons'])
     try:
         standing = assess_standing(source, height_m=height_m)
     except Exception as exc:  # noqa: BLE001 - a gate that crashes is news
         return f"standing check failed ({type(exc).__name__}: {exc})"
     if not getattr(standing, "stands", True):
         reasons = list(getattr(standing, "reasons", ()) or ())
-        return f"does not stand ({'; '.join(str(r) for r in reasons[:2]) or 'no reason'})"
+        label = ('mesh gravity screen refused' if standing.measurement_basis == 'complete_export_mesh'
+                 else 'does not stand')
+        return f"{label} ({'; '.join(str(r) for r in reasons[:2]) or 'no reason'})"
     try:
         plausible = plausibility_of(
             source,
@@ -273,7 +459,8 @@ def _refused(source, site) -> str:
             max_slenderness=slenderness_limit(
                 far_capacity_m2=float(site.far_capacity_m2),
                 ground_capacity_m2=float(site.ground_capacity_m2)),
-            floor_height_m=float(site.floor_height_m))
+            floor_height_m=float(source.metadata.get('book_storey_height_m') if is_book
+                                 and source.metadata.get('book_storey_height_m') else site.floor_height_m))
     except Exception as exc:  # noqa: BLE001
         return f"room check failed ({type(exc).__name__}: {exc})"
     if not plausible.occupiable:
@@ -360,15 +547,22 @@ def main() -> int:
         # 건폐율/용적률 from the book's own certificate: it counts floors at
         # its own storey height (35 m / 10 floors), which massv2's per-band
         # rounding at the parcel storey cannot reproduce on three fat bands.
-        render_masses([(tile, source, certified_caption(
-                           source, site, entry["thesis"],
-                           ground_m2=entry["footprint_m2"] or None,
-                           gross_m2=entry["floor_area_m2"] or None))],
+        from vlm_shortlist import jury_caption, seat_certificate
+        certificate = seat_certificate(name, source, {}, site, book_entry=entry)
+        render_masses([(tile, source, jury_caption(
+                           source, site, gross_m2=certificate['gross_m2']))],
                       out / f"{tile}.png", site_ring=list(buildable.exterior.coords),
                       columns=1, tile=(900, 820), style="massing")
+        from presentation import append_jury_drawings
+        drawings = append_jury_drawings(out / f'{tile}.png',
+            [(name, source, certificate['storey_m'])], buildable)
+        import hashlib
         key_rows.append({"tile": tile, "name": name, "height_m": entry["height_m"],
-                         "shape_id": shape_id(source)})
-        entries[name] = entry
+                         "shape_id": shape_id(source), 'certificate': certificate, 'jury_drawings': drawings,
+                         'certificate_id': certificate['certificate_id'],
+                         'png_sha256': hashlib.sha256((out / f'{tile}.png').read_bytes()).hexdigest()})
+        entries[name] = {**entry, 'delivered_shape_id': certificate['shape_id'],
+                         'numeric_certificate': certificate}
     # The registry: how the curator keys a book mass and how the baker
     # rebuilds it once seated. Written per stage, read as a whole.
     BOOKS.mkdir(parents=True, exist_ok=True)
@@ -382,7 +576,7 @@ def main() -> int:
 
     # The overseas rubric, from its owner (vlm_shortlist.rubric_for) - never retyped here.
     from vlm_shortlist import BLIND_PREAMBLE, rubric_for  # noqa: E402
-    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas"), encoding="utf-8")
+    (out / "PROMPT.txt").write_text(BLIND_PREAMBLE + rubric_for("overseas", site=site), encoding="utf-8")
 
     # Three board seats ride as anchors - the same ride, rebuild and caption
     # every massv2 round uses (vlm_shortlist.ride_anchors owns it).

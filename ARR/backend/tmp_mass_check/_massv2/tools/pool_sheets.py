@@ -20,7 +20,7 @@ from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 # The sheet's geometry in one place: anyone cropping a tile back out of a
@@ -38,7 +38,7 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
     schedule = schedule_of(run)
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     parcel = float(summary["site"]["parcel_area_m2"])

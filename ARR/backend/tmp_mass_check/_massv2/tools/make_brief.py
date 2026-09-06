@@ -12,6 +12,7 @@ regeneration, canon §10) always names today's board, not a remembered one.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -20,14 +21,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def board_section(track: str) -> str:
-    key = json.loads((ROOT / "runs" / "board" / "board-key.json")
-                     .read_text(encoding="utf-8"))
+    key_path = ROOT / "runs" / "board" / "board-key.json"
+    # A new era archives its key before the first author brief is made.
+    # There are no currently evaluated seats until that era's first bake.
+    key = json.loads(key_path.read_text(encoding="utf-8")) if key_path.exists() else []
     book = {}
     for path in sorted((ROOT / "inputs").glob("gen-*.json")):
         for scheme in json.loads(path.read_text(encoding="utf-8"))["schemes"]:
             book[scheme["name"]] = scheme
-    lines = ["## 현재 보드 (전량) — 아래 전부와 **형태 원리 수준에서** 달라야 한다",
-             "(같은 원리의 변주는 보드에 못 오른다 — 가족당 1석, 큐레이터가 계산함)", ""]
+    lines = ["## Current board: differ from every entry at the level of formal principle",
+             "The common curator reserves one seat per family, not per renamed parameter variation.", ""]
+    if not key:
+        lines.append("No judged and baked seats exist in the current era yet.")
     for row in key:
         if not row["label"].startswith(track):
             continue
@@ -60,37 +65,51 @@ def champion_section() -> str:
             continue
         lines.append(
             f"- **{record['champion']}** — {record.get('champion_change', '-')}"
-            f" : 부모 {record['parent']}와의 눈먼 쌍비교에서 심판"
-            f" {record.get('jurors', 0)}인 전원이 이 변형을 골랐다")
+            f" : all {record.get('jurors', 0)} independent juror sessions preferred this variant"
+            f" to parent {record['parent']} in a blind pairwise comparison")
     if not lines:
         return ""
     return "\n".join(
-        ["## 발전 챔피언 (부모를 이긴 변형 — 이미 코퍼스에 있음)",
-         "이 파라미터는 이미 판정을 받았다. 부모 쪽 값으로 되돌리는 문장은 같은 비교에서 진다.",
+        ["## Development champions already carried into the corpus",
+         "These comparisons were judged. Treat them as specific evidence, not a guarantee for a different design.",
          ""] + lines)
 
 
 def main(track: str, out_path: str, assignment: str = "") -> int:
     from trap_ledger import ledger  # django setup inside
+    from design.maas.massv2.parcel_policy import policy_for
+    from finalists import PNU
+
+    count = os.environ.get("MASS_AUTHOR_COUNT")
+    count_instruction = f"Exactly {int(count)} schemes." if count else "Use the scheme count requested by this cycle."
 
     parts = [
-        "# 저작 브리프 — 소유자들에게서 조립됨 (tools/make_brief.py)",
+        "# Architectural massing author brief - assembled from canonical owners",
         "",
-        "출력은 {\"schemes\":[...]} JSON 하나뿐이다. 정확히 8문장. 각 scheme 키: name,",
-        "primary_language, secondary_language, formal_principle(한국어 한 문장),",
-        "dominant_gesture, reference_basis(사실만 또는 \"저작 신작\"), floor_height_m,",
-        "ops(각 {\"op\":..., 파라미터, \"why\": 입력→연산자→변형→기능→한계}).",
-        "모든 파라미터는 비율. 첫 op는 extrude|loop|aggregate|stack.",
+        f"Return only one {{\"schemes\":[...]}} JSON object. {count_instruction} Required scheme keys: name,",
+        "primary_language, secondary_language, formal_principle (one Korean sentence for the final sheet),",
+        "dominant_gesture, reference_basis (verified facts or original authorship), floor_height_m,",
+        "ops (each with op, supported parameters, and a concise why: input -> operation -> visible change -> function -> limitation).",
+        "Use the live grammar's parameter units and ranges. Start with extrude|loop|aggregate|stack.",
+        "Operational authoring instructions are in English; user-facing sheet descriptions may be Korean.",
+        "Design architectural masses: positive-volume hierarchy, section, articulation, joining/separation and carved voids.",
+        "A courtyard is a void organizing building volumes; planting or landscape composition does not substitute for a massing proposition.",
         "",
-        "## 사고 절차 (CoT — 문장마다 이 순서로 why를 전개하라)",
-        "1) 이 대지·프로그램의 실제 갈등/질문 하나를 명시한다",
-        "2) 그 답이 되는 형태 원리를 한 문장으로 선언한다",
-        "3) 보드의 어떤 안과도 그 원리가 다른지 확인한다 (아래 보드 절 참조)",
-        "4) 원리를 동사 열로 번역한다 — 각 단어의 한계까지",
+        "## Brief design rationale required for each scheme",
+        "1) State one actual conflict in the site and programme.",
+        "2) State one architectural massing principle that addresses it.",
+        "3) Explain how that principle differs from the current board entries below.",
+        "4) Express it with supported operators and state the resulting limitations.",
+        "Provide concise decisions and evidence, not hidden deliberation.",
         "",
     ]
+    policy = policy_for(PNU)
+    if policy:
+        parts += ["## Confirmed parcel planning constraints derived from the code owner",
+                  "Storey count and metric height are different constraints. Do not mark unverified items as passed.",
+                  "```json", json.dumps(policy, ensure_ascii=False, indent=2), "```", ""]
     if assignment:
-        parts += ["## 이 저자의 칸 (앵커)", assignment.strip(), ""]
+        parts += ["## Assigned authoring territory", assignment.strip(), ""]
     verdicts = ROOT / "runs" / "board" / "verdict-ledger.md"
     if verdicts.exists():
         # What the juries keep refusing, in their own clauses - generated by
@@ -99,7 +118,8 @@ def main(track: str, out_path: str, assignment: str = "") -> int:
     champions = champion_section()
     if champions:
         parts += [champions, ""]
-    parts += [ledger(), "", board_section(track), "",
+    parts += ["## Canonical reference material (original source language preserved)",
+              ledger(), "", board_section(track), "",
               "---", "",
               (ROOT / "inputs" / "VOCABULARY.md").read_text(encoding="utf-8"),
               "", "---", "",

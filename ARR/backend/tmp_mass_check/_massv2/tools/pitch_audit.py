@@ -23,7 +23,7 @@ from finalists import PNU, BUILDING_TYPE  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.grammar import parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOF_VERBS = ("gable", "mansard", "butterfly", "shed", "pitch")
 
@@ -86,7 +86,7 @@ def main(pattern: str = "") -> int:
     book = corpus()
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
 

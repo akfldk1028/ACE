@@ -28,7 +28,7 @@ from design.maas.massv2.grammar import parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.measure import measure_form  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
-    OPEN_SIDE_SITINGS, SITINGS, open_side_direction, place_on_site,
+    OPEN_SIDE_SITINGS, SITINGS, site_open_side_direction, place_on_site,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,8 +42,8 @@ def main(family: str, index: str, param: str, *values: str) -> int:
     record = corpus[family]
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
-    open_side = open_side_direction(buildable, site.shared_edges)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
+    open_side = site_open_side_direction(site)
     sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))

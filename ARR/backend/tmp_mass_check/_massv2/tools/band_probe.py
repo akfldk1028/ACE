@@ -36,7 +36,7 @@ from design.maas.massv2.grammar import declared_stature, parti_from_record  # no
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.measure import measure_form  # noqa: E402
 from design.maas.massv2.siting import (  # noqa: E402
-    OPEN_SIDE_SITINGS, SITINGS, open_side_direction, place_on_site,
+    OPEN_SIDE_SITINGS, SITINGS, site_open_side_direction, place_on_site,
 )
 from design.maas.massv2.variations import spread_across_coverage  # noqa: E402
 
@@ -98,8 +98,8 @@ def main(run: str, family: str, *fractions: str) -> int:
     record = corpus()[family]
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
-    open_side = open_side_direction(buildable, site.shared_edges)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
+    open_side = site_open_side_direction(site)
     sitings = OPEN_SIDE_SITINGS if open_side is not None else SITINGS
 
     parti = parti_from_record(record)

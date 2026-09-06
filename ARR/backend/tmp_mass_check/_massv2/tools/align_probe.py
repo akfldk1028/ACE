@@ -24,7 +24,7 @@ from design.maas.massv2.compile import compile_matrix_form  # noqa: E402
 from design.maas.massv2.execute import execute as execute_parti  # noqa: E402
 from design.maas.massv2.grammar import parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -46,7 +46,7 @@ def main(name: str, *edits: str) -> int:
         return 1
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     asked = max((float(op.get("storeys") or 0) for op in parti["ops"]), default=0.0)
     height_m = max(
         site.floor_height_m * max(

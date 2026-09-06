@@ -41,7 +41,7 @@ from design.maas.massv2.fill import fill_to_site  # noqa: E402
 from design.maas.massv2.grammar import parti_from_record  # noqa: E402
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOT = Path("D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2")
 # The parcel is an argument, not a constant. Every fix in this branch is written
@@ -84,7 +84,7 @@ def main() -> int:
 
     site = load_legal_site(pnu, building_type="제1종근린생활시설")
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     height = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2))
     )

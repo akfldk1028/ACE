@@ -169,6 +169,9 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
 
     for scheme in schemes:
         name = scheme.get("name", "?")
+        from design.maas.massv2.grammar import mistyped_words
+        for verb, key, value in mistyped_words(scheme):
+            faults.append(f"{name} {verb}: invalid {key}={value}")
         for field in REQUIRED:
             if not scheme.get(field):
                 faults.append(f"{name}: missing {field}")

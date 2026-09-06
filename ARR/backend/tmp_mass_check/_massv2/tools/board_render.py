@@ -20,10 +20,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from band_probe import corpus  # noqa: E402
 from book_import import book_rebuild  # noqa: E402
 from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
+from vlm_shortlist import rebuild_seat, shape_id, seat_certificate
 
 from design.maas.massv2.legal import load_legal_site  # noqa: E402
 from design.maas.massv2.render import render_masses  # noqa: E402
-from design.maas.massv2.siting import open_side_direction  # noqa: E402
+from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 BOARD = ROOT / "runs" / "board"
@@ -48,18 +49,32 @@ def _korea_schedule():
         record, shared_share_of_gross=book.get("shared_area_share_of_gross"))
 
 
+def tile_evidence(row, source, caption, certificate=None):
+    """A changed picture can be baked for review, but cannot retain its score."""
+    current = shape_id(source)
+    matched = bool(row.get('shape_id')) and row['shape_id'] == current
+    if certificate is not None:
+        matched = matched and row.get('certificate_id') == certificate['certificate_id']
+    meta = dict(caption or {})
+    meta['심사'] = f"{row['score']:.2f}" if matched and row.get('score') is not None else '재심사 필요'
+    return meta, {'name': row['name'], 'shape_id': current,
+                  'certificate_id': (certificate or {}).get('certificate_id'),
+                  'scored_shape_id': row.get('shape_id'), 'requires_rejudge': not matched}
+
+
 def main() -> int:
     board = json.loads((BOARD / "board-key.json").read_text(encoding="utf-8"))
     book = corpus()
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
     buildable = site.plan_at(0.0)
-    axis = open_side_direction(buildable, site.shared_edges) or (1.0, 0.0)
+    axis = site_open_side_direction(site) or (1.0, 0.0)
     base = site.floor_height_m * max(
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
 
     korea_schedule = _korea_schedule()
     per_track: dict[str, list] = {"K": [], "O": [], "C": []}
     kept, baked = 0, 0
+    render_key = []
     unbakeable: list[str] = []
     # Label tiles are regenerated every bake; a leftover from the previous
     # curation carries another scheme's drawing under this label (labels are
@@ -73,14 +88,10 @@ def main() -> int:
         family = row["name"].split("~")[0].split("^")[0]
         parti = book.get(family)
         source = None
-        if row["name"].startswith("book:"):
-            source = book_rebuild(row["name"], site, buildable)
-        elif parti is not None and (track in ("O", "C") or korea_schedule is not None):
-            asked = max((float(op.get("storeys") or 0)
-                         for op in parti["ops"]), default=0.0)
-            source = rebuild(row["name"], book, site, buildable, axis,
-                             max(base, asked * site.floor_height_m),
-                             schedule=korea_schedule if track == "K" else None)
+        caption = None
+        if row['name'].startswith('book:') or (parti is not None and (track in ('O', 'C') or korea_schedule is not None)):
+            source, caption = rebuild_seat(row['name'], book, site, buildable, axis, base,
+                                            schedule=korea_schedule if track == 'K' else None)
         # A tile that cannot be rebuilt is kept from the cache BY SCHEME NAME,
         # never by label: labels are reassigned at every curation, and keeping
         # `K8.png` from the previous bake once put another scheme's drawing
@@ -90,21 +101,19 @@ def main() -> int:
         safe = "".join(ch if ch.isalnum() or ch in "-_." else "_" for ch in row["name"])[:150]
         cached = cache / f"{safe}.png"
         if source is None:
-            if cached.exists():
-                kept += 1
-                shutil.copyfile(cached, BOARD / f"{row['label']}.png")
-                per_track[track].append((row["label"], None, BOARD / f"{row['label']}.png"))
-                continue
             print(f"missing and unbakeable: {row['label']} {row['name']}")
             unbakeable.append(row["name"])
             continue
         baked += 1
-        meta = {"": f"{row['score']:.2f}" if row.get("score") is not None else "전형"}
+        meta, identity = tile_evidence(row, source, caption, seat_certificate(row['name'], source, book, site))
         render_masses([(row["label"], source, meta)],
                       BOARD / f"{row['label']}.png",
                       site_ring=list(buildable.exterior.coords),
                       columns=1, tile=TILE, style="massing")
         shutil.copyfile(BOARD / f"{row['label']}.png", cached)
+        import hashlib
+        render_key.append({**identity, 'label': row['label'],
+                           'png_sha256': hashlib.sha256((BOARD / f"{row['label']}.png").read_bytes()).hexdigest()})
         per_track[track].append((row["label"], source, None))
 
     # Seats the current engine cannot rebuild are ledger ghosts (judged on
@@ -112,6 +121,7 @@ def main() -> int:
     # curator reads the file and leaves them out of the next board.
     (BOARD / "unbakeable.json").write_text(
         json.dumps(unbakeable, ensure_ascii=False, indent=1), encoding="utf-8")
+    (BOARD / 'render-key.json').write_text(json.dumps(render_key, ensure_ascii=False, indent=2), encoding='utf-8')
 
     from PIL import Image
     for track in ("K", "O", "C"):

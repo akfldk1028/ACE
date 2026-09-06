@@ -3,7 +3,7 @@ from pathlib import Path
 from finalists import PNU, rebuild, scheme_of, BUILDING_TYPE
 from design.maas.massv2 import program as programme
 from design.maas.massv2.legal import load_legal_site
-from design.maas.massv2.siting import open_side_direction
+from design.maas.massv2.siting import site_open_side_direction
 from design.maas.massv2.measure import gross_floor_area_m2
 ROOT = Path(__file__).resolve().parents[1]
 summ = json.loads((ROOT/"runs/uij-brief/massv2-summary.json").read_text(encoding="utf-8"))
@@ -16,7 +16,7 @@ corpus = {}
 for p in sorted((ROOT/"inputs").glob("gen-*.json")):
     for s in json.loads(p.read_text(encoding="utf-8"))["schemes"]: corpus[s["name"]] = s
 site = load_legal_site(PNU, building_type=BUILDING_TYPE)
-buildable = site.plan_at(0.0); axis = open_side_direction(buildable, site.shared_edges) or (1.0,0.0)
+buildable = site.plan_at(0.0); axis = site_open_side_direction(site) or (1.0,0.0)
 base = site.floor_height_m*max(1,int(site.far_capacity_m2//max(1.0,site.ground_capacity_m2)))
 picks = json.loads((ROOT/"runs/uij-brief-pick/picks.json").read_text(encoding="utf-8"))["picks"]
 gaps = []

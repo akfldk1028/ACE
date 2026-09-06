@@ -650,7 +650,7 @@ def _solve_grid_parking_layout(
         accessible_spaces=accessible_spaces,
         access_edges=access_edges,
     )
-    drive_polygons = [candidate["drive_polygon"] for candidate in selected[:required_spaces]]
+    drive_polygons = _connect_grid_row_aisles(selected[:required_spaces], drive_area)
 
     stalls = []
     for index, item in enumerate(selected[:required_spaces], start=1):
@@ -1012,6 +1012,39 @@ def _grid_candidate_sort_key(candidate: dict[str, Any]) -> tuple[int, float, flo
     return type_rank, round(centroid.y, 3), round(centroid.x, 3)
 
 
+def _connect_grid_row_aisles(
+    selected: list[dict[str, Any]], drive_area: Polygon | MultiPolygon,
+) -> list[Polygon]:
+    """Pave full-width gaps between neighboring aisle cells in the same row.
+
+    Keep one aisle polygon per stall so downstream frontage checks retain their
+    index correspondence. The convex corridor is actual generated material,
+    admitted only inside the drive envelope and clear of every selected stall.
+    This does not infer a connection between unrelated rows or around obstacles.
+    """
+    cells = [candidate["drive_polygon"] for candidate in selected]
+    rows: dict[tuple[Any, ...], list[int]] = {}
+    for index, candidate in enumerate(selected):
+        rows.setdefault((candidate.get("orientation"), candidate.get("row"),
+                         candidate.get("start_v")), []).append(index)
+    for indices in rows.values():
+        indices.sort(key=lambda index: float(selected[index].get("start_u") or 0.0))
+        for left, right in zip(indices, indices[1:]):
+            a = selected[left]["drive_polygon"]
+            b = selected[right]["drive_polygon"]
+            if a.intersects(b):
+                continue
+            corridor = a.union(b).convex_hull
+            # Use the same containment tolerance as candidate construction;
+            # never change the connectivity checker to hide missing pavement.
+            if not drive_area.buffer(1e-7).covers(corridor):
+                continue
+            if any(_stall_polygons_overlap(corridor, item["stall_polygon"]) for item in selected):
+                continue
+            cells[left] = cells[left].union(corridor)
+    return cells
+
+
 def _select_compact_grid_candidates(
     candidates: list[dict[str, Any]],
     *,
@@ -1040,8 +1073,15 @@ def _select_compact_grid_candidates(
     if len(exact_small_group) >= required_spaces:
         return exact_small_group[:required_spaces]
 
-    best: list[dict[str, Any]] = []
-    best_score: tuple[Any, ...] | None = None
+    # Preserve feasible partial searches too: an unmet request is exactly when
+    # throwing away a better partial count conceals available capacity.
+    def score_group(group: list[dict[str, Any]]) -> tuple[Any, ...]:
+        return _grid_group_score(
+            group, required_spaces=required_spaces,
+            accessible_spaces=accessible_spaces, access_edges=access_edges,
+        )
+    best = max((contiguous_row, exact_small_group), key=score_group)
+    best_score = score_group(best)
     for seed in ordered:
         if accessible_spaces > 0 and seed["type"] != "accessible":
             continue
@@ -1073,7 +1113,10 @@ def _select_compact_grid_candidates(
             ]
             if not eligible:
                 break
-            eligible.sort(key=lambda candidate: _grid_candidate_compact_sort_key(candidate, group))
+            eligible.sort(key=lambda candidate: (
+                0 if remaining_accessible > 0 or candidate["type"] == "standard" else 1,
+                _grid_candidate_compact_sort_key(candidate, group),
+            ))
             if not add(eligible[0]):
                 break
 
@@ -1114,7 +1157,7 @@ def _select_compact_grid_candidates(
                 continue
             selected.append(candidate)
             occupied.append(candidate["stall_polygon"])
-    return selected[:required_spaces]
+    return max((best, selected), key=score_group)[:required_spaces]
 
 
 def _select_exact_small_grid_group(
@@ -1288,9 +1331,9 @@ def _grid_group_score(
     required_spaces: int,
     accessible_spaces: int,
     access_edges: list[LineString] | None = None,
-) -> tuple[int, int, int, int, int, float, int, float, float]:
+) -> tuple[Any, ...]:
     if not group:
-        return (0, 0, 0, 0, 0, float("-inf"), 0, float("-inf"), float("-inf"))
+        return (0, 0, 0, 0, 0, 0, float("-inf"), 0, float("-inf"), float("-inf"))
     provided_accessible = sum(1 for candidate in group if candidate["type"] == "accessible")
     enough = len(group) >= required_spaces
     accessible_enough = provided_accessible >= accessible_spaces
@@ -1305,8 +1348,9 @@ def _grid_group_score(
         for b in centroids[i + 1:]:
             max_distance = max(max_distance, float(a.distance(b)))
     return (
-        1 if enough else 0,
+        1 if enough and accessible_enough else 0,
         1 if accessible_enough else 0,
+        min(len(group), required_spaces),
         1 if connected else 0,
         1 if access["connected"] else 0,
         frontage_connected,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ..dimensional_intent import intent_schema, validate_intent
+
 import json
 import hashlib
 from math import atan2, degrees, hypot
@@ -50,7 +52,7 @@ from design.maas.book_language.paid_provider_admission import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v33_graph_assembly_body_budget"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v34_explicit_dimensional_intent"
 LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
@@ -1129,6 +1131,7 @@ def geometry_programs_from_author_payload(
             "base_seed": base_seed,
             "base_form_id": base_form_id,
             "intent_tags": [str(value) for value in item.get("intent_tags") or ()][:12],
+            **({"dimensional_intent": validate_intent(item["dimensional_intent"])} if item.get("dimensional_intent") is not None else {}),
             "operator_path": operator_path or ["prismatic"],
             "author_provider": "structured_geometry_dsl_payload",
             "parcel_coordinates_in_program": False,
@@ -1603,6 +1606,16 @@ Rules:
   an access binding. Use open_side="closed" only for a node whose semantic
   role is explicitly an internal environmental court, not the public threshold.
 - Use bounded local normalized dimensions, not parcel coordinates and not a copied famous building.
+- Optional per-program dimensional_intent states an explicit physical proposal using the supplied schema:
+  storey_count, storey_height_m, target_gfa_m2, delivery_policy=preserve_physical_dimensions, programme_status=unknown.
+  This soft authored target is not a required project programme or a legal exemption. The importer must preserve
+  the already physicalized dimensions or refuse the fit; it does not preserve the normalized source XYZ proportions.
+  Use different explicit schedules and density targets across alternatives where the spatial idea calls for them.
+  Use null in structured output (or omit in a local legacy payload) to retain legacy exploratory sizing. Never freeze all heights or maximize every FAR by default.
+  Unsupported automatic growth policies are rejected. Actual project programme requirements remain separately binding.
+- For book_branch or related_array, vertical_anchor=input_base preserves the incoming base during vertical scaling;
+  center keeps legacy centered scaling. Choose input_base for grounded assemblies, center for deliberate relative
+  elevation only when actual support remains valid. This never creates support beneath an intentionally elevated input.
 - Keep parcel scope and base seed separate. Scope is supplied by the site graph. Select a normalized
   base_form_id from this independent authoring axis: {allowed_base_forms}. Its executable operator must occur before
   the one global Matrix4, and it is independent from the later BOOK fraction scope.
@@ -1757,9 +1770,10 @@ def _author_schema(
                     "type": "object",
                     "additionalProperties": False,
                     "required": [
-                        "name", "base_form_id", "base_seed", "intent_tags", "nodes", "root_id", "rationale",
+                        "name", "base_form_id", "base_seed", "intent_tags", "nodes", "root_id", "rationale", "dimensional_intent",
                     ],
                     "properties": {
+                        "dimensional_intent": {"anyOf": [intent_schema(), {"type": "null"}]},
                         "name": {"type": "string", "minLength": 1, "maxLength": 120},
                         "base_form_id": {
                             "enum": [spec.form_id for spec in BASE_FORM_SPECS],

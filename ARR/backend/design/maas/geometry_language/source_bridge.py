@@ -2569,6 +2569,7 @@ def compile_geometry_program_to_source_mass(
     minimum_plan_area: float | None = None,
     name: str | None = None,
     volume_role: str = "recursive_solid_primary",
+    placement_policy: str | None = None,
     max_volume_bands: int = 3,
     max_raw_surfaces: int | None = None,
     gate_policy: GeometryGatePolicy | None = None,
@@ -2589,6 +2590,7 @@ def compile_geometry_program_to_source_mass(
         minimum_plan_area=minimum_plan_area,
         name=name,
         volume_role=volume_role,
+        placement_policy=placement_policy,
         max_volume_bands=max_volume_bands,
         max_raw_surfaces=max_raw_surfaces,
         gate_policy=gate_policy,
@@ -2605,6 +2607,7 @@ def _compile_geometry_program_to_source_mass(
     minimum_plan_area: float | None = None,
     name: str | None = None,
     volume_role: str = "recursive_solid_primary",
+    placement_policy: str | None = None,
     max_volume_bands: int = 3,
     max_raw_surfaces: int | None = None,
     gate_policy: GeometryGatePolicy | None = None,
@@ -2617,6 +2620,9 @@ def _compile_geometry_program_to_source_mass(
         and _normalized_compilation is not None
     ):
         return None
+    from ..dimensional_intent import POLICY
+    if placement_policy not in (None, POLICY):
+        raise ValueError("unsupported source placement policy")
     normalized_export = _normalized_compilation is not None
     host = repair_source_polygon(
         host,
@@ -2677,19 +2683,17 @@ def _compile_geometry_program_to_source_mass(
         if base_seed_plan_fraction is not None and target_plan_area is None:
             base_seed_area_cap = float(host.area) * base_seed_plan_fraction
             effective_target_plan_area = base_seed_area_cap
-        transformed = _fit_vertices_to_host(
-            compilation,
-            host,
-            target_plan_area=effective_target_plan_area,
-            minimum_plan_area=minimum_plan_area,
-        )
+        transformed = (_pose_metric_vertices_to_host(compilation, host)
+            if placement_policy == POLICY else _fit_vertices_to_host(
+                compilation, host, target_plan_area=effective_target_plan_area,
+                minimum_plan_area=minimum_plan_area))
         if transformed is None:
             return None
         world_vertices = transformed.world_vertices
         host_fit_matrix4 = transformed.matrix4
         host_fit_matrix4_exact = True
-        legal_fit_mode = "principal_frame_bounded"
-        fit_strength = max(0.0, min(1.0, float(upper_fit_strength)))
+        legal_fit_mode = POLICY if placement_policy == POLICY else "principal_frame_bounded"
+        fit_strength = 0.0 if placement_policy == POLICY else max(0.0, min(1.0, float(upper_fit_strength)))
         if upper_host is not None and fit_strength > 1e-6:
             repaired_upper_host = repair_source_polygon(upper_host, minimum_area=1.0)
             upper_transformed = (
@@ -3568,6 +3572,32 @@ def _normalized_program_space_zones(
             "physical_envelope_owner_role": original_dominant.role,
         })
     return zones
+
+
+def _pose_metric_vertices_to_host(compilation, host):
+    """Finite rigid pose search; inability to place is a refusal, never a resize."""
+    vertices = compilation.vertices
+    plan = MultiPoint([(x, y) for x, y, _z in vertices]).convex_hull
+    if not isinstance(plan, Polygon) or plan.area <= 1e-9:
+        return None
+    source_angle, _, _ = _principal_frame(plan)
+    target_angle, _, _ = _principal_frame(host)
+    minimum_z = min(v[2] for v in vertices)
+    span = max(v[2] for v in vertices) - minimum_z
+    if span <= 1e-9:
+        return None
+    for center in (host.centroid, host.representative_point()):
+        for angle in (target_angle - source_angle, target_angle - source_angle + 90.0, 0.0):
+            matrix = compose_matrix4(
+                translation_matrix4((-plan.centroid.x, -plan.centroid.y, -minimum_z)),
+                rotation_matrix4((0.0, 0.0, angle)),
+                scale_matrix4((1.0, 1.0, 1.0 / span)),
+                translation_matrix4((center.x, center.y, 0.0)))
+            world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
+            if _mesh_plan_projection_inside_host(world, compilation.triangles, host):
+                return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
+                    world_vertices=world, achieved_plan_area_m2=_mesh_plan_projection_area(world, compilation.triangles))
+    return None
 
 
 def _fit_vertices_to_host(

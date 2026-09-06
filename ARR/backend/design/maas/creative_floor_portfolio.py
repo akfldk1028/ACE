@@ -897,6 +897,13 @@ def _compile_candidate(
         "prompt_contract": "",
     }
     authored = recipe_result.program
+    from .dimensional_intent import program_intent
+    dimensional_intent = program_intent(authored)
+    if dimensional_intent is not None:
+        if physical_contract is not None:
+            raise ValueError("dimensional intent cannot override exact development inheritance")
+        physical_contract = dimensional_intent
+        capacity_band = "authored_target"
     authored_compilation = compile_geometry_program(authored)
     if not _connected_compilation(authored_compilation):
         return None
@@ -1013,6 +1020,13 @@ def _compile_candidate(
         contact_topology=recipe_result.contact_type,
     )
     return {
+        **({"dimensional_intent_evidence": {
+            "requested": dimensional_intent,
+            "effective": {"storey_count": storey_count,
+                          "storey_height_m": storey_height_m,
+                          "height_m": target_height_m, "gfa_m2": actual_gfa},
+            "programme_status": "unknown",
+        }} if dimensional_intent is not None else {}),
         "candidate_id": candidate_id,
         "family": family,
         "source_family": source_family,
@@ -1073,7 +1087,7 @@ def _compile_candidate(
             "actual_gfa_m2": round(actual_gfa, 6),
             "target_gfa_m2": round(target_gfa_m2, 6),
             "capacity_band": capacity_band,
-            "capacity_authority": "user_supplied_prelegal_target",
+            "capacity_authority": ("soft_authored_target; programme_unknown" if dimensional_intent is not None else "user_supplied_prelegal_target"),
             "floor_cutter_node_ids": list(cutter_ids),
             "floor_plate_node_ids": list(plate_ids),
             "floor_plate_compiled_volumes_m3": [

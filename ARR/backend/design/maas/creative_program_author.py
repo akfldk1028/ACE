@@ -8,6 +8,7 @@ from math import isfinite
 from pathlib import Path
 from typing import Any, Iterable
 
+from .dimensional_intent import KEY, program_intent, validate_intent
 from .creative_family_contract import CreativeRecipeResult
 from .geometry_language.ast import GeometryProgram
 from .geometry_language.compiler import CompilationResult
@@ -35,6 +36,7 @@ def normalize_authored_programs(
 ) -> tuple[CreativeAuthoredProgram, ...]:
     result: list[CreativeAuthoredProgram] = []
     for item in programs:
+        program_intent(item.program if isinstance(item, CreativeAuthoredProgram) else item)
         if isinstance(item, CreativeAuthoredProgram):
             result.append(CreativeAuthoredProgram(
                 program=normalize_affine_basevolume_program(item.program),
@@ -59,6 +61,9 @@ def authored_programs_from_payload(
     expected_count: int,
     program_context: dict[str, Any] | None = None,
 ) -> tuple[CreativeAuthoredProgram, ...]:
+    for item in payload.get("programs", []):
+        if isinstance(item, dict) and item.get(KEY) is not None:
+            validate_intent(item[KEY])
     exact_programs = payload.get("geometry_programs")
     if isinstance(exact_programs, list):
         programs = tuple(

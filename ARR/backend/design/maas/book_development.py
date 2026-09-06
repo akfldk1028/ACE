@@ -7,6 +7,7 @@ from math import isfinite, isclose
 
 from .creative_program_author import normalize_authored_programs, authored_program_result
 from .geometry_language.ast import GeometryProgram
+from .dimensional_intent import KEY as DIMENSIONAL_INTENT_KEY, program_intent
 
 MODE = 'exact-authored-development'
 MARKER = 'book_exact_development'
@@ -93,6 +94,22 @@ def build_exact_development_portfolio(payload, context, *, expected_count):
                   'authored_program': raw_program.to_dict(),
                   'authored_program_hash': raw_program.program_hash()}
         authored = normalize_authored_programs((raw_program,))[0]
+        proposal = program_intent(authored.program)
+        if proposal is not None:
+            if (proposal['storey_count'] != context['storey_count']
+                    or not isclose(proposal['storey_height_m'], context['storey_height_m'], rel_tol=1e-8, abs_tol=1e-6)
+                    or not isclose(proposal['target_gfa_m2'], context['target_gfa_m2'], rel_tol=1e-5, abs_tol=1e-3)):
+                raise ValueError('development dimensional intent conflicts with verified parent delivery')
+            # The complete original proposal remains in the hashed authored
+            # source above. Effective dimensions now belong to the verified
+            # parent contract, not the earlier soft proposal.
+            metadata = dict(authored.program.metadata)
+            metadata.pop(DIMENSIONAL_INTENT_KEY, None)
+            metadata['dimensional_intent_transition'] = {
+                'historical_proposal': proposal,
+                'effective_authority': 'verified_parent_delivery',
+                'parent_contract_hash': contract_hash(context)}
+            authored = replace(authored, program=replace(authored.program, metadata=metadata))
         authored = replace(authored, program=replace(authored.program, metadata={
             **authored.program.metadata, MARKER: marker}))
         result = authored_program_result(authored)

@@ -303,8 +303,12 @@ def _compile_record(rec: dict, buildable, site=None):
     # The figure is the book's, the size is the parcel's.
     from design.maas.book_development import exact_dimensions
     from math import isclose
+    from design.maas.dimensional_intent import program_intent, POLICY
     try:
+        intent = program_intent(payload)
         exact = exact_dimensions(payload)
+        if intent is not None and exact is not None:
+            raise ValueError("dimensional intent cannot override exact development")
         if exact is not None:
             if str(getattr(site, 'pnu', '')) != exact['site_pnu']:
                 raise ValueError('exact development parcel frame mismatch')
@@ -317,11 +321,19 @@ def _compile_record(rec: dict, buildable, site=None):
             # Exact inheritance carries the verified full-precision ruler.
             book_height_m = float(exact['height_m'])
             scaled_height_m = book_height_m
+        elif intent is not None:
+            if (floor_count != intent['storey_count']
+                    or not isclose(float(storey_m or 0), intent['storey_height_m'], rel_tol=1e-8)
+                    or not isclose(book_height_m, floor_count * intent['storey_height_m'], rel_tol=1e-8, abs_tol=1e-5)
+                    or not isclose(book_gross_m2, intent['target_gfa_m2'], rel_tol=1e-5, abs_tol=1e-3)):
+                raise ValueError('authored dimensional intent disagrees with physical floor evidence')
+            book_height_m = float(intent['storey_count'] * intent['storey_height_m'])
+            scaled_height_m = book_height_m
         else:
             footprint_m2, scaled_height_m = _to_parcel_size(
                 footprint_m2, book_gross_m2, book_height_m, site, storey_m=storey_m)
     except (KeyError, TypeError, ValueError) as exc:
-        return None, f'exact development evidence: {exc}'
+        return None, f'BOOK dimensional evidence: {exc}'
     try:
         program = GeometryProgram.from_dict(payload)
         # At the book's own plan size. Left to its default the shared
@@ -332,11 +344,13 @@ def _compile_record(rec: dict, buildable, site=None):
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
+            placement_policy=POLICY if intent is not None else None,
             max_volume_bands=int(floor_count) if floor_count else 3)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:
-        return None, "compiled to None"
+        return None, ("authored dimensional intent cannot fit the legal host without resizing"
+                      if intent is not None else "compiled to None")
     # The height dialect. massv2's measure, gates and renderer read
     # `metadata["authored_height_m"]`; the book stamps its physical height
     # as a certificate on the artifact instead, and the shared compile
@@ -379,13 +393,29 @@ def _compile_record(rec: dict, buildable, site=None):
         return None, f'BOOK delivered floor measurement: {exc}'
     if not floors['measurement_consistent']:
         return None, 'BOOK delivered floor measurement: ' + '; '.join(floors['measurement_issues'])
+    dimensional_evidence = None
+    if intent is not None:
+        matrix = floors['normalized_host_fit_matrix4']
+        metric_pose = (all(isclose(sum(matrix[i][j] ** 2 for i in range(2)), 1.0, rel_tol=1e-8, abs_tol=1e-8) for j in range(2))
+            and isclose(sum(matrix[i][0] * matrix[i][1] for i in range(2)), 0.0, abs_tol=1e-8)
+            and isclose(floors['z_scale'], 1.0, rel_tol=1e-8, abs_tol=1e-8))
+        if not metric_pose or not isclose(floors['actual_gfa_m2'], book_gross_m2, rel_tol=1e-5, abs_tol=1e-3):
+            return None, 'authored dimensional intent changed during delivery'
+        dimensional_evidence = {'requested': intent,
+            'effective': {'storey_count': floor_count, 'storey_height_m': storey_m,
+                          'height_m': book_height_m, 'gfa_m2': book_gross_m2},
+            'delivered': {'storey_count': floor_count, 'storey_height_m': float(storey_m) * floors['z_scale'],
+                          'height_m': height_m, 'gfa_m2': floors['actual_gfa_m2'],
+                          'shape_id': floors['source_shape_id']},
+            'programme_status': 'unknown', 'authority': 'soft_authored_target; not project programme compliance'}
     # Replace the unexecuted similarity estimate with actual mesh sections.
     scaled['floor_area_m2'] = floors['actual_gfa_m2']
     scaled['book_storey_height_m'] = float(storey_m) * floors['z_scale']
     source = replace(source, metadata={**dict(source.metadata),
                       'book_floor_area_m2': scaled['floor_area_m2'],
                       'book_storey_height_m': scaled['book_storey_height_m'],
-                      'book_delivered_floor_evidence': floors})
+                      'book_delivered_floor_evidence': floors,
+                      **({'dimensional_intent_evidence': dimensional_evidence} if dimensional_evidence is not None else {})})
     from design.maas.massv2.parcel_policy import area_limit_evidence
     area_gate = area_limit_evidence(source, site, scaled['floor_area_m2'])
     if not area_gate['satisfied']:
@@ -407,6 +437,7 @@ def _compile_record(rec: dict, buildable, site=None):
         "requested_footprint_m2": footprint_m2,
         "floor_area_m2": scaled['floor_area_m2'],
         "delivered_floor_evidence": floors,
+        **({"dimensional_intent_evidence": dimensional_evidence} if dimensional_evidence is not None else {}),
         "program": art.get("programType"),
         'book_floor_count': floor_count,
         'book_storey_height_m': scaled['book_storey_height_m'],

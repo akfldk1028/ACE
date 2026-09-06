@@ -29,6 +29,7 @@ def _safe_retry_after_http_date(value: Any) -> str:
     return format_datetime(parsed.astimezone(timezone.utc), usegmt=True)
 
 from .ast import GeometryNode, GeometryProgram, OPERATORS_BY_KIND
+from .assembly_budget import assembly_budget_nodes as _assembly_budget_nodes
 from .base_seeds import BASE_FORM_SPECS, BASE_SEED_SPECS
 from .compiler import compile_geometry_program
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
@@ -49,7 +50,7 @@ from design.maas.book_language.paid_provider_admission import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v32_contextual_capacity_and_body_budget"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v33_graph_assembly_body_budget"
 LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
@@ -1616,13 +1617,19 @@ Rules:
   This is the same cross-layer budget applied after BOOK projection; do not stack courtyard+notch or
   carve_void+notch merely to make the graph look more detailed.
 - For this request, BODY RULE BUDGET = {_author_body_rule_budget(context)} and PUBLIC ACCESS RULE BUDGET = 1.
-  Count executable operators, not rationale words. A valid chain uses only the necessary distinct body effect families
+  Count architectural effect families, not rationale words. A connected constructive assembly counts as one
+  composition principle: distinct solid operands may use repeated scale/rotate/translate/matrix4 placement chains
+  and nested union/attach/bridge joins. This exception is determined from executable graph edges, never semantic labels.
+  Deformation and void operations on those operands still count; difference/intersection cutters are not assembly
+  placement. A transform shared with a cutting branch does not receive the placement exception.
+  A valid chain uses only the necessary distinct body effect families
   within that budget, followed by one ACCESS rule when required. Do not exceed the declared BODY RULE BUDGET and do not
   stack courtyard+notch, carve_void+lift, or lift+notch. The compiler rejects the whole candidate when either count
   is exceeded; extra nodes are not extra design quality.
 - The compiled author mesh must be one connected solid. Split/array/duplicate wings require an explicit physical
-  bridge, spine or overlapping union; disconnected Lego pieces are invalid. The later architectural source may
-  expose at most five legible volume bands, but that is not permission for disconnected author geometry.
+  bridge, spine or overlapping union; disconnected pieces are invalid. A connected material mesh may still contain
+  several legible architectural volumes; material connectivity is not an architectural volume-count limit.
+  Height bands are measurement proxies, not an authoring limit on that hierarchy.
 - Cantilever is a horizontal backspan relation, so its vector z component must be 0. Use lift as a separate
   terminal relation when vertical clearance is intended.
 - Use a stable final node id such as result and set root_id to it.
@@ -2120,12 +2127,16 @@ def _program_language_contract_issue(
     if required_any and not (required_any & actual_operators):
         return f"program:missing_any_required_macro={','.join(sorted(required_any))}"
     base_controller_id = _base_seed_controller_id(program, _infer_base_seed(program))
+    assembly_roots, assembly_implementation = _assembly_budget_nodes(program)
     body_families: list[str] = []
     public_threshold_count = 0
     for node in program.topological_nodes():
         if node.id == base_controller_id or node.operator == "profiled_hall":
             continue
-        family = _AUTHOR_BODY_RULE_FAMILIES.get(node.operator)
+        if node.id in assembly_implementation:
+            continue
+        family = ("composition" if node.id in assembly_roots
+                  else _AUTHOR_BODY_RULE_FAMILIES.get(node.operator))
         if family is None:
             continue
         public_threshold = bool(

@@ -19,6 +19,7 @@ from shapely.geometry import Polygon, shape
 
 from design.maas.geometry_language import GeometryProgram, compile_geometry_program
 from design.maas.geometry_language.chassis_taxonomy import classify_geometry_program
+from design.maas.geometry_language.assembly_budget import assembly_budget_nodes
 from design.maas.grammar.verb_sequence import VerbSequence
 from design.maas.program_massing import resolve_program_profile
 from design.maas.program_massing.assembly import program_component_chassis
@@ -1260,13 +1261,33 @@ def _architectural_articulation_metrics(source: Any) -> dict[str, Any]:
     because the final Boolean was one manifold component. The resulting object
     is technically clean but architecturally reads as accumulated effects.
 
-    One synthesized node is one program rule. A BOOK call may expand to helper
+    One architectural effect is one program rule. Constructive joins and their
+    exclusive affine operand placement chains use the shared assembly budget.
+    A BOOK call may expand to helper
     nodes (for example rotate+intersection), so it is counted once through the
     causal ``book_call_index`` written by the adapter. Administrative p.3
     clip/recompose nodes and the protected roof/section invariant are excluded.
     """
     payload = source.metadata.get("geometry_program") if hasattr(source, "metadata") else None
     nodes = payload.get("nodes") if isinstance(payload, dict) else ()
+    authored_sources = {
+        "procedural_geometry_synthesis_agent", "openai_llm_geometry_author",
+        "critic_geometry_edit", "post_book_program_projection",
+    }
+    assembly_roots, assembly_implementation = set(), set()
+    if isinstance(payload, dict):
+        try:
+            program = GeometryProgram.from_dict(payload)
+            assembly_roots, assembly_implementation = assembly_budget_nodes(
+                program, eligible_node_ids={
+                    node.id for node in program.nodes
+                    if node.provenance.get("source") in authored_sources
+                },
+            )
+        except (KeyError, TypeError, ValueError):
+            # Malformed graphs earn no exemption; existing validity gates own
+            # their refusal. Do not infer an assembly from labels alone.
+            pass
     program_rules: list[dict[str, Any]] = []
     threshold_rules: list[dict[str, Any]] = []
     program_space_rules: list[dict[str, Any]] = []
@@ -1279,13 +1300,12 @@ def _architectural_articulation_metrics(source: Any) -> dict[str, Any]:
             continue
         provenance = raw.get("provenance") if isinstance(raw.get("provenance"), dict) else {}
         source_kind = str(provenance.get("source") or "")
-        if source_kind in {
-            "procedural_geometry_synthesis_agent",
-            "openai_llm_geometry_author",
-            "critic_geometry_edit",
-            "post_book_program_projection",
-        }:
-            family = _BODY_RULE_FAMILIES.get(operator)
+        if source_kind in authored_sources:
+            node_id = str(raw.get("id") or "")
+            if node_id in assembly_implementation:
+                continue
+            family = ("composition" if node_id in assembly_roots
+                      else _BODY_RULE_FAMILIES.get(operator))
             if family:
                 parameters = raw.get("parameters") if isinstance(raw.get("parameters"), dict) else {}
                 semantic_role = str(raw.get("semantic_role") or "")

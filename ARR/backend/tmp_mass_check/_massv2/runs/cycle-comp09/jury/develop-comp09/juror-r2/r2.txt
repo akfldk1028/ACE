@@ -1,0 +1,3 @@
+PAIR p01: B - The stepped roof separates the wings and gives the central outdoor recess a clearer spatial hierarchy.
+PAIR p02: B - The broad ground-level opening makes a legible sheltered approach while preserving the continuous upper mass.
+PAIR p03: A - The continuous grounded base is more coherent than B's narrow corner cuts and small unsupported-looking notch.

@@ -1,0 +1,58 @@
+TILE t01
+CONCEPT 4 | The rising courtyard ring makes a clear sectional idea with a strong contrast between the low and high sides.
+FEASIBILITY 4 | Continuous grounded perimeter volumes suggest a plausible load path, with sloping upper geometry requiring resolution.
+SITE 3 | The clipped eastern perimeter acknowledges parcel geometry while the large remaining open area has little articulated relationship to the ring.
+EDITABILITY 3 | Repeated courtyard occupancy supports development, but narrow wings and variable roof height constrain floors and circulation.
+WEIGHTED 3.60
+
+TILE t02
+CONCEPT 4 | A closed court and an open notch establish a legible hierarchy of voids, strengthened by the lower-level interruption.
+FEASIBILITY 4 | Low broad volumes are plausible, although the connection over the ground-level gap needs a developed structural solution.
+SITE 4 | The broad footprint relates to several parcel edges and the open notch establishes an outward-facing spatial relationship.
+EDITABILITY 4 | Consistent upper wings and differentiated courts offer a workable framework, with circulation across the ground separation still unresolved.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 3 | Stepped plates produce a clear base-to-top hierarchy, though the projecting side pieces add limited conceptual depth.
+FEASIBILITY 4 | Most upper mass overlaps the broad base, with localized projections requiring cantilever design.
+SITE 4 | The polygonal base follows the parcel's angular character and upper setbacks moderate the overall bulk.
+EDITABILITY 5 | Broad continuous occupancy and progressively smaller upper plates give substantial flexibility for floors, cores and facades.
+WEIGHTED 3.85
+
+TILE t04
+CONCEPT 3 | A common cap over separate supports is legible, but the thin layered roof dominates without an equally developed sectional hierarchy.
+FEASIBILITY 2 | The thin cap bridges a large gap between substantial supports, and the images do not establish adequate structural depth.
+SITE 3 | The cap echoes the parcel's clipped geometry, while the lower volumes leave open space without a clear organizing relationship.
+EDITABILITY 2 | Separated lower occupancy and the very shallow connecting cap make circulation and useful connected floors difficult to add while preserving the idea.
+WEIGHTED 2.55
+
+TILE t05
+CONCEPT 4 | Alternating rotated plates create a distinctive stacked composition with strong sectional offsets.
+FEASIBILITY 3 | Substantial overlap supports plausibility, but successive rotations introduce repeated cantilevers and transfers.
+SITE 3 | The composition remains within the depicted parcel but its changing axes show a limited consistent relationship to the edges.
+EDITABILITY 3 | Rectangular plates can accommodate layouts, though changing overlaps constrain continuous cores and regular structure.
+WEIGHTED 3.35
+
+TILE t06
+CONCEPT 3 | A tall opening through a compact solid gives a clear portal idea but little further volumetric hierarchy.
+FEASIBILITY 3 | The deep upper mass can plausibly bridge the opening, but the unequal side supports and transfer remain unresolved.
+SITE 3 | The clipped envelope responds to the eastern parcel shape, while the portal's relationship to the remaining site is weakly evidenced.
+EDITABILITY 3 | The upper connecting mass offers development potential, but disconnected lower wings constrain circulation and core placement.
+WEIGHTED 3.00
+
+TILE t07
+CONCEPT 3 | Offset paired blocks provide readable articulation, although the hierarchy between pieces remains modest.
+FEASIBILITY 4 | Compact blocks with substantial overlaps appear plausible, with limited upper projections needing resolution.
+SITE 2 | The small cluster occupies one side of the parcel without visibly organizing the much larger unoccupied remainder.
+EDITABILITY 3 | Simple block geometry allows layouts, but small footprints and offsets restrict continuous circulation and core options.
+WEIGHTED 3.05
+
+TILE t08
+CONCEPT 4 | A continuous courtyard ring gains a distinctive folded crown, though some roof intersections read as competing gestures.
+FEASIBILITY 4 | Grounded continuous wings provide plausible support, with the folded roof junctions needing careful detailing.
+SITE 3 | The angular perimeter acknowledges the eastern parcel edge, but the ring has a weak spatial relationship to the large western open area.
+EDITABILITY 3 | Consistent lower occupancy is useful, while narrow wings and intersecting upper slopes limit straightforward floor and facade development.
+WEIGHTED 3.60
+
+RANKING: t02, t03, t01, t08, t05, t07, t06, t04
+VERDICT: Advance t02 for its complementary voids and workable low mass, with t03 as the strongest option for flexible architectural development. Retain t01 as a sectional alternative ahead of the more congested roof articulation of t08; none of these visual assessments establishes legal compliance.

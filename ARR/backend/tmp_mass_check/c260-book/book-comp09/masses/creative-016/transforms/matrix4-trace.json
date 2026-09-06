@@ -1,0 +1,221 @@
+{
+  "identity": {
+    "candidate_id": "creative-016",
+    "geometry_hash": "4d954a4b88548841e0823c6d8c46c1e0cbc36a59ca5ca6c31bd62f4dd1c3eb11",
+    "pnu": "4115011300106840001",
+    "program_hash": "fbaf2d43815eb8676ff630ac264940ecf28672b380a221e94d3251231062cac5",
+    "run_id": "book-comp09"
+  },
+  "matrix4_trace": [
+    {
+      "matrix4": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          -0.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "global_pose",
+      "semantic_role": "global_pose"
+    },
+    {
+      "matrix4": [
+        [
+          15.312134551999113,
+          0.0,
+          0.0,
+          -0.8382398378473634
+        ],
+        [
+          0.0,
+          15.312134551999113,
+          0.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          16.5,
+          8.25
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit"
+    },
+    {
+      "matrix4": [
+        [
+          24.09647656,
+          0.0,
+          0.0,
+          -12.04824278
+        ],
+        [
+          0.0,
+          22.42000556,
+          0.0,
+          -11.21000278
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          1.5899999999999999
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          24.09647656,
+          0.0,
+          0.0,
+          -12.04824278
+        ],
+        [
+          0.0,
+          22.42000556,
+          0.0,
+          -11.21000278
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          4.890000000000001
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          24.09647656,
+          0.0,
+          0.0,
+          -12.04824278
+        ],
+        [
+          0.0,
+          22.42000556,
+          0.0,
+          -11.21000278
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          8.19
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          24.09647656,
+          0.0,
+          0.0,
+          -12.04824278
+        ],
+        [
+          0.0,
+          22.42000556,
+          0.0,
+          -11.21000278
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          11.49
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_04_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          24.09647656,
+          0.0,
+          0.0,
+          -12.04824278
+        ],
+        [
+          0.0,
+          22.42000556,
+          0.0,
+          -11.21000278
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          14.79
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_05_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    }
+  ]
+}

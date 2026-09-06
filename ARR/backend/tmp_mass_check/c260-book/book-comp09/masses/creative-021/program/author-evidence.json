@@ -1,0 +1,18 @@
+{
+  "author_evidence": {
+    "cache_hit": false,
+    "model": "",
+    "prompt_contract": "",
+    "provider": "structured_geometry_dsl_payload",
+    "response_id": "",
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program"
+  },
+  "identity": {
+    "candidate_id": "creative-021",
+    "geometry_hash": "040d5f1a2486ce05b7843b1ff1c86064d73e803b8dc4953cb0364f2ed5ffdffb",
+    "pnu": "4115011300106840001",
+    "program_hash": "f570c0de826c28f4018dbb3b643ece2719295349f7195fd1535d2ef2613cbbae",
+    "run_id": "book-comp09"
+  }
+}

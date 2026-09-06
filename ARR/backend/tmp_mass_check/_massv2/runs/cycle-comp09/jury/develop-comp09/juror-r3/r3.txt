@@ -1,0 +1,3 @@
+PAIR p01: B - The stepped roof creates a distinct sheltered outdoor recess and a more articulated section.
+PAIR p02: B - The broad ground-level opening gives the curved enclosure a legible passage into its outdoor space.
+PAIR p03: A - The continuous grounded walls make a clearer composition than B's narrow, irregular undercuts.

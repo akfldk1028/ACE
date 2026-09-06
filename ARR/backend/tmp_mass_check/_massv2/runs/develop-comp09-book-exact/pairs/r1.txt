@@ -1,0 +1,3 @@
+PAIR p01: B - The stepped roof creates a clearer hierarchy of heights and a defined lower outdoor platform.
+PAIR p02: B - The broad ground-level opening gives the curved enclosure a legible passage and sheltered outdoor threshold.
+PAIR p03: A - The continuous grounded walls are more coherent than B's narrow undercuts and awkward elevated edge.

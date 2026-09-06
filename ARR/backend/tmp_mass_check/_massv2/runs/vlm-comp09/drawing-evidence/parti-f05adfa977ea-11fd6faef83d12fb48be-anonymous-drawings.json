@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_grounded_wings_common_roof~full_ground^to_open",
+  "shape_id": "11fd6faef83d12fb48be",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    315.85507863349807,
+    315.85507863349807
+  ],
+  "section_area_m2": 352.10470749957915,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "242c95865ab08c68193e996ede38f36434672d00150fa2f4f6bc141fd7ce28da"
+}

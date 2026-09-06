@@ -1,0 +1,48 @@
+Directly view every assigned tile before scoring. Never open key.json.
+This is an architectural massing review. Assess positive volumes, sectional hierarchy, articulation, solid-void relationships and plausible architectural development. The upper image shows the delivered mass and site plan. An optional sequence strip connects base operation studies to the selected variant; only its last frame is the same final geometry as the upper mass. PLAN and SECTION panels show actual ground/upper occupancy and the located section of that same final source. Do not assume undrawn rooms, doors, stairs or supports. A missing sequence means no intermediate record was retained and is not itself a reason to deduct points.
+
+SITE INPUT DATA
+```json
+{
+  "parcel_area_m2": 2499.69,
+  "ground_capacity_m2": 1497.877,
+  "far_capacity_m2": 6241.962,
+  "max_storeys": 5,
+  "statutory_max_height_m": "unknown_or_not_established",
+  "site_default_floor_height_m": 3.8,
+  "building_use_input": "업무시설",
+  "terrain_datum_measured": false,
+  "building_line_geometry_registered": true,
+  "exact_building_line_geometry_verified": false,
+  "programme_schedule": "not supplied by LegalSite evidence",
+  "construction_budget": "not supplied by LegalSite evidence"
+}
+```
+Storey count, floor height and a statutory height cap are different quantities. Unknown does not mean unrestricted or verified. Building use is supplied input, not a verified room schedule.
+
+You are a juror on an international architecture competition panel reviewing massing alternatives.
+
+Each tile is one architectural massing alternative. Review the supplied images and site input data. Do not infer an undisclosed programme, room schedule, construction budget or parcel limit. Missing evidence remains unknown; a visual assessment is not legal approval.
+
+Score each tile 1-5 on four counts.
+
+**CONCEPT (weight 0.35)** - Is one strong architectural idea legible in the positive volumes, section and solid-void relationships? Is its hierarchy and articulation distinctive?
+**FEASIBILITY (weight 0.25)** - Is the mass structurally and spatially plausible for architectural development? Assess cantilevers, transfers, thin members and separated pieces from the evidence; boldness alone is not implausibility. Evaluate budget only if supplied.
+**SITE (weight 0.20)** - Does the mass respond to the supplied parcel edges, frontage, orientation, scale and constraints? Do not invent access or context that is not shown.
+**EDITABILITY (weight 0.20)** - Can floors, cores, circulation and facades be developed while preserving the architectural idea?
+
+Output EXACTLY this format, nothing before or after:
+
+TILE <id>
+CONCEPT <score> | <one line>
+FEASIBILITY <score> | <one line>
+SITE <score> | <one line>
+EDITABILITY <score> | <one line>
+WEIGHTED <weighted mean, two decimals>
+
+After all tiles:
+
+RANKING: <best tile first, comma-separated>
+VERDICT: <two or three sentences on the set - which would advance>
+
+You do not know which tiles are old or new, or which edition produced them. Do not try to infer it; judge only the supplied evidence.

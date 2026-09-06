@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_continuous_court_section~dispersed_ground^to_open",
+  "shape_id": "4022df470e28a8bfaede",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    352.96600627486555,
+    352.96600627486555
+  ],
+  "section_area_m2": 133.0582537239725,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "51b51271ed27baa0357cc2fc1516f8f424d315df4d8992bb3dc5777a41f5ecbb"
+}

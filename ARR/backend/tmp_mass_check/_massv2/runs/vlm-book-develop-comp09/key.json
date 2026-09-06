@@ -1,0 +1,2765 @@
+[
+ {
+  "tile": "t01",
+  "name": "book:book-develop-comp09:exact-authored-development:creative-002",
+  "height_m": 17.75,
+  "shape_id": "0650bcaed6f796b0c057",
+  "certificate": {
+   "name": "book:book-develop-comp09:exact-authored-development:creative-002",
+   "shape_id": "0650bcaed6f796b0c057",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 658.4848690386754,
+   "gross_m2": 1735.7521772541766,
+   "storey_m": 5.916381618053133,
+   "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+   "coverage_pct": 26.342655102830587,
+   "far_pct": 69.43868128078196,
+   "height_m": 17.7491448570797,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": null,
+    "book_floor_count": 3,
+    "candidate_storey_height_m": 5.916381618053133,
+    "occupied_height_above_datum_m": 17.7491448570797,
+    "conceptual_storey_proxy": 3,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 658.4848690386754,
+    "gross_m2": 1735.7521772541766,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "complete_export_surface_xy_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "delivered_floor_evidence": {
+    "schema": "arr.maas.book_delivered_floor_measurement.v1",
+    "basis": "delivered SourceSurface mesh at transformed authored floor centers",
+    "placement_policy": "host-fitted XY affine; independently requested Z stature",
+    "center_basis": "authored_floor_center_elevations_m",
+    "original_floor_center_elevations_m": [
+     2.958191,
+     8.874572,
+     14.790954
+    ],
+    "delivered_floor_center_elevations_m": [
+     2.958190999513283,
+     8.87457199853985,
+     14.790953997566413
+    ],
+    "actual_floor_areas_m2": [
+     658.4848689924646,
+     658.4848690399572,
+     418.78243922175477
+    ],
+    "actual_gfa_m2": 1735.7521772541766,
+    "source_shape_id": "0650bcaed6f796b0c057",
+    "original_transformed_floor_areas_m2": [
+     658.4848689439804,
+     658.4848690269133,
+     418.78243928059555
+    ],
+    "authored_floor_areas_at_executed_xy_m2": [
+     658.4848690997892,
+     658.4848690997892,
+     418.78243943266625
+    ],
+    "authored_floor_area_comparison_resolution_m2": [
+     1.751139960283418e-06,
+     1.7511399602834176e-06,
+     1.7835639528590967e-06
+    ],
+    "coplanar_skin_area_at_floor_center_m2": [
+     0,
+     0,
+     0
+    ],
+    "export_area_comparison_resolution_m2": [
+     1.3117407278316302e-06,
+     1.3117407278316298e-06,
+     1.3441647204073088e-06
+    ],
+    "measurement_consistent": true,
+    "measurement_issues": [],
+    "mesh_projection_m2": 658.4848690386754,
+    "proxy_floor_areas_m2": [
+     658.4848691719671,
+     658.4848691922117,
+     418.7824393675657
+    ],
+    "mesh_floor_area_missing_from_proxy_m2": [
+     5.329919798647268e-08,
+     5.323508517231566e-08,
+     3.437298618109209e-08
+    ],
+    "xy_area_scale": 0.8787984649035758,
+    "z_scale": 0.9999999998354681,
+    "normalized_host_fit_matrix4": [
+     [
+      0.20417462762231656,
+      0.8469035575128918,
+      0.0,
+      46.344088184443166
+     ],
+     [
+      -0.8698540074030934,
+      0.6960512830219906,
+      0.0,
+      32.32895911573636
+     ],
+     [
+      0.0,
+      0.0,
+      0.05634074249141037,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "requested_plan_area_m2": 749.3013,
+    "plan_area_target_satisfied": false,
+    "plan_area_shortfall_ratio": 0.1212
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "complete_export_mesh",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "unverified",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "material_volume",
+    "body_count": 1,
+    "cantilever_ratio": null,
+    "cantilever_reach_m": null,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": null,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 11.142,
+    "centre_of_mass_height_m": 7.898,
+    "potential_well_m": 3.245,
+    "potential_well_basis": "minimum_component_margin_minus_component_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [
+     "structural_capacity_and_anchorage_unverified",
+     "mesh_member_span_and_backspan_unverified"
+    ],
+    "mesh_support": {
+     "schema_version": "arr.maas.mesh_support_measurement.v1",
+     "coordinate_authority": "design.maas.massv2.render_mesh.physical_triangles",
+     "mesh_sha256": "12b315b9d16e6d83ee2a5e27dfcfcda7a08d868bbad7b7273718070c1f144a38",
+     "datum_m": 0.0,
+     "mass_model": "uniform_solid_density",
+     "closed_oriented_mesh": true,
+     "triangle_count": 288,
+     "component_count": 1,
+     "volume_m3": 9645.377015913198,
+     "uniform_density_com_xyz_m": [
+      44.399229492049884,
+      30.861168858152823,
+      7.8975091722503965
+     ],
+     "ground_contact_area_m2": 658.4848690065545,
+     "grounded_volume_share": 1.0,
+     "minimum_ground_margin_m": 11.14223805976911,
+     "minimum_critical_margin_m": 5.303484656279697,
+     "observations": [],
+     "limitations": [
+      "Geometric support screening, not structural design or anchorage approval.",
+      "A negative upper-body margin identifies moment-transfer demand; it is not alone a structural refusal.",
+      "Critical vertex heights and interval midpoints are samples, not continuous extrema.",
+      "Ground datum is supplied; no terrain or geotechnical measurement is inferred.",
+      "No standing decision, member span/backspan threshold or production gate is applied."
+     ],
+     "critical_section_count": 11,
+     "components": [
+      {
+       "component_index": 0,
+       "volume_m3": 9645.377015913198,
+       "uniform_density_com_xyz_m": [
+        44.399229492049884,
+        30.861168858152823,
+        7.8975091722503965
+       ],
+       "has_ground_contact": true,
+       "ground_margin_m": 11.14223805976911,
+       "com_height_above_ground_m": 7.8975091722503965,
+       "ground_contact_area_m2": 658.4848690065545,
+       "ground_contact_hull_area_m2": 853.1102013504129
+      }
+     ]
+    },
+    "basis": "complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified"
+   },
+   "certificate_id": "b58bb929c9d53081fab6"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "book:book-develop-comp09:exact-authored-development:creative-002",
+     "shape_id": "0650bcaed6f796b0c057",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "complete_export_surface_mesh",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      7.116381618053133
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      658.4848690386139,
+      658.4848689662967
+     ],
+     "section_area_m2": 376.0458767917005,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "922d471ce44ef046645e4b6bd5d796dbe37847d59ad2ebc7ac82bc3ee1df0260"
+    }
+   ]
+  },
+  "certificate_id": "b58bb929c9d53081fab6",
+  "png_sha256": "bf94f65cdcd64244fd48a640595810a4fbf1467214d12d6314b9967c02d32869"
+ },
+ {
+  "tile": "t02",
+  "name": "book:book-develop-comp09:exact-authored-development:creative-003",
+  "height_m": 17.75,
+  "shape_id": "685cd554e451edac9bd9",
+  "certificate": {
+   "name": "book:book-develop-comp09:exact-authored-development:creative-003",
+   "shape_id": "685cd554e451edac9bd9",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 550.6540830000029,
+   "gross_m2": 1527.0328263986198,
+   "storey_m": 5.916381618053133,
+   "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+   "coverage_pct": 22.028889761144303,
+   "far_pct": 61.08887381914433,
+   "height_m": 17.7491448570797,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": null,
+    "book_floor_count": 3,
+    "candidate_storey_height_m": 5.916381618053133,
+    "occupied_height_above_datum_m": 17.7491448570797,
+    "conceptual_storey_proxy": 3,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 550.6540830000029,
+    "gross_m2": 1527.0328263986198,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "complete_export_surface_xy_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "delivered_floor_evidence": {
+    "schema": "arr.maas.book_delivered_floor_measurement.v1",
+    "basis": "delivered SourceSurface mesh at transformed authored floor centers",
+    "placement_policy": "host-fitted XY affine; independently requested Z stature",
+    "center_basis": "authored_floor_center_elevations_m",
+    "original_floor_center_elevations_m": [
+     2.958191,
+     8.874572,
+     14.790954
+    ],
+    "delivered_floor_center_elevations_m": [
+     2.958190999513283,
+     8.87457199853985,
+     14.790953997566413
+    ],
+    "actual_floor_areas_m2": [
+     425.7246605230233,
+     550.6540829458811,
+     550.6540829297155
+    ],
+    "actual_gfa_m2": 1527.0328263986198,
+    "source_shape_id": "685cd554e451edac9bd9",
+    "original_transformed_floor_areas_m2": [
+     425.72466045554006,
+     550.6540829592278,
+     550.6540829512737
+    ],
+    "authored_floor_areas_at_executed_xy_m2": [
+     425.7246608184744,
+     550.6540831147377,
+     550.6540831147377
+    ],
+    "authored_floor_area_comparison_resolution_m2": [
+     1.651102806619839e-06,
+     1.498831720113667e-06,
+     1.498831720113667e-06
+    ],
+    "coplanar_skin_area_at_floor_center_m2": [
+     0,
+     0,
+     0
+    ],
+    "export_area_comparison_resolution_m2": [
+     1.2645401042249905e-06,
+     1.1122690177188185e-06,
+     1.1122690177188185e-06
+    ],
+    "measurement_consistent": true,
+    "measurement_issues": [],
+    "mesh_projection_m2": 550.6540830000029,
+    "proxy_floor_areas_m2": [
+     425.72466065537185,
+     550.6540830277463,
+     550.6540830781041
+    ],
+    "mesh_floor_area_missing_from_proxy_m2": [
+     4.848064518605885e-08,
+     6.396632709798523e-08,
+     4.542235702791054e-08
+    ],
+    "xy_area_scale": 0.7731254047896969,
+    "z_scale": 0.9999999998354681,
+    "normalized_host_fit_matrix4": [
+     [
+      0.23746976543842543,
+      0.7864009050656597,
+      0.0,
+      46.28183576654933
+     ],
+     [
+      -0.8031315279441609,
+      0.5960423806640077,
+      0.0,
+      32.288539731284956
+     ],
+     [
+      0.0,
+      0.0,
+      0.05634074249141037,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "requested_plan_area_m2": 550.6541,
+    "plan_area_target_satisfied": true,
+    "plan_area_shortfall_ratio": 0.0
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "complete_export_mesh",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "unverified",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "material_volume",
+    "body_count": 1,
+    "cantilever_ratio": null,
+    "cantilever_reach_m": null,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": null,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 9.213,
+    "centre_of_mass_height_m": 9.394,
+    "potential_well_m": -0.181,
+    "potential_well_basis": "minimum_component_margin_minus_component_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [
+     "structural_capacity_and_anchorage_unverified",
+     "mesh_member_span_and_backspan_unverified"
+    ],
+    "mesh_support": {
+     "schema_version": "arr.maas.mesh_support_measurement.v1",
+     "coordinate_authority": "design.maas.massv2.render_mesh.physical_triangles",
+     "mesh_sha256": "2675902bf1aa908e8336c2d2dc116528d8bb425b33fc77f30f8570669fbeec41",
+     "datum_m": 0.0,
+     "mass_model": "uniform_solid_density",
+     "closed_oriented_mesh": true,
+     "triangle_count": 302,
+     "component_count": 1,
+     "volume_m3": 8931.030726124043,
+     "uniform_density_com_xyz_m": [
+      43.71391949098356,
+      31.156749135008628,
+      9.393687104216415
+     ],
+     "ground_contact_area_m2": 425.7246605356391,
+     "grounded_volume_share": 1.0,
+     "minimum_ground_margin_m": 9.213175864684624,
+     "minimum_critical_margin_m": 9.041976388308269,
+     "observations": [],
+     "limitations": [
+      "Geometric support screening, not structural design or anchorage approval.",
+      "A negative upper-body margin identifies moment-transfer demand; it is not alone a structural refusal.",
+      "Critical vertex heights and interval midpoints are samples, not continuous extrema.",
+      "Ground datum is supplied; no terrain or geotechnical measurement is inferred.",
+      "No standing decision, member span/backspan threshold or production gate is applied."
+     ],
+     "critical_section_count": 11,
+     "components": [
+      {
+       "component_index": 0,
+       "volume_m3": 8931.030726124043,
+       "uniform_density_com_xyz_m": [
+        43.71391949098356,
+        31.156749135008628,
+        9.393687104216415
+       ],
+       "has_ground_contact": true,
+       "ground_margin_m": 9.213175864684624,
+       "com_height_above_ground_m": 9.393687104216415,
+       "ground_contact_area_m2": 425.72466053563915,
+       "ground_contact_hull_area_m2": 710.7386007820695
+      }
+     ]
+    },
+    "basis": "complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified"
+   },
+   "certificate_id": "e443fb597fd0ad29e5d7"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "book:book-develop-comp09:exact-authored-development:creative-003",
+     "shape_id": "685cd554e451edac9bd9",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "complete_export_surface_mesh",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      7.116381618053133
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      425.72466048142496,
+      550.6540829597045
+     ],
+     "section_area_m2": 382.13567500723957,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "31527ba4d988561919300f42a839cc5d032a1ce0d7f1c81ce85014e2edee8f10"
+    }
+   ]
+  },
+  "certificate_id": "e443fb597fd0ad29e5d7",
+  "png_sha256": "046bdadcd2fd4dbc7483c9602cc70368f520ef7fd389e2b3b06d2bed88d52258"
+ },
+ {
+  "tile": "t03",
+  "name": "book:book-develop-comp09:exact-authored-development:creative-004",
+  "height_m": 17.75,
+  "shape_id": "eee0c9d2b3b29eb35004",
+  "certificate": {
+   "name": "book:book-develop-comp09:exact-authored-development:creative-004",
+   "shape_id": "eee0c9d2b3b29eb35004",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 578.1328599999948,
+   "gross_m2": 1634.7700909589496,
+   "storey_m": 5.916381618053133,
+   "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+   "coverage_pct": 23.128176896192908,
+   "far_pct": 65.3988978386461,
+   "height_m": 17.7491448570797,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": null,
+    "book_floor_count": 3,
+    "candidate_storey_height_m": 5.916381618053133,
+    "occupied_height_above_datum_m": 17.7491448570797,
+    "conceptual_storey_proxy": 3,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 578.1328599999948,
+    "gross_m2": 1634.7700909589496,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "complete_export_surface_xy_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "delivered_floor_evidence": {
+    "schema": "arr.maas.book_delivered_floor_measurement.v1",
+    "basis": "delivered SourceSurface mesh at transformed authored floor centers",
+    "placement_policy": "host-fitted XY affine; independently requested Z stature",
+    "center_basis": "authored_floor_center_elevations_m",
+    "original_floor_center_elevations_m": [
+     2.958191,
+     8.874572,
+     14.790954
+    ],
+    "delivered_floor_center_elevations_m": [
+     2.958190999513283,
+     8.87457199853985,
+     14.790953997566413
+    ],
+    "actual_floor_areas_m2": [
+     478.50437111691184,
+     578.1328599133159,
+     578.1328599287219
+    ],
+    "actual_gfa_m2": 1634.7700909589496,
+    "source_shape_id": "eee0c9d2b3b29eb35004",
+    "original_transformed_floor_areas_m2": [
+     478.5043710994813,
+     578.1328599498394,
+     578.1328600022357
+    ],
+    "authored_floor_areas_at_executed_xy_m2": [
+     478.504371151051,
+     578.1328601491803,
+     578.1328601491803
+    ],
+    "authored_floor_area_comparison_resolution_m2": [
+     5.138102786138294e-06,
+     1.5774244187435922e-06,
+     1.5774244187435922e-06
+    ],
+    "coplanar_skin_area_at_floor_center_m2": [
+     0,
+     0,
+     0
+    ],
+    "export_area_comparison_resolution_m2": [
+     9.997428670095754e-07,
+     1.1635884268307205e-06,
+     1.1635884268307203e-06
+    ],
+    "measurement_consistent": true,
+    "measurement_issues": [],
+    "mesh_projection_m2": 578.1328599999948,
+    "proxy_floor_areas_m2": [
+     478.50437130043827,
+     578.1328601307605,
+     578.1328600855234
+    ],
+    "mesh_floor_area_missing_from_proxy_m2": [
+     3.376709649603303e-08,
+     4.392773977879997e-08,
+     5.1507804785625114e-08
+    ],
+    "xy_area_scale": 0.8276719838257437,
+    "z_scale": 0.9999999998354681,
+    "normalized_host_fit_matrix4": [
+     [
+      0.24570414233341636,
+      0.8136697303157152,
+      0.0,
+      46.30895213401895
+     ],
+     [
+      -0.8309804955452611,
+      0.6167104334455636,
+      0.0,
+      32.2848917836995
+     ],
+     [
+      0.0,
+      0.0,
+      0.05634074249141037,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "requested_plan_area_m2": 578.1329,
+    "plan_area_target_satisfied": true,
+    "plan_area_shortfall_ratio": 0.0
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "complete_export_mesh",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "unverified",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "material_volume",
+    "body_count": 1,
+    "cantilever_ratio": null,
+    "cantilever_reach_m": null,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": null,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 9.02,
+    "centre_of_mass_height_m": 9.239,
+    "potential_well_m": -0.219,
+    "potential_well_basis": "minimum_component_margin_minus_component_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [
+     "structural_capacity_and_anchorage_unverified",
+     "mesh_member_span_and_backspan_unverified"
+    ],
+    "mesh_support": {
+     "schema_version": "arr.maas.mesh_support_measurement.v1",
+     "coordinate_authority": "design.maas.massv2.render_mesh.physical_triangles",
+     "mesh_sha256": "2a5b2ec854e38186a983e8d0f4778aa97515c633b3b73aff0d2dd8f6fef65dd7",
+     "datum_m": 0.0,
+     "mass_model": "uniform_solid_density",
+     "closed_oriented_mesh": true,
+     "triangle_count": 288,
+     "component_count": 1,
+     "volume_m3": 9660.13491556079,
+     "uniform_density_com_xyz_m": [
+      44.98484909874706,
+      30.01537602037979,
+      9.239114851253946
+     ],
+     "ground_contact_area_m2": 478.5043711675354,
+     "grounded_volume_share": 1.0,
+     "minimum_ground_margin_m": 9.019617925569328,
+     "minimum_critical_margin_m": 8.63779991038261,
+     "observations": [],
+     "limitations": [
+      "Geometric support screening, not structural design or anchorage approval.",
+      "A negative upper-body margin identifies moment-transfer demand; it is not alone a structural refusal.",
+      "Critical vertex heights and interval midpoints are samples, not continuous extrema.",
+      "Ground datum is supplied; no terrain or geotechnical measurement is inferred.",
+      "No standing decision, member span/backspan threshold or production gate is applied."
+     ],
+     "critical_section_count": 11,
+     "components": [
+      {
+       "component_index": 0,
+       "volume_m3": 9660.13491556079,
+       "uniform_density_com_xyz_m": [
+        44.98484909874706,
+        30.01537602037979,
+        9.239114851253946
+       ],
+       "has_ground_contact": true,
+       "ground_margin_m": 9.019617925569328,
+       "com_height_above_ground_m": 9.239114851253946,
+       "ground_contact_area_m2": 478.5043711675354,
+       "ground_contact_hull_area_m2": 567.1698284100618
+      }
+     ]
+    },
+    "basis": "complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified"
+   },
+   "certificate_id": "4d6a338f505cb70492ac"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "book:book-develop-comp09:exact-authored-development:creative-004",
+     "shape_id": "eee0c9d2b3b29eb35004",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "complete_export_surface_mesh",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      7.116381618053133
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      478.50437114451984,
+      578.1328600014109
+     ],
+     "section_area_m2": 391.55428330460796,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "dea1c7479e2ca5ce43074e93229252710730d6e797513066a66ec31e96d664ef"
+    }
+   ]
+  },
+  "certificate_id": "4d6a338f505cb70492ac",
+  "png_sha256": "c2ccffd3aaf12fc5f0c6ecf5fe3bc12243b6dc053b300291834b129c90981b8c"
+ },
+ {
+  "tile": "t04",
+  "name": "book:book-comp09:morph-curved-low:creative-001",
+  "anchor": 4.25,
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate": {
+   "name": "book:book-comp09:morph-curved-low:creative-001",
+   "shape_id": "a9f195967d9b9a1f4430",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 658.3808261814203,
+   "gross_m2": 1975.1424786905304,
+   "storey_m": 5.916381619026566,
+   "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+   "coverage_pct": 26.33849287339533,
+   "far_pct": 79.01547862603749,
+   "height_m": 17.7491448570797,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": null,
+    "book_floor_count": 3,
+    "candidate_storey_height_m": 5.916381619026566,
+    "occupied_height_above_datum_m": 17.7491448570797,
+    "conceptual_storey_proxy": 3,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 658.3808261814203,
+    "gross_m2": 1975.1424786905304,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "complete_export_surface_xy_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "delivered_floor_evidence": {
+    "schema": "arr.maas.book_delivered_floor_measurement.v1",
+    "basis": "delivered SourceSurface mesh at transformed authored floor centers",
+    "placement_policy": "host-fitted XY affine; independently requested Z stature",
+    "center_basis": "authored_floor_center_elevations_m",
+    "original_floor_center_elevations_m": [
+     1.65,
+     4.95,
+     8.25
+    ],
+    "delivered_floor_center_elevations_m": [
+     2.958190809513283,
+     8.87457242853985,
+     14.790954047566416
+    ],
+    "actual_floor_areas_m2": [
+     658.3808262058187,
+     658.3808262064224,
+     658.3808262782893
+    ],
+    "actual_gfa_m2": 1975.1424786905304,
+    "source_shape_id": "a9f195967d9b9a1f4430",
+    "original_transformed_floor_areas_m2": [
+     658.3808262105987,
+     658.3808262159394,
+     658.3808261798938
+    ],
+    "authored_floor_areas_at_executed_xy_m2": [
+     658.3808265961906,
+     658.3808265961906,
+     658.3808265961906
+    ],
+    "authored_floor_area_comparison_resolution_m2": [
+     2.862154111617548e-06,
+     2.8621541116175484e-06,
+     2.862154111617548e-06
+    ],
+    "coplanar_skin_area_at_floor_center_m2": [
+     0,
+     0,
+     0
+    ],
+    "export_area_comparison_resolution_m2": [
+     1.9202770026577497e-06,
+     1.92027700265775e-06,
+     1.9202770026577497e-06
+    ],
+    "measurement_consistent": true,
+    "measurement_issues": [],
+    "mesh_projection_m2": 658.3808261814203,
+    "proxy_floor_areas_m2": [
+     658.380826223399,
+     658.3808262782148,
+     658.3808263088254
+    ],
+    "mesh_floor_area_missing_from_proxy_m2": [
+     9.173467187964946e-08,
+     7.567353729373768e-08,
+     9.215344499240582e-08
+    ],
+    "xy_area_scale": 1.8837542179195963,
+    "z_scale": 1.7928429148565352,
+    "normalized_host_fit_matrix4": [
+     [
+      0.2990285925508439,
+      1.239922179284275,
+      0.0,
+      46.344050077570294
+     ],
+     [
+      -1.2735132294314644,
+      1.0189558013044266,
+      0.0,
+      32.32889265809157
+     ],
+     [
+      0.0,
+      0.0,
+      0.10101010101010101,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "requested_plan_area_m2": 1123.4077,
+    "plan_area_target_satisfied": false,
+    "plan_area_shortfall_ratio": 0.4139
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "complete_export_mesh",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "unverified",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "material_volume",
+    "body_count": 1,
+    "cantilever_ratio": null,
+    "cantilever_reach_m": null,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": null,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 10.654,
+    "centre_of_mass_height_m": 8.875,
+    "potential_well_m": 1.78,
+    "potential_well_basis": "minimum_component_margin_minus_component_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [
+     "structural_capacity_and_anchorage_unverified",
+     "mesh_member_span_and_backspan_unverified"
+    ],
+    "mesh_support": {
+     "schema_version": "arr.maas.mesh_support_measurement.v1",
+     "coordinate_authority": "design.maas.massv2.render_mesh.physical_triangles",
+     "mesh_sha256": "10972a25342ec64ba7d8c6878ac73e44cb18886c6fd17d77bbfdd8e08f45130b",
+     "datum_m": 0.0,
+     "mass_model": "uniform_solid_density",
+     "closed_oriented_mesh": true,
+     "triangle_count": 300,
+     "component_count": 1,
+     "volume_m3": 11685.696655017839,
+     "uniform_density_com_xyz_m": [
+      44.06653869190487,
+      30.491685318300565,
+      8.87457242853985
+     ],
+     "ground_contact_area_m2": 658.3808261814202,
+     "grounded_volume_share": 1.0,
+     "minimum_ground_margin_m": 10.654184056633442,
+     "minimum_critical_margin_m": 10.654184056633442,
+     "observations": [],
+     "limitations": [
+      "Geometric support screening, not structural design or anchorage approval.",
+      "A negative upper-body margin identifies moment-transfer demand; it is not alone a structural refusal.",
+      "Critical vertex heights and interval midpoints are samples, not continuous extrema.",
+      "Ground datum is supplied; no terrain or geotechnical measurement is inferred.",
+      "No standing decision, member span/backspan threshold or production gate is applied."
+     ],
+     "critical_section_count": 9,
+     "components": [
+      {
+       "component_index": 0,
+       "volume_m3": 11685.696655017839,
+       "uniform_density_com_xyz_m": [
+        44.06653869190487,
+        30.491685318300565,
+        8.87457242853985
+       ],
+       "has_ground_contact": true,
+       "ground_margin_m": 10.654184056633442,
+       "com_height_above_ground_m": 8.87457242853985,
+       "ground_contact_area_m2": 658.3808261814202,
+       "ground_contact_hull_area_m2": 852.9754069273366
+      }
+     ]
+    },
+    "basis": "complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified"
+   },
+   "certificate_id": "acba4f59647784c56b27"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "book:book-comp09:morph-curved-low:creative-001",
+     "shape_id": "a9f195967d9b9a1f4430",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "complete_export_surface_mesh",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      7.1163816190265665
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      658.3808261893608,
+      658.3808261331303
+     ],
+     "section_area_m2": 529.4693694577041,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "0be1f8dfe960bc2c8af1269b8ba0eca59bc92dfc23183e2e4f0a7cace0333137"
+    }
+   ]
+  },
+  "certificate_id": "acba4f59647784c56b27",
+  "png_sha256": "fefb6dc590e44e677d2ca7f79bc53b5ab0cac0d9f9e234cef5206d1aaa0004cd"
+ },
+ {
+  "tile": "t05",
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "anchor": 3.67,
+  "shape_id": "40115b02b09902f83d13",
+  "certificate": {
+   "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+   "shape_id": "40115b02b09902f83d13",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 440.25872630925153,
+   "gross_m2": 2201.2936315462584,
+   "storey_m": 3.4,
+   "floor_area_basis": "delivered geometry at authored storey height",
+   "coverage_pct": 17.612528895474025,
+   "far_pct": 88.06264447737016,
+   "height_m": 17.0,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": 4.0,
+    "book_floor_count": null,
+    "candidate_storey_height_m": 3.4,
+    "occupied_height_above_datum_m": 17.0,
+    "conceptual_storey_proxy": 5,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 440.25872630925153,
+    "gross_m2": 2201.2936315462584,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "source_volume_plan_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "typed_source_solids",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "typed_geometry_screen",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "occupied_band_area",
+    "body_count": 1,
+    "cantilever_ratio": 0.0,
+    "cantilever_reach_m": 0.0,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": 0.0,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 11.321,
+    "centre_of_mass_height_m": 7.912,
+    "potential_well_m": 3.409,
+    "potential_well_basis": "support_margin_minus_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [],
+    "mesh_support": null,
+    "basis": "AISC cantilever rule of thumb + Mezghanni CVPR 2021 support polygon"
+   },
+   "certificate_id": "d5daa53a0e5d499ddf13"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+     "shape_id": "40115b02b09902f83d13",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "source_volume_solid",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      4.6
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      440.25872630925153,
+      440.25872630925153
+     ],
+     "section_area_m2": 176.6219792980167,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "5c50864265008decab2b46ea707822a148d7d22fd8dae1a79a2aa1738e9c2cba"
+    }
+   ]
+  },
+  "certificate_id": "d5daa53a0e5d499ddf13",
+  "png_sha256": "70d3f01ec7331f25402ba835d57284d6cff56c37d72f33cb3aa311b1f994e1ec"
+ },
+ {
+  "tile": "t06",
+  "name": "book:book-comp09:morph-compact-mid:creative-003",
+  "anchor": 3.0,
+  "shape_id": "4abaecbf93d355347425",
+  "certificate": {
+   "name": "book:book-comp09:morph-compact-mid:creative-003",
+   "shape_id": "4abaecbf93d355347425",
+   "site_pnu": "4115011300106840001",
+   "ground_m2": 752.8054815374709,
+   "gross_m2": 1499.999990343899,
+   "storey_m": 3.6,
+   "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+   "coverage_pct": 30.11594661030419,
+   "far_pct": 60.007426529883915,
+   "height_m": 14.4,
+   "storey_limit": {
+    "policy_id": "gosan-public1-molit-2026-334",
+    "max_storeys": 5,
+    "statutory_max_height_m": null,
+    "declared_storeys": null,
+    "book_floor_count": 4,
+    "candidate_storey_height_m": 3.6,
+    "occupied_height_above_datum_m": 14.4,
+    "conceptual_storey_proxy": 4,
+    "count_basis": "conservative occupied-height / candidate-storey proxy; not verified design floors",
+    "actual_design_floor_count_verified": false,
+    "satisfied": true,
+    "reasons": [],
+    "policy_evidence": {
+     "policy_id": "gosan-public1-molit-2026-334",
+     "parcel_label": "경기도 의정부시 산곡동 684-1 / 공공1",
+     "max_storeys": 5,
+     "max_bcr_pct": 60.0,
+     "max_far_pct": 250.0,
+     "statutory_max_height_m": null,
+     "default_building_type": "업무시설",
+     "building_subtype": "공공업무시설",
+     "sources": [
+      {
+       "title": "의정부고산 토지이용계획도 등 관련도면: 가구 및 획지, 건축물 등에 관한 결정도",
+       "date": "2026-06-29",
+       "download_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+       "listing_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?aisTpCd=01&ccrCnntSysDsCd=01&panId=BN-0007713&uppAisTpCd=01",
+       "relevant_pdf_pages_1_based": [
+        6
+       ],
+       "sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+       "bytes": 16093893,
+       "pdf_page_count": 6,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-15-drawings.pdf"
+      },
+      {
+       "title": "국토교통부고시 제2022-374호 지구계획 변경(9차)",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=0",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        13,
+        22
+       ],
+       "sha256": "7b60ffbf4ad20fca7d0b48fe37488c2ec913faf714dd4b7314f29ef2bbb584ca",
+       "bytes": 446211,
+       "pdf_page_count": 32,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-notice.pdf"
+      },
+      {
+       "title": "의정부고산 9차 지구단위계획 시행지침",
+       "date": "2022-06-29",
+       "download_url": "https://www.ui4u.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000174255&fileSn=3",
+       "listing_url": "https://www.ui4u.go.kr/portal/bbs/view.do?bIdx=251846&mId=0114050000&ptIdx=27",
+       "relevant_pdf_pages_1_based": [
+        47,
+        48,
+        49,
+        50,
+        56
+       ],
+       "sha256": "5708c6bc0854cdba547e0664b05999f23553bf123bee0cb8e392ba356dc1e78e",
+       "bytes": 5813648,
+       "pdf_page_count": 79,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/gosan-9-guidelines-full.pdf"
+      },
+      {
+       "title": "건축법 시행령 별표1, 현행 법령 페이지 시행일2026-07-28",
+       "date": "2026-07-28",
+       "download_url": "https://www.law.go.kr/LSW/flDownload.do?gubun=&flSeq=168351463&bylClsCd=110201",
+       "listing_url": "https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260728&lsiSeq=288339&urlMode=lsInfoP",
+       "relevant_pdf_pages_1_based": [
+        3,
+        7
+       ],
+       "sha256": "150e9bafcf6544fdcbd43ab5d3d67691ab56b03193260a24c8ace25882e560fc",
+       "bytes": 137824,
+       "pdf_page_count": 12,
+       "retrieved_on": "2026-09-06",
+       "local_evidence": "agents/MassAgent/docs/reports/legal-sources/building-decree-annex1-20260728.pdf"
+      }
+     ],
+     "unverified": [
+      "measured_terrain_datum",
+      "exact_building_line_geometry",
+      "detailed_floor_schedule",
+      "access_and_egress"
+     ],
+     "numeric_status": "direct_revision15_drawing_confirmed; latest_official_revision_obtained",
+     "allowed_use_status": "historical_revision9_text_confirmed; current_detailed_change_chain_incomplete",
+     "use_classification_status": "current_national_rule_confirmed; actual_program_schedule_unverified",
+     "building_line_status": "official_plan_registered; survey_geometry_unverified",
+     "vehicle_access_status": "official_plan_prohibited_intervals_registered; actual_access_design_unverified",
+     "datum_measured": false,
+     "frontage_registration": {
+      "registration_id": "gosan-public1-decision15-frontages-20260906",
+      "evidence_grade": "official_plan_registered",
+      "survey_verified": false,
+      "permit_compliance_verified": false,
+      "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+      "source_pdf_page_1_based": 6,
+      "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+      "diagnostic_file": "agents/MassAgent/docs/reports/public1-coordinate-registration.json",
+      "diagnostic_sha256": "f38717b39191f42601bf0db6b14236763dc1e4f8fa6261e5382eec3b1e08039e",
+      "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+      "reference_parcel_ring_local_m": [
+       [
+        0.0,
+        32.85654268087819
+       ],
+       [
+        11.59371943201404,
+        39.50109809124842
+       ],
+       [
+        29.64010443945881,
+        50.43758501717821
+       ],
+       [
+        46.434598230640404,
+        61.34179168846458
+       ],
+       [
+        76.16706880752463,
+        44.32430054806173
+       ],
+       [
+        78.23247281974182,
+        36.59896623622626
+       ],
+       [
+        57.298764832085,
+        0.0
+       ],
+       [
+        33.13071452913573,
+        13.857184919528663
+       ]
+      ],
+      "native_boundary_path_indices": [
+       169709,
+       169802,
+       169859,
+       169736
+      ],
+      "similarity_rmse_m": 0.0422624523558319,
+      "similarity_max_residual_m": 0.06730724482142661,
+      "pdf_to_local_matrix": [
+       [
+        1.7632335297180013,
+        -0.03870232491089445
+       ],
+       [
+        -0.03870232491089446,
+        -1.7632335297180015
+       ]
+      ],
+      "pdf_to_local_translation": [
+       -1128.226518104534,
+       2717.6559174955923
+      ],
+      "building_limit": {
+       "edge_indices_0_based": [
+        3,
+        4,
+        5
+       ],
+       "setback_m": 2.0,
+       "basis": "written 2m dimension on registered connected frontages; no blanket parcel buffer",
+       "native_line_path_indices": [
+        153873,
+        153874,
+        153875,
+        153876,
+        153877,
+        153878,
+        153879,
+        153880,
+        153881,
+        153882,
+        153883,
+        153884,
+        153885,
+        153886,
+        153887,
+        153888,
+        153889,
+        153890,
+        153891,
+        153892,
+        153893,
+        153894,
+        153895,
+        153896,
+        153897
+       ],
+       "native_dimension_path_indices": [
+        153087,
+        153088,
+        153089,
+        153090
+       ],
+       "observed_centerline_local_m": [
+        [
+         44.56676010658284,
+         60.12905534841926
+        ],
+        [
+         74.48117894171324,
+         42.985759756271534
+        ],
+        [
+         76.07149158052712,
+         36.87602862980489
+        ],
+        [
+         55.52816026433155,
+         1.0152078718458881
+        ]
+       ]
+      },
+      "road_frontage": {
+       "registered_edge_group": "building_limit",
+       "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+       "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate"
+      },
+      "vehicle_access_prohibited": {
+       "full_edge_indices_0_based": [
+        3,
+        4
+       ],
+       "partial_edge_index_0_based": 5,
+       "partial_edge_end_chainage_m": 9.272546192997954,
+       "end_local_m": [
+        73.62868408060275,
+        28.550038223959213
+       ],
+       "native_path_indices": [
+        152682,
+        152776,
+        152778
+       ],
+       "native_end_tick_midpoint": [
+        714.7499694824219,
+        1509.4100341796875
+       ],
+       "endpoint_reading_spread_m": 0.04481685651251688,
+       "basis": "registered red symbol endpoints; cartographic estimate, not survey tolerance"
+      }
+     }
+    }
+   },
+   "area_limits": {
+    "ground_m2": 752.8054815374709,
+    "gross_m2": 1499.999990343899,
+    "ground_capacity_m2": 1497.877,
+    "far_capacity_m2": 6241.962,
+    "projection_basis": "complete_export_surface_xy_projection",
+    "building_line": {
+     "satisfied": true,
+     "outside_area_m2": 0.0,
+     "evidence_grade": "official_plan_registered",
+     "survey_verified": false,
+     "registration_id": "gosan-public1-decision15-frontages-20260906"
+    },
+    "satisfied": true,
+    "reasons": []
+   },
+   "delivered_floor_evidence": {
+    "schema": "arr.maas.book_delivered_floor_measurement.v1",
+    "basis": "delivered SourceSurface mesh at transformed authored floor centers",
+    "placement_policy": "host-fitted XY affine; independently requested Z stature",
+    "center_basis": "authored_floor_center_elevations_m",
+    "original_floor_center_elevations_m": [
+     1.8,
+     5.4,
+     9.0,
+     12.6
+    ],
+    "delivered_floor_center_elevations_m": [
+     1.8,
+     5.400000000000001,
+     9.0,
+     12.6
+    ],
+    "actual_floor_areas_m2": [
+     662.0947589361451,
+     336.658351901012,
+     336.65835188672423,
+     164.58852762001766
+    ],
+    "actual_gfa_m2": 1499.999990343899,
+    "source_shape_id": "4abaecbf93d355347425",
+    "original_transformed_floor_areas_m2": [
+     662.0947591522399,
+     336.6583520905919,
+     336.65835208401586,
+     164.58852770423482
+    ],
+    "authored_floor_areas_at_executed_xy_m2": [
+     662.094759,
+     336.658352,
+     336.658352,
+     164.588528
+    ],
+    "authored_floor_area_comparison_resolution_m2": [
+     2.1137655922592888e-06,
+     1.3342347552992303e-06,
+     1.3342347552992303e-06,
+     1.0196872248680177e-06
+    ],
+    "coplanar_skin_area_at_floor_center_m2": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "export_area_comparison_resolution_m2": [
+     1.6137655922592887e-06,
+     8.342347552992304e-07,
+     8.342347552992302e-07,
+     5.196872248680178e-07
+    ],
+    "measurement_consistent": true,
+    "measurement_issues": [],
+    "mesh_projection_m2": 752.8054815374693,
+    "proxy_floor_areas_m2": [
+     662.0947591279016,
+     744.3890227927849,
+     381.54613229257745,
+     164.58852768583455
+    ],
+    "mesh_floor_area_missing_from_proxy_m2": [
+     0.0,
+     3.071364460822072e-14,
+     4.823921686898284e-14,
+     9.2636706970368e-16
+    ],
+    "xy_area_scale": 1.0,
+    "z_scale": 1.0,
+    "normalized_host_fit_matrix4": [
+     [
+      0.8675174786594185,
+      0.49740669901038265,
+      0.0,
+      45.27812824366105
+     ],
+     [
+      -0.49740669901038265,
+      0.8675174786594185,
+      0.0,
+      30.727310251770913
+     ],
+     [
+      0.0,
+      0.0,
+      0.06944444444444445,
+      0.0
+     ],
+     [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    ],
+    "requested_plan_area_m2": 662.0948,
+    "plan_area_target_satisfied": true,
+    "plan_area_shortfall_ratio": 0.0
+   },
+   "structure": {
+    "schema_version": "arr.maas.massv2_structure.v2",
+    "policy_version": "arr.maas.structure_policy.v2",
+    "measurement_basis": "complete_export_mesh",
+    "measurement_status": "measured",
+    "measurement_error": null,
+    "member_capacity_status": "unverified",
+    "grounded_share": 1.0,
+    "grounded_share_basis": "material_volume",
+    "body_count": 1,
+    "cantilever_ratio": null,
+    "cantilever_reach_m": null,
+    "cantilever_limit_ratio": 1.6,
+    "span_to_depth": null,
+    "span_to_depth_limit": 15.0,
+    "overturning_margin_m": 11.981,
+    "centre_of_mass_height_m": 5.246,
+    "potential_well_m": 6.735,
+    "potential_well_basis": "minimum_component_margin_minus_component_com_height",
+    "stands": true,
+    "reasons": [],
+    "requirements": [
+     "structural_capacity_and_anchorage_unverified",
+     "mesh_member_span_and_backspan_unverified"
+    ],
+    "mesh_support": {
+     "schema_version": "arr.maas.mesh_support_measurement.v1",
+     "coordinate_authority": "design.maas.massv2.render_mesh.physical_triangles",
+     "mesh_sha256": "d77fb4e233fc9296b2c7523ed9fcba75fc2e5ca9775c4dc006db1ccfc093856d",
+     "datum_m": 0.0,
+     "mass_model": "uniform_solid_density",
+     "closed_oriented_mesh": true,
+     "triangle_count": 108,
+     "component_count": 1,
+     "volume_m3": 5905.341871686162,
+     "uniform_density_com_xyz_m": [
+      45.87923732696514,
+      35.183144492243244,
+      5.246319832399772
+     ],
+     "ground_contact_area_m2": 662.0947588731686,
+     "grounded_volume_share": 1.0,
+     "minimum_ground_margin_m": 11.981090425456625,
+     "minimum_critical_margin_m": 5.470391834999788,
+     "observations": [],
+     "limitations": [
+      "Geometric support screening, not structural design or anchorage approval.",
+      "A negative upper-body margin identifies moment-transfer demand; it is not alone a structural refusal.",
+      "Critical vertex heights and interval midpoints are samples, not continuous extrema.",
+      "Ground datum is supplied; no terrain or geotechnical measurement is inferred.",
+      "No standing decision, member span/backspan threshold or production gate is applied."
+     ],
+     "critical_section_count": 9,
+     "components": [
+      {
+       "component_index": 0,
+       "volume_m3": 5905.341871686162,
+       "uniform_density_com_xyz_m": [
+        45.87923732696514,
+        35.183144492243244,
+        5.246319832399772
+       ],
+       "has_ground_contact": true,
+       "ground_margin_m": 11.981090425456625,
+       "com_height_above_ground_m": 5.246319832399772,
+       "ground_contact_area_m2": 662.0947588731688,
+       "ground_contact_hull_area_m2": 791.1471271631103
+      }
+     ]
+    },
+    "basis": "complete export mesh; uniform-density gravity screen; structural capacity and anchorage unverified"
+   },
+   "certificate_id": "0129e6f8ecb5389b209d"
+  },
+  "jury_drawings": {
+   "schema_version": "arr.massv2.jury_drawings.v1",
+   "drawings": [
+    {
+     "name": "book:book-comp09:morph-compact-mid:creative-003",
+     "shape_id": "4abaecbf93d355347425",
+     "anonymous_image": true,
+     "image_footer": "common scale; no room layout or entrance assumed",
+     "geometry_basis": "complete_export_surface_mesh",
+     "proxy_volumes_used": false,
+     "plan_cuts_m": [
+      1.2,
+      4.8
+     ],
+     "section_y_m": 32.436545798890215,
+     "plan_areas_m2": [
+      662.0947589640432,
+      662.0947588768709
+     ],
+     "section_area_m2": 244.5163523981314,
+     "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+     "png_sha256": "561621c75df729de3bfea3b5d387d5bd9876cf337f3394e313256bd6f5f0a986"
+    }
+   ]
+  },
+  "certificate_id": "0129e6f8ecb5389b209d",
+  "png_sha256": "4ce6f330e2444232270c995bda19616b4eb6b8559d0ef2d4b3c7812192ff8209"
+ }
+]

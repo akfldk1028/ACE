@@ -1,0 +1,1716 @@
+{
+  "programs": [
+    {
+      "name": "comp05_book_open_hinge",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.8,
+                0.62,
+                0.48
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 65
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 5
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "A continuous bent bar defines an exterior room between its arms while keeping one connected building. The concavity gives the lower density a visible spatial purpose; room allocation and access remain unverified. Requested BOOK exploration: book:combination:06:bend+bend; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:a831f22dee8c36e3a70315fa1ff822eff56f7f0deefcfb3032d54fc585e8a128"
+    },
+    {
+      "name": "comp05_book_three_arm_exchange",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 38
+            },
+            {
+              "name": "trunk_ratio",
+              "value_type": "number",
+              "numeric_value": 0.42,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "arm_ratio",
+              "value_type": "number",
+              "numeric_value": 0.3,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "A thick common trunk branches into three occupied arms. The arms articulate multiple edges and shorten deep-plan zones instead of decorating one box; programme and circulation are not inferred. Requested BOOK exploration: book:operative:branch; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:b95277004fb2b89b21445182aab353c444a4ea7a1e7044f8c2e7e07599226909"
+    },
+    {
+      "name": "comp05_book_shared_spine_pair",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "join_related",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "bridge_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "Two related bodies share a solid connecting spine. The open interval distinguishes the paired organization from one perforated block and tests shared versus independent volumes without disconnected fragments. Requested BOOK exploration: book:operative:interlock; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:05470e618703ead632e6029bac7312306f05a6f404cb1a84f60043e0fb2b6b5f"
+    },
+    {
+      "name": "comp05_book_crossed_section",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "overlap_related",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "shift_ratio",
+              "value_type": "number",
+              "numeric_value": 0.38,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "slab_ratio",
+              "value_type": "number",
+              "numeric_value": 0.48,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "vertical_overlap",
+              "value_type": "number",
+              "numeric_value": 0.24,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "organization_2",
+          "kind": "macro",
+          "operator": "book_rotate",
+          "inputs": [
+            "organization_1"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 35
+            },
+            {
+              "name": "related_ratio",
+              "value_type": "number",
+              "numeric_value": 0.48,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_2",
+      "rationale": "Overlapping plates rotate around a common solid junction, producing different upper and lower orientations. The sectional crossing is the proposition; supports and usable floor areas require later verification. Requested BOOK exploration: book:case:62:embed+overlap; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:bd7cfc87da1811e45875acde3aa82d513fc343204bca6bcd2fb26f3a1d1357e7"
+    },
+    {
+      "name": "comp05_book_diverging_wings",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "book_split",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "gap_ratio",
+              "value_type": "number",
+              "numeric_value": 0.24
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 28
+            },
+            {
+              "name": "terminal_ratio",
+              "value_type": "number",
+              "numeric_value": 0.6,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "A single body diverges into two terminal wings while retaining its rear trunk. The widening interval organizes the approach and admits an exterior space deep into the mass without severing the building. Requested BOOK exploration: book:operative:split; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:dfbf81995ea510ccee2aa31dffbf03a3dd3dfcb167a0153d116724dbf65599f0"
+    },
+    {
+      "name": "comp05_book_interlocking_edges",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "interlock_related",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 90
+            },
+            {
+              "name": "bar_ratio",
+              "value_type": "number",
+              "numeric_value": 0.34,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "distance_ratio",
+              "value_type": "number",
+              "numeric_value": 0.32,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "Two interlocking bent parts create a shared middle and alternating perimeter recesses. The proposition is reciprocal occupation around voids, not applied facade texture; internal routes remain unverified. Requested BOOK exploration: book:operative:interlock; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:05470e618703ead632e6029bac7312306f05a6f404cb1a84f60043e0fb2b6b5f"
+    },
+    {
+      "name": "comp05_book_raised_common_ground",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "threshold",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.38,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.24,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "south"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "root_id": "threshold",
+      "rationale": "A supported horizontal body releases a continuous sheltered interval at ground. Reduced ground occupation must survive as a visible undercroft; no claim is made that the indicative supports solve engineering. Requested BOOK exploration: book:operative:extrude; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:f42375c1818d4ccdef5278032d64aa984e673a76b1e44056b286a08f507288d1"
+    },
+    {
+      "name": "comp05_book_perforated_deep_plate",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "puncture",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "n",
+              "value_type": "number",
+              "numeric_value": 3,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.16
+            },
+            {
+              "name": "spacing_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "A deep horizontal body is reorganized by three through-courts. Distributed voids create several building depths and distinguish this from a single monumental courtyard; daylight performance is not yet certified. Requested BOOK exploration: book:operative:carve; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:2e91334e6426f5c7ca6a8f4cfce4ca746f1d0f3091273eaf3896fe4900b3f7bd"
+    },
+    {
+      "name": "comp05_book_concave_round_body",
+      "base_form_id": "elliptical",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "base_form",
+          "kind": "modifier",
+          "operator": "ellipsoidize",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [],
+          "semantic_role": "base_form"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base_form"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "threshold",
+          "kind": "macro",
+          "operator": "courtyard",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.29
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "south"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "root_id": "threshold",
+      "rationale": "A rounded continuous perimeter opens into one exterior court. The contrast between the curved outer edge and recessed inner edge organizes a compact mass with a recognizable address; programme remains unknown. Requested BOOK exploration: book:operative:inscribe; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:2f971be29f0d428a9879b1c00948ac738f8921db4163797414074d894ac8efb9"
+    },
+    {
+      "name": "comp05_book_sloping_court_wall",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "taper",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "scale_top",
+              "value_type": "number",
+              "numeric_value": 0.56,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 5
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "threshold",
+          "kind": "macro",
+          "operator": "courtyard",
+          "inputs": [
+            "organization_1"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "south"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "root_id": "threshold",
+      "rationale": "A continuously narrowing court wall changes the solid-void relation through section instead of producing independent floor setbacks. The court reaches the exterior at ground; floor plates and usable area require measurement. Requested BOOK exploration: book:combination:15:taper+bend; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:0bac03a066888497ad4cdc5a727e609bdb620a3ef13ef9cc5394a46de7a09449"
+    },
+    {
+      "name": "comp05_book_offset_upper_body",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "shift_related",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "distance_ratio",
+              "value_type": "number",
+              "numeric_value": 0.36,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            },
+            {
+              "name": "split_ratio",
+              "value_type": "number",
+              "numeric_value": 0.48,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "Upper and lower portions shift while retaining solid overlap, defining an overhang and a complementary setback. Their relation is a legible sectional decision, with engineering and occupied area left for validation. Requested BOOK exploration: book:case:64:overlap+expand; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:aadaf4340a4980ec0c691cf6c70bf78936b4b4b1471a6340d384abcae9ee0a2c"
+    },
+    {
+      "name": "comp05_book_fractured_common_back",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "intent_tags": [
+        "architectural_organization",
+        "programme_unknown"
+      ],
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "base",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1,
+                1,
+                1
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "base"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "global_pose"
+        },
+        {
+          "id": "organization_1",
+          "kind": "macro",
+          "operator": "book_fracture",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 18
+            },
+            {
+              "name": "gap_ratio",
+              "value_type": "number",
+              "numeric_value": 0.24
+            },
+            {
+              "name": "retained_back_ratio",
+              "value_type": "number",
+              "numeric_value": 0.36,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": ""
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "root_id": "organization_1",
+      "rationale": "An oblique fracture opens two differently directed edges while the common rear band keeps the building connected. The gap creates a specific exterior interval rather than an arbitrary surface incision. Requested BOOK exploration: book:operative:fracture; this is a proposed derivative, not a claim about the original operator path.",
+      "book_composition_path_id": "book:path:9042c82e97a383fc1f1e97948ac87e0bac17a95d0d8587255d48710c0ac64040"
+    }
+  ],
+  "book_principle_ids": [
+    "book:case:62:embed+overlap",
+    "book:case:64:overlap+expand",
+    "book:combination:06:bend+bend",
+    "book:combination:15:taper+bend",
+    "book:operative:branch",
+    "book:operative:carve",
+    "book:operative:extrude",
+    "book:operative:fracture",
+    "book:operative:inscribe",
+    "book:operative:interlock",
+    "book:operative:split"
+  ]
+}

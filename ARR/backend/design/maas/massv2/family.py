@@ -20,6 +20,7 @@ _tower and plinth_slender_turned all collapse to (extrude, relational, low)
 - which is exactly what both judges said of them.
 """
 
+from collections import Counter
 from itertools import groupby
 import json
 
@@ -121,6 +122,26 @@ def shape_family_evidence(scheme: dict) -> dict:
                 'reference_span_m': reference, 'error_type': type(exc).__name__}
 
 
+def _stack_level_organization(scheme):
+    """Count executed occupied units per base elevation; no copied stack rules."""
+    from shapely.geometry import box
+    from .execute import execute
+    from .grammar import parti_from_record
+    reference = SHAPE_FAMILY_REFERENCE_SPAN_M
+    try:
+        parti = parti_from_record(scheme)
+        if parti is None:
+            return 'stack-levels-unresolved'
+        form = execute(parti, buildable=box(0,0,reference,reference),
+                       axis=(1.,0.),height_m=reference)
+        if form is None:
+            return 'stack-levels-unresolved'
+        counts = Counter(item.z_span()[0] for item in form.additive() if item.occupiable)
+        return 'stack-levels:'+','.join(str(counts[z]) for z in sorted(counts))
+    except (ValueError,TypeError,KeyError,AttributeError,IndexError):
+        return 'stack-levels-unresolved'
+
+
 def _shape_move(evidence):
     if evidence['status'] != 'measured':
         return 'shape-unresolved'
@@ -198,6 +219,12 @@ def family_key(scheme: dict) -> tuple:
     stature = "low" if height < 0.42 else ("mid" if height < 0.72 else "tall")
     if shaped_move is not None:
         moves = {shaped_move}
+    elif opener == 'aggregate_stack' and not moves:
+        # Pure assemblies have no separate dominant verb. Their level
+        # organization is itself the spatial move: four one-unit levels
+        # and two paired levels must not collapse before geometry is judged.
+        # Existing dominant relational/section families retain their contract.
+        moves = {_stack_level_organization(scheme)}
     return (opener, frozenset(moves), stature)
 
 

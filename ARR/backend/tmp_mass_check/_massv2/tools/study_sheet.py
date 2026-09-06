@@ -185,7 +185,7 @@ def main(run, out_name=""):
     book, site, buildable, axis, base = seat_context()
     out = ROOT / "runs" / (out_name or f"study-{run}")
     out.mkdir(parents=True, exist_ok=True)
-    blocks, rejected, seen, strategies = [], [], set(), set()
+    blocks, rejected, seen, shown_shapes = [], [], set(), set()
     for row in _candidate_rows(run):
         name, family = row["name"], _family(row["name"])
         if family in seen:
@@ -215,8 +215,11 @@ def main(run, out_name=""):
         record = (registry().get(name) or {}) if name.startswith("book:") else book.get(family, {})
         reading = composition_module.read(source)
         discussion = _argument(record, reading)
-        if discussion['strategy'] in strategies:
-            rejected.append({'name': name, 'reason': '같은 공간 전략의 상위 평가안을 이미 제시함'})
+        # Captions are explanations, not geometric identity. A ring and a
+        # curved bar can share a display title while remaining different
+        # evaluated alternatives. Conversely, renaming one mesh adds no option.
+        if cert['shape_id'] in shown_shapes:
+            rejected.append({'name': name, 'reason': 'The same evaluated geometry is already shown'})
             continue
         tile = out / (artifact_stem(name, cert["shape_id"]) + "-mass.png")
         render_masses([(f"대안 {len(blocks) + 1}", source, caption)], tile,
@@ -236,7 +239,7 @@ def main(run, out_name=""):
                        'site_parking':parking, 'parking_plan':parking_plan,
                        "source_track": "BOOK" if name.startswith("book:") else "저작 문장"})
         seen.add(family)
-        strategies.add(discussion['strategy'])
+        shown_shapes.add(cert['shape_id'])
         if len(blocks) == 3:
             break
     (out / "study.json").write_text(json.dumps({"run": run,

@@ -847,7 +847,7 @@ class TheCorpusSaysHowManyVolumesTests(SimpleTestCase):
             name=name,
             placements=tuple(placements),
             primary_language="test",
-            extra={"programme_target": 1000.0} if briefed else {},
+            extra={"programme_target": 1000.0, "far_capacity_m2": 2000.0} if briefed else {},
         )
         source = compile_matrix_form(form, storey_height_m=3.0)
         return Candidate(

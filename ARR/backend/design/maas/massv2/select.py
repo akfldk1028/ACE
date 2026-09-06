@@ -105,14 +105,6 @@ CORPUS_PIECES = 3.4
 # documents make exceeding it a deduction and then a disqualification.
 BRIEF_TOLERANCE = 0.05
 
-# How little of the parcel's 용적률 an unbriefed scheme may deliver and still be
-# an alternative. Half of `fill._TARGET_FLOOR`: the growth loop aims at 0.75 and
-# a scheme that lands under half of that did not choose a low coverage, it ran
-# out of moves. Kept loose on purpose - the point is to refuse the house on the
-# 2,499 m2 parcel, not to push every scheme toward the ceiling, which is the
-# objective the critics scored worst (rho -0.73 against their own ranking).
-MINIMUM_DELIVERED_SHARE = 0.375
-
 # How many tiles one composition may occupy. See `family_of`: two cells apart is
 # the same scheme moved along an axis and is worth showing twice; three is the
 # same drawing printed three times.
@@ -624,33 +616,14 @@ def choose(
         for candidate in candidates
         if not (require_occupiable and not candidate.plausibility.occupiable)
     ]
-    # A brief is checked before the drawing is looked at. Korean 설계공모지침서
-    # give 연면적 with a ±5% tolerance, deduct for missing it and disqualify for
-    # missing it badly, and the check happens at 기술검토위원회 ahead of the jury.
-    # So it is a gate, not an objective: scoring it against ground released let
-    # a scheme buy its way past the brief by giving back more ground, and brief
-    # conformance fell from 8 of 10 to 5.
-    briefed = [item for item in pool if _brief_tolerance(item) is not None]
+    # An explicit programme is binding, even when every supplied scheme misses.
+    # Without one, legal capacity is a ceiling, not an invented minimum brief.
+    # Physical eligibility still applies above; visual/spatial quality is judged
+    # downstream. Low density receives neither an exemption nor a bonus.
+    briefed = [item for item in pool if item.form.extra.get('programme_target') is not None]
     if briefed:
-        inside = [item for item in briefed if _brief_tolerance(item) <= BRIEF_TOLERANCE]
-        if inside:
-            pool = inside
-    else:
-        # With no brief, the parcel is the brief. A scheme that delivers a
-        # fraction of what the site affords is not a low-coverage proposition,
-        # it is a scheme that could not grow: Villa dall'Ava came out at 5.5%
-        # 건폐율 and 578 m2 on a 2,499 m2 parcel - a house - and went onto the
-        # sheet as an alternative.
-        #
-        # Low coverage IS how some Korean winners work (7.88%, 6.94%), but they
-        # get there against a 소요면적표 that asks for little, which is the
-        # briefed branch above. Unbriefed, the floor is `fill`'s own growth
-        # target: a scheme that cannot reach it has failed at the thing the
-        # growth loop exists to do, and saying so here keeps the judgement in
-        # one place rather than adding a second opinion about the same number.
-        standing = [item for item in pool if item.far_utilization >= MINIMUM_DELIVERED_SHARE]
-        if standing:
-            pool = standing
+        pool = [item for item in briefed
+                if (error := _brief_tolerance(item)) is not None and error <= BRIEF_TOLERANCE]
     keys = _balance_keys(pool)
 
     def rank(item: Candidate) -> tuple:

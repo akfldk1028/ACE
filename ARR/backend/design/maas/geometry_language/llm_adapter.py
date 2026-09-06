@@ -49,7 +49,7 @@ from design.maas.book_language.paid_provider_admission import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v32_contextual_capacity_and_body_budget"
 LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
@@ -1550,8 +1550,11 @@ NON-NEGOTIABLE MASS MEMORY:
   never fill the deficit by adding algorithmic tiers or independently scaling floors.
 - A source-only compiler check is insufficient. Each candidate must survive its final production BOOK/program/legal projection,
   keep an authoritative nonempty certified visual mesh, use zero pose fallback, and remain visibly identifiable there.
-  For the current competition capacity contract, capacity utilization must remain at least 0.60 after that final projection;
-  0.70 is the preferred design target, not the hard minimum.
+  Meet explicit required programme and area using the supplied capacity_design_budget and its acceptance contract;
+  legal ceilings are not automatic design targets. Missing programme or target area remains unknown: do not invent
+  a minimum FAR share or claim programme compliance. Where supplied, distinguish minimum_utilization from
+  target_utilization; only the deterministic contract determines admission. A lower-area alternative must establish
+  a visible spatial benefit, not a prose-only exception or an automatic density bonus.
 - For a requested portfolio of 20, all 20 selected candidates must remain LLM-authored, legal, capacity-passing, and
   materially diverse in the combined PNG. Count never authorizes a deterministic fallback or weakened diversity cap.
 
@@ -1613,8 +1616,8 @@ Rules:
   This is the same cross-layer budget applied after BOOK projection; do not stack courtyard+notch or
   carve_void+notch merely to make the graph look more detailed.
 - For this request, BODY RULE BUDGET = {_author_body_rule_budget(context)} and PUBLIC ACCESS RULE BUDGET = 1.
-  Count executable operators, not rationale words. A typical valid chain is normalized base seed -> one BODY rule
-  -> one ACCESS rule -> root_id. Do not add a second bend/setback/terrace/cut/array/composition body rule and do not
+  Count executable operators, not rationale words. A valid chain uses only the necessary distinct body effect families
+  within that budget, followed by one ACCESS rule when required. Do not exceed the declared BODY RULE BUDGET and do not
   stack courtyard+notch, carve_void+lift, or lift+notch. The compiler rejects the whole candidate when either count
   is exceeded; extra nodes are not extra design quality.
 - The compiled author mesh must be one connected solid. Split/array/duplicate wings require an explicit physical

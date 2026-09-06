@@ -2223,11 +2223,13 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertIn("span, void, and aggregation", prompt)
         self.assertIn("maximum-FAR staircase", prompt)
         self.assertIn("final production BOOK/program/legal projection", prompt)
-        self.assertIn("capacity utilization must remain at least 0.70", prompt)
+        self.assertIn("supplied capacity_design_budget", prompt)
+        self.assertIn("Missing programme or target area remains unknown", prompt)
+        self.assertNotIn("capacity utilization must remain at least", prompt)
         self.assertIn("Never numerically inverse-compensate", prompt)
         self.assertIn("continuous legal-envelope condition", prompt)
         self.assertIn("Capacity is a whole-building design budget", prompt)
-        self.assertIn("must not become the visible design language", prompt)
+        self.assertIn("must not become the visible design language", " ".join(prompt.split()))
         self.assertIn("BOOK is a compositional graph, not a checklist", prompt)
         self.assertIn("thousands of executable possibilities", prompt)
         self.assertIn("Never assign one required language per output", prompt)
@@ -2237,7 +2239,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
     def test_llm_author_schema_and_prompt_expose_independent_base_form_axis(self):
         self.assertEqual(
             geometry_llm_adapter.GEOMETRY_AUTHOR_PROMPT_CONTRACT,
-            "arr.maas.geometry_llm_author.v31_base_form_matrix_book_axes",
+            "arr.maas.geometry_llm_author.v32_contextual_capacity_and_body_budget",
         )
         context = {
             "building_type": "neighborhood_living",

@@ -170,4 +170,11 @@ AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_p
 
 ## BOOK development parking feedback (comp10)
 
+New external rounds first pause at `development-selector`. The host reviews the
+frozen scored O board and delivered geometry, then selects one exact name/shape/
+certificate with an English architectural reason in `development-choice.json`.
+The choice does not change ranking or scores, and is frozen with its source board.
+The first row is no longer mandatory in external mode; internal mode retains its
+existing first-O policy. This is not automatic multi-parent cohort coverage.
+
 The exact parent contract includes identity-bound site_feedback from the existing site_planning owner, including measured repair_requests and source legal evidence. English author prompts require addressing that packet while preserving the spatial principle and dimensional contract. Pair construction remeasures each actual delivered child and stores its own packet in mutants/champion; it never copies parent counts. Visual jury completion does not mean parking approval or a completed general A2A negotiation loop. Unresolved access and aisle connectivity remain explicit. Numerical legal rules stay in their existing owner.

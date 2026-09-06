@@ -1,5 +1,9 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**CURRENT LIVE: comp11 INCOMPLETE (2026-09-07).** Generation running. Read agents/MassAgent/docs/reports/comp11-development.md for exact command,96-file baseline, new author targets and remaining stages. Parking repair and external identity-bound parent selection are being verified. Preserve all comp10 receipts.
+
+## Previous completed cycle: comp10
+
 **CURRENT: comp10 COMPLETE, service INCOMPLETE (2026-09-06).** All twelve cycle stages, nine fresh independent juror sessions, four actual development pairs and feedback completed. Final PDF: `agents/MassAgent/output/pdf/massv2-comp10/comp10-comparison.pdf`. Root directly inspected all seven pages. It shows all27 judged initial alternatives (25 retained O +2 unselected U), plus four development pairs. New11-block courtyard is O10/page5; new10-block crossing cluster is U2/page7, with its original non-selection and score preserved. Curved-roof court is O7/page4. Read `agents/MassAgent/docs/reports/comp10-cluster-cycle.md` and `comp10-final-verification.json` for verified evidence.
 
 Development votes: child1 BBB, child2 AAA, child3 BBB, child4 AAA (A parent/B child). Existing tie rule sends child1 to feedback; these are parent-child comparisons, not child-to-child ranking. The parent and child-specific parking requests now travel through the BOOK author contract and actual owner remeasurement. Child1/2 preserve1658.319m2 and place6 versus parent5 cells, with17 required. All remain unresolved: disconnected aisles, access and operating feasibility are not approved. Existing ParkingAgent labels alone were not this integration.

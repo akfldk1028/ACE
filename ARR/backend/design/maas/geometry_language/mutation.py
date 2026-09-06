@@ -11,7 +11,7 @@ from dataclasses import dataclass, replace
 import json
 from typing import TYPE_CHECKING, Any, Iterable
 
-from .ast import GeometryIssue, GeometryNode, GeometryProgram, OPERATORS_BY_KIND
+from .ast import GeometryIssue, GeometryNode, GeometryProgram, OPERATORS_BY_KIND, MACRO_VERTICAL_ANCHORS, MACRO_VERTICAL_ANCHOR_OPERATORS
 from .section_profiles import SECTION_PROFILES, section_profile_controls
 
 if TYPE_CHECKING:
@@ -212,6 +212,10 @@ BOOLEAN_PARAMETERS = frozenset({"center", "bridge", "ground_spine"})
 # because it changes the JSON hash while the geometry compiler silently falls
 # back to a default.  Primitive authoring is included as well, even though the
 # critic normally edits operators above an existing base seed.
+for _operator in MACRO_VERTICAL_ANCHOR_OPERATORS:
+    STRING_PARAMETER_VALUES[(_operator, "vertical_anchor")] = frozenset(MACRO_VERTICAL_ANCHORS)
+
+
 OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "box": frozenset({"width", "depth", "height", "center"}),
     "matrix4": frozenset({"matrix4"}),
@@ -287,7 +291,7 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
     "book_notch": frozenset({"axis", "corner", "ratio", "outward_sign"}),
     "book_extract": frozenset({"axis", "face_side", "guest_scale", "distance_ratio", "outward_sign"}),
     "puncture": frozenset({"axis", "count", "n", "ratio", "spacing_ratio"}),
-    "book_branch": frozenset({"angle_degrees", "trunk_ratio", "arm_ratio"}),
+    "book_branch": frozenset({"angle_degrees", "trunk_ratio", "arm_ratio", "vertical_anchor"}),
     "boundary_expand": frozenset({"axis", "amount", "shoulder_fraction"}),
     "shift_related": frozenset({"axis", "distance_ratio", "split_ratio", "outward_sign"}),
     "offset_related": frozenset({"axis", "distance_ratio", "unit_scale", "outward_sign"}),
@@ -301,7 +305,7 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
         "axis", "slab_ratio", "shift_ratio", "vertical_overlap", "outward_sign",
     }),
     "embed_void": frozenset({"axis", "outward_sign", "guest_scale", "position", "embedded_ratio"}),
-    "related_array": frozenset({"mode", "axis", "count", "spacing_ratio", "unit_scale", "stagger_ratio"}),
+    "related_array": frozenset({"mode", "axis", "count", "spacing_ratio", "unit_scale", "stagger_ratio", "vertical_anchor"}),
     "join_related": frozenset({"bridge_ratio"}),
 }
 

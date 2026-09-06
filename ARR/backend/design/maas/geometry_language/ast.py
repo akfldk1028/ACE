@@ -415,9 +415,17 @@ def _arity_issues(node: GeometryNode) -> list[GeometryIssue]:
     return []
 
 
+MACRO_VERTICAL_ANCHORS = ("center", "input_base")
+MACRO_VERTICAL_ANCHOR_OPERATORS = ("book_branch", "related_array")
+
+
 def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
     issues: list[GeometryIssue] = []
     params = node.parameters
+    if node.operator in MACRO_VERTICAL_ANCHOR_OPERATORS:
+        if params.get("vertical_anchor", "center") not in MACRO_VERTICAL_ANCHORS:
+            issues.append(GeometryIssue("invalid_vertical_anchor",
+                "vertical_anchor must be center or input_base", node.id))
     positive_fields = {
         "width", "depth", "height", "radius", "radius_low", "radius_high",
         "start_height", "end_height", "profile_width", "profile_height", "level_height",

@@ -12,7 +12,7 @@ import numpy as np
 
 from design.maas.book_language.base_volume_contract import oriented_book_base_volume_cells
 
-from .ast import GeometryIssue, GeometryNode, GeometryProgram
+from .ast import GeometryIssue, GeometryNode, GeometryProgram, MACRO_VERTICAL_ANCHORS
 from .affine_matrix import kernel_matrix3x4, matrix4_for_transform, matrix4_to_lists
 from .book_parameter_projection import BOOK_KERNEL_PARAMETER_PROJECTIONS
 from .gate import GeometryGatePolicy, compilation_gate
@@ -1627,6 +1627,7 @@ def _book_branch_macro(base, params: dict[str, Any], node_id: str):
     bounds, so the relation transfers across seeds and parcels.
     """
 
+    anchor = _macro_vertical_anchor(params, node_id)
     minx, miny, minz, maxx, maxy, maxz = _bounds(base)
     span_x = max(maxx - minx, 1e-7)
     span_y = max(maxy - miny, 1e-7)
@@ -1644,6 +1645,8 @@ def _book_branch_macro(base, params: dict[str, Any], node_id: str):
         pivot = ((minx + maxx) / 2.0, shoulder, (minz + maxz) / 2.0)
     if arm_source.is_empty():
         raise GeometryCompileError("empty_book_branch_arm", "terminal input scope is empty", node_id)
+    if anchor == "input_base":
+        pivot = (pivot[0], pivot[1], minz)
     arm_ratio = max(0.10, min(0.90, float(params.get("arm_ratio", 0.28))))
     transverse_scale = 0.54 + arm_ratio * 0.38
     scale_vector = (
@@ -2734,6 +2737,7 @@ def _embed_void_macro(base, params: dict[str, Any], node_id: str):
 def _related_array_macro(base, params: dict[str, Any], node_id: str):
     """Distribute scaled descendants instead of overlapping whole bodies."""
 
+    anchor = _macro_vertical_anchor(params, node_id)
     minx, miny, minz, maxx, maxy, maxz = _bounds(base)
     spans = (max(maxx - minx, 1e-7), max(maxy - miny, 1e-7))
     center = _center(base)
@@ -2764,7 +2768,7 @@ def _related_array_macro(base, params: dict[str, Any], node_id: str):
     scale_vector = [unit_scale, unit_scale, 0.88 + unit_scale * 0.12]
     unit = _around_pivot(
         base,
-        center,
+        (center[0], center[1], minz) if anchor == "input_base" else center,
         lambda item: item.scale(tuple(scale_vector)),
     )
     spacing = max(0.08, min(0.50, float(params.get("spacing_ratio", 0.18))))
@@ -2803,7 +2807,8 @@ def _related_array_macro(base, params: dict[str, Any], node_id: str):
             # and left the nominal array as disconnected sculpture.  Reuse the
             # surface-aware connector so every repetition physically embeds in
             # both neighbouring solids.
-            connectors.append(_bridge_between(
+            connector_builder = _input_base_array_connector if anchor == "input_base" else _bridge_between
+            connectors.append(connector_builder(
                 left,
                 right,
                 {"width": connector_width, "height": connector_height},
@@ -2967,6 +2972,66 @@ def _profiled_hall_macro(base, params: dict[str, Any], node_id: str):
     if result.is_empty():
         raise GeometryCompileError("empty_profiled_hall", "section envelope does not intersect the input solid", node_id)
     return result
+
+
+def _macro_vertical_anchor(params: dict[str, Any], node_id: str) -> str:
+    anchor = params.get("vertical_anchor", "center")
+    if anchor not in MACRO_VERTICAL_ANCHORS:
+        raise GeometryCompileError("invalid_vertical_anchor",
+            "vertical_anchor must be center or input_base", node_id)
+    return anchor
+
+
+def _input_base_array_connector(left, right, params: dict[str, Any], node_id: str):
+    """Connect actual material without inventing a lower datum or ground pier.
+
+    Bounds only limit the search interval. Positive-volume kernel intersections
+    with both inputs and a single connected union prove the actual contact.
+    Other bridge operators and legacy arrays do not use this opt-in contract.
+    """
+    lb, rb = _bounds(left), _bounds(right)
+    lower, upper = max(lb[2], rb[2]), min(lb[5], rb[5])
+    if upper <= lower:
+        raise GeometryCompileError("array_connector_no_common_height",
+            "input-base neighbours have no common occupied height interval", node_id)
+
+    def clipped(solid, lo, hi):
+        return solid.trim_by_plane((0.0, 0.0, 1.0), lo).trim_by_plane(
+            (0.0, 0.0, -1.0), -hi)
+
+    # A shared bbox interval can contain alternating, disjoint material bands.
+    # Between actual mesh vertex heights, certify both neighbours have volume.
+    heights = {lower, upper}
+    for solid in (left, right):
+        heights.update(float(row[2]) for row in solid.to_mesh64().vert_properties
+            if lower < float(row[2]) < upper)
+    heights = sorted(heights)
+    common = []
+    for lo, hi in zip(heights, heights[1:]):
+        if clipped(left, lo, hi).volume() > 0.0 and clipped(right, lo, hi).volume() > 0.0:
+            if common and common[-1][1] == lo:
+                common[-1] = (common[-1][0], hi)
+            else:
+                common.append((lo, hi))
+    if not common:
+        raise GeometryCompileError("array_connector_no_common_material",
+            "neighbour bounds overlap but occupied height intervals do not", node_id)
+    lower, upper = max(common, key=lambda interval: (interval[1] - interval[0], -interval[0]))
+
+    def in_interval(solid):
+        return clipped(solid, lower, upper)
+
+    left_slice, right_slice = in_interval(left), in_interval(right)
+    if left_slice.is_empty() or right_slice.is_empty():
+        raise GeometryCompileError("array_connector_no_common_material",
+            "input-base neighbours have no material in the common interval", node_id)
+    connector = in_interval(_bridge_between(left_slice, right_slice, params, node_id))
+    if (connector.is_empty() or (connector ^ left).volume() <= 0.0
+            or (connector ^ right).volume() <= 0.0
+            or len((left + connector + right).decompose()) != 1):
+        raise GeometryCompileError("array_connector_missing_material_contact",
+            "input-base connector must embed in both actual neighbours", node_id)
+    return connector
 
 
 def _bridge_between(left, right, params: dict[str, Any], node_id: str):

@@ -646,6 +646,14 @@ def choose(
     a different drawing - so a family past its two seats steps aside only
     while some other family can hold the cell, and a cell never goes empty
     over it.
+
+    When tags are supplied, a second pass exposes one eligible representative
+    of each otherwise unrepresented nonempty tag to the downstream jury.
+    `per_cell` limits the first, grid-diversification pass; this tagged coverage
+    pass may add candidates in an already occupied cell. It does not rank a
+    jury winner or change the unconfigured API. Existing geometry dedup and
+    per-sentence repetition limits still apply, so aliases of the same
+    geometry are not guaranteed separate tag representatives.
     """
 
     pool = [
@@ -763,6 +771,32 @@ def choose(
                 taken_tags.add(tag)
                 tag_times[tag] = tag_times.get(tag, 0) + 1
             chosen.append(candidate)
+
+    if composition_family:
+        # A coarse cell can contain a rotating stack, paired bars, a bridge
+        # and a courtyard. Its small quota must not silence three different
+        # authored propositions before the visual jury sees any of them.
+        # Reuse only physically/programmatically eligible cell representatives;
+        # do not resurrect a rejected or duplicate shape from the raw inputs.
+        represented_shapes = {composition_signature(item.form) for item in chosen}
+        remaining = sorted(
+            (item for cell in by_cell.values() for item in cell.values()),
+            key=rank, reverse=True,
+        )
+        for candidate in remaining:
+            tag = tag_of(candidate)
+            family = family_of(candidate)
+            if not tag or tag in taken_tags or times.get(family, 0) >= MAX_TILES_PER_FAMILY:
+                continue
+            signature = composition_signature(candidate.form)
+            if signature in represented_shapes:
+                continue
+            chosen.append(candidate)
+            represented_shapes.add(signature)
+            taken.add(family)
+            times[family] = times.get(family, 0) + 1
+            taken_tags.add(tag)
+            tag_times[tag] = tag_times.get(tag, 0) + 1
     return chosen
 
 

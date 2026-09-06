@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c05_radial_three_wings~dispersed_ground^cross_open",
+  "shape_id": "b8f881a1c2a0a364a495",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    469.72635120011483,
+    469.72635120011483
+  ],
+  "section_area_m2": 152.09547859451098,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "a0616003eab118b9f3dead28291f00749dd16c8a54c4bd4c418a3cd36a4bffab"
+}

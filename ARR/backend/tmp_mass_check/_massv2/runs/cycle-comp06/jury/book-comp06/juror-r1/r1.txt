@@ -1,0 +1,79 @@
+TILE t01
+CONCEPT 4 | A continuous crescent gives the positive mass and open recess a clear relationship, although its section remains uniform.
+FEASIBILITY 5 | Ground and upper occupancy align in a substantial continuous volume with no visible transfer or suspended pieces.
+SITE 4 | The angled outer perimeter sits within the parcel while the inward curve makes a coherent open area; frontage and orientation remain unestablished.
+EDITABILITY 4 | The continuous band offers a plausible basis for floors and circulation, with curved facades and varying depth requiring care.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 3 | The twisting envelope is legible as a single sculptural idea but offers little sectional or solid-void hierarchy.
+FEASIBILITY 4 | Broad connected floor footprints make development plausible, while the changing perimeter requires considered structural alignment.
+SITE 3 | The compact mass leaves space around its footprint but demonstrates limited differentiation toward the parcel edges.
+EDITABILITY 3 | Continuous floors are plausible, though evolving facade geometry complicates a regular floor and enclosure system.
+WEIGHTED 3.25
+
+TILE t03
+CONCEPT 3 | The broad bent mass and narrow wedge cut are readable, but the cut provides limited hierarchy within a uniform extrusion.
+FEASIBILITY 5 | Vertically aligned occupancy and substantial connected wings present a straightforward massing basis without visible cantilevers.
+SITE 3 | The footprint remains inside the parcel and opens a recess, although its narrow tip limits the clarity of that exterior space.
+EDITABILITY 4 | Broad continuous areas allow development, with the acute inner corner needing resolution to retain the wedge idea.
+WEIGHTED 3.70
+
+TILE t04
+CONCEPT 3 | The bent wings establish a basic open-sided figure, but small triangular notches distract from its primary form.
+FEASIBILITY 4 | The continuous vertical extrusion is plausible, with narrow corners and minor projections needing refinement.
+SITE 3 | The mass leaves an open sector of the parcel but shows little evidence explaining the smaller edge deviations.
+EDITABILITY 3 | Connected wings can accommodate further planning, though acute notches and irregular junctions complicate circulation and facade development.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 4 | The low offset volumes create an intelligible sectional step, overhang and exposed lower ledge with restrained articulation.
+FEASIBILITY 4 | A substantial overlap between upper and lower volumes makes the offset plausible, subject to engineering of the overhang.
+SITE 3 | The low compact mass leaves broad perimeter space, but a particular response to frontage or orientation is not established.
+EDITABILITY 5 | Simple continuous footprints and a clear offset can support floor, circulation and facade development while retaining the idea.
+WEIGHTED 4.00
+
+TILE t06
+CONCEPT 4 | A sloping horizontal incision gives the monolith a distinct sectional relationship between upper and lower masses.
+FEASIBILITY 3 | The deep cut leaves a visible connected side, but the substantial upper projection requires structural development beyond the evidence shown.
+SITE 3 | The compact footprint leaves perimeter space, while the incision is not clearly related to a documented site edge or frontage.
+EDITABILITY 4 | Broad upper and lower areas are developable if circulation and structure can be concentrated in the remaining connected portion.
+WEIGHTED 3.55
+
+TILE t07
+CONCEPT 3 | A horizontal recess and vertical edge offsets articulate the block, but their combined hierarchy is less decisive than either gesture alone.
+FEASIBILITY 3 | The section retains a continuous side but shows a substantial upper overhang requiring a deliberate transfer strategy.
+SITE 3 | The footprint fits within the parcel, with modest edge differentiation but no demonstrated orientation or frontage response.
+EDITABILITY 4 | Large continuous footprints allow planning flexibility, although the recess constrains vertical continuity on one side.
+WEIGHTED 3.20
+
+TILE t08
+CONCEPT 2 | The bent extrusion, tiny edge notches and isolated roof projection do not combine into a convincing volumetric hierarchy.
+FEASIBILITY 4 | The main vertically continuous mass is plausible, while the slender roof piece and acute edges require detailing.
+SITE 3 | The bent footprint preserves an open sector but provides limited evidence of a deliberate response to distinct parcel conditions.
+EDITABILITY 3 | The main wings can be developed, although small irregularities and the unexplained roof piece weaken the clarity of what must be preserved.
+WEIGHTED 2.90
+
+TILE t09
+CONCEPT 3 | The twisting main volume remains legible, but the small raised roof mass has a weak relationship to the larger sculptural gesture.
+FEASIBILITY 4 | The connected main mass and supported roof addition are plausible, with the shifting perimeter needing structural coordination.
+SITE 3 | A compact footprint leaves surrounding space but does not demonstrate a specific edge or orientation strategy.
+EDITABILITY 3 | Continuous floor areas are available, but twisting facades and the additional roof geometry increase coordination demands.
+WEIGHTED 3.25
+
+TILE t10
+CONCEPT 3 | The offset low mass has a clear sectional basis, but the thin roof and facade cuts obscure its otherwise simple articulation.
+FEASIBILITY 3 | The overlapping volumes are plausible, while narrow tapered incisions leave awkward local geometry requiring resolution.
+SITE 3 | The low footprint leaves considerable open ground without showing a specific relationship between the cuts and the parcel.
+EDITABILITY 3 | Simple main floor areas help development, but retaining the thin cuts adds complications to enclosure and floor continuity.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 4 | Two slender parallel wings and a joining end define a clear elongated void with strong solid-void proportions.
+FEASIBILITY 4 | Ground and upper footprints largely align without major overhangs, although the narrow wings and connector warrant dimensional study.
+SITE 4 | The elongated opening and parallel bars organize exterior space coherently within the parcel, without establishing its access or orientation.
+EDITABILITY 4 | The clear wing-and-connector arrangement offers a workable organizing principle, with limited width requiring careful circulation and core planning.
+WEIGHTED 4.00
+
+RANKING: t01, t11, t05, t03, t06, t02, t04, t09, t07, t10, t08
+VERDICT: Advance t01 for its coherent curved band and exterior recess, with t11 and t05 offering clear alternative strategies through an elongated void and sectional offset. Retain t06 for further structural study because its incision is architecturally legible but places greater demands on the remaining connection. These are visual development judgments; statutory height, exact building-line compliance and any room programme remain unverified.

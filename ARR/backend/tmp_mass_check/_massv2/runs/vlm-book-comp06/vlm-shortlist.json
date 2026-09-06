@@ -1,0 +1,123 @@
+[
+ {
+  "tile": "t01",
+  "score": 4.25,
+  "corrected": 4.25,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-curved-low:creative-001",
+  "coverage_pct": null,
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate_id": "ebf58693de1a33c880e6"
+ },
+ {
+  "tile": "t11",
+  "score": 4.08,
+  "corrected": 4.08,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+  "coverage_pct": null,
+  "shape_id": "355b30ebb37b723be6cd",
+  "certificate_id": "efa427a310fcc96b861f"
+ },
+ {
+  "tile": "t05",
+  "score": 3.93,
+  "corrected": 3.93,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-compact-mid:creative-011",
+  "coverage_pct": null,
+  "shape_id": "ce63ea701f8ca3bb4096",
+  "certificate_id": "1e20d068d7630a5d0a3e"
+ },
+ {
+  "tile": "t03",
+  "score": 3.7,
+  "corrected": 3.7,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-compact-mid:creative-005",
+  "coverage_pct": null,
+  "shape_id": "8b128c6e580495b195ef",
+  "certificate_id": "176eb23121a9b1092d43"
+ },
+ {
+  "tile": "t07",
+  "score": 3.43,
+  "corrected": 3.43,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-compact-mid:creative-013",
+  "coverage_pct": null,
+  "shape_id": "16c3e63ecdd0f7f0a953",
+  "certificate_id": "986d02cb0581861f393c"
+ },
+ {
+  "tile": "t06",
+  "score": 3.42,
+  "corrected": 3.42,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-compact-mid:creative-012",
+  "coverage_pct": null,
+  "shape_id": "86ea51c512a1849ccb73",
+  "certificate_id": "124d605911865a8c36e9"
+ },
+ {
+  "tile": "t04",
+  "score": 3.25,
+  "corrected": 3.25,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-compact-low:creative-006",
+  "coverage_pct": null,
+  "shape_id": "a67900bd1640561f0967",
+  "certificate_id": "e31f89e218b2ff02fbe9"
+ },
+ {
+  "tile": "t02",
+  "score": 3.23,
+  "corrected": 3.23,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-curved-mid:creative-004",
+  "coverage_pct": null,
+  "shape_id": "d8c7681d14fdb92697f1",
+  "certificate_id": "de3fad6729d6a75b8459"
+ },
+ {
+  "tile": "t09",
+  "score": 3.17,
+  "corrected": 3.17,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-curved-mid:creative-019",
+  "coverage_pct": null,
+  "shape_id": "41d5f8fb5e0b001aca78",
+  "certificate_id": "e4e65512ab4b360673d7"
+ },
+ {
+  "tile": "t08",
+  "score": 3.13,
+  "corrected": 3.13,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-voided-low:creative-018",
+  "coverage_pct": null,
+  "shape_id": "31c14be9af3d162b982b",
+  "certificate_id": "387bd166c025fe296f49"
+ },
+ {
+  "tile": "t10",
+  "score": 3.0,
+  "corrected": 3.0,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "book:book-comp06:morph-curved-mid:creative-023",
+  "coverage_pct": null,
+  "shape_id": "8c3ae65256c336c51d8d",
+  "certificate_id": "719545e110eca5268557"
+ }
+]

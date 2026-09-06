@@ -1,0 +1,51 @@
+TILE t01
+CONCEPT 4 | Offset polygonal plates establish an emphatic layered composition with distinct overhangs and intermediate terraces.
+FEASIBILITY 3 | Substantial overlaps make development plausible, but the projecting upper plate and changing footprints require resolved transfers.
+SITE 3 | The lower polygon follows part of the parcel geometry and leaves an open end, while the rotated upper pieces have a less direct edge relationship.
+EDITABILITY 3 | Broad plates offer usable floor area, but separated lower footprints and shifted volumes complicate continuous cores and circulation.
+WEIGHTED 3.35
+
+TILE t02
+CONCEPT 4 | A compact low mass combines an enclosed rectangular void with an open notch and a ground-level incision into a clear solid-void composition.
+FEASIBILITY 4 | The low continuous upper mass and substantial grounded wings are plausible, with local spanning required over the ground openings.
+SITE 4 | The chamfered outer face responds to the angled parcel edge while the compact placement preserves generous surrounding space.
+EDITABILITY 4 | Connected upper bands and a simple height provide a workable framework for circulation and facades, subject to resolving the ground interruptions.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 4 | Thin staggered volumes create a clear ascending stack, with rotation and exposed terrace surfaces giving the composition hierarchy.
+FEASIBILITY 3 | Overlapping plates suggest potential support zones, but the large lateral projection and rotated upper footprints need structural resolution.
+SITE 3 | The base addresses the oblique parcel geometry, though the upper rotations do not establish an equally clear relationship with its edges.
+EDITABILITY 3 | The plates are individually workable, but their rotation and separated plan occupancies make vertical continuity a significant design task.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 4 | A single courtyard ring gains sectional hierarchy from its strongly changing height and sloping upper profile.
+FEASIBILITY 4 | Continuous ground-to-upper occupancy and grounded walls offer a straightforward load path, with the variable roof requiring further development.
+SITE 3 | The compact ring preserves substantial open parcel area, but its placement leaves the larger residual area only weakly defined.
+EDITABILITY 4 | A continuous perimeter gives circulation and facade development a stable framework while retaining the courtyard and unequal heights.
+WEIGHTED 3.80
+
+TILE t05
+CONCEPT 3 | Three detached pitched-roof volumes form a readable family, although the spaces between them have limited sectional articulation.
+FEASIBILITY 4 | Grounded prismatic buildings with consistent footprints and simple roof forms appear structurally plausible.
+SITE 3 | Distribution around an open middle acknowledges several parcel edges, but the interstitial space lacks a strong enclosing geometry.
+EDITABILITY 3 | Individual volumes are readily developable, but the small detached footprints require separate circulation solutions and careful core allocation.
+WEIGHTED 3.25
+
+TILE t06
+CONCEPT 3 | The compact cluster of three pitched volumes is coherent, but its small height differences and loose gaps provide modest spatial hierarchy.
+FEASIBILITY 4 | Low grounded blocks and repeated plan footprints provide a plausible basis for conventional structural development.
+SITE 3 | Ample space remains around the cluster, though the concentration near the parcel middle leaves the pointed end weakly engaged.
+EDITABILITY 3 | Simple forms support facade development, but small independent footprints constrain the placement of cores and shared circulation.
+WEIGHTED 3.25
+
+TILE t07
+CONCEPT 4 | An enclosed courtyard and folded perimeter roof establish a distinct collective form with visible articulation at the corners.
+FEASIBILITY 4 | The continuous ring and vertically aligned occupancy are plausible, while the intersecting roof planes need detailed junction and drainage design.
+SITE 3 | Placement toward the narrow parcel end preserves a large open area, but creates an uneven balance of tight and generous margins.
+EDITABILITY 3 | The ring supports a circulation concept, but its relatively narrow bands and complex roof corners leave less flexibility for cores and upper floors.
+WEIGHTED 3.60
+
+RANKING: t02, t04, t07, t03, t01, t05, t06
+VERDICT: Advance t02 and t04 for their legible voids and coherent floor-development potential; t07 is a worthwhile reserve with a more demanding roof and perimeter depth. The layered alternatives offer stronger projections but unresolved vertical connections, while the detached clusters are plausible yet less spatially distinctive; ties are ordered by visible compositional preference. These judgments concern visible massing and do not establish legal compliance or an undisclosed programme fit.

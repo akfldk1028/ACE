@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c05_bearing_bar_assembly^off_open",
+  "shape_id": "7fff5ae98ac9727ca0f9",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    918.3216077234417,
+    784.1646232026472
+  ],
+  "section_area_m2": 103.06724463218009,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "ba718b84b71134183d150507dfc8e54d917af3daaa6e635492da3f9ead943d08"
+}

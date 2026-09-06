@@ -1,0 +1,673 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-comp06:morph-curved-low:creative-001",
+  "parent_shape_id": "a9f195967d9b9a1f4430",
+  "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp06_develop_crescent_ground_passage",
+      "root_id": "ground_passage",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "ground_passage_cutter",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.34,
+                0,
+                0,
+                -0.91
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.19,
+                -0.25
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "ground_passage",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "ground_passage_cutter"
+          ],
+          "parameters": {},
+          "semantic_role": "public_threshold",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+        "parent_shape_id": "a9f195967d9b9a1f4430",
+        "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+        "author_provider": "codex_authored_exact_development",
+        "changed_fields": [
+          "ground_passage_cutter",
+          "ground_passage"
+        ],
+        "expected_effect": "A substantial ground-level passage connects the outer edge to the concavity through the lower part of the curved band; the upper band stays continuous. Clear dimensions must be measured after delivery.",
+        "tradeoff": "Lower occupied area and a bridge-like transfer over the passage; geometry alone does not prove access or structural feasibility.",
+        "programme_status": "unknown",
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp06_develop_crescent_lower_terminal",
+      "root_id": "lower_terminal",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "terminal_terrace_cutter",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.62,
+                0,
+                0,
+                -1.42
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.25,
+                0.065
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "lower_terminal",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "terminal_terrace_cutter"
+          ],
+          "parameters": {},
+          "semantic_role": "program_space",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+        "parent_shape_id": "a9f195967d9b9a1f4430",
+        "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+        "author_provider": "codex_authored_exact_development",
+        "changed_fields": [
+          "terminal_terrace_cutter",
+          "lower_terminal"
+        ],
+        "expected_effect": "One terminal portion is lowered while the opposite end retains the parent height, producing a broad upper ledge and directional section hierarchy.",
+        "tradeoff": "Reduced upper area; the ledge is geometric roof space, not an assumed accessible terrace or resolved room.",
+        "programme_status": "unknown",
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp06_develop_crescent_sloping_wall",
+      "root_id": "sloping_wall",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "sloping_wall",
+          "kind": "modifier",
+          "operator": "taper",
+          "inputs": [
+            "organization_1"
+          ],
+          "parameters": {
+            "axis": "z",
+            "scale_top": 0.72,
+            "subdivisions": 5
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+        "parent_shape_id": "a9f195967d9b9a1f4430",
+        "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+        "author_provider": "codex_authored_exact_development",
+        "changed_fields": [
+          "sloping_wall"
+        ],
+        "expected_effect": "The bent band remains continuous while its walls narrow toward the upper edge, establishing a continuous section transition rather than a uniform extrusion.",
+        "tradeoff": "Sloped enclosing surfaces and smaller upper plates complicate planning and structure; no programme or environmental performance is inferred.",
+        "programme_status": "unknown",
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp06_develop_crescent_two_lightwells",
+      "root_id": "two_lightwells",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "lightwell_1_cutter",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.24,
+                0,
+                0,
+                -0.77
+              ],
+              [
+                0,
+                0.24,
+                0,
+                0.012237543805423995
+              ],
+              [
+                0,
+                0,
+                0.7,
+                -0.35
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "lightwell_2_cutter",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.24,
+                0,
+                0,
+                0.22999999999999998
+              ],
+              [
+                0,
+                0.24,
+                0,
+                0.6454179894342321
+              ],
+              [
+                0,
+                0,
+                0.7,
+                -0.35
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "lightwell_cutters",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "lightwell_1_cutter",
+            "lightwell_2_cutter"
+          ],
+          "parameters": {},
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "two_lightwells",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "lightwell_cutters"
+          ],
+          "parameters": {},
+          "semantic_role": "program_space",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "parent_name": "book:book-comp06:morph-curved-low:creative-001",
+        "parent_shape_id": "a9f195967d9b9a1f4430",
+        "parent_program_hash": "9793f745753787fb550fb4ed90ef441ae5633456fcbe6994ac462d315f3b7c89",
+        "author_provider": "codex_authored_exact_development",
+        "changed_fields": [
+          "lightwell_1_cutter",
+          "lightwell_2_cutter",
+          "lightwell_cutters",
+          "two_lightwells"
+        ],
+        "expected_effect": "Two measurable full-height openings subdivide the deep curved band into shorter occupied portions while retaining its continuous outer figure.",
+        "tradeoff": "Loss of floor area and narrower remaining strips; light, circulation and room suitability are unverified.",
+        "programme_status": "unknown",
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    }
+  ]
+}

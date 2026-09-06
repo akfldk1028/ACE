@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "shape_id": "64c94edfe13ebcdc018e",
+  "anonymous_image": false,
+  "image_footer": "sangok_c04_develop_perforated_base~full_ground^cross_open | 64c94edfe13ebcdc018e | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.1
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    601.008108513927,
+    662.8531209857738
+  ],
+  "section_area_m2": 223.79503199839505,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "bce30651e93fa54464e29025c793b24601c4435db3533735d7f55b5c2c333d62"
+}

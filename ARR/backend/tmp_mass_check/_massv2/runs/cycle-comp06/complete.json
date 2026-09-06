@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "round": "comp06",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "feedback": {
+    "parent": "book:book-comp06:morph-curved-low:creative-001",
+    "champion": "book:book-develop-comp06:exact-authored-development:creative-002",
+    "source": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp06-book-exact\\champion.json",
+    "feedback_written": true
+  },
+  "board": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp06\\board\\board.html",
+  "sheet": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp06\\study.html"
+}

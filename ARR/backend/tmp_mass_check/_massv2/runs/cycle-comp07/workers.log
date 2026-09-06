@@ -1,0 +1,44 @@
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "new-era", "assembly-breadth-and-faithful-stack-render [cycle comp07]", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\comp06-before-assembly-breadth"]
+archived the old board to runs\board-archive-20260906-1933
+new era from 20260906-1933: assembly-breadth-and-faithful-stack-render [cycle comp07]
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-author\\scripts\\brief.sh"]
+464 sentences, 120 verdicts -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\board\verdict-ledger.md
+[INFO] 2026-09-06 19:33:51,395 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-06 19:33:51,395 numexpr.utils: NumExpr defaulting to 16 threads.
+brief -> brief.md (42734 bytes)
+brief: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/brief.md (42734 bytes)
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-validate\\scripts\\validate.sh", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp07.json"]
+
+=== gen-comp07.json: 1 FAULTS
+    sangok_c07_offset_paired_bar_levels: says the same thing as sangok_c07_four_rotated_occupied_blocks (opener/dominant/stature all equal) - one book, one sentence per idea
+
+sentences 6   faults 1
+verbs    {'aggregate': 3, 'extrude': 2, 'shape': 2, 'stack': 1, 'interlock': 1}
+profiles {}
+carve per sentence: 0.00   (기존 코퍼스 0.97)
+FAIL: faults reported above - revise the corpus (stderr: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/validate.err)
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-validate\\scripts\\validate.sh", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp07.json"]
+
+=== gen-comp07.json: OK
+
+sentences 6   faults 0
+verbs    {'aggregate': 3, 'extrude': 2, 'shape': 2, 'stack': 1, 'interlock': 1}
+profiles {}
+carve per sentence: 0.00   (기존 코퍼스 0.97)
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-run\\scripts\\run.sh", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp07.json", "comp07"]
+generation candidates: 8
+parti sentences: 8 spoken, 0 with a silent word
+gaps that closed before delivery: 0
+coverage variants: 32
+siting variants: 141
+selected 5 from 179 (5 distinct compositions)
+compiled 181/181  delivered 3  unlawful 2  implausible 0  crushed 0  cells 5/24
+summary: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/comp07/massv2-summary.json
+sheet:   D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/comp07/massv2-sheet.png
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "book-author-contract", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author", "12", "book-comp07"]

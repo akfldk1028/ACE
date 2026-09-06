@@ -1,0 +1,59 @@
+{
+  "schema": 2,
+  "config": {
+    "round": "comp07",
+    "count": 6,
+    "book_count": 12,
+    "develop_count": 4,
+    "book_payload": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp07.json",
+    "pnu": "4115011300106840001",
+    "track": "overseas",
+    "building_type": "업무시설",
+    "new_era": "assembly-breadth-and-faithful-stack-render",
+    "baseline": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260906\\comp06-before-assembly-breadth"
+  },
+  "actions": {
+    "new-era": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\era.json": "5da92c1d33ba950bd6856ca1f7ec79cff3188d5b24edc356fb133dee2940c1c1"
+      }
+    },
+    "brief": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\brief.md": "8c91dd81d9a87974fea1dfb2abecff42717ea88d0d0657e6be0f153d52c65149"
+      }
+    },
+    "validate": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp07.json": "08a2bb5295f0cc0feae513365246d3a411efe092fbc0f32e7e432878361c0ab9"
+      }
+    },
+    "run": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\comp07\\massv2-summary.json": "cc4767fc219fc6e600c7120386e285b502394129c2ef17d97cf5c8b0a3e938ea"
+      }
+    },
+    "book-author-contract": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\PROMPT.txt": "f42f5381768088d8ef43bef57f881807c21699f25f2e52b108b8f6a8ef51cabc",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\schema.json": "6fa29e6e5ab4c13bd4df80ffa9766b06052a8f6ae80e3143b8c531740a333c90",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\book-author\\context.json": "663508bf74f0270487b2500a1531c3d33a1ff4687d376d005b88779113624cfe",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\brief.md": "8c91dd81d9a87974fea1dfb2abecff42717ea88d0d0657e6be0f153d52c65149"
+      }
+    }
+  },
+  "steps": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "status": "pending",
+  "last_failure": {
+    "step": 3,
+    "reason": "worker exited 1: [WindowsPath('D:/Data/25_ACE/agents/MassAgent/skills/mass-validate/scripts/validate.sh'), WindowsPath('D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/inputs/gen-comp07.json')]; see D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp07\\workers.log"
+  },
+  "attempts": {
+    "run": 1
+  }
+}

@@ -1,4 +1,4 @@
-"""A deliberately low authored scheme reaches visual review without bypassing gates."""
+"""Authored height does not opt out of density selection while policy is pending."""
 import unittest
 
 from design.maas.massv2.compile import compile_matrix_form
@@ -28,10 +28,16 @@ def candidate(name, *, low=False, explicit=False, inferred=False, occupiable=Tru
 
 
 class AuthoredSelectionTests(unittest.TestCase):
-    def test_explicit_plan_growth_retains_the_only_legal_occupant_of_a_low_cell(self):
+    def test_explicit_plan_growth_does_not_opt_out_of_existing_density_policy(self):
         low = candidate('garden', low=True, explicit=True)
         high = candidate('office')
-        self.assertEqual({c.form.name for c in choose([low, high])}, {'garden', 'office'})
+        self.assertEqual([c.form.name for c in choose([low, high])], ['office'])
+
+    def test_existing_all_underfilled_fallback_is_unchanged(self):
+        for explicit in (False, True):
+            with self.subTest(explicit=explicit):
+                low = candidate('garden', low=True, explicit=explicit)
+                self.assertEqual([c.form.name for c in choose([low])], ['garden'])
 
     def test_inferred_or_missing_growth_keeps_existing_unbriefed_density_policy(self):
         for inferred in (False, True):

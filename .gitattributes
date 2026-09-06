@@ -1,0 +1,6 @@
+# Frozen mass-cycle evidence is identified by byte-level SHA256 receipts.
+ARR/backend/tmp_mass_check/_massv2/inputs/** -text
+ARR/backend/tmp_mass_check/_massv2/diagnostics/** -text
+ARR/backend/tmp_mass_check/_massv2/runs/** -text
+ARR/backend/tmp_mass_check/_massv2/brief*.md -text
+ARR/backend/tmp_mass_check/c260-book/book-comp04/** -text

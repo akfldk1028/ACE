@@ -1,15 +1,20 @@
 # massv2 작업 폴더
 
+현행 시작점은 [HANDOFF.md](HANDOFF.md) → [FLOW.md](FLOW.md)다. 실행은
+`agents/MassAgent/skills/mass-cycle/scripts/cycle.sh` 하나이며 해당 사이클의 state/pending/complete가
+진행 상태를 기록한다. 아래 날짜별 실험은 역사 기록이다. 과거 명령·수치는 현행 생산 명령이나
+삭제 허가가 아니며 현재 코드의 법규/형상 규칙을 대신하지 않는다.
+
 ```
 _massv2/
-  latest/       ← 최신 출고물. 이것만 보면 됨 (alt-01~16.png, alts.json, massv2-sheet.png, massv2-summary.json)
-  inputs/       ← 저작 스킴 7파일 (authored-*.json). 생성 입력
-  runs/         ← 과거 런 50개. 비교용 보관, 지워도 무방
+  latest/       ← 레거시 산출물. 현재 납품 위치는 HANDOFF에서 확인
+  inputs/       ← 문장 저작·BOOK payload·고정 배심 루브릭
+  runs/         ← 현재/과거 생성·배심·보드·사이클 영수증. 임의 삭제 금지
   diagnostics/  ← 진단 측정 결과 txt/json. 아래 기록의 근거
   README.md     ← 이 파일. 무엇을 왜 고쳤는지의 기록
 ```
 
-**재생성 커맨드** (`ARR/backend`에서):
+**과거 재현 명령 예시 — 현재 생산에서 직접 실행하지 않음**:
 ```
 python manage.py generate_massv2 --pnu 4115011300106840001 \
   --output-dir tmp_mass_check/_massv2/latest \

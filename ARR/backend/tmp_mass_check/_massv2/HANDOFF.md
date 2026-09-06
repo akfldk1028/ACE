@@ -1,5 +1,7 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**comp05 시작 / 2026-09-06:** 원저작을 BOOK 탐색 자식과 별도 보존하고 raw·정규화·물리 형상 해시를 구분하도록 수정했다(outer `5d8d9ee9`). unbriefed 최소 FAR 선발 규칙을 제거하고 명시 programme 미달/측정 누락 fallback을 막았다(`96fe08b1`). 관련 78검사 통과, BOOK/명령/계보 검사는 `agents/MassAgent/docs/reports/authored-preservation-comp05.md` 참고. comp04 변경 전 1,514파일 baseline을 보존했다. **comp05 steps1–3 완료, step4 생성 실행 중인 시점의 기록**이며 완료 선언이 아니다. 해당 보고서의 정확한 cycle 명령으로만 이어간다. 새 BOOK 저작·배심·굽기/diff·시트·develop이 남아 있다. 분산 동 게이트·범용 programme 연결·feedback 프로젝트 격리는 아직 미수정이다.
+
 **BOOK 계약 후속 수리 완료:** cycle/bridge가 live ARR prompt·schema·BOOK vocabulary와 회차 brief를 저자에게 전달하고 해시로 고정한다. payload 제출 후 계약 변조도 거절한다. 총괄 MassAgent Python 57건 통과(7.610초). 연구/구현 근거는 `recent-research-flow-review-20260906.md` 마지막 절. 아래 '수정 진행 중'은 이 완료 기록으로 갱신한다. 강제 슬롯 조작·분산 동 제한·programme/성장/선발·새 회차는 여전히 남아 있으며 comp04를 다시 생성하지 않았다.
 
 **최신 연구 대조 기록:** `agents/MassAgent/docs/reports/recent-research-flow-review-20260906.md`. CoMa/HouseMind(2026 arXiv v1), TileGPT/Experiential Views(2024)의 원문 방법·실험·한계를 읽고 FLOW 12단계와 비교했다. BOOK 저작 계약 전달 수정이 진행 중이며, 강제 BOOK 슬롯 투영·component_count 단일값 게이트는 실제 코드로 확인했지만 아직 수정하지 않았다. 연구를 읽은 것을 새 시트 개선 완료로 보고하지 않는다.

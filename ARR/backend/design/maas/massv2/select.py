@@ -26,8 +26,11 @@ Three rules, in order:
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from math import atan2, ceil, degrees
 from typing import Any, Iterable
+
+from shapely.geometry import Polygon
 
 from design.maas.source_geometry.ir import SourceMass
 
@@ -35,6 +38,7 @@ from .composition import PRIMARY_SHARE
 from .form import MatrixForm
 from .measure import FormMeasurement
 from .plausibility import Plausibility
+from .profiles import unit_plan
 
 
 @dataclass(frozen=True)
@@ -46,6 +50,38 @@ class Candidate:
     cell: str
     ground_take: float
     far_utilization: float
+
+
+def _surface_identity(surface, default):
+    """Canonical typed definition, independent of physical placement scale."""
+    def canonical(record):
+        if record.get('type') == 'polynomial':
+            coefficients = {}
+            for i, j, value in record['terms']:
+                coefficients[i, j] = coefficients.get((i, j), 0.) + value
+            coefficients = {power: value for power, value in coefficients.items() if value != 0}
+            if set(coefficients) <= {(0, 0)}:
+                return {'type': 'constant', 'height': float(coefficients.get((0, 0), 0.))}
+            return {'type': 'polynomial', 'terms': [(*power, float(value))
+                    for power, value in sorted(coefficients.items())]}
+        if record.get('type') == 'constant':
+            return {'type': 'constant', 'height': float(record['height'])}
+        if record.get('type') == 'affine':
+            return {**record, 'surface': canonical(record['surface'])}
+        return record
+    record = surface.signature() if surface is not None else {'type': 'constant', 'height': default}
+    return json.dumps(canonical(record), sort_keys=True, separators=(',', ':'))
+
+
+def _shape_identity(item):
+    # Bounding boxes contain neither holes nor roof/underside fields. Keep
+    # authored unit geometry beside the existing scale-free arrangement key.
+    # Polygon normalization removes winding/start-vertex differences only;
+    # this is conservative dedup, not a proof of arbitrary solid equivalence.
+    region = item.plan_region if item.plan_region is not None else Polygon(unit_plan(item.plan))
+    return (region.simplify(0, preserve_topology=True).normalize().wkb_hex,
+            _surface_identity(item.top_surface, 1.),
+            _surface_identity(item.bottom_surface, 0.))
 
 
 def composition_signature(form: MatrixForm) -> tuple:
@@ -85,6 +121,7 @@ def composition_signature(form: MatrixForm) -> tuple:
             round((max(xs) - min(xs)) / span_x, 2),
             round((max(ys) - min(ys)) / span_y, 2),
             round((max(zs) - min(zs)) / span_z, 2),
+            _shape_identity(item),
         ))
     return tuple(sorted(entries))
 

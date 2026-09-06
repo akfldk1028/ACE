@@ -17,6 +17,7 @@ from design.maas.creative_book_supply import creative_book_schedule
 from design.maas.creative_program_author import (
     CreativeAuthoredProgram,
     cached_authored_programs,
+    normalize_authored_programs,
 )
 from design.maas.geometry_language.ast import GeometryNode, GeometryProgram
 from design.maas.geometry_language.compiler import compile_geometry_program
@@ -417,6 +418,13 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
         self.assertEqual(report.stage_counts["morphology_retained"], 2)
         self.assertEqual(len(report.candidates), 4)
         self.assertEqual(report.exploration_count, 2)
+        eligible_source_ids = sorted({
+            authored.program.program_hash()
+            for authored in normalize_authored_programs((
+                self.valid_authored("first"), self.valid_authored("second"),
+            ))
+        })
+        self.assertEqual(report.schedule_evidence["source_ids"], eligible_source_ids)
         self.assertEqual(
             [
                 row["book_language_evidence"]["principle_id"]
@@ -425,7 +433,9 @@ class CreativeFloorPortfolioReportTests(unittest.TestCase):
             ],
             [
                 item.principle_id
-                for item in creative_book_schedule(2)
+                for item in creative_book_schedule(
+                    2, authored_source_ids=eligible_source_ids,
+                )
             ],
         )
 

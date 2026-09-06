@@ -586,6 +586,7 @@ def _hybrid_portfolio_payload(
         "rejection_counts": dict(report.rejection_counts),
         "rejections": [item.evidence() for item in report.rejections],
         "book_language_coverage": deepcopy(report.language_coverage),
+        "book_schedule": deepcopy(report.schedule_evidence),
         "morphology_evidence": {
             "schema_version": "arr.maas.creative_morphology.v1",
             "decision": report.status,

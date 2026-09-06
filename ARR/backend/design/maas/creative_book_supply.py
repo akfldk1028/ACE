@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Any
+from typing import Any, Iterable
+import hashlib
+import json
 
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 
@@ -35,6 +37,16 @@ _SCHEDULED_KINDS = frozenset({
     "combination",
     "aggregation",
 })
+AUTHORED_SCHEDULE_POLICY = "source_set_rotated_kind_interleave.v1"
+
+
+def authored_book_schedule_key(source_ids: Iterable[str]) -> str:
+    """A set identity, independent of input ordering and candidate positions."""
+    identities = list(source_ids)
+    if any(not isinstance(identity, str) or not identity for identity in identities):
+        raise ValueError("authored source identities must be nonempty strings")
+    identities = sorted(set(identities))
+    return hashlib.sha256(json.dumps(identities, separators=(",", ":")).encode("utf8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -59,8 +71,15 @@ class CreativeBookAssignment:
 
 def creative_book_schedule(
     count: int,
+    *,
+    authored_source_ids: Iterable[str] | None = None,
 ) -> tuple[CreativeBookAssignment, ...]:
-    """Return deterministic exhaustive 30/20/9 BOOK assignments."""
+    """Return exhaustive assignments; optional authored mode avoids a prefix.
+
+    The default fixture ordering is unchanged. Authored mode rotates each kind
+    by source-set identity and interleaves kinds until every principle has been
+    offered once. Offering is not a materialization or feasibility claim.
+    """
 
     requested = int(count)
     if requested < 0:
@@ -74,6 +93,15 @@ def creative_book_schedule(
         raise RuntimeError(
             "canonical BOOK schedule requires exactly 59 principles"
         )
+    if authored_source_ids is not None:
+        key = authored_book_schedule_key(authored_source_ids)
+        groups = []
+        for kind in ("base_operative", "combination", "aggregation"):
+            group = [item for item in principles if item["kind"] == kind]
+            offset = int(hashlib.sha256(f"{key}:{kind}".encode("utf8")).hexdigest(), 16) % len(group)
+            groups.append(group[offset:] + group[:offset])
+        principles = tuple(group[index] for index in range(max(map(len, groups)))
+                           for group in groups if index < len(group))
     result: list[CreativeBookAssignment] = []
     for index in range(requested):
         principle = principles[index % len(principles)]
@@ -181,5 +209,7 @@ __all__ = [
     "CreativeBookAssignment",
     "creative_book_evidence",
     "creative_book_schedule",
+    "authored_book_schedule_key",
+    "AUTHORED_SCHEDULE_POLICY",
     "project_creative_book_program",
 ]

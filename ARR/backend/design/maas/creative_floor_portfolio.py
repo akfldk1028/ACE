@@ -13,6 +13,8 @@ from .creative_family_contract import (
     CreativeRecipeResult,
 )
 from .creative_book_supply import (
+    AUTHORED_SCHEDULE_POLICY,
+    authored_book_schedule_key,
     creative_book_evidence,
     creative_book_schedule,
     project_creative_book_program,
@@ -93,6 +95,7 @@ class CreativeFloorPortfolioReport:
     rejection_counts: dict[str, int]
     rejections: tuple[CreativePortfolioRejection, ...]
     language_coverage: dict[str, Any]
+    schedule_evidence: dict[str, Any] | None = None
 
     @property
     def exploration_count(self) -> int:
@@ -118,6 +121,7 @@ class CreativeFloorPortfolioReport:
             "rejection_counts": dict(sorted(self.rejection_counts.items())),
             "rejections": [item.evidence() for item in self.rejections],
             "language_coverage": dict(self.language_coverage),
+            **({"book_schedule": self.schedule_evidence} if self.schedule_evidence is not None else {}),
         }
 
 
@@ -236,7 +240,6 @@ def build_creative_floor_portfolio_report(
     program_hashes: set[str] = set()
     geometry_hashes: set[str] = set()
     normalized_mesh_hashes: set[str] = set()
-    book_schedule = creative_book_schedule(target)
 
     def reject(
         input_index: int,
@@ -305,6 +308,17 @@ def build_creative_floor_portfolio_report(
             continue
         stage_counts["structural_pass"] += 1
         eligible.append((input_index, authored, source_program_hash))
+
+    source_ids = sorted({source_hash for _index, _authored, source_hash in eligible})
+    book_schedule = creative_book_schedule(target, authored_source_ids=source_ids)
+    schedule_evidence = {
+        "policy": AUTHORED_SCHEDULE_POLICY,
+        "key": authored_book_schedule_key(source_ids),
+        "identity_basis": "sorted unique normalized structurally eligible authored source program hashes",
+        "source_ids": source_ids,
+        "ordered_assignments": [assignment.evidence() for assignment in book_schedule],
+        "authority": "offered exploration assignments; actual materialization is measured in language_coverage",
+    }
 
     # Preserve genuine author alternatives before exploring BOOK assignments.
     # Physical materialization may scale a programme into metres; the exact
@@ -560,6 +574,9 @@ def build_creative_floor_portfolio_report(
         stage_counts["morphology_retained"] += 1
 
     language_coverage = _book_language_coverage(explorations)
+    # Command writers already persist this evidence field. Keep offered supply
+    # explicit and separate from the materialized coverage counters above.
+    language_coverage["offered_schedule"] = schedule_evidence
     coverage_complete = (
         target != 20
         or (
@@ -580,6 +597,7 @@ def build_creative_floor_portfolio_report(
         rejection_counts=dict(rejection_counts),
         rejections=tuple(rejections),
         language_coverage=language_coverage,
+        schedule_evidence=schedule_evidence,
     )
 
 
@@ -618,7 +636,7 @@ def build_creative_floor_portfolio(
         )
         payload["book_language_coverage"] = report.language_coverage
         evidence = report.evidence()
-        for key in ("exploration_count", "original_count", "target_count_scope"):
+        for key in ("exploration_count", "original_count", "target_count_scope", "book_schedule"):
             payload[key] = evidence[key]
         return payload
 

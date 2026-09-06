@@ -1,0 +1,1061 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-develop-comp08:exact-authored-development:creative-001",
+  "parent_shape_id": "6ef088218ed6fbc0c1cc",
+  "parent_program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp10_develop_outer_tangent_frontage",
+      "root_id": "outer_tangent_frontage_result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "low_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.48,
+                0,
+                0,
+                -1.42
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.36,
+                -0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "middle_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.4,
+                0,
+                0,
+                -0.94
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.2,
+                0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cutters",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "low_end",
+            "middle_end"
+          ],
+          "parameters": {},
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cut",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "descending_end_sequence_cutters"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        },
+        {
+          "id": "outer_tangent_frontage_cutter_1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                4,
+                4,
+                0,
+                -2.075
+              ],
+              [
+                4,
+                -4,
+                0,
+                -1.925
+              ],
+              [
+                0,
+                0,
+                0.8,
+                -0.4
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "outer_tangent_frontage_result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "descending_end_sequence_cut",
+            "outer_tangent_frontage_cutter_1"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_authored_exact_development",
+        "parent_name": "book:book-develop-comp08:exact-authored-development:creative-001",
+        "parent_shape_id": "6ef088218ed6fbc0c1cc",
+        "parent_program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+        "expected_effect": "A coherent tangent on the convex edge replaces the outward belly with a straight exterior frontage while retaining the curved inner edge and descending terraces. Test whether the redistributed compact footprint leaves a wider continuous perimeter strip for the existing parking owner.",
+        "parking_response": "A coherent tangent on the convex edge replaces the outward belly with a straight exterior frontage while retaining the curved inner edge and descending terraces. Test whether the redistributed compact footprint leaves a wider continuous perimeter strip for the existing parking owner.",
+        "unresolved_conflicts": "No parking count or usable access is promised; inherited target is unchanged and physical fit may redistribute area. Vehicle approach, turning, programme and structure remain unverified.",
+        "programme_status": "unknown; retain verified parent target and floor schedule",
+        "changed_fields": [
+          "outer_tangent_frontage_cutter_1",
+          "outer_tangent_frontage_result"
+        ],
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp10_develop_shortened_low_terminal",
+      "root_id": "shortened_low_terminal_result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "low_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.48,
+                0,
+                0,
+                -1.42
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.36,
+                -0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "middle_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.4,
+                0,
+                0,
+                -0.94
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.2,
+                0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cutters",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "low_end",
+            "middle_end"
+          ],
+          "parameters": {},
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cut",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "descending_end_sequence_cutters"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        },
+        {
+          "id": "shortened_low_terminal_cutter_1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.44000000000000017,
+                0,
+                0,
+                -1.6
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.6
+              ],
+              [
+                0,
+                0,
+                0.7,
+                -0.35
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "shortened_low_terminal_result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "descending_end_sequence_cut",
+            "shortened_low_terminal_cutter_1"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_authored_exact_development",
+        "parent_name": "book:book-develop-comp08:exact-authored-development:creative-001",
+        "parent_shape_id": "6ef088218ed6fbc0c1cc",
+        "parent_program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+        "expected_effect": "Shorten the lowest terminal, preserving both successive terraces and the long high curved band. Redistribute the same inherited target through the remaining occupied mass to reduce the land cost of the low terminal and open one end of the perimeter.",
+        "parking_response": "Shorten the lowest terminal, preserving both successive terraces and the long high curved band. Redistribute the same inherited target through the remaining occupied mass to reduce the land cost of the low terminal and open one end of the perimeter.",
+        "unresolved_conflicts": "The end loses some sheltered exterior length; programme allocation and final parking must be remeasured. This is not a request to reduce the verified GFA target.",
+        "programme_status": "unknown; retain verified parent target and floor schedule",
+        "changed_fields": [
+          "shortened_low_terminal_cutter_1",
+          "shortened_low_terminal_result"
+        ],
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp10_develop_ground_crossing_threshold",
+      "root_id": "ground_crossing_threshold_result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "low_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.48,
+                0,
+                0,
+                -1.42
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.36,
+                -0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "middle_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.4,
+                0,
+                0,
+                -0.94
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.2,
+                0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cutters",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "low_end",
+            "middle_end"
+          ],
+          "parameters": {},
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cut",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "descending_end_sequence_cutters"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        },
+        {
+          "id": "ground_crossing_threshold_cutter_1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.21999999999999997,
+                0,
+                0,
+                -0.3
+              ],
+              [
+                0,
+                2.4,
+                0,
+                -0.6
+              ],
+              [
+                0,
+                0,
+                0.27999999999999997,
+                -0.35
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "ground_crossing_threshold_result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "descending_end_sequence_cut",
+            "ground_crossing_threshold_cutter_1"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_authored_exact_development",
+        "parent_name": "book:book-develop-comp08:exact-authored-development:creative-001",
+        "parent_shape_id": "6ef088218ed6fbc0c1cc",
+        "parent_program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+        "expected_effect": "Open a substantial cross-band ground threshold under the existing high curved mass, connecting the two exterior sides while preserving the descending end sequence. It explores an alternative ground access relation rather than assuming parked cars fit below the overhang.",
+        "parking_response": "Open a substantial cross-band ground threshold under the existing high curved mass, connecting the two exterior sides while preserving the descending end sequence. It explores an alternative ground access relation rather than assuming parked cars fit below the overhang.",
+        "unresolved_conflicts": "The full upper projection remains excluded by the current parking study, so no parking gain is claimed from the passage. Transfer structure, entry classification, pedestrian safety and turning paths require verification.",
+        "programme_status": "unknown; retain verified parent target and floor schedule",
+        "changed_fields": [
+          "ground_crossing_threshold_cutter_1",
+          "ground_crossing_threshold_result"
+        ],
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp10_develop_recessed_inner_arrival",
+      "root_id": "recessed_inner_arrival_result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                2.8,
+                0.0,
+                0.0,
+                -1.4
+              ],
+              [
+                0.0,
+                0.62,
+                0.0,
+                -0.31
+              ],
+              [
+                0.0,
+                0.0,
+                0.48,
+                -0.24
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "organization_1",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 65.0,
+            "subdivisions": 5.0
+          },
+          "semantic_role": "dominant_mass",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "low_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.48,
+                0,
+                0,
+                -1.42
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.36,
+                -0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "middle_end",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.4,
+                0,
+                0,
+                -0.94
+              ],
+              [
+                0,
+                2.5,
+                0,
+                -0.5
+              ],
+              [
+                0,
+                0,
+                0.2,
+                0.08
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cutters",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "low_end",
+            "middle_end"
+          ],
+          "parameters": {},
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "descending_end_sequence_cut",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "organization_1",
+            "descending_end_sequence_cutters"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        },
+        {
+          "id": "recessed_inner_arrival_cutter_1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.32,
+                0,
+                0,
+                0.14
+              ],
+              [
+                0,
+                0.89,
+                0,
+                0.91
+              ],
+              [
+                0,
+                0,
+                0.7,
+                -0.35
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "authored_void_cutter",
+          "provenance": {}
+        },
+        {
+          "id": "recessed_inner_arrival_result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "descending_end_sequence_cut",
+            "recessed_inner_arrival_cutter_1"
+          ],
+          "parameters": {},
+          "semantic_role": "dominant_mass",
+          "provenance": {}
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_authored_exact_development",
+        "parent_name": "book:book-develop-comp08:exact-authored-development:creative-001",
+        "parent_shape_id": "6ef088218ed6fbc0c1cc",
+        "parent_program_hash": "9ec081449360346a0f4988be7b6485c99519de8927dda5fd4b55f2dc4a40ef47",
+        "expected_effect": "Carve a full-height arrival recess into the upper inner edge, leaving a continuous grounded outer band and the inherited descending terraces. Differentiate the public approach from the convex service edge and test actual residual planning and parking space.",
+        "parking_response": "Carve a full-height arrival recess into the upper inner edge, leaving a continuous grounded outer band and the inherited descending terraces. Differentiate the public approach from the convex service edge and test actual residual planning and parking space.",
+        "unresolved_conflicts": "The concave reservation policy may keep this recess unavailable to parking; no automatic reserve override is supplied. Connection width, programme and vehicle versus pedestrian separation remain unresolved.",
+        "programme_status": "unknown; retain verified parent target and floor schedule",
+        "changed_fields": [
+          "recessed_inner_arrival_cutter_1",
+          "recessed_inner_arrival_result"
+        ],
+        "inherited_dimensions_authority": "verified_book_development_parent_contract"
+      }
+    }
+  ]
+}

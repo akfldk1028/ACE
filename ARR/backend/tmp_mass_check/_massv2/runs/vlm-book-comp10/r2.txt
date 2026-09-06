@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 3 | A clear crescent defines a concave exterior space, but its uniform extrusion offers little sectional hierarchy.
+FEASIBILITY 5 | Continuous ground-supported volume and repeated occupancy provide a straightforward basis for structure.
+SITE 4 | The bent footprint engages the irregular parcel and frames a substantial open area within it.
+EDITABILITY 4 | Continuous floors are readily developable, with the curved perimeter requiring a considered internal grid.
+WEIGHTED 3.90
+
+TILE t02
+CONCEPT 3 | Rotated stacked plates are legible, although the successive offsets compete without a clear dominant space.
+FEASIBILITY 3 | Overlaps provide potential support zones, but multiple projecting edges require transfers and careful load paths.
+SITE 3 | The compact central stack leaves perimeter space but shows limited directional response to the parcel.
+EDITABILITY 3 | Changing plate orientations constrain a consistent core, circulation and facade organization.
+WEIGHTED 3.00
+
+TILE t03
+CONCEPT 4 | Parallel lower bars and a raised crossing volume create a recognizable sectional composition.
+FEASIBILITY 3 | The elevated bridge and projecting edges require structural resolution beyond the separated masses shown in section.
+SITE 3 | The bars occupy the parcel coherently, although their alignment and intervening gap have limited demonstrated site purpose.
+EDITABILITY 3 | Rectangular wings are workable, but connectivity between levels and the bridging element needs substantial development.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 3 | A twisting solid gives a clear sculptural gesture but little developed solid-void hierarchy.
+FEASIBILITY 4 | The continuous compact body is plausible, with varying perimeter geometry complicating its structural envelope.
+SITE 2 | The tall central object has little visible relationship to the irregular edges or available open ground.
+EDITABILITY 3 | A central core appears possible, while changing floor outlines make repetitive planning and facade development less direct.
+WEIGHTED 3.05
+
+TILE t05
+CONCEPT 2 | Several polygonal lobes form a single solid without a strong sectional or spatial hierarchy.
+FEASIBILITY 5 | The low continuous extrusion offers direct support and no conspicuous transfer conditions.
+SITE 3 | Generous surrounding ground remains, but the angled branches only weakly organize the parcel.
+EDITABILITY 4 | Continuous floor area is adaptable, though reentrant corners and oblique wings complicate efficient circulation.
+WEIGHTED 3.35
+
+TILE t06
+CONCEPT 3 | Two long parallel bars and a small end connection establish a clear but minimally articulated idea.
+FEASIBILITY 5 | Ground-supported rectangular bars offer simple load paths and repeatable floor geometry.
+SITE 3 | The long axis uses the parcel width, but the very narrow interstice has limited spatial generosity.
+EDITABILITY 4 | Regular bars support straightforward planning, while upper-level separation requires a deliberate circulation solution.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A substantial bridging volume over two end masses produces a strong and legible central void.
+FEASIBILITY 4 | Broad end supports make the bridge plausible, although its span needs a developed structural system.
+SITE 3 | The central opening preserves a clear ground-level spatial interval, but no frontage or access relationship is established.
+EDITABILITY 4 | End masses can accommodate vertical organization and the continuous upper bar preserves a clear overall scheme.
+WEIGHTED 3.80
+
+TILE t08
+CONCEPT 3 | Stepped interlocking blocks offer varied section but lack a sufficiently clear hierarchy among projections and recesses.
+FEASIBILITY 3 | Several offset and elevated pieces require careful support and transfer coordination.
+SITE 3 | A compact low cluster leaves substantial open ground, with little demonstrated response beyond its placement.
+EDITABILITY 2 | Fragmented upper occupancy and many short offsets make continuous circulation and coherent floor planning difficult.
+WEIGHTED 2.80
+
+TILE t09
+CONCEPT 4 | A raised bent bar and lower companion frame an open slot with a clear asymmetric section.
+FEASIBILITY 4 | The substantial supporting volume makes the configuration plausible, subject to resolving the projecting upper arm.
+SITE 3 | The long wings organize an exterior recess, although the footprint comes close to one parcel edge.
+EDITABILITY 4 | Generous rectangular arms support development while retaining the main void and stepped silhouette.
+WEIGHTED 3.80
+
+TILE t10
+CONCEPT 4 | A courtyard ring with distinct upper pavilions establishes a coherent solid-void idea and terraced hierarchy.
+FEASIBILITY 4 | Broad lower masses support much of the composition, with local offsets needing resolution.
+SITE 3 | The courtyard organizes the building internally, while surrounding parcel space remains relatively undifferentiated.
+EDITABILITY 3 | Four separated upper areas require careful vertical circulation and connections to preserve the stepped ring.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 3 | A shifted upper block gives a readable stepped section but limited articulation beyond that single operation.
+FEASIBILITY 4 | A large overlap provides a plausible support zone, with the upper projection requiring structural development.
+SITE 3 | A compact rectangular footprint leaves perimeter space without a distinctive relationship to parcel geometry.
+EDITABILITY 4 | Regular overlapping floor plates offer a workable basis for cores and facade systems.
+WEIGHTED 3.45
+
+TILE t12
+CONCEPT 4 | A horizontal cut through a tall solid creates a strong sectional interruption and clear mass-void contrast.
+FEASIBILITY 3 | The deep cut leaves a substantial projecting upper mass whose load path requires explicit resolution.
+SITE 2 | The tall box has little visible connection to the parcel's geometry or organization of open ground.
+EDITABILITY 3 | Regular floor outlines help planning, but the cut constrains vertical continuity and structural placement.
+WEIGHTED 3.15
+
+TILE t13
+CONCEPT 3 | The offset block creates a clear stepped section with only modest additional volumetric articulation.
+FEASIBILITY 4 | The substantial overlap supports plausible development, while the projecting portion still needs a defined load path.
+SITE 3 | The compact footprint fits within the parcel but does not strongly organize its irregular margins.
+EDITABILITY 4 | Broad regular plates allow cores and circulation to be developed with the main offset retained.
+WEIGHTED 3.45
+
+TILE t14
+CONCEPT 4 | A curved base and branching upper crown form a distinctive hierarchy, though the upper junction is visually congested.
+FEASIBILITY 3 | The projecting upper branches and narrow junctions demand careful transfer and connection design.
+SITE 4 | The bowed lower mass responds to the parcel spread and shapes a deliberate concave exterior space.
+EDITABILITY 3 | The continuous lower band is workable, but branching upper geometry and changing outlines complicate circulation.
+WEIGHTED 3.55
+
+TILE t15
+CONCEPT 4 | Parallel lower bars and a forked raised volume create a legible layered composition with a stronger roof silhouette.
+FEASIBILITY 3 | The bridge, upper fork and end projections require support development not established by the located section.
+SITE 3 | The linear lower volumes fit the parcel reasonably, with a clear intervening gap but little proven frontage response.
+EDITABILITY 3 | Rectangular lower wings are usable, while the forked upper volume adds constraints to continuous circulation.
+WEIGHTED 3.35
+
+TILE t16
+CONCEPT 3 | Unequal parallel bars and a low connecting end make a clear open-ended composition with modest sectional differentiation.
+FEASIBILITY 5 | Simple continuous bars provide direct load paths without conspicuous unsupported elements.
+SITE 3 | The slender wings preserve generous open ground, though their relationship to specific parcel edges remains limited.
+EDITABILITY 4 | Regular linear floors are developable, with upper-level separation requiring circulation to be resolved.
+WEIGHTED 3.70
+
+TILE t17
+CONCEPT 4 | A recessed end terrace adds a convincing secondary scale to the crescent and its concave exterior space.
+FEASIBILITY 5 | The terrace is formed through setback of a continuous supported mass, with no major transfer evident.
+SITE 4 | The bent footprint shapes the irregular parcel and its open interior side, while the lower end moderates its edge presence.
+EDITABILITY 4 | Most of the curved floor band remains continuous and the end setback can be preserved during detailed planning.
+WEIGHTED 4.25
+
+TILE t18
+CONCEPT 4 | Successive end terraces strengthen the crescent's sectional rhythm, though they slightly fragment its otherwise simple form.
+FEASIBILITY 5 | The stepped subtraction maintains broad support beneath the remaining upper mass.
+SITE 4 | The curved perimeter organizes open ground and the terraces reduce the apparent mass at one end.
+EDITABILITY 4 | The repeated setbacks retain a workable main band, with local floor reductions needing circulation coordination.
+WEIGHTED 4.25
+
+TILE t19
+CONCEPT 5 | A substantial intermediate terrace and raised curved rear volume establish a particularly clear three-dimensional hierarchy.
+FEASIBILITY 4 | The supported stepped body is plausible, although the small central notch and terrace junction require refinement.
+SITE 4 | The crescent frames exterior space while the broad reduction in height gives its edge a more articulated scale.
+EDITABILITY 4 | The lower continuous band and concentrated upper mass provide a workable basis for planning around the main terrace.
+WEIGHTED 4.35
+
+RANKING: t19, t17, t18, t01, t07, t09, t16, t06, t10, t14, t11, t13, t03, t15, t05, t12, t04, t02, t08
+VERDICT: Advance t19, t17 and t18 for their coherent combination of curved exterior space, supported mass and sectional hierarchy; t07 offers a worthwhile alternative centered on a strong bridging void. The set remains massing evidence rather than proof of access, programme or statutory compliance, and the more fragmented stacks need clearer structural and circulation development.

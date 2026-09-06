@@ -1,0 +1,58 @@
+TILE t01
+CONCEPT 4 | A continuous courtyard ring gains a clear sectional identity from its gently sagging roof profile.
+FEASIBILITY 4 | Repeated ground and upper footprints provide coherent bearing volumes, with the curved roof requiring developed framing.
+SITE 3 | The compact ring leaves substantial perimeter space, but its regular geometry makes only a limited response to the irregular parcel.
+EDITABILITY 4 | Continuous bands around the void permit connected floor and core development while preserving the roof and courtyard idea.
+WEIGHTED 3.80
+
+TILE t02
+CONCEPT 4 | The combination of an enclosed court, an open notch and a ground-level cut produces a legible hierarchy of voids.
+FEASIBILITY 4 | Broad aligned volumes make the low mass plausible, although the connection above the ground cut needs a transfer strategy.
+SITE 4 | The clipped outline engages the parcel geometry and the open notch establishes a clear relationship with exterior space.
+EDITABILITY 4 | Connected upper bands and differentiated ground openings allow circulation and facade development without losing the organizing idea.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 3 | A thin canopy above separated tall supports is legible, but the positive volumes offer limited hierarchy beyond this single gesture.
+FEASIBILITY 2 | The section shows a gap between the canopy and curved support tops, leaving the roof load path unresolved in the supplied geometry.
+SITE 2 | The small cluster occupies one end of the parcel without a convincing visible relationship to the extensive remaining ground.
+EDITABILITY 2 | Small separated footprints and the detached canopy make connected floors and circulation difficult to establish while retaining the form.
+WEIGHTED 2.35
+
+TILE t04
+CONCEPT 3 | Offset paired blocks create recognizable terraces and overhangs, although the volumetric composition is fairly generic.
+FEASIBILITY 4 | Substantial overlap between upper and lower blocks makes the modest cantilevers structurally plausible.
+SITE 3 | Placement near one side preserves a large open area, but the composition offers little articulation of that area or the remaining edges.
+EDITABILITY 4 | Compact orthogonal volumes and overlapping levels provide a workable basis for floors, cores and facade subdivisions.
+WEIGHTED 3.45
+
+TILE t05
+CONCEPT 4 | A large portal carved through a single solid creates a strong and consistent sectional idea.
+FEASIBILITY 3 | The upper bridge is deep enough to merit development, but its broad span and asymmetric bearing volumes require substantial structural resolution.
+SITE 3 | The clipped outer edge acknowledges the parcel while the portal relates to open ground, without evidence of a wider access strategy.
+EDITABILITY 3 | Separate lower bars can accept development, but circulation between them and through the bridge will constrain the portal proportions.
+WEIGHTED 3.35
+
+TILE t06
+CONCEPT 4 | Rotating stacked plates establish a distinctive rhythm of projecting corners and alternating terraces in section.
+FEASIBILITY 3 | Considerable central overlap supports development, while successive rotated cantilevers introduce transfers and torsional demands.
+SITE 3 | The composition sits within the parcel with perimeter space, but its changing axes have no clear demonstrated site basis.
+EDITABILITY 3 | Broad plates offer usable floor area, but repeated rotation complicates core continuity and facade alignment.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 3 | A stepped base and smaller crown give a clear hierarchy, though the minor lateral projections weaken the simplicity of the stacking idea.
+FEASIBILITY 4 | Broad continuous bearing volumes support the setbacks, with only limited projecting portions requiring special framing.
+SITE 4 | The substantial clipped base follows the parcel geometry and the receding upper mass moderates its apparent scale.
+EDITABILITY 5 | Continuous generous floorplates and broad vertical overlap allow cores, circulation and facades to be developed while retaining the stepped silhouette.
+WEIGHTED 3.85
+
+TILE t08
+CONCEPT 4 | A compact courtyard block is distinguished by folded roof bands that give its perimeter a directional sectional character.
+FEASIBILITY 4 | Continuous courtyard walls offer coherent support, while the folded roof intersections need detailed structural coordination.
+SITE 3 | The clipped side acknowledges a parcel edge and leaves a broad open fore-area, but orientation and frontage response remain weakly evidenced.
+EDITABILITY 3 | Connected perimeter floors are possible, although narrow bands and multiple roof folds constrain cores and upper-level planning.
+WEIGHTED 3.60
+
+RANKING: t02, t07, t01, t08, t04, t06, t05, t03
+VERDICT: Advance t02 for its clear hierarchy of connected solids and complementary voids, with t07 as the strongest straightforward development platform. Retain t01 for its coherent courtyard and roof concept; t03 needs a resolved physical connection between canopy and supports before advancing.

@@ -1,0 +1,4 @@
+PAIR p01: B - The simpler roof perimeter and straighter plan edges give the stepped frontage a more coherent overall form.
+PAIR p02: A - The broader lower terrace and more generous successive setbacks make the outdoor platforms clearer and better proportioned.
+PAIR p03: B - The visible ground-level opening gives the recessed side a legible access point while preserving the coherent stepped roof composition.
+PAIR p04: A - The continuous roof and plan avoid the sharp triangular notch, producing a clearer envelope and less pinched interior footprint.

@@ -167,3 +167,7 @@ AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_p
 - 보드·3안 시트: `runs/board/`, `runs/study-<라운드>/study.html`
 - 아티팩트(같은 URL 유지): https://claude.ai/code/artifact/4ca086d7-f893-4034-9d3d-d37f5d6901a0
 - 작업대 시트(심사 전 전량): 별도 URL, 납품물 아님
+
+## BOOK development parking feedback (comp10)
+
+The exact parent contract includes identity-bound site_feedback from the existing site_planning owner, including measured repair_requests and source legal evidence. English author prompts require addressing that packet while preserving the spatial principle and dimensional contract. Pair construction remeasures each actual delivered child and stores its own packet in mutants/champion; it never copies parent counts. Visual jury completion does not mean parking approval or a completed general A2A negotiation loop. Unresolved access and aisle connectivity remain explicit. Numerical legal rules stay in their existing owner.

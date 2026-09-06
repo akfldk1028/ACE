@@ -1,0 +1,58 @@
+TILE t01
+CONCEPT 4 | The continuous courtyard ring and concave roof establish a coherent solid-void idea with an expressive sectional silhouette.
+FEASIBILITY 4 | Continuous ground and upper occupancy provide plausible support; the curved roof needs detailing but shows no extreme transfer.
+SITE 4 | The courtyard organizes a compact mass within the irregular parcel while retaining substantial open perimeter space.
+EDITABILITY 4 | A continuous ring offers credible floor and circulation development, with the roof shaping mainly affecting the uppermost accommodation.
+WEIGHTED 4.00
+
+TILE t02
+CONCEPT 4 | The combination of enclosed courtyard and open-sided court creates a clear hierarchy of two different voids within one low mass.
+FEASIBILITY 4 | Substantial bars make the mass plausible, although the differences between ground and upper occupancy require local bridging and transfer resolution.
+SITE 3 | The compact footprint leaves generous exterior ground and opens one court outward, but no specific frontage relationship is established.
+EDITABILITY 4 | The connected upper bars support a legible circulation strategy, while the divided ground arrangement needs careful vertical connections.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 3 | A broad layered cap over separated curved-top piers is distinctive, but the relationship between cap and usable positive volumes is weakly developed.
+FEASIBILITY 2 | The section shows a cap separated from the curved supports, leaving its actual load path unresolved in the supplied geometry.
+SITE 2 | The small assembly occupies one side of the parcel without a convincing spatial relationship to the extensive remaining ground.
+EDITABILITY 2 | Small disconnected occupied pieces and the detached cap make continuous floors and circulation difficult to develop without changing the idea.
+WEIGHTED 2.35
+
+TILE t04
+CONCEPT 3 | Offset stacked blocks create terraces and a readable sectional step, although the composition has limited collective spatial hierarchy.
+FEASIBILITY 4 | Broad overlaps and relatively short projections offer a credible structural starting point for the staggered blocks.
+SITE 2 | The assembly is concentrated at one edge, leaving a large undifferentiated open area with little visible organizing relationship.
+EDITABILITY 3 | Rectangular volumes are adaptable, but shifted upper blocks constrain a continuous core and circulation through the stack.
+WEIGHTED 3.05
+
+TILE t05
+CONCEPT 3 | A large portal cut gives the otherwise compact polygonal block a clear but singular solid-void gesture.
+FEASIBILITY 3 | The deep opening requires a significant overhead transfer, while the two supporting occupied strips are spatially unequal.
+SITE 3 | The polygon follows the clipped parcel end and leaves a broad forecourt, though the portal's relationship to access remains unshown.
+EDITABILITY 3 | The upper connecting mass can support usable floors, but the tall void divides lower occupancy and limits straightforward circulation development.
+WEIGHTED 3.00
+
+TILE t06
+CONCEPT 4 | Rotating stacked plates produce a legible dynamic composition and a strong rhythm of projections and recesses in section.
+FEASIBILITY 3 | Substantial overlap makes the stack plausible, but changing alignments and projecting corners require deliberate transfer design.
+SITE 3 | The centrally placed stack retains perimeter space, although the competing rotations have only a loose relationship to parcel edges.
+EDITABILITY 3 | Broad floor plates are usable, but a persistent core and facade organization must reconcile the rotations and overhangs.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 3 | A broad base and stepped crown provide clear hierarchy, but the layered composition remains conventional and its side projections feel secondary.
+FEASIBILITY 4 | The largely continuous stack offers direct support and manageable local cantilevers without relying on isolated elements.
+SITE 4 | The clipped base responds to the irregular parcel and the upper setbacks reduce the apparent bulk toward its perimeter.
+EDITABILITY 4 | Continuous occupancy and broad overlapping tiers permit straightforward floor and core development, with the deepest lower plates needing careful planning.
+WEIGHTED 3.65
+
+TILE t08
+CONCEPT 4 | The courtyard ring and alternating folded roof edges form a distinctive unified volume with a strong central void.
+FEASIBILITY 4 | Continuous occupied bands support plausible construction, with roof junctions introducing localized complexity rather than major unsupported masses.
+SITE 3 | The ring acknowledges the clipped parcel end and preserves open ground, but its placement gives limited structure to the larger exterior area.
+EDITABILITY 4 | Repeated ground and upper rings support continuous circulation and facade development; the folded roof can remain an upper-level articulation.
+WEIGHTED 3.80
+
+RANKING: t01, t02, t08, t07, t06, t04, t05, t03
+VERDICT: Advance t01 for the strongest integration of a clear courtyard idea, sectional expression and developable continuous mass, with t02 and t08 as credible alternatives. t07 offers a practical stepped composition, while the other entries require stronger site organization or resolution of structural and circulation relationships; none of these visual judgments verifies statutory height or exact building-line compliance.

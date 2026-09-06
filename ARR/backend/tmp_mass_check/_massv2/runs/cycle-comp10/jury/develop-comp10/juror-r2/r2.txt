@@ -1,0 +1,4 @@
+PAIR p01: B, The simpler roof perimeter and broader straight frontage give the stepped mass a clearer composition.
+PAIR p02: A, The deeper lower setback provides a more substantial outdoor terrace and a better balanced base.
+PAIR p03: B, The visible ground-level passage makes entry more legible while preserving the coherent roof and stepped frontage.
+PAIR p04: A, The continuous roof and floor plates avoid the sharp inward notch that fragments B's upper mass.

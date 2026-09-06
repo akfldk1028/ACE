@@ -298,14 +298,14 @@ Storey count and metric height are different constraints. Do not mark unverified
 - **aggregate_pack_house_field** — 최약축 CONCEPT 1.3 (전축 C1.3, F1.7, S2.3, E1.7) : The sentence promises six gabled house identities; the mass delivers a flat layered plate on four fins with no / The six gabled houses are simply not there - what is delivered is a flat plate on four blades with the units c
 
 ### 라운드 총평
-- [vlm-book-comp04] I would advance t14 and t23 for their clear, developable forms, with t09 as the stronger enclosed-court alternative. Across the set, the most convincing proposals give simple grounded volumes a useful relationship to outdoor space; several more sculptural entries still need to demonstrate support or
-- [vlm-book-comp04] I would advance t14 and t09 for their clear spatial ideas, credible support, and ability to retain their identity through development, with t23 as a restrained alternative. The set is strongest where one massing operation produces useful external or roof space; narrow wall-like bands, unclear elevat
-- [vlm-comp06] Advance t04 for its coherent courtyard, sectional hierarchy and direct structural organization, with t02 as a strong alternative offering richer ground-level voids. The gabled ensembles are plausible but less spatially distinctive, while the stacked plates need more convincing support and circulatio
-- [vlm-comp06] Advance t04 for its clear courtyard idea, sectional hierarchy and continuous development framework, with t02 close behind for its richer ground-level solid-void relationships. The stacked alternatives have expressive positive volumes but need stronger evidence of support and vertical continuity, whi
-- [vlm-comp06] Advance t02 and t04 for their legible voids and coherent floor-development potential; t07 is a worthwhile reserve with a more demanding roof and perimeter depth. The layered alternatives offer stronger projections but unresolved vertical connections, while the detached clusters are plausible yet les
-- [vlm-book-comp06] Advance t01 for its coherent curved band and exterior recess, with t11 and t05 offering clear alternative strategies through an elongated void and sectional offset. Retain t06 for further structural study because its incision is architecturally legible but places greater demands on the remaining con
 - [vlm-book-comp06] Advance t11 and t01 for their clear relationships between substantial volumes and exterior voids, with t05 as the strongest compact sectional alternative. The deeply incised blocks warrant further structural development, while small spikes, roof additions and fissures contribute less to a coherent a
 - [vlm-book-comp06] Advance t01 and t11 for their clear positive volumes and coherent external voids, with t05 offering the strongest concise sectional alternative. The slotted taller masses have architectural promise but need their transfer and circulation relationships demonstrated; the finer incisions and roof addit
+- [vlm-comp08] Advance t02 for its differentiated courts and ground passage within a coherent low mass, with t01 also advancing for its stronger sectional courtyard idea. Retain t03 as a robust stepped alternative; the more fragmented or transfer-dependent schemes need clearer spatial benefits to justify their com
+- [vlm-comp08] Advance t02 for its complementary voids and useful connected upper volume, with t01 as the strongest alternative for a more explicitly sectional courtyard scheme. t03 offers a credible terraced basis for development, while t08 merits further study to simplify its roof junctions; none of these visual
+- [vlm-comp08] Advance t02 for its combination of connected positive volumes, differentiated voids and plausible development, with t03 as the most adaptable substantial alternative. Retain t01 ahead of t08 among the courtyard schemes because its rising section contributes more directly to the architectural hierarc
+- [vlm-book-comp08] I would advance t17, t01 and t18 for their clear positive volumes, deliberate outdoor spaces and credible paths toward architectural development. t07 and t08 merit further exploration of their sectional ideas if spanning structure and circulation can be resolved; the available drawings do not establ
+- [vlm-book-comp08] I would advance t01, t08 and t17 for their clear solid-void relationships and credible paths toward architectural development, with t18 as a reserve requiring stronger structural evidence at the cut end. The more elaborate stacks demonstrate energy but are less convincing where formal complexity ove
+- [vlm-book-comp08] Advance t17 and t01 for their legible exterior spaces, credible positive volumes and capacity for architectural development; t18 merits further study of its recessed end. The strongest alternatives sustain a clear relationship between solid and void, while the more fragmented stacks and forked proje
 
 
 ## Development champions already carried into the corpus
@@ -314,6 +314,7 @@ These comparisons were judged. Treat them as specific evidence, not a guarantee 
 - **book:book-develop-comp03:exact-authored-development:creative-001** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp03:morph-bridge-low:creative-018 in a blind pairwise comparison
 - **sangok_c04_develop_perforated_base** — ops[1].bottom_surface {'type': 'constant', 'height': 0} -> {'type': 'profile', 'points': [[0, 0], [0.4, 0], [0.44, 0.42], [0.56, 0.42], [0.6, 0], [1, 0]], 'axis': [0, 1], 'span': [0, 1]} : all 3 independent juror sessions preferred this variant to parent sangok_c04_two_gardens~full_ground^cross_open in a blind pairwise comparison
 - **book:book-develop-comp06:exact-authored-development:creative-002** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp06:morph-curved-low:creative-001 in a blind pairwise comparison
+- **book:book-develop-comp08:exact-authored-development:creative-001** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp08:morph-curved-low:creative-001 in a blind pairwise comparison
 - **loop_butterfly_open__d07_bar+** — ops[0].bar 0.23 -> 0.265 : all 1 independent juror sessions preferred this variant to parent loop_butterfly_open in a blind pairwise comparison
 
 ## Canonical reference material (original source language preserved)
@@ -415,137 +416,56 @@ compress/expand/inflate{ratio,toward}, fracture, intersect{size,level,climb,degr
 
 ---
 
-# 저작 규범 (AUTHORING CANON) — 문장을 쓰기 전에 대조하라
+# Architectural massing authorship canon
 
-2026-08-21. 근거: 강 9문장 vs 약 10문장 코퍼스 부검 + BIG/diségno("one-liner",
-"inevitability") + ArchShapeNet 2025(사람-설계 신호: 공간조직·비례조화·디테일 정련,
-saliency는 탑과 실루엣) + Stamps 1998(실루엣이 지각을 지배) + OMA Patents(연산 명시).
-이 문서는 어휘(VOCABULARY.md)가 아니라 **어휘를 쓰는 법**이다. 신작·재저작은 아래
-체크리스트를 전부 통과해야 한다.
+Current operational contract, updated 2026-09-06. The objective is creative, meaningfully different architectural alternatives within applicable law. Historical stylistic preferences are hypotheses to test, not universal acceptance gates. Numeric limits, supported operations and parameter ranges come from the live code-owned grammar, site evidence and author contract.
 
-## 8 규칙 (부검 실측)
+## Architectural proposition
 
-1. **한 수는 위상을 바꾼다.** 뚫리거나(carve through) 들리거나(lift) 녹거나(merge)
-   접히거나(gable/grade/butterfly) 얹혀야(lodge/nest on:) 실루엣이 생긴다.
-   twist·shear·expand·taper·compress는 이미 선 상자의 재배치일 뿐 — 단독 주연 금지.
-2. **오프너가 이미 형상이어야 한다.** 민짜 `extrude{height}` 금지 — profile(faceted/
-   chamfered/hexagon/trapezoidal/…)이나 unit:house, loop{bar}, stack{profile}로 태어나라.
-3. **큰 몸에 큰 비율.** 비율 파라미터는 몸의 절대 치수에 곱해진다. h0.35 몸에 over 0.5는
-   소멸한다. 극단 대비를 원하면 몸을 세우고(0.85~1.0) 거기에 큰 비율을 걸어라 —
-   낮은 몸(0.4대)은 저층 슬롯이라는 논지가 why에 명시될 때만.
-4. **compress/expand는 교정 동사다.** 강한 문장은 안 쓴다. 비례는 오프너 파라미터
-   (bar·spread·profile·unit)로 태어날 때 정한다. 교정 동사가 형상 동사의 자리를 뺏으면
-   문장이 약해진다.
-5. **`on:`으로 겨눠라.** 비대칭은 전역 변형이 아니라 한 역할만 달라질 때 생긴다.
-   관계동사(lodge/nest)는 host 지정이 없으면 죽은 말이다.
-6. **storeys/unit을 선언하라.** 층수가 선언되면 단위가 사람 크기를 얻고, 예산이 열리고,
-   눌린 변형이 게이트에 걸린다.
-7. **윗면을 말하라.** 약한 문장 10개 전부 평지붕이었다. ArchShapeNet saliency가 보는 곳이
-   탑이다. 지붕 어휘(gable/saltbox/butterfly/mansard/grade smooth/top_profile)나
-   극단 대비 스택으로 실루엣의 상단을 설계하라 — 잔여물로 두지 마라.
-8. **반복하려면 축을 통일하고 대비를 올려라.** split×2는 같은 along + contrast 상승 +
-   방 아닌 진짜 골목(gap ≥ 8m)일 때만 계곡이 된다. 직교 재분할은 블록 다지기다.
+Give each alternative a readable spatial proposition and a reason for it. An inhabited edge, a shared court, equivalent pavilions, stacked rooms, a bridge between grounded volumes, a continuous hall or an asymmetric section can each be a valid organizing principle. Use only the operations needed to make that proposition actual.
 
-## BIG 운영 규칙 (문헌)
+A plain extrusion, flat roof, centred court or group of equally important volumes is allowed. A dominant tower, asymmetric offset, carved void or sculpted roof is not mandatory. Do not append a roof object or arbitrary cut solely to satisfy a novelty quota. A connected material mesh can contain several legible architectural volumes; connectivity is not architectural part count.
 
-- **지배 무브는 하나.** 2차 조작은 그 무브의 필연적 귀결만. 무브 둘을 병렬하면
-  "필연성(inevitability)"이 깨지고 임의로 읽힌다.
-- **극단화.** VIA는 한 코너만 142m, 나머지 셋은 지상. 미지근한 파라미터는 잔여물로 읽힌다.
-  극단은 세운 쪽이 아니라 눌린 쪽에서 만들 수도 있다(둘레를 0.16으로).
-- **실루엣 판독.** 무브가 한 시점의 외곽선만으로 판독되지 않으면 실패다.
-- **위계.** 주 볼륨 하나가 지배하고 보조 볼륨은 그것을 강화한다. 동급 볼륨 경쟁 금지.
-- **10초 스케치 환원.** 문장이 10초 다이어그램 하나로 그려지지 않으면 기각.
+Office references guide questions, never stylistic presets or score bonuses: how does programme organize section; how can conflicting conditions produce a coherent transformation; how can equivalent rooms or volumes connect through shared space? Do not equate creativity with the number of verbs, geometric complexity or resemblance to a named practice.
 
-## why의 형식 (diségno 5칸)
+## Evidence and uncertainty
 
-`why`는 수사가 아니라 다이어그램의 서술이다: **입력(제약·프로그램) → 연산자 →
-변형(무엇이 어떻게 달라지나) → 기능(그 변형이 사는 이유) → 한계(어디서 멈추나)**
-가 한두 문장 안에 읽혀야 한다.
+Separate verified site facts, explicit programme requirements and author hypotheses. Do not invent a neighbour's shadow, noise, access permission, required room or floor-area target when evidence is absent. Under an incomplete brief, state a conditional design question and the information needed to resolve it.
 
-## 체크리스트 (신작/재저작 통과 조건)
+A useful rationale connects an evidenced condition or disclosed hypothesis to an operation, the resulting spatial relation, its potential benefit and its remaining limitation. Explain the actual proposed building, not a landscape competition or decorative site diagram. Outdoor space matters through its relationship to occupied architecture.
 
-- [ ] 위상을 바꾸는 지배 무브가 정확히 하나인가?
-- [ ] 오프너에 profile/unit/bar가 있는가?
-- [ ] 비율×몸의 절대량을 암산했는가? (m 단위로)
-- [ ] compress/expand 없이 말했는가?
-- [ ] 비대칭이 필요한 자리에 `on:`이 있는가?
-- [ ] storeys(또는 unit)를 선언했는가?
-- [ ] 윗면(실루엣 상단)을 설계했는가?
-- [ ] 실루엣만으로 무브가 판독되는가? 10초 스케치로 그려지는가?
+## Scale, dimensions and law
 
-## 9. 볼륨 높이 휴리스틱과 법정 층수를 구분한다
+Read legal ceilings and available programme requirements from the current supplied evidence. Law and explicit user programme requirements remain binding. Missing programme stays unknown; it is not permission to claim compliance.
 
-`fill._settled_to_parcel_height`의 조각 높이 조정은 구성 휴리스틱이다. 용적률÷건폐율로
-얻은 평균값은 법정 최고층수가 아니며, 켜를 늘려 법규를 우회하는 저작 지침으로 쓰지 않는다.
-과거의 높은 탑 실험은 해당 필지의 최신 지구단위계획을 확인하기 전 기록이었다.
+Neither maximum FAR nor preservation of the first authored height is a universal objective. Explore different heights, densities, mass distributions and solid-void organizations where they create useful differences. A lower-density alternative should show a spatial benefit; a higher-density alternative should demonstrate that its organization remains legible and developable.
 
-현재 제한은 `design.maas.massv2.parcel_policy.policy_for(PNU)`와 `LegalSite.evidence()`에서
-읽는다. `make_brief.py`가 그 증거를 저작 브리프에 넣는다. 최고층수와 미터 높이는 별개이며,
-명시한 층수는 형상을 줄여도 사라지지 않는다. BOOK도 원 층수와 자체 층고를 보존한다.
+Distinguish dimensionless source geometry, authored metric targets, physical materialization and actual parcel delivery. Do not call a proxy storey count a verified floor schedule, a soft authored target a mandatory programme, or a support screen an engineered structure. Use the live dimensional intent contract only when it is supported; explicitly unsupported policies must not fall back silently. Per-alternative constraints may differ.
 
-층수 상한·저작 층고·실제 전달 높이·연면적을 함께 확인한다. 코드의 보수적 개념 층수
-검사는 실별 평면과 실제 설계층수 검증을 대신하지 않는다. 층판·단면·프로그램이 바뀌면
-이를 새 저작으로 기록하고 같은 사이클의 법규·배심·develop 경로로 확인한다.
+## Assemblies and support intent
 
+Use actual BaseVolume transformations and supported constructive joins. Independent rotations, offsets and stacking are legitimate ways to assemble occupied volumes. Their executable placement chains must not be confused with unrelated architectural effects; the shared graph-budget owner governs accounting.
 
-## 10. 다양성 규약 (2026-08-31 — 수렴 사고의 부검 + 문헌)
+For a branch or parallel assembly intended to retain its incoming base, use the supported explicit anchoring mode when available. An elevated input, bridge or cantilever must not be snapped automatically to world ground. Show actual material connection and bearing; do not hide unintended gaps or invent supporting columns in prose. Existing geometry, floor viability and structural screens remain in force.
 
-한 라운드에서 "플린스+돌아선 탑" 가족이 24문장 중 10곳에 나왔고 심판 둘이
-"interchangeable"이라 썼다. 부검: ①브리프가 새 단어 사용을 의무화(쿼터가 단일 재료 강제)
-②거장 3인 페르소나 — 문헌이 약하다고 판정한 방식(Deng·Brucks·Toubia 2026: 창의적 유명인
-페르소나 < 평범한 페르소나; 페르소나가 여럿이어도 LLM은 하나의 분포라 수렴 — 인간 다양성의
-원천은 지식의 분할) ③수렴은 정렬의 전형성 편향이 근본 원인이라 프롬프트만으로 못 없앤다
-(Verbalized Sampling, ICML 2026).
+## Diversity across the alternative set
 
-**규약 (근거 강도순):**
-1. **다양성은 아카이브가 보증한다, 프롬프트가 아니라.** 새 문장의 수락 조건 =
-   행동 기술자 칸(자세축×건폐×오프너)이 비었거나 기존 점유자보다 높다.
-   유일하게 구조적으로 붕괴 불가능한 방법(QDAIF·In-context QD·ARCH-Elites·Autodesk 선례).
-   기계는 이미 있다: `book_language/quality_diversity_archive.py`의 StreamingMapElites.
-2. **저작 프롬프트 필수 3요소**: CoT 단계 분해(코사인 0.377→0.255, Meincke 2024) +
-   **보드의 기존 채택작 전량 제시 후 "이 전부와 형태 원리 수준에서 달라야 함"**
-   (NoveltyBench: in-context regeneration이 프롬프팅 계열 최우수) + 차이 요구는 문장
-   표면이 아니라 **Shah 상위 수준**(물리 원리 10점 > 디테일 1점)으로 명시.
-3. **페르소나는 칸의 앵커다.** "SANAA처럼"이 아니라 "저층 마당형 칸만 말하는 저자"처럼
-   평범-구체 명세로, 저자당 1회 병렬 호출(단일 프롬프트 다페르소나 금지 — Design Science
-   2025). 사무소 철학은 형태가 아니라 **질문 절차**로 준다: OMA=프로그램 다이어그램이
-   형태를 강제하는가 / BIG=대지의 실제 갈등 하나를 이 무브가 해소하는가 / SANAA=방들의
-   관계가 등가인가.
-4. **새 단어 쿼터 금지.** 이번 사고의 방아쇠. 새 단어는 어휘 명세에 소개만 하고,
-   쓸 곳은 저자가 정한다.
-5. **가족 상한**: 라운드당 같은 구성 가족 2안, 보드는 가족당 대표 1안(최고점).
+Compare alternatives at the level of spatial organization, plan and section, not names or minor dimension changes. Read the supplied previous board to understand what has already been explored. Retaining a useful control is legitimate and must be identified honestly; no all-new-verb quota applies.
 
+The set should test genuinely different architectural relations when the brief supports them, rather than fill every available operator slot. Do not force all alternatives into a rotated stack because one reference illustrated stacking. Likewise, do not force one low courtyard solution because it previously received a high score.
 
-## 11. 캐논 층과 정갈함의 법 (2026-09-01 — 클라이언트 판정 '다양한데 전형이 없고 정갈하지 않다')
+Selection and archive policies are code-owned. A coarse cell label must not erase a distinct eligible authored family before visual evaluation. Do not copy family quotas or acceptance thresholds into this document. Visual scoring does not override legal refusal and cannot by itself certify competition-level quality.
 
-**코퍼스는 두 층이다.** ①**캐논 층**(gen-canon*): 건축의 이름난 전형 — 원기둥 탑·판상
-슬라브·필로티 슬라브·중정·테라스 — 의 정공법. §10의 차별 요구는 이 층에 적용하지
-않는다(전형은 정의상 새롭지 않다 — 그래서 5개월간 아무도 못 썼다). 캐논 층은 모든
-런에 항상 포함되는 기본 레퍼토리다. ②**실험 층**(그 외 전부): §10 그대로 — 보드와
-형태 원리 수준에서 달라야 한다.
+## Inspection before submission
 
-**정갈함의 법** (양 층 공통, BIG/OMA의 규율):
-- 한 문장의 사건은 하나다. 두 번째 형태 동사는 첫 동사가 못 다한 말이 있을 때만.
-- **부스러기 금지**: 지상의 잔상자·토막 가지·부속 돌기를 발치에 흘리지 마라 — 심판
-  12라운드의 최다 감점 사유('산만', '파편', '퇴적')가 전부 이것이다.
-- 실루엣 한 줄: 멀리서 윤곽 하나로 기억되는가를 저작 시점에 물어라.
-- 동사 1개 문장은 합법이다(검증기 1..6) — 순수 압출은 문장이다.
+Compile and inspect the actual source, including views that reveal the intended relation. An isometric silhouette can hide an opening; use measured plans and sections as well. Verify that named occupied parts, openings, joins and height relationships exist. Distinguish source inspection from actual-site delivery and the later independent jury.
 
+Before submitting, check that the rationale matches the executable fields; supported operations were used; actual geometry expresses the proposition; facts and hypotheses are labelled; and the set offers meaningful alternatives. Avoid tiny residual fragments unless they have a demonstrated architectural role. Detailed rooms, doors, stairs, accessible routes and structural members are not present merely because a massing image suggests them.
 
-## 12. 매스 스터디의 기율 (2026-09-01 — 3렌즈 검토의 수렴, 사무소 모방이 아니라 스터디의 기준)
+## Full flow and development
 
-세 렌즈(OMA·BIG·SANAA)가 각자의 말로 같은 결핍을 지적했다. 이는 사무소 취향이 아니라
-매스 스터디가 잘 되었는가의 보편 기준이다:
+Production runs through the single mass-cycle entry point: authored parti, real BOOK payload exploration, BaseVolume geometry, independent visual jury and authored development with paired evaluation and feedback. A source preview or partial generation is not a completed cycle.
 
-1. **압력이 문장의 주어다.** why의 1칸(입력)은 반드시 명명된 대지 압력 — 이웃의 해,
-   가로의 소음, 열린면의 조망, 과대한 홀. "X가 밀고 → Y가 물러선다"로 다시 쓸 수 없는
-   캡션은 형태 얘기를 형태에게 하는 것이다. 철학 문장("물러섬은 한 번이면 충분하다")은
-   원리이지 압력이 아니다 — 원리는 2칸부터.
-2. **동심(centered) 이동은 아무것도 해소하지 않는다.** 스텝·마당·들림은 명명된 압력
-   쪽으로 치우쳐라 — 오프셋이 곧 화살표다. 동심 버전은 봉투 잔여물로 읽힌다.
-3. **두께는 역할을 따른다.** 사람이 사는 판은 층고를 갖지만, 덮는 판(지붕·처마·차양)은
-   지붕 두께다 — canopy의 thin 인자(0.1~0.35 층고 몫)로 말하라. 19장에 한 층보다 얇은
-   면이 하나도 없던 것이 이 조항의 이유다.
-4. **단면에 갈등 하나.** 압출·적층·들림만으로는 내부가 침묵한다 — 과대한 방 하나가
-   봉투를 밀어 변형시키는 문장을 라운드마다 최소 하나 시도하라(현 어휘로는 vault/
-   gable의 큰 스팬 + 몸의 물러섬 조합까지; 경사 바닥 동사는 어휘 확장 대기).
+Develop the judged parent's consequential spatial weakness while respecting the current parent contract. Keep the parent as a comparison and disclose the area and organization tradeoff. The author never declares its own child the winner. Preserve frozen identities and receipts; changed engines require a preserved baseline, new compliant execution and fresh visual evaluation.
+
+For research evidence and historical findings, read the indexed reports in agents/MassAgent/docs/reports/. The previous version of this canon remains in repository history; its taste-based prohibitions and manually copied numeric rules are superseded by this contract.

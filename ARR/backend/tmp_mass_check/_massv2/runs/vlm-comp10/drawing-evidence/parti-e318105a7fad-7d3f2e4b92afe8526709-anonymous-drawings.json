@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+  "shape_id": "7d3f2e4b92afe8526709",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1279.3806552367687,
+    1279.3806552367687
+  ],
+  "section_area_m2": 545.9521360950021,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "514db29a32763d46986e195b5d56f25cf63b43c682540f7029f5208db2cea785"
+}

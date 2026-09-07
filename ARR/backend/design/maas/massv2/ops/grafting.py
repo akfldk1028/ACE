@@ -49,7 +49,16 @@ def _region(
         translation_matrix4(low),
         host.matrix,
     )
-    return replace(host, role=role, plan="square", matrix=validate_matrix4(matrix))
+    # A region of the host is a prism, not a copy of the host's skin. Left
+    # inheriting the host's typed top and bottom surfaces, a cutter carved
+    # out of a crowned body hit the Placement invariant that only additive
+    # volumes may be surface-bounded, and `inscribe` on any crowned mass
+    # raised "surface-bounded cutters require interval CSG". The region's own
+    # box is what every caller means by it.
+    return replace(host, role=role, plan="square", matrix=validate_matrix4(matrix),
+                   top_surface=None, bottom_surface=None, plan_region=None,
+                   top_drop=0.0, drop_toward=None, ridge_along=None,
+                   top_profile=None, profile_across=None, warp=None)
 
 
 # How far into the host a graft reaches, in host-unit terms. The tuck that

@@ -128,6 +128,7 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
 
     batch, sheet, drawn, failed, repeated = [], 0, 0, 0, 0
     seen_shapes: dict[str, str] = {}
+    seen_figures: set = set()
     index = 0
     kept: list[dict] = []
     for storeys, gross, name in rows:
@@ -152,6 +153,18 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         if identity in seen_shapes:
             repeated += 1
             continue
+        # One tile per sentence and coverage band. Siting moves a mass across
+        # the parcel without changing what it is, so a round's own sentences -
+        # which do spread over four bands and five sitings - laid the same
+        # kite out ten times in a row and the browsing surface read as
+        # duplication again. The band stays: it is the ground take, and a
+        # scheme at 35% is a different proposal from the same scheme at 100%.
+        band = name.split("~")[1].split("^")[0] if "~" in name else ""
+        figure = (name.split("~")[0].split("^")[0], band)
+        if figure in seen_figures:
+            repeated += 1
+            continue
+        seen_figures.add(figure)
         seen_shapes[identity] = name
         index += 1
         drawn += 1

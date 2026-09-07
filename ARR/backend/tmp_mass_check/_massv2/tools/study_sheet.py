@@ -147,6 +147,12 @@ def _argument(record, reading):
         argument = "연속된 몸체의 외곽과 잘려 나간 부분을 하나의 형상으로 읽는다."
         tradeoff = "깊은 내부의 채광과 단면의 점유 가능성을 검토해야 한다. 용도와 실 배치는 확정되지 않았다."
     declared = record.get('design_argument_ko') or {}
+    if isinstance(declared, str):
+        # One line of Korean is the strategy itself; the three-part form is
+        # the fuller shape. Both are authored, so neither may crash the sheet.
+        declared = {"title": declared}
+    elif not isinstance(declared, dict):
+        declared = {}
     return {"strategy": declared.get('title') or strategy,
             "argument": argument,
             "tradeoff": declared.get('tradeoff') or tradeoff,

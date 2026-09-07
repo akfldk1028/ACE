@@ -185,6 +185,50 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
         self.assertEqual(evidence.evidence["article_ids"], ["article:84"])
         self.assertEqual(evidence.evidence["search_result_ids"], ["hang:parking"])
 
+    def test_law_agent_holds_when_the_numeric_gate_never_ran(self):
+        """An empty numeric preflight is not a numeric preflight that passed.
+
+        Both sources are available and the identity resolves, so every
+        availability check the agent makes is satisfied; only the numeric
+        verdict is absent. Before this was checked the agent reported passed
+        and the selector turned that into an acceptance.
+        """
+
+        available = dict(
+            graph_loader=lambda: {
+                "graph_status": {"attempted": True, "available": True},
+                "articles": [{"id": "article:84", "law_name": "건축법"}],
+            },
+            searcher=lambda query, limit: {
+                "attempted": True,
+                "available": True,
+                "query": query,
+                "results": [{"hang_id": "hang:parking", "law_name": "주차장법"}],
+            },
+        )
+
+        for payload in ({}, {"evaluated": False}):
+            evidence = collect_law_agent_evidence(
+                self._identity(),
+                {"law": payload, "building_type": "neighborhood_living"},
+                **available,
+            )
+            self.assertEqual(evidence.status, "needs_evidence")
+            self.assertIn(
+                "numeric_law_unevaluated",
+                evidence.evidence["missing_evidence"],
+            )
+
+        evaluated = collect_law_agent_evidence(
+            self._identity(),
+            {
+                "law": {"evaluated": True, "hard_pass": True},
+                "building_type": "neighborhood_living",
+            },
+            **available,
+        )
+        self.assertEqual(evaluated.status, "passed")
+
     def test_law_agent_marks_unavailable_graph_as_needs_evidence(self):
         evidence = collect_law_agent_evidence(
             self._identity(),

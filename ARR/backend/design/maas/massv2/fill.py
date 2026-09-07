@@ -25,7 +25,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
-from .compile import compile_matrix_form
+from shapely import affinity
+from shapely.ops import unary_union
+
+from .compile import _plan, compile_matrix_form
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
     translation_matrix4,
@@ -278,6 +281,7 @@ def _wider(form: MatrixForm, factor: float) -> MatrixForm:
         (min(y for _x, y, _z in corners) + max(y for _x, y, _z in corners)) / 2.0,
     )
     return _scaled_composition(form, factor, anchor)
+
 
 
 def fill_to_site(

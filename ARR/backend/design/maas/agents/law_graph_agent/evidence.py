@@ -188,6 +188,16 @@ def bind_law_agent_evidence(
         or "UNRESOLVED" in identity.floor_capacity_plan_hash.upper()
     ):
         missing.append("floor_capacity_plan_hash_unresolved")
+    # A numeric verdict that never ran is not a numeric verdict that passed.
+    # Without this the agent reports "passed" on an empty preflight and the
+    # selector, which reads only statuses, turns it into an acceptance.
+    numeric_evaluated = (
+        law.get("evaluated") is True
+        or law.get("hard_pass") is not None
+        or str(law.get("status") or "") in {"passed", "failed", "pass", "fail"}
+    )
+    if not numeric_evaluated:
+        missing.append("numeric_law_unevaluated")
 
     numeric_failed = bool(
         law.get("hard_pass") is False

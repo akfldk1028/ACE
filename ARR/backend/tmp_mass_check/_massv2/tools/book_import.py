@@ -340,16 +340,21 @@ def _compile_record(rec: dict, buildable, site=None):
         # compile fits the plan to the legal host, and the book's 209 m2
         # footprint was staged at 705 m2 under the book's 35 m - a tower
         # 3.4x the certificate's, captioned 270% on a 250% parcel.
+        # Exact inheritance and authored intent both carry physical dimensions.
+        # A bridge's ground-floor area is not its full projected footprint;
+        # fitting that projection to the ground area would silently shrink it.
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
-            placement_policy=POLICY if intent is not None else None,
+            placement_policy=POLICY if intent is not None or exact is not None else None,
             max_volume_bands=int(floor_count) if floor_count else 3)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:
-        return None, ("authored dimensional intent cannot fit the legal host without resizing"
+        return None, ("exact development cannot fit the legal host without resizing"
+                      if exact is not None else
+                      "authored dimensional intent cannot fit the legal host without resizing"
                       if intent is not None else "compiled to None")
     # The height dialect. massv2's measure, gates and renderer read
     # `metadata["authored_height_m"]`; the book stamps its physical height
@@ -394,13 +399,15 @@ def _compile_record(rec: dict, buildable, site=None):
     if not floors['measurement_consistent']:
         return None, 'BOOK delivered floor measurement: ' + '; '.join(floors['measurement_issues'])
     dimensional_evidence = None
-    if intent is not None:
+    if intent is not None or exact is not None:
         matrix = floors['normalized_host_fit_matrix4']
         metric_pose = (all(isclose(sum(matrix[i][j] ** 2 for i in range(2)), 1.0, rel_tol=1e-8, abs_tol=1e-8) for j in range(2))
             and isclose(sum(matrix[i][0] * matrix[i][1] for i in range(2)), 0.0, abs_tol=1e-8)
             and isclose(floors['z_scale'], 1.0, rel_tol=1e-8, abs_tol=1e-8))
         if not metric_pose or not isclose(floors['actual_gfa_m2'], book_gross_m2, rel_tol=1e-5, abs_tol=1e-3):
-            return None, 'authored dimensional intent changed during delivery'
+            return None, ('exact development dimensions changed during delivery' if exact is not None
+                          else 'authored dimensional intent changed during delivery')
+    if intent is not None:
         dimensional_evidence = {'requested': intent,
             'effective': {'storey_count': floor_count, 'storey_height_m': storey_m,
                           'height_m': book_height_m, 'gfa_m2': book_gross_m2},

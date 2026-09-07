@@ -1,0 +1,290 @@
+[
+  {
+    "name": "book:book-develop-comp08:exact-authored-development:creative-001",
+    "shape_id": "6ef088218ed6fbc0c1cc",
+    "certificate_id": "6567d45c096b0b1b5518",
+    "scored_shape_id": "6ef088218ed6fbc0c1cc",
+    "requires_rejudge": false,
+    "label": "O1",
+    "png_sha256": "56fb38b7b826f5bce9ff01f574b66eaa3517b6f7ac39cda22c31a58ae3acabb3"
+  },
+  {
+    "name": "book:book-develop-comp09:exact-authored-development:creative-002",
+    "shape_id": "0650bcaed6f796b0c057",
+    "certificate_id": "b58bb929c9d53081fab6",
+    "scored_shape_id": "0650bcaed6f796b0c057",
+    "requires_rejudge": false,
+    "label": "O2",
+    "png_sha256": "e7a6a4ff70ed7b87d95cb645d5792b04d33f4cfb9ab9023a5510c943b0baa43f"
+  },
+  {
+    "name": "book:book-develop-comp06:exact-authored-development:creative-002",
+    "shape_id": "ea62d184a62fe7cef597",
+    "certificate_id": "76a9dd7e900120abdb2a",
+    "scored_shape_id": "ea62d184a62fe7cef597",
+    "requires_rejudge": false,
+    "label": "O3",
+    "png_sha256": "88deb5a4112995186fca419b36dbbe3bea4c32f2ad36d621c8f605812d1e10c3"
+  },
+  {
+    "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+    "shape_id": "355b30ebb37b723be6cd",
+    "certificate_id": "efa427a310fcc96b861f",
+    "scored_shape_id": "355b30ebb37b723be6cd",
+    "requires_rejudge": false,
+    "label": "O4",
+    "png_sha256": "82ad854f0ae54bdf2566edc15b190071a8419ddd3ab0f7733e6ea7be74865352"
+  },
+  {
+    "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+    "shape_id": "64c94edfe13ebcdc018e",
+    "certificate_id": "1f9e9d919af107b31378",
+    "scored_shape_id": "64c94edfe13ebcdc018e",
+    "requires_rejudge": false,
+    "label": "O5",
+    "png_sha256": "29cce6781c4d279ece586d75e3fda73f91714da40b865e2f864376c6ba73eee0"
+  },
+  {
+    "name": "book:book-comp10:morph-curved-low:creative-001",
+    "shape_id": "a9f195967d9b9a1f4430",
+    "certificate_id": "2aa5c5988fa0eb9f74c7",
+    "scored_shape_id": "a9f195967d9b9a1f4430",
+    "requires_rejudge": false,
+    "label": "O6",
+    "png_sha256": "0bb724fe2081815b1f48f4884011fb70ed07b34769102d3c060d30ef04ceca66"
+  },
+  {
+    "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+    "shape_id": "5307259b76e79138a459",
+    "certificate_id": "1d7d37bd040dc38a3e71",
+    "scored_shape_id": "5307259b76e79138a459",
+    "requires_rejudge": false,
+    "label": "O7",
+    "png_sha256": "a270bed3db135e5f3fe770f6ce1d6150f43e6bdbe79b1e62769f572f4f4bc1d7"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-009",
+    "shape_id": "6986b5f575dbc867aefb",
+    "certificate_id": "6f8ebbb60858db8adbad",
+    "scored_shape_id": "6986b5f575dbc867aefb",
+    "requires_rejudge": false,
+    "label": "O8",
+    "png_sha256": "5614aeaaec31e8ee01c9a8202573ecf95e4f097b0a8b6886a7022408a654d4bb"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-007",
+    "shape_id": "a6d538b20ff30bda1021",
+    "certificate_id": "6f30c1f79cce6171661a",
+    "scored_shape_id": "a6d538b20ff30bda1021",
+    "requires_rejudge": false,
+    "label": "O9",
+    "png_sha256": "b5384cd697ecf9b30a21a1b8fd308797b9ad44ba95e6faff62e056285dfdb1a8"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-010",
+    "shape_id": "267e54956b66b4d74d7e",
+    "certificate_id": "f6fa1bed59d9d7ad8c80",
+    "scored_shape_id": "267e54956b66b4d74d7e",
+    "requires_rejudge": false,
+    "label": "O10",
+    "png_sha256": "1f55711cd45d17e681e7ac9bc82eaefe995767a67ee1d75f18540a76f84c2edd"
+  },
+  {
+    "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+    "shape_id": "7d3f2e4b92afe8526709",
+    "certificate_id": "5250875ba26b27f4ed9a",
+    "scored_shape_id": "7d3f2e4b92afe8526709",
+    "requires_rejudge": false,
+    "label": "O11",
+    "png_sha256": "906e1a621c2f2fbaf29d8d663120f0705128dbd36262d200b9f0385c60ac89d5"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-low:creative-006",
+    "shape_id": "7eb610212c8594efa9ee",
+    "certificate_id": "59613e9f4ac21f38f8ad",
+    "scored_shape_id": "7eb610212c8594efa9ee",
+    "requires_rejudge": false,
+    "label": "O12",
+    "png_sha256": "cffe8a1893515761ae30b9f93480dfa62c7a011e6eff51a2a38d1b83e065e8bc"
+  },
+  {
+    "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+    "shape_id": "40115b02b09902f83d13",
+    "certificate_id": "d5daa53a0e5d499ddf13",
+    "scored_shape_id": "40115b02b09902f83d13",
+    "requires_rejudge": false,
+    "label": "O13",
+    "png_sha256": "908c3140798c202448fd0054766d87d715355b550f4917a5f1793be32ea7f283"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-low:creative-005",
+    "shape_id": "81f24c49fd99a2f213c3",
+    "certificate_id": "c0ac238cdd5aa56771b3",
+    "scored_shape_id": "81f24c49fd99a2f213c3",
+    "requires_rejudge": false,
+    "label": "O14",
+    "png_sha256": "340a614ddee6753a95d311436c9c4ebeed278f2b456d68332e7a4acb10b0f6f2"
+  },
+  {
+    "name": "book:book-comp10:morph-oblique-mid:creative-013",
+    "shape_id": "a409fca6dd65719b9333",
+    "certificate_id": "001a207cdb6dbf807be8",
+    "scored_shape_id": "a409fca6dd65719b9333",
+    "requires_rejudge": false,
+    "label": "O15",
+    "png_sha256": "a8691f332d03df4fedd8eb52e392b70726ada388964fcc51d356d3a8bd7d7340"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-011",
+    "shape_id": "ce63ea701f8ca3bb4096",
+    "certificate_id": "18a3eb0794ef752cf574",
+    "scored_shape_id": "ce63ea701f8ca3bb4096",
+    "requires_rejudge": false,
+    "label": "O16",
+    "png_sha256": "a2ffb21bb5bbfb95e5b99c1c6168e1969355f0894a112918257ff07db3f79c9c"
+  },
+  {
+    "name": "book:book-comp10:morph-curved-low:creative-014",
+    "shape_id": "ecd05e43f3e38702136e",
+    "certificate_id": "b8173044afa06963569e",
+    "scored_shape_id": "ecd05e43f3e38702136e",
+    "requires_rejudge": false,
+    "label": "O17",
+    "png_sha256": "37fe95aba0d99571bb03209fcbec51d89a9bd4ec18d6439b4c749d49c17a4aeb"
+  },
+  {
+    "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+    "shape_id": "41a8739e010fce1dbb40",
+    "certificate_id": "9673e6ce544dd6a1af60",
+    "scored_shape_id": "41a8739e010fce1dbb40",
+    "requires_rejudge": false,
+    "label": "O18",
+    "png_sha256": "d88cf489a431bd7ebc45f6efa0df9b27046b502db5e21bf1c7e132eec328b648"
+  },
+  {
+    "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+    "shape_id": "11e2e6eec15a6f8b60ee",
+    "certificate_id": "8f8a0555145d746ac031",
+    "scored_shape_id": "11e2e6eec15a6f8b60ee",
+    "requires_rejudge": false,
+    "label": "O19",
+    "png_sha256": "27299df2b2c9b597bab8dada14a3bf34c4de5f528680bb5d5fefdb470a848aa6"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-012",
+    "shape_id": "86ea51c512a1849ccb73",
+    "certificate_id": "c66a8a0d87fc485672d6",
+    "scored_shape_id": "86ea51c512a1849ccb73",
+    "requires_rejudge": false,
+    "label": "O20",
+    "png_sha256": "3c63582cd3e95aa0ac50a29ce845b57cbb1e0c4d78288062dbff8fb792cb1d08"
+  },
+  {
+    "name": "book:book-comp10:morph-curved-mid:creative-004",
+    "shape_id": "d8c7681d14fdb92697f1",
+    "certificate_id": "2bba77da5d6140181ba9",
+    "scored_shape_id": "d8c7681d14fdb92697f1",
+    "requires_rejudge": false,
+    "label": "O21",
+    "png_sha256": "edb22ed452b1360c1d05af082c3f4aecc4593deea38af0ff85516f47954216d4"
+  },
+  {
+    "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+    "shape_id": "70050afda2ba70381aa3",
+    "certificate_id": "e83977d4f93a66b785de",
+    "scored_shape_id": "70050afda2ba70381aa3",
+    "requires_rejudge": false,
+    "label": "O22",
+    "png_sha256": "780bd139fa2245e4b1ae3b8b6aca91e9aa06994c857eaa964eefb87d4fb7627e"
+  },
+  {
+    "name": "book:book-comp10:morph-voided-mid:creative-016",
+    "shape_id": "16736a404dad74375153",
+    "certificate_id": "1afd434b778d052a0c24",
+    "scored_shape_id": "16736a404dad74375153",
+    "requires_rejudge": false,
+    "label": "O23",
+    "png_sha256": "3c48a9e00d09c6514459b8dc1fd7d30adc872606c0db5582a4d3d5d4b1d2ec56"
+  },
+  {
+    "name": "book:book-comp10:morph-compact-mid:creative-003",
+    "shape_id": "4abaecbf93d355347425",
+    "certificate_id": "aad9883d4c19f1f83227",
+    "scored_shape_id": "4abaecbf93d355347425",
+    "requires_rejudge": false,
+    "label": "O24",
+    "png_sha256": "0264feb9dde7d5f9b50257949ddd11ece1fcf4ae8c7bc40ed6ed9c44dd3ec8d5"
+  },
+  {
+    "name": "book:book-comp10:morph-oblique-mid:creative-002",
+    "shape_id": "27b052d1ca884a5599b2",
+    "certificate_id": "2680ef1fea90b35b38a2",
+    "scored_shape_id": "27b052d1ca884a5599b2",
+    "requires_rejudge": false,
+    "label": "O25",
+    "png_sha256": "14d58b05cb9818076aba8f78dde47c279de2916a82688ae554d422dd122dd002"
+  },
+  {
+    "name": "one_wide_slab^centred",
+    "shape_id": "8fba26a4c5599d529c37",
+    "certificate_id": "25fbd48a29f2a99495fd",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C2",
+    "png_sha256": "00c6719729d02d9918a8ffc6e3efef97ce2d69d3daa07ce4ccd802c7fe61b8cd"
+  },
+  {
+    "name": "two_drums_one_court^centred",
+    "shape_id": "a9fb9cca7c8b15bf656c",
+    "certificate_id": "aa7da847f0d30a501842",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C5",
+    "png_sha256": "823121c4563499fe30d3965b887faaaeeab21b54a04a3c7417f77276d73de106"
+  },
+  {
+    "name": "lifted_round_disc^centred",
+    "shape_id": "d00bd4ed4ed5e22280a4",
+    "certificate_id": "a281344b01f04d71e614",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C7",
+    "png_sha256": "4ba7470463ce1c3f03c83586873db5cc0eab8f1bbb36d4c534cf2eb8e6ffad9a"
+  },
+  {
+    "name": "drum_that_steps_once^centred",
+    "shape_id": "a7f78435222e26c71520",
+    "certificate_id": "1fca7d1c39d7a1b5f7cc",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C8",
+    "png_sha256": "bc7fd35329d975d25f3372868094d2a18771bf02d84a5c2a8bd52d3aefc61ba0"
+  },
+  {
+    "name": "one_gable_bar^centred",
+    "shape_id": "48a0f0550e79fc2f1157",
+    "certificate_id": "9ada186f191295fd5b58",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C9",
+    "png_sha256": "3ff6cbaa5f032c879d0509ff26f2a2d7b07e5cf0395c320e7d9add544be1299b"
+  },
+  {
+    "name": "twin_gable_bars^centred",
+    "shape_id": "2e5bf04266a59cf6398d",
+    "certificate_id": "4a43667840ba826c56d3",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C10",
+    "png_sha256": "d047a68236f0b25d83e44b3894da1e1030b4f07687a0048455928ea396c73232"
+  },
+  {
+    "name": "one_court_block^centred",
+    "shape_id": "0695e8c3b5cebb3af9cc",
+    "certificate_id": "8db84e505317617acd43",
+    "scored_shape_id": null,
+    "requires_rejudge": true,
+    "label": "C11",
+    "png_sha256": "cfc051fe2c028ca92dca6fca8c9aaa6736e0d00a0bb6b7871304bc52adfe3a7f"
+  }
+]

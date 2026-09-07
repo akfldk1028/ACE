@@ -1,0 +1,58 @@
+TILE t01
+CONCEPT 4 | A continuous courtyard ring and gently sagging roof establish a coherent relationship between enclosure, central void and sectional profile.
+FEASIBILITY 4 | Repeated ground and upper ring occupancy supports a plausible vertical load path, while the curved roof requires further structural and drainage development.
+SITE 3 | The courtyard creates an internal focus within the parcel, but the largely regular ring leaves residual perimeter spaces with little demonstrated edge differentiation.
+EDITABILITY 4 | Continuous perimeter bands offer a workable basis for floors and circulation, although core positions and the changing roof height remain unresolved.
+WEIGHTED 3.80
+
+TILE t02
+CONCEPT 4 | The combination of an enclosed court, an open-sided recess and a ground-level interruption produces a clear hierarchy of connected solids and distinct voids.
+FEASIBILITY 4 | The low mass and substantial connected upper bands are credible, with localized transfers needed where upper occupancy bridges ground-level gaps.
+SITE 4 | The chamfered outer mass acknowledges the irregular parcel and combines a compact footprint with a directional opening and generous surrounding space.
+EDITABILITY 4 | Broad connected upper bands and differentiated lower pieces provide several development options while preserving the court and open recess, subject to resolving circulation across the ground gaps.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 3 | A layered cap over separated vertical masses is legible, but the concave tops weaken the visual connection between support and roof.
+FEASIBILITY 2 | The section shows a thin cap separated from the concave-topped masses at the cut, leaving roof support and connections materially unresolved.
+SITE 2 | A small cluster occupies one end of the parcel without clearly organizing the large remainder or establishing a substantial response to its edges.
+EDITABILITY 2 | Disconnected narrow occupied pieces and uncertain cap connections constrain continuous floors and circulation, and resolving them may substantially change the idea.
+WEIGHTED 2.35
+
+TILE t04
+CONCEPT 3 | Offset stacked blocks create a readable sectional step, although the compact cluster offers limited differentiation beyond displacement.
+FEASIBILITY 4 | Substantial overlap between the blocks makes the offset upper volume plausible, with a localized cantilever requiring structural resolution.
+SITE 2 | The cluster sits toward one side of the parcel and leaves a large undifferentiated remainder, with little visible explanation for that placement.
+EDITABILITY 4 | Rectilinear volumes and meaningful vertical overlap provide a workable basis for floor subdivision and a core while retaining the stepped silhouette.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 3 | A large portal cut gives the otherwise simple solid a clear sectional identity, but articulation and spatial hierarchy remain limited.
+FEASIBILITY 3 | The deep upper connecting mass is potentially workable as a transfer volume, but the broad opening and unequal supporting pieces need a defined load path.
+SITE 3 | The clipped volume responds to the parcel's angled end and the portal creates a directional void, while the relationship to the extensive remaining open ground is weakly developed.
+EDITABILITY 3 | The upper mass is readily divisible, but lower occupancy remains separated across both illustrated plan levels and circulation between the legs needs resolution.
+WEIGHTED 3.00
+
+TILE t06
+CONCEPT 4 | Alternating rotations produce a distinctive stack with strong horizontal articulation and a clear stepped sectional rhythm.
+FEASIBILITY 3 | Large overlaps make the assembly plausible, but repeated corner projections and changing floor alignments introduce unresolved cantilevers and transfers.
+SITE 3 | The centrally placed stack preserves perimeter space, although its competing orientations have no clear demonstrated relationship to a particular parcel edge.
+EDITABILITY 4 | Broad plates and a shared central overlap offer scope for continuous circulation and cores while retaining the rotated perimeter, subject to structural coordination.
+WEIGHTED 3.55
+
+TILE t07
+CONCEPT 3 | The broad base and receding upper tiers create a clear hierarchy, but the additive ledges and side projections are less distinctive than the strongest void-based schemes.
+FEASIBILITY 4 | Mostly overlapping tiers provide credible support and the section confines the main structural complication to a limited lateral projection.
+SITE 4 | The chamfered base addresses the irregular parcel more directly than the isolated clusters, while setbacks reduce the apparent bulk of the upper mass.
+EDITABILITY 4 | Continuous broad occupancy and substantial overlap support flexible floor and core development, although deep interior areas require further daylight and circulation study.
+WEIGHTED 3.65
+
+TILE t08
+CONCEPT 4 | A courtyard ring with angular butterfly-like roof folds gives a strong enclosing figure and an articulated upper edge, though the numerous roof fragments slightly dilute its clarity.
+FEASIBILITY 4 | Aligned ground and upper ring footprints establish plausible vertical support; folded roof junctions and drainage need development without implying an inherently unbuildable mass.
+SITE 3 | The ring and clipped outer corner acknowledge the parcel shape, but its placement toward one end leaves the larger open ground without a clearly expressed role.
+EDITABILITY 3 | Continuous ring occupancy supports circulation in principle, but comparatively slender bands and numerous roof transitions constrain cores and regular upper-level subdivision.
+WEIGHTED 3.60
+
+RANKING: t02, t01, t07, t08, t06, t04, t05, t03
+VERDICT: Advance t02 and t01 for their clear solid-void organizations and plausible continuous building volumes, with t07 as the more straightforward terraced alternative. The remaining schemes need stronger site organization or clearer structural and circulation resolution; these visual scores do not verify building lines, statutory height compliance or an undisclosed programme.

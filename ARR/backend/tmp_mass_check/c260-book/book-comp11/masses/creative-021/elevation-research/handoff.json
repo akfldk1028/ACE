@@ -1,0 +1,941 @@
+{
+  "facade_planes": [
+    {
+      "extent_m": [
+        50.515354,
+        11.4
+      ],
+      "normal": [
+        0,
+        -1,
+        0
+      ],
+      "origin": [
+        -25.257677,
+        -12.012782,
+        0.0
+      ],
+      "view": "front"
+    },
+    {
+      "extent_m": [
+        24.025564,
+        11.4
+      ],
+      "normal": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        25.257677,
+        -12.012782,
+        0.0
+      ],
+      "view": "right"
+    },
+    {
+      "extent_m": [
+        50.515354,
+        11.4
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "origin": [
+        25.257677,
+        12.012782,
+        0.0
+      ],
+      "view": "back"
+    },
+    {
+      "extent_m": [
+        24.025564,
+        11.4
+      ],
+      "normal": [
+        -1,
+        0,
+        0
+      ],
+      "origin": [
+        -25.257677,
+        12.012782,
+        0.0
+      ],
+      "view": "left"
+    }
+  ],
+  "floor_guides_m": [
+    0.0,
+    3.8,
+    7.6,
+    11.4
+  ],
+  "geometry_mutation_allowed": false,
+  "identity": {
+    "candidate_id": "creative-021",
+    "geometry_hash": "2068caa92e735e04cf3fb199328c0513521b9668b5d3b86616ac34a9a3e18cfe",
+    "pnu": "4115011300106840001",
+    "program_hash": "47cd9e52d8be492a4c310c697443a0db57755c991be08ad4ce9c01f99959cdf5",
+    "run_id": "book-comp11"
+  },
+  "indexed_mesh": {
+    "path": "mesh/indexed-mesh.json",
+    "stable_face_ids": [
+      "316a15eebe957ecf5571",
+      "706bcdfbd25eb1a5eb9f",
+      "83c644154353ac24a855",
+      "c3ba68e65f949accf6e2",
+      "d388041b347704d9e315",
+      "0983d68815799fe8eeaf",
+      "8e0b88980596a10cbf5e",
+      "82303b4b27298b884a54",
+      "c0c6cf0bb0d3dad7c13d",
+      "650e1e71233bc6945924",
+      "efc01a083cdf7f96b342",
+      "d155ba05184276eb9a68",
+      "2b873fe1fc590c7b1063",
+      "07a5db9301cd94b45e4c",
+      "c548d26c23900ad4335a",
+      "f30b4ead47a5e1639434",
+      "21daf35030d167fbeaf1",
+      "d737bcd4a9df3f2f92e8",
+      "e5ca94fbdcd3b1bf2118",
+      "3dcdf0bff0febaab33bd",
+      "99d14d3fee7a7f4a264a",
+      "d381c4bf249e25a80635",
+      "e799ffe1f6b18a76c2f2",
+      "a7aae5be1a9d60ac49bc",
+      "0a76929e7e811e49ef43",
+      "920229840a8c267905ca",
+      "a36775a7bc7871b26c41",
+      "a1e17bb384349e99f9ea",
+      "173528411fe5ed5296b2",
+      "965bcc797ae7bb335d84",
+      "0d338e212a922d24cb90",
+      "6199ed67d552626d5eae",
+      "1e43b56995b493de12da",
+      "2ae12cdcb9df98ed2b60",
+      "3407805c077694311b06",
+      "2b16e12486ca6f1b55c7",
+      "80e0c817959ab1d850e1",
+      "56704070b0d3437a145f",
+      "ac1a0a28dd9120ac00d0",
+      "5c00e536f4621684a20e",
+      "d7a7757fddf9ac065a3b",
+      "2febe8ae75c6cec65d8f",
+      "d2306a2663080e3528b2",
+      "b8e6f64c7387ad5f21a2",
+      "f1978d5e08e43a963ea8",
+      "fd36cdfd614ecbc2112d",
+      "03e1cef52141a66a26af",
+      "127229fd2e8fb81d5295",
+      "390142bc588b29c60f5d",
+      "6c804bf3f56dbc393326",
+      "463fb4908b39d03dbc01",
+      "9e4951ad0b952615e2ad",
+      "ae2d71875fc38b662be8",
+      "4ab70d4a2da542de0f46",
+      "dafeb3373b836932090d",
+      "dc61f832618b373bfd8a",
+      "97782e5bb22a0eeec8c5",
+      "53bb79a491d9cb67dc3e",
+      "43963b33a9e5230ebc50",
+      "6250b3e0b3fd7deb8184",
+      "218557bf7a332454430b",
+      "2c43fdcd37a55e34235e",
+      "10db689c068e7e328823",
+      "068321a5185aab78193e",
+      "9dfe5c4233f98913452e",
+      "b3506563e10520794c91",
+      "5820b107dfb57d4aed9f",
+      "50cefe08abac34feb8d0",
+      "6699a6aa2d00ab153e7d",
+      "e53683f02948cc3c3202",
+      "cdf4a95be3cb0f7314eb",
+      "8aea4072f9f7ec4c059a",
+      "98f943dd838534471701",
+      "6f6cee7a40a6df35f140",
+      "798aaeae5161703c91d9",
+      "cc255c6913b4cbf5f22c",
+      "78775e6c4854601ec5ef",
+      "1f1734942b7964c76404",
+      "2241364ea26ad146dccb",
+      "6078d53f5a5adab36d00",
+      "b7a4eb6c3f4f9712c617",
+      "c341f4629b4991682afc",
+      "9e3e03c1735069fd62a5",
+      "e6f2fbf9967a8aa70edd",
+      "b2cf54de91b1d658f112",
+      "e5f5c072791eca9e5521",
+      "48d617dc5f20603d6716",
+      "6aa9e363c412108edfb8",
+      "0a6b8c447fa878e18791",
+      "612fe94ccd190bc1bae1",
+      "d6f5a03dbbc0029edbdb",
+      "1d7337a094e6b762dd46",
+      "108bcb1380137ed37639",
+      "3ac7ffe0d66657080a70",
+      "809334525360ba83b0bb",
+      "fe313227331fb047de02",
+      "2eafa1e62ed6af907c65",
+      "2fb69435183922bf287e",
+      "1c23e345ebf055be2eb6",
+      "99ac9bbb8b9b790ba040",
+      "1e54236a7c65f5d00cf3",
+      "954c7037879841144e88",
+      "8512b92d7e70d8e01111",
+      "b4e3ff4e2c74d47d46fe",
+      "ead6d7d0b20749b0a87b",
+      "45d12bb72ced14c7ca83",
+      "994f69888198defda82b",
+      "3c28044300e59ea25503",
+      "752dbdc9f64677b2c36d",
+      "9345888cd1ba1c6d5082",
+      "df2451d8b995dbbf6007",
+      "a971961a3027582306b6",
+      "438cf2be750bab1775f2",
+      "ab307ed2c4e39c2e56f2",
+      "d0f40f07bc5ea010592e",
+      "1b0e902104d68d73b474",
+      "f7f4a2229b680064b041",
+      "5414531c05d3e2bebfe1",
+      "2ee08ca1347554a226b9",
+      "42e4f7605314f7352bb2",
+      "a7675a68b98c75f05834",
+      "a09dd928d4da7c88dedd",
+      "c672e34a40c77591baa1",
+      "174e459300fddf5346cf",
+      "73ef9152455698013de6",
+      "88126e45cd7413b03730",
+      "18a82d0ee96ea85fde0d",
+      "9abc1dbcfae78b4561a2",
+      "aa4c99f90a5c1a9cbadc",
+      "c18dcfc36f5489a6aabf",
+      "00df27962aacb6c73744",
+      "5add036f3fc318c83b39",
+      "5544281a14a24ef034a7",
+      "77cda2db866ad0207ed8",
+      "ca5987bded2e49fa8611",
+      "9a7c18e99b2ded1a8773",
+      "5e7ec05806b773a32b41",
+      "da7a69fe5760a02eef67",
+      "635a7f838e7c2d998d5c",
+      "93f63b9f5043806b6c65",
+      "bbf85451e33ab1cb3eb4",
+      "3ff95b0b667ccd8ac29f",
+      "864e779199ee044dec19",
+      "5d7ed808db3c57bf9937",
+      "628150fcc2ad84fcdfc0",
+      "f81902ac897fb40205bb",
+      "fa21299ffa499f264099",
+      "697528a5bc515dce41c4",
+      "42828c67187ccfd608ae",
+      "79abab649b16993c270a",
+      "320cac34e2ae214b2ee3",
+      "6e2bf37fe1996202ad79",
+      "8137bdedadaa0d48f24f",
+      "708e7e0a54e23a18e33f",
+      "84df2bb7cd20df46b754",
+      "1ee02c0897c30fbfac8c",
+      "69abc3c59b820a595441",
+      "2c292d4ef07d56fccaae",
+      "dad925fefb1392e654c6",
+      "3edbc3d0224e922aaf2a",
+      "a1b980123d28280754f8",
+      "90316676b6f346e3e403",
+      "67e3cbdcab56524140a7",
+      "317b527ba7e1f3fbf41b",
+      "cf92793f109dd92a3bf5",
+      "573d154f838791171fa0",
+      "64afdf58b0077e2bf6cf",
+      "ee402fc3d6fc231473c2",
+      "900f2d4671faded44031",
+      "c6c049680f27dea82bbf",
+      "19f65dff51500bf348cf",
+      "9888115eee65d11a65cb",
+      "acdc4bd5776c25413f08",
+      "1ef16b9a0c848a7429fd",
+      "6ad6d85ba66b76e221e5",
+      "bad90ced2355c4d532b0",
+      "cbe7dcf3912caf2429b6",
+      "d50c72c7915d55a4cd2d",
+      "2cb48d115c61558fd460",
+      "d23926262066861848bc",
+      "2214ec59b5ee12c6e661",
+      "81f635987993d9c3ade9",
+      "beb600b450a0099e3ae1",
+      "133a42944b6bfad64bda",
+      "fe5e68b8a867f31baca1",
+      "a3c0b0d97a7bea3fe32d",
+      "8691b77b08b34b309d4d",
+      "a2eb89db358c3de69baf",
+      "2b8f5a177f0f412e1079",
+      "cb366acad2e07cb11217",
+      "b247f792b0d6f7e671a8",
+      "70a157f0b0939d3af182",
+      "ff757f845cd734b18261",
+      "2a82ccff751a73872a43",
+      "cd0cc04e0b604239e31c",
+      "624d95f0ebb37693ce92",
+      "623dd806efa6698c6f73",
+      "f176fed2fbd54d0ef259",
+      "d56d988d5a9524c5a820",
+      "66719a2a4fd560d4244c",
+      "fd1105cb0f3e75ee692d",
+      "26c4675dba139ee98606",
+      "b3b4b16e1a7201e44786",
+      "c63f5246ff592e7f4b50",
+      "583ad878baac761b454b",
+      "15d3f2c2df904416fa95",
+      "b70177acea44d1586088",
+      "aca1952bed96d0079121",
+      "ccea5e751a7697e92677",
+      "c885d35db48bc70ea1aa",
+      "7cabda1fdc009e76ac7f",
+      "63d1d65fbe8b61bdf961",
+      "732b43e929e102308285",
+      "21987c5da3792c3bda2d",
+      "fc09b431ff2a6a036091",
+      "0726333c69ae5d9c3dff",
+      "653af48523c5c81db3ee",
+      "08f681f252e048c5e368",
+      "7b776c01bd5979e64c21",
+      "41006e634b9a339af9c8",
+      "a6103a54dc977468aeb1",
+      "f373d5edc02c90da68be",
+      "6ed6c71c4b5ea99477d0",
+      "a25e65210ba07b4c1ce5",
+      "0764ba0561b51462df04",
+      "b7458d3533704c897e7e",
+      "f3b77067f561e927c452",
+      "bf7959f1243058a62887",
+      "a6635c4baac55c1b09c2",
+      "38da202a11fb526600a8",
+      "6663d5b7e4238a921ee1",
+      "c8da015cb02062f83459",
+      "460ee0c29dbe72106025",
+      "6ee2f2f045d4f02b6759",
+      "100c87c56b288d0c8f04",
+      "a4576b4f44152a3e8742",
+      "748e222fd12551972eb1",
+      "53a0d591b3acf6b7b416",
+      "cb81132c89d19cbc68aa",
+      "763089c07c284d152a25",
+      "1290477506639191122b",
+      "9ff46ad11902ed7c4d32",
+      "eba1870f1024ff50b116",
+      "25f659221d95c21ced31",
+      "eaa243009fe03887c1b1",
+      "aef08f56fa65b0b257ca",
+      "31486dc342ff36505cff",
+      "cc40160d740a8a34f6e9",
+      "145901a765f7cfd23801",
+      "6119c7d2ea1b1d0beaec",
+      "70044c531c2d77909be1",
+      "acf409be115d61005675",
+      "911fd70529e17d2c4fa4",
+      "bd0d26608d914f486bae",
+      "3e197efe1d8959444fbd",
+      "e71351bae1e9496c5f73",
+      "ba5d918162c6b2bb7295",
+      "8c2dcf122bd2318d6bac",
+      "1763c0b19f63d0bcd0c5",
+      "0eaa8c9b035e2c213a68",
+      "f5d5651d87e69f5cdf45",
+      "82607b814af5c687b983",
+      "62545403ca8ad059b608",
+      "2fc3b8395310bddbc358",
+      "2604983fc4f5dfbdbb9b",
+      "cd6c27cec0457b166556",
+      "87edb54091630426603d",
+      "3bd314d04a6d1c5eee45",
+      "f6a3fcddbad53d08d8e2",
+      "3482be9ab8fb490d2eb6",
+      "b427a0bf949202b50561",
+      "e2b2d47e82b86edd2b21",
+      "1faf299635f47a9adf7a",
+      "1bd167049d3694078f60",
+      "cb31140384d74cccbcfc",
+      "8f649e7a8a169ed1885e",
+      "9649730d3d447244657f",
+      "8b810d69bffb22178bb9",
+      "fb388cf6eeb2d7d7e310",
+      "30a13e38d842cb9d6fa5",
+      "2b108d1fa01d40e22a30",
+      "efc81f9b74cb11a6937e",
+      "f66134677023125cbac4",
+      "46a2e0736f757b92c0ac",
+      "d5bc12fd92d4246df40c",
+      "9ef2d99efaaf4c9faf20",
+      "5352ed2f119904e033bf",
+      "96169a7043131b158e15",
+      "7549db0ed842a1ab7503",
+      "7e280d7a1ecb1df22fb0",
+      "10eb2451dc78a39cdcef",
+      "1b0cf146cde97fc78c26",
+      "08ec4746100a7db15725",
+      "d010601dd69ca8f0efc7",
+      "6798edf42597ef66497c",
+      "b33742f1f119ed37362e",
+      "d0c8a54f3dd69d032a9d",
+      "0203f017141f7b3179ca",
+      "4074a7d1783a1d744f96",
+      "1d2e2b50a95b3c213fc8",
+      "0748ff7f5e744a10d56d",
+      "3936613a2cfc1b07a906",
+      "ce407543f3c7de33c049",
+      "3b270c3ed73615e7d8fa",
+      "62ca494ae161bc49a0f0",
+      "596182057b486a84f8eb",
+      "5c2cd7807dbf213c88b7",
+      "3e06477f1c6e195a873d",
+      "d8bb56544d2b41bd27ef",
+      "4d89a69b9e5f36ad097c",
+      "fbe17f109cd9d8a95a31",
+      "a15998f11da7ba532adc",
+      "018459c97ba00c319938",
+      "9dddc985fd308abff3b2",
+      "19a016a94f0c51538d63",
+      "b539f9c1a0d1f30d997c",
+      "af1e66a78ca3f6f7bc12",
+      "84f6105b88dabe4c047f",
+      "58e44c74725cc549fd26",
+      "63b599e0759b11926812",
+      "0c9a71b9f3d68898d699",
+      "d4e3cb6f0b010149e66c",
+      "fa33f487816fa950e64c",
+      "972aa6f1d2127d8f8cf2",
+      "d1f01711d7c4a2180745",
+      "ff61c27ae572676c1faa",
+      "6f56deebf69f889de254",
+      "6cabdec4b1f1f6d0aa83",
+      "68b06b55c6b81c3ac03e",
+      "f82fb82934cc2937e6c9",
+      "5c8fa0c59a0d92712699",
+      "2c61ba43dc1e8ea78bf0",
+      "232d5f2ac151f8a3e02d",
+      "0edf0a9497511fbab07f",
+      "13f4510f41f477f54744",
+      "cd133e524c8ff2a9bfc4",
+      "bffc0c4a06d894ed7f87",
+      "12117fe1667ee7aa86ee",
+      "0472df37637ef431a99d",
+      "ddf3a4cd7a35c3ff4c67",
+      "07b92efe714bbced6aba",
+      "90c2961518399281a511",
+      "ddf002650e1af489c44f",
+      "dc20e233aaba75de1ab7",
+      "3e5564a441c091bc6092",
+      "55033a46dbac8ceefe25",
+      "8bad26a0e714ec78b49f",
+      "700feb9db372a82732d5",
+      "ff1dee8fb8b29f74b292",
+      "9b42ac964056a0b1a8cc",
+      "3baf239ff05143eb3d13",
+      "dbf632b6f93e0b32336c",
+      "ff0a1826550f6d82b816",
+      "f198bb5e24d05529bd97",
+      "3dbfc54549050eee2809",
+      "3feafe4a8019a20eda9d",
+      "ee616c2e4bbe3afe8357",
+      "b7acc7349687f33e0a10",
+      "f3d9e3b33fd76dba1d80",
+      "680779035ba843ece7d2",
+      "e64a0ad3464461fe19b0",
+      "4639b05807be64fc68f5",
+      "723d1a8b0cff1a881e7a",
+      "7de6023162c76780f251",
+      "28efe3e558ac730758c2",
+      "bac6c1673be1c6271c97",
+      "ed042c7a80967c607237",
+      "7b8be9ee45f12047b8e1",
+      "68d47e19f80534f3fe76",
+      "5a83712f0738e2dad7d5",
+      "c414b278cb5955585e07",
+      "78406f55aaeaa252d3c4",
+      "8a19ab0ad77ec90ba944",
+      "ca7678fd096b805012f0",
+      "069192ce23209537ff2c",
+      "21a9bfa4c210522dea37",
+      "e9638e6133a1081f3e6e",
+      "09535c3512b1fd78f478",
+      "76479c1f8d996d470f94",
+      "e340b5b8224c3fe0306a",
+      "3976faee668954dcdf9e",
+      "be5f15045968696950c2",
+      "2b61e3675ccd0d12e2ee",
+      "e77e4f17bf823acaa89f",
+      "38295a2cd5b8187c5e48",
+      "ed5455de2f5536bfb95f",
+      "28947fabbec5cf279b22",
+      "bd69c92c89c43f1a8288",
+      "198ac983f19a722eff51",
+      "5d4e5779c0fc1674993d",
+      "9c17ac3259e008175a96",
+      "828f65b31e9b977ab969",
+      "7eb2e53cde2f977102f3",
+      "0c0b50c1e6eb0f6e30b9",
+      "56e6b80e4a42a5699103",
+      "bcf035802293d9c1334d",
+      "264064a92dd267aa11b0",
+      "7c934ff2d06c6a4bd55b",
+      "b63c7d4ac4c7ff66de6d",
+      "6b2f560b6f47a27ab2ef",
+      "407bdac39bffeb84f5cc",
+      "1a7a27d496b64d97d723",
+      "fdaa565e53004f12ac0e",
+      "3f821b17b00645238904",
+      "a954d33d07c7bd44fc91",
+      "77def3e42f9eba93b6bf",
+      "cd63f48169778ce803b7",
+      "ff5071f35ee5cf527360",
+      "725430dc30aeccacba54",
+      "7ba9e93229b5efe4d275",
+      "def71a6130be753bf5d0",
+      "c9870550cf841e06ba84",
+      "e138787b7a15bc75c780",
+      "62e9ea5ebb4e46cb93a6",
+      "0f211fd1bb2b71773e05",
+      "81dacae680c1e3b7d2c9",
+      "3aa56c94fd244ae45528",
+      "5bde807a4ed9e2c66d6f",
+      "1266dd53402acd5c701d",
+      "45e918b08485bea675b3",
+      "9ff664552234abc5770e",
+      "cc33d17880399a5d7a26",
+      "90d3f7466e0c103ba883",
+      "c963182e3237ef05d3ea",
+      "babc911ae24df59c3b7a",
+      "90505932f96bc67f3fa1",
+      "f121d6bc278558944c41",
+      "7ec00b8bb80caff09185",
+      "df8ccf0dff7d526e07e2",
+      "b7eeb89e56d2456acc72",
+      "97cc51b803508b5a5807",
+      "d917e1332184a028837f",
+      "7e829ed51ca25cd590f1",
+      "d3f429e8495e582b513e",
+      "eb05b20b7a1c9c7460b6",
+      "5916dbed6cd93492c56a",
+      "489e1f5e2e6858786b51",
+      "ca40522a6507a75bb638",
+      "d1a6efd4130dbe46e508",
+      "0c83e6584c00cbfbc8fb",
+      "e4cd6b7cdaff34481f56",
+      "d98c41d166e3f9ec19e1",
+      "9d9b74325eea61dfc586",
+      "743b80c50656e07ee402",
+      "a30db6fd7cfe159efc05",
+      "9bc4151aea631bffc7c9",
+      "e55df1cb6d60cbc53bea",
+      "715765a4a40789bfa45b",
+      "be619b83af1fe602d034",
+      "bac1042f192cdc285367",
+      "dba35f1ff04871d619a4",
+      "3d2f396b00c086721ef0"
+    ],
+    "triangle_count": 452,
+    "vertex_count": 228
+  },
+  "matrix4_trace_path": "transforms/matrix4-trace.json",
+  "missing_final_authorities": [
+    "certified_legal_geometry",
+    "parking_acceptance",
+    "certified_floor_capacity_plan",
+    "selector_acceptance"
+  ],
+  "program_path": "program/geometry-program.json",
+  "schema_version": "arr.maas.prelegal_elevation_research_handoff.v1",
+  "status": "prelegal_research_ready",
+  "views": {
+    "axon": {
+      "depth_range_m": [
+        -16.19869161,
+        24.50569489
+      ],
+      "height_px": 720,
+      "path": "views/axon.png",
+      "projected_bounds_m": [
+        [
+          -23.17567489,
+          -10.91324056
+        ],
+        [
+          22.40844602,
+          20.07618292
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          0.5965499862718936,
+          -0.5965499862718936,
+          0.5368949876447042
+        ],
+        "horizontal": [
+          0.7071067811865476,
+          0.7071067811865476,
+          -0.0
+        ],
+        "vertical": [
+          -0.379642086548638,
+          0.379642086548638,
+          0.8436490812191957
+        ]
+      },
+      "sha256": "928e1c4491c4646de1af57318bae9fe792c7e3c963ce0ff6ea09df5f328120cc",
+      "view_matrix4": [
+        [
+          0.7071067811865476,
+          0.7071067811865476,
+          -0.0,
+          0.0
+        ],
+        [
+          -0.379642086548638,
+          0.379642086548638,
+          0.8436490812191957,
+          0.0
+        ],
+        [
+          0.5965499862718936,
+          -0.5965499862718936,
+          0.5368949876447042,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    },
+    "back": {
+      "depth_range_m": [
+        -12.01278204,
+        12.01278204
+      ],
+      "height_px": 720,
+      "path": "views/back.png",
+      "projected_bounds_m": [
+        [
+          -25.25767724,
+          0.0
+        ],
+        [
+          25.25767724,
+          11.4
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "horizontal": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "vertical": [
+          0.0,
+          -0.0,
+          1.0
+        ]
+      },
+      "sha256": "c88fcee44f976386b444c6d00f4201cda64fbfdab44ce724e85ae1b975d6ecf0",
+      "view_matrix4": [
+        [
+          -1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    },
+    "front": {
+      "depth_range_m": [
+        -12.01278204,
+        12.01278204
+      ],
+      "height_px": 720,
+      "path": "views/front.png",
+      "projected_bounds_m": [
+        [
+          -25.25767724,
+          0.0
+        ],
+        [
+          25.25767724,
+          11.4
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "horizontal": [
+          1.0,
+          0.0,
+          -0.0
+        ],
+        "vertical": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "sha256": "a369dfe9319feffb9ca998942457eceb1367be6f548b2c8ae73a5830a96923c9",
+      "view_matrix4": [
+        [
+          1.0,
+          0.0,
+          -0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    },
+    "left": {
+      "depth_range_m": [
+        -25.25767724,
+        25.25767724
+      ],
+      "height_px": 720,
+      "path": "views/left.png",
+      "projected_bounds_m": [
+        [
+          -12.01278204,
+          0.0
+        ],
+        [
+          12.01278204,
+          11.4
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        "horizontal": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "vertical": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "sha256": "fc85701015adb27e63b6fe73b69d7e4bfeaf6fefd12d34cb03f51c0fa7a30243",
+      "view_matrix4": [
+        [
+          0.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    },
+    "right": {
+      "depth_range_m": [
+        -25.25767724,
+        25.25767724
+      ],
+      "height_px": 720,
+      "path": "views/right.png",
+      "projected_bounds_m": [
+        [
+          -12.01278204,
+          0.0
+        ],
+        [
+          12.01278204,
+          11.4
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "horizontal": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "vertical": [
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "sha256": "445197994ea84c8c3c25bdbad45ba85a713d43e378e94d36be783a45606f00c6",
+      "view_matrix4": [
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    },
+    "top": {
+      "depth_range_m": [
+        0.0,
+        11.4
+      ],
+      "height_px": 720,
+      "path": "views/top.png",
+      "projected_bounds_m": [
+        [
+          -25.25767724,
+          -12.01278204
+        ],
+        [
+          25.25767724,
+          12.01278204
+        ]
+      ],
+      "projection": "orthographic",
+      "projection_axes": {
+        "depth": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "horizontal": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "vertical": [
+          0.0,
+          1.0,
+          0.0
+        ]
+      },
+      "sha256": "e7f384521bf95a6d19688f983c8b773e6d5c145ee50dc291c51a7e7aca40309e",
+      "view_matrix4": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "width_px": 720
+    }
+  }
+}

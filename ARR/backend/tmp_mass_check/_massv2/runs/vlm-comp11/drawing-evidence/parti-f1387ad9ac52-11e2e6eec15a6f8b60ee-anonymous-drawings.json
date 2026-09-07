@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+  "shape_id": "11e2e6eec15a6f8b60ee",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    317.28298910296553,
+    317.28298910296553
+  ],
+  "section_area_m2": 202.46968746373034,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "357e413b98ace5e345aa363f12a76cc5cc0cf8d499db9f71507f2142dfe348d1"
+}

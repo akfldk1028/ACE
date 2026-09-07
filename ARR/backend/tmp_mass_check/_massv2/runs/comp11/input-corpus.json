@@ -1,0 +1,510 @@
+{
+  "schema_version": "arr.massv2.authored.v1",
+  "author": "Codex comp11: six retained authored controls for parking and deliberate development comparison",
+  "site_pnu": "4115011300106840001",
+  "assumptions": [
+    "Required programme remains unknown; legal upper bounds do not establish a density target.",
+    "Four prior organizations remain controls. Two new sources test independently bounded roofs in the typed mass route, not unsupported BOOK roof operators.",
+    "The user references call for visible relationships among occupied volumes, terraces and curving roofs; these studies do not establish terrace access, drainage, structure or parking approval.",
+    "All six parti sources are retained comparison controls; two BOOK originals are newly authored, and the development parent will be deliberately selected from the fresh judged board."
+  ],
+  "schemes": [
+    {
+      "name": "sangok_c07_four_rotated_occupied_blocks",
+      "primary_language": "solid_body",
+      "secondary_language": "Four distinct occupied blocks alternate orientation above one grounded block",
+      "formal_principle": "네 개의 점유 볼륨을 방향을 달리해 쌓아 각 층의 몸체와 외부를 향한 관계를 드러낸다.",
+      "dominant_gesture": "Four readable blocks in a vertical rotated stack",
+      "reference_basis": "Original interpretation of the user-supplied four-block mass study; no inferred room programme.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "method": "stack",
+          "levels": 4,
+          "storeys": 1,
+          "unit": "slab",
+          "spread": 1.08,
+          "height": 1,
+          "tie": 0,
+          "turn": 24,
+          "reach": 0.06,
+          "why": "The reference calls for discrete occupied masses rather than one sculpted envelope; place exactly one substantial block on each of four levels, with alternating 48-degree relative orientations and modest overlap-preserving displacement. This exposes four inhabited volumes and changing outlooks; transfer structure, vertical circulation and upper-level access remain unverified."
+        }
+      ]
+    },
+    {
+      "name": "sangok_c07_offset_paired_bar_levels",
+      "primary_language": "porous_field",
+      "secondary_language": "Two grounded paired bars carry two offset upper bars",
+      "formal_principle": "나란한 하부 두 동 위에 어긋난 상부 두 동을 놓아 통로와 네 몸체의 관계를 만든다.",
+      "dominant_gesture": "Paired lower and upper bars with a longitudinal gap",
+      "reference_basis": "Original paired-building alternative to the compact four-block tower; programme allocation remains unknown.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "method": "stack",
+          "levels": 2,
+          "storeys": 2,
+          "unit": "slab",
+          "spread": 1.12,
+          "height": 1,
+          "tie": 0,
+          "turn": 0,
+          "reach": 0.18,
+          "why": "A compact vertical stack offers little independent ground address; instead use two grounded two-storey bars with a real separation and carry two shifted two-storey bars above them. Four masses now work as paired strata rather than four successive floors; passage usability, enclosed connections and cantilever reinforcement require verification."
+        }
+      ]
+    },
+    {
+      "name": "sangok_c07_inhabited_bridge_between_piers",
+      "primary_language": "open_figure",
+      "secondary_language": "An occupied upper bridge joins two grounded room-depth piers",
+      "formal_principle": "두꺼운 양쪽 지상 볼륨을 상부 브리지로 연결해 중앙의 열린 지상 공간을 구성한다.",
+      "dominant_gesture": "A substantial inhabited bridge over an open ground interval",
+      "reference_basis": "Original alternative testing continuity above and permeability below; access permission and exact room functions remain unknown.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1,
+          "storeys": 3,
+          "why": "Test whether the same unspecified building can keep its upper occupied volume continuous while releasing a meaningful central ground interval. Three storeys provide a bounded sectional budget; this is not a required-area assertion."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.26,
+                0
+              ],
+              [
+                0.28,
+                0.65
+              ],
+              [
+                0.72,
+                0.65
+              ],
+              [
+                0.74,
+                0
+              ],
+              [
+                1,
+                0
+              ]
+            ],
+            "axis": [
+              1,
+              0
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "why": "A central ground route conflicts with upper continuity; raise only the middle underside while leaving two broad piers grounded and an occupied upper band intact. The delivered section must show both piers, the opening and the bridge depth; this does not verify long-span engineering or circulation."
+        }
+      ]
+    },
+    {
+      "name": "comp10_distributed_halls_rising_roofs",
+      "primary_language": "porous_field",
+      "secondary_language": "Three grounded occupied halls with individually rising roof edges",
+      "formal_principle": "세 개의 지상 동에 가장자리가 솟는 지붕을 부여해 동 사이의 틈과 서로 다른 단면을 만든다.",
+      "dominant_gesture": "A field of occupied halls whose roofs rise toward their edges",
+      "reference_basis": "Original geometric interpretation of the supplied low curving-roof hall image; building identity and programme are not inferred.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 3,
+          "method": "pack",
+          "arrangement": "pack",
+          "spread": 1.08,
+          "height": 1,
+          "storeys": 3,
+          "tie": 0.1,
+          "turn": 12,
+          "why": "A uniform connected prism hides the individuality of occupied halls; arrange three grounded bodies around intervening gaps, with a limited common connection. Actual support, access and the connection must be checked on the executed geometry."
+        },
+        {
+          "op": "shape",
+          "on": "object",
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                1.0
+              ],
+              [
+                1,
+                0,
+                -0.7
+              ],
+              [
+                0,
+                1,
+                -0.7
+              ],
+              [
+                2,
+                0,
+                0.7
+              ],
+              [
+                0,
+                2,
+                0.7
+              ]
+            ]
+          },
+          "why": "Each local roof descends toward its middle and rises toward its perimeter through a two-variable height field. This changes both principal sections instead of tilting a flat roof; drainage and the occupied upper floor need separate verification."
+        }
+      ]
+    },
+    {
+      "name": "sangok_c07_stepped_interlocking_sections",
+      "primary_language": "carved_body",
+      "secondary_language": "Three stepped occupied tiers are clasped by a transverse middle-level volume",
+      "formal_principle": "크기가 다른 세 단을 후퇴시키고 중간 높이에서 가로 방향의 볼륨을 맞물린다.",
+      "dominant_gesture": "Asymmetric stepped tiers with a sectional interlock",
+      "reference_basis": "Original sectional composition distinct from the rotating stack and paired bars; programme remains unspecified.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.24,
+          "height": 1,
+          "storeys": 4,
+          "align": "back",
+          "why": "Test a continuous occupied hierarchy with substantial retreating tiers rather than separate rotated blocks; keep one face aligned and let three unequal tiers expose usable stepped edges within a four-storey height budget. Floor division and terrace access remain unverified."
+        },
+        {
+          "op": "interlock",
+          "on": "tier_1",
+          "bite": 0.6,
+          "size": 0.55,
+          "reach": 0.22,
+          "why": "A uniform setback sequence alone lacks a second spatial direction; introduce two opposed, height-staggered clasp volumes on the middle tier. Their overlap makes a sectional relationship visible instead of adding a rooftop ornament; member sizes and occupiable headroom must be resolved."
+        }
+      ]
+    },
+    {
+      "name": "comp10_continuous_court_rising_edges",
+      "primary_language": "open_figure",
+      "secondary_language": "A continuous concave occupied band with a low middle and raised roof edges",
+      "formal_principle": "오목한 건축 볼륨의 연속성을 유지하며 지붕 중앙을 낮추고 가장자리를 올려 평면과 단면을 함께 변화시킨다.",
+      "dominant_gesture": "Continuous concave enclosure with a two-direction roof profile",
+      "reference_basis": "Original alternative to the flat-topped continuous court; this is a roof and occupied-solid experiment, not a landscape proposal.",
+      "floor_height_m": 3.6,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1,
+          "storeys": 4,
+          "why": "Use one continuous building as a control against the other assembled propositions. Four storeys bound the highest edge without asserting an area target."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              [
+                [
+                  0.25,
+                  0.24
+                ],
+                [
+                  0.25,
+                  0.76
+                ],
+                [
+                  0.75,
+                  0.76
+                ],
+                [
+                  0.75,
+                  0.24
+                ],
+                [
+                  0.25,
+                  0.24
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "polynomial",
+            "terms": [
+              [
+                0,
+                0,
+                1.0
+              ],
+              [
+                1,
+                0,
+                -0.7
+              ],
+              [
+                0,
+                1,
+                -0.7
+              ],
+              [
+                2,
+                0,
+                0.7
+              ],
+              [
+                0,
+                2,
+                0.7
+              ]
+            ]
+          },
+          "bottom_surface": {
+            "type": "constant",
+            "height": 0
+          },
+          "why": "Preserve the concave occupied plan while lowering the middle of the roof relative to its edges. The typed surface must survive actual sections and site delivery; numerical or legal refusals remain explicit."
+        }
+      ]
+    },
+    {
+      "name": "loop_butterfly_open__d07_bar+",
+      "primary_language": "open_figure",
+      "secondary_language": "a four-storey loop ring whose every bar carries a butterfly roof draining toward the court - a basin of roofs over a garden of rain",
+      "formal_principle": "The court is the ring's centre but a flat ring drains rain away from it; giving every bar a butterfly that drains toward the court makes the court a rain garden that the building actively feeds - the building is organised around its own hydrological logic, the butterfly valleys as gutters pointing inward.",
+      "dominant_gesture": "a court ring of butterfly roofs draining to the court",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.265,
+          "height": 0.65,
+          "storeys": 4,
+          "why": "Input: a four-storey ring tall enough that the butterfly's valley is visible above the bar's eaves; height 0.65 declares mid-tall. Bar 0.23 gives each arm enough depth for a readable butterfly across its short dimension. Limit: four storeys keep the ring civic-scaled; bar 0.23 avoids making the arms too deep for the butterfly to register."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.55,
+          "at": 0.3,
+          "along": "cross",
+          "why": "Input: the butterfly valley runs along each bar's cross axis (parallel to the court edge) so the valley is the deepest point closest to the court; at 0.3 biases the valley toward the court face so the deep wing is over the court and the shallow wing faces outward. Limit: pitch 0.55 on bar depth 0.23 reads cleanly within the cap; along cross runs the valley perpendicular to each bar's own length."
+        }
+      ]
+    },
+    {
+      "name": "sangok_c04_develop_perforated_base",
+      "primary_language": "carved_body",
+      "secondary_language": "Perforated base beneath a continuous upper body",
+      "formal_principle": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded.",
+      "dominant_gesture": "Perforated base beneath a continuous upper body",
+      "reference_basis": "Exact scored comp04 parent; architectural massing development. Public-office and meeting uses remain hypotheses.",
+      "floor_height_m": 3.9,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "Retain the parent two-storey, 7.8 m maximum envelope and 3.9 m authored storey height."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.69
+                ],
+                [
+                  1.0,
+                  0.69
+                ],
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                [
+                  0.2,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.28
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.4,
+                0
+              ],
+              [
+                0.44,
+                0.42
+              ],
+              [
+                0.56,
+                0.42
+              ],
+              [
+                0.6,
+                0
+              ],
+              [
+                1,
+                0
+              ]
+            ],
+            "axis": [
+              0,
+              1
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "why": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded. Developed: bottom_surface {'type': 'constant', 'height': 0} -> {'type': 'profile', 'points': [[0, 0], [0.4, 0], [0.44, 0.42], [0.56, 0.42], [0.6, 0], [1, 0]], 'axis': [0, 1], 'span': [0, 1]}, chosen over the parent by a unanimous blind pairwise jury."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "Perforated base beneath a continuous upper body",
+        "spatial_strategy": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded.",
+        "tradeoff": "The passage is a modeled void, not a verified door, circulation route or engineered transfer structure. Its upper bridge needs structural development."
+      }
+    }
+  ],
+  "development_feedback": "D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/inputs/gen-develop.json"
+}

@@ -68,6 +68,8 @@ _MODS = (
                          "bays": r.choice((1, 1, 2, 3))}),
     ("fold", lambda r: {"folds": r.choice((1, 2, 3)),
                         "pitch": round(r.uniform(0.35, 0.7), 2)}),
+    ("crown", lambda r: {"form": r.choice(("dome", "dish", "saddle")),
+                         "sag": round(r.uniform(0.2, 0.45), 2)}),
     ("roof", lambda r: {"rise": round(r.uniform(0.4, 1.3), 2),
                         "eave": round(r.uniform(0.15, 0.45), 2),
                         "corners": r.choice(("opposite", "adjacent", "one", "all")),

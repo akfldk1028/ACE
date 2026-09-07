@@ -20,7 +20,7 @@ Next work in order: (1) fix exact development physical placement preservation wi
 
 Development votes: child1 BBB, child2 AAA, child3 BBB, child4 AAA (A parent/B child). Existing tie rule sends child1 to feedback; these are parent-child comparisons, not child-to-child ranking. The parent and child-specific parking requests now travel through the BOOK author contract and actual owner remeasurement. Child1/2 preserve1658.319m2 and place6 versus parent5 cells, with17 required. All remain unresolved: disconnected aisles, access and operating feasibility are not approved. Existing ParkingAgent labels alone were not this integration.
 
-Next work in order: (1) ~~parking selector capacity waste~~ closed (counterexample 8/8 on current code); the 13-vs-10 site deficit is an architect's decision (mechanical/basement/programme); (2) ~~diversify the development parent cohort~~ done 2026-09-07 (lineage.py, three-cycle exclusion); (3) shared BOOK typed roof-surface contract and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
+Next work in order: (1) ~~parking selector capacity waste~~ closed (counterexample 8/8 on current code); the 13-vs-10 site deficit is an architect's decision (mechanical/basement/programme); (2) ~~diversify the development parent cohort~~ done 2026-09-07 (lineage.py, three-cycle exclusion); (3) BOOK typed roof-surface contract (massv2 side now has `crown`; BOOK author contract still lacks a named surface word) and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
 
 Verification: MassAgent66 tests passed, followed by three focused exporter identity tests; user-required backend three-module suite53 passed. This is not a full-repository green claim. Do not modify unrelated dirty law_graph_agent/evidence.py or agent collaboration tests.
 
@@ -229,6 +229,21 @@ Codex의 반례(`agents/MassAgent/tmp/parking-grid-capacity-audit/check.py`, 후
 장애인"은 7f7dec0c 이전 기록이라 낡았다. comp12 develop 자식 4개의 실측은 **요구 13 / 배치 10**.
 이 3대는 선택기 낭비가 아니라 대지·차로 봉투가 허용하는 양이며, 기계식·지하·프로그램 축소 중 무엇으로
 메울지는 **건축사 결정**이다. 그 전까지 시트에 "13 요구·10 배치·3 부족"을 있는 그대로 적는다.
+
+## 2026-09-07 Claude 인수 4 — IR: 단면 계약은 맞았고, 없던 건 말이었다
+
+Codex가 남긴 "처진 지붕 6 m 윗면을 8 m 단면이 포함" 반례를 네 경우(다항 sag·V 프로필·기울어진
+밑면·contains_point)로 재현했더니 **현 코드는 전부 옳다** — 62f92aee 이후 낡은 메모다. 실제 간극은
+표현력: 타입 곡면(`PolynomialSurface`)은 컴파일·단면·게이트·렌더가 다 되는데, 문장이 닿는 길이
+Codex의 `shape` 동사의 **계수 표**뿐이라 어떤 저자도 2변수 지붕을 말한 적이 없었다(당선작 발화
+상위 5에 2축 곡면 7).
+
+수리: 동사 **`crown`** — `form: dome|dish|saddle`, `sag`(밴드 몫 0.05~0.6), `along`. 몸 자체의
+윗면을 단위 평면의 2차 다항으로 이름 짓는다(`roof`는 별도 시트). grammar `PLOT_MODES` 등록,
+검증기 RANGES/`CROWN_FORMS`, 스윕 draw. 그리고 `solid.surface_bounds`가 분리 가능한 2차 다항에
+**정확한 극값**을 쓴다 — Bernstein 껍질이 내부 꼭짓점을 sag/2 만큼 과대평가해 밴드 상단에 정확히
+닿는 돔을 "밴드 이탈"로 거부했었다. 실측: 돔 상단 부근 단면이 중심만 남기고 면적 60% 미만,
+접시는 중심부터 사라지고, 안장은 두 덩이. 테스트 9 신규, 곡면 6모듈 54 통과, massv2 64 통과.
 
 ## 읽을 파일 — 이 순서로, 빠짐없이
 

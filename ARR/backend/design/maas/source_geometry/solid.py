@@ -189,6 +189,28 @@ def surface_bounds(surface, bounds):
     if not isinstance(surface, PolynomialSurface):
         raise ValueError("external surface requires a supported bounded record")
     x0,y0,x1,y1 = bounds
+    # A separable quadratic - every term in x alone or y alone, degree at most
+    # two - has an exact extremum on a box: each axis at its ends or at its
+    # own vertex. The Bernstein hull below overestimates such an interior peak
+    # by half its rise, and refused a dome whose true peak was exactly the
+    # band top. Exact is still conservative in the sense this check needs.
+    if surface.terms and all((i == 0 or j == 0) and i <= 2 and j <= 2 for i,j,_ in surface.terms):
+        def axis_extremes(coefficients, lo, hi):
+            a = coefficients.get(0,0.0); b = coefficients.get(1,0.0); c = coefficients.get(2,0.0)
+            values = [a + b*t + c*t*t for t in (lo,hi)]
+            if c != 0:
+                vertex = -b/(2*c)
+                if lo < vertex < hi:
+                    values.append(a + b*vertex + c*vertex*vertex)
+            return min(values), max(values)
+        constant = sum(c for i,j,c in surface.terms if i == 0 and j == 0)
+        fx = {}; fy = {}
+        for i,j,c in surface.terms:
+            if i > 0: fx[i] = fx.get(i,0.0) + c
+            elif j > 0: fy[j] = fy.get(j,0.0) + c
+        x_low,x_high = axis_extremes(fx,x0,x1)
+        y_low,y_high = axis_extremes(fy,y0,y1)
+        return constant + x_low + y_low, constant + x_high + y_high
     coefficients = {}
     for i,j,c in surface.terms:
         for k in range(i+1):

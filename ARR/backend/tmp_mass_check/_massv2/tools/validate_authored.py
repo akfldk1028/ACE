@@ -80,7 +80,9 @@ RANGES = {
     # rather than a construction tolerance - the void the critics said the
     # corpus never produces. Bounded only where the parts would leave the site.
     "gap": (0.0, 12.0),
+    "sag": (0.0, 0.6),
 }
+CROWN_FORMS = {"dome", "dish", "saddle"}
 
 # Where a parameter name means different things to different verbs. `ratio` is
 # a share for `split` and a multiplier for `expand`, so one global range refused
@@ -214,6 +216,9 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
                     if not lo <= op[key] <= hi:
                         faults.append(f"{name} op{index} ({verb}): {key}={op[key]} "
                                       f"outside {lo}..{hi}")
+            if verb == "crown" and str(op.get("form") or "dome") not in CROWN_FORMS:
+                faults.append(f"{name} op{index}: crown form {op.get('form')!r} unknown "
+                              f"(one of {sorted(CROWN_FORMS)})")
             if "profile" in op:
                 if op["profile"] not in PROFILES:
                     faults.append(f"{name} op{index}: profile {op['profile']!r} unknown")

@@ -1692,6 +1692,62 @@ def _shape(frame: _Frame, op: Operation) -> None:
 _VERBS["shape"] = _shape
 
 
+CROWN_FORMS = ("dome", "dish", "saddle")
+
+
+def crown_terms(form: str, sag: float, *, along_x: bool = True) -> tuple[tuple[int, int, float], ...]:
+    """Polynomial terms of a named top in the unit plan. Pure; the tests read it."""
+
+    s = float(sag)
+    if form == "dome":
+        # 1 - 2s((x-.5)^2 + (y-.5)^2)
+        return ((0, 0, 1.0 - s), (1, 0, 2 * s), (2, 0, -2 * s), (0, 1, 2 * s), (0, 2, -2 * s))
+    if form == "dish":
+        # 1 - s + 2s((x-.5)^2 + (y-.5)^2)
+        return ((0, 0, 1.0), (1, 0, -2 * s), (2, 0, 2 * s), (0, 1, -2 * s), (0, 2, 2 * s))
+    if form == "saddle":
+        # 1 - s/2 + 2s((x-.5)^2 - (y-.5)^2); `along` swaps which axis rises
+        a, b = ((1, 0), (0, 1)) if along_x else ((0, 1), (1, 0))
+        return ((0, 0, 1.0 - s / 2), (a[0] * 2, a[1] * 2, 2 * s), (a[0], a[1], -2 * s),
+                (b[0] * 2, b[1] * 2, -2 * s), (b[0], b[1], 2 * s))
+    raise ValueError(f"crown form must be one of {CROWN_FORMS}, not {form!r}")
+
+
+def _crown(frame: _Frame, op: Operation) -> None:
+    """Give the selected bodies a two-variable top named by a word.
+
+    `roof` lays a separate warped sheet over a body; this shapes the body's
+    own top, so the rooms under a dome are under a dome. The surface is a
+    polynomial in the body's unit plan and rides the same typed path as
+    `shape`: it compiles, slices, gates and renders without a new branch.
+    `sag` is the share of the body's band the top moves through (0.1-0.6).
+    """
+
+    form = str(op.params.get("form") or "dome")
+    sag = float(op.params.get("sag") if op.params.get("sag") is not None else 0.35)
+    if not 0.05 <= sag <= 0.6:
+        raise ValueError(f"crown sag must be within 0.05..0.6, not {sag}")
+    along = str(op.params.get("along") or "long")
+    terms = crown_terms(form, sag, along_x=(along != "cross"))
+    surface = {"type": "polynomial", "terms": [list(t) for t in terms]}
+    picked, rest = _scope(frame, op)
+    rest += [item for item in picked if item.kind != "additive"]
+    picked = [item for item in picked if item.kind == "additive"]
+    if not picked:
+        raise MissingOperationDependency("crown requires an existing selected body")
+    crowned = []
+    for item in picked:
+        record = {**item.to_record(), "top_surface": surface}
+        # The named top owns the top: earlier roof tags must not warp it.
+        record.update(top_drop=0.0, drop_toward=None, ridge_along=None,
+                      top_profile=None, profile_across=None, warp=None)
+        crowned.append(Placement.from_record(record))
+    frame.placements = rest + crowned
+
+
+_VERBS["crown"] = _crown
+
+
 def execute(
     parti: Parti,
     *,

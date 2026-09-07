@@ -92,6 +92,7 @@ class Operation:
 # The operations, with the plot relationship each one carries.
 PLOT_MODES: dict[str, PlotMode] = {
     "shape": "impose",
+    "crown": "impose",
     "split": "inherit",
     "extrude": "inherit",
     "stack": "inherit",

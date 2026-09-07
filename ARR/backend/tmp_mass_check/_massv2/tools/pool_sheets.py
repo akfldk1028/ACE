@@ -44,7 +44,11 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
     parcel = float(summary["site"]["parcel_area_m2"])
 
     rows = []
-    from design.maas.massv2.select import MINIMUM_DELIVERED_SHARE  # noqa: E402
+    # The selector's minimum delivered share was retired (explicit plan-only
+    # candidates may enter below it), so this sheet no longer hides the low
+    # end either: its stated purpose is the WHOLE plausible pool, and the
+    # 4%-FAR stubs it once filtered are now labelled by their own numbers.
+    MINIMUM_DELIVERED_SHARE = 0.0
     for record in summary["records"]:
         if not (record.get("plausibility") or {}).get("occupiable"):
             continue

@@ -838,6 +838,31 @@ class Command(BaseCommand):
         # other sitings - and the unplaced original, whose default position
         # is the one the check refused - are the same drawing the silence
         # gate already rejected.
+        # A repertoire sentence already judged as one variant competes as that
+        # variant alone; spreading it again multiplied 207 representatives into
+        # 4,012 fits and a seventeen-hour round. The stamp comes from the
+        # corpus assembly (prepare_corpus: the best-scored variant's name).
+        judged = {
+            name: str(record.get("repertoire_variant"))
+            for name, record in parti_book.items()
+            if record.get("repertoire_variant")
+        }
+        if judged:
+            produced = {form.name for form in forms}
+            kept = []
+            dropped = 0
+            for form in forms:
+                base = form.name.split("~")[0].split("^")[0]
+                wanted = judged.get(base)
+                if wanted is None:
+                    kept.append(form)
+                elif form.name == wanted or (wanted not in produced and form.name == base):
+                    kept.append(form)
+                else:
+                    dropped += 1
+            forms = kept
+            self.stdout.write(f"repertoire: {len(judged)} sentences kept as their judged "
+                              f"variant, {dropped} re-spread variants dropped")
         before = len(forms)
         forms = [
             form for form in forms

@@ -171,6 +171,84 @@ def _sequence_sheet(item, *, book, site, buildable, axis, out_dir):
                           buildable=buildable, axis=axis, out_dir=out_dir)
 
 
+def _engine_signature() -> str:
+    """A hash of every module whose edit can change a delivered mass."""
+
+    import hashlib
+    from pathlib import Path as _Path
+    root = _Path(__file__).resolve().parents[2] / "maas"
+    digest = hashlib.sha256()
+    for folder in ("massv2", "source_geometry"):
+        for path in sorted((root / folder).glob("*.py")):
+            digest.update(path.name.encode("utf-8"))
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:16]
+
+
+def _verdict_to_json(verdict) -> dict:
+    return {"declared": list(verdict.declared), "silent": list(verdict.silent),
+            "changed": list(verdict.changed), "reached": list(verdict.reached)}
+
+
+def _verdict_from_json(payload: dict):
+    from design.maas.massv2.postcondition import Verdict
+    return Verdict(declared=tuple(payload["declared"]), silent=tuple(payload["silent"]),
+                   changed=tuple(payload["changed"]), reached=tuple(payload.get("reached") or ()))
+
+
+class _VerdictCache:
+    """Per-sentence gate verdicts, keyed by sentence, parcel and engine.
+
+    The gates deliver the mass once per word; on 214 sentences that is the
+    twenty minutes a round spends authoring. Their answer is a pure function
+    of the three things in the key, so a round that changes neither the
+    engine nor the parcel can read last round's answer.
+    """
+
+    def __init__(self, path, site_key: str):
+        import hashlib
+        import json as _json
+        from pathlib import Path as _Path
+        self._json = _json
+        self._hashlib = hashlib
+        self.path = _Path(path)
+        self.prefix = f"{_engine_signature()}|{site_key}|"
+        self.entries: dict = {}
+        self.hits = 0
+        self.misses = 0
+        if self.path.is_file():
+            try:
+                stored = _json.loads(self.path.read_text(encoding="utf-8"))
+                if isinstance(stored, dict):
+                    self.entries = stored
+            except (OSError, ValueError):
+                self.entries = {}
+
+    def key(self, record: dict, storey: float, height: float) -> str:
+        payload = self.prefix + self._json.dumps(
+            [record, round(float(storey), 6), round(float(height), 6)],
+            sort_keys=True, ensure_ascii=False)
+        return self._hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def get(self, key: str):
+        found = self.entries.get(key)
+        if found is None:
+            self.misses += 1
+        else:
+            self.hits += 1
+        return found
+
+    def put(self, key: str, value: dict) -> None:
+        self.entries[key] = value
+
+    def save(self) -> None:
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.write_text(self._json.dumps(self.entries), encoding="utf-8")
+        except OSError:
+            pass
+
+
 class Command(BaseCommand):
     help = "Generate matrix-form masses on a live parcel and report the grid."
 
@@ -468,6 +546,13 @@ class Command(BaseCommand):
                 # The declaration's own budget has one owner (grammar), read
                 # here and by every rebuild tool.
                 return max(budget, grammar_module.declared_height_m(record, storey))
+            # The gates below deliver each mass once per word. Their answer is
+            # a pure function of (sentence, parcel, engine), so a round that
+            # changed neither the engine nor the parcel reads last round's.
+            verdicts = _VerdictCache(
+                Path(options["output_dir"]).parent / "_cache" / "sentence-verdicts.json",
+                f"{options['pnu']}|{options['building_type']}|{options['track']}",
+            )
             for sentence_index, record in enumerate(sentences, 1):
                 self.stdout.write(f"author {sentence_index}/{len(sentences)}: {record.get('name', '?')}")
                 self.stdout.flush()
@@ -497,17 +582,30 @@ class Command(BaseCommand):
                 def _delivered_form(form, _site=site):
                     return fit_to_site(form, _site).form
 
-                spoken = postcondition.check_sentence(
-                    parti,
-                    buildable=buildable,
-                    axis=axis,
-                    height_m=authored_height,
-                    allowed_at=None,
-                    storey_height_m=storey,
-                    place=_delivered_form,
-                )
-                spoken_sitings: list[str] = []
-                if not spoken.honest:
+                cache_key = verdicts.key(record, storey, authored_height)
+                cached = verdicts.get(cache_key)
+                if cached is not None:
+                    spoken = _verdict_from_json(cached["spoken"])
+                    spoken_sitings = list(cached.get("sitings") or ())
+                    if cached["outcome"] == "mute":
+                        mute.append((parti.name, spoken))
+                        continue
+                    if cached["outcome"] == "clipped":
+                        clipped.append((parti.name, spoken,
+                                        _verdict_from_json(cached["unclipped"])))
+                        continue
+                else:
+                    spoken = postcondition.check_sentence(
+                        parti,
+                        buildable=buildable,
+                        axis=axis,
+                        height_m=authored_height,
+                        allowed_at=None,
+                        storey_height_m=storey,
+                        place=_delivered_form,
+                    )
+                    spoken_sitings = []
+                if cached is None and not spoken.honest:
                     # Silent because the word does nothing, or silent because
                     # the law removed what it did? Measured over this corpus,
                     # six of nine silent words clear the floor comfortably when
@@ -522,6 +620,8 @@ class Command(BaseCommand):
                         storey_height_m=storey,
                     )
                     if not unclipped.honest:
+                        verdicts.put(cache_key, {"outcome": "mute",
+                                                 "spoken": _verdict_to_json(spoken)})
                         mute.append((parti.name, spoken))
                         continue
                     # Wrong HERE is a property of the placement, not of the
@@ -557,9 +657,18 @@ class Command(BaseCommand):
                             )):
                                 best = placed
                     if best is None:
+                        verdicts.put(cache_key, {"outcome": "clipped",
+                                                 "spoken": _verdict_to_json(spoken),
+                                                 "unclipped": _verdict_to_json(unclipped)})
                         clipped.append((parti.name, spoken, unclipped))
                         continue
                     spoken = best
+                if cached is None:
+                    # The sentence passed the gates: remember that, with the
+                    # verdict and the sitings whose words all speak.
+                    verdicts.put(cache_key, {"outcome": "ok",
+                                             "spoken": _verdict_to_json(spoken),
+                                             "sitings": list(spoken_sitings)})
                 # A sentence about what happens between volumes has to leave
                 # something between them. The blind critique round tagged
                 # `gaps-not-present` sixteen times and the two alternatives that
@@ -747,8 +856,10 @@ class Command(BaseCommand):
                 for name, wrong in mistyped[:6]:
                     said = ", ".join(f"{verb}.{key}={value!r}" for verb, key, value in wrong)
                     self.stdout.write(f"  mistyped: {name} -> {said}")
+            verdicts.save()
             self.stdout.write(
                 f"parti sentences: {len(written)} spoken, {len(mute)} with a silent word"
+                f" (gate cache: {verdicts.hits} reused, {verdicts.misses} computed)"
             )
             for name, spoken in mute:
                 self.stdout.write(

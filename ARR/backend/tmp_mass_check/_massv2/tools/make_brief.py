@@ -75,6 +75,75 @@ def champion_section() -> str:
          ""] + lines)
 
 
+def _sentence_line(scheme: dict) -> str:
+    """One reference scheme as a line: name, principle, and its words with their numbers."""
+    ops = []
+    for op in scheme.get("ops") or ():
+        params = ", ".join(f"{k}={v}" for k, v in op.items()
+                           if k not in ("op", "why") and not isinstance(v, (dict, list)))
+        ops.append(f"{op.get('op')}({params})" if params else str(op.get("op")))
+    principle = str(scheme.get("formal_principle") or scheme.get("dominant_gesture") or "").strip()
+    return f"- **{scheme.get('name')}** — {principle} — `{' → '.join(ops)}`"
+
+
+def reference_section(track: str) -> str:
+    """How the reference offices are said in this language - all of them.
+
+    The corpus files are the owner (inputs/corpus-*.json, 32 works of BIG,
+    OMA and SANAA plus the Korean set); this lists every sentence, so the
+    author reads the offices' partis in the same words it is about to write
+    in. The bar the architect set is those offices; a brief that never showed
+    them asked for the standard without stating it.
+    """
+
+    offices = ("korea",) if track == "K" else ("big", "oma", "sanaa")
+    lines = ["## Reference sentences: how the reference offices are said in this language",
+             "Read these as partis, not as templates: the demand below is to differ from "
+             "every board entry at the level of formal principle, and these show what a "
+             "principle looks like when it is stated in one sentence."]
+    for office in offices:
+        path = ROOT / "inputs" / f"corpus-{office}.json"
+        if not path.exists():
+            continue
+        schemes = json.loads(path.read_text(encoding="utf-8")).get("schemes") or []
+        lines += ["", f"### {office.upper()} ({len(schemes)})"]
+        lines += [_sentence_line(scheme) for scheme in schemes]
+    return "\n".join(lines)
+
+
+def sayable_words() -> str:
+    """Every verb the executor knows, with its parameters and ranges - derived.
+
+    VOCABULARY.md is prose about meaning and is hand-written; it has fallen
+    behind twice (no `shape`, no `crown`), so an author working from it alone
+    could not say what the engine can build. The validator derives this table
+    from the executor's own source and is the correctness owner; the brief
+    prints it so the two can never disagree.
+    """
+
+    import validate_authored as va  # noqa: E402  (derives from the executor)
+    lines = ["## Sayable words, derived from the executor (the validator's own table)",
+             "Verb: parameters. Ranges are the validator's; enum values are listed. "
+             "A word not here does not exist, whatever the prose above or below says.",
+             ""]
+    for verb in sorted(va.VERBS):
+        params = sorted(va.VERBS[verb] - va._UNIVERSAL)
+        cells = []
+        for key in params:
+            lo_hi = va.PER_VERB_RANGES.get((verb, key), va.RANGES.get(key))
+            if key == "profile":
+                cells.append("profile in {" + ", ".join(sorted(va.PROFILES)) + "}")
+            elif verb == "crown" and key == "form":
+                cells.append("form in {" + ", ".join(sorted(va.CROWN_FORMS)) + "}")
+            elif lo_hi:
+                cells.append(f"{key} {lo_hi[0]}..{lo_hi[1]}")
+            else:
+                cells.append(key)
+        lines.append(f"- **{verb}**: {', '.join(cells) if cells else '(no parameters)'}")
+    lines += ["", f"Universal on every verb: {', '.join(sorted(va._UNIVERSAL))}."]
+    return "\n".join(lines)
+
+
 def main(track: str, out_path: str, assignment: str = "") -> int:
     from trap_ledger import ledger  # django setup inside
     from design.maas.massv2.parcel_policy import policy_for
@@ -128,9 +197,14 @@ def main(track: str, out_path: str, assignment: str = "") -> int:
     champions = champion_section()
     if champions:
         parts += [champions, ""]
-    parts += ["## Canonical reference material (original source language preserved)",
+    # The reference offices, in this language. Every sentence of every
+    # reference corpus for the track - derived, never picked - so the author
+    # sees how BIG, OMA and SANAA are said before writing. The header stood
+    # here for a season over the trap ledger with no reference under it.
+    parts += [reference_section(track), "",
               ledger(), "", board_section(track), "",
               "---", "",
+              sayable_words(), "", "---", "",
               (ROOT / "inputs" / "VOCABULARY.md").read_text(encoding="utf-8"),
               "", "---", "",
               (ROOT / "inputs" / "AUTHORING-CANON.md").read_text(encoding="utf-8")]

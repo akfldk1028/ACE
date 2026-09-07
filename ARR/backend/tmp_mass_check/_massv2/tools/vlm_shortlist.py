@@ -195,7 +195,8 @@ def seat_certificate(name, source, book, site, *, book_entry=None):
     return cert
 
 
-def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule=None, book_entry=None):
+def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule=None, book_entry=None,
+                 row: dict | None = None):
     """A board seat's delivered geometry and its caption, whatever its stack.
 
     massv2 names rebuild through finalists.rebuild at the declaration's own
@@ -208,8 +209,16 @@ def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule
     """
 
     if name.startswith("book:"):
-        from book_import import book_rebuild, registry  # noqa: E402
-        entry = book_entry if book_entry is not None else (registry().get(name) or {})
+        from book_import import book_rebuild, resolve_entry  # noqa: E402
+        # A name that recurs across stages is resolved by the row it was
+        # judged in; by name alone only when every stage agrees.
+        if book_entry is not None:
+            entry = book_entry
+        else:
+            try:
+                entry = resolve_entry(name, row=row)
+            except KeyError:
+                return None, None
         if not entry:
             return None, None
         source = book_rebuild(name, site, buildable, book_entry=entry)
@@ -336,7 +345,12 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
             break
         if row["name"] in contestants or str(row.get("round") or "") == out.name:
             continue
-        source, caption = rebuild_seat(row["name"], book, site, buildable, axis, base)
+        try:
+            source, caption = rebuild_seat(row["name"], book, site, buildable, axis, base,
+                                           row=row if row.get("certificate_id") else None)
+        except ValueError as exc:
+            print(f"   anchor {row['name'][:48]}: {exc} - not riding it")
+            continue
         if source is None:
             print(f"   WARNING: anchor {row['name']} could not be rebuilt - riding without it")
             continue

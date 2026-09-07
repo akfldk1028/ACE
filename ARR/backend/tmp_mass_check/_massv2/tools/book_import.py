@@ -548,6 +548,36 @@ def entry_for_judged_row(row: dict) -> dict:
     return {**entry, 'book_dir': data['book_dir']}
 
 
+def resolve_entry(name: str, *, row: dict | None = None) -> dict:
+    """The one registry entry a BOOK name means, or a refusal that says why.
+
+    With a judged board row, the entry of the stage that row was judged in
+    (entry_for_judged_row). Without one, the merged registry - but only when
+    every stage holding the name agrees on its certificate; a name whose
+    stages disagree cannot be resolved by name, and guessing paired a comp12
+    seat with a comp03 entry.
+    """
+
+    if row is not None:
+        return entry_for_judged_row(row)
+    certificates: set[str] = set()
+    found = None
+    if BOOKS.exists():
+        for path in sorted(BOOKS.glob("*.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            entry = (data.get("entries") or {}).get(name)
+            if entry is None:
+                continue
+            certificates.add(str((entry.get("numeric_certificate") or {}).get("certificate_id") or ""))
+            found = {**entry, "book_dir": data["book_dir"]}
+    if found is None:
+        raise KeyError(name)
+    if len(certificates) > 1:
+        raise ValueError(f"{name}: recurs in {len(certificates)} stages with different "
+                         f"certificates - resolve it by its judged board row")
+    return found
+
+
 def book_rebuild(name: str, site, buildable, *, book_entry=None):
     """A seated book mass, rebuilt exactly as it was judged (for the baker)."""
 

@@ -160,6 +160,54 @@ def _repeated_families(schemes: list) -> list[str]:
     return faults
 
 
+# The words that change a mass's section or its relation to the ground -
+# under a storey cap, the only place diversity can come from. Derived from
+# the executor's verb table so a new word (crown) counts the day it exists.
+SECTION_WORDS = {"gable", "butterfly", "mansard", "vault", "fold", "roof", "crown", "grade",
+                 "canopy", "sink", "lift", "cantilever", "carve", "puncture", "inscribe",
+                 "notch", "taper", "pinch", "twist"} & set(VERBS)
+COVERAGE_MIN_BOOK = 6          # a book this size is a round; smaller books are probes
+COVERAGE_MIN_OPENERS = 2
+COVERAGE_MIN_SECTION_WORDS = 3
+COVERAGE_MIN_PROFILES = 2
+
+
+def _thin_coverage(schemes: list) -> list[str]:
+    """A round-sized book that leaves most of the language unsaid.
+
+    Openers (extrude/loop/aggregate/stack) set the part-to-whole; section and
+    ground words set the silhouette a storey cap cannot flatten; plan
+    profiles set the figure. A book of six with one opener, one section word
+    and one profile is six of the same building, however different the
+    parameters.
+    """
+
+    if len(schemes) < COVERAGE_MIN_BOOK:
+        return []
+    openers, words, profiles = set(), set(), set()
+    for scheme in schemes:
+        ops = scheme.get("ops") or []
+        if ops:
+            openers.add(str(ops[0].get("op")))
+        for op in ops:
+            verb = str(op.get("op"))
+            if verb in SECTION_WORDS:
+                words.add(verb)
+            if op.get("profile"):
+                profiles.add(str(op["profile"]))
+    faults = []
+    if len(openers) < COVERAGE_MIN_OPENERS:
+        faults.append(f"book: {len(schemes)} sentences open with {sorted(openers)} only - "
+                      f"use at least {COVERAGE_MIN_OPENERS} openers (extrude/loop/aggregate/stack)")
+    if len(words) < COVERAGE_MIN_SECTION_WORDS:
+        faults.append(f"book: {len(schemes)} sentences use section/ground words {sorted(words)} only - "
+                      f"use at least {COVERAGE_MIN_SECTION_WORDS} distinct ones of {sorted(SECTION_WORDS)}")
+    if len(profiles) < COVERAGE_MIN_PROFILES:
+        faults.append(f"book: {len(schemes)} sentences draw profiles {sorted(profiles)} only - "
+                      f"use at least {COVERAGE_MIN_PROFILES} of {sorted(PROFILES)}")
+    return faults
+
+
 def check(path: Path) -> tuple[list, Counter, Counter]:
     faults: list[str] = []
     verbs: Counter = Counter()
@@ -245,6 +293,7 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
             elif verb == "lift":
                 available.add("support")
     faults.extend(_repeated_families(schemes))
+    faults.extend(_thin_coverage(schemes))
     return faults, verbs, profiles
 
 

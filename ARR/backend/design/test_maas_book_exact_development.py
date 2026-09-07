@@ -62,11 +62,28 @@ class ExactBookDevelopmentTests(SimpleTestCase):
         self.assertEqual(key(a), key(b))
 
     def test_default_exploration_ast_and_mesh_are_unchanged(self):
+        authored = _authored_unitbox_program()
         result = portfolio.build_creative_floor_portfolio(count=1, capacity_ceiling_m2=332.322,
-                                                         authored_programs=[_authored_unitbox_program()])
-        child = result['candidates'][0]
-        self.assertEqual(child['program_hash'], 'ee8364d38025181b3df792957284a68f192773aa1494424485f152a8825ffa53')
-        self.assertEqual(child['geometry_hash'], 'd13d215174e1b0d85ecee8b0d7f1d6d0471bd8da20d51f4419650bff19e5a61e')
+                                                         authored_programs=[authored])
+        # 5d8d9ee9 retains the original alongside its exploration; a57707f6
+        # keys the offered BOOK schedule by source identity (here: shear).
+        # Select by origin, never mistake candidates[0] for the derived child.
+        self.assertEqual(len(result['candidates']), 2)
+        candidates = {row['candidate_origin']: row for row in result['candidates']}
+        self.assertEqual(set(candidates), {'authored_original', 'book_exploration'})
+        original = candidates['authored_original']
+        child = candidates['book_exploration']
+        self.assertEqual(original['authored_geometry_program'], authored.to_dict())
+        self.assertEqual(child['parent_geometry_program'], authored.to_dict())
+        self.assertEqual(child['parent_program_hash'], authored.program_hash())
+        self.assertEqual(child['book_slot_search']['principle_id'], 'book:operative:shear')
+        self.assertEqual(child['book_slot_search']['scope_label'], '1/1')
+        # Golden AST and mesh identities for BOTH supply roles retain the
+        # regression guard against exact-development leaking into exploration.
+        self.assertEqual(original['program_hash'], '77bf38edfbee6ece144cece9ce17d8260739150e79ea187a6dee3e1bcb00e90d')
+        self.assertEqual(original['geometry_hash'], 'a9e8408a61d9f2fc3d5cde92e25e4c42d9e2889c0a89f3df25a9eb2f77899418')
+        self.assertEqual(child['program_hash'], '16ca15ae775ad0834d992a506bb5e86321c7fa60f69eea268c80f5af7e0eaae3')
+        self.assertEqual(child['geometry_hash'], 'e9e57040df9e54329fb583e49efaaa0d6a43003638f20cf61d12e979e43db356')
 
     def test_importer_keeps_inherited_size_and_refuses_forged_marker(self):
         from design.maas.book_development import build_exact_development_portfolio

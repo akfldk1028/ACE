@@ -111,6 +111,24 @@ class CrownCompilesTests(SimpleTestCase):
         parts = getattr(section, "geoms", [section])
         self.assertEqual(len(list(parts)), 2)
 
+    def test_lift_raises_a_crowned_body_with_its_crown_on(self):
+        parti = parti_from_record({
+            "name": "crown_then_lift",
+            "primary_language": "porous_field",
+            "ops": [
+                {"op": "aggregate", "n": 4, "spread": 1.4, "height": 0.5, "storeys": 3, "tie": 0.2,
+                 "why": "four rooms"},
+                {"op": "crown", "form": "dish", "sag": 0.35, "why": "dished tops"},
+                {"op": "lift", "clearance": 0.3, "why": "on supports"},
+            ],
+        })
+        form_ = execute(parti, buildable=self.buildable, axis=(1.0, 0.0),
+                        height_m=self.height, storey_height_m=4.0)
+        bodies = [p for p in form_.placements if p.kind == "additive" and p.occupiable]
+        self.assertTrue(bodies)
+        self.assertTrue(all(p.top_surface is not None for p in bodies),
+                        "lift rebuilt the bodies and dropped their crowns")
+
     def test_the_crowned_body_holds_less_than_its_prism(self):
         prism = self._compiled("dome", 0.05)
         domed = self._compiled("dome", 0.5)

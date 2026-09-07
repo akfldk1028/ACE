@@ -6,6 +6,7 @@ from collections import Counter
 from dataclasses import dataclass, replace
 import hashlib
 import json
+import os
 from math import isfinite, sqrt
 from typing import Any, Iterable
 
@@ -310,7 +311,11 @@ def build_creative_floor_portfolio_report(
         eligible.append((input_index, authored, source_program_hash))
 
     source_ids = sorted({source_hash for _index, _authored, source_hash in eligible})
-    book_schedule = creative_book_schedule(target, authored_source_ids=source_ids)
+    # A round salt: the same payload in a later round meets a different
+    # rotation of the 59 principles, so reuse does not mean repetition.
+    schedule_salt = str(os.environ.get("MAAS_BOOK_SCHEDULE_SALT") or "").strip()
+    schedule_ids = source_ids + ([f"round:{schedule_salt}"] if schedule_salt else [])
+    book_schedule = creative_book_schedule(target, authored_source_ids=schedule_ids)
     schedule_evidence = {
         "policy": AUTHORED_SCHEDULE_POLICY,
         "key": authored_book_schedule_key(source_ids),

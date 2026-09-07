@@ -1165,6 +1165,18 @@ def _approach(frame: _Frame, op: Operation) -> None:
     )
 
 
+_TOP_FIELDS = ("top_drop", "drop_toward", "ridge_along", "top_profile", "profile_across",
+               "profile_span", "top_walkable", "warp", "top_surface", "bottom_surface",
+               "plan_region", "authored_domain")
+
+
+def _with_top_of(source: Placement, rebuilt: Placement) -> Placement:
+    """The rebuilt body, wearing the source body's top and underside."""
+
+    fields = {name: getattr(source, name) for name in _TOP_FIELDS if hasattr(source, name)}
+    return replace(rebuilt, **fields)
+
+
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -1216,12 +1228,15 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # an `aggregate` or a `rotate` did to it.
         span_x, span_y, turn = _own_plan(item, frame)
         shrink = _plan_shrink(item, span_x, span_y)
-        raised.append(
-            frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
-                      z=low + clearance, h=high - low,
-                      dx=centre_x, dy=centre_y, turn=turn,
-                      kind=item.kind, plan=item.plan, occupiable=item.occupiable)
-        )
+        box = frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
+                        z=low + clearance, h=high - low,
+                        dx=centre_x, dy=centre_y, turn=turn,
+                        kind=item.kind, plan=item.plan, occupiable=item.occupiable)
+        # Raised with its roof on. The rebuilt box carried nothing about the
+        # top, so every roof word said before a lift was erased by it: five
+        # crowned bodies became nine flat ones and the silence gate called
+        # the crown idle.
+        raised.append(_with_top_of(item, box))
     # Four supports, a third of the plan each, so what is raised spans between
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.

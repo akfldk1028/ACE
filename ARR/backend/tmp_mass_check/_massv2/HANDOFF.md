@@ -20,7 +20,7 @@ Next work in order: (1) fix exact development physical placement preservation wi
 
 Development votes: child1 BBB, child2 AAA, child3 BBB, child4 AAA (A parent/B child). Existing tie rule sends child1 to feedback; these are parent-child comparisons, not child-to-child ranking. The parent and child-specific parking requests now travel through the BOOK author contract and actual owner remeasurement. Child1/2 preserve1658.319m2 and place6 versus parent5 cells, with17 required. All remain unresolved: disconnected aisles, access and operating feasibility are not approved. Existing ParkingAgent labels alone were not this integration.
 
-Next work in order: (1) fix parking owner accessible-priority/partial-layout capacity waste and real continuous aisles, using `parking-grid-capacity-gap.md`; (2) ~~diversify the development parent cohort~~ done 2026-09-07 (lineage.py, three-cycle exclusion); (3) shared BOOK typed roof-surface contract and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
+Next work in order: (1) ~~parking selector capacity waste~~ closed (counterexample 8/8 on current code); the 13-vs-10 site deficit is an architect's decision (mechanical/basement/programme); (2) ~~diversify the development parent cohort~~ done 2026-09-07 (lineage.py, three-cycle exclusion); (3) shared BOOK typed roof-surface contract and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
 
 Verification: MassAgent66 tests passed, followed by three focused exporter identity tests; user-required backend three-module suite53 passed. This is not a full-repository green claim. Do not modify unrelated dirty law_graph_agent/evidence.py or agent collaboration tests.
 
@@ -221,6 +221,14 @@ comp12 보드 O2(`book:book-develop-comp03:…creative-001`)가 공용 재건 �
 계보 선택은 거부). 다른 좌석이 없을 때만 되돌아가며 `development-cohort.json`에 기록. BOOK 저자
 계약 context에도 최근 계보를 넣어 같은 도형 재제안을 막는다. comp12 보드에 적용 시 22석 중 12석
 적격, curved-low·compact-mid 제외. 테스트 5 추가, MassAgent 79 전부 통과.
+
+## 2026-09-07 Claude 인수 3 — 주차: 선택기 결함은 이미 닫혔고, 남은 건 설계 결정이다
+
+Codex의 반례(`agents/MassAgent/tmp/parking-grid-capacity-audit/check.py`, 후보 13, 요구 17·장애인 1)를
+현 코드에 다시 돌리면 **8대(장애인 1)** 로, 같은 풀의 최선 배치와 같다. evidence.json의 "6대 전부
+장애인"은 7f7dec0c 이전 기록이라 낡았다. comp12 develop 자식 4개의 실측은 **요구 13 / 배치 10**.
+이 3대는 선택기 낭비가 아니라 대지·차로 봉투가 허용하는 양이며, 기계식·지하·프로그램 축소 중 무엇으로
+메울지는 **건축사 결정**이다. 그 전까지 시트에 "13 요구·10 배치·3 부족"을 있는 그대로 적는다.
 
 ## 읽을 파일 — 이 순서로, 빠짐없이
 

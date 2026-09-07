@@ -295,6 +295,30 @@ Codex의 `shape` 동사의 **계수 표**뿐이라 어떤 저자도 2변수 지�
   https://claude.ai/code/artifact/24efba85-75dd-4bed-a809-b1b4b3f5c91b
 - 성능: plan_mesh 캐시 16→2048(77bcf189), 레퍼토리 1변형(351bbfbc). 고아 generate 프로세스 함정.
 
+## 2026-09-08 comp14 완주 — 도형을 말하는 코퍼스의 첫 라운드
+
+**근본 원인은 두 줄이었다.** `profile`은 보편 파라미터이고 실행기는 네 오프너 모두에서 지키는데
+(육각 7점·타원 14점 실측), **스윕 생성기가 `extrude`에만 붙였다.** 그래서 코퍼스 70%가 필지 씨앗에서
+태어나 시트가 한 덩어리로 읽혔다. 고친 뒤 새 스윕 90문장은 도형 선언 100%, 배달 풀의 평면 꼭짓점
+종류가 11→18. `runs/sweeps/sweep-figures01.json`.
+
+- **보드 26석**(저작 8·BOOK 18). **1위 `kite_twins_across_a_lane` 3.83, 4위 `oval_dome_hall_sunk` 3.51 —
+  둘 다 오늘 `crown`·도형 선언으로 쓴 신작.**
+- develop: 부모 = 타원 돔 홀(계보 규칙이 최근 둘 제외, 17석 중 선택). 자식 4 전부 배달, 투표
+  ABB/BAB/ABB로 만장일치 없음 → **부모 유지**. 배심 지적(무기력한 드럼·공백 없음·지면 27%·정면 없음)에
+  마당·넓힌 기단·가로 확장·거리 부착으로 답했다.
+- **엔진 결함 하나 더**: `_region`(커터)이 호스트의 곡면 지붕을 물려받아 **`crown` 쓴 매스에서 관계동사
+  10개 중 8개가 죽었다**(inscribe·lodge·branch·embed·extract·nest·interlock…). 커터를 각기둥으로
+  되돌려 10/10 통과. 커밋 80974182.
+- **알려진 한계**: 부분 높이 커터(`inscribe`)를 곡면 지붕 몸에 쓰면 컴파일이 거부한다("interval CSG").
+  구간 CSG 미구현. 그리고 `held_ground` 밴드는 바닥을 줄여 높이로 보상하므로 **면적을 깎는 동사(split,
+  puncture, notch, taper, lodge)를 얹은 자식은 5층을 넘겨 거부된다** — 자식은 바닥을 지키거나 늘리는
+  동사(carve, expand, offset)로 써야 한다.
+- **게이트 캐시**: 문장·필지·엔진 서명으로 키. 냉/온 두 번 돌려 요약 해시 동일 검증(6e9ab9ab).
+  다음 라운드 저작 20분이 사라진다.
+- 시트: 3안 https://claude.ai/code/artifact/4ca086d7-f893-4034-9d3d-d37f5d6901a0 ·
+  전량(문장·밴드당 한 장) https://claude.ai/code/artifact/24efba85-75dd-4bed-a809-b1b4b3f5c91b
+
 ## 읽을 파일 — 이 순서로, 빠짐없이
 
 경로는 `D:/Data/25_ACE/` 기준. 굵은 것은 건너뛰면 사고가 난다.

@@ -151,6 +151,12 @@ AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_p
 
 ## 손으로 만지면 안 되는 것
 
+- **Windows에서 백그라운드 런을 멈추면 파이썬 자식은 살아남는다.** 셸을 죽여도
+  `manage.py generate_massv2`는 계속 돌며 CPU를 나눠 먹고 같은 출력 폴더에 쓴다(09-07: 죽인 줄
+  안 두 런이 한 시간 동안 comp13과 경쟁해 fit 속도가 1/3이 됐다). 멈춘 뒤 반드시
+  `Get-CimInstance Win32_Process | ? CommandLine -like '*generate_massv2*'`로 확인하고
+  `Stop-Process`로 끝낸다.
+
 - **`--new-era`를 연 사이클에서도 BOOK을 다시 생성·수입·심사한다.** 기존 좌석은
   함께 아카이브되므로 보존한 payload를 사이클에 공급한다. 수동 BOOK 실행은 하지 않는다.
 - **스테이지를 직접 다시 부르지 않는다.** 현재 사이클은 같은 명령으로 재개하면 완료

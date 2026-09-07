@@ -20,7 +20,7 @@ Next work in order: (1) fix exact development physical placement preservation wi
 
 Development votes: child1 BBB, child2 AAA, child3 BBB, child4 AAA (A parent/B child). Existing tie rule sends child1 to feedback; these are parent-child comparisons, not child-to-child ranking. The parent and child-specific parking requests now travel through the BOOK author contract and actual owner remeasurement. Child1/2 preserve1658.319m2 and place6 versus parent5 cells, with17 required. All remain unresolved: disconnected aisles, access and operating feasibility are not approved. Existing ParkingAgent labels alone were not this integration.
 
-Next work in order: (1) fix parking owner accessible-priority/partial-layout capacity waste and real continuous aisles, using `parking-grid-capacity-gap.md`; (2) diversify the development parent cohort because highest-score-only selection repeatedly returns to one curved family; (3) shared BOOK typed roof-surface contract and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
+Next work in order: (1) fix parking owner accessible-priority/partial-layout capacity waste and real continuous aisles, using `parking-grid-capacity-gap.md`; (2) ~~diversify the development parent cohort~~ done 2026-09-07 (lineage.py, three-cycle exclusion); (3) shared BOOK typed roof-surface contract and derived-floor precision; (4) project feedback isolation and required programme/service integration; (5) measured terrain, access/egress/structure and known full-suite failures. Preserve completed comp10 artifacts; engine changes require a frozen baseline, a new round, bake/pixel comparison and restaging. All work remains organized under agents/MassAgent. Local commits only; no push.
 
 Verification: MassAgent66 tests passed, followed by three focused exporter identity tests; user-required backend three-module suite53 passed. This is not a full-repository green claim. Do not modify unrelated dirty law_graph_agent/evidence.py or agent collaboration tests.
 
@@ -207,6 +207,20 @@ comp12 보드 O2(`book:book-develop-comp03:…creative-001`)가 공용 재건 �
 갈리는 것 1개만이고 그것은 이름만으로는 거부된다. comp11 보드의 O1/O2/O3/O7(comp06~10 exact
 자식)은 exact 보존 이전 시대에 리사이즈된 채 심사된 것이라 현 엔진으로 재건되지 않는다 — 시대가
 갈렸으므로 아카이브로 둔다.
+
+## 2026-09-07 Claude 인수 2 — develop 부모는 최근 3회에 개발한 계보를 피한다
+
+실측: comp06·08·09가 모두 `morph-curved-low:creative-001`을 부모로, comp10은 그 계보의 챔피언을
+부모로 골랐고, 되먹임으로 실려 재심사된 챔피언들이 comp06 이후 매 보드 상위 3석을 차지했다.
+규칙은 "최고점"이었고 외부 선택자에겐 "최근 개발 안 한 것을 고려하라"는 프롬프트뿐이었다.
+
+수리(`skills/mass-cycle/scripts/lineage.py`): 계보 = BOOK 도형 세그먼트 / 챔피언은 champion.json의
+부모를 따라 올라간 계보 / 저작은 변형 접미사를 뗀 문장명(`__dNN_` 자식은 부모). `recent_lineages`
+= 직전 완료 사이클 3개의 부모 계보. `cycle.development_parent`: 그 계보가 아닌 O 좌석 중에서
+고른다(내부=최고점, 외부=선택자에게 `eligible_names`·`recently_developed_lineages`를 주고 최근
+계보 선택은 거부). 다른 좌석이 없을 때만 되돌아가며 `development-cohort.json`에 기록. BOOK 저자
+계약 context에도 최근 계보를 넣어 같은 도형 재제안을 막는다. comp12 보드에 적용 시 22석 중 12석
+적격, curved-low·compact-mid 제외. 테스트 5 추가, MassAgent 79 전부 통과.
 
 ## 읽을 파일 — 이 순서로, 빠짐없이
 

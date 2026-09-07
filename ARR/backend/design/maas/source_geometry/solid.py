@@ -269,7 +269,11 @@ def _triangles(shape):
 
 # Cache only immutable triangle tuples under exact geometry/precision inputs.
 # Bound retained derived data independently of the geometric sampling policy.
-_PLAN_MESH_CACHE_LIMIT = 16
+# Sixteen entries thrashed: a 35-volume mass under the legal fit's fourteen-step
+# imposed scan asked for thousands of distinct meshes per sentence and rebuilt
+# 2,320 of 5,053 requests (392 s of a 470 s silence gate, 7.7 million shapely
+# objects). Meshes are small tuples; two thousand of them is a few megabytes.
+_PLAN_MESH_CACHE_LIMIT = 2048
 _PLAN_MESH_CACHE = OrderedDict()
 
 

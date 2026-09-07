@@ -151,6 +151,14 @@ AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_p
 
 ## 손으로 만지면 안 되는 것
 
+- **완료 영수증에 잡힌 입력 파일은 덮어쓰지 않는다.** develop 페이로드가 실패해도 r1은 동결이고
+  다음 시도는 `inputs/parti-develop-<라운드>-r2.json`이다. r1을 덮어쓰면 `run()`의 전수 검증이
+  "completed artifact changed"로 사이클을 막는다(09-07 실제). 복원해야 한다면 `Path.write_text`가
+  Windows에서 CRLF로 쓴다는 것을 기억하라 — 기록된 해시는 CRLF 바이트의 것이다.
+- **develop 자식은 부모의 밴드에서 서야 한다.** `held_ground` 밴드는 바닥 점유를 줄이고 높이로
+  보상하므로 공용 판(`tie`)이나 `lift`가 붙은 자식은 7~9층으로 튀어 5층 제한에 걸린다. 부모가
+  통과한 밴드에서 `finalists.rebuild(child~band^siting)`가 None이 아닌지 먼저 확인한다.
+
 - **Windows에서 백그라운드 런을 멈추면 파이썬 자식은 살아남는다.** 셸을 죽여도
   `manage.py generate_massv2`는 계속 돌며 CPU를 나눠 먹고 같은 출력 폴더에 쓴다(09-07: 죽인 줄
   안 두 런이 한 시간 동안 comp13과 경쟁해 fit 속도가 1/3이 됐다). 멈춘 뒤 반드시

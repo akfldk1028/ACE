@@ -279,6 +279,22 @@ Codex의 `shape` 동사의 **계수 표**뿐이라 어떤 저자도 2변수 지�
    dome 오벌 홀·안장 계단 적층·볼트 링 마당·박공 쌍둥이·접시 지붕 들린 방들·접힌 지붕 기단, 0결함),
    BOOK 페이로드는 comp12 재사용.
 
+## 2026-09-07 comp13 완주 — 첫 "다양성 규칙 + crown + 가족 대표" 라운드의 실측
+
+- 보드 23석(BOOK 16·저작 7), 전부 재건·기립·정체성 일치, 용적률 중앙값 63%. **레퍼토리가 돌아왔다**:
+  1위 `sangok_saddle_garden_room` 4.32, 2위 `sweep_0231_stack_butterfly_mansard` 3.90, 5위
+  `field_under_butterfly_wings` 3.73 — 전부 옛 코퍼스 문장이 BOOK을 제치고 앉았다.
+- 새 저작 6문장은 0석: 3은 저작 실수(`crown` 뒤 `grade`가 윗면을 또 만지려다 침묵, 링의 `inscribe`가
+  맞춤에서 닫힘), 3은 심사 탈락. 고친 3문장은 `runs/comp14-draft.json`(침묵 없음).
+- **`lift`가 지붕을 지웠다**(frame.box 재생성이 top 필드를 안 옮김) → 라운드 뒤 수정 f9124714. 같은
+  커밋에 BOOK 스케줄 라운드 salt.
+- 개발: 부모 O5(나비지붕 밭, 계보 규칙으로 최근 계보 제외 후 12석 중 선택). 자식 r1은 넷 다
+  `held_ground`에서 tie/lift 때문에 7~9층으로 튀어 거부; r2(tie·lift 없이) 셋 배달, 쌍배심 AAA/–/BAB/AAA
+  → 만장일치 없음, **부모 유지**. 함정: 동결된 r1을 덮어쓰면 사이클이 막힌다(CRLF 해시로 복원함).
+- 시트: 3안 https://claude.ai/code/artifact/4ca086d7-f893-4034-9d3d-d37f5d6901a0 · 전량 222매스
+  https://claude.ai/code/artifact/24efba85-75dd-4bed-a809-b1b4b3f5c91b
+- 성능: plan_mesh 캐시 16→2048(77bcf189), 레퍼토리 1변형(351bbfbc). 고아 generate 프로세스 함정.
+
 ## 읽을 파일 — 이 순서로, 빠짐없이
 
 경로는 `D:/Data/25_ACE/` 기준. 굵은 것은 건너뛰면 사고가 난다.

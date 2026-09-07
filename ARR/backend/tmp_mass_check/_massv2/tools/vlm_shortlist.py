@@ -195,7 +195,7 @@ def seat_certificate(name, source, book, site, *, book_entry=None):
     return cert
 
 
-def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule=None):
+def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule=None, book_entry=None):
     """A board seat's delivered geometry and its caption, whatever its stack.
 
     massv2 names rebuild through finalists.rebuild at the declaration's own
@@ -209,11 +209,13 @@ def rebuild_seat(name: str, book: dict, site, buildable, axis, base, *, schedule
 
     if name.startswith("book:"):
         from book_import import book_rebuild, registry  # noqa: E402
-        entry = registry().get(name) or {}
-        source = book_rebuild(name, site, buildable)
+        entry = book_entry if book_entry is not None else (registry().get(name) or {})
+        if not entry:
+            return None, None
+        source = book_rebuild(name, site, buildable, book_entry=entry)
         if source is None:
             return None, None
-        cert = seat_certificate(name, source, book, site)
+        cert = seat_certificate(name, source, book, site, book_entry=entry)
         return source, certified_caption(source, site, entry.get("thesis", ""),
                                         ground_m2=cert['ground_m2'], gross_m2=cert['gross_m2'])
     from finalists import rebuild as _rebuild  # noqa: E402

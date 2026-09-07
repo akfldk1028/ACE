@@ -33,7 +33,19 @@ class RegisteredBookStudyTests(SimpleTestCase):
     def run_study(self, root, row):
         caption = vlm_shortlist.certified_caption(self.source, self.site, '',
             gross_m2=self.registry[self.name]['floor_area_m2'])
+        snapshots = root / 'books'
+        snapshots.mkdir()
+        if self.name.startswith('book:'):
+            entry = self.registry[self.name]
+            cert = vlm_shortlist.seat_certificate(
+                self.name, self.source, {}, self.site, book_entry=entry)
+            (snapshots / 'book-fixture.json').write_text(json.dumps({
+                'book_dir': str(root), 'entries': {self.name: {
+                    **entry, 'delivered_shape_id': cert['shape_id'],
+                    'numeric_certificate': cert}}}), encoding='utf8')
+            row = {**row, 'round': 'vlm-book-fixture'}
         with patch.object(study_sheet, 'ROOT', root), \
+             patch.object(book_import, 'BOOKS', snapshots), \
              patch.object(study_sheet, 'seat_context', return_value=(
                  {}, self.site, self.buildable, (1,0), 15.2)), \
              patch.object(study_sheet, '_candidate_rows', return_value=[row]), \

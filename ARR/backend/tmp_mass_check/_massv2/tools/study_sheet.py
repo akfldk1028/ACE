@@ -180,7 +180,7 @@ def _parking_html(block, out):
 
 def main(run, out_name=""):
     from presentation import write_sequence, drawing_evidence, artifact_stem
-    from book_import import _refused, registry
+    from book_import import _refused, entry_for_judged_row
     from design.maas.massv2.site_planning import assess_site_parking, write_site_parking_plan
     book, site, buildable, axis, base = seat_context()
     out = ROOT / "runs" / (out_name or f"study-{run}")
@@ -190,11 +190,16 @@ def main(run, out_name=""):
         name, family = row["name"], _family(row["name"])
         if family in seen:
             continue
-        source, caption = rebuild_seat(name, book, site, buildable, axis, base)
+        try:
+            book_entry = entry_for_judged_row(row) if name.startswith('book:') else None
+        except ValueError as error:
+            rejected.append({'name': name, 'reason': str(error)})
+            continue
+        source, caption = rebuild_seat(name, book, site, buildable, axis, base, book_entry=book_entry)
         if source is None or not _score_matches(row, source):
             rejected.append({"name": name, "reason": "재건 불가 또는 심사 당시 형상과 불일치 — 재심사 필요"})
             continue
-        cert = seat_certificate(name, source, book, site)
+        cert = seat_certificate(name, source, book, site, book_entry=book_entry)
         if row.get('certificate_id') != cert['certificate_id']:
             rejected.append({'name': name, 'reason': '심사 당시 수치 증명과 불일치 — 재심사 필요'})
             continue
@@ -212,7 +217,7 @@ def main(run, out_name=""):
         if refusal:
             rejected.append({"name": name, "reason": refusal})
             continue
-        record = (registry().get(name) or {}) if name.startswith("book:") else book.get(family, {})
+        record = book_entry if book_entry is not None else book.get(family, {})
         reading = composition_module.read(source)
         discussion = _argument(record, reading)
         # Captions are explanations, not geometric identity. A ring and a

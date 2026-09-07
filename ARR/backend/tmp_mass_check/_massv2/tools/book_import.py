@@ -519,10 +519,39 @@ def registry() -> dict:
     return found
 
 
-def book_rebuild(name: str, site, buildable):
+def entry_for_judged_row(row: dict) -> dict:
+    """Resolve the immutable stage and both identities recorded by its jury.
+
+    Inherited names recur across stages. A global lexical winner can therefore
+    pair an old certificate with a newly compiled shape after an engine change.
+    Delivery must carry this same entry through rebuild and certification.
+    """
+    name = row.get('name')
+    stage = str(row.get('round') or '')
+    if (not stage.startswith('vlm-') or len(stage) == 4
+            or Path(stage).name != stage or '\\' in stage):
+        raise ValueError(f'{name}: missing or invalid judged BOOK snapshot round')
+    path = BOOKS / f'{stage[4:]}.json'
+    if not path.is_file():
+        raise ValueError(f'{name}: missing judged BOOK snapshot {stage}')
+    data = json.loads(path.read_text(encoding='utf-8'))
+    entry = (data.get('entries') or {}).get(name)
+    if entry is None:
+        raise ValueError(f'{name}: not present in judged BOOK snapshot {stage}')
+    cert = entry.get('numeric_certificate') or {}
+    if (not row.get('shape_id') or not row.get('certificate_id')
+            or cert.get('name') != name
+            or cert.get('shape_id') != row['shape_id']
+            or entry.get('delivered_shape_id') != row['shape_id']
+            or cert.get('certificate_id') != row['certificate_id']):
+        raise ValueError(f'{name}: judged BOOK snapshot identity mismatch')
+    return {**entry, 'book_dir': data['book_dir']}
+
+
+def book_rebuild(name: str, site, buildable, *, book_entry=None):
     """A seated book mass, rebuilt exactly as it was judged (for the baker)."""
 
-    entry = registry().get(name)
+    entry = book_entry if book_entry is not None else registry().get(name)
     if entry is None:
         return None
     # `records_of` reads whichever shape the run wrote; the old artifact file

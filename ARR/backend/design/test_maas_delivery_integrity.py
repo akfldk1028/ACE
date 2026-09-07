@@ -180,12 +180,16 @@ class DeliveryIntegrityTests(unittest.TestCase):
         registry = {name: {**entry, 'thesis': '실제 원본의 논지'}}
         with patch.object(book_import, 'registry', return_value=registry):
             cert = vlm_shortlist.seat_certificate(name, source, {}, site)
-            row = {'name': name, 'score': 4.1, 'shape_id': cert['shape_id'],
+            row = {'name': name, 'score': 4.1, 'round': 'vlm-book-fixture', 'shape_id': cert['shape_id'],
                    'certificate_id': cert['certificate_id']}
             caption = vlm_shortlist.certified_caption(source, site, '', gross_m2=entry['floor_area_m2'])
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
+                (root / 'book-fixture.json').write_text(json.dumps({
+                    'book_dir': tmp, 'entries': {name: {**registry[name],
+                        'delivered_shape_id': cert['shape_id'], 'numeric_certificate': cert}}}), encoding='utf8')
                 with patch.object(study_sheet, 'ROOT', root), \
+                     patch.object(book_import, 'BOOKS', root), \
                      patch.object(study_sheet, 'seat_context', return_value=({}, site, box(-5, -5, 15, 15), (1, 0), 12)), \
                      patch.object(study_sheet, '_candidate_rows', return_value=[row]), \
                      patch.object(study_sheet, 'rebuild_seat', return_value=(source, caption)):

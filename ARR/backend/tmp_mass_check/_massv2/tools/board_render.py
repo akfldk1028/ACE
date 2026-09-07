@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from band_probe import corpus  # noqa: E402
-from book_import import book_rebuild  # noqa: E402
+from book_import import entry_for_judged_row  # noqa: E402
 from finalists import PNU, rebuild, BUILDING_TYPE  # noqa: E402
 from vlm_shortlist import rebuild_seat, shape_id, seat_certificate
 
@@ -89,9 +89,11 @@ def main() -> int:
         parti = book.get(family)
         source = None
         caption = None
+        book_entry = entry_for_judged_row(row) if row['name'].startswith('book:') else None
         if row['name'].startswith('book:') or (parti is not None and (track in ('O', 'C') or korea_schedule is not None)):
             source, caption = rebuild_seat(row['name'], book, site, buildable, axis, base,
-                                            schedule=korea_schedule if track == 'K' else None)
+                                            schedule=korea_schedule if track == 'K' else None,
+                                            book_entry=book_entry)
         # A tile that cannot be rebuilt is kept from the cache BY SCHEME NAME,
         # never by label: labels are reassigned at every curation, and keeping
         # `K8.png` from the previous bake once put another scheme's drawing
@@ -105,7 +107,8 @@ def main() -> int:
             unbakeable.append(row["name"])
             continue
         baked += 1
-        meta, identity = tile_evidence(row, source, caption, seat_certificate(row['name'], source, book, site))
+        meta, identity = tile_evidence(row, source, caption, seat_certificate(
+            row['name'], source, book, site, book_entry=book_entry))
         render_masses([(row["label"], source, meta)],
                       BOARD / f"{row['label']}.png",
                       site_ring=list(buildable.exterior.coords),

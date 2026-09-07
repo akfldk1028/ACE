@@ -84,6 +84,45 @@ RANGES = {
 }
 CROWN_FORMS = {"dome", "dish", "saddle"}
 
+# A stack tapers by `contrast` per tier, so its top tier is 1/contrast^(n-1)
+# of its base. At n=6, contrast=2.5 that is 1.0% - on this parcel a 5 m2
+# sliver, which the compiler drops as debris and the plausibility gate calls
+# a shard. Fifty-five corpus sentences declare a stack like that, and their
+# roof words then land on nothing: `wild01_0071_stack_vault` puts five vault
+# bays on a 0.3 m2 top tier and delivers five flat boxes, which is why a
+# sheet of different sentences reads as one block repeated.
+#
+# The floor is the delivery gate's own crumb share (plausibility
+# CRUMB_MASS_SHARE = 0.04): a tier the mass would throw away is a tier the
+# sentence may not declare.
+STACK_TOP_TIER_MIN_SHARE = 0.04
+
+
+def _vanishing_stacks(schemes: list) -> list[str]:
+    """Sentences whose stack tapers its top tier away to debris."""
+
+    faults = []
+    for scheme in schemes:
+        for index, op in enumerate(scheme.get("ops") or ()):
+            if str(op.get("op")) != "stack":
+                continue
+            try:
+                tiers = int(op.get("n") or 0)
+                contrast = float(op.get("contrast") or 1.0)
+            except (TypeError, ValueError):
+                continue
+            if tiers < 2 or contrast <= 1.0:
+                continue
+            top = 1.0 / (contrast ** (tiers - 1))
+            if top < STACK_TOP_TIER_MIN_SHARE:
+                faults.append(
+                    f"{scheme.get('name')} op{index} (stack): n={tiers} with "
+                    f"contrast={contrast} leaves the top tier at {top:.1%} of the "
+                    f"base - under the {STACK_TOP_TIER_MIN_SHARE:.0%} crumb share the "
+                    f"delivery throws away, so anything said about the top is lost"
+                )
+    return faults
+
 # Where a parameter name means different things to different verbs. `ratio` is
 # a share for `split` and a multiplier for `expand`, so one global range refused
 # a legal `expand: 1.6`. Checked before RANGES.
@@ -294,6 +333,7 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
                 available.add("support")
     faults.extend(_repeated_families(schemes))
     faults.extend(_thin_coverage(schemes))
+    faults.extend(_vanishing_stacks(schemes))
     return faults, verbs, profiles
 
 

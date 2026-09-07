@@ -124,13 +124,13 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
 
     out = ROOT / "runs" / (out_name or f"pool-{run}")
     out.mkdir(parents=True, exist_ok=True)
-    (out / "pool-index.json").write_text(json.dumps(
-        [{"rank": i + 1, "storeys": round(s, 1), "name": n}
-         for i, (s, _g, n) in enumerate(rows)],
-        ensure_ascii=False, indent=1), encoding="utf-8")
+    from vlm_shortlist import shape_id  # noqa: E402  (the jury's own identity)
 
-    batch, sheet, drawn, failed = [], 0, 0, 0
-    for index, (storeys, gross, name) in enumerate(rows, start=1):
+    batch, sheet, drawn, failed, repeated = [], 0, 0, 0, 0
+    seen_shapes: dict[str, str] = {}
+    index = 0
+    kept: list[dict] = []
+    for storeys, gross, name in rows:
         family = name.split("~")[0].split("^")[0]
         parti = book.get(family)
         if parti is None:
@@ -144,7 +144,19 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         if source is None:
             failed += 1
             continue
+        # The same building twice is not two alternatives. Coverage and siting
+        # tags mostly redraw one mass, and the sheet was laying it out five
+        # times in a row; the geometry's own identity is the honest test, so a
+        # tag the envelope really does cut differently still earns its tile.
+        identity = shape_id(source)
+        if identity in seen_shapes:
+            repeated += 1
+            continue
+        seen_shapes[identity] = name
+        index += 1
         drawn += 1
+        kept.append({"rank": index, "storeys": round(storeys, 1), "name": name,
+                     "shape_id": identity})
         meta = {
             "층": f"{storeys:.1f}", "용적": f"{gross / parcel * 100:.0f}%",
             "": family[:24],
@@ -165,7 +177,10 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         render_masses(batch, out / f"pool{sheet:03d}.png",
                       site_ring=list(buildable.exterior.coords),
                       columns=COLUMNS, tile=TILE, style="massing")
-    print(f"done: {drawn} drawn, {failed} rebuild-failed, {sheet} sheets -> {out}")
+    (out / "pool-index.json").write_text(
+        json.dumps(kept, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"done: {drawn} distinct masses drawn, {repeated} repeats of a mass already "
+          f"drawn skipped, {failed} rebuild-failed, {sheet} sheets -> {out}")
     return 0
 
 

@@ -1,0 +1,1913 @@
+{
+  "pnu": "4115011300106840001",
+  "capacity_ceiling_m2": 1497.877,
+  "creative_portfolio_run_id": "book-comp12",
+  "book_graph_vocabulary": {
+    "schema_version": "arr.maas.book_graph_author_vocabulary.v1",
+    "corpus_id": "architect-book-69",
+    "base_volumes": [
+      {
+        "base_volume_id": "book:base-volume:1-1",
+        "label": "1/1 Base Volume",
+        "fraction": 1.0,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      },
+      {
+        "base_volume_id": "book:base-volume:3-8",
+        "label": "3/8 Base Volume",
+        "fraction": 0.375,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      },
+      {
+        "base_volume_id": "book:base-volume:1-2",
+        "label": "1/2 Base Volume",
+        "fraction": 0.5,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      },
+      {
+        "base_volume_id": "book:base-volume:1-4",
+        "label": "1/4 Base Volume",
+        "fraction": 0.25,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      },
+      {
+        "base_volume_id": "book:base-volume:1-8",
+        "label": "1/8 Base Volume",
+        "fraction": 0.125,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      },
+      {
+        "base_volume_id": "book:base-volume:1-16",
+        "label": "1/16 Base Volume",
+        "fraction": 0.0625,
+        "page_refs": [
+          3
+        ],
+        "status": "typed"
+      }
+    ],
+    "principle_count": 69,
+    "principles": [
+      {
+        "principle_id": "book:operative:expand",
+        "kind": "base_operative",
+        "label": "expand",
+        "execution_verbs": [
+          "expand"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:expand",
+        "transformation": "add",
+        "cardinality": "single",
+        "semantics": {
+          "action": "extend one boundary or sectional face outward",
+          "input_topology": "single_volume",
+          "output_topology": "single_enlarged_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "extend one boundary or sectional face outward",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "factor",
+            "axis",
+            "upper_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:extrude",
+        "kind": "base_operative",
+        "label": "extrude",
+        "execution_verbs": [
+          "extrude"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:extrude",
+        "transformation": "add",
+        "cardinality": "single",
+        "semantics": {
+          "action": "project a selected face or region along an axis",
+          "input_topology": "single_volume",
+          "output_topology": "single_extended_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "project a selected face or region along an axis",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "length",
+            "size"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:inflate",
+        "kind": "base_operative",
+        "label": "inflate",
+        "execution_verbs": [
+          "inflate"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:inflate",
+        "transformation": "add",
+        "cardinality": "single",
+        "semantics": {
+          "action": "displace the envelope outward to form a swollen crown",
+          "input_topology": "single_volume",
+          "output_topology": "single_profiled_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "displace the envelope outward to form a swollen crown",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "factor",
+            "upper_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:branch",
+        "kind": "base_operative",
+        "label": "branch",
+        "execution_verbs": [
+          "branch"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:branch",
+        "transformation": "add",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "grow secondary arms from a primary trunk",
+          "input_topology": "single_volume",
+          "output_topology": "connected_multi_arm_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "grow secondary arms from a primary trunk",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "trunk_ratio",
+            "arm_ratio",
+            "angle"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:merge",
+        "kind": "base_operative",
+        "label": "merge",
+        "execution_verbs": [
+          "merge"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:merge",
+        "transformation": "add",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "fuse separate volumes into one continuous body",
+          "input_topology": "multiple_volumes",
+          "output_topology": "single_fused_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "fuse separate volumes into one continuous body",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "gap_ratio",
+            "unit_scale"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:nest",
+        "kind": "base_operative",
+        "label": "nest",
+        "execution_verbs": [
+          "nest"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:nest",
+        "transformation": "add",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "place a smaller volume concentrically within a host",
+          "input_topology": "multiple_volumes",
+          "output_topology": "nested_volumes",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "place a smaller volume concentrically within a host",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "inner_scale",
+            "upper_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:offset",
+        "kind": "base_operative",
+        "label": "offset",
+        "execution_verbs": [
+          "offset"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:offset",
+        "transformation": "add",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "duplicate and translate a related volume",
+          "input_topology": "multiple_volumes",
+          "output_topology": "offset_related_volumes",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "duplicate and translate a related volume",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "distance_ratio",
+            "other_scale"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:bend",
+        "kind": "base_operative",
+        "label": "bend",
+        "execution_verbs": [
+          "bend"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:bend",
+        "transformation": "displace",
+        "cardinality": "single",
+        "semantics": {
+          "action": "deflect a continuous longitudinal axis into a bend",
+          "input_topology": "single_volume",
+          "output_topology": "single_bent_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "deflect a continuous longitudinal axis into a bend",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "angle",
+            "curvature",
+            "width_gradient"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:skew",
+        "kind": "base_operative",
+        "label": "skew",
+        "execution_verbs": [
+          "skew"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:skew",
+        "transformation": "displace",
+        "cardinality": "single",
+        "semantics": {
+          "action": "obliquely displace faces while preserving continuity",
+          "input_topology": "single_volume",
+          "output_topology": "single_skewed_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "obliquely displace faces while preserving continuity",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "angle",
+            "upper_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:split",
+        "kind": "base_operative",
+        "label": "split",
+        "execution_verbs": [
+          "split"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:split",
+        "transformation": "displace",
+        "cardinality": "single",
+        "semantics": {
+          "action": "divide a terminal region and hinge-displace one child while retaining the opposite trunk",
+          "input_topology": "single_volume",
+          "output_topology": "connected_split_descendants",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "divide a terminal region and hinge-displace one child while retaining the opposite trunk",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "gap_ratio",
+            "bridge_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:twist",
+        "kind": "base_operative",
+        "label": "twist",
+        "execution_verbs": [
+          "twist"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:twist",
+        "transformation": "displace",
+        "cardinality": "single",
+        "semantics": {
+          "action": "rotate successive sections around the selected base-volume orientation",
+          "input_topology": "single_volume",
+          "output_topology": "single_twisted_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "rotate successive sections around the selected base-volume orientation",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "angle",
+            "upper_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:interlock",
+        "kind": "base_operative",
+        "label": "interlock",
+        "execution_verbs": [
+          "interlock"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:interlock",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "engage paired notched L volumes through a shared zone",
+          "input_topology": "multiple_volumes",
+          "output_topology": "interlocked_volumes",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "engage paired notched L volumes through a shared zone",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "angle",
+            "bar_ratio",
+            "distance_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:intersect",
+        "kind": "base_operative",
+        "label": "intersect",
+        "execution_verbs": [
+          "intersect"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:intersect",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "retain the spatial crossing of multiple volumes",
+          "input_topology": "multiple_volumes",
+          "output_topology": "intersecting_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "retain the spatial crossing of multiple volumes",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "angle",
+            "factor"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:lift",
+        "kind": "base_operative",
+        "label": "lift",
+        "execution_verbs": [
+          "lift"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:lift",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "displace a smaller related guest from a larger host while retaining overlap",
+          "input_topology": "multiple_volumes",
+          "output_topology": "host_and_lifted_guest",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "displace a smaller related guest from a larger host while retaining overlap",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "distance_ratio",
+            "guest_scale"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:lodge",
+        "kind": "base_operative",
+        "label": "lodge",
+        "execution_verbs": [
+          "lodge"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:lodge",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "lodge a smaller guest in the interval between two related hosts",
+          "input_topology": "multiple_volumes",
+          "output_topology": "two_hosts_with_lodged_guest",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "lodge a smaller guest in the interval between two related hosts",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "distance_ratio",
+            "guest_scale"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:overlap",
+        "kind": "base_operative",
+        "label": "overlap",
+        "execution_verbs": [
+          "overlap"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:overlap",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "partially superpose related volumes in plan or section",
+          "input_topology": "multiple_volumes",
+          "output_topology": "overlapping_volumes",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "partially superpose related volumes in plan or section",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "slab_ratio",
+            "shift_ratio",
+            "vertical_overlap"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:rotate",
+        "kind": "base_operative",
+        "label": "rotate",
+        "execution_verbs": [
+          "rotate"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:rotate",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "rotate one partitioned child about its shared terminal hinge edge",
+          "input_topology": "multiple_volumes",
+          "output_topology": "hinged_rotated_children",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "rotate one partitioned child about its shared terminal hinge edge",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "angle",
+            "factor"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:shift",
+        "kind": "base_operative",
+        "label": "shift",
+        "execution_verbs": [
+          "shift"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:shift",
+        "transformation": "displace",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "translate a related volume without rotating it",
+          "input_topology": "multiple_volumes",
+          "output_topology": "shifted_related_volumes",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "translate a related volume without rotating it",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "distance_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:carve",
+        "kind": "base_operative",
+        "label": "carve",
+        "execution_verbs": [
+          "carve"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:carve",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "remove a bounded recess from an exposed side",
+          "input_topology": "single_volume",
+          "output_topology": "single_recessed_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "remove a bounded recess from an exposed side",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "side",
+            "width_ratio",
+            "depth_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:compress",
+        "kind": "base_operative",
+        "label": "compress",
+        "execution_verbs": [
+          "compress"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:compress",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "contract the volume along the selected base-volume orientation",
+          "input_topology": "single_volume",
+          "output_topology": "single_compressed_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "contract the volume along the selected base-volume orientation",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "factor"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:fracture",
+        "kind": "base_operative",
+        "label": "fracture",
+        "execution_verbs": [
+          "fracture"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:fracture",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "subtract a directional bent fissure from the selected base-volume face",
+          "input_topology": "single_volume",
+          "output_topology": "single_fractured_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract a directional bent fissure from the selected base-volume face",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "gap_ratio",
+            "angle"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:grade",
+        "kind": "base_operative",
+        "label": "grade",
+        "execution_verbs": [
+          "grade"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:grade",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "subtract successive bands from the selected base-volume face to form a grade",
+          "input_topology": "single_volume",
+          "output_topology": "single_graded_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract successive bands from the selected base-volume face to form a grade",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "side",
+            "width_ratio",
+            "depth_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:notch",
+        "kind": "base_operative",
+        "label": "notch",
+        "execution_verbs": [
+          "notch"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:notch",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "subtract a triangular wedge from the selected base-volume face",
+          "input_topology": "single_volume",
+          "output_topology": "single_notched_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract a triangular wedge from the selected base-volume face",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "corner",
+            "ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:pinch",
+        "kind": "base_operative",
+        "label": "pinch",
+        "execution_verbs": [
+          "pinch"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:pinch",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "contract an intermediate waist along the selected base-volume orientation while retaining both ends",
+          "input_topology": "single_volume",
+          "output_topology": "single_pinched_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "contract an intermediate waist along the selected base-volume orientation while retaining both ends",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "waist_ratio",
+            "depth_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:shear",
+        "kind": "base_operative",
+        "label": "shear",
+        "execution_verbs": [
+          "shear"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:shear",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "subtract an oblique half-space normal to the selected base-volume orientation",
+          "input_topology": "single_volume",
+          "output_topology": "single_sheared_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract an oblique half-space normal to the selected base-volume orientation",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "angle"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:taper",
+        "kind": "base_operative",
+        "label": "taper",
+        "execution_verbs": [
+          "taper"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:taper",
+        "transformation": "subtract",
+        "cardinality": "single",
+        "semantics": {
+          "action": "reduce successive plan sections toward one end or top",
+          "input_topology": "single_volume",
+          "output_topology": "single_tapered_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "reduce successive plan sections toward one end or top",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "x_ratio",
+            "y_ratio",
+            "top_shift_x_ratio",
+            "top_shift_y_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:embed",
+        "kind": "base_operative",
+        "label": "embed",
+        "execution_verbs": [
+          "embed"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:embed",
+        "transformation": "subtract",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "subtract the overlap made by a guest embedded in a host",
+          "input_topology": "multiple_volumes",
+          "output_topology": "host_with_embedded_void",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract the overlap made by a guest embedded in a host",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "guest_scale",
+            "position",
+            "distance_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:extract",
+        "kind": "base_operative",
+        "label": "extract",
+        "execution_verbs": [
+          "extract"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:extract",
+        "transformation": "subtract",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "subtract the overlapping path of a guest moving from an internal position through an exterior mouth",
+          "input_topology": "multiple_volumes",
+          "output_topology": "host_with_extraction_channel",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract the overlapping path of a guest moving from an internal position through an exterior mouth",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "side",
+            "ratio",
+            "distance_ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:inscribe",
+        "kind": "base_operative",
+        "label": "inscribe",
+        "execution_verbs": [
+          "inscribe"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:inscribe",
+        "transformation": "subtract",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "subtract a geometrically related inner volume",
+          "input_topology": "multiple_volumes",
+          "output_topology": "inscribed_shell_or_court",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract a geometrically related inner volume",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "ratio",
+            "open_side"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:operative:puncture",
+        "kind": "base_operative",
+        "label": "puncture",
+        "execution_verbs": [
+          "puncture"
+        ],
+        "generation_stage": "base",
+        "generation_stage_order": 1,
+        "lineage_base_operative_id": "book:operative:puncture",
+        "transformation": "subtract",
+        "cardinality": "multiple",
+        "semantics": {
+          "action": "subtract repeated compact openings through the mass",
+          "input_topology": "multiple_volumes",
+          "output_topology": "perforated_volume",
+          "procedure": [
+            "select_relative_base_volume_and_orientation",
+            "subtract repeated compact openings through the mass",
+            "evaluate_bounded_variations_without_changing_the_operative_identity"
+          ],
+          "variation_parameters": [
+            "axis",
+            "n",
+            "spacing_ratio",
+            "ratio"
+          ],
+          "orientation_modes": [
+            "long_axis",
+            "short_axis",
+            "vertical"
+          ],
+          "base_volume_fractions": [
+            "1/1",
+            "3/8",
+            "1/2",
+            "1/4",
+            "1/8",
+            "1/16"
+          ],
+          "evidence_kind": "diagram_derived"
+        }
+      },
+      {
+        "principle_id": "book:combination:01:inscribe+inscribe",
+        "kind": "combination",
+        "label": "inscribe + inscribe",
+        "execution_verbs": [
+          "inscribe",
+          "inscribe"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:inscribe",
+        "lineage_parent_principle_id": "book:operative:inscribe"
+      },
+      {
+        "principle_id": "book:combination:02:intersect+intersect",
+        "kind": "combination",
+        "label": "intersect + intersect",
+        "execution_verbs": [
+          "intersect",
+          "intersect"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:intersect",
+        "lineage_parent_principle_id": "book:operative:intersect"
+      },
+      {
+        "principle_id": "book:combination:03:split+split",
+        "kind": "combination",
+        "label": "split + split",
+        "execution_verbs": [
+          "split",
+          "split"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:split",
+        "lineage_parent_principle_id": "book:operative:split"
+      },
+      {
+        "principle_id": "book:combination:04:embed+embed",
+        "kind": "combination",
+        "label": "embed + embed",
+        "execution_verbs": [
+          "embed",
+          "embed"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:embed",
+        "lineage_parent_principle_id": "book:operative:embed"
+      },
+      {
+        "principle_id": "book:combination:05:taper+taper",
+        "kind": "combination",
+        "label": "taper + taper",
+        "execution_verbs": [
+          "taper",
+          "taper"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:taper",
+        "lineage_parent_principle_id": "book:operative:taper"
+      },
+      {
+        "principle_id": "book:combination:06:bend+bend",
+        "kind": "combination",
+        "label": "bend + bend",
+        "execution_verbs": [
+          "bend",
+          "bend"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:bend",
+        "lineage_parent_principle_id": "book:operative:bend"
+      },
+      {
+        "principle_id": "book:combination:07:branch+branch",
+        "kind": "combination",
+        "label": "branch + branch",
+        "execution_verbs": [
+          "branch",
+          "branch"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:branch",
+        "lineage_parent_principle_id": "book:operative:branch"
+      },
+      {
+        "principle_id": "book:combination:08:expand+expand",
+        "kind": "combination",
+        "label": "expand + expand",
+        "execution_verbs": [
+          "expand",
+          "expand"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:expand",
+        "lineage_parent_principle_id": "book:operative:expand"
+      },
+      {
+        "principle_id": "book:combination:09:shift+shift",
+        "kind": "combination",
+        "label": "shift + shift",
+        "execution_verbs": [
+          "shift",
+          "shift"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:shift",
+        "lineage_parent_principle_id": "book:operative:shift"
+      },
+      {
+        "principle_id": "book:combination:10:notch+notch",
+        "kind": "combination",
+        "label": "notch + notch",
+        "execution_verbs": [
+          "notch",
+          "notch"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:notch",
+        "lineage_parent_principle_id": "book:operative:notch"
+      },
+      {
+        "principle_id": "book:combination:11:inscribe+intersect",
+        "kind": "combination",
+        "label": "inscribe + intersect",
+        "execution_verbs": [
+          "inscribe",
+          "intersect"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:inscribe",
+        "lineage_parent_principle_id": "book:operative:inscribe"
+      },
+      {
+        "principle_id": "book:combination:12:intersect+split",
+        "kind": "combination",
+        "label": "intersect + split",
+        "execution_verbs": [
+          "intersect",
+          "split"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:intersect",
+        "lineage_parent_principle_id": "book:operative:intersect"
+      },
+      {
+        "principle_id": "book:combination:13:split+embed",
+        "kind": "combination",
+        "label": "split + embed",
+        "execution_verbs": [
+          "split",
+          "embed"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:split",
+        "lineage_parent_principle_id": "book:operative:split"
+      },
+      {
+        "principle_id": "book:combination:14:embed+taper",
+        "kind": "combination",
+        "label": "embed + taper",
+        "execution_verbs": [
+          "embed",
+          "taper"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:embed",
+        "lineage_parent_principle_id": "book:operative:embed"
+      },
+      {
+        "principle_id": "book:combination:15:taper+bend",
+        "kind": "combination",
+        "label": "taper + bend",
+        "execution_verbs": [
+          "taper",
+          "bend"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:taper",
+        "lineage_parent_principle_id": "book:operative:taper"
+      },
+      {
+        "principle_id": "book:combination:16:bend+branch",
+        "kind": "combination",
+        "label": "bend + branch",
+        "execution_verbs": [
+          "bend",
+          "branch"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:bend",
+        "lineage_parent_principle_id": "book:operative:bend"
+      },
+      {
+        "principle_id": "book:combination:17:branch+expand",
+        "kind": "combination",
+        "label": "branch + expand",
+        "execution_verbs": [
+          "branch",
+          "expand"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:branch",
+        "lineage_parent_principle_id": "book:operative:branch"
+      },
+      {
+        "principle_id": "book:combination:18:expand+shift",
+        "kind": "combination",
+        "label": "expand + shift",
+        "execution_verbs": [
+          "expand",
+          "shift"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:expand",
+        "lineage_parent_principle_id": "book:operative:expand"
+      },
+      {
+        "principle_id": "book:combination:19:shift+notch",
+        "kind": "combination",
+        "label": "shift + notch",
+        "execution_verbs": [
+          "shift",
+          "notch"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:shift",
+        "lineage_parent_principle_id": "book:operative:shift"
+      },
+      {
+        "principle_id": "book:combination:20:notch+twist",
+        "kind": "combination",
+        "label": "notch + twist",
+        "execution_verbs": [
+          "notch",
+          "twist"
+        ],
+        "generation_stage": "combination",
+        "generation_stage_order": 2,
+        "lineage_base_operative_id": "book:operative:notch",
+        "lineage_parent_principle_id": "book:operative:notch"
+      },
+      {
+        "principle_id": "book:aggregation:reflect:expand",
+        "kind": "aggregation",
+        "label": "reflect · expand",
+        "execution_verbs": [
+          "expand",
+          "reflect"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:expand",
+        "lineage_parent_principle_id": "book:operative:expand",
+        "aggregation_methods": [
+          "reflect"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:reflect+pack:skew",
+        "kind": "aggregation",
+        "label": "reflect + pack · skew",
+        "execution_verbs": [
+          "skew",
+          "reflect",
+          "pack"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:skew",
+        "lineage_parent_principle_id": "book:operative:skew",
+        "aggregation_methods": [
+          "reflect",
+          "pack"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:pack:inflate",
+        "kind": "aggregation",
+        "label": "pack · inflate",
+        "execution_verbs": [
+          "inflate",
+          "pack"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:inflate",
+        "lineage_parent_principle_id": "book:operative:inflate",
+        "aggregation_methods": [
+          "pack"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:pack+stack:branch",
+        "kind": "aggregation",
+        "label": "pack + stack · branch",
+        "execution_verbs": [
+          "branch",
+          "pack",
+          "stack"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:branch",
+        "lineage_parent_principle_id": "book:operative:branch",
+        "aggregation_methods": [
+          "pack",
+          "stack"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:stack:bend",
+        "kind": "aggregation",
+        "label": "stack · bend",
+        "execution_verbs": [
+          "bend",
+          "stack"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:bend",
+        "lineage_parent_principle_id": "book:operative:bend",
+        "aggregation_methods": [
+          "stack"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:array+stack:rotate",
+        "kind": "aggregation",
+        "label": "array + stack · rotate",
+        "execution_verbs": [
+          "rotate",
+          "array",
+          "stack"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:rotate",
+        "lineage_parent_principle_id": "book:operative:rotate",
+        "aggregation_methods": [
+          "array",
+          "stack"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:array:taper",
+        "kind": "aggregation",
+        "label": "array · taper",
+        "execution_verbs": [
+          "taper",
+          "array"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:taper",
+        "lineage_parent_principle_id": "book:operative:taper",
+        "aggregation_methods": [
+          "array"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:join+array:pinch",
+        "kind": "aggregation",
+        "label": "join + array · pinch",
+        "execution_verbs": [
+          "pinch",
+          "join",
+          "array"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:pinch",
+        "lineage_parent_principle_id": "book:operative:pinch",
+        "aggregation_methods": [
+          "join",
+          "array"
+        ]
+      },
+      {
+        "principle_id": "book:aggregation:join:split",
+        "kind": "aggregation",
+        "label": "join · split",
+        "execution_verbs": [
+          "split",
+          "join"
+        ],
+        "generation_stage": "aggregation",
+        "generation_stage_order": 3,
+        "lineage_base_operative_id": "book:operative:split",
+        "lineage_parent_principle_id": "book:operative:split",
+        "aggregation_methods": [
+          "join"
+        ]
+      },
+      {
+        "principle_id": "book:case:60:carve+offset",
+        "kind": "case_study",
+        "label": "Poli House | Carve + Offset",
+        "execution_verbs": [
+          "carve",
+          "offset"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:carve",
+        "lineage_parent_principle_id": "book:operative:carve",
+        "implementation_elements": [
+          "Offset Program",
+          "Perimeter Services",
+          "Punctured Openings"
+        ]
+      },
+      {
+        "principle_id": "book:case:61:embed+branch",
+        "kind": "case_study",
+        "label": "Villa 1 | Embed + Branch",
+        "execution_verbs": [
+          "embed",
+          "branch"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:embed",
+        "lineage_parent_principle_id": "book:operative:embed",
+        "implementation_elements": [
+          "Branched Programs",
+          "Volume Wrapper",
+          "Embedded Entry"
+        ]
+      },
+      {
+        "principle_id": "book:case:62:embed+overlap",
+        "kind": "case_study",
+        "label": "Casa para un Carpintero | Embed + Overlap",
+        "execution_verbs": [
+          "embed",
+          "overlap"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:embed",
+        "lineage_parent_principle_id": "book:operative:embed",
+        "implementation_elements": [
+          "Overlapping Program",
+          "Circulation Core",
+          "Embedded Entry"
+        ]
+      },
+      {
+        "principle_id": "book:case:63:expand+nest",
+        "kind": "case_study",
+        "label": "House N | Expand + Nest",
+        "execution_verbs": [
+          "expand",
+          "nest"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:expand",
+        "lineage_parent_principle_id": "book:operative:expand",
+        "implementation_elements": [
+          "Expanded Outer Volume",
+          "Nested Private Program",
+          "Nested Living + Dining"
+        ]
+      },
+      {
+        "principle_id": "book:case:64:overlap+expand",
+        "kind": "case_study",
+        "label": "House in Minamimachi 2 | Overlap + Expand",
+        "execution_verbs": [
+          "overlap",
+          "expand"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:overlap",
+        "lineage_parent_principle_id": "book:operative:overlap",
+        "implementation_elements": [
+          "Overlapping Light Wells",
+          "Stacked Program",
+          "Expanded Volumes"
+        ]
+      },
+      {
+        "principle_id": "book:case:65:bend+shift",
+        "kind": "case_study",
+        "label": "Nursing Home | Bend + Shift",
+        "execution_verbs": [
+          "bend",
+          "shift"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:bend",
+        "lineage_parent_principle_id": "book:operative:bend",
+        "implementation_elements": [
+          "Shifted Volumes",
+          "Bent Massing",
+          "Embedded Massing"
+        ]
+      },
+      {
+        "principle_id": "book:case:66:embed+taper",
+        "kind": "case_study",
+        "label": "Leimondo Nursery School | Embed + Taper",
+        "execution_verbs": [
+          "embed",
+          "taper"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:embed",
+        "lineage_parent_principle_id": "book:operative:embed",
+        "implementation_elements": [
+          "Tapered Volumes",
+          "Thickened Roof",
+          "Embedded Program"
+        ]
+      },
+      {
+        "principle_id": "book:case:67:lift+carve",
+        "kind": "case_study",
+        "label": "Gouveia Law Courts | Lift + Carve",
+        "execution_verbs": [
+          "lift",
+          "carve"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:lift",
+        "lineage_parent_principle_id": "book:operative:lift",
+        "implementation_elements": [
+          "Carved Massing",
+          "Lifted Program",
+          "Carved Plinth"
+        ]
+      },
+      {
+        "principle_id": "book:case:68:lift+extrude",
+        "kind": "case_study",
+        "label": "Carabanchel Housing | Lift + Extrude",
+        "execution_verbs": [
+          "lift",
+          "extrude"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:lift",
+        "lineage_parent_principle_id": "book:operative:lift",
+        "implementation_elements": [
+          "Extruded Living Spaces",
+          "Lifted Massing",
+          "Carved Plinth"
+        ]
+      },
+      {
+        "principle_id": "book:case:69:overlap+rotate",
+        "kind": "case_study",
+        "label": "Ironbank | Overlap + Rotate",
+        "execution_verbs": [
+          "overlap",
+          "rotate"
+        ],
+        "generation_stage": "case_study",
+        "generation_stage_order": 4,
+        "lineage_base_operative_id": "book:operative:overlap",
+        "lineage_parent_principle_id": "book:operative:overlap",
+        "implementation_elements": [
+          "Rotated Volumes",
+          "Stacked Utility and Circulation Cores",
+          "Plinth and Street Facade"
+        ]
+      }
+    ]
+  },
+  "instruction": "Author materially different executable typed MASS ASTs. Do not select or imitate a named family recipe.",
+  "author_prompt_contract": "arr.maas.geometry_llm_author.v34_explicit_dimensional_intent"
+}

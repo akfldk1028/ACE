@@ -1,0 +1,128 @@
+TILE t01
+CONCEPT 4 | The continuous faceted crescent establishes a clear embracing volume and substantial open side, though section remains uniform.
+FEASIBILITY 5 | Ground and upper occupancy align, giving the substantial continuous mass a straightforward structural basis.
+SITE 4 | The curved enclosure defines an open area within the angled parcel while maintaining visible peripheral space.
+EDITABILITY 4 | Continuous floors can support circulation and cores, with curved perimeter planning requiring some adjustment.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | Rotated stacked plates create a clear dynamic hierarchy and alternating overhangs.
+FEASIBILITY 3 | Broad overlaps offer plausible support zones, but repeated offsets require significant transfers and cantilever resolution.
+SITE 3 | The stack occupies the parcel centrally, with little demonstrated response to its angled edges.
+EDITABILITY 3 | Differing floor orientations complicate vertical core continuity and regular facade development.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 3 | Stepped parallel bars suggest sectional variation, but the isolated piece in section weakens the compositional clarity.
+FEASIBILITY 3 | Most volumes appear substantial, while upper projections and the separated section fragment need support clarification.
+SITE 4 | Parallel bars align with the parcel's diagonal geometry and maintain a legible intervening slot.
+EDITABILITY 3 | Rectangular wings are adaptable, but staggered heights and uncertain connections complicate circulation.
+WEIGHTED 3.20
+
+TILE t04
+CONCEPT 3 | A twisted monolith has a recognizable sculptural idea but little sectional or solid-void hierarchy.
+FEASIBILITY 4 | The continuous body is broadly plausible, with changing perimeter geometry requiring structural coordination.
+SITE 3 | The compact object preserves perimeter space but offers limited articulation toward the irregular parcel.
+EDITABILITY 4 | Broad continuous floor areas allow core placement, although the changing envelope complicates facade repetition.
+WEIGHTED 3.45
+
+TILE t05
+CONCEPT 3 | The branching plan creates several directional arms but has little vertical hierarchy or developed void structure.
+FEASIBILITY 5 | Consistent stacked occupancy and grounded wings provide a convincing basis for ordinary construction.
+SITE 3 | The compact branching footprint leaves ample open ground but does not clearly organize the parcel edges.
+EDITABILITY 4 | A central junction can accommodate circulation, while angled arm intersections need careful planning.
+WEIGHTED 3.70
+
+TILE t06
+CONCEPT 3 | Two equal bars and a low end connector make a legible but minimally differentiated composition.
+FEASIBILITY 5 | Grounded rectangular bars and the modest connector appear structurally straightforward.
+SITE 3 | The broad transverse arrangement uses the parcel centrally, but the very narrow slot limits the open-space hierarchy.
+EDITABILITY 4 | Regular bars are easy to develop, though upper circulation between them is not demonstrated.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A single spanning volume above two substantial ends creates a strong portal and clear sectional void.
+FEASIBILITY 3 | The broad end masses offer support, but the long bridging volume requires a developed spanning strategy.
+SITE 3 | The portal creates a central open zone, although its relation to specific frontage or access is unestablished.
+EDITABILITY 4 | The end masses provide plausible locations for vertical organization while preserving the open middle.
+WEIGHTED 3.55
+
+TILE t08
+CONCEPT 4 | An asymmetrical stepped court builds a readable hierarchy from low wings to a concentrated upper accent.
+FEASIBILITY 4 | Most steps bear on substantial masses, with bridge portions and upper offsets needing structural development.
+SITE 4 | The open court and moderate footprint organize the parcel while keeping surrounding ground legible.
+EDITABILITY 4 | Rectangular terraces and wings offer adaptable floor areas, with upper connections requiring coordination.
+WEIGHTED 4.00
+
+TILE t09
+CONCEPT 4 | A raised bent volume and lower opposing bar define a strong open-ended court in section.
+FEASIBILITY 3 | The long elevated arm and local projecting edges require a convincing transfer and support arrangement.
+SITE 4 | The composition follows the parcel's diagonal direction and shapes a clear internal open space.
+EDITABILITY 4 | Substantial wing depths support further planning, though the elevated arm's circulation needs resolution.
+WEIGHTED 3.75
+
+TILE t10
+CONCEPT 4 | A continuous court base with stepped upper pavilions creates a clear center and varied skyline.
+FEASIBILITY 4 | Predominantly supported orthogonal volumes are plausible, with local offsets requiring attention.
+SITE 4 | The compact courtyard composition leaves generous perimeter space and follows the parcel's diagonal geometry.
+EDITABILITY 3 | Four separated upper occupied pieces imply demanding circulation or multiple vertical connections.
+WEIGHTED 3.80
+
+TILE t11
+CONCEPT 3 | Two offset solid layers produce a readable sectional displacement but limited spatial hierarchy.
+FEASIBILITY 4 | Considerable overlap makes the offset plausible, with the projecting upper end requiring structural design.
+SITE 3 | The compact aligned footprint fits the parcel but provides little differentiated relationship to its edges.
+EDITABILITY 4 | Broad regular floors permit flexible planning and a core within the overlap.
+WEIGHTED 3.45
+
+TILE t12
+CONCEPT 5 | Stepped paired masses and a high connecting volume form a coherent sectional gateway with strong positive-volume hierarchy.
+FEASIBILITY 4 | Substantial grounded ends make the composition plausible, subject to resolving the upper bridge and local offsets.
+SITE 4 | The diagonal arrangement organizes open ground between and around the masses without overwhelming the parcel.
+EDITABILITY 4 | Generous end volumes permit vertical organization while terraces and the elevated connection retain the main idea.
+WEIGHTED 4.35
+
+TILE t13
+CONCEPT 2 | The offset block remains legible, but the small roof appendage adds little to its sectional or spatial idea.
+FEASIBILITY 4 | The broad overlapping masses are plausible, with the upper projection needing structural coordination.
+SITE 3 | The compact diagonal footprint preserves open ground but does not establish a strong edge response.
+EDITABILITY 4 | Regular floor areas and substantial overlap allow further planning without major changes to the mass.
+WEIGHTED 3.10
+
+TILE t14
+CONCEPT 2 | The twisted monolith and thin roof wedge read as separate gestures without a developed solid-void hierarchy.
+FEASIBILITY 4 | The continuous main body is plausible, while the slender roof element needs construction definition.
+SITE 3 | The central object leaves perimeter ground but provides little evidence of a specific parcel response.
+EDITABILITY 3 | Changing floor edges and the thin roof addition complicate development without offering a clear spatial benefit.
+WEIGHTED 2.90
+
+TILE t15
+CONCEPT 4 | Split elevated wings and a tapering incision create a distinctive suspended composition.
+FEASIBILITY 2 | Small separated lower footprints support much broader upper masses, leaving substantial transfers and eccentric loads unresolved.
+SITE 3 | The compact arrangement preserves open ground, but its relation to the parcel edges is weakly developed.
+EDITABILITY 2 | Limited lower footprints and complicated upper junctions constrain core placement and continuous circulation.
+WEIGHTED 2.90
+
+TILE t16
+CONCEPT 3 | Stepping and shifting produce variety, but numerous ledges and cuts obscure the primary court-and-wings idea.
+FEASIBILITY 3 | Substantial masses coexist with thin projecting ledges and displaced upper areas that need support clarification.
+SITE 4 | The court-related diagonal arrangement provides a legible open-space structure within the parcel.
+EDITABILITY 3 | Frequent offsets and fragmented upper occupancy complicate circulation, envelope continuity and floor planning.
+WEIGHTED 3.20
+
+TILE t17
+CONCEPT 4 | Unequal parallel wings and a low connecting end create a clear linear court with restrained height hierarchy.
+FEASIBILITY 5 | The grounded continuous bars and modest lower connection provide a convincing structural basis.
+SITE 4 | Slender wings define a substantial open zone while preserving peripheral ground within the angled parcel.
+EDITABILITY 4 | Regular wing geometry supports floor and facade development, though independent upper circulation needs resolution.
+WEIGHTED 4.25
+
+TILE t18
+CONCEPT 5 | Stepped end masses and an elevated connecting volume establish a strong gateway with coherent sectional hierarchy.
+FEASIBILITY 4 | Broad grounded supports make the bridge composition plausible, with spans and offsets still requiring structural development.
+SITE 4 | The diagonal masses shape useful open ground within the parcel and maintain a balanced overall footprint.
+EDITABILITY 4 | Substantial ends offer room for vertical organization while the stepped roofs and upper connection preserve the concept.
+WEIGHTED 4.35
+
+RANKING: t12, t18, t17, t01, t08, t10, t09, t06, t05, t07, t04, t11, t02, t03, t16, t13, t15, t14
+VERDICT: Advance t12 and t18 for their strong stepped gateway composition, with t17 and t01 as convincing alternatives offering simpler structural development. The most successful proposals organize substantial positive volumes around legible open space; excessive offsets, thin additions and small support footprints reduce the strength of several others. These visual judgments do not establish legal compliance or a verified programme.

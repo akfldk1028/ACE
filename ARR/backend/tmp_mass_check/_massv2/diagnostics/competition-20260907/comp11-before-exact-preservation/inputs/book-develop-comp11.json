@@ -1,0 +1,1470 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-comp11:morph-compact-mid:creative-012",
+  "parent_shape_id": "dacbb205cef6ed7a1d3e",
+  "parent_program_hash": "103a1fe842e2a1b0e7b909f62337ab2e5b07ab0dbe43616eb87c49d7cef202fe",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp11_develop_inhabited_crossing_room",
+      "root_id": "result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                3.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                3.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "room0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.45,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.4166666666666667,
+                0.0,
+                0.4000000000000001
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room2",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "vector": [
+              0.43333333333333335,
+              0.31666666666666665,
+              0.19999999999999998
+            ],
+            "pivot": [
+              0.8823529411764706,
+              0.43902439024390244,
+              1.4749999999999999
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room3",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.26666666666666666,
+                0.0,
+                0.0,
+                0.049999999999999996
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.2
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room4",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room5",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.21666666666666667,
+                0.0,
+                0.0,
+                1.52
+              ],
+              [
+                0.0,
+                0.21666666666666667,
+                0.0,
+                0.65
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.7599999999999998
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "join0",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "room0",
+            "room1",
+            "room2",
+            "room3"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "join0",
+            "room4",
+            "room5"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_exact_development",
+        "architectural_response": "Make the bridge a substantial shared room rather than a narrow link. Its broader upper plan connects the two supporting masses more clearly and creates a sheltered threshold below.",
+        "parking_response": "Preserve the verified parent floor schedule and area target; test whether redistributed occupied area gives a more compact full projection and improves the measured residual parking strip. A passage under an upper bridge is not automatically usable parking.",
+        "unresolved_conflicts": "Required programme, stairs, terrace access, swept paths and structural transfer remain unverified. Recheck exact child parking; no assumed legal approval.",
+        "parent_shape_id": "dacbb205cef6ed7a1d3e"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp11_develop_lower_shared_threshold",
+      "root_id": "result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                3.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                3.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "room0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.45,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.4166666666666667,
+                0.0,
+                0.4000000000000001
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room2",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "vector": [
+              0.43333333333333335,
+              0.25,
+              0.19999999999999998
+            ],
+            "pivot": [
+              0.8823529411764706,
+              0.6,
+              0.7249999999999999
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room3",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.26666666666666666,
+                0.0,
+                0.0,
+                0.049999999999999996
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.2
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room4",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room5",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.21666666666666667,
+                0.0,
+                0.0,
+                1.52
+              ],
+              [
+                0.0,
+                0.21666666666666667,
+                0.0,
+                0.65
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.7599999999999998
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "join0",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "room0",
+            "room1",
+            "room2",
+            "room3"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "join0",
+            "room4",
+            "room5"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_exact_development",
+        "architectural_response": "Move the connecting room down one occupied level, while leaving the two upper volumes distinct. Compare a lower shared threshold and a deeper upper gap against the original high bridge.",
+        "parking_response": "Preserve the verified parent floor schedule and area target; test whether redistributed occupied area gives a more compact full projection and improves the measured residual parking strip. A passage under an upper bridge is not automatically usable parking.",
+        "unresolved_conflicts": "Required programme, stairs, terrace access, swept paths and structural transfer remain unverified. Recheck exact child parking; no assumed legal approval.",
+        "parent_shape_id": "dacbb205cef6ed7a1d3e"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp11_develop_recessed_upper_room",
+      "root_id": "result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                3.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                3.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "room0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.45,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.4166666666666667,
+                0.0,
+                0.4000000000000001
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room2",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.39999999999999997,
+                0.0,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.21666666666666667,
+                0.0,
+                0.45000000000000007
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room3",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "vector": [
+              0.2333333333333333,
+              0.21666666666666667,
+              0.19999999999999998
+            ],
+            "pivot": [
+              0.19565217391304346,
+              0.3829787234042553,
+              1.4749999999999999
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room4",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room5",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "vector": [
+              0.16666666666666666,
+              0.15,
+              0.19999999999999998
+            ],
+            "pivot": [
+              1.92,
+              0.8823529411764706,
+              2.1999999999999997
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "join0",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "room0",
+            "room1",
+            "room2",
+            "room3"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "join0",
+            "room4",
+            "room5"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_exact_development",
+        "architectural_response": "Recess the upper room and opposing upper edge onto their supports. The bridge becomes the main connection and exposed roof terraces become legible around the unequal upper rooms.",
+        "parking_response": "Preserve the verified parent floor schedule and area target; test whether redistributed occupied area gives a more compact full projection and improves the measured residual parking strip. A passage under an upper bridge is not automatically usable parking.",
+        "unresolved_conflicts": "Required programme, stairs, terrace access, swept paths and structural transfer remain unverified. Recheck exact child parking; no assumed legal approval.",
+        "parent_shape_id": "dacbb205cef6ed7a1d3e"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp11_develop_oblique_shared_bridge",
+      "root_id": "result",
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.0,
+            "depth": 1.0,
+            "height": 1.0
+          },
+          "semantic_role": "base_authority",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "unitbox_authority": true
+          }
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                3.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                3.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                3.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "global_pose",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "canonical_base_model": "1/1 UnitBox",
+            "authored_operator": "box",
+            "authored_box_parameters": {
+              "width": 1.0,
+              "depth": 1.0,
+              "height": 1.0,
+              "center": true
+            },
+            "lowered_affine_operator": "scale",
+            "composed_matrix4_node_ids": [
+              "unit_matrix4",
+              "base",
+              "global_pose"
+            ]
+          }
+        },
+        {
+          "id": "room0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.45,
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room1",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.4166666666666667,
+                0.0,
+                0.4000000000000001
+              ],
+              [
+                0.0,
+                0.0,
+                0.39999999999999997,
+                0.0
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room2",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.39999999999999997,
+                0.0,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.21666666666666667,
+                0.0,
+                0.45000000000000007
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "oblique_bridge",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "room2"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.9612616959383189,
+                -0.27563735581699916,
+                0,
+                0.2581680004291077
+              ],
+              [
+                0.27563735581699916,
+                0.9612616959383189,
+                0,
+                -0.2869607735417461
+              ],
+              [
+                0,
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          "semantic_role": "occupied_bridge"
+        },
+        {
+          "id": "room3",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.26666666666666666,
+                0.0,
+                0.0,
+                0.049999999999999996
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.2
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room4",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.2833333333333333,
+                0.0,
+                0.0,
+                1.4500000000000002
+              ],
+              [
+                0.0,
+                0.2833333333333333,
+                0.0,
+                0.55
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.18
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "room5",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "global_pose"
+          ],
+          "parameters": {
+            "matrix4": [
+              [
+                0.21666666666666667,
+                0.0,
+                0.0,
+                1.52
+              ],
+              [
+                0.0,
+                0.21666666666666667,
+                0.0,
+                0.65
+              ],
+              [
+                0.0,
+                0.0,
+                0.19999999999999998,
+                1.7599999999999998
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "semantic_role": "occupied_volume",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast",
+            "lowered_affine_operator": "scale"
+          }
+        },
+        {
+          "id": "join0",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "room0",
+            "room1",
+            "oblique_bridge",
+            "room3"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "join0",
+            "room4",
+            "room5"
+          ],
+          "parameters": {},
+          "semantic_role": "constructive_assembly",
+          "provenance": {
+            "source": "openai_llm_geometry_author",
+            "representation": "typed_json_ast"
+          }
+        }
+      ],
+      "metadata": {
+        "author_provider": "codex_exact_development",
+        "architectural_response": "Rotate only the inhabited bridge about its centre between the two grounded supports. The oblique crossing should differentiate approach and outlook while keeping material bearing at both ends; its support must be measured.",
+        "parking_response": "Preserve the verified parent floor schedule and area target; test whether redistributed occupied area gives a more compact full projection and improves the measured residual parking strip. A passage under an upper bridge is not automatically usable parking.",
+        "unresolved_conflicts": "Required programme, stairs, terrace access, swept paths and structural transfer remain unverified. Recheck exact child parking; no assumed legal approval.",
+        "parent_shape_id": "dacbb205cef6ed7a1d3e"
+      }
+    }
+  ]
+}

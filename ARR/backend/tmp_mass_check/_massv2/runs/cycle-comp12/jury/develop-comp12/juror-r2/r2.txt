@@ -1,0 +1,4 @@
+PAIR p01: B - The broader central bridge joins the stepped wings more coherently and gives the opening a clearer overhead edge.
+PAIR p02: B - The stronger end roof block and connected upper-plan footprint give the composition a clearer hierarchy.
+PAIR p03: B - The wider right-hand setback and lower upper mass produce more balanced terraces and a calmer stepped silhouette.
+PAIR p04: A - The orthogonal central recess aligns with the rectangular wings more clearly than the oblique connector in B.

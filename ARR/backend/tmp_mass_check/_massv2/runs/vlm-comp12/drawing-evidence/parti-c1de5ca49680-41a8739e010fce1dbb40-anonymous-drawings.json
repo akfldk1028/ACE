@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+  "shape_id": "41a8739e010fce1dbb40",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    652.2384434474757,
+    619.6178054405627
+  ],
+  "section_area_m2": 432.6107890178245,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "ca6d6ae3d3ff936d11feb660a93a8d351adb6f912507cadc7eb5f7f2cd973c75"
+}

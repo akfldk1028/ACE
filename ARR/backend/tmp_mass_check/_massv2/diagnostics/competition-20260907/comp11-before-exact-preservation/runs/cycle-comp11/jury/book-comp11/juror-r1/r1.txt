@@ -1,0 +1,149 @@
+TILE t01
+CONCEPT 3 | A continuous crescent defines a clear concavity, but uniform extrusion limits sectional hierarchy.
+FEASIBILITY 5 | The substantial grounded band has a straightforward apparent load path.
+SITE 3 | The concavity organizes open ground, without a demonstrated frontage or orientation relationship.
+EDITABILITY 4 | Repeated floors can follow the band, with variable depths needing refinement.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 4 | Rotated horizontal volumes establish a distinctive stacked composition and changing silhouette.
+FEASIBILITY 3 | Overlapping plates offer support zones, but rotated ends require deliberate transfers.
+SITE 3 | The compact stack retains margins, while its rotation has no clear relationship to a particular edge.
+EDITABILITY 3 | Changing floor orientations complicate consistent cores and facade organization.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 3 | Parallel lower bars and a stepped upper mass offer articulation, but small notches weaken hierarchy.
+FEASIBILITY 4 | Broad lower masses provide plausible support, with local offsets requiring resolution.
+SITE 3 | The paired arrangement retains perimeter space but weakly develops its slot and edge relationships.
+EDITABILITY 3 | Separated occupied strips and changing upper outlines require coordinated circulation.
+WEIGHTED 3.25
+
+TILE t04
+CONCEPT 3 | A warped tall solid has a recognizable silhouette but little solid-void hierarchy.
+FEASIBILITY 4 | The continuous central volume is plausible, though the changing perimeter complicates enclosure.
+SITE 3 | The compact footprint leaves open ground without a demonstrated frontage or orientation strategy.
+EDITABILITY 3 | Floors appear possible, while nonvertical edges complicate regular plates and facades.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 2 | The branching footprint has limited hierarchy because its wings retain a uniform height.
+FEASIBILITY 5 | The grounded continuous extrusion has substantial support and no demanding suspended pieces.
+SITE 3 | Generous surrounding ground remains, without a strongly defined principal exterior space.
+EDITABILITY 4 | The common central zone can organize wings, although irregular junctions need refinement.
+WEIGHTED 3.35
+
+TILE t06
+CONCEPT 3 | Parallel bars define a clear linear void, with little sectional distinction between equal-height masses.
+FEASIBILITY 5 | Both bars continue to the ground without significant cantilevers or transfers.
+SITE 3 | The low bars retain perimeter space, but the narrow slot lacks a demonstrated site rationale.
+EDITABILITY 4 | Regular bar geometry supports floor development; upper connections remain unresolved.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A bridging volume over substantial ends creates a clear portal and strong sectional hierarchy.
+FEASIBILITY 4 | Broad end supports and a deep bridge make the span plausible, subject to structural development.
+SITE 3 | The open center offers permeability, but no connection to an identified frontage is demonstrated.
+EDITABILITY 4 | Regular end volumes and the upper bar offer a workable framework for circulation and enclosure.
+WEIGHTED 3.80
+
+TILE t08
+CONCEPT 4 | Unequal stepped wings form a coherent open court with a clear low-to-high hierarchy.
+FEASIBILITY 4 | Successive setbacks largely retain support beneath upper masses, with local projections needing attention.
+SITE 4 | The open-ended court and graduated heights deliberately balance enclosure and open ground.
+EDITABILITY 3 | Multiple setbacks and separated upper pieces complicate vertical circulation and floor connections.
+WEIGHTED 3.80
+
+TILE t09
+CONCEPT 4 | An upper U-shaped mass and recessed lower volume create an assertive layered enclosure.
+FEASIBILITY 3 | Offset upper arms and projecting edges require a resolved transfer and support strategy.
+SITE 3 | The footprint retains margins and an opening without a demonstrated orientation advantage.
+EDITABILITY 3 | Changing perimeters and narrow gaps constrain circulation and facade development.
+WEIGHTED 3.35
+
+TILE t10
+CONCEPT 4 | A courtyard ring with stepped upper pavilions combines a clear void with an animated roof profile.
+FEASIBILITY 4 | Most upper pieces rest over the lower ring, with local projections needing resolution.
+SITE 3 | The court organizes open space, although the ring relates generically to the parcel edges.
+EDITABILITY 3 | Four separated upper occupied areas and several levels require coordinated circulation.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 2 | An offset solid produces a ledge but little spatial hierarchy beyond the shifted block.
+FEASIBILITY 4 | A large overlap provides a plausible base, with a projecting upper edge to resolve.
+SITE 3 | The compact block preserves open margins without strongly addressing parcel geometry.
+EDITABILITY 4 | Broad simple plates allow development while retaining the offset silhouette.
+WEIGHTED 3.10
+
+TILE t12
+CONCEPT 4 | Stepped end masses connected above an open center create a recognizable inhabited bridge.
+FEASIBILITY 3 | The connection spans genuine ground separation and requires explicit transfer design.
+SITE 3 | The open middle establishes a potential link, but no frontage relationship is demonstrated.
+EDITABILITY 3 | Distinct lower components and an upper bridge need coordinated cores and circulation.
+WEIGHTED 3.35
+
+TILE t13
+CONCEPT 2 | The offset solid dominates, while its thin face attachment reads as incidental articulation.
+FEASIBILITY 4 | The primary mass has ample overlap, but the thin projection introduces an unresolved local member.
+SITE 3 | Open margins remain, with little evidence that the attachment responds to site conditions.
+EDITABILITY 3 | Main plates are workable, but preserving the thin attachment adds junction complexity.
+WEIGHTED 2.90
+
+TILE t14
+CONCEPT 4 | Projecting linear arms over a curved lower band create a distinctive volumetric contrast.
+FEASIBILITY 3 | Upper projections beyond the narrow curved support footprint demand a substantial transfer strategy.
+SITE 3 | Compact ground occupancy leaves open land, without a demonstrated rationale for the upper spread.
+EDITABILITY 3 | Mismatched lower and upper geometries make consistent support zones and circulation demanding.
+WEIGHTED 3.35
+
+TILE t15
+CONCEPT 3 | Stepped parallel masses offer hierarchy, while small cuts add little to the main composition.
+FEASIBILITY 4 | Broad supporting volumes make the form plausible, with upper offsets requiring detailing.
+SITE 3 | The paired arrangement leaves ground and a slot without a strong parcel-edge response.
+EDITABILITY 3 | Separated strips and minor cuts complicate circulation and enclosure.
+WEIGHTED 3.25
+
+TILE t16
+CONCEPT 2 | The branching extrusion lacks sectional hierarchy, and its pointed appendage appears incidental.
+FEASIBILITY 4 | Grounded wings are straightforward, but the thin pointed extension is an awkward local condition.
+SITE 3 | The compact footprint leaves surrounding space without defining a principal court or edge.
+EDITABILITY 3 | Main wings are workable, but the acute extension adds difficult floor and facade geometry.
+WEIGHTED 2.90
+
+TILE t17
+CONCEPT 3 | Tall parallel bars and a lower link define a legible slot, with limited height differentiation.
+FEASIBILITY 5 | The substantial bars stand directly on the ground without exceptional structural demands.
+SITE 3 | The slender footprint retains open ground, but the long interstice lacks a demonstrated site connection.
+EDITABILITY 4 | Regular bars support systematic development, while separate upper occupancy needs circulation resolution.
+WEIGHTED 3.70
+
+TILE t18
+CONCEPT 4 | A lowered crescent end creates a meaningful terrace and transition into the taller band.
+FEASIBILITY 4 | The setback retains a largely continuous load path, with curved transitions needing coordination.
+SITE 3 | The concavity and lower end differentiate exterior space without a proven frontage relationship.
+EDITABILITY 4 | The continuous band and single major setback offer a durable floor and circulation framework.
+WEIGHTED 3.80
+
+TILE t19
+CONCEPT 5 | Successive end terraces integrate with the crescent into a strong unified progression of height and enclosure.
+FEASIBILITY 4 | The stepped retreat keeps upper mass over substantial lower volume without exceptional cantilevers.
+SITE 4 | The terraced end grades down toward open ground while the concavity defines a distinct exterior space.
+EDITABILITY 4 | A continuous band and clear setback sequence can accommodate floors and facades while preserving the idea.
+WEIGHTED 4.35
+
+TILE t20
+CONCEPT 4 | A lowered middle creates a clear sectional saddle between stronger crescent ends.
+FEASIBILITY 4 | The recessed middle remains part of a grounded continuous mass without conspicuous unsupported elements.
+SITE 3 | The saddle reduces enclosure around open ground, though its precise site advantage remains unestablished.
+EDITABILITY 4 | The connected lower band offers flexibility, with upper circulation between taller ends needing attention.
+WEIGHTED 3.80
+
+TILE t21
+CONCEPT 4 | Faceted outer edges and successive end terraces produce a clear enclosure and graduated profile.
+FEASIBILITY 4 | Terraces recede over substantial grounded volume, supporting plausible structural development.
+SITE 4 | Straighter outer edges relate legibly to parcel geometry while the concavity and terraces organize open ground.
+EDITABILITY 4 | The continuous band and regularized outer facets support floor and facade development.
+WEIGHTED 4.00
+
+RANKING: t19, t21, t18, t08, t07, t20, t01, t17, t06, t10, t05, t14, t02, t12, t09, t03, t15, t04, t11, t13, t16
+VERDICT: Advance t19 and t21 for their coherent integration of positive volume, concave exterior space and stepped sectional hierarchy; retain t08 and t07 as contrasting courtyard and portal directions. The strongest alternatives develop through substantial continuous masses, whereas incidental slivers and unexplained offsets add complexity without comparable spatial value. Programme, orientation, exact building-line compliance and statutory height remain unverified by the supplied evidence.

@@ -334,6 +334,21 @@ def _band_edges(form: MatrixForm, *, storey_height_m: float | None = None) -> li
     # a base is 0.0 exactly and this never showed.
     ordered = sorted(value for value in edges
                      if ground - _EDGE_TOLERANCE_M <= value <= roof + _EDGE_TOLERANCE_M)
+    # Edges closer together than a drawable band collapse to one, and the one
+    # that survives is the first - which always shortens whatever declared the
+    # later edge as its top, and never lengthens anything. The compiled bands
+    # ARE the delivered mass, so this is a delivery loss and not a reading of
+    # one: the merge fires in 230 of 901 authored sentences, and on the bench a
+    # 0.40 m collapse took 43.2 m3 off a body the sentence had built to 6.40.
+    #
+    # Measured, not fixed. Keeping instead the edge that leaves the least
+    # material in the wrong place - weighted by the plan area of the volume
+    # declaring it - moved 103 sentences and came out 12,143 m3 DOWN on net,
+    # because the material a moved edge costs belongs to the volumes that SPAN
+    # that height, not to the one that declared it. The right objective is the
+    # true union volume either side of the choice; until that is measured this
+    # stays as it is rather than carrying an unjustified rule in the function
+    # every legal area in the system is read through.
     merged: list[float] = []
     for value in ordered:
         if not merged or value - merged[-1] >= _MINIMUM_BAND_M:

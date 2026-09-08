@@ -38,6 +38,7 @@ from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY, MINIMUM_STO
 from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
 from .ops import AFFINE_VERBS
+from .ops.aggregation import AGGREGATION_VERBS
 from .ops.relational import RELATIONAL_VERBS
 from .ops.swept import SWEPT_VERBS, gabled_halves
 from .ops.piercing import PIERCING_VERBS
@@ -1714,6 +1715,11 @@ _VERBS = {
     # What one body does to another - the book's last seven words
     # (Merge, Nest, Interlock, Lodge, Overlap, Extract, Inscribe).
     **RELATIONAL_VERBS,
+    # The BOOK's aggregation layer, pages 50 to 58: `array`, `reflect`, `pack`
+    # and `join`. Thirty-one of its thirty-five words had a massv2
+    # implementation and these four had none - not because they cannot be
+    # said, but because nobody wrote them.
+    **AGGREGATION_VERBS,
 }
 
 

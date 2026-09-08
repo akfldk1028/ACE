@@ -185,6 +185,22 @@ PLOT_MODES: dict[str, PlotMode] = {
     "expand": "inherit",
     "compress": "inherit",
     "inflate": "inherit",
+    # The BOOK's aggregation layer (pp.50-58). These four were added to
+    # `_VERBS` and not to this table - the identical fault the ten above
+    # record, made a second time, and the measurement said so at once: the
+    # three that place a body read 0.00% change because the parser had already
+    # thrown them away.
+    #
+    # Three impose. An array's copies and a reflection's twin stand outside the
+    # host's own outline, and a pack's legibility is the gap between its
+    # pieces: clipping to the boundary would eat the outer copies and leave a
+    # broken run rather than a smaller one, which is the reading that put
+    # `aggregate` and `loop` on this side. `join` inherits - the bridge is said
+    # in the host's unit space and reaches its neighbour, like `merge`.
+    "array": "impose",
+    "reflect": "impose",
+    "pack": "impose",
+    "join": "inherit",
 }
 
 

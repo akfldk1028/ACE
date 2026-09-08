@@ -2573,8 +2573,17 @@ def compile_geometry_program_to_source_mass(
     max_volume_bands: int = 3,
     max_raw_surfaces: int | None = None,
     gate_policy: GeometryGatePolicy | None = None,
+    height_m: float | None = None,
 ) -> SourceMass | None:
     """Fit one compiled solid into a normalized host and preserve its mesh.
+
+    `height_m` is how tall this parcel lets the mass stand, and it comes from
+    the law - the storey cap and the storey height the legal site carries, not
+    from the drawing. The fit normalizes Z to 1.0 so the bands can be
+    fractions, so without it every mass the BOOK builds is one metre tall and
+    measures its plan area. On 의정부 4115011300106840001 that is five storeys
+    of 3.8 m: 19 m, and the same sentence read 1,747.2 m3 through massv2 and
+    103.5 through here.
 
     The fit is derived from the host's principal frame.  Legal clipping is not
     performed here; callers should supply the legal generation host and send
@@ -2594,6 +2603,7 @@ def compile_geometry_program_to_source_mass(
         max_volume_bands=max_volume_bands,
         max_raw_surfaces=max_raw_surfaces,
         gate_policy=gate_policy,
+        height_m=height_m,
     )
 
 
@@ -2603,6 +2613,7 @@ def _compile_geometry_program_to_source_mass(
     *,
     upper_host: Polygon | None = None,
     upper_fit_strength: float = 0.0,
+    height_m: float | None = None,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
     name: str | None = None,
@@ -2997,8 +3008,12 @@ def _compile_geometry_program_to_source_mass(
         # Taken from the exported mesh's own vertices, which is the same solid
         # every band above was sectioned out of.
         "authored_height_m": round(
-            max((float(z) for _x, _y, z in world_vertices), default=0.0)
-            - min((float(z) for _x, _y, z in world_vertices), default=0.0),
+            float(height_m)
+            if height_m is not None and float(height_m) > 1e-9
+            else (
+                max((float(z) for _x, _y, z in world_vertices), default=0.0)
+                - min((float(z) for _x, _y, z in world_vertices), default=0.0)
+            ),
             3,
         ),
         "datum_m": round(

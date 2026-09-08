@@ -2983,6 +2983,26 @@ def _compile_geometry_program_to_source_mass(
             "surface_count": len(surfaces),
             "profiled_roles": [volume_role],
         },
+        # How tall the thing this bridge just built actually is.
+        #
+        # A `SourceVolume` carries its band as a FRACTION of the whole, so every
+        # consumer turns fractions into metres through
+        # `metadata["authored_height_m"]` - `SourceMass.mass_properties`,
+        # `plan_at`, `contains_point`, `body_height_m`, the parcel policy. Only
+        # massv2's compiler was setting it, so a mass built on the BOOK's
+        # executor came back measuring 0.0 m3 however correct its mesh was: one
+        # sentence run both ways read 1,747.2 on one side and zero on the other,
+        # and it was the ruler that was missing, not the building.
+        #
+        # Taken from the exported mesh's own vertices, which is the same solid
+        # every band above was sectioned out of.
+        "authored_height_m": round(
+            max((float(z) for _x, _y, z in world_vertices), default=0.0)
+            - min((float(z) for _x, _y, z in world_vertices), default=0.0),
+            3,
+        ),
+        "datum_m": round(
+            min((float(z) for _x, _y, z in world_vertices), default=0.0), 3),
     }
     return SourceMass(
         name=name or f"geometry_program__{program.name}",

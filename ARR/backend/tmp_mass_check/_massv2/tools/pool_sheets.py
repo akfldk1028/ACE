@@ -30,6 +30,50 @@ COLUMNS = 8
 TILE = (300, 270)
 
 
+# How alike two delivered masses must be to count as one drawing: normalized
+# ground plans overlapping this much, at the same proportion and with the same
+# number of parts. Calibrated on comp14, where the pairs a person reads as
+# repeats sit at 0.98-1.00 and the next honestly distinct pair falls well
+# below.
+_SAME_PLAN_IOU = 0.92
+_SAME_PROPORTION = 0.25
+
+
+def _drawing_signature(source):
+    """(normalized ground plan, plan proportion, part count), or None."""
+
+    from shapely.ops import unary_union
+    from shapely import affinity
+    parts = [v.footprint for v in source.volumes
+             if v.footprint is not None and not v.footprint.is_empty
+             and v.bottom_fraction < 1e-6]
+    if not parts:
+        parts = [v.footprint for v in source.volumes
+                 if v.footprint is not None and not v.footprint.is_empty]
+    if not parts:
+        return None
+    ground = unary_union(parts)
+    if ground.is_empty:
+        return None
+    minx, miny, maxx, maxy = ground.bounds
+    width = max(maxx - minx, 1e-9)
+    depth = max(maxy - miny, 1e-9)
+    plan = affinity.scale(affinity.translate(ground, -minx, -miny),
+                          1.0 / width, 1.0 / depth, origin=(0.0, 0.0))
+    return plan, width / depth, len(source.volumes)
+
+
+def _same_drawing(one, two) -> bool:
+    plan_a, ratio_a, parts_a = one
+    plan_b, ratio_b, parts_b = two
+    if parts_a != parts_b or abs(ratio_a - ratio_b) > _SAME_PROPORTION:
+        return False
+    union = plan_a.union(plan_b).area
+    if union <= 1e-9:
+        return False
+    return plan_a.intersection(plan_b).area / union >= _SAME_PLAN_IOU
+
+
 def main(run: str, out_name: str = "", mode: str = "") -> int:
     heroes = mode == "--heroes"
     summary = json.loads((ROOT / "runs" / run / "massv2-summary.json")
@@ -129,6 +173,7 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
     batch, sheet, drawn, failed, repeated = [], 0, 0, 0, 0
     seen_shapes: dict[str, str] = {}
     seen_figures: set = set()
+    drawings: list = []
     index = 0
     kept: list[dict] = []
     for storeys, gross, name in rows:
@@ -164,6 +209,19 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         if figure in seen_figures:
             repeated += 1
             continue
+        # And one tile per DRAWING. Different sentences deliver the same mass
+        # far more often than their names suggest: over 70 comp14 tiles, 49
+        # pairs read as one building once position and size are removed, and
+        # 43 of those pairs carried different sentences - a loop with a
+        # butterfly, a loop with a mansard and a loop with a fold all arriving
+        # as the same ring. The name cannot catch that and exact geometry
+        # cannot either, since they differ by centimetres.
+        mark = _drawing_signature(source)
+        if mark is not None and any(_same_drawing(mark, seen) for seen in drawings):
+            repeated += 1
+            continue
+        if mark is not None:
+            drawings.append(mark)
         seen_figures.add(figure)
         seen_shapes[identity] = name
         index += 1

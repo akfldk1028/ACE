@@ -15,6 +15,7 @@ from typing import Any
 
 from design.maas.grammar.verb_sequence import VerbCall, VerbSequence
 from design.maas.program_massing.book_projection import book_projection_calls, book_projection_scope
+from design.maas.book_language.execution.canonical import BOOK_VERB_OPERATOR
 from design.maas.book_language.base_volume_contract import (
     book_base_volume_outward_sign,
     book_base_volume_spec,
@@ -53,20 +54,11 @@ _CANONICAL_OPERATOR_EFFECT = {
     "book_extract": "book_extract",
 }
 
-_BOOK_VERB_CANONICAL_EFFECT = {
-    "expand": "boundary_expand", "extrude": "scale", "compress": "scale",
-    "inflate": "inflate", "pinch": "pinch", "bend": "bend",
-    "twist": "twist", "skew": "shear", "shear": "slice",
-    "taper": "taper", "grade": "book_grade",
-    "carve": "book_carve", "notch": "book_notch", "embed": "embed_void", "extract": "book_extract",
-    "nest": "nested_related", "inscribe": "courtyard", "puncture": "puncture",
-    "split": "split_wing", "fracture": "book_fracture", "join": "join_related",
-    "lift": "book_lift", "branch": "book_branch", "interlock": "interlock_related", "merge": "cross_mass",
-    "rotate": "book_rotate", "overlap": "overlap_related", "intersect": "intersect_related",
-    "offset": "nested_related", "lodge": "book_lodge", "shift": "shift_related",
-    "array": "related_array", "pack": "related_array", "reflect": "mirror_array",
-    "stack": "step",
-}
+# The BOOK owns its own words. This table used to live here, private, while
+# massv2 carried a second implementation of thirty-one of them; it is now
+# one file per word under `book_language.execution.verbs`, and this name
+# stays only so existing readers keep working.
+_BOOK_VERB_CANONICAL_EFFECT = BOOK_VERB_OPERATOR
 
 _PROGRAM_THRESHOLD_OPERATORS = {
     "courtyard", "carve_void", "notch", "lift", "cantilever", "split_wing",

@@ -180,6 +180,19 @@ class _Frame:
         # open side, so nothing already written moves.
         width, depth, self.height_share = _base_volume_extent(
             width, depth, base_volume, base_orientation)
+        # A vertical fraction below one storey cannot be said on this parcel.
+        # `box` floors an occupiable body at a storey and is right to - nobody
+        # stands in a 2 m room - but the floor silently turned `1/8 vertical`
+        # and `1/16 vertical` into `1/4` on a 16 m envelope, so three different
+        # base volumes delivered one building and the sentence was never told.
+        # Recorded rather than corrected: which fractions are sayable depends on
+        # the parcel, and a base volume the site cannot hold is the same kind of
+        # refusal `split` makes for a piece narrower than a room.
+        self.base_volume_too_short = bool(
+            storey_m > 0.0
+            and self.height_share < 1.0
+            and height_m * self.height_share < storey_m - 1e-9
+        )
         # Which edge faces the lane. `siting` computes it and the frame threw it
         # away, so `approach` - the one verb whose whole subject is the street -
         # had no way to ask.
@@ -1931,6 +1944,12 @@ def execute_steps(
     frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m,
                    base_volume=parti.base_volume,
                    base_orientation=parti.base_orientation)
+    if frame.base_volume_too_short:
+        # The sentence asked for a base volume shorter than a storey. Delivering
+        # the next one up would hand back a different building under the same
+        # words, which is the fault this grammar spends most of its gates
+        # catching elsewhere.
+        return []
     steps: list[tuple[Operation, MatrixForm]] = []
     for op in parti.ops:
         handler = _VERBS.get(op.verb)

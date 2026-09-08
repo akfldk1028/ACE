@@ -13,7 +13,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from design.maas.massv2.grammar import STACK_CONTRAST_RANGE
+from design.maas.massv2.grammar import (
+    BASE_ORIENTATIONS,
+    BASE_VOLUME_LABELS,
+    STACK_CONTRAST_RANGE,
+)
 
 # The verb list drifted from the executor twice: once an authoring agent hit
 # a `tie` floor the executor no longer had, and once this file refused seven
@@ -169,6 +173,27 @@ MAKING_VERBS = {"extrude", "stack", "loop", "aggregate"}
 REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle",
             "dominant_gesture", "reference_basis", "ops")
 
+# The opening. The BOOK's grammar is three parts and the first is choosing what
+# to act on - a relative base volume and the axis that carries the fraction -
+# and this validator did not know the keys existed, so neither did the brief it
+# derives: 901 of 901 authored sentences opened on the silent default and every
+# mass began as the whole parcel. The enums come from the executor's own table,
+# so they cannot drift from what the parser will accept.
+def _as_fraction(label: str) -> float:
+    top, _, bottom = str(label).partition("/")
+    try:
+        return float(top) / float(bottom or 1.0)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return 0.0
+
+
+OPENING = {
+    # Largest first, so the brief reads down from the whole parcel rather than
+    # in the string order that puts 1/16 second.
+    "base_volume": sorted(BASE_VOLUME_LABELS, key=_as_fraction, reverse=True),
+    "base_orientation": sorted(BASE_ORIENTATIONS),
+}
+
 
 def _source_value(value):
     """Hashable JSON content: object order is irrelevant, operation order is not.
@@ -297,6 +322,14 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
         for field in REQUIRED:
             if not scheme.get(field):
                 faults.append(f"{name}: missing {field}")
+        for field, allowed in OPENING.items():
+            said = scheme.get(field)
+            # Declaring the opening is optional - 952 sentences were written
+            # before it existed and they still mean what they meant. Saying it
+            # wrong is not: `parti_from_record` drops a label it does not know
+            # and the sentence silently opens on the whole parcel instead.
+            if said is not None and str(said) not in allowed:
+                faults.append(f"{name}: {field} {said!r} not one of {allowed}")
         if scheme.get("primary_language") not in LANGUAGES:
             faults.append(f"{name}: primary_language {scheme.get('primary_language')!r} "
                           f"not one of {sorted(LANGUAGES)}")

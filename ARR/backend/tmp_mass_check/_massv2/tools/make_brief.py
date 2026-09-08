@@ -141,6 +141,38 @@ def sayable_words() -> str:
                 cells.append(key)
         lines.append(f"- **{verb}**: {', '.join(cells) if cells else '(no parameters)'}")
     lines += ["", f"Universal on every verb: {', '.join(sorted(va._UNIVERSAL))}."]
+    # The opening, from the same owner. It is scheme-level rather than a verb
+    # parameter, so the table above never carried it and this brief never showed
+    # it: 901 of 901 authored sentences opened on the silent default `1/1`,
+    # every mass began as the whole parcel, and the jury kept writing "an object
+    # on a site rather than a site". The words were sayable the whole time.
+    lines += [
+        "",
+        "## The opening - what this mass is cut from, said once at the top of the scheme",
+        "The BOOK's grammar is three parts and this is the first: choose a body, perform",
+        "one action on it, explore its bounded variations. Two scheme-level keys, beside",
+        "`name` and `floor_height_m`:",
+        "",
+    ]
+    for field, allowed in va.OPENING.items():
+        lines.append("- **{}**: {}".format(field, " | ".join(allowed)))
+    lines += [
+        "",
+        "`base_volume` is how much of the parcel seed the mass starts as and",
+        "`base_orientation` is which axis carries the fraction: `1/4` + `vertical` is a",
+        "low wide plate over the whole plot, `1/4` + `long_axis` is a bar a quarter of",
+        "its length. A fraction shorter than one storey is refused rather than quietly",
+        "rounded up to the next one.",
+        "Omitting both opens on `1/1`, the whole parcel, which is what every sentence in",
+        "the corpus does. Say it deliberately.",
+        "",
+        "The opening has two more parts, both already in the table above and both just as",
+        "unused. `profile` on the first verb sets the base PLAN for the whole scheme - ten",
+        "are built and 83.6% of delivered bodies are square. A section verb said early -",
+        "gable, mansard, butterfly, vault, fold - gives the base SECTION; 84.4% of",
+        "delivered bodies are flat-topped. A section is a base shape, not an assembly, and",
+        "no matrix turns a square into a circle. Choose all four.",
+    ]
     return "\n".join(lines)
 
 
@@ -158,6 +190,7 @@ def main(track: str, out_path: str, assignment: str = "") -> int:
         f"Return only one {{\"schemes\":[...]}} JSON object. {count_instruction} Required scheme keys: name,",
         "primary_language, secondary_language, formal_principle (one Korean sentence for the final sheet),",
         "dominant_gesture, reference_basis (verified facts or original authorship), floor_height_m,",
+        "base_volume and base_orientation (the opening - see its section below; omitting them opens on the whole parcel),",
         "ops (each with op, supported parameters, and a concise why: input -> operation -> visible change -> function -> limitation).",
         "Use the live grammar's parameter units and ranges. Start with extrude|loop|aggregate|stack.",
         "Operational authoring instructions are in English; user-facing sheet descriptions may be Korean.",

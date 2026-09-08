@@ -455,8 +455,11 @@ def shear(frame, op) -> None:
     hosts = [item for item in picked if item.kind == "additive"]
     if not hosts:
         return
-    angle = _clamp(float(op.params.get("angle", op.params.get("degrees", 20.0))),
-                   5.0, 45.0)
+    # One parameter, as p.32 records it. `degrees` was accepted as an alias for
+    # a moment and taken straight back out: `skew` next door is the affine
+    # shear and its parameter IS `degrees`, so two words a page apart would
+    # have read the same key to mean two different geometries.
+    angle = _clamp(float(op.params.get("angle", 20.0)), 5.0, 45.0)
     across = str(op.params.get("toward") or "long").lower() in (
         "cross", "short", "side")
     # Which face the plane leans away from. The default takes the far one, so

@@ -279,3 +279,49 @@ class BookSurfaceBoundsTests(SimpleTestCase):
                 result = compile_geometry_program(program(base_nodes() + [replace(surface_node(), parameters=parameters)]))
                 self.assertEqual(result.status, "invalid_program")
                 self.assertIn("invalid_surface_bounds", {i.code for i in result.issues})
+
+    def test_book_cell_selection_preserves_sampled_curves_and_existing_voids(self):
+        from design.maas.book_language.base_volume_contract import BOOK_BASE_VOLUME_SPECS
+
+        nodes = base_nodes() + [surface_node(),
+            GeometryNode("void", "primitive", "box", parameters={
+                "width": 4, "depth": 4, "height": 2}),
+            GeometryNode("void_pose", "transform", "translate", ("void",), {"vector": [8, 3, 3]}),
+            GeometryNode("occupied", "boolean", "difference", ("roof", "void_pose"))]
+        original = self.compiled(nodes)
+        for spec in BOOK_BASE_VOLUME_SPECS:
+            for orientation in ("long_axis", "short_axis", "vertical"):
+                with self.subTest(scope=spec.label, orientation=orientation):
+                    selected = self.compiled(nodes + [GeometryNode(
+                        "selected", "modifier", "book_base_volume", ("occupied",),
+                        {"label": spec.label, "orientation": orientation})])
+                    added = m3d.Manifold.batch_boolean(
+                        [selected._solid, original._solid], m3d.OpType.Subtract)
+                    self.assertTrue(added.is_empty(), "Cell selection cannot add occupied material")
+                    removed = m3d.Manifold.batch_boolean(
+                        [original._solid, selected._solid], m3d.OpType.Subtract)
+                    self.assertEqual(removed.is_empty(), spec.label == "1/1")
+
+    def test_curved_partial_book_scope_resolves_affine_center_pivot(self):
+        from design.maas.geometry_language.affine_normalization import normalize_affine_basevolume_program
+
+        nodes = base_nodes() + [surface_node(), GeometryNode(
+            "selected", "modifier", "book_base_volume", ("roof",),
+            {"label": "1/16", "orientation": "vertical"})]
+        selected = self.compiled(nodes)
+        source = program(nodes + [GeometryNode(
+            "posed", "transform", "rotate", ("selected",),
+            {"axis": "z", "angle_degrees": 31, "pivot": "center"})])
+        lowered = normalize_affine_basevolume_program(source)
+        posed = compile_geometry_program(lowered)
+        self.assertEqual(posed.status, "compiled", posed.issues)
+        self.assertEqual(lowered.node_map["posed"].operator, "matrix4")
+        self.assertAlmostEqual(posed.metrics["volume"], selected.metrics["volume"], places=5)
+
+    def test_book_selection_does_not_hide_later_coarse_surface_enlargement(self):
+        nodes = base_nodes((2, 1, 1)) + [surface_node(), GeometryNode(
+            "selected", "modifier", "book_base_volume", ("roof",),
+            {"label": "1/2", "orientation": "long_axis"}), GeometryNode(
+            "enlarge", "transform", "scale", ("selected",), {"vector": [10, 10, 10]})]
+        result = compile_geometry_program(program(nodes))
+        self.assertIn("surface_sampling_requires_prior_sizing", {i.code for i in result.issues})

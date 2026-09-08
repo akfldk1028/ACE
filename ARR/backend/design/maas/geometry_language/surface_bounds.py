@@ -126,11 +126,14 @@ after physical GFA sizing, which would silently change its measured authority.
             continue
         if node.kind == "modifier" and node.operator in {
                 "bend", "taper", "twist", "pinch", "inflate", "profile_sweep_3d",
-                "ellipsoidize", "circularize", "tetrahedralize", "book_base_volume"}:
+                "ellipsoidize", "circularize", "tetrahedralize"}:
             if "sampling_linear_matrix4" not in row:
                 unsupported = unsupported or node.operator
         if node.kind == "pattern" and node.operator == "stack":
             unsupported = unsupported or node.operator
+        # book_base_volume only intersects live material with normalized cell
+        # cutters. Like other CSG selections, it transports surviving samples
+        # unchanged; continue through it so later enlargement is still checked.
         # Matrix arrays create distinct consumer poses of the same live input.
         local_matrices = ([entry["matrix4"] for entry in row["matrix_entries"]]
                           if row.get("matrix_entries") else [row.get("sampling_linear_matrix4",

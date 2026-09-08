@@ -1,5 +1,7 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**LATEST REVIEW / 2026-09-08:** comp14 is the latest completed cycle (comp13/14 receipts independently checked:209/213 entries, no mismatches). The comp12 CURRENT LIVE paragraph below is historical. No new production cycle was run during this review. User reconfirmed that the product supports client/architect choice among meaningful architectural alternatives; FAR maximization is not the objective. Read `agents/MassAgent/docs/reports/selection-purpose-review-20260908.md` and `claude-changes-review-20260908.md` before changes. Verified outstanding regressions: merged roof flattening, lift plan loss, cache dependency omission, false BOOK lineage exclusion and section-blind pool deduplication. Next: repair these with a new baseline/full cycle; carry explicit project requirements/preferences through the existing pipeline; expose multiple density/organization choices and selected development branches; bind spatial programme and validate across sites. Preserve existing receipts and scores. Review details/scratch remain under agents/MassAgent. No implementation or new quality completion is claimed by this note.
+
 **CURRENT LIVE: comp12 cycle COMPLETE, service INCOMPLETE (2026-09-07).** All twelve stages, nine fresh juror sessions, four actual development pairs and feedback completed. Final eight-page PDF: `agents/MassAgent/output/pdf/massv2-comp12/comp12-comparison.pdf`; root directly inspected every page. Page 2: bridge developments; page 8: new ten-volume occupied cluster. Exact import repair `24280191` preserves 1,250m2/14.4m instead of shrinking the unchanged bridge to 1,062.5m2. Judged registry repair `6f0a37d0` rebuilds the precise scored geometry/certificate; accepted votes were preserved. Child 2 (lower connecting room) won all three parent-child votes. All four children still provide 10 parking cells against 13 conditionally required. Expanded112 backend,74 MassAgent and6 exporter tests pass;211 cycle receipt entries and54 PDF evidence hashes verify. Read `agents/MassAgent/docs/reports/comp12-development.md` and `comp12-final-verification.json`. No production worker remains active.
 
 **Next work in order:** (1) duplicate physical geometry accounting, diverse multi-parent development and explicit provenance in remaining BOOK registry consumers/project feedback; (2) shared BOOK two-variable roof contract and derived-floor precision; (3) part-level programme/circulation/terrace/structure relations and cross-site evidence; (4) parking strategy/access/turning, measured terrain/egress and full-suite failures. Preserve completed comp12/comp11. Future engine changes require a new baseline, full cycle, bake/pixel comparison and fresh judgement. All agent work under agents/MassAgent; ARR owns geometry/law. English operational prompts, authored payloads, complete LLM/BOOK/BaseVolume 4x4/VLM/develop flow. Local commits only; no push. The following comp11 and earlier sections are historical, not the current queue.
@@ -483,3 +485,26 @@ bash skills/mass-cycle/scripts/cycle.sh <라운드명> <문장수> --agent-mode 
 - 현재 시트: `runs/study-comp04/study.html`, `study.json`; PDF는 위 전달 경로. 보드는 `runs/board/`.
 - 과거 아티팩트 URL(이번 comp04 게시를 확인한 것이 아님): https://claude.ai/code/artifact/4ca086d7-f893-4034-9d3d-d37f5d6901a0
 - 메모리 정본: `D:/DevCache/claude-data/projects/D--Data-25-ACE/memory/massv2-triple-review-2026-09-02.md` 끝 절
+
+## 2026-09-08 — 중복과 상자, Codex 인계
+
+**커밋 86a440b3** `fix(massv2): the sheet keeps one tile per drawing, not per name`
+
+측정으로 끝난 것 두 가지.
+
+**1. 중복은 이름이 아니라 그림에서 났다.** comp14 118타일을 위치·크기 빼고 비교(정규화 평면 IoU≥0.90, 같은 비례, 같은 부분 수):
+
+| | 타일 | 같은 그림 쌍 | 같은 문장 | 다른 문장 |
+|---|---|---|---|---|
+| 전 | 118 | 85 | 16 | **69** |
+| 후 | 100 | 9 | 3 | 6 |
+
+`two_fronts_share_one_valley`와 `sun_draws_the_long_slope`가 IoU 1.000, `wild01_0106_loop_grade`와 `sweep_0525_loop_butterfly_fold`도 1.000. `runs/_dupcheck.png`에 눈으로 확인함 — 완전히 같은 그림이다. `pool_sheets._drawing_signature`/`_same_drawing`이 브라우징 단계에서만 거른다(보드·배심·원장 무관).
+
+**⚠️ 남은 위험 — Codex가 먼저 볼 것.** 이 자는 **평면·비례·부분 수만** 본다. 지붕을 안 본다. 같은 링에 mansard와 butterfly를 얹은 두 문장은 사람 눈엔 다른 그림인데 이 자로는 하나로 합쳐질 수 있다. 보강안: `SourceVolume.top_z(x, y, low, high)`로 9×9 격자 위 지붕 높이를 재서 서명에 붙이고, 지붕 차이가 크면 두 장으로 남긴다. 프로브 초안은 스크래치패드 `roofprobe.py` (Vworld 타임아웃으로 미실행 — 재시도 필요).
+
+**진짜 결함은 그대로 열려 있다.** 다른 문장 69쌍이 한 그림으로 배달됐다는 건 시트 문제가 아니라 엔진 문제다. loop 계열(mansard/fold/butterfly/canopy)이 한 링으로 수렴한다. 시트 규칙은 증상을 가린 것이고 원인은 안 고쳤다.
+
+**2. 상자는 결함이 아니라 기하다.** `buildable 1,922㎡ / 건폐율 상한 1,498㎡ / 이 필지에 들어가는 최대 정사각형 784㎡ = 상한의 52%`. 건폐율을 절반 넘게 쓰면 어떤 도형도 필지 십각형이 된다. 밴드 상관도 같은 말: full_ground 47%가 필지형, dispersed_ground 20%. 처방은 클리핑 규칙 추가가 아니라 ①비스듬한 필지에 맞는 도형 저작 ②낮은 건폐율 밴드다.
+
+**되돌린 것**: compile.py의 named-figure 클립 실험(`_DECLARED_FIGURE_KEEPS_SHARE`). 필지형 27→26인데 FAR 중앙값 137%→125% — 그림 하나를 건물 10분의 1로 산 셈. `git checkout`으로 원복, crown 테스트 10/10 통과.

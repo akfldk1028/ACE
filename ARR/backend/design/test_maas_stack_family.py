@@ -21,13 +21,14 @@ class StackFamilyTests(unittest.TestCase):
         self.assertNotEqual(family_key(tower),family_key(paired))
         self.assertEqual(_repeated_families([tower,paired]),[])
 
-    def test_cosmetic_name_and_rotation_do_not_fake_a_different_organization(self):
+    def test_renaming_does_not_create_source_but_relative_stack_rotation_does(self):
         original = stack('first',4)
         duplicate = deepcopy(original)
         duplicate['name'] = 'new author label'
+        self.assertEqual(len(_repeated_families([original,duplicate])),1)
         duplicate['ops'][0]['turn'] = 18
         self.assertEqual(family_key(original),family_key(duplicate))
-        self.assertEqual(len(_repeated_families([original,duplicate])),1)
+        self.assertEqual(_repeated_families([original,duplicate]),[])
 
     def test_executor_clamped_levels_have_one_family(self):
         self.assertEqual(family_key(stack('four',4)),family_key(stack('oversized level request',40)))

@@ -165,34 +165,62 @@ REQUIRED = ("name", "primary_language", "secondary_language", "formal_principle"
             "dominant_gesture", "reference_basis", "ops")
 
 
-def _repeated_families(schemes: list) -> list[str]:
-    """Sentences whose language another sentence in the book already said.
+def _source_value(value):
+    """Hashable JSON content: object order is irrelevant, operation order is not.
 
-    `family_key` is (opener, dominant move family, stature band) - the
-    partition the board curator has used for weeks to seat one scheme per
-    idea. A book carrying two members of one family spends the funnel's whole
-    budget twice on the same idea and puts near-identical tiles side by side
-    on the sheet.
+    Python number equality preserves integer/float equivalence without rounding
+    real geometric parameters; booleans remain different from numbers.
     """
+    if isinstance(value, dict):
+        return ('object', tuple(sorted((key, _source_value(item)) for key, item in value.items())))
+    if isinstance(value, (list, tuple)):
+        return ('array', tuple(_source_value(item) for item in value))
+    if isinstance(value, bool):
+        return ('boolean', value)
+    if isinstance(value, (int, float)):
+        return ('number', value)
+    if value is None or isinstance(value, str):
+        return (type(value).__name__, value)
+    raise TypeError('An authored source must contain JSON values')
 
-    import sys as _sys
-    from pathlib import Path as _Path
-    _sys.path.insert(0, str(_Path(__file__).resolve().parents[3]))
-    from design.maas.massv2.family import family_key  # noqa: E402
+
+def _repeated_families(schemes: list) -> list[str]:
+    """Refuse duplicate executable sources, not a coarse curator family.
+
+    The historical function name is retained for callers. Bend and twist, or
+    different profiles/roof surfaces, may share opener/dominant/stature. That
+    partition is not evidence of identical geometry. Parse with the grammar
+    owner and compare the complete executable definition, excluding prose.
+    This is conservative source deduplication; actual geometric equivalence
+    and fit remain the downstream delivery/selection owners' responsibility.
+    """
+    from design.maas.massv2.grammar import parti_from_record, PLOT_MODES
 
     seen: dict[tuple, str] = {}
     faults: list[str] = []
     for scheme in schemes:
         try:
-            key = family_key(scheme)
+            # Do not turn a partly parsed invalid source into a duplicate of a
+            # valid one. Unknown words are reported by the existing validator.
+            if any(str(op.get('op') or '').strip() not in PLOT_MODES for op in scheme.get('ops') or ()):
+                continue
+            parti = parti_from_record(scheme)
+            if parti is None:
+                continue
+            key = _source_value({
+                'operations': [(op.verb, op.plot_mode, op.params) for op in parti.ops],
+                'floor_height_m': parti.floor_height_m,
+                'growth': parti.growth,
+                'primary_language': parti.primary_language,
+            })
         except Exception:  # noqa: BLE001 - a malformed scheme is another fault
             continue
         first = seen.get(key)
         if first is not None:
             faults.append(
-                f"{scheme.get('name')}: says the same thing as {first} "
-                f"(opener/dominant/stature all equal) - one book, one sentence "
-                f"per idea"
+                f"{scheme.get('name')}: repeats the executable source of {first} "
+                f"(same ordered operations, parameters and execution contract); "
+                f"changing a title or explanation does not create another source"
             )
             continue
         seen[key] = str(scheme.get("name"))

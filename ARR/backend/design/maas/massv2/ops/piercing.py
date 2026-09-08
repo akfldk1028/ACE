@@ -26,6 +26,7 @@ from typing import Callable
 
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
+    scale_matrix4,
     transform_point3,
     translation_matrix4,
     validate_matrix4,
@@ -89,6 +90,23 @@ def intersect(frame, op) -> None:
     bar = frame.box(role, w=length, d=width, z=z_base, h=thick,
                     dx=dx, dy=dy, turn=turn)
 
+    # p.19 files Intersect under Displace: the bar is driven THROUGH the mass,
+    # so what it occupies inside is the mass's own material and only the ends
+    # standing proud are new. massv2 delivered the pierced volumes untouched
+    # plus the whole bar, which is an addition - measured, +3.4% on an uncut
+    # seed. The hosts now give up what the bar stands outside them, the same
+    # accounting `interlock` and `lodge` follow.
+    #
+    # The bar runs 1.15 of the crossing extent by design, so 0.15 of it is what
+    # sticks out at both ends; the pierced bodies pay in proportion to how much
+    # of their own width the bar covers.
+    span_across = _extent(across)
+    owed = (0.15 * width) / span_across if span_across > 1e-6 else 0.0
+    paid = [replace(item, matrix=compose_matrix4(
+        item.matrix, scale_matrix4((max(0.7, 1.0 - owed), 1.0, 1.0))))
+        for item in solid]
+    untouched = [item for item in picked if item not in solid]
+
     if rise <= 1e-6:
         made = [bar]
     else:
@@ -101,7 +119,7 @@ def intersect(frame, op) -> None:
 
         made = _banded(bar, flights, shape, axis=0)
 
-    frame.placements = rest + picked + made
+    frame.placements = rest + untouched + paid + made
 
 
 def fracture(frame, op) -> None:

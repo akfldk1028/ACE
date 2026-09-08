@@ -172,17 +172,37 @@ def _sequence_sheet(item, *, book, site, buildable, axis, out_dir):
 
 
 def _engine_signature() -> str:
-    """A hash of every module whose edit can change a delivered mass."""
+    """Version the geometry/placement code, including nested operation owners."""
 
     import hashlib
     from pathlib import Path as _Path
     root = _Path(__file__).resolve().parents[2] / "maas"
     digest = hashlib.sha256()
-    for folder in ("massv2", "source_geometry"):
-        for path in sorted((root / folder).glob("*.py")):
-            digest.update(path.name.encode("utf-8"))
+    for folder in (root, root.parent / "services"):
+        for path in sorted(folder.rglob("*.py")):
+            digest.update(str(path.relative_to(root.parent)).encode("utf-8"))
             digest.update(path.read_bytes())
+    digest.update(_Path(__file__).read_bytes())
+    import numpy, shapely
+    digest.update(f"{numpy.__version__}|{shapely.__version__}".encode())
     return digest.hexdigest()[:16]
+
+
+def _site_signature(site, buildable, axis) -> str:
+    """Bind cached verdicts to actual geometry, envelope, datum and orientation.
+
+    Pickle is only used to fingerprint in-memory input; never deserialize it.
+    Unsupported site objects disable cross-run reuse rather than weakening the
+    key to a parcel number. False cache misses are safe.
+    """
+    import hashlib
+    import pickle
+    import uuid
+    try:
+        payload = pickle.dumps((site, buildable, tuple(axis)), protocol=5)
+    except Exception:
+        return uuid.uuid4().hex
+    return hashlib.sha256(payload).hexdigest()
 
 
 def _verdict_to_json(verdict) -> dict:
@@ -551,7 +571,8 @@ class Command(BaseCommand):
             # changed neither the engine nor the parcel reads last round's.
             verdicts = _VerdictCache(
                 Path(options["output_dir"]).parent / "_cache" / "sentence-verdicts.json",
-                f"{options['pnu']}|{options['building_type']}|{options['track']}",
+                f"{options['pnu']}|{options['building_type']}|{options['track']}|"
+                f"{_site_signature(site, buildable, axis)}",
             )
             for sentence_index, record in enumerate(sentences, 1):
                 self.stdout.write(f"author {sentence_index}/{len(sentences)}: {record.get('name', '?')}")

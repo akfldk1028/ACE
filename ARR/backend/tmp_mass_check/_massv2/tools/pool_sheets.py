@@ -30,11 +30,8 @@ COLUMNS = 8
 TILE = (300, 270)
 
 
-# How alike two delivered masses must be to count as one drawing: normalized
-# ground plans overlapping this much, at the same proportion and with the same
-# number of parts. Calibrated on comp14, where the pairs a person reads as
-# repeats sit at 0.98-1.00 and the next honestly distinct pair falls well
-# below.
+# Plan similarity is a browsing hint, never proof of identical 3D mass.
+# Keep section, roof and placement alternatives available for human choice.
 _SAME_PLAN_IOU = 0.92
 _SAME_PROPORTION = 0.25
 
@@ -172,7 +169,7 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
 
     batch, sheet, drawn, failed, repeated = [], 0, 0, 0, 0
     seen_shapes: dict[str, str] = {}
-    seen_figures: set = set()
+    suppressed: list[dict] = []
     drawings: list = []
     index = 0
     kept: list[dict] = []
@@ -197,37 +194,21 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         identity = shape_id(source)
         if identity in seen_shapes:
             repeated += 1
+            suppressed.append({'name': name, 'shape_id': identity,
+                               'same_geometry_as': seen_shapes[identity]})
             continue
-        # One tile per sentence and coverage band. Siting moves a mass across
-        # the parcel without changing what it is, so a round's own sentences -
-        # which do spread over four bands and five sitings - laid the same
-        # kite out ten times in a row and the browsing surface read as
-        # duplication again. The band stays: it is the ground take, and a
-        # scheme at 35% is a different proposal from the same scheme at 100%.
-        band = name.split("~")[1].split("^")[0] if "~" in name else ""
-        figure = (name.split("~")[0].split("^")[0], band)
-        if figure in seen_figures:
-            repeated += 1
-            continue
-        # And one tile per DRAWING. Different sentences deliver the same mass
-        # far more often than their names suggest: over 70 comp14 tiles, 49
-        # pairs read as one building once position and size are removed, and
-        # 43 of those pairs carried different sentences - a loop with a
-        # butterfly, a loop with a mansard and a loop with a fold all arriving
-        # as the same ring. The name cannot catch that and exact geometry
-        # cannot either, since they differ by centimetres.
+        # Similar ground plans may conceal different upper levels, roofs,
+        # holes or siting cuts. Record the relation without deleting a choice.
         mark = _drawing_signature(source)
-        if mark is not None and any(_same_drawing(mark, seen) for seen in drawings):
-            repeated += 1
-            continue
+        similar_to = [other_name for other_name, seen in drawings
+                      if mark is not None and _same_drawing(mark, seen)]
         if mark is not None:
-            drawings.append(mark)
-        seen_figures.add(figure)
+            drawings.append((name, mark))
         seen_shapes[identity] = name
         index += 1
         drawn += 1
         kept.append({"rank": index, "storeys": round(storeys, 1), "name": name,
-                     "shape_id": identity})
+                     "shape_id": identity, "similar_plan_to": similar_to})
         meta = {
             "층": f"{storeys:.1f}", "용적": f"{gross / parcel * 100:.0f}%",
             "": family[:24],
@@ -250,6 +231,8 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
                       columns=COLUMNS, tile=TILE, style="massing")
     (out / "pool-index.json").write_text(
         json.dumps(kept, ensure_ascii=False, indent=1), encoding="utf-8")
+    (out / "pool-suppressed.json").write_text(
+        json.dumps(suppressed, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"done: {drawn} distinct masses drawn, {repeated} repeats of a mass already "
           f"drawn skipped, {failed} rebuild-failed, {sheet} sheets -> {out}")
     return 0

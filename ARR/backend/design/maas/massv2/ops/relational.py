@@ -126,6 +126,13 @@ def merge(frame, op) -> None:
             piece, plan=body.plan,
             top_drop=min(1.0, drop / kept_share) if drop > 0.0 else 0.0,
             top_profile=profile,
+            # _region makes new prisms for grafts and cutters. This caller keeps
+            # a slice of an existing roof, so it must explicitly retain the
+            # directional fields that interpret its remapped drop/profile.
+            drop_toward=body.drop_toward,
+            ridge_along=body.ridge_along,
+            profile_across=body.profile_across,
+            top_walkable=body.top_walkable,
             occupiable=body.occupiable and (high - low) * kept_share >= frame.storey - 1e-6,
         ))
 

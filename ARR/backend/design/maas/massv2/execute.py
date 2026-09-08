@@ -1165,18 +1165,6 @@ def _approach(frame: _Frame, op: Operation) -> None:
     )
 
 
-_TOP_FIELDS = ("top_drop", "drop_toward", "ridge_along", "top_profile", "profile_across",
-               "profile_span", "top_walkable", "warp", "top_surface", "bottom_surface",
-               "plan_region", "authored_domain")
-
-
-def _with_top_of(source: Placement, rebuilt: Placement) -> Placement:
-    """The rebuilt body, wearing the source body's top and underside."""
-
-    fields = {name: getattr(source, name) for name in _TOP_FIELDS if hasattr(source, name)}
-    return replace(rebuilt, **fields)
-
-
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -1211,32 +1199,12 @@ def _lift(frame: _Frame, op: Operation) -> None:
     clearance = _clamp(asked, DEFAULT_MINIMUM_CLEAR_DEPTH_M, room * MAX_UNDERCROFT_STOREYS)
     raised: list[Placement] = []
     for item in picked:
-        low, high = item.z_span()
-        # On the frame's own axes. This used to take the axis-aligned bounds of
-        # the posed corners inline - the same inflation `_bounds_of` was fixed
-        # for, copied here and left behind. Villa dall'Ava's `split` opens
-        # 3.16 m and its `lift` rebuilt the raised half wide enough to close it
-        # to 0.95, and the supports were innocent: measured, all four sit at
-        # least 1.66 m from the other apartment and two of them entirely inside
-        # the volume they hold up.
-        centre_x, centre_y, _frame_x, _frame_y = _bounds_of([item], frame)
-        # On the volume's own axes, and put back at its own bearing. Raising a
-        # volume does not widen it and does not straighten it either: rebuilt
-        # from the frame-aligned bounds a parcel-shaped piece grows on every
-        # side - on `oma_villa_dall_ava` that swallowed the 3.05 m the `split`
-        # before it had opened - and rebuilt without the turn it forgets what
-        # an `aggregate` or a `rotate` did to it.
-        span_x, span_y, turn = _own_plan(item, frame)
-        shrink = _plan_shrink(item, span_x, span_y)
-        box = frame.box(item.role, w=span_x * shrink, d=span_y * shrink,
-                        z=low + clearance, h=high - low,
-                        dx=centre_x, dy=centre_y, turn=turn,
-                        kind=item.kind, plan=item.plan, occupiable=item.occupiable)
-        # Raised with its roof on. The rebuilt box carried nothing about the
-        # top, so every roof word said before a lift was erased by it: five
-        # crowned bodies became nine flat ones and the silence gate called
-        # the crown idle.
-        raised.append(_with_top_of(item, box))
+        # Lift is a world-space translation of the complete authored body.
+        # Rebuilding from a plan box changes shear, custom boundaries and holes;
+        # applying the old area compensation before retaining a custom boundary
+        # also spends its void twice. Keep the local frame and all roof fields.
+        matrix = compose_matrix4(item.matrix, translation_matrix4((0.0, 0.0, clearance)))
+        raised.append(replace(item, matrix=validate_matrix4(matrix)))
     # Four supports, a third of the plan each, so what is raised spans between
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
@@ -1256,13 +1224,8 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # under it and the structure gate refused every variant of the sentence.
     standing = [item for item in picked if item.kind == "additive"] or picked
     stood_at = min((item.z_span()[0] for item in standing), default=0.0)
-    # Off the plate as it was built, not as it arrived. The raised volume is
-    # rebuilt to hold its own plan area rather than its bounding box, so sizing
-    # the legs from the original left them sticking out past the plate they
-    # carry - measured on Villa dall'Ava, the plate stood 3.16 m from the other
-    # apartment and a leg stood 1.66 m from it.
-    # Solids only here too, for the same reason: a cutter rebuilt alongside the
-    # plate would size and place the legs to a void.
+    # Size the supports from the translated solids, never from a cutter that
+    # extends outside them. The authored body itself keeps its complete plan.
     solids = [item for item in raised if item.kind == "additive"] or raised
     base_x, base_y, base_w, base_d = _bounds_of(solids, frame)
     base_turn = 0.0

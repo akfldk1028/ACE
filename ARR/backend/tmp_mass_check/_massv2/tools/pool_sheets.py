@@ -172,6 +172,7 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
     from solid_presentation import SolidPresentationRegistry
     solid_forms = SolidPresentationRegistry()
     suppressed: list[dict] = []
+    seen_figures: dict[tuple, str] = {}
     drawings: list = []
     index = 0
     kept: list[dict] = []
@@ -207,6 +208,26 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
                                'storeys': storeys, 'gross_m2': gross,
                                'comparison': form_comparison})
             continue
+        # One tile per sentence and coverage band. Exact solid equality is the
+        # right test for "the same mass" and the wrong one for "the same
+        # picture": on comp17 it found nothing to merge among 203 tiles, while
+        # five sentences took 95 of them - field_under_butterfly_wings alone
+        # appeared 25 times, moved around the parcel. Siting slides a mass
+        # across the site without changing what it is, so the browsing surface
+        # keeps one of each. The band stays, because a scheme taking 35% of the
+        # ground is a different proposal from the same scheme taking all of it,
+        # and every dropped variant is written into `suppressed` with the tile
+        # that stands for it - the choice is recorded, not destroyed, and the
+        # board, the jury and the ledger never see this rule at all.
+        band = name.split("~")[1].split("^")[0] if "~" in name else ""
+        figure = (family, band)
+        if figure in seen_figures:
+            repeated += 1
+            suppressed.append({'name': name, 'shape_id': identity,
+                               'same_sentence_and_band_as': seen_figures[figure],
+                               'storeys': storeys, 'gross_m2': gross})
+            continue
+        seen_figures[figure] = name
         # Similar ground plans may conceal different upper levels, roofs,
         # holes or siting cuts. Record the relation without deleting a choice.
         mark = _drawing_signature(source)

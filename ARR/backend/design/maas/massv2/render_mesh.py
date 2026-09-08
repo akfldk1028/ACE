@@ -75,13 +75,27 @@ def paint_mesh(panel, triangles, *, project, to_screen, yaw, pitch, palette, smo
     Triangle interiors stay seamless; silhouettes and actual sharp folds show.
     """
     width, height = panel.size
+    from design.maas.geometry_language.export_mesh import EXPORT_DECIMAL_PLACES
+
+    screen_origin = np.asarray(to_screen(project(0, 0, 0)), dtype=float)
+    screen_axes = np.column_stack([
+        np.asarray(to_screen(project(*axis)), dtype=float)-screen_origin
+        for axis in np.eye(3)
+    ])
+    # Orthographic ray separation for one screen pixel, in world units.
+    # This is a render visibility policy, not a surface-continuity certificate.
+    world_per_pixel = np.linalg.pinv(screen_axes)
+    mesh_low, mesh_high = np.full(3, np.inf), np.full(3, -np.inf)
     pixels = np.array(panel, dtype=np.uint8)
     depth = np.full((height, width), -np.inf)
     normals = np.zeros((height, width, 3))
+    depth_gradient = np.zeros((height, width, 2))
     camera = np.array((sin(yaw)*cos(pitch), cos(yaw)*cos(pitch), sin(pitch)))
     light = np.array((-.25, -.35, 1.0)); light /= np.linalg.norm(light)
     for triangle in triangles:
         world = np.asarray(triangle, dtype=float)
+        mesh_low = np.minimum(mesh_low, world.min(axis=0))
+        mesh_high = np.maximum(mesh_high, world.max(axis=0))
         normal = np.cross(world[1]-world[0], world[2]-world[0])
         length = np.linalg.norm(normal)
         if length == 0:
@@ -106,15 +120,41 @@ def paint_mesh(panel, triangles, *, project, to_screen, yaw, pitch, palette, smo
         visible = (a >= 0) & (b >= 0) & (c >= 0) & (interpolated > target)
         target[visible] = interpolated[visible]
         normals[top:bottom+1, left:right+1][visible] = normal
+        # Exact depth slope per screen pixel on this triangle's plane.
+        gradient = np.array((
+            ((ys[1]-ys[2])*(z[0]-z[2]) + (ys[2]-ys[0])*(z[1]-z[2])) / denominator,
+            ((xs[2]-xs[1])*(z[0]-z[2]) + (xs[0]-xs[2])*(z[1]-z[2])) / denominator,
+        ))
+        depth_gradient[top:bottom+1, left:right+1][visible] = gradient
         base = np.asarray(palette.roof if normal[2] > .5 else palette.wall)
         shade = .88 + .12 * max(0, float(normal @ light))
         pixels[top:bottom+1, left:right+1][visible] = np.clip(base*shade, 0, 255).astype(np.uint8)
     occupied = np.isfinite(depth)
     edges = np.zeros_like(occupied)
+    finite_depth = np.where(occupied, depth, 0.0)
+    # Exported normalized coordinates carry this existing decimal precision;
+    # transport its uncertainty at mesh scale rather than adding a metre cutoff.
+    export_noise = (10.0**-EXPORT_DECIMAL_PLACES * float(np.max(mesh_high-mesh_low))
+                    * float(np.abs(camera).sum())) if occupied.any() else 0.0
     for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
         adjacent = np.roll(occupied, (dy, dx), axis=(0, 1))
         adjacent_normals = np.roll(normals, (dy, dx), axis=(0, 1))
         sharp = np.sum(normals*adjacent_normals, axis=2) < smooth_turn_cos
-        edges |= occupied & (~adjacent | sharp)
+        # Subtract the endpoint planes' expected one-pixel depth increment.
+        # Intervening facets need not stay within their gradient interval, so
+        # only residuals resolved beyond a pixel's ray separation become edges.
+        # Use finite substitutes outside the mesh to avoid inf-inf arithmetic.
+        adjacent_depth = np.roll(finite_depth, (dy, dx), axis=(0, 1))
+        increment = finite_depth - adjacent_depth
+        slope = depth_gradient[:, :, 0]*dx + depth_gradient[:, :, 1]*dy
+        adjacent_slope = np.roll(slope, (dy, dx), axis=(0, 1))
+        # Roundoff allowance for interpolation/subtraction; scales with the
+        # actual depth arithmetic, not a world-unit or visual distance cutoff.
+        roundoff = 16*np.finfo(float).eps*(
+            np.abs(finite_depth) + np.abs(adjacent_depth) + np.abs(slope) + np.abs(adjacent_slope))
+        visibility = np.linalg.norm(world_per_pixel @ np.array((dx, dy))) + export_noise + roundoff
+        discontinuous = ((increment < np.minimum(slope, adjacent_slope)-visibility) |
+                         (increment > np.maximum(slope, adjacent_slope)+visibility))
+        edges |= occupied & (~adjacent | sharp | (adjacent & discontinuous))
     pixels[edges] = palette.edge
     panel.paste(Image.fromarray(pixels))

@@ -1,0 +1,1550 @@
+{
+  "baseline": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260908\\comp16-before-composition",
+  "comparisons": [
+    {
+      "file": "C10.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C10",
+        "name": "twin_gable_bars^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C10",
+        "name": "twin_gable_bars^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C10.png"
+    },
+    {
+      "file": "C11.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C11",
+        "name": "one_court_block^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C11",
+        "name": "one_court_block^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C11.png"
+    },
+    {
+      "file": "C2.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C2",
+        "name": "one_wide_slab^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C2",
+        "name": "one_wide_slab^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C2.png"
+    },
+    {
+      "file": "C5.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C5",
+        "name": "two_drums_one_court^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C5",
+        "name": "two_drums_one_court^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C5.png"
+    },
+    {
+      "file": "C7.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C7",
+        "name": "lifted_round_disc^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C7",
+        "name": "lifted_round_disc^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C7.png"
+    },
+    {
+      "file": "C8.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C8",
+        "name": "drum_that_steps_once^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C8",
+        "name": "drum_that_steps_once^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C8.png"
+    },
+    {
+      "file": "C9.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "C9",
+        "name": "one_gable_bar^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "after_identity": {
+        "label": "C9",
+        "name": "one_gable_bar^centred",
+        "score": null,
+        "round": "canon"
+      },
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\C9.png"
+    },
+    {
+      "file": "O1.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O1",
+        "name": "court_bitten_slab_pile",
+        "score": 4.38,
+        "round": "vlm-comp16",
+        "shape_id": "40d0c30a8787b49ae2ef",
+        "certificate_id": "903f767f9d09c647cbee"
+      },
+      "after_identity": {
+        "label": "O1",
+        "name": "book:book-comp17:morph-voided-low:creative-005",
+        "score": 3.97,
+        "round": "vlm-book-comp17",
+        "shape_id": "d7982196be277965a306",
+        "certificate_id": "6a136ae240217cfe340e",
+        "presentation_group": "form-1",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                24.717601933717,
+                13.089232333657002,
+                0.0,
+                65.64571670364,
+                51.783859264123,
+                12.0
+              ],
+              "translation_xyz": [
+                -24.717601933717,
+                -13.089232333657002,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.024433082384113954,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.9454290076146303,
+                0.29319698860936744
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "862037b47a91d8f43f65",
+            "bucket_signature": [
+              1.0,
+              0.94542901,
+              0.29319699,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.1024619155564973,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1639298245614035,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O1.png"
+    },
+    {
+      "file": "O10.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O10",
+        "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+        "score": 3.8,
+        "round": "vlm-comp16",
+        "shape_id": "5307259b76e79138a459",
+        "certificate_id": "1d7d37bd040dc38a3e71"
+      },
+      "after_identity": {
+        "label": "O10",
+        "name": "book:book-comp17:morph-compact-low:creative-002",
+        "score": 3.53,
+        "round": "vlm-book-comp17",
+        "shape_id": "4bbe3756485029e4e47f",
+        "certificate_id": "dbd93edc46d59c46e4d4",
+        "presentation_group": "form-10",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                24.902579207906,
+                12.630054513266998,
+                0.0,
+                65.460739429451,
+                52.243037084513,
+                7.6
+              ],
+              "translation_xyz": [
+                -24.902579207906,
+                -12.630054513266998,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.024655950726995442,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.9999999999999999,
+                0.9766957464259707,
+                0.18738522552516534
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "baa050b59bccc3c6f58d",
+            "bucket_signature": [
+              1.0,
+              0.97669575,
+              0.18738523,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.06834867551927262,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1656140350877193,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O10.png"
+    },
+    {
+      "file": "O11.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O11",
+        "name": "comp16_diagonal_court~full_ground^off_open",
+        "score": 3.73,
+        "round": "vlm-comp16",
+        "shape_id": "24575545180611c489c3",
+        "certificate_id": "65a657a206cc0482c9d1"
+      },
+      "after_identity": {
+        "label": "O11",
+        "name": "sangok_c03_descending_civic_court",
+        "score": 3.32,
+        "round": "vlm-comp17",
+        "shape_id": "161c0058c29d26930843",
+        "certificate_id": "16f3e68553a8c329dd2e",
+        "presentation_group": "form-11",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                25.230404630067174,
+                14.444279784249145,
+                0.0,
+                69.0124400890133,
+                50.51280847070422,
+                10.8
+              ],
+              "translation_xyz": [
+                -25.230404630067174,
+                -14.444279784249145,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.022840418210745082,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.9999999999999999,
+                0.8238202794448899,
+                0.2466765166760469
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "c74402f6fe4786d2425a",
+            "bucket_signature": [
+              1.0,
+              0.82382028,
+              0.24667652,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.08471326038408729,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1037704678362573,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O11.png"
+    },
+    {
+      "file": "O12.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O12",
+        "name": "book:book-comp16:morph-oblique-mid:creative-005",
+        "score": 3.73,
+        "round": "vlm-book-comp16",
+        "shape_id": "e198a511523e807b176e",
+        "certificate_id": "2b39cb76940546957c22"
+      },
+      "after_identity": {
+        "label": "O12",
+        "name": "sangok_c04_hall_daily_street~full_ground^centred",
+        "score": 3.27,
+        "round": "vlm-comp17",
+        "shape_id": "57c2b01b0c870f71d8dc",
+        "certificate_id": "9dc8c0eda34d89acec2c",
+        "presentation_group": "form-12",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                20.747795531526144,
+                12.654934361656906,
+                0.0,
+                67.02219106407915,
+                51.44095212769427,
+                10.8
+              ],
+              "translation_xyz": [
+                -20.747795531526144,
+                -12.654934361656906,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02161022285632067,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8381744876332802,
+                0.23339040684826323
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "4244ac3d258a13fb4bf0",
+            "bucket_signature": [
+              1.0,
+              0.83817449,
+              0.23339041,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.11384614163337399,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.17920906432748537,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O12.png"
+    },
+    {
+      "file": "O13.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O13",
+        "name": "book:book-comp16:morph-curved-low:creative-001",
+        "score": 3.7,
+        "round": "vlm-book-comp16",
+        "shape_id": "73aec0d17af9de158b40",
+        "certificate_id": "1610396c0abc2063df63"
+      },
+      "after_identity": {
+        "label": "O13",
+        "name": "book:book-comp11:morph-compact-mid:creative-012",
+        "score": 3.27,
+        "round": "vlm-book-comp17",
+        "shape_id": "dacbb205cef6ed7a1d3e",
+        "certificate_id": "4589e41b0f45a7cf59bf",
+        "presentation_group": "form-13",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                25.835309738307,
+                18.636339101872,
+                0.0,
+                64.356629850136,
+                45.559802781039,
+                14.4
+              ],
+              "translation_xyz": [
+                -25.835309738307,
+                -18.636339101872,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.025959650320834235,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.9999999999999999,
+                0.6989237025368564,
+                0.373818964620013
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "0f95d44a55d5bad12584",
+            "bucket_signature": [
+              1.0,
+              0.6989237,
+              0.37381896,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.0793115966950963,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.09933187134502924,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O13.png"
+    },
+    {
+      "file": "O14.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O14",
+        "name": "comp16_folded_section~full_ground^to_open",
+        "score": 3.55,
+        "round": "vlm-comp16",
+        "shape_id": "b7924ed536e647b471ec",
+        "certificate_id": "443f7f6ab985c25bedb6"
+      },
+      "after_identity": {
+        "label": "O14",
+        "name": "book:book-comp17:morph-voided-low:creative-008",
+        "score": 3.27,
+        "round": "vlm-book-comp17",
+        "shape_id": "a0839e7b08c69cab08a9",
+        "certificate_id": "1d7a939f5993c352fe7d",
+        "presentation_group": "form-14",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                29.999049642794,
+                15.015152300368001,
+                0.0,
+                62.698703214373,
+                49.610608000387,
+                12.0
+              ],
+              "translation_xyz": [
+                -29.999049642794,
+                -15.015152300368001,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.028905530502939748,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.9452008337488395,
+                1.0,
+                0.346866366035277
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "5c56da0f76781d90263e",
+            "bucket_signature": [
+              0.94520083,
+              1.0,
+              0.34686637,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.14148146592156322,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.2111330409356725,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O14.png"
+    },
+    {
+      "file": "O15.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O15",
+        "name": "book:book-comp16:morph-voided-mid:creative-013",
+        "score": 3.5,
+        "round": "vlm-book-comp16",
+        "shape_id": "fb1c2de5ee045ed9b796",
+        "certificate_id": "fe8c9f264a66541a6ae2"
+      },
+      "after_identity": {
+        "label": "O15",
+        "name": "book:book-comp17:morph-voided-low:creative-016",
+        "score": 3.23,
+        "round": "vlm-book-comp17",
+        "shape_id": "4c9f0399b2e9f057ce18",
+        "certificate_id": "f4a8ce308013d650df08",
+        "presentation_group": "form-15",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                27.354133505792,
+                16.974371649375,
+                0.0,
+                59.927640100025,
+                49.326213394656,
+                12.0
+              ],
+              "translation_xyz": [
+                -27.354133505792,
+                -16.974371649375,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.030699795771359957,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.9931949344074842,
+                0.3683975492563195
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "17eb5432df5e1247b4c0",
+            "bucket_signature": [
+              1.0,
+              0.99319493,
+              0.36839755,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.16980240741548838,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1081593567251462,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O15.png"
+    },
+    {
+      "file": "O16.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O16",
+        "name": "comp16_turning_hexagon^off_open",
+        "score": 3.48,
+        "round": "vlm-comp16",
+        "shape_id": "e6bd415e1bd76a12a6e5",
+        "certificate_id": "a359eb57d11af3885c15"
+      },
+      "after_identity": {
+        "label": "O16",
+        "name": "slipped_twin_gables~full_ground^off_open",
+        "score": 3.2,
+        "round": "vlm-comp17",
+        "shape_id": "e16ae12f363cc76ba571",
+        "certificate_id": "e0955501f749fd52e056",
+        "presentation_group": "form-16",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                11.653050596549384,
+                12.804261351387096,
+                0.0,
+                69.33257319622403,
+                53.04696811891562,
+                17.232
+              ],
+              "translation_xyz": [
+                -11.653050596549384,
+                -12.804261351387096,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.017337175394819247,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.6976948655909215,
+                0.29875420640352524
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "173093153513eec77517",
+            "bucket_signature": [
+              1.0,
+              0.69769487,
+              0.29875421,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.11191560511515454,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.12628947368421053,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O16.png"
+    },
+    {
+      "file": "O17.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O17",
+        "name": "book:book-comp16:morph-compact-mid:creative-002",
+        "score": 3.48,
+        "round": "vlm-book-comp16",
+        "shape_id": "cc5f39a8c9c9aa0c5968",
+        "certificate_id": "e8ceaf50614d4589069a"
+      },
+      "after_identity": {
+        "label": "O17",
+        "name": "comp17_paired_curved_rooms~full_ground^to_open",
+        "score": 3.17,
+        "round": "vlm-comp17",
+        "shape_id": "7f72794fa3ba3c615069",
+        "certificate_id": "d0aa1dcb7dc15351965f",
+        "presentation_group": "form-17",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                37.776736334325,
+                18.805390270252,
+                0.0,
+                72.74974471408008,
+                48.63759459780554,
+                18.342455798937923
+              ],
+              "translation_xyz": [
+                -37.776736334325,
+                -18.805390270252,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.028593479552616145,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8530065244493689,
+                0.524474634831697
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "7e19219f0f861dd08f5e",
+            "bucket_signature": [
+              1.0,
+              0.85300652,
+              0.52447463,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.2767652747426825,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.19217543859649122,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O17.png"
+    },
+    {
+      "file": "O18.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O18",
+        "name": "book:book-comp16:morph-curved-mid:creative-003",
+        "score": 3.42,
+        "round": "vlm-book-comp16",
+        "shape_id": "2980f18b1b916e627293",
+        "certificate_id": "f417d33a5eba98806471"
+      },
+      "after_identity": {
+        "label": "O18",
+        "name": "book:book-comp17:morph-oblique-low:creative-004",
+        "score": 3.17,
+        "round": "vlm-book-comp17",
+        "shape_id": "80400617729f20bad2d4",
+        "certificate_id": "6d5548080fdadb10a594",
+        "presentation_group": "form-18",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                24.47908058906,
+                17.481791177968,
+                0.0,
+                65.630464966637,
+                49.902269880707,
+                11.399999999999999
+              ],
+              "translation_xyz": [
+                -24.47908058906,
+                -17.481791177968,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02430051904997127,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.7878344603250971,
+                0.27702591716967245
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "c4c60806931bb8679e12",
+            "bucket_signature": [
+              1.0,
+              0.78783446,
+              0.27702592,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.07522772820243115,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.10009502923976608,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O18.png"
+    },
+    {
+      "file": "O19.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O19",
+        "name": "book:book-comp16:morph-voided-mid:creative-008",
+        "score": 3.35,
+        "round": "vlm-book-comp16",
+        "shape_id": "d1c74669c9a89e5623d8",
+        "certificate_id": "627dd1c8fc15dde56644"
+      },
+      "after_identity": {
+        "label": "O19",
+        "name": "book:book-comp17:morph-voided-low:creative-006",
+        "score": 3.05,
+        "round": "vlm-book-comp17",
+        "shape_id": "662be7e0049c5a68bca2",
+        "certificate_id": "d69465b4889b128d9903",
+        "presentation_group": "form-19",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                27.104869495989,
+                16.654999786035,
+                0.0,
+                63.258449141368,
+                48.218091811745,
+                12.0
+              ],
+              "translation_xyz": [
+                -27.104869495989,
+                -16.654999786035,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.027659778362439855,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8730281298644313,
+                0.3319173403492783
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "78020db4dcb5ab008432",
+            "bucket_signature": [
+              1.0,
+              0.87302813,
+              0.33191734,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.1114148624804568,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1029078947368421,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O19.png"
+    },
+    {
+      "file": "O2.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O2",
+        "name": "sangok_c04_civic_court",
+        "score": 4.27,
+        "round": "vlm-comp16",
+        "shape_id": "1383191c9cfbbec4c6b1",
+        "certificate_id": "352cb7e5b0e08c72b562"
+      },
+      "after_identity": {
+        "label": "O2",
+        "name": "kr_three_ranges_one_tall_vault~held_ground",
+        "score": 3.87,
+        "round": "vlm-comp17",
+        "shape_id": "004258622e3e59e71e4c",
+        "certificate_id": "f857f87f41d832bf5e6c",
+        "presentation_group": "form-2",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                23.56897415397084,
+                15.012134483355991,
+                0.0,
+                65.83833474680293,
+                49.01239463133243,
+                11.333
+              ],
+              "translation_xyz": [
+                -23.56897415397084,
+                -15.012134483355991,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.023657798130250804,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8043712909568379,
+                0.26811382621013236
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "59dc2434e2b00301c1d2",
+            "bucket_signature": [
+              1.0,
+              0.80437129,
+              0.26811383,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.10738531978259326,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.10226315789473685,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O2.png"
+    },
+    {
+      "file": "O3.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O3",
+        "name": "book:book-develop-comp15:exact-authored-development:creative-002",
+        "score": 4.23,
+        "round": "vlm-book-comp16",
+        "shape_id": "0238ab7205e6a2d7cddf",
+        "certificate_id": "859d73558cf73f629141"
+      },
+      "after_identity": {
+        "label": "O3",
+        "name": "comp17_curved_court_perimeter~full_ground^cross_open",
+        "score": 3.83,
+        "round": "vlm-comp17",
+        "shape_id": "6431046bdccf56d2f932",
+        "certificate_id": "93488d05b4c4a66ca8e7",
+        "presentation_group": "form-3",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                27.0152898780027,
+                24.048327241579,
+                0.0,
+                61.582511365027,
+                53.449927327848705,
+                19.9997137112413
+              ],
+              "translation_xyz": [
+                -27.0152898780027,
+                -24.048327241579,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02892914029481299,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0000000000000002,
+                0.850563013787682,
+                0.5785745238085945
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "e9079992062bfe3c9227",
+            "bucket_signature": [
+              1.0,
+              0.85056301,
+              0.57857452,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.2435773913074819,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.16298684210526315,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O3.png"
+    },
+    {
+      "file": "O4.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O4",
+        "name": "kr_three_ranges_one_tall_vault~held_ground",
+        "score": 4.17,
+        "round": "vlm-comp16",
+        "shape_id": "004258622e3e59e71e4c",
+        "certificate_id": "f857f87f41d832bf5e6c"
+      },
+      "after_identity": {
+        "label": "O4",
+        "name": "comp17_folded_edge_and_room~full_ground^centred",
+        "score": 3.82,
+        "round": "vlm-comp17",
+        "shape_id": "bf8b84dac778b91eb9d7",
+        "certificate_id": "b1cbc6739e70938fffb6",
+        "presentation_group": "form-4",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                23.254207088209316,
+                11.259154773260478,
+                0.0,
+                66.900655976934,
+                52.95586900862497,
+                15.436
+              ],
+              "translation_xyz": [
+                -23.254207088209316,
+                -11.259154773260478,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02291137138211335,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.9553289052602884,
+                0.3536599286543017
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "eb628deb923db0e3da0f",
+            "bucket_signature": [
+              1.0,
+              0.95532891,
+              0.35365993,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.20588093662072235,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.09966812865497077,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O4.png"
+    },
+    {
+      "file": "O5.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O5",
+        "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+        "score": 4.13,
+        "round": "vlm-book-comp16",
+        "shape_id": "536350c6419e5917d6a7",
+        "certificate_id": "61058cb880ca3a41fe6b"
+      },
+      "after_identity": {
+        "label": "O5",
+        "name": "sweep_0231_stack_butterfly_mansard",
+        "score": 3.68,
+        "round": "vlm-comp17",
+        "shape_id": "1d7ceca98bc88940856d",
+        "certificate_id": "962976571ba46e0ade8d",
+        "presentation_group": "form-5",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                19.475204164803916,
+                12.514430410644628,
+                0.0,
+                69.16106312861785,
+                52.57215625215216,
+                10.2
+              ],
+              "translation_xyz": [
+                -19.475204164803916,
+                -12.514430410644628,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.020126450882700788,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8062198516217954,
+                0.20528979900354802
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "764319e62b1c8f731991",
+            "bucket_signature": [
+              1.0,
+              0.80621985,
+              0.2052898,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.0772233288515356,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1718406432748538,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O5.png"
+    },
+    {
+      "file": "O6.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O6",
+        "name": "book:book-comp11:morph-compact-mid:creative-012",
+        "score": 4.12,
+        "round": "vlm-book-comp16",
+        "shape_id": "dacbb205cef6ed7a1d3e",
+        "certificate_id": "4589e41b0f45a7cf59bf"
+      },
+      "after_identity": {
+        "label": "O6",
+        "name": "book:book-comp17:morph-compact-low:creative-003",
+        "score": 3.63,
+        "round": "vlm-book-comp17",
+        "shape_id": "9aea6effc77d8ff3bf0e",
+        "certificate_id": "2192d0c6fca7ecbc4d08",
+        "presentation_group": "form-6",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                25.168805971602,
+                12.812584808197002,
+                0.0,
+                61.220230499187,
+                54.885862961386,
+                12.0
+              ],
+              "translation_xyz": [
+                -25.168805971602,
+                -12.812584808197002,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.023768055257282195,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.8568722502753789,
+                0.9999999999999999,
+                0.28521666308738636
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "115a9ac2e9515e8ae972",
+            "bucket_signature": [
+              0.85687225,
+              1.0,
+              0.28521666,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.08686080835577169,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.11778801169590643,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O6.png"
+    },
+    {
+      "file": "O7.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O7",
+        "name": "book:book-develop-comp12:exact-authored-development:creative-002",
+        "score": 3.92,
+        "round": "vlm-book-comp16",
+        "shape_id": "f413c82b42c717e26a69",
+        "certificate_id": "823870db6d402401af54"
+      },
+      "after_identity": {
+        "label": "O7",
+        "name": "book:book-develop-comp12:exact-authored-development:creative-002",
+        "score": 3.62,
+        "round": "vlm-book-comp17",
+        "shape_id": "f413c82b42c717e26a69",
+        "certificate_id": "823870db6d402401af54",
+        "presentation_group": "form-7",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                25.856994408307,
+                18.651807284657,
+                0.0,
+                64.335137272074,
+                45.545093365146,
+                14.4
+              ],
+              "translation_xyz": [
+                -25.856994408307,
+                -18.651807284657,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.025988780267814114,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.6989237026252925,
+                0.3742384358565233
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "b8e4a476cb6d1df6878d",
+            "bucket_signature": [
+              1.0,
+              0.6989237,
+              0.37423844,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.07959856571115609,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.00038304093567251464,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O7.png"
+    },
+    {
+      "file": "O8.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O8",
+        "name": "comp16_waisted_court~full_ground^to_open",
+        "score": 3.9,
+        "round": "vlm-comp16",
+        "shape_id": "5c06a4302496616680bc",
+        "certificate_id": "149680eaeb5264600aca"
+      },
+      "after_identity": {
+        "label": "O8",
+        "name": "comp17_offset_strata",
+        "score": 3.57,
+        "round": "vlm-comp17",
+        "shape_id": "ee92e3449bec217a23b1",
+        "certificate_id": "89cac31edc55ffcc8b36",
+        "presentation_group": "form-8",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "shared_source_volume_surface_mesh_union",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                19.28176417111173,
+                11.905732371126076,
+                0.0,
+                69.18179659438958,
+                52.11028471787572,
+                15.2
+              ],
+              "translation_xyz": [
+                -19.28176417111173,
+                -11.905732371126076,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02004006713898467,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.8057019283216864,
+                0.30460902051256694
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "73bd0020e3d2b3083292",
+            "bucket_signature": [
+              1.0,
+              0.80570193,
+              0.30460902,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.1431610760511979,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.1332938596491228,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O8.png"
+    },
+    {
+      "file": "O9.png",
+      "baseline_exists": true,
+      "before_identity": {
+        "label": "O9",
+        "name": "comp16_inclined_canyon",
+        "score": 3.9,
+        "round": "vlm-comp16",
+        "shape_id": "d37441c57f729d0e9b40",
+        "certificate_id": "350291fa9945ad82ac9c"
+      },
+      "after_identity": {
+        "label": "O9",
+        "name": "book:book-develop-comp15:exact-authored-development:creative-002",
+        "score": 3.57,
+        "round": "vlm-book-comp17",
+        "shape_id": "0238ab7205e6a2d7cddf",
+        "certificate_id": "859d73558cf73f629141",
+        "presentation_group": "form-9",
+        "presentation_comparison": {
+          "duplicate_of": null,
+          "status": "verified",
+          "proof": {
+            "authority": "authoritative_book_physical_triangles",
+            "closed_kernel_solid": true,
+            "normalization": {
+              "policy": "translation_uniform_xyz",
+              "original_bounds": [
+                26.520850643726,
+                15.853143599835,
+                0.0,
+                63.394185622789,
+                49.12708124553,
+                14.4
+              ],
+              "translation_xyz": [
+                -26.520850643726,
+                -15.853143599835,
+                -0.0
+              ],
+              "uniform_xyz_scale": 0.02711986861421156,
+              "normalized_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.9023848172287161,
+                0.39052610804464644
+              ],
+              "normalized_ground_z": 0.0,
+              "ground_relation_preserved": true,
+              "rotation_or_axis_stretch": false
+            },
+            "bucket_key": "d4944fbaff9099433f5d",
+            "bucket_signature": [
+              1.0,
+              0.90238482,
+              0.39052611,
+              0.0
+            ],
+            "bucket_precision": 8,
+            "normalized_volume": 0.08687611759508226,
+            "sampled_geometry_not_analytic_error_certificate": true,
+            "comparisons": [],
+            "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+          }
+        }
+      },
+      "same_dimensions": true,
+      "identical_pixels": false,
+      "changed_pixel_fraction": 0.16091374269005848,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\O9.png"
+    },
+    {
+      "file": "sheet_C.png",
+      "baseline_exists": true,
+      "before_identity": null,
+      "after_identity": null,
+      "same_dimensions": true,
+      "identical_pixels": true,
+      "changed_pixel_fraction": 0.0,
+      "difference_image": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff\\sheet_C.png"
+    },
+    {
+      "file": "sheet_O.png",
+      "baseline_exists": true,
+      "before_identity": null,
+      "after_identity": null,
+      "same_dimensions": false
+    }
+  ],
+  "interpretation": "Pixel change evidence only; a changed selection is not a same-geometry quality comparison."
+}

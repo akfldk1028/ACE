@@ -1,0 +1,114 @@
+TILE t01
+CONCEPT 2 | Rotated plates suggest a pinwheel, but the dominant top block ignores that logic - two unrelated systems, no hierarchy.
+FEASIBILITY 3 | Plates cantilever past one another and the tower lands across their joint; transfers implied but nothing shown resolving them.
+SITE 2 | A small footprint adrift near the centre; 18% ground and 42% area on a parcel permitting far more.
+EDITABILITY 2 | Misaligned rotated plates plus a tower make stacking, coring and facade continuity awkward.
+WEIGHTED 2.25
+
+TILE t02
+CONCEPT 3 | Two parallel bars each stepping down to a low shoulder - a clear rule, but repetitive and short on hierarchy.
+FEASIBILITY 5 | Entirely conventional bars on ground; the section reads as two simple L-profiles.
+SITE 3 | Bars follow the long axis of the parcel and the shoulders drop toward the open side, yet only two of five storeys are used.
+EDITABILITY 4 | Bar depth suits floors and cores; the stepped shoulder survives any plan revision.
+WEIGHTED 3.70
+
+TILE t03
+CONCEPT 4 | Courtyard block whose two wings are differentiated by opposed roof curvature, dished against domed - articulation and a real void in one move.
+FEASIBILITY 4 | Curved shells over rectangular floors are buildable; the thin bridge across the court is the one unresolved member.
+SITE 3 | The block holds two edges and leaves a forecourt, but 28% ground and 66% area still under-occupy the envelope.
+EDITABILITY 4 | Orthogonal plates below the roof, with the court giving daylight and a circulation logic to develop.
+WEIGHTED 3.80
+
+TILE t04
+CONCEPT 3 | A bent bar under a single scooped roof; one legible gesture, but no void, no contrast, no secondary order.
+FEASIBILITY 4 | Continuous volume bearing to ground throughout; only the roof warp is non-trivial.
+SITE 3 | The chevron picks up the parcel diagonal but leaves residual space on both flanks.
+EDITABILITY 3 | The sag runs across the whole plan, so the top floor is compromised everywhere rather than in one place.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 4 | A square perimeter room around a court, its roof warped so corners lift and midspans dip - one disciplined idea legible in plan, section and silhouette.
+FEASIBILITY 5 | Ring plan bearing continuously on ground; the roof warp is the only special condition and it is shallow.
+SITE 3 | Squarest fit and the best area yield in the set at 70%, but still a large share of the permitted volume unused.
+EDITABILITY 5 | The most developable type here - double-loaded ring, corner cores, court facade and outer facade both available.
+WEIGHTED 4.25
+
+TILE t06
+CONCEPT 3 | A vaulted hall cut through at grade; the sectional move is clear, though the cut sits off-axis and never becomes a figure.
+FEASIBILITY 4 | The vault carries over the ground-level slot at modest span; a transfer is implied but proportionate.
+SITE 3 | The cut faces the open side and gives the only through-route in the set; occupancy remains low at 23%.
+EDITABILITY 3 | The vault fixes the top level and the split ground floor forces either two cores or a link.
+WEIGHTED 3.25
+
+TILE t07
+CONCEPT 2 | A cross plan under one tilted plane; arms are undifferentiated and the crease at the crossing reads as geometry rather than architecture.
+FEASIBILITY 4 | Simple stacked plates under a sloped roof; nothing structurally demanding.
+SITE 2 | The cross ignores the angled parcel edges and leaves four residual yards.
+EDITABILITY 3 | Floors below are easy, but the ramped roof removes height where the plan most wants it.
+WEIGHTED 2.70
+
+TILE t08
+CONCEPT 2 | Curved roof, bitten corner and a small shaft that never add up; a weaker relative of the courtyard schemes, the void too small to organise anything.
+FEASIBILITY 5 | Compact block, gentle roof curve, no separated pieces or spans.
+SITE 3 | Sits square to the parcel at 62% area, but the notched corner responds to nothing shown.
+EDITABILITY 4 | Regular plates and a shaft that can grow into a light court without losing the block.
+WEIGHTED 3.35
+
+TILE t09
+CONCEPT 1 | An extruded polygon with a nicked edge - flat roof, rectangular section, no void, no hierarchy, nothing declared.
+FEASIBILITY 5 | Trivially buildable.
+SITE 2 | 19% ground, and no edge, frontage or orientation response visible.
+EDITABILITY 3 | Easy to fill with floors, but there is no architectural idea for that development to preserve.
+WEIGHTED 2.60
+
+TILE t10
+CONCEPT 1 | A plain prism with two shallow notches; the section is a rectangle and the massing states nothing.
+FEASIBILITY 5 | Wholly conventional.
+SITE 3 | Best yield among the flat boxes at 70% area, sitting square to the parcel, but no other site argument.
+EDITABILITY 3 | Any plan fits; nothing distinctive is at risk, and nothing is gained.
+WEIGHTED 2.80
+
+TILE t11
+CONCEPT 3 | A slot court cut into a block with flanks at differing heights - genuine sectional differentiation, undercut by an unexplained pitched object in the court.
+FEASIBILITY 4 | All masses bear to ground; the stray element is small enough not to govern.
+SITE 3 | The slot opens toward the wide side of the parcel; occupancy stays at 25%.
+EDITABILITY 3 | The narrow slot constrains plan depth on both flanks and the loose element resists development.
+WEIGHTED 3.25
+
+TILE t12
+CONCEPT 3 | Two blades framing a slot, joined by a low link; the pairing is clear but thin, and the link reads as a token rather than an element.
+FEASIBILITY 3 | Slabs are narrow and tall against a single-storey connector; buildable, but the proportion is nearer a wall than a floor plate.
+SITE 2 | Lowest yield in the set at 18% ground and 41% area, set diagonally with the entire foreground vacant.
+EDITABILITY 2 | Bar depth leaves little room for core, circulation and rooms once floors are drawn.
+WEIGHTED 2.60
+
+TILE t13
+CONCEPT 4 | A volume bridging two blocks over an open ground court - the most charged sectional idea in the set, though the small roof box stays loose.
+FEASIBILITY 3 | The span is the whole proposition and sits high with nothing shown carrying midspan; a transfer or truss is assumed, not evidenced.
+SITE 3 | The gate reads across the parcel, but half the site is left empty at 19% ground.
+EDITABILITY 3 | Each block cores easily; the bridge floors are constrained and the roof box is undeveloped.
+WEIGHTED 3.35
+
+TILE t14
+CONCEPT 3 | The same paired blocks, but the link sits low, so the void becomes an undercroft rather than a gate - less charged, better resolved.
+FEASIBILITY 4 | Connection at the second level with short overhangs; far less to transfer than its high-bridge relative.
+SITE 3 | Reads as one figure with a court beneath, still at only 20% ground and 50% area.
+EDITABILITY 4 | The continuous upper plate lets one circulation spine serve both blocks while the undercroft survives.
+WEIGHTED 3.45
+
+TILE t15
+CONCEPT 3 | Terraces cascading up to a rear high point around a U court - real hierarchy, though several ledges read as leftover rather than made.
+FEASIBILITY 4 | Everything stacks and bears; overhangs are short and local.
+SITE 3 | The U opens to the wide side of the parcel, but 23% ground leaves the perimeter unengaged.
+EDITABILITY 3 | Many small plates fragment the floors and multiply cores; the terraces are fragile under revision.
+WEIGHTED 3.25
+
+TILE t16
+CONCEPT 2 | The cross-and-ramp again at greater height; the ramped planes meet in an arbitrary valley and the arms remain equal and inert.
+FEASIBILITY 4 | Stacked plates under a sloped roof, nothing demanding.
+SITE 2 | The cross fights the angled parcel edges and leaves four residual yards at 20% ground.
+EDITABILITY 3 | Simple floors below, but the slope removes height exactly where the plan converges.
+WEIGHTED 2.70
+
+RANKING: t05, t03, t02, t14, t13, t08, t11, t15, t06, t04, t10, t16, t07, t12, t09, t01
+VERDICT: Only three schemes carry an idea that survives both plan and section - t05's warped ring around a court, t03's courtyard with opposed roof curvatures, and the bridged pair t13/t14 - and of those t05 is the only one that is at once distinctive, buildable and developable, so it and t03 should advance, with t14 as a third if a sectional void is wanted. The middle of the field (t02, t04, t06, t11, t15) is competent but each rests on a single gesture, while t09, t10, t01, t07 and t16 are extruded polygons or applied roof tilts that state nothing an architect could develop. The shared failure of the set is scale: every entry occupies 18-31% of the permitted ground and 41-70% of the permitted area at two to four of five storeys, so no scheme has yet been pushed to the size at which its idea would actually be tested.

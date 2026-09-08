@@ -1,0 +1,359 @@
+{
+  "schema": 2,
+  "config": {
+    "round": "comp17",
+    "count": 6,
+    "book_count": 8,
+    "develop_count": 4,
+    "book_payload": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json",
+    "pnu": "4115011300106840001",
+    "track": "overseas",
+    "building_type": "업무시설",
+    "new_era": "authored-composition-and-surface-preservation",
+    "baseline": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260908\\comp16-before-composition"
+  },
+  "actions": {
+    "new-era": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\era.json": "626c2a5a6019e6cb20e91507f9e975339bd84b2516eac8967a31e58651cbd77e"
+      }
+    },
+    "brief": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\brief.md": "bae88265d1824fd19f8ffa96d84e56f5c8e5bc1832b0a2162ff96538bd6e5f84"
+      }
+    },
+    "validate": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp17.json": "e75bf88dd3d3cdb4c672644d45f593da09ff606c1c77ad9a97757736aad52771"
+      }
+    },
+    "run": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\comp17\\massv2-summary.json": "f11db8119f9aada22be979e4ed03a07ccd8498975617f45711536b66e8ce433b"
+      }
+    },
+    "book-payload": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json": "f9541b91fd80b9be0df8cdaf2116d9c949c1f263f8993e20def57f915091629f"
+      }
+    },
+    "generate-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17\\maas-creative-portfolio.json": "9ba63978e64f7a7cca556b23c2daa04a7a37d5087eb59d6496b7cf74ff00b928",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json": "f9541b91fd80b9be0df8cdaf2116d9c949c1f263f8993e20def57f915091629f"
+      }
+    },
+    "carry-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17\\maas-book-exact-geometry-artifacts.json": "f8e5a2ed48de85d4b0f539ad26e1916323041c573715b5b978dde047e923efea"
+      }
+    },
+    "import-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\PROMPT.txt": "ddb8cb32835d7729c51a18299d2ed21d75ad4c64be2468cda0c25f072181ba04",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t01.png": "1ba10f061c3a9634ee62b714704e7ffe0c32f12218e062a81abeb814c4275580",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t02.png": "bfe3f7336e04a5a27d0dc2bea36a2ed3c1d2ddcc9dea1d23e284a5b37d0a1641",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t03.png": "01da53f21bab1e549eeb65dc51450893c5ad122fe24cfa43b7d93d2116b97021",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t04.png": "a222979e6ad21f41a7dbee3c284680617570de06efc72d8c9e332243cdefbba9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t05.png": "07124c6b171eb6ffc3c1ad2dc7d6a233307e7c059cd6ec421f12409acb9a7a19",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t06.png": "264147b05b683d47e71ba22edb00ef5da4cacbabe1dfa5e730845530b5a1a8c3",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t07.png": "669611228bba50833ef539a032b02df94615aeb534b09476c0f3cc104035fe64",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t08.png": "4efc7ba598bf580d8972f1ef8a55b0863062cde1d9bc4c757b40bec79be28b09",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t09.png": "b3c50a4b820a2593c9c4507e8c2d00e2e890261fa7fa02200be65dee5ac5df60",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t10.png": "a64fa54fdf3314cbc2e1498df4fbab9107ce4c6162ef3adc1db946d643c80f92",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t11.png": "d768005dbd0e88d69aa0d156a4af809d8815d0b4006e5b6b43b4fb665a696124",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t12.png": "fbdc3587155d55ab9aad4532a110a6d107603dbab81db6de129592358833aa24",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t13.png": "6545ff2d0bc6016d354062b4306aa05e14acdae2655573c6ab23c54fefe7c639",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t14.png": "e9ab2e8445d29d152ac57a04d494c70491cf6eea446034e5947df4ede7bfbbf0",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t15.png": "51d0ab0794ae807a6ca067636d2d5477893e6a62536f65993787487ad332a322",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t16.png": "a8cd7937978a7949611701b1561262919732a9bedc9d5389eecc0c7955610c46",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\key.json": "07ef7d35457e3485001de391999aada397cbbe8b6773bf479db48814b10bf921",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\books\\book-comp17.json": "5cab01979999e5b07a59898aeb1f2215105e41d002ad2477a91a726ceeefd712"
+      }
+    },
+    "stage": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\PROMPT.txt": "ddb8cb32835d7729c51a18299d2ed21d75ad4c64be2468cda0c25f072181ba04",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t01.png": "1735a2a46a1237e6a97b87f5df9c2fa8720e3589533e95bbc65340358a39106a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t02.png": "636bb3930097fcf1125c65c1e19ca2c52438e3fd3202a6cab0def72687362aa2",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t03.png": "d2513aa81261dcfe5eb024e586a158fcf1550ab85cfdb110701dbc54e9a40c1a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t04.png": "ecd1dcc2d700ee28ce99ea737f2b26df2eca8e294ff30c333ac838d29ae9ad91",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t05.png": "ac275a55609f90b72c53b23b07c9702a5eb52e85c19d4f2f27fa54a825560590",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t06.png": "7f32b74a923cd940622494edb097d170b10575c2a201f3201f2190fc3874b814",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t07.png": "e42d1d7d52ef7711908861f3d20ba6932c0c0371decc5ef02f46d5d64cda756f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t08.png": "d0d9e42fc5f9fca210c1b1b0268909603a0afdeedfc94bd8066caf5b42a1313c",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t09.png": "cea1e10344635657ba514b6dd4d215561cbbf5f8bf2a09d30bcc25b3d2d185ae",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t10.png": "c2f2aac0162d473051d2f11d047ec2d4e978ee1203399971494f1c9402ec203b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t11.png": "92bfe3700d3038a205713fac0effd547db51588d55cfec7553bab8f7adec70dd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t12.png": "90a6d76c4d030e74c4c31eb6d1361036232e27386accdc89d67bb07d84a74136",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t13.png": "e8df5ee180f4619d0b885a31eadd68796d87f73166ec5a666f48ac40e34d1495",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t14.png": "4edcbd92d2963fd3871f9caed3b62ab21e10cde7dc9b96f3ea1b12d45babee31",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t15.png": "a70abcaed76bce74601ccf1b8f60d0f1e41c33c30d36dad5f18d50aca28258a7",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\key.json": "5f85aa87c020a52dbb3b9637f1f8dacd76350b6350c7ebe6a9de8ccdb7d22357",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\stage-selection.json": "03ea5d9abbca4b3eb45827815817a7184a5cf4e18cb4a0aacb1783388683b0ba"
+      }
+    },
+    "freeze-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\PROMPT.txt": "ddb8cb32835d7729c51a18299d2ed21d75ad4c64be2468cda0c25f072181ba04",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t01.png": "1735a2a46a1237e6a97b87f5df9c2fa8720e3589533e95bbc65340358a39106a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t02.png": "636bb3930097fcf1125c65c1e19ca2c52438e3fd3202a6cab0def72687362aa2",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t03.png": "d2513aa81261dcfe5eb024e586a158fcf1550ab85cfdb110701dbc54e9a40c1a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t04.png": "ecd1dcc2d700ee28ce99ea737f2b26df2eca8e294ff30c333ac838d29ae9ad91",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t05.png": "ac275a55609f90b72c53b23b07c9702a5eb52e85c19d4f2f27fa54a825560590",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t06.png": "7f32b74a923cd940622494edb097d170b10575c2a201f3201f2190fc3874b814",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t07.png": "e42d1d7d52ef7711908861f3d20ba6932c0c0371decc5ef02f46d5d64cda756f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t08.png": "d0d9e42fc5f9fca210c1b1b0268909603a0afdeedfc94bd8066caf5b42a1313c",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t09.png": "cea1e10344635657ba514b6dd4d215561cbbf5f8bf2a09d30bcc25b3d2d185ae",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t10.png": "c2f2aac0162d473051d2f11d047ec2d4e978ee1203399971494f1c9402ec203b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t11.png": "92bfe3700d3038a205713fac0effd547db51588d55cfec7553bab8f7adec70dd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t12.png": "90a6d76c4d030e74c4c31eb6d1361036232e27386accdc89d67bb07d84a74136",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t13.png": "e8df5ee180f4619d0b885a31eadd68796d87f73166ec5a666f48ac40e34d1495",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t14.png": "4edcbd92d2963fd3871f9caed3b62ab21e10cde7dc9b96f3ea1b12d45babee31",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\t15.png": "a70abcaed76bce74601ccf1b8f60d0f1e41c33c30d36dad5f18d50aca28258a7",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\key.json": "5f85aa87c020a52dbb3b9637f1f8dacd76350b6350c7ebe6a9de8ccdb7d22357",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\stage-selection.json": "03ea5d9abbca4b3eb45827815817a7184a5cf4e18cb4a0aacb1783388683b0ba"
+      }
+    },
+    "jury-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r1.txt": "ef1facdbce6208bd0e0a8d4edb9950a19f58c5f6945731eef5dcfc0a89205d52",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r2.txt": "35fe3c36808817b51de4c718f0f1c08b0b2a0ea595dafc80e15ac5b538fa7868",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r3.txt": "dd3b43eafe0ba08936628e4093eb932a3dcc43e37a5c4a1c4214b056e5724321"
+      }
+    },
+    "freeze-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\PROMPT.txt": "ddb8cb32835d7729c51a18299d2ed21d75ad4c64be2468cda0c25f072181ba04",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t01.png": "1ba10f061c3a9634ee62b714704e7ffe0c32f12218e062a81abeb814c4275580",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t02.png": "bfe3f7336e04a5a27d0dc2bea36a2ed3c1d2ddcc9dea1d23e284a5b37d0a1641",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t03.png": "01da53f21bab1e549eeb65dc51450893c5ad122fe24cfa43b7d93d2116b97021",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t04.png": "a222979e6ad21f41a7dbee3c284680617570de06efc72d8c9e332243cdefbba9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t05.png": "07124c6b171eb6ffc3c1ad2dc7d6a233307e7c059cd6ec421f12409acb9a7a19",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t06.png": "264147b05b683d47e71ba22edb00ef5da4cacbabe1dfa5e730845530b5a1a8c3",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t07.png": "669611228bba50833ef539a032b02df94615aeb534b09476c0f3cc104035fe64",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t08.png": "4efc7ba598bf580d8972f1ef8a55b0863062cde1d9bc4c757b40bec79be28b09",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t09.png": "b3c50a4b820a2593c9c4507e8c2d00e2e890261fa7fa02200be65dee5ac5df60",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t10.png": "a64fa54fdf3314cbc2e1498df4fbab9107ce4c6162ef3adc1db946d643c80f92",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t11.png": "d768005dbd0e88d69aa0d156a4af809d8815d0b4006e5b6b43b4fb665a696124",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t12.png": "fbdc3587155d55ab9aad4532a110a6d107603dbab81db6de129592358833aa24",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t13.png": "6545ff2d0bc6016d354062b4306aa05e14acdae2655573c6ab23c54fefe7c639",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t14.png": "e9ab2e8445d29d152ac57a04d494c70491cf6eea446034e5947df4ede7bfbbf0",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t15.png": "51d0ab0794ae807a6ca067636d2d5477893e6a62536f65993787487ad332a322",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\t16.png": "a8cd7937978a7949611701b1561262919732a9bedc9d5389eecc0c7955610c46",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\key.json": "07ef7d35457e3485001de391999aada397cbbe8b6773bf479db48814b10bf921"
+      }
+    },
+    "jury-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r1.txt": "733b14a641cbf009d7b8a5c295c988bdda6a0a83284d44749eaeb4cfadc616c9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r2.txt": "5294935d39770d8993bb8db2ed13b9b2c0d5f5e2e52656acdd2849b6810be8bf",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r3.txt": "cb5a3d8b8c3e8d39a89c3105dbc1a5a03f324572e1dc727bf112a9974b964ba8"
+      }
+    },
+    "score-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\vlm-shortlist.json": "ee67017d4cca969a981f6c2f4d294b39f0fd2bdd0371448d077c92017a2f9807"
+      }
+    },
+    "score-book-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\vlm-shortlist.json": "a2627ce0543478e31b092b6a18ab87bc1788e066fc3ef25dad99ebc3f760c93a"
+      }
+    },
+    "curate": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\ledger.json": "7249b12bed4173cf379fa000c70997574ba3934a988c815c04424e4f1aaf380d"
+      }
+    },
+    "bake": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board-key.json": "ceb68b7338e930906c1eed580a822cf965ef09d15c554a08431e4d63047d2efe"
+      }
+    },
+    "board-html": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\board-key.json": "ceb68b7338e930906c1eed580a822cf965ef09d15c554a08431e4d63047d2efe",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\board.html": "15edc0fb0b8f036fcb03573918d65d9dd53875bd5fce3f083fe597941b3e1e26",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp11_morph-compact-mid_creative-012.png": "8529802ba2a00e33be9a9d78a8bcec5fe38faeaeefb048b2549b339a47537d30",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-compact-low_creative-002.png": "d68ea23f24f80f2a74977e749add75a6bde3af0941d2c2186c69b07b08ab9683",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-compact-low_creative-003.png": "628e29221a000cc851676259040b33cb77cacfe95588ee779ff8193bdd6c21d5",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-oblique-low_creative-004.png": "03e437a0ade155f699962408a504b5946159f1837483c8f566fa72f171b4e4b6",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-voided-low_creative-005.png": "b1cfd2a95d2b57cb1928c33529dc1db8936e47bd4715c09b7d51295e6afe0dbd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-voided-low_creative-006.png": "4905dcb7de14a7870a33e6bc518a1c1dc847beacf5b8bd922a78b82fd02a315d",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-voided-low_creative-008.png": "f73b0f3dacb1a914ed360b821e0017f1227d825add1039050b8c4cd0dfe1ef0e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-comp17_morph-voided-low_creative-016.png": "266f4b08fe58ea75de7b28c655310ecc6a7f0167890c7987436c9176c1862afb",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-develop-comp12_exact-authored-development_creative-002.png": "a5a04462a8e7474e3d86c41e78cf60f8958e603579b606d73c46e7026ed1cdbf",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\book_book-develop-comp15_exact-authored-development_creative-002.png": "7c85b1a30a5ccca9006517cfdc80e6b9bcb82de9e62b19f2d5231534ddb72864",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\comp17_curved_court_perimeter_full_ground_cross_open.png": "81333dbb0113406fedd69410cda0ca3fafba785d52d94a238c8b259bab499b7e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\comp17_folded_edge_and_room_full_ground_centred.png": "0cea6cc17ac926dd003dc6ffb8a4a3d1e7c3004295744e4da90c49c62fd10a06",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\comp17_offset_strata.png": "7a61cf563774bd767e4a5d88844946fbb275890aee86b2a67f4a06b5c7065ac6",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\comp17_paired_curved_rooms_full_ground_to_open.png": "076cf0858d7a274f3758fca14f6cc70152230ce0f7b0a41f2a5661db7f49850a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\drum_that_steps_once_centred.png": "bc7fd35329d975d25f3372868094d2a18771bf02d84a5c2a8bd52d3aefc61ba0",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\kr_three_ranges_one_tall_vault_held_ground.png": "f000bc9444c8d0647f84f416bcbf188b24ffe4cb667308636a0db1a727752b9b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\lifted_round_disc_centred.png": "4f79df5f4686fb008654fc07dff3458ff970e4bd7c36be561f3c02c512b39cd4",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\one_court_block_centred.png": "cfc051fe2c028ca92dca6fca8c9aaa6736e0d00a0bb6b7871304bc52adfe3a7f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\one_gable_bar_centred.png": "3ff6cbaa5f032c879d0509ff26f2a2d7b07e5cf0395c320e7d9add544be1299b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\one_wide_slab_centred.png": "00c6719729d02d9918a8ffc6e3efef97ce2d69d3daa07ce4ccd802c7fe61b8cd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\sangok_c03_descending_civic_court.png": "1e54618af4fdb1ed5ceba1fcb6ba7c0a9c295169b80993620884d24367371d2c",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\sangok_c04_hall_daily_street_full_ground_centred.png": "b0c47ae523f3486420f21dd40e6f90f03e8e47a5a21912f684090412958d8e23",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\slipped_twin_gables_full_ground_off_open.png": "bc6333a5bed3205883b82c4b5994f03c1b338b58de85daff4265b8b345d6729a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\sweep_0231_stack_butterfly_mansard.png": "b11c62f140b2b9a43330bbd63347c7818275ab9451a1f6e0f0e324dec5c186b9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\twin_gable_bars_centred.png": "d047a68236f0b25d83e44b3894da1e1030b4f07687a0048455928ea396c73232",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\by-name\\two_drums_one_court_centred.png": "823121c4563499fe30d3965b887faaaeeab21b54a04a3c7417f77276d73de106",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C10.png": "d047a68236f0b25d83e44b3894da1e1030b4f07687a0048455928ea396c73232",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C11.png": "cfc051fe2c028ca92dca6fca8c9aaa6736e0d00a0bb6b7871304bc52adfe3a7f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C2.png": "00c6719729d02d9918a8ffc6e3efef97ce2d69d3daa07ce4ccd802c7fe61b8cd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C5.png": "823121c4563499fe30d3965b887faaaeeab21b54a04a3c7417f77276d73de106",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C7.png": "4f79df5f4686fb008654fc07dff3458ff970e4bd7c36be561f3c02c512b39cd4",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C8.png": "bc7fd35329d975d25f3372868094d2a18771bf02d84a5c2a8bd52d3aefc61ba0",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\C9.png": "3ff6cbaa5f032c879d0509ff26f2a2d7b07e5cf0395c320e7d9add544be1299b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\era.json": "626c2a5a6019e6cb20e91507f9e975339bd84b2516eac8967a31e58651cbd77e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\ledger.json": "7249b12bed4173cf379fa000c70997574ba3934a988c815c04424e4f1aaf380d",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O1.png": "b1cfd2a95d2b57cb1928c33529dc1db8936e47bd4715c09b7d51295e6afe0dbd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O10.png": "d68ea23f24f80f2a74977e749add75a6bde3af0941d2c2186c69b07b08ab9683",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O11.png": "1e54618af4fdb1ed5ceba1fcb6ba7c0a9c295169b80993620884d24367371d2c",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O12.png": "b0c47ae523f3486420f21dd40e6f90f03e8e47a5a21912f684090412958d8e23",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O13.png": "8529802ba2a00e33be9a9d78a8bcec5fe38faeaeefb048b2549b339a47537d30",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O14.png": "f73b0f3dacb1a914ed360b821e0017f1227d825add1039050b8c4cd0dfe1ef0e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O15.png": "266f4b08fe58ea75de7b28c655310ecc6a7f0167890c7987436c9176c1862afb",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O16.png": "bc6333a5bed3205883b82c4b5994f03c1b338b58de85daff4265b8b345d6729a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O17.png": "076cf0858d7a274f3758fca14f6cc70152230ce0f7b0a41f2a5661db7f49850a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O18.png": "03e437a0ade155f699962408a504b5946159f1837483c8f566fa72f171b4e4b6",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O19.png": "4905dcb7de14a7870a33e6bc518a1c1dc847beacf5b8bd922a78b82fd02a315d",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O2.png": "f000bc9444c8d0647f84f416bcbf188b24ffe4cb667308636a0db1a727752b9b",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O3.png": "81333dbb0113406fedd69410cda0ca3fafba785d52d94a238c8b259bab499b7e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O4.png": "0cea6cc17ac926dd003dc6ffb8a4a3d1e7c3004295744e4da90c49c62fd10a06",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O5.png": "b11c62f140b2b9a43330bbd63347c7818275ab9451a1f6e0f0e324dec5c186b9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O6.png": "628e29221a000cc851676259040b33cb77cacfe95588ee779ff8193bdd6c21d5",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O7.png": "a5a04462a8e7474e3d86c41e78cf60f8958e603579b606d73c46e7026ed1cdbf",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O8.png": "7a61cf563774bd767e4a5d88844946fbb275890aee86b2a67f4a06b5c7065ac6",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\O9.png": "7c85b1a30a5ccca9006517cfdc80e6b9bcb82de9e62b19f2d5231534ddb72864",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\render-key.json": "e059fd449fed5566fbb01b86544caab7c4ccb7594e52947b6cf5a1dc42d734a1",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\sheet_C.png": "8dea3cdaee844fa11fb7a06774d28047d5f344ac1920f0072fa8d81828e29827",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\sheet_O.png": "e3f8fc4787c1a4764cae8da4b62240d83d8594985c645e2d5a34ffec0728a5f9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\solid-presentation.json": "9ed7bb27f3c0d54d088fbfdb526377403382ba6be4b7951bbad98280acde0b6f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\unbakeable.json": "bcb9f85ec59cd26fc9e8e64a1b63cddccd8e8458658a8eafee874f7c65650ceb",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\verdict-ledger.md": "77bd566619c263e07948f9b5093585396ad84c16271c9fde2c05d4b2d5a1ad82"
+      }
+    },
+    "pixel-diff": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff.json": "c239d9b98fa3869a4eeb56da1cbfba83c58b5564a54f8d1217195c2437eb0f37"
+      }
+    },
+    "recommendation-context": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\recommendation-context.json": "7c27092575d5f7bc21302366212d7c0767552ca65a88d897651d1bd1e90b3e78"
+      }
+    },
+    "sheet": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932-drawings.json": "fdc484079a219cf9f480f64fdad2b52013fd1ca9da7a9815b682d8a8cb7a9c45",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932-drawings.png": "4e8b885c7bfa19f3b78a9d5e4b56e7051a4c9925590689b68b32aed73e836550",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932-mass.png": "fdad5caa6d08b004791fcd1348fcc48e5c77eb6dca349ffb22e40b4a80f18d0a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932-site-parking.json": "cd09de34469ff47deec177dcefff0aa36a3d9d1aa84eeb7e3b5eaeba15ebc1d1",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932-site-parking.png": "72442e4999285f256af145161fdf91c7a8faee7353f2281e8fe8b0e9d8fb55d1",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932.json": "1ec274fcce6ca528d7d3e3b67173265c0d6ba97411827619c2e1ee51e3f67fe9",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-138c325f8f83-6431046bdccf56d2f932.png": "38ac6e5b065390ad4af598095a7a49e5cc2cd847f92f9034f0f126a2af2ccebd",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306-drawings.json": "897e5d4bd6ba557e87664a54e903edcf8c8bbc7466d596dab7a279be5a097a49",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306-drawings.png": "f97a667e88669eb02711cd06da5977d1eae412197c0e49a73f0bdb187e412554",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306-mass.png": "586fb93e9a3d8c49ccc6fabd00c1254e61d71f70eec3c5ccfb157b7ced30739a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306-site-parking.json": "f915587c6dd758ab1fe8a8b2e0358a6fa9007b35ae0b23552c2938635f5f2991",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306-site-parking.png": "d86f5d468601035df3abf12d193962c8674c21795538871fd175a3b31752ee87",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306.json": "6c0f6f2b08829162cc4ad0de5615f541d61b27c2b6703d8c45cc6b7ae9dde181",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-6bc80cc493e0-d7982196be277965a306.png": "3f4dad7190274a78fcb08c975e0462a1df0e57b0d0495e8eb4613aaf741bcd6a",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c-drawings.json": "ec0144159a75eb1b183747d383ec8fbae0bcd1d1c181a20183114e31fa273d1f",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c-drawings.png": "33765a9c0e0b6f557ae1d1ac0c67b637f4c4fac8db00d8a5dc752d0fedf11cee",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c-mass.png": "bc3317d65c37664caee930b3b14fea8ad42d7da59bf5971757a8a8699b486095",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c-site-parking.json": "0cd2292dd977fd89b05f28246f415cf1c87799c74210ac7fbea7da75ad4a2508",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c-site-parking.png": "449c0abfdb00fe04f444ddd56d8332a976c5cd0abb251ca552a4c5a1f9fad3b0",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c.json": "91d8589fe19a0fd38417336ed75b4fb9b1784df6787997cf68d3366882e9347e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\parti-c9cf0e6556fc-004258622e3e59e71e4c.png": "81e31be41e40895a335fc2279d81547b38ba9b6396444a116b2bf679389dfaa6",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\study.html": "6732337813294fba67255f2866940fc5901c661bc86de549971f0b27bdc1753d",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\study.json": "7f48bfdb8402eacb700558b9d7134c6104f04e43a200b20b817d5813d3e872cc"
+      }
+    },
+    "development-candidates": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board-key.json": "ceb68b7338e930906c1eed580a822cf965ef09d15c554a08431e4d63047d2efe"
+      }
+    },
+    "development-parent": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\development-parent.json": "7a3a1495ad7e8d3ed3e4663c20432bbe582e4bbcff4ba8797cf21cec37486058",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\development-cohort.json": "ed29d754194dc987179504e0d11d09ca830655f74d8e88f88c554be806da6dea",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\development-choice.json": "87f74bc93deb0fa35da484f026721663fcef648ab2c18f5426cfe6e74d032877",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board-key.json": "ceb68b7338e930906c1eed580a822cf965ef09d15c554a08431e4d63047d2efe"
+      }
+    },
+    "development-pairs-authored": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\parti-develop-comp17.json": "a84a0350e73aae63cb0172ffc5e77c25dc8c2ec414960e9e90abac10aa9a03f1",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\mutants.json": "6eccc535ad1bb380be200cbc535008f645e75ffd8df0afb6cb96c4c3904212a3",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\p01.png": "cbe2e2d47a70f7d566701db9deb9017d095e61ff0ace34e693126bf44ac2df6a"
+      }
+    },
+    "pair-prompt": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\PROMPT.txt": "d372140ef92ee5bf01f7639b444f71fd9f60c9d4cd62dc944c0ead035c2f9150"
+      }
+    },
+    "freeze-develop-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\PROMPT.txt": "d372140ef92ee5bf01f7639b444f71fd9f60c9d4cd62dc944c0ead035c2f9150",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\p01.png": "cbe2e2d47a70f7d566701db9deb9017d095e61ff0ace34e693126bf44ac2df6a"
+      }
+    },
+    "jury-develop-comp17": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r1.txt": "5c5a246f2f50d3302d460b416e89624da7c142d75c16af0faef309dde4831e8e",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r2.txt": "a4f0198f5ec286b87a1800bc5b9b2a07641d3e5c93ae93be68b0428a5033b144",
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r3.txt": "3e49c8e92a8c28d58aa0ccc3e6e6b9d226cc81fe2672290bd2a81470cccda0e7"
+      }
+    },
+    "development-score": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\champion.json": "8754ea7b1e4574b3ef991932d0b3cf94c71384fbf7d493b07ff9cc03e769b889"
+      }
+    },
+    "feedback": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\feedback.json": "cacb67f596a0308bd914ba6c6e18f4e289e77e9a737ba7b6433f6206c36c8b32"
+      }
+    },
+    "complete": {
+      "outputs": {
+        "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\complete.json": "16efef5f39d29cb1b6c53366bb43f15b89255d0aa4cb1c443f360e6ef46de8c4"
+      }
+    }
+  },
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "status": "complete",
+  "attempts": {
+    "run": 1,
+    "generate-book-comp17": 2,
+    "import-book-comp17": 2,
+    "stage": 1,
+    "board-snapshot": 1,
+    "development-pairs-authored": 1
+  },
+  "last_failure": {
+    "step": 5,
+    "reason": "worker exited 4294967295: ['-X', 'utf8']; see D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\workers.log"
+  }
+}

@@ -1,0 +1,114 @@
+TILE t01
+CONCEPT 2 | Rotated stacked plates under a plain upper block; the rotation is an operation, not yet an idea, and the section is an inert stub.
+FEASIBILITY 3 | Offsets between rotated plates and the block above put edges out of line and imply transfers, though the overhangs read modest.
+SITE 2 | At 18% coverage and 42% FAR the object floats in the middle of a parcel it never addresses at any edge.
+EDITABILITY 2 | Rotated plates and the crossing upper block make a vertically continuous core hard to hold while keeping the rotation.
+WEIGHTED 2.25
+
+TILE t02
+CONCEPT 3 | Two parallel bars with a slot between and stepped low ends - legible and disciplined, but a default parti with little sectional event.
+FEASIBILITY 4 | Straightforward ground-bearing bars, ordinary spans, nothing exotic in the section.
+SITE 3 | Bars take one parcel axis and hold a public slot, but 31%/48% leaves the remaining half of the site unaccounted for.
+EDITABILITY 4 | Linear bars accept cores, corridors and repeated bays without touching the idea.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | A courtyard ring whose two wings are set against each other, one dished and one vaulted - the strongest solid-void plus roof argument in the set.
+FEASIBILITY 3 | The ring plan is sound; the deep dished wing eats top-floor headroom and asks for a non-repeating roof structure.
+SITE 4 | The C-figure sits on the parcel diagonal and opens its court to one side; 66% FAR is among the better-used tiles here.
+EDITABILITY 3 | Floors and cores develop easily in the ring, but the curved upper surface constrains the top plate.
+WEIGHTED 3.55
+
+TILE t04
+CONCEPT 3 | One continuous scooped roof carried over a dog-leg bar; the crease at the elbow is a real moment but the body below is plain extrusion.
+FEASIBILITY 4 | Single-directional curvature over a simple bent plan, all ground-borne.
+SITE 3 | The L follows the north-west edge and leaves a forecourt, though 25%/56% is a thin claim on the parcel.
+EDITABILITY 3 | Plan is easy; the valley cuts into the uppermost floor wherever it deepens.
+WEIGHTED 3.25
+
+TILE t05
+CONCEPT 3 | Perimeter block, full-height court, saddle-dished roof - clear and complete, if archetypal rather than distinctive.
+FEASIBILITY 4 | Ring plan on continuous bearing, one gentle roof curvature; nothing here is difficult.
+SITE 4 | Centred with even setback on the parcel diagonal, and at 70% FAR it uses the envelope better than most tiles here.
+EDITABILITY 4 | The court gives daylight to both faces; floors, cores and facades develop without disturbing the parti.
+WEIGHTED 3.65
+
+TILE t06
+CONCEPT 4 | A vaulted volume lifted over a ground slot: two moves, both readable in the split ground plan and the notched section.
+FEASIBILITY 3 | The upper plate spans the slot and needs a transfer at ground, but the span is short and the plate deep.
+SITE 3 | The slot offers a through-route, yet the volume otherwise sits mid-parcel at 23% coverage without addressing an edge.
+EDITABILITY 3 | The plate above is regular and easy; the vault limits the top level and the ground piers fix where the cores can land.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 3 | Cruciform plan under a single ramped roof plane; the fold reads, but the cross is a default figure and the slope is the only event.
+FEASIBILITY 4 | Simple extrusion with a tilted top, wholly ground-bearing.
+SITE 3 | Arms reach toward parcel edges without meeting any of them; 26%/58%.
+EDITABILITY 3 | Re-entrant corners and the low end of the slope leave floors that are hard to use.
+WEIGHTED 3.25
+
+TILE t08
+CONCEPT 3 | Vaulted block with a small lightwell and a corner notch - competent, but the well is too small to be a court and the notch reads arbitrary.
+FEASIBILITY 4 | Ordinary bearing plan, one roof curvature, no long spans.
+SITE 3 | The notch turns toward one corner of the parcel; 22%/62% is a moderate claim.
+EDITABILITY 4 | The plate is regular and the well fixes a natural core zone; floors develop freely.
+WEIGHTED 3.45
+
+TILE t09
+CONCEPT 1 | A single flat-roofed extrusion with one notch; the section is a bare rectangle and no idea is legible anywhere.
+FEASIBILITY 5 | Trivially buildable - it is a box.
+SITE 2 | 19% coverage, no edge, no frontage, no orientation argument; the parcel is simply background.
+EDITABILITY 4 | Everything is developable precisely because there is no idea to preserve.
+WEIGHTED 2.80
+
+TILE t10
+CONCEPT 1 | Plain extruded box with shallow notches; flat roof, rectangular section, no hierarchy or void.
+FEASIBILITY 5 | Nothing structurally at stake.
+SITE 3 | Sits squarely on the parcel diagonal and at 70% FAR is the best-used envelope in the set, which is the only merit on offer.
+EDITABILITY 4 | Fully developable, again because nothing must be protected.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 3 | A block carved by a deep slot and a small court, with a stepped bar behind; genuine sectional incident, but the wedge over the court reads unresolved.
+FEASIBILITY 4 | All pieces reach the ground; the slot is a void, not a span.
+SITE 3 | The carved figure faces one way and holds 25%/62%, without addressing a specific parcel edge.
+EDITABILITY 3 | The narrow slot and the wedged top complicate facades and floor edges though the bulk stays orthogonal.
+WEIGHTED 3.25
+
+TILE t12
+CONCEPT 3 | Two slender slabs of unequal height with a low ground link - a canyon between them; legible, but the height difference is asserted rather than developed.
+FEASIBILITY 3 | Structurally simple, yet the slab depth shown is close to single-loaded and offers little tolerance.
+SITE 2 | 18% coverage and 41% FAR, the lowest here, with the whole eastern half of the parcel left blank.
+EDITABILITY 3 | Bars take cores easily but their depth constrains any plan beyond a single corridor.
+WEIGHTED 2.80
+
+TILE t13
+CONCEPT 3 | A portal between two piers, clear in section, but the upper plan still shows two separate footprints, so the link is asserted in the view and not confirmed in the drawing.
+FEASIBILITY 3 | The bridging element needs a transfer or truss over the gap; the span is moderate and the evidence thin.
+SITE 3 | Two blocks straddle the parcel with the gap as the gesture; 19%/50%.
+EDITABILITY 3 | The two blocks develop easily, but circulation across the bridge is a special condition that must be solved before anything else.
+WEIGHTED 3.00
+
+TILE t14
+CONCEPT 4 | The same gateway idea carried through: the upper plan shows one continuous plate joining both piers, so the void at ground and the continuity above are both drawn.
+FEASIBILITY 4 | A deep continuous upper level over two piers is a far better-supported way to cross the void than a slender bridge.
+SITE 3 | The pair straddles the parcel with a through-void, though 20%/50% under-claims the envelope.
+EDITABILITY 3 | The upper plate is coherent; the ground piers dictate where cores may fall and the void must survive any change.
+WEIGHTED 3.60
+
+TILE t15
+CONCEPT 3 | Terraces stepping up around a U-shaped court; the terracing reads, but it accumulates as boxes rather than resolving into one governing move.
+FEASIBILITY 4 | Everything stacks and bears on what is beneath it; the setbacks are conventional.
+SITE 3 | The U holds a court and steps back from the edges, but 23%/48% is a weak claim on the parcel.
+EDITABILITY 3 | Floors stack, yet the many small pieces make cores and facade coordination fussy without losing the stepping.
+WEIGHTED 3.25
+
+TILE t16
+CONCEPT 3 | Cruciform under four converging warped roof planes - more dramatic than a simple tilt, but one arm dwindles to roughly a single storey, which reads as a by-product of the operation.
+FEASIBILITY 4 | Ground-bearing cross with sloped planes above; no spans or transfers at issue.
+SITE 3 | Arms extend toward parcel edges without meeting them; 20%/58%.
+EDITABILITY 2 | The converging slopes consume most of the upper volume, so usable floors can barely be developed without flattening the idea.
+WEIGHTED 3.05
+
+RANKING: t05, t14, t03, t02, t08, t06, t04, t15, t11, t07, t16, t13, t10, t12, t09, t01
+VERDICT: The field divides sharply between tiles that carry one sectional argument - the courtyard-and-roof pieces t05 and t03, and the gateway pair t14/t13 - and a tail of plain extrusions (t09, t10, t01) that offer no legible idea at all and are not rescued by their buildability. I would advance t05, t14 and t03: each holds a void that is drawn in both plan and section, each is structurally plausible on the evidence shown, and each survives having floors and cores put into it. The whole set shares one weakness that no tile escapes - FAR runs 41-70% against a 250% allowance and coverage never passes 31%, so every scheme is an object placed on the parcel rather than a building that has reckoned with its edges.

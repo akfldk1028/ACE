@@ -1,0 +1,114 @@
+TILE t01
+CONCEPT 3 | Rotated stacked slabs under a taller block reads as a pinwheel idea, but the hierarchy is asserted rather than resolved and the plinth pieces are leftover.
+FEASIBILITY 2 | The upper block overhangs the rotated slabs on two sides with no visible support or transfer, and the small stepped section gives no evidence of how the load comes down.
+SITE 2 | An 18% footprint sits as a small object near the centre with no relation to parcel edges or frontage, and 42% FAR leaves the envelope largely unused.
+EDITABILITY 3 | Orthogonal plates could take floors and a core, but the rotation between levels forces misaligned structure and complicates any consistent facade.
+WEIGHTED 2.55
+
+TILE t02
+CONCEPT 3 | Two parallel stepped bars descending to low plinths give a clear, calm parti with a legible sectional step, though the move is conventional.
+FEASIBILITY 4 | Simple stacked prisms, no cantilever or transfer; the section shows two independent stepped profiles that stand on their own.
+SITE 3 | The bars align with a parcel edge and hold a reasonable 31% ground occupancy, but the terracing direction is not justified by anything shown.
+EDITABILITY 4 | Bar depths suit floors, cores and circulation, and the stepping survives any facade development.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | Two vaulted volumes flanking a carved court is the most complete solid-void proposition here, with the roof scoop and the courtyard reading as one idea in plan and section.
+FEASIBILITY 3 | The curved upper surfaces are buildable, but the deep scoop between the two vaults leaves a thin residual sliver and the section pieces taper without a shown support line.
+SITE 4 | The pinwheel plan reaches to several parcel edges, the court is properly enclosed, and 66% FAR is real bulk rather than a token object.
+EDITABILITY 3 | The orthogonal body takes floors easily, but the curved tops eat the upper plate and the court would constrain core placement.
+WEIGHTED 3.55
+
+TILE t04
+CONCEPT 3 | A folded chevron with a scooped roof and a vertical slot is a single gesture, but it is the weaker member of the curved-roof family in this set.
+FEASIBILITY 3 | The right-hand piece is a full-height curved blade of slight depth; plausible but demanding, and the section shows only one continuous slab with a wavy top.
+SITE 3 | The L hugs one corner of the parcel with 25% coverage, though the open side is left undefined and no frontage is addressed.
+EDITABILITY 3 | Floor plates fit the straight body, but the tapering blade and the curved soffit limit how far the top can be developed.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 4 | A single courtyard ring under one warped roof is the clearest idea in the set: one figure, one void, one sectional move, all three legible.
+FEASIBILITY 4 | A closed ring is self-bracing, the roof warp is modest, and the section shows continuous bearing walls with no transfer.
+SITE 4 | The block squares to the parcel, occupies 28% ground and reaches 70% FAR, the strongest use of the envelope among the well-behaved schemes.
+EDITABILITY 4 | Ring plans absorb cores, corridors and facades without touching the idea; only the top slab is disciplined by the roof curve.
+WEIGHTED 4.00
+
+TILE t06
+CONCEPT 3 | A single barrel-vaulted volume with one notch; the vault is legible but the notch is arbitrary and there is no second order of articulation.
+FEASIBILITY 2 | The 1.2m plan shows two separated ground rectangles under a single large upper plate, an unexplained transfer that the perspective contradicts by showing walls carried to grade.
+SITE 2 | A 23% object placed off-centre with no edge or frontage response, and the ground/upper mismatch leaves the actual ground contact unresolved.
+EDITABILITY 3 | The prismatic body would take floors, but any core must land somewhere the ground plan does not show occupancy.
+WEIGHTED 2.55
+
+TILE t07
+CONCEPT 3 | A cruciform sheared into tilted roof planes has ambition and a low-to-high reading, but the planes collapse to a point in the middle rather than resolving.
+FEASIBILITY 2 | The wedge section tapers to near-zero at one end and two roof planes meet at a knife edge; no usable structural depth is evidenced there.
+SITE 3 | The cross spreads across the parcel and holds 26% ground with arms toward several edges, which is a genuine site move.
+EDITABILITY 3 | The prismatic arms take floors, but the tilted planes destroy the upper plate and would have to be abandoned to gain area.
+WEIGHTED 2.75
+
+TILE t08
+CONCEPT 3 | Vault plus eroded corner court plus a roof oculus is a coherent three-move scheme, though the vault repeats a common idea in this set.
+FEASIBILITY 3 | Simple bearing perimeter with a curved top; the two section pieces stand independently and the oculus is a small opening, not a span.
+SITE 3 | 22% ground with a court cut toward one edge, and 62% FAR is respectable, but the block still sits as an object rather than addressing frontage.
+EDITABILITY 3 | Floors and a core fit the L body; the curved roof and the oculus constrain the top level but not the idea.
+WEIGHTED 3.00
+
+TILE t09
+CONCEPT 2 | A plain extruded block with a single notch; no sectional hierarchy, and the section is an undifferentiated rectangle.
+FEASIBILITY 4 | Entirely conventional prismatic massing with continuous bearing and no cantilever or transfer.
+SITE 2 | A 19% object dropped centrally, parallel to nothing shown, with 58% FAR and no engagement of parcel edges.
+EDITABILITY 4 | Trivially developable for floors, cores and facades, largely because there is little idea to preserve.
+WEIGHTED 2.90
+
+TILE t10
+CONCEPT 2 | A box with a groove and a shoulder notch; the slot is the only event and it does not carry through the section.
+FEASIBILITY 4 | Simple solid prism, full-height bearing faces, rectangular section, nothing demanding.
+SITE 3 | Squares to the parcel with 23% ground and reaches 70% FAR, which is efficient even if unresponsive.
+EDITABILITY 4 | Floors, cores and circulation drop in without argument, and the facade is unconstrained.
+WEIGHTED 3.10
+
+TILE t11
+CONCEPT 3 | Two linked bars with a carved court give a readable figure and a genuine notched section, but the linkage between them is crude.
+FEASIBILITY 3 | Mostly simple prisms, though the roof of the upper bar tapers to a wedge where it meets the lower one, an edge with no depth.
+SITE 3 | 25% ground and 62% FAR with the court opening to one side; the bars sit at an angle to the parcel without a stated reason.
+EDITABILITY 4 | Bar depths and the court take floors and cores readily and the idea survives development.
+WEIGHTED 3.20
+
+TILE t12
+CONCEPT 3 | Two tall blades framing a slot with a low link is a clean, austere parti, legible in plan and in the two section pieces.
+FEASIBILITY 3 | The slabs are shallow in depth relative to their height, which asks for a stiff core or cross walls that nothing here evidences.
+SITE 2 | 18% ground and 41% FAR is the weakest use of the envelope in the set, and the pair floats without addressing any parcel edge.
+EDITABILITY 3 | Narrow floor plates are workable but restrict core and circulation options, and widening them would erase the blade idea.
+WEIGHTED 2.80
+
+TILE t13
+CONCEPT 3 | Two masses separated by a slot with a stacked upper block gives real sectional variety, though the composition reads as assembled rather than governed.
+FEASIBILITY 4 | All stacked prisms with continuous bearing; the small roof block sits directly over solid below and the section shows no spans.
+SITE 3 | 19% ground with the slot oriented across the parcel; 50% FAR at four storeys is moderate and the perimeter is not engaged.
+EDITABILITY 4 | Each block takes floors and a core independently, and the slot survives any facade treatment.
+WEIGHTED 3.45
+
+TILE t14
+CONCEPT 4 | Two blocks separated at ground and joined above is a real idea, and it is the one scheme whose plan pair proves it: two footprints at 1.2m, one connected figure at 4.8m.
+FEASIBILITY 4 | The link is a short bridge supported at both ends by full blocks; everything else is stacked prisms with no cantilever.
+SITE 3 | 20% ground and 50% FAR, with the ground separation offering a through-route, though no frontage or access is shown to receive it.
+EDITABILITY 4 | Orthogonal blocks take cores and floors easily and the bridge is the only element that disciplines circulation, which is exactly the idea.
+WEIGHTED 3.80
+
+TILE t15
+CONCEPT 4 | Terracing around a U-court, stepping from a broad base to a small top, is the strongest sectional hierarchy here and it is confirmed by the court at 1.2m splitting into two masses above.
+FEASIBILITY 4 | Every volume sits on the one below; no cantilevers, no transfers, and the two section profiles are stable stepped stacks.
+SITE 4 | 23% ground with the U opening to a parcel edge and the terraces facing outward; the figure occupies the site rather than posing on it.
+EDITABILITY 5 | All orthogonal prisms: floors, cores, circulation and facades can all be developed while the terracing and the court remain untouched.
+WEIGHTED 4.20
+
+TILE t16
+CONCEPT 3 | A cruciform with a tall fin and sheared roof planes has the boldest silhouette in the set, but the planes converge on a single point with no resolution.
+FEASIBILITY 2 | One arm is a wedge running out to nothing at grade and the section tapers to a knife edge; the tall fin's stability is not evidenced by anything shown.
+SITE 3 | The cross reaches four ways across the parcel at 20% ground and 58% FAR, a legitimate spreading move.
+EDITABILITY 2 | The tilted planes cut the upper floors to slivers, so gaining usable area at four storeys would mean discarding the defining geometry.
+WEIGHTED 2.55
+
+RANKING: t15, t05, t14, t03, t13, t02, t11, t10, t08, t04, t09, t12, t07, t16, t06, t01
+VERDICT: Only t15 and t05 combine a single legible idea with a section that survives development, and I would advance both, with t14 as the third seat because its plan pair actually evidences its ground-split-and-bridge proposition rather than merely asserting it. The curved-roof group (t03, t04, t06, t08) carries the set's most interesting solid-void thinking but repeats itself, and only t03 earns its bulk; t06 needs re-examination because its ground plan and its perspective disagree about how the mass meets grade. The cruciform pair t07 and t16 and the stacked t01 are the clearest failures, all three depending on planes or overhangs that taper to nothing, and the whole field sits far under the FAR envelope, none above 70% and two below 45%.

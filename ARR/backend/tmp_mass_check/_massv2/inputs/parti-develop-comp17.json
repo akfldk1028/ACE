@@ -1,0 +1,226 @@
+{
+ "parent": "comp17_folded_edge_and_room~full_ground^centred",
+ "parent_shape_id": "bf8b84dac778b91eb9d7",
+ "schemes": [
+  {
+   "name": "folded_room_cut_by_a_through_court",
+   "primary_language": "carved_body",
+   "secondary_language": "접힌 지붕의 깊은 주실을 마당이 관통해, 한 덩어리가 마당을 사이에 둔 두 겹이 된다.",
+   "formal_principle": "심사원 셋이 같은 말을 했다 - 빛 우물이 평면의 깊이에 비해 작다. 우물을 넓히는 대신 마당을 끝까지 관통시켜 깊이 자체를 반으로 자른다. 접힌 지붕은 그 위를 건너며 마당의 천장이 된다.",
+   "dominant_gesture": "마당이 관통하는 접힌 몸체",
+   "reference_basis": "development of comp17_folded_edge_and_room: the chamfered plan, the split into a main and a side room, the fold over the main room and the front recess are all kept; what changes is how light reaches the depth the jury called too deep for its well.",
+   "floor_height_m": 4.0,
+   "design_argument_ko": {
+    "title": "빛 우물을 넓히지 않고, 마당을 끝까지 뚫어 깊이를 반으로 자른다.",
+    "spatial_strategy": "부모의 우물은 깊은 평면 한가운데 뚫린 작은 구멍이었다. 관통시키면 양쪽 겹이 각각 두 면에서 빛을 받고, 접힌 지붕은 메운 것이 아니라 빈 것을 건너게 된다.",
+    "tradeoff": "관통 마당이 가져가는 바닥면적을 한 층으로 되찾았으나 다섯 층 상한에 한 층만 남는다. 마당을 건너는 층간 동선과 배수는 미해결이다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "storeys": 4,
+     "profile": "chamfered",
+     "why": "부모의 모따기 평면을 그대로 쓰되 한 층 올린다. 아래에서 마당으로 내주는 면적을 다섯 층 상한 안에서 되찾기 위해서다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "main_room",
+     "second": "side_room",
+     "contrast": 1.4,
+     "gap": 0,
+     "why": "부모의 주실·부실 구분은 이 안의 정체성이다. 뒤 동사가 큰 쪽을 겨냥할 수 있게 먼저 이름을 붙인다."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 20,
+     "along": "long",
+     "on": "main_room",
+     "why": "접힌 지붕은 부모의 지배적 몸짓이다. 주실에만 걸어 작은 몸체가 계속 읽히게 둔다."
+    },
+    {
+     "op": "carve",
+     "size": 0.34,
+     "at": "long",
+     "reach": 1.0,
+     "on": "main_room",
+     "why": "주실을 가로질러 끝까지 판다. reach를 1.0으로 두어 우물이 아니라 마당이 되게 한다."
+    },
+    {
+     "op": "carve",
+     "size": 0.25,
+     "at": "open",
+     "reach": 0.25,
+     "why": "전면의 파인 진입 여백은 부모가 처마 대신 단면으로 만든 것이라 자식마다 남긴다."
+    }
+   ]
+  },
+  {
+   "name": "folded_room_lit_by_two_wells",
+   "primary_language": "carved_body",
+   "secondary_language": "접힌 지붕 아래 깊은 평면에 광정 두 개가 뚫려, 창에서 먼 자리가 남지 않는다.",
+   "formal_principle": "하나의 큰 마당이 아니라 두 개의 작은 광정이 깊이를 다룬다. 한 덩어리의 연속된 바닥을 유지하면서 빛이 닿지 않는 구역만 없앤다.",
+   "dominant_gesture": "광정 두 개가 뚫린 접힌 몸체",
+   "reference_basis": "development of comp17_folded_edge_and_room: the chamfered plan, the split into a main and a side room, the fold over the main room and the front recess are all kept; what changes is how light reaches the depth the jury called too deep for its well.",
+   "floor_height_m": 4.0,
+   "design_argument_ko": {
+    "title": "마당 하나를 키우는 대신 광정 둘로 깊은 자리를 없앤다.",
+    "spatial_strategy": "관통 마당은 바닥을 끊는다. 광정 둘은 층을 이어둔 채 창에서 6m 넘게 떨어진 구역만 지운다 - 넓은 사무 바닥이 필요할 때의 답이다.",
+    "tradeoff": "두 광정 사이의 좁은 띠가 구조적으로 취약할 수 있고, 광정 하나하나는 하늘만 보는 우물이라 조망이 없다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "storeys": 4,
+     "profile": "chamfered",
+     "why": "부모의 모따기 평면을 그대로 쓰되 한 층 올린다. 아래에서 마당으로 내주는 면적을 다섯 층 상한 안에서 되찾기 위해서다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "main_room",
+     "second": "side_room",
+     "contrast": 1.4,
+     "gap": 0,
+     "why": "부모의 주실·부실 구분은 이 안의 정체성이다. 뒤 동사가 큰 쪽을 겨냥할 수 있게 먼저 이름을 붙인다."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 20,
+     "along": "long",
+     "on": "main_room",
+     "why": "접힌 지붕은 부모의 지배적 몸짓이다. 주실에만 걸어 작은 몸체가 계속 읽히게 둔다."
+    },
+    {
+     "op": "puncture",
+     "size": 0.22,
+     "n": 2,
+     "why": "관통 구멍 둘. 하늘로 열린 마당이 아니라 깊은 자리를 지우는 광정이다."
+    },
+    {
+     "op": "carve",
+     "size": 0.25,
+     "at": "open",
+     "reach": 0.25,
+     "why": "전면의 파인 진입 여백은 부모가 처마 대신 단면으로 만든 것이라 자식마다 남긴다."
+    }
+   ]
+  },
+  {
+   "name": "two_folded_ranges_hold_a_lane",
+   "primary_language": "open_figure",
+   "secondary_language": "접힌 주실과 낮은 부실이 떨어져 서서 그 사이가 대지를 가로지르는 길이 된다.",
+   "formal_principle": "부모는 두 방이 맞물려 하나의 깊은 덩어리였다. 둘을 떼면 깊이가 절반씩으로 줄고, 그 틈이 실내를 밝히는 동시에 대지를 가로지르는 공공의 길이 된다.",
+   "dominant_gesture": "길을 사이에 둔 접힌 두 채",
+   "reference_basis": "development of comp17_folded_edge_and_room: the chamfered plan, the split into a main and a side room, the fold over the main room and the front recess are all kept; what changes is how light reaches the depth the jury called too deep for its well.",
+   "floor_height_m": 4.0,
+   "design_argument_ko": {
+    "title": "두 방을 떼어, 생긴 틈이 채광이자 대지를 가로지르는 길이 되게 한다.",
+    "spatial_strategy": "빛을 얻으려 안을 파는 대신 밖을 연다. 각 채가 두 긴 면에서 빛을 받고, 틈은 남는 공간이 아니라 대지를 관통하는 통로다.",
+    "tradeoff": "두 채를 잇는 다리나 지하 연결이 필요하고, 틈이 넓을수록 총 바닥면적이 준다. 부모의 204%를 지킬 수 있는지는 이 자식이 답해야 한다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "storeys": 4,
+     "profile": "chamfered",
+     "why": "부모의 모따기 평면을 그대로 쓰되 한 층 올린다. 아래에서 마당으로 내주는 면적을 다섯 층 상한 안에서 되찾기 위해서다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.55,
+     "along": "cross",
+     "first": "main_room",
+     "second": "side_room",
+     "contrast": 1.3,
+     "gap": 0.16,
+     "why": "부모의 gap 0을 열어 두 채로 만든다. 이 틈이 이 자식의 논지 전부다."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 20,
+     "along": "long",
+     "on": "main_room",
+     "why": "접힌 지붕은 부모의 지배적 몸짓이다. 주실에만 걸어 작은 몸체가 계속 읽히게 둔다."
+    },
+    {
+     "op": "carve",
+     "size": 0.25,
+     "at": "open",
+     "reach": 0.25,
+     "why": "전면의 파인 진입 여백은 부모가 처마 대신 단면으로 만든 것이라 자식마다 남긴다."
+    }
+   ]
+  },
+  {
+   "name": "folded_room_over_a_splayed_court",
+   "primary_language": "carved_body",
+   "secondary_language": "마당이 위로 갈수록 벌어져, 깊은 아래층까지 하늘이 내려온다.",
+   "formal_principle": "우물이 작은 것이 문제가 아니라 위아래가 같은 폭인 것이 문제다. 올라가며 주실이 좁아지면 마당은 반대로 벌어지고, 가장 깊은 아래층이 가장 넓은 하늘을 본다.",
+   "dominant_gesture": "위로 벌어지는 마당을 낀 접힌 몸체",
+   "reference_basis": "development of comp17_folded_edge_and_room: the chamfered plan, the split into a main and a side room, the fold over the main room and the front recess are all kept; what changes is how light reaches the depth the jury called too deep for its well.",
+   "floor_height_m": 4.0,
+   "design_argument_ko": {
+    "title": "마당을 위로 벌려, 가장 깊은 층이 가장 넓은 하늘을 보게 한다.",
+    "spatial_strategy": "같은 폭의 우물은 아래로 갈수록 어두워진다. 단면을 위로 좁히면 빛의 각이 열려 깊은 층이 실제로 밝아지고, 접힌 지붕은 좁아진 꼭대기에 얹혀 더 또렷해진다.",
+    "tradeoff": "위층이 좁아져 부모보다 바닥면적이 줄고, 층마다 다른 평면은 코어와 구조를 까다롭게 만든다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "storeys": 4,
+     "profile": "chamfered",
+     "why": "부모의 모따기 평면을 그대로 쓰되 한 층 올린다. 아래에서 마당으로 내주는 면적을 다섯 층 상한 안에서 되찾기 위해서다."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "main_room",
+     "second": "side_room",
+     "contrast": 1.4,
+     "gap": 0,
+     "why": "부모의 주실·부실 구분은 이 안의 정체성이다. 뒤 동사가 큰 쪽을 겨냥할 수 있게 먼저 이름을 붙인다."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 20,
+     "along": "long",
+     "on": "main_room",
+     "why": "접힌 지붕은 부모의 지배적 몸짓이다. 주실에만 걸어 작은 몸체가 계속 읽히게 둔다."
+    },
+    {
+     "op": "carve",
+     "size": 0.3,
+     "at": "long",
+     "reach": 0.7,
+     "on": "main_room",
+     "why": "부모의 우물을 마당 크기로 키운다. 다음 동사가 이것을 위로 벌린다."
+    },
+    {
+     "op": "taper",
+     "ratio": 0.78,
+     "on": "main_room",
+     "why": "주실이 올라가며 좁아진다. 몸체가 좁아진 만큼 마당이 위에서 벌어진다."
+    },
+    {
+     "op": "carve",
+     "size": 0.25,
+     "at": "open",
+     "reach": 0.25,
+     "why": "전면의 파인 진입 여백은 부모가 처마 대신 단면으로 만든 것이라 자식마다 남긴다."
+    }
+   ]
+  }
+ ]
+}

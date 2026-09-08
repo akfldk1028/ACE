@@ -1,0 +1,197 @@
+{
+  "schema": "arr.maas.recommendation_context.v1",
+  "run": "comp17",
+  "board_sha256": "ceb68b7338e930906c1eed580a822cf965ef09d15c554a08431e4d63047d2efe",
+  "candidates": [
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-voided-low:creative-005",
+        "shape_id": "d7982196be277965a306",
+        "certificate_id": "6a136ae240217cfe340e",
+        "round": "vlm-book-comp17",
+        "score": 3.97
+      },
+      "lineage": "book-source:98645f03bd059e72a0e74661339013f64a84244b8bee2d063d40bf8811b7b536"
+    },
+    {
+      "identity": {
+        "name": "kr_three_ranges_one_tall_vault~held_ground",
+        "shape_id": "004258622e3e59e71e4c",
+        "certificate_id": "f857f87f41d832bf5e6c",
+        "round": "vlm-comp17",
+        "score": 3.87
+      },
+      "lineage": "kr_three_ranges_one_tall_vault"
+    },
+    {
+      "identity": {
+        "name": "comp17_curved_court_perimeter~full_ground^cross_open",
+        "shape_id": "6431046bdccf56d2f932",
+        "certificate_id": "93488d05b4c4a66ca8e7",
+        "round": "vlm-comp17",
+        "score": 3.83
+      },
+      "lineage": "comp17_curved_court_perimeter"
+    },
+    {
+      "identity": {
+        "name": "comp17_folded_edge_and_room~full_ground^centred",
+        "shape_id": "bf8b84dac778b91eb9d7",
+        "certificate_id": "b1cbc6739e70938fffb6",
+        "round": "vlm-comp17",
+        "score": 3.82
+      },
+      "lineage": "comp17_folded_edge_and_room"
+    },
+    {
+      "identity": {
+        "name": "sweep_0231_stack_butterfly_mansard",
+        "shape_id": "1d7ceca98bc88940856d",
+        "certificate_id": "962976571ba46e0ade8d",
+        "round": "vlm-comp17",
+        "score": 3.68
+      },
+      "lineage": "sweep_0231_stack_butterfly_mansard"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-compact-low:creative-003",
+        "shape_id": "9aea6effc77d8ff3bf0e",
+        "certificate_id": "2192d0c6fca7ecbc4d08",
+        "round": "vlm-book-comp17",
+        "score": 3.63
+      },
+      "lineage": "book-source:10165d7694d701581e7a2da9f5f1c5163d91603eead55b7d513ba5ba8b3be797"
+    },
+    {
+      "identity": {
+        "name": "book:book-develop-comp12:exact-authored-development:creative-002",
+        "shape_id": "f413c82b42c717e26a69",
+        "certificate_id": "823870db6d402401af54",
+        "round": "vlm-book-comp17",
+        "score": 3.62
+      },
+      "lineage": "book-source:418294b42e1b49440dc57dae1cee32a17c04d19cf9c538cb1f1c44e74d503a65"
+    },
+    {
+      "identity": {
+        "name": "book:book-develop-comp15:exact-authored-development:creative-002",
+        "shape_id": "0238ab7205e6a2d7cddf",
+        "certificate_id": "859d73558cf73f629141",
+        "round": "vlm-book-comp17",
+        "score": 3.57
+      },
+      "lineage": "book-source:27208645736171c0a0e3092aa352e4099448a3a6d039242374ff810d364f65fa"
+    },
+    {
+      "identity": {
+        "name": "comp17_offset_strata",
+        "shape_id": "ee92e3449bec217a23b1",
+        "certificate_id": "89cac31edc55ffcc8b36",
+        "round": "vlm-comp17",
+        "score": 3.57
+      },
+      "lineage": "comp17_offset_strata"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-compact-low:creative-002",
+        "shape_id": "4bbe3756485029e4e47f",
+        "certificate_id": "dbd93edc46d59c46e4d4",
+        "round": "vlm-book-comp17",
+        "score": 3.53
+      },
+      "lineage": "book-source:ce463ab14d4c1946ba2fbbb477817d7bd4c75259051e36d916e95a4ee848f7d9"
+    },
+    {
+      "identity": {
+        "name": "sangok_c03_descending_civic_court",
+        "shape_id": "161c0058c29d26930843",
+        "certificate_id": "16f3e68553a8c329dd2e",
+        "round": "vlm-comp17",
+        "score": 3.32
+      },
+      "lineage": "sangok_c03_descending_civic_court"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp11:morph-compact-mid:creative-012",
+        "shape_id": "dacbb205cef6ed7a1d3e",
+        "certificate_id": "4589e41b0f45a7cf59bf",
+        "round": "vlm-book-comp17",
+        "score": 3.27
+      },
+      "lineage": "book-source:418294b42e1b49440dc57dae1cee32a17c04d19cf9c538cb1f1c44e74d503a65"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-voided-low:creative-008",
+        "shape_id": "a0839e7b08c69cab08a9",
+        "certificate_id": "1d7a939f5993c352fe7d",
+        "round": "vlm-book-comp17",
+        "score": 3.27
+      },
+      "lineage": "book-source:ecd0d24bfe19449fcdbe115b6f743d4ce2619c42d2046db84af746931a0b229e"
+    },
+    {
+      "identity": {
+        "name": "sangok_c04_hall_daily_street~full_ground^centred",
+        "shape_id": "57c2b01b0c870f71d8dc",
+        "certificate_id": "9dc8c0eda34d89acec2c",
+        "round": "vlm-comp17",
+        "score": 3.27
+      },
+      "lineage": "sangok_c04_hall_daily_street"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-voided-low:creative-016",
+        "shape_id": "4c9f0399b2e9f057ce18",
+        "certificate_id": "f4a8ce308013d650df08",
+        "round": "vlm-book-comp17",
+        "score": 3.23
+      },
+      "lineage": "book-source:ecd0d24bfe19449fcdbe115b6f743d4ce2619c42d2046db84af746931a0b229e"
+    },
+    {
+      "identity": {
+        "name": "slipped_twin_gables~full_ground^off_open",
+        "shape_id": "e16ae12f363cc76ba571",
+        "certificate_id": "e0955501f749fd52e056",
+        "round": "vlm-comp17",
+        "score": 3.2
+      },
+      "lineage": "slipped_twin_gables"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-oblique-low:creative-004",
+        "shape_id": "80400617729f20bad2d4",
+        "certificate_id": "6d5548080fdadb10a594",
+        "round": "vlm-book-comp17",
+        "score": 3.17
+      },
+      "lineage": "book-source:c00a0365ba478b613a26129aa6cb891680286288cf1927ec111de88787cbc47d"
+    },
+    {
+      "identity": {
+        "name": "comp17_paired_curved_rooms~full_ground^to_open",
+        "shape_id": "7f72794fa3ba3c615069",
+        "certificate_id": "d0aa1dcb7dc15351965f",
+        "round": "vlm-comp17",
+        "score": 3.17
+      },
+      "lineage": "comp17_paired_curved_rooms"
+    },
+    {
+      "identity": {
+        "name": "book:book-comp17:morph-voided-low:creative-006",
+        "shape_id": "662be7e0049c5a68bca2",
+        "certificate_id": "d69465b4889b128d9903",
+        "round": "vlm-book-comp17",
+        "score": 3.05
+      },
+      "lineage": "book-source:c26935035595a88576af6256afba56c60af0a3a5968da6b7f25bc5a6d7f9055f"
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+TILE t01
+CONCEPT 3 | Chamfered courtyard ring lifted on four stub legs - the loop reads clearly, but the section adds no second move and the void is the whole argument.
+FEASIBILITY 3 | The full ring is carried on four short boxes, so the perimeter and corners depend on transfers the drawings never show; the legs are substantial enough to keep it borderline.
+SITE 3 | Centred object at 34% coverage; the chamfers answer nothing in the parcel and the sharp west apex is left over.
+EDITABILITY 4 | A constant-depth ring takes floors, corner cores and inner/outer facades without disturbing the idea.
+WEIGHTED 3.20
+
+TILE t02
+CONCEPT 3 | A C-shaped court opening to one side with one leg raised - legible in both plans, but the hierarchy stops at a single step and the section registers almost nothing.
+FEASIBILITY 5 | Stacked bearing volumes straight to ground, no cantilever, no transfer.
+SITE 3 | The C sits along the south-west edge and opens away from the apex, but at 30% coverage and three of five storeys it barely tests the parcel.
+EDITABILITY 4 | Simple bar depths, easy cores and a clear inner/outer facade split.
+WEIGHTED 3.70
+
+TILE t03
+CONCEPT 2 | A folded wafer over loose low bars; the fold lines read as geometric noise rather than a sectional idea, and no occupied volume sits under the gesture.
+FEASIBILITY 2 | The section shows a membrane thinner than a floor spanning nearly the full width on two small supports - not plausible as drawn.
+SITE 3 | The plate's chamfered outline does track the parcel and covers 53% of it, which is the strongest thing here.
+EDITABILITY 2 | At 26% FAR there is nothing to develop; adding the missing floors would erase the folded plane.
+WEIGHTED 2.20
+
+TILE t04
+CONCEPT 4 | Three vaulted bars, graded in height and splayed in plan - one idea carried consistently through plan, section and the slots between; the section actually draws the vaults.
+FEASIBILITY 4 | Vaults bear to ground on parallel walls; no transfers, only the usual loss of the top storey under the curve.
+SITE 4 | Bars turn to the long north-east edge, step down across it and keep the apex clear; still leaves capacity unused at 35% coverage.
+EDITABILITY 4 | Repetitive bars take floors and a core each; the vault constrains only the uppermost level.
+WEIGHTED 4.00
+
+TILE t05
+CONCEPT 2 | A fat polygonal plinth with a thin plate skewed over it - two unrelated elements rather than one idea, and the upper piece is a plane, not a volume.
+FEASIBILITY 3 | The plinth is sound; the thin hovering plate cantilevers past it with no visible support.
+SITE 2 | At the 60% coverage cap the footprint crosses the parcel line at the lower left and right in both plans and in the site view.
+EDITABILITY 3 | The plinth floorplate develops easily; the plate cannot absorb any of the remaining capacity.
+WEIGHTED 2.45
+
+TILE t06
+CONCEPT 3 | A stepped terraced mass under a mansard cap; the section draws a clean three-step profile, but the result is inert - a wedding cake rather than a proposition.
+FEASIBILITY 5 | Every tier sits on the one below; load path is direct and the setbacks are generous.
+SITE 3 | The plinth outline is taken from the parcel and sits at the coverage cap, though it grazes the boundary on the east side.
+EDITABILITY 4 | Stacked setbacks give aligned cores, regular floors and terrace-edge facades.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 3 | Two gabled volumes sliding past each other with a deep horizontal slot; the seam and ridges give it hierarchy, but it is largely a bulk lump filling its envelope.
+FEASIBILITY 4 | Solid and ground-bearing; only the modest overhang at the seam needs attention.
+SITE 4 | The footprint is nested into the parcel with its notch following the edges, and it uses the ground cap and 246% FAR - the most complete use of the site here.
+EDITABILITY 3 | Deep plates are workable, but the raking soffits and faceted ends make consistent floors and facades harder.
+WEIGHTED 3.45
+
+TILE t08
+CONCEPT 2 | A shapeless roof plate over scattered pods; the table typology is there but the pods have no order and the plate has no figure.
+FEASIBILITY 2 | A plate covering 56% of the site spans between a handful of small boxes; at 51% FAR the whole thing is one thin layer with no disclosed structure.
+SITE 2 | The plate overhangs the parcel at two corners and the ground pieces show no edge or frontage logic.
+EDITABILITY 2 | One storey of idea; the missing four storeys cannot be added without destroying the hovering plane.
+WEIGHTED 2.00
+
+TILE t09
+CONCEPT 2 | A carved plate with a notched court - the carve is a real move, but the striated edge and thin body keep it a diagram rather than a mass.
+FEASIBILITY 2 | The section is a thin slab on sparse wall legs, cantilevering on all sides over an undercroft.
+SITE 3 | The chamfered outline runs roughly parallel to the parcel edges and stays inside them with margins.
+EDITABILITY 3 | The notch could organise circulation, but the plate cannot carry the storeys the brief allows.
+WEIGHTED 2.40
+
+TILE t10
+CONCEPT 2 | One chamfered lump split in two; the slot is the only event and reads as a seam, not a spatial idea.
+FEASIBILITY 5 | Two solid stacked blocks, nothing to question.
+SITE 3 | The split runs parallel to the south-west edge and the pieces are angled to the parcel, but the smaller one runs over the eastern boundary.
+EDITABILITY 4 | Regular deep plates, straightforward cores and facades.
+WEIGHTED 3.35
+
+TILE t11
+CONCEPT 3 | Shifted trays cascading and rotating - the most dynamic composition in the set, though each tray is a pancake rather than a volume.
+FEASIBILITY 2 | Trays overhang their supports by more than half their length and the plans show only two small ground contacts; the transfers are neither drawn nor small.
+SITE 2 | The aggregation spills past the parcel on the north and east and touches ground almost nowhere.
+EDITABILITY 2 | Cores would have to jump between offset trays and circulation breaks at every shift.
+WEIGHTED 2.35
+
+TILE t12
+CONCEPT 3 | A dense court block with a folded ridge; both moves are visible in plan and section, but the light well is small against a very deep plan.
+FEASIBILITY 5 | Solid perimeter block to ground with a folded roof - no transfer, no thin member.
+SITE 4 | The footprint is offset from the parcel edges all round and uses 204% FAR at 53% coverage - a fit rather than an object.
+EDITABILITY 4 | Regular floors, a core beside the well, and the well itself can grow into an atrium without losing the idea.
+WEIGHTED 3.90
+
+TILE t13
+CONCEPT 3 | Three shifted plates producing terraces and shadow lines; a legible operation, but no void and only a shallow hierarchy.
+FEASIBILITY 4 | Stacked plates with short offsets - small cantilevers, otherwise direct.
+SITE 3 | Sits at the coverage cap on the parcel outline, but the shifted layers push past the eastern boundary.
+EDITABILITY 4 | Near-identical floorplates, stacking cores, layered band facades.
+WEIGHTED 3.45
+
+TILE t14
+CONCEPT 4 | A closed courtyard ring under an undulating crown - two moves, both carried through plan, section and elevation, and the most distinctive skyline in the set.
+FEASIBILITY 4 | Ring walls run to ground at a workable depth; only the non-planar top slab and varying head heights add cost.
+SITE 3 | The loop turns toward the north-east edge but holds only 23% of the ground and never addresses the western apex.
+EDITABILITY 4 | A loop plan gives obvious circulation, corner cores and two facade families; the crown touches only the top level.
+WEIGHTED 3.80
+
+TILE t15
+CONCEPT 2 | A single loaf with a domed top; the crown is a silhouette gesture over an undifferentiated block, with no void or sectional event.
+FEASIBILITY 4 | Simple solid; the curved cap costs the top storey but is buildable.
+SITE 3 | Aligned to two parcel edges but placed as an object at 31% coverage and clipping the eastern boundary.
+EDITABILITY 4 | Uniform plates and free core placement; only the top floor is affected by the curve.
+WEIGHTED 3.10
+
+RANKING: t04, t12, t14, t06, t02, t07, t13, t10, t01, t15, t05, t09, t11, t03, t08
+VERDICT: Only three entries advance for me - t04, whose graded vaulted bars are the one scheme where a single idea survives intact through plan, section and site orientation; t12, which turns a deep court block and a folded ridge into the most complete use of the parcel; and t14, whose crowned ring is the most distinctive figure and the easiest to develop. The middle of the field - t06, t02, t07, t13, t10, t15 - is competent but inert: stacked or split lumps whose feasibility scores flatter a missing idea, most of them leaving half the permitted volume unused. The bottom group fails on the same evidence, since t03, t08, t09, t11 and t05 all show membranes or trays too thin to be occupied, carried on supports that are never drawn, so their coverage figures describe roofs rather than buildings.

@@ -1,5 +1,7 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**LIVE correction / comp17:** Step4 has completed (366/366 compiled,193eligible,81selected). Step5 first failed `3/8 explorations`: the new surface sampling guard wrongly rejected the intersection-only `book_base_volume` selection. Removing that false warp classification restores8original+8exploration candidates from the unchanged eight-source payload in an isolated full portfolio replay. Three failing-first guard/selection regressions and41related tests pass. The same cycle is now retrying step5, owned by exec session7456; session84036 has exited. Final sheet/jury/develop remain pending. Ground-aware occupied-form grouping is committed in `9fbb6997`: raised, buried and on-grade bodies remain distinct;15focused tests and71required-plus-related tests pass. This paragraph supersedes the older RUNNING checkpoint below.
+
 **Latest steering / comp17:** The user explicitly requires no duplicate images. New presentation-only closed-solid equivalence groups identical occupied forms despite different role/decomposition-based shape IDs. Translation and uniform XYZ scale are removed; proportions, roofs, undersides and intermediate voids remain significant. Original scored rows/certificates remain intact. Board curation, pool/study sheets and frozen PDF unselected export are connected; actual comp17 sheet verification is pending. Required backend87, MassAgent96 and exporter9tests pass. The cited exact `held_ground` pair is independently rebuilt and genuinely different; do not merge by name or top_z alone. Read the new section in `agents/MassAgent/docs/reports/comp17-composition-preservation.md`. Comp17 still runs through the same cycle/era; after stabilization accumulate later rounds without repeatedly clearing the board.
 
 **CURRENT comp17 / 2026-09-08: INCOMPLETE, step4 generation RUNNING.** Research-backed engine repairs are locally committed: `9efd1e88` preserves authored equal/near-equal tier proportions; `75ebf8a8` adds shared typed BOOK `bound_surfaces` as intersection with the original occupied input; `3de54734` uses live solid bounds for physical sizing instead of rounded reports. Required three-module regression plus new/exact suites:98tests passed in63.118s, process exit0. Independent review found and closed attachment/taper/anisotropic sampling bypasses. No numeric gate was relaxed. Eight authored BOOK programs are frozen in `inputs/book-comp17.json`; initial actual-site preflight passed6/8 and both precision-refused candidates pass after the live-height repair. Root directly viewed source/stack and actual-site preview images; these are not fresh jury evidence. Read `agents/MassAgent/docs/reports/comp17-composition-preservation.md` for exact command and limitations. Baseline327files: `diagnostics/competition-20260908/comp16-before-composition`. The single families-scope cycle completed steps1–3 and is generating the full supplied repertoire; root exec session84036 owns this invocation. Do not start a duplicate worker. Next: BOOK generation/import, fresh juries, bake/pixel comparison, develop/pair jury/feedback and final reviewed PDF through the same cycle. Preserve comp16 and all completed receipts. No service or competition-quality completion claim.
@@ -534,3 +536,47 @@ bash skills/mass-cycle/scripts/cycle.sh <라운드명> <문장수> --agent-mode 
 **2. 상자는 결함이 아니라 기하다.** `buildable 1,922㎡ / 건폐율 상한 1,498㎡ / 이 필지에 들어가는 최대 정사각형 784㎡ = 상한의 52%`. 건폐율을 절반 넘게 쓰면 어떤 도형도 필지 십각형이 된다. 밴드 상관도 같은 말: full_ground 47%가 필지형, dispersed_ground 20%. 처방은 클리핑 규칙 추가가 아니라 ①비스듬한 필지에 맞는 도형 저작 ②낮은 건폐율 밴드다.
 
 **되돌린 것**: compile.py의 named-figure 클립 실험(`_DECLARED_FIGURE_KEEPS_SHARE`). 필지형 27→26인데 FAR 중앙값 137%→125% — 그림 하나를 건물 10분의 1로 산 셈. `git checkout`으로 원복, crown 테스트 10/10 통과.
+
+## 2026-09-08 저녁 — comp17 완주 (Codex usage 소진 → Claude 인수)
+
+Codex가 6/12단계 배심 대기(exit 75)에서 멈춘 것을 이어받아 **12단계 완주**. 보드 28석,
+챔피언 `comp17_folded_edge_and_room~full_ground^centred`. 배심은 눈먼 3인을 세 번(라운드
+15타일 / BOOK 16타일 / 쌍비교 1쌍) 각자 private 폴더에서 돌렸다.
+
+**심사원 여섯이 독립적으로 같은 급소를 짚었다 — 크기다.**
+"every entry occupies 18-31% of the permitted ground and 41-70% of the permitted area at
+two to four of five storeys, so no scheme has yet been pushed to the size at which its idea
+would actually be tested." 메모리의 옛 진단(BOOK 코퍼스가 허용 용적의 24%만 쓴다)이 형태
+다양성 작업 뒤에도 그대로 살아 있다는 뜻이다.
+
+**그리고 그 반대편 답도 같은 날 나왔다.** develop 자식 `folded_room_lit_by_two_wells`는
+**허용 연면적의 96%, 건폐율 상한의 84%** — 이 프로젝트가 도달한 최고 수치인데, **쌍비교
+배심 3인이 만장일치로 부모를 골랐다.** 이유가 셋 다 같다: 대지 경계까지 밀어 바깥 여백이
+사라졌고, 처마가 모서리에서 얇은 조각으로 눌렸고, 광정이 폭 없는 선까지 늘어났고, 단면이
+두꺼운 실이 아니라 얇은 슬래브로 읽힌다. **봉투를 채우는 것이 곧 좋은 안이 아니다** —
+성장이 면적을 경계·처마·광정에서 뜯어간다. 다음 라운드의 과제는 "크게"가 아니라
+"성장이 무엇을 먹는지 알고 크게"다.
+
+**저작 실패 3/4 — 두 개는 이미 기록된 함정이었다.**
+| 자식 | 결과 | 사유 |
+|---|---|---|
+| 관통 마당 | 탈락 | `authored_composition_changed` (끝까지 뚫으니 주실·부실 구분 소멸, parts=1) |
+| 광정 둘 | 통과 | 96% FAR / 84% 건폐 — 배심에서 부모에게 패 |
+| 두 채와 길 | 탈락 | `declared_gap_closed` (선언 0.16 → 배달 0.0002m) |
+| 위로 벌어지는 마당 | 탈락 | `legal_fit_or_compile_failed` (carve+taper 조합) |
+
+**시트 규칙 — 두 자가 다 필요하다는 것이 실측으로 확정됐다.**
+Codex의 닫힌 솔리드 동일성(양방향 불리언 차집합)은 comp17 203타일에서 **합칠 것을 하나도
+못 찾았다.** 그런데 다섯 문장이 95장(47%)을 먹고 있었다 — 배치만 옮긴 것들이라 어떤 3D
+동일성 검사로도 안 잡힌다. 문장+건폐율 밴드당 한 장 규칙을 되살려 **203→123장, 상위 5문장
+점유 47%→17%**. 지운 것은 `suppressed`에 대표 타일과 함께 기록된다. 반대로 내 옛 평면
+IoU 자는 지붕이 다른 것을 합칠 위험이 있었고 Codex 지적이 맞았다. 둘 다 켜 둘 것.
+
+**Vworld**: 용도지역 분할 조회 `LT_C_UQ111`만 캐시가 없어 읽기 타임아웃 한 번이 매스 런
+전체를 죽였다(오늘 2회). 마지막 실제 응답을 저장·폴백하게 고침(`79693628`). 캐시로 답할 땐
+로그에 남고, 한 번도 측정 안 된 필지는 여전히 크게 실패한다. httpx/httpcore INFO는 Vworld
+URL에 API 키를 통째로 찍으므로 WARNING으로 내렸다(공개 저장소).
+
+**남은 일 순위**: ① 성장이 여백·처마·광정을 먹는 문제 — 배심이 두 번 같은 말을 했다
+② 새 시대 연속으로 보드가 매 라운드 비워진다, 엔진이 잦아들면 시대 고정하고 누적
+③ `declared_gap_closed`는 성장 루프의 알려진 결함, 아직 미수리.

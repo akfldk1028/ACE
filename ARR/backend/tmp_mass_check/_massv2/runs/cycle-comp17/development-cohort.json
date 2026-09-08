@@ -1,0 +1,53 @@
+{
+  "selection_authority": "automatic",
+  "recent_lineage_override": false,
+  "rule": "automatic choices: not developed in the last three completed cycles while another eligible figure exists",
+  "recently_developed_lineages": [
+    "book-source:27208645736171c0a0e3092aa352e4099448a3a6d039242374ff810d364f65fa",
+    "book-source:9cc292622e778ec790d5aaf9bc061f1116f82adb62bdcb25c1e75ce403950feb",
+    "oval_dome_hall_sunk"
+  ],
+  "parent_lineage": "comp17_folded_edge_and_room",
+  "eligible_names": [
+    "book:book-comp17:morph-voided-low:creative-005",
+    "kr_three_ranges_one_tall_vault~held_ground",
+    "comp17_curved_court_perimeter~full_ground^cross_open",
+    "comp17_folded_edge_and_room~full_ground^centred",
+    "sweep_0231_stack_butterfly_mansard",
+    "book:book-comp17:morph-compact-low:creative-003",
+    "book:book-develop-comp12:exact-authored-development:creative-002",
+    "comp17_offset_strata",
+    "book:book-develop-comp15:exact-authored-development:creative-002",
+    "book:book-comp17:morph-compact-low:creative-002",
+    "sangok_c03_descending_civic_court",
+    "sangok_c04_hall_daily_street~full_ground^centred",
+    "book:book-comp11:morph-compact-mid:creative-012",
+    "book:book-comp17:morph-voided-low:creative-008",
+    "book:book-comp17:morph-voided-low:creative-016",
+    "slipped_twin_gables~full_ground^off_open",
+    "comp17_paired_curved_rooms~full_ground^to_open",
+    "book:book-comp17:morph-oblique-low:creative-004",
+    "book:book-comp17:morph-voided-low:creative-006"
+  ],
+  "fresh_names": [
+    "book:book-comp17:morph-voided-low:creative-005",
+    "kr_three_ranges_one_tall_vault~held_ground",
+    "comp17_curved_court_perimeter~full_ground^cross_open",
+    "comp17_folded_edge_and_room~full_ground^centred",
+    "sweep_0231_stack_butterfly_mansard",
+    "book:book-comp17:morph-compact-low:creative-003",
+    "book:book-develop-comp12:exact-authored-development:creative-002",
+    "comp17_offset_strata",
+    "book:book-comp17:morph-compact-low:creative-002",
+    "sangok_c03_descending_civic_court",
+    "sangok_c04_hall_daily_street~full_ground^centred",
+    "book:book-comp11:morph-compact-mid:creative-012",
+    "book:book-comp17:morph-voided-low:creative-008",
+    "book:book-comp17:morph-voided-low:creative-016",
+    "slipped_twin_gables~full_ground^off_open",
+    "comp17_paired_curved_rooms~full_ground^to_open",
+    "book:book-comp17:morph-oblique-low:creative-004",
+    "book:book-comp17:morph-voided-low:creative-006"
+  ],
+  "cohort_exhausted": false
+}

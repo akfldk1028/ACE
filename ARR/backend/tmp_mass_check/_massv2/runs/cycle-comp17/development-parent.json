@@ -1,0 +1,57 @@
+{
+  "label": "O4",
+  "name": "comp17_folded_edge_and_room~full_ground^centred",
+  "score": 3.82,
+  "round": "vlm-comp17",
+  "shape_id": "bf8b84dac778b91eb9d7",
+  "certificate_id": "b1cbc6739e70938fffb6",
+  "presentation_group": "form-4",
+  "presentation_comparison": {
+    "duplicate_of": null,
+    "status": "verified",
+    "proof": {
+      "authority": "shared_source_volume_surface_mesh_union",
+      "closed_kernel_solid": true,
+      "normalization": {
+        "policy": "translation_uniform_xyz",
+        "original_bounds": [
+          23.254207088209316,
+          11.259154773260478,
+          0.0,
+          66.900655976934,
+          52.95586900862497,
+          15.436
+        ],
+        "translation_xyz": [
+          -23.254207088209316,
+          -11.259154773260478,
+          -0.0
+        ],
+        "uniform_xyz_scale": 0.02291137138211335,
+        "normalized_bounds": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.9553289052602884,
+          0.3536599286543017
+        ],
+        "normalized_ground_z": 0.0,
+        "ground_relation_preserved": true,
+        "rotation_or_axis_stretch": false
+      },
+      "bucket_key": "eb628deb923db0e3da0f",
+      "bucket_signature": [
+        1.0,
+        0.95532891,
+        0.35365993,
+        0.0
+      ],
+      "bucket_precision": 8,
+      "normalized_volume": 0.20588093662072235,
+      "sampled_geometry_not_analytic_error_certificate": true,
+      "comparisons": [],
+      "comparison_policy": "both_closed_boolean_differences_empty_and_same_ground_relation"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "round": "comp17",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "feedback": {
+    "parent": "comp17_folded_edge_and_room~full_ground^centred",
+    "champion": "comp17_folded_edge_and_room~full_ground^centred",
+    "source": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\champion.json",
+    "feedback_written": true
+  },
+  "board": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board\\board.html",
+  "sheet": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp17\\study.html"
+}

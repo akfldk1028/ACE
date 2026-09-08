@@ -1,0 +1,107 @@
+TILE t01
+CONCEPT 3 | A closed ring lifted clear of the ground - courtyard above, open ground below - is legible, if a familiar donut-on-piloti.
+FEASIBILITY 2 | Four small stub legs carry a full ring with cantilevers on every side, and the section catches only the legs, so no support logic is shown.
+SITE 3 | Rotated onto the parcel and roughly contained, but 34% coverage with 119% FAR leaves more than half the permitted envelope unclaimed.
+EDITABILITY 4 | A ring takes double-loaded floors and looped circulation readily, with cores plausibly landing in the legs.
+WEIGHTED 2.95
+
+TILE t02
+CONCEPT 2 | Two plain bars folded into a C with one wing raised; the court is generic and nothing else in the volume is worked.
+FEASIBILITY 4 | Low stacked bars, three storeys, no transfers or thin members anywhere.
+SITE 3 | The C opens to one parcel edge and sits within the boundary, but 30% coverage and 91% FAR use barely a third of the allowance.
+EDITABILITY 4 | Straight bars accept floors, cores and facades without touching the idea.
+WEIGHTED 3.10
+
+TILE t03
+CONCEPT 2 | A thin folded plate hovering over a few low bars reads as a roof object, not a building; positive volume is nearly absent.
+FEASIBILITY 1 | The section shows a near-zero-thickness plate spanning the whole parcel with no support reaching it from the detached bars below.
+SITE 2 | 53% coverage delivers only 26% FAR - the site is shadowed by something that holds almost no floor.
+EDITABILITY 1 | There is no depth to put floors, cores or facade into; developing it means abandoning the plate.
+WEIGHTED 1.55
+
+TILE t04
+CONCEPT 4 | Three vaulted bars in graded heights make one clear rule, and the rule survives in plan, section and silhouette alike.
+FEASIBILITY 4 | Repeated vaults over narrow bars are ordinary construction; only the top level loses headroom at the springing.
+SITE 3 | Bars align to one parcel edge and stay inside it, but leave slack triangles and stop at 106% FAR.
+EDITABILITY 4 | Each bar takes floors, a core and a facade independently while the rhythm of three holds.
+WEIGHTED 3.80
+
+TILE t05
+CONCEPT 2 | A fat podium with a thin rotated plate laid on it; the plate has no volume and the rotation is the only move.
+FEASIBILITY 3 | The podium is trivial, but the plate cantilevers off it with no thickness to carry the reach.
+SITE 2 | The polygon oversteps the parcel outline top-left and right and sits at the ground-coverage cap.
+EDITABILITY 3 | The podium is developable but very deep; the plate above resists becoming an occupiable storey.
+WEIGHTED 2.45
+
+TILE t06
+CONCEPT 3 | A stepped ziggurat with a mansard cap - the sectional hierarchy is clean and readable, but it is a conventional wedding cake.
+FEASIBILITY 4 | Each tier sits squarely on the one below; nothing is cantilevered or thin.
+SITE 3 | Terraces mediate scale and coverage sits at the cap, though the base edges creep past the parcel line.
+EDITABILITY 4 | Floors align tier to tier and the terraces survive any facade or core development.
+WEIGHTED 3.45
+
+TILE t07
+CONCEPT 2 | Overlapping gables articulate the top of an otherwise undifferentiated deep lump; no void, no interior order.
+FEASIBILITY 3 | Structurally simple, but a 60% coverage five-storey solid with no light court is spatially implausible for offices.
+SITE 2 | It fills the envelope to 246% FAR and crosses the boundary at the lower edges without answering any of them.
+EDITABILITY 3 | Floors are easy, but the deep interior has no daylight strategy to develop toward.
+WEIGHTED 2.45
+
+TILE t08
+CONCEPT 2 | A tapered table plate over scattered small boxes; the idea is a canopy and the inhabited part is incidental.
+FEASIBILITY 2 | The section shows a thin plate carried by two end legs over a long span, with only small boxes beneath it.
+SITE 2 | 56% coverage returns 51% FAR - most of the parcel is occupied by something that is not floor.
+EDITABILITY 2 | Only the small boxes can take rooms; the plate cannot become storeys without ceasing to be the idea.
+WEIGHTED 2.00
+
+TILE t09
+CONCEPT 3 | Carving a notch into a laminated stack produces a readable court on one flank, though the laminations stay graphic rather than spatial.
+FEASIBILITY 2 | The section is a T - a broad plate reaching both ways off one thick pier, with only sparse supports touching ground.
+SITE 2 | The notch faces one edge but the plates overhang the boundary and the scheme stops at 76% FAR.
+EDITABILITY 3 | The stacked plates are already floors, yet the sparse ground contacts make core placement awkward.
+WEIGHTED 2.55
+
+TILE t10
+CONCEPT 2 | One block split by a narrow slot; from the main view the split barely registers and no hierarchy follows from it.
+FEASIBILITY 4 | Two plain three-storey blocks; nothing to transfer or span.
+SITE 3 | The slot runs with the parcel diagonal and the mass stays inside, at 47% coverage and 125% FAR.
+EDITABILITY 4 | Both blocks accept floors, cores and facades with no cost to the slot.
+WEIGHTED 3.10
+
+TILE t11
+CONCEPT 3 | Shifted trays pinwheeling around each other give real articulation and shadow, but the aggregation follows no legible rule.
+FEASIBILITY 2 | Trays float far beyond anything below them, and the plan cuts show only two small footprints reaching the ground.
+SITE 2 | Several plates project well past the parcel outline at the right, and the composition still yields only 87% FAR.
+EDITABILITY 3 | The trays are floors, yet the shifts leave no continuous line for a core without flattening the idea.
+WEIGHTED 2.55
+
+TILE t12
+CONCEPT 3 | A folded-roof block cut by a central light court - the void is small but it is the one deliberate move and it reads in both plans.
+FEASIBILITY 4 | Solid block with an atrium; the folds are roof geometry only.
+SITE 3 | 53% coverage and 204% FAR make real use of the envelope while staying broadly within the parcel.
+EDITABILITY 4 | Floors ring the atrium, cores sit against it, and the roof folds are independent of all of that.
+WEIGHTED 3.45
+
+TILE t13
+CONCEPT 3 | Three slabs stacked and shifted produce terraces and recesses; coherent, if a well-worn manoeuvre.
+FEASIBILITY 4 | Modest overhangs slab to slab, well within ordinary edge structure.
+SITE 3 | At the coverage cap with 187% FAR and only a slight overrun at the right edge.
+EDITABILITY 3 | The slabs are the floors, but a 1,500 sqm plate with no court gives daylight and circulation little to work with.
+WEIGHTED 3.25
+
+TILE t14
+CONCEPT 4 | A perimeter court block under an undulating crown: one idea, and it holds in the volume, in both plan cuts and in the section.
+FEASIBILITY 4 | A shallow-depth five-storey ring on continuous walls; only the crown asks anything unusual of the top level.
+SITE 4 | It sits within the parcel with setbacks all round and takes its alignment from the parcel edges rather than overrunning them.
+EDITABILITY 4 | Double-loaded floors, corner cores, distinct inner and outer facades - all developable while the court and crown remain.
+WEIGHTED 4.00
+
+TILE t15
+CONCEPT 3 | A compact volume under a split vaulted crown; the gesture is confident but confined to the roof, with no void below it.
+FEASIBILITY 4 | An ordinary solid with a curved cap; nothing thin, nothing transferred.
+SITE 3 | Well inside the parcel at 31% coverage and 143% FAR, but it addresses none of the edges it stands clear of.
+EDITABILITY 3 | The body takes floors easily; the crown compromises the top storey and the split has to be honoured.
+WEIGHTED 3.25
+
+RANKING: t14, t04, t12, t06, t15, t13, t02, t10, t01, t11, t09, t07, t05, t08, t03
+VERDICT: Only t14 and t04 carry an idea that survives all three drawings - a court block under a worked crown, and three graded vaults - and both are buildable as drawn, so those two should advance, with t12 held as a third for the way its atrium answers a deep plan. The large middle of the set trades an idea for a stack: t06, t13, t15, t02 and t10 are competently massed but say little, while t01, t11 and t09 spend their invention on cantilevers and floating plates that their own sections do not support. At the bottom, t03 and t08 are canopies rather than buildings, covering half the parcel to deliver a quarter of the permitted floor area.

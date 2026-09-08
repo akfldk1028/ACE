@@ -1,0 +1,255 @@
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "new-era", "authored-composition-and-surface-preservation [cycle comp17]", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260908\\comp16-before-composition"]
+archived the old board to runs\board-archive-20260908-1507
+new era from 20260908-1507: authored-composition-and-surface-preservation [cycle comp17]
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-author\\scripts\\brief.sh"]
+637 sentences, 174 verdicts -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\board\verdict-ledger.md
+[INFO] 2026-09-08 15:07:03,301 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 15:07:03,301 numexpr.utils: NumExpr defaulting to 16 threads.
+brief -> brief.md (54358 bytes)
+brief: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/brief.md (54358 bytes)
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-validate\\scripts\\validate.sh", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp17.json"]
+
+=== gen-comp17.json: OK
+
+sentences 6   faults 0
+verbs    {'extrude': 3, 'crown': 3, 'stack': 2, 'rotate': 2, 'shift': 2, 'split': 2, 'carve': 2, 'loop': 1, 'fold': 1, 'intersect': 1}
+profiles {'square': 3, 'chamfered': 2, 'hexagon': 1}
+carve per sentence: 0.33   (기존 코퍼스 0.97)
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-run\\scripts\\run.sh", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\gen-comp17.json", "comp17"]
+[INFO] 2026-09-08 15:21:40,793 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 15:21:40,793 numexpr.utils: NumExpr defaulting to 16 threads.
+generation candidates: 222 (scope families)
+parti sentences: 191 spoken, 31 with a silent word (gate cache: 0 reused, 222 computed)
+  silent: one_eave_field -> canopy [0.858, 0.012]
+  silent: wild01_0105_stack_grade -> grade [0.783, 0.0]
+  silent: sweep_0499_stack_taper_lift_gable -> gable [0.661, 0.187, 0.77, 0.003]
+  silent: wild01_0071_stack_vault -> vault [0.713, 0.0]
+  silent: sweep-figures01_0027_extrude_compress_vault_inscribe_grade -> inscribe [0.83, 0.309, 0.547, 0.0, 0.704]
+  silent: wide01_0055_stack_puncture_mansard -> mansard [0.784, 0.143, 0.018]
+  silent: sangok_civic_roof_fold -> shape [0.822, 0.03]
+  silent: seated_vault_crown -> vault [0.602, 0.196, 0.041]
+  silent: kite_prow_gable_pile -> gable [0.662, 0.04]
+  silent: pierced_l_pile -> puncture [0.841, 0.029]
+  silent: turned_chamfer_stack -> twist [0.665, 0.0]
+  silent: sweep03_0176_stack_vault -> vault [0.707, 0.001]
+  silent: sweep03_0072_stack_mansard -> mansard [0.565, 0.015]
+  silent: wild01_0038_stack_fold -> fold [0.713, 0.0]
+  silent: sweep_0382_stack_butterfly -> butterfly [0.677, 0.013]
+  silent: wide01_0179_loop_grade -> grade [0.9, 0.0]
+  silent: wild01_0123_extrude_sink -> sink [0.634, 0.0]
+  silent: sweep_0533_stack_mansard_fold -> mansard,fold [0.672, 0.006, 0.003]
+  silent: sweep-figures01_0290_stack_vault_grade_split_shift -> vault,grade,split [0.762, 0.009, 0.0, 0.026, 0.431]
+  silent: sweep_0008_stack_mansard_expand_butterfly -> mansard,expand,butterfly [0.68, 0.005, 0.005, 0.01]
+  silent: sweep_0116_stack_vault_gable_compress -> vault,gable [0.594, 0.007, 0.0, 0.363]
+  silent: sweep_0300_stack_gable_mansard -> gable,mansard [0.663, 0.004, 0.006]
+  silent: sweep_0311_aggregate_mansard_gable -> gable [0.909, 0.6, 0.0]
+  silent: sweep_0364_extrude_fold_gable -> gable [0.39, 0.435, 0.0]
+  silent: sweep03_0138_stack_fold_gable -> gable [0.398, 0.102, 0.0]
+  silent: sweep_0505_loop_butterfly_gable -> gable [0.851, 0.8, 0.0]
+  silent: sweep_0571_stack_mansard_lift_vault -> vault [0.666, 0.193, 0.688, 0.016]
+  silent: wide01_0133_stack_vault_grade -> vault,grade [0.613, 0.014, 0.0]
+  silent: wild01_0066_loop_sink -> sink [0.831, 0.0]
+  silent: wild01_0131_aggregate_sink -> sink [0.86, 0.0]
+  silent: comp17_crossing_room_and_recess -> intersect [0.504, 0.04, 0.078]
+gaps that closed before delivery: 0
+coverage variants: 764
+siting variants: 3196
+selected 81 from 193 (80 distinct compositions)
+compiled 366/366  delivered 3  unlawful 132  implausible 77  crushed 70  cells 21/24
+summary: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/comp17/massv2-summary.json
+sheet:   D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/comp17/massv2-sheet.png
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "validate-book", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json", "8"]
+validated 8 authored BOOK programs
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "validate-book", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json", "8"]
+validated 8 authored BOOK programs
+
+["C:\\Python313\\python.exe", "-X", "utf8", "manage.py", "generate_maas_creative_100", "--count", "8", "--pnu", "4115011300106840001", "--capacity-ceiling-m2", "1497.877", "--output-root", "tmp_mass_check/c260-book", "--run-id", "book-comp17", "--author-mode", "payload", "--author-payload", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json"]
+[INFO] 2026-09-08 16:07:02,988 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:07:02,988 numexpr.utils: NumExpr defaulting to 16 threads.
+CommandError: authored creative portfolio incomplete: 3/8 explorations
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "validate-book", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json", "8"]
+validated 8 authored BOOK programs
+
+["C:\\Python313\\python.exe", "-X", "utf8", "manage.py", "generate_maas_creative_100", "--count", "8", "--pnu", "4115011300106840001", "--capacity-ceiling-m2", "1497.877", "--output-root", "tmp_mass_check/c260-book", "--run-id", "book-comp17", "--author-mode", "payload", "--author-payload", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\book-comp17.json"]
+[INFO] 2026-09-08 16:12:46,500 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:12:46,501 numexpr.utils: NumExpr defaulting to 16 threads.
+{"board_png": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17\\maas-creative-board.png", "candidate_count": 16, "legal_review_status": "not_evaluated", "paid_author_request_count": 0, "paid_vlm_request_count": 0, "portfolio_json": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17\\maas-creative-portfolio.json", "run_directory": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17", "run_id": "book-comp17"}
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "carry-book", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17"]
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\book_import.py", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17", "book-comp17"]
+[INFO] 2026-09-08 16:13:03,646 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:13:03,646 numexpr.utils: NumExpr defaulting to 16 threads.
+[INFO] 2026-09-08 16:13:06,245 land.services.land_api: land_api.get_land_use_info(pnu=4115011300106840001) - calling Vworld APIs
+[INFO] 2026-09-08 16:13:06,276 land.services.zoning_mapper: Loaded 21 zoning zones from D:\Data\25_ACE\ARR\backend\land\data\zoning_limits.json
+[INFO] 2026-09-08 16:13:07,076 land.services.datum.elevation_api: Opened NGII local DEM: D:/Data/NGII_DEM/seoul_dem.tif (CRS=EPSG:5186, 1770x557)
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\book_import.py", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\c260-book\\book-comp17", "book-comp17"]
+[INFO] 2026-09-08 16:22:53,909 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:22:53,909 numexpr.utils: NumExpr defaulting to 16 threads.
+[INFO] 2026-09-08 16:22:56,745 land.services.land_api: land_api.get_land_use_info(pnu=4115011300106840001) - calling Vworld APIs
+[INFO] 2026-09-08 16:22:56,791 land.services.zoning_mapper: Loaded 21 zoning zones from D:\Data\25_ACE\ARR\backend\land\data\zoning_limits.json
+[INFO] 2026-09-08 16:22:57,770 land.services.datum.elevation_api: Opened NGII local DEM: D:/Data/NGII_DEM/seoul_dem.tif (CRS=EPSG:5186, 1770x557)
+  skip book-comp17:morph-voided-low:creative-010: GEOSException: TopologyException: side location conflict at 40.993398755325487 24.970555966739465. This can occur if the input geometry is invalid.
+  skip book-comp17:morph-voided-low:creative-011: BOOK delivered floor measurement: floor_1_original_export_area_mismatch:523.782883407->521.054847413; floor_1_authored_export_area_mismatch:523.782883000->521.054847413; floor_2_original_export_area_mismatch:676.217116362->679.729679210; floor_2_authored_export_area_mismatch:676.217116000->679.729679210
+  skip book-comp17:morph-voided-low:creative-012: BOOK dimensional evidence: authored dimensional intent disagrees with physical floor evidence
+  skip book-comp17:morph-voided-low:creative-013: BOOK delivered floor measurement: floor_2_ambiguous_horizontal_skin_at_center:123.773155625
+  skip book-comp17:morph-voided-low:creative-014: mesh gravity screen refused (authoritative_mesh_support_measurement_unknown)
+  skip book-develop-comp06:exact-authored-development:creative-002: exact development cannot fit the legal host without resizing
+  skip book-develop-comp08:exact-authored-development:creative-001: exact development cannot fit the legal host without resizing
+  skip book-develop-comp09:exact-authored-development:creative-002: exact development cannot fit the legal host without resizing
+  skip book-develop-comp10:exact-authored-development:creative-001: exact development cannot fit the legal host without resizing
+16 tiles staged (16 book + 0 anchors) -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\vlm-book-comp17
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-judge\\scripts\\stage.sh", "comp17", "14"]
+15 tiles staged -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\vlm-comp17
+judges read: D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\vlm-comp17\PROMPT.txt + the tiles; then rerun with --score <their outputs>
+stage:  D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/vlm-comp17
+jurors: read PROMPT.txt + t*.png there; write r1.txt r2.txt r3.txt; never open key.json
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r1.txt"]
+ok: 15 tiles bound to scores
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r2.txt"]
+ok: 15 tiles bound to scores
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-comp17\\r3.txt"]
+ok: 15 tiles bound to scores
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "book-comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r1.txt"]
+ok: 16 tiles bound to scores
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "book-comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r2.txt"]
+ok: 16 tiles bound to scores
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\vlm_shortlist.py", "book-comp17", "--verify", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\vlm-book-comp17\\r3.txt"]
+ok: 16 tiles bound to scores
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-judge\\scripts\\score.sh", "comp17"]
+ok: 15 tiles bound to scores
+ok: 15 tiles bound to scores
+ok: 15 tiles bound to scores
+   3.87  kr_three_ranges_one_tall_vault~held_ground
+   3.83  comp17_curved_court_perimeter~full_ground^cross_open
+   3.82  comp17_folded_edge_and_room~full_ground^centred
+   3.68  sweep_0231_stack_butterfly_mansard
+   3.57  comp17_offset_strata
+   3.32  sangok_c03_descending_civic_court
+   3.27  sangok_c04_hall_daily_street~full_ground^centred
+   3.20  slipped_twin_gables~full_ground^off_open
+   3.17  comp17_paired_curved_rooms~full_ground^to_open
+   2.97  ring_holds_its_court_aloft^centred
+   2.67  ruled_winding_taper
+   2.65  one_cut_four_towers
+   2.63  sangok_terrace_lantern^centred
+   2.18  wide01_0115_aggregate_taper
+   1.77  sweep03_0011_aggregate_mansard_fold
+-> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\vlm-comp17\vlm-shortlist.json
+shortlist: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/vlm-comp17/vlm-shortlist.json
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-judge\\scripts\\score.sh", "book-comp17"]
+ok: 16 tiles bound to scores
+ok: 16 tiles bound to scores
+ok: 16 tiles bound to scores
+   3.97  book:book-comp17:morph-voided-low:creative-005
+   3.63  book:book-comp17:morph-compact-low:creative-003
+   3.62  book:book-develop-comp12:exact-authored-development:crea
+   3.57  book:book-develop-comp15:exact-authored-development:crea
+   3.53  book:book-comp17:morph-compact-low:creative-002
+   3.27  book:book-comp11:morph-compact-mid:creative-012
+   3.27  book:book-comp17:morph-voided-low:creative-008
+   3.23  book:book-comp17:morph-voided-low:creative-016
+   3.17  book:book-comp17:morph-oblique-low:creative-004
+   3.05  book:book-comp17:morph-voided-low:creative-006
+   2.97  book:book-comp17:morph-voided-low:creative-015
+   2.90  book:book-comp17:morph-oblique-low:creative-007
+   2.77  book:book-comp16:morph-oblique-mid:creative-005
+   2.77  book:book-comp17:morph-oblique-low:creative-009
+   2.73  book:book-develop-comp03:exact-authored-development:crea
+   2.35  book:book-comp17:morph-oblique-low:creative-001
+-> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\vlm-book-comp17\vlm-shortlist.json
+shortlist: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/vlm-book-comp17/vlm-shortlist.json
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-curate\\scripts\\curate.sh"]
+BOOK masses seated alongside the authored ones: 10 (best 3.97)
+[WARNING] 2026-09-08 16:42:06,164 design.services.site_geometry: VWORLD_API_KEY not set, cannot fetch parcel boundary
+[WARNING] 2026-09-08 16:42:06,164 design.services.site_geometry: Vworld unavailable; using the cached real boundary for PNU 4115011300106840001 fetched at 2026-09-08T07:41:48.588371+00:00
+[INFO] 2026-09-08 16:42:06,169 land.services.land_api: land_api.get_land_use_info(pnu=4115011300106840001) - calling Vworld APIs
+[INFO] 2026-09-08 16:42:06,284 land.services.zoning_mapper: Loaded 21 zoning zones from D:\Data\25_ACE\ARR\backend\land\data\zoning_limits.json
+[INFO] 2026-09-08 16:42:06,903 land.services.datum.elevation_api: Opened NGII local DEM: D:/Data/NGII_DEM/seoul_dem.tif (CRS=EPSG:5186, 1770x557)
+ledger 31 entries, passers 19, board K0 + O19 (one per family)
+    O1 3.97 book:book-comp17:morph-voided-low:creative-005
+    O2 3.87 kr_three_ranges_one_tall_vault~held_ground
+    O3 3.83 comp17_curved_court_perimeter~full_ground^cross_open
+    O4 3.82 comp17_folded_edge_and_room~full_ground^centred
+    O5 3.68 sweep_0231_stack_butterfly_mansard
+    O6 3.63 book:book-comp17:morph-compact-low:creative-003
+    O7 3.62 book:book-develop-comp12:exact-authored-development:
+    O8 3.57 comp17_offset_strata
+    O9 3.57 book:book-develop-comp15:exact-authored-development:
+   O10 3.53 book:book-comp17:morph-compact-low:creative-002
+   O11 3.32 sangok_c03_descending_civic_court
+   O12 3.27 sangok_c04_hall_daily_street~full_ground^centred
+   O13 3.27 book:book-comp11:morph-compact-mid:creative-012
+   O14 3.27 book:book-comp17:morph-voided-low:creative-008
+   O15 3.23 book:book-comp17:morph-voided-low:creative-016
+   O16 3.20 slipped_twin_gables~full_ground^off_open
+   O17 3.17 comp17_paired_curved_rooms~full_ground^to_open
+   O18 3.17 book:book-comp17:morph-oblique-low:creative-004
+   O19 3.05 book:book-comp17:morph-voided-low:creative-006
+    C1   -  one_round_tower^centred
+    C2   -  one_wide_slab^centred
+    C3   -  slab_on_pilotis^centred
+    C4   -  stadium_slab_tower^centred
+    C5   -  two_drums_one_court^centred
+    C6   -  round_tower_low_plate^centred
+    C7   -  lifted_round_disc^centred
+    C8   -  drum_that_steps_once^centred
+    C9   -  one_gable_bar^centred
+   C10   -  twin_gable_bars^centred
+   C11   -  one_court_block^centred
+board-key: D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/runs/board/board-key.json
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-board\\scripts\\bake.sh"]
+missing and unbakeable: C4 stadium_slab_tower^centred
+missing and unbakeable: C6 round_tower_low_plate^centred
+baked 26, kept 0 -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\board
+warning: 4 missing/unbakeable tiles - read runs/bake.out
+
+["C:\\Program Files\\Git\\usr\\bin\\bash.exe", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-board\\scripts\\html.sh"]
+board.html: D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\board\board.html (395 KB, K0 + O19)
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "pixel-diff", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\diagnostics\\competition-20260908\\comp16-before-composition", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\pixel-diff.json"]
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "recommendation-context", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\recommendation-context.json", "comp17", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\board-key.json"]
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\study_sheet.py", "comp17", "study-comp17", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp17\\recommendation-context.json"]
+[WARNING] 2026-09-08 16:49:13,928 design.services.site_geometry: VWORLD_API_KEY not set, cannot fetch parcel boundary
+[WARNING] 2026-09-08 16:49:13,928 design.services.site_geometry: Vworld unavailable; using the cached real boundary for PNU 4115011300106840001 fetched at 2026-09-08T07:46:07.468325+00:00
+[INFO] 2026-09-08 16:49:13,932 land.services.land_api: land_api.get_land_use_info(pnu=4115011300106840001) - calling Vworld APIs
+[INFO] 2026-09-08 16:49:14,007 land.services.zoning_mapper: Loaded 21 zoning zones from D:\Data\25_ACE\ARR\backend\land\data\zoning_limits.json
+[INFO] 2026-09-08 16:49:14,725 land.services.datum.elevation_api: Opened NGII local DEM: D:/Data/NGII_DEM/seoul_dem.tif (CRS=EPSG:5186, 1770x557)
+wrote D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\study-comp17\study.html (3 alternatives, 0 rejected)
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\agents\\MassAgent\\skills\\mass-cycle\\scripts\\bridge.py", "authored-pairs", "comp17_folded_edge_and_room~full_ground^centred", "comp17", "4", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored", "bf8b84dac778b91eb9d7", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\parti-develop-comp17.json"]
+[INFO] 2026-09-08 16:53:48,279 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:53:48,279 numexpr.utils: NumExpr defaulting to 16 threads.
+[INFO] 2026-09-08 16:53:50,800 land.services.land_api: land_api.get_land_use_info(pnu=4115011300106840001) - calling Vworld APIs
+[INFO] 2026-09-08 16:53:50,879 land.services.zoning_mapper: Loaded 21 zoning zones from D:\Data\25_ACE\ARR\backend\land\data\zoning_limits.json
+[INFO] 2026-09-08 16:53:51,952 land.services.datum.elevation_api: Opened NGII local DEM: D:/Data/NGII_DEM/seoul_dem.tif (CRS=EPSG:5186, 1770x557)
+1 delivered mutants, pairs -> D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\runs\develop-comp17-authored\pairs
+next: blind pairwise judges pick A or B per pair; keep B only where preferred; repeat on the winner.
+
+["C:\\Python313\\python.exe", "-X", "utf8", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\tools\\develop.py", "develop-comp17-authored", "--score", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r1.txt", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r2.txt", "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp17-authored\\pairs\\r3.txt"]
+[INFO] 2026-09-08 16:55:19,442 numexpr.utils: Note: NumExpr detected 24 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 16.
+[INFO] 2026-09-08 16:55:19,442 numexpr.utils: NumExpr defaulting to 16 threads.
+pairs judged 1, jurors 3, unanimous child wins 0
+champion: parent holds (no unanimous win)
+seated in gen-develop.json: comp17_folded_edge_and_room

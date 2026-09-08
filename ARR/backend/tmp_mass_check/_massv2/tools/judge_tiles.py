@@ -15,6 +15,7 @@ rubric; do not edit it between rounds.
 """
 
 import json
+import hashlib
 import random
 import sys
 from pathlib import Path
@@ -29,9 +30,83 @@ from design.maas.massv2.siting import site_open_side_direction  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def allocate_stage(summary, count, fresh_sources, rebuild_source):
+    """Reserve jury exposure, never a score, from the selector's accepted names.
+
+    The callback retains the existing reconstruction gates and returns
+    (source, refusal_reason). Missing historical input keeps the old ordering.
+    """
+    chosen = list(dict.fromkeys((summary.get('selection') or {}).get('chosen_names') or []))
+    cell_of = {r['name']: r.get('cell') or '?' for r in summary['records']}
+    order = list(chosen)
+    random.Random(20260831).shuffle(order)
+    by_cell = {}
+    for name in order:
+        by_cell.setdefault(cell_of.get(name, '?'), []).append(name)
+    firsts = [names[0] for names in by_cell.values()]
+    legacy = firsts + [name for name in order if name not in firsts]
+    wanted = int(count)
+    if wanted < 1:
+        raise ValueError('stage count must be positive')
+    evidence = {
+        'schema': 'massv2.stage_selection.v1',
+        'policy': 'legacy_cell_order' if fresh_sources is None else 'selected_source_and_cell_union',
+        'requested_count': wanted, 'selector_chosen_names': chosen,
+        'supplied_source_names': list(dict.fromkeys(fresh_sources or [])),
+        'source_reservations': [], 'cell_representatives': [], 'refused': [],
+        'fresh_sources_without_selected_variant': [], 'fresh_sources_without_rebuildable_variant': [],
+    }
+    cached, admitted = {}, {}
+
+    def admit(name):
+        if name not in cached:
+            source, reason = rebuild_source(name)
+            cached[name] = source
+            if source is None:
+                evidence['refused'].append({'name': name, 'reason': reason or 'rebuild returned no source'})
+        if cached[name] is None:
+            return False
+        admitted[name] = cached[name]
+        return True
+
+    if fresh_sources is not None:
+        for source_name in evidence['supplied_source_names']:
+            variants = [name for name in chosen if name.split('~')[0].split('^')[0] == source_name]
+            if not variants:
+                evidence['fresh_sources_without_selected_variant'].append(source_name)
+                continue
+            for name in variants:  # selector order, not random priority within a source
+                if admit(name):
+                    evidence['source_reservations'].append({'source': source_name, 'name': name})
+                    break
+            else:
+                evidence['fresh_sources_without_rebuildable_variant'].append(source_name)
+        # Keep the existing cell representatives even if a source reserve has
+        # that cell already. A coarse cell does not prove geometric equivalence.
+        for cell, names in by_cell.items():
+            for name in names:
+                if admit(name):
+                    evidence['cell_representatives'].append({'cell': cell, 'name': name})
+                    break
+    minimum = len(admitted)
+    for name in legacy:
+        if len(admitted) >= max(wanted, minimum):
+            break
+        admit(name)
+    # Seeded presentation order hides membership priority; historical order is
+    # unchanged when no canonical author input is available.
+    names = [name for name in legacy if name in admitted]
+    evidence.update(minimum_breadth_count=minimum, admitted_count=len(names), admitted_names=names,
+                    overflow_count=max(0, len(names) - wanted),
+                    attempted_names=list(cached),
+                    selected_not_admitted=[name for name in chosen if name not in admitted])
+    return [(name, admitted[name]) for name in names], evidence
+
+
 def main(run: str, count: str = "10", out_name: str = "") -> int:
-    summary = json.loads(
-        (ROOT / "runs" / run / "massv2-summary.json").read_text(encoding="utf-8"))
+    summary_path = ROOT / 'runs' / run / 'massv2-summary.json'
+    summary_raw = summary_path.read_bytes()
+    summary = json.loads(summary_raw)
     book = corpus()
     schedule = schedule_of(run)
     site = load_legal_site(PNU, building_type=BUILDING_TYPE)
@@ -41,42 +116,35 @@ def main(run: str, count: str = "10", out_name: str = "") -> int:
         1, int(site.far_capacity_m2 // max(1.0, site.ground_capacity_m2)))
     parcel = float(summary["site"]["parcel_area_m2"])
 
-    chosen = (summary.get("selection") or {}).get("chosen_names") or []
-    wanted = int(count)
-    # Stratified by cell BEFORE the shuffle-and-truncate: the selector fills
-    # sixteen stature-x-void cells scarcest-first, and truncating a flat
-    # shuffle to twelve let a fixed seed - not the cells - decide which cells
-    # a judge ever saw. One representative per cell goes first (cells in
-    # seeded random order), the rest follow; the truncation now eats spares,
-    # not whole cells. The seed still hides the selector's own ranking.
-    cell_of = {r["name"]: (r.get("cell") or "?") for r in summary["records"]}
-    rng = random.Random(20260831)
-    order = list(chosen)
-    rng.shuffle(order)
-    firsts, spares, seen_cells = [], [], set()
-    for name in order:
-        cell = cell_of.get(name, "?")
-        if cell not in seen_cells:
-            seen_cells.add(cell)
-            firsts.append(name)
-        else:
-            spares.append(name)
-    order = firsts + spares
+    input_path = ROOT / 'inputs' / f'gen-{run}.json'
+    fresh_sources, input_evidence = None, {'path': str(input_path), 'status': 'unavailable'}
+    if input_path.is_file():
+        raw = input_path.read_bytes()
+        payload = json.loads(raw)
+        fresh_sources = [row['name'] for row in payload['schemes']]
+        input_evidence.update(status='available', sha256=hashlib.sha256(raw).hexdigest())
+
+    def resolve(name):
+        family = name.split('~')[0].split('^')[0]
+        if book.get(family) is None:
+            return None, 'selected source absent from current corpus'
+        source = rebuild(name, book, site, buildable, axis, base, schedule=schedule)
+        return source, None if source is not None else 'existing rebuild gates returned no source'
+
+    seats, selection = allocate_stage(summary, count, fresh_sources, resolve)
+    selection.update(author_input=input_evidence,
+                     selector_summary={'path': str(summary_path), 'sha256': hashlib.sha256(summary_raw).hexdigest()},
+                     rendered_names=[])
 
     out = ROOT / "runs" / (out_name or f"judge-{run}")
     out.mkdir(parents=True, exist_ok=True)
+    selection_path = out / 'stage-selection.json'
+    selection_path.write_text(json.dumps(selection, ensure_ascii=False, indent=2), encoding='utf-8')
     key = []
     made = 0
-    for name in order:
-        if made >= wanted:
-            break
+    for name, source in seats:
         family = name.split("~")[0].split("^")[0]
-        parti = book.get(family)
-        if parti is None:
-            continue
-        source = rebuild(name, book, site, buildable, axis, base, schedule=schedule)
-        if source is None:
-            continue
+        parti = book[family]
         record = next((r for r in summary["records"] if r["name"] == name), None)
         fit = (record or {}).get("legal_fit") or {}
         ground = float(fit.get("ground_area_m2") or 0.0)
@@ -98,6 +166,8 @@ def main(run: str, count: str = "10", out_name: str = "") -> int:
                     "cell": (record or {}).get("cell"),
                     "coverage_pct": round(ground / parcel * 100, 1),
                     "storeys": round(gross / max(ground, 1e-9), 1)})
+        selection['rendered_names'].append(name)
+        selection_path.write_text(json.dumps(selection, ensure_ascii=False, indent=2), encoding='utf-8')
 
     # The rubric travels with the round it judged.
     (out / "prompts.json").write_text(

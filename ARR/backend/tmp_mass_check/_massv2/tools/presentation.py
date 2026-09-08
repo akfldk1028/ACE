@@ -112,6 +112,18 @@ def _polygons(geometry):
     return [p for g in getattr(geometry, 'geoms', ()) for p in _polygons(g)]
 
 
+def _drawing_geometry(geometry):
+    """The IR may return None for an unoccupied cut; draw/measure empty space.
+
+    Preserve every supplied geometry unchanged. This presentation adapter
+    neither substitutes the projected footprint nor changes the solid owner.
+    """
+    if geometry is None:
+        from shapely.geometry import GeometryCollection
+        return GeometryCollection()
+    return geometry
+
+
 def section_geometry(source, *, y):
     """Vertical x/z cut; top and underside come from the solid IR.
 
@@ -122,7 +134,7 @@ def section_geometry(source, *, y):
     from shapely.ops import unary_union
     from design.maas.massv2.render_mesh import is_mesh_authoritative, mesh_section_at
     if is_mesh_authoritative(source):
-        return mesh_section_at(source, axis='y', coordinate=y)
+        return _drawing_geometry(mesh_section_at(source, axis='y', coordinate=y))
     height = float(source.metadata.get('authored_height_m') or 0)
     shapes = []
     for volume in source.volumes:
@@ -150,9 +162,9 @@ def plan_geometry(source, *, z):
     """Occupied plan from the source's authority; BOOK requires its export mesh."""
     from design.maas.massv2.render_mesh import is_mesh_authoritative, mesh_plan_at
     if is_mesh_authoritative(source):
-        return mesh_plan_at(source, z)
+        return _drawing_geometry(mesh_plan_at(source, z))
     if hasattr(source, 'plan_at'):
-        return source.plan_at(z)
+        return _drawing_geometry(source.plan_at(z))
     from shapely.ops import unary_union
     height = float(source.metadata.get('authored_height_m') or 0)
     return unary_union([v.plan_at(z, v.bottom_fraction * height, v.top_fraction * height)

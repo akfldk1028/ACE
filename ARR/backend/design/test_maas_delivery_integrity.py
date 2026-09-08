@@ -149,6 +149,38 @@ class DeliveryIntegrityTests(unittest.TestCase):
         self.assertAlmostEqual(section.area, 10)
         self.assertEqual(section.bounds, (0, 9, 10, 10))
 
+    def test_drawing_empty_height_cuts_record_zero_without_invented_footprint(self):
+        from presentation import drawing_evidence, plan_geometry
+        short = mass(height=2)
+        raised = replace(mass(height=10), volumes=(SourceVolume(
+            'raised-body', box(0, 0, 10, 10), .8, 1, 'lift'),))
+        for source, storey, expected, empty_z in [
+                (short, 3, [100., 0.], 4.2),
+                (raised, 8, [0., 100.], 1.2)]:
+            with self.subTest(storey=storey), tempfile.TemporaryDirectory() as tmp:
+                before = vlm_shortlist.shape_id(source)
+                self.assertIsNone(source.plan_at(empty_z))  # actual IR empty-section contract
+                path = drawing_evidence('empty-cut', source, box(0, 0, 10, 10), tmp,
+                                        storey_m=storey, anonymous=True)
+                evidence = json.loads(path.with_suffix('.json').read_text(encoding='utf-8'))
+                self.assertEqual(evidence['plan_areas_m2'], expected)
+                self.assertAlmostEqual(evidence['section_area_m2'], 20.)
+                self.assertTrue(plan_geometry(source, z=empty_z).is_empty)
+                self.assertEqual(evidence['shape_id'], before)
+                self.assertEqual(vlm_shortlist.shape_id(source), before)
+                self.assertTrue(path.is_file())
+
+    def test_drawing_section_outside_actual_body_stays_empty(self):
+        from presentation import drawing_evidence, section_geometry
+        source = mass(height=2)
+        self.assertTrue(section_geometry(source, y=20).is_empty)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = drawing_evidence('missed-body', source, box(0, 0, 40, 40), tmp, storey_m=3)
+            evidence = json.loads(path.with_suffix('.json').read_text(encoding='utf-8'))
+            self.assertEqual(evidence['section_y_m'], 20.)
+            self.assertEqual(evidence['section_area_m2'], 0.)
+            self.assertEqual(evidence['plan_areas_m2'], [100., 0.])
+
     def test_board_does_not_label_new_geometry_with_old_score(self):
         import board_render
         self.assertTrue(hasattr(board_render, 'tile_evidence'))

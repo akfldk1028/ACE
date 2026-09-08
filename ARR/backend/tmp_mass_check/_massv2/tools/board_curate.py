@@ -12,6 +12,7 @@ Rendering and publishing read that key; nobody picks tiles by eye again.
 
 import json
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -82,7 +83,7 @@ ROUNDS = [
 ]
 # The anchor-corrected pass thresholds recorded per round live in the
 # shortlists as `pass`; the korea final ranking predates that format.
-from vlm_shortlist import PASS_CUT  # noqa: E402
+from vlm_shortlist import PASS_CUT, certificate_digest  # noqa: E402
 KOREA_FINAL_PASS = PASS_CUT  # the one cut; this name survives for the pre-`pass` korea file
 
 
@@ -168,6 +169,86 @@ def corpus() -> dict:
     return book
 
 
+def exact_presentation_aliases(rows: list[dict], *, root: Path | None = None) -> list[dict]:
+    """One presentation seat for verified exact aliases in one judging context.
+
+    Certificate IDs bind names, so compare their complete evidence excluding
+    only name and that ID. Never infer equivalence from a plan or family.
+    Missing, ambiguous or malformed public evidence leaves the row separate.
+    Input/ledger rows and each original score remain untouched.
+    """
+    import hashlib
+    import math
+
+    root = ROOT if root is None else root
+    contexts: dict = {}
+    numeric = ('ground_m2', 'gross_m2', 'storey_m', 'coverage_pct', 'far_pct', 'height_m')
+
+    def evidence(row):
+        if any(not isinstance(row.get(k), str) or not row[k]
+               for k in ('track', 'round', 'name', 'shape_id', 'certificate_id')):
+            return None
+        context = row['round']
+        if Path(context).name != context or context in ('.', '..'):
+            return None
+        if context not in contexts:
+            path = root / 'runs' / context / 'key.json'
+            try:
+                raw = path.read_bytes()
+                entries = json.loads(raw)
+                if not isinstance(entries, list) or not all(isinstance(e, dict) for e in entries):
+                    raise ValueError('public key must be a row list')
+                contexts[context] = (entries, str(path), hashlib.sha256(raw).hexdigest())
+            except (OSError, ValueError):
+                contexts[context] = ([], str(path), None)
+        entries, path, digest = contexts[context]
+        matches = [e for e in entries if e.get('name') == row['name']]
+        if len(matches) != 1:
+            return None
+        entry = matches[0]
+        cert = entry.get('certificate')
+        if not isinstance(cert, dict):
+            return None
+        if any(cert.get(k) != row[k] for k in ('name', 'shape_id', 'certificate_id')):
+            return None
+        if entry.get('shape_id') != row['shape_id'] or (
+                'certificate_id' in entry and entry['certificate_id'] != row['certificate_id']):
+            return None
+        if any(type(cert.get(k)) not in (int, float) or not math.isfinite(cert[k]) for k in numeric):
+            return None
+        if any(not isinstance(cert.get(k), dict) or not cert[k]
+               for k in ('storey_limit', 'area_limits', 'structure')):
+            return None
+        if not cert.get('site_pnu') or not cert.get('floor_area_basis'):
+            return None
+        if row['name'].startswith('book:') and not isinstance(cert.get('delivered_floor_evidence'), dict):
+            return None
+        try:
+            if certificate_digest(cert) != row['certificate_id']:
+                return None
+            equivalent = json.dumps({k: v for k, v in cert.items()
+                                     if k not in ('name', 'certificate_id')},
+                                    sort_keys=True, allow_nan=False)
+        except (TypeError, ValueError):
+            return None
+        return ((row['track'], context, row['shape_id'], equivalent),
+                dict(public_key=deepcopy(entry), public_key_path=path, public_key_sha256=digest))
+
+    # Existing curator ranking: descending score, stable order for ties.
+    chosen, representatives = [], {}
+    for row in sorted(rows, key=lambda item: item['score'], reverse=True):
+        verified = evidence(row)
+        if verified is not None and verified[0] in representatives:
+            representatives[verified[0]].setdefault('exact_geometry_aliases', []).append(
+                dict(row=deepcopy(row), **verified[1]))
+            continue
+        seat = deepcopy(row)
+        chosen.append(seat)
+        if verified is not None:
+            representatives[verified[0]] = seat
+    return chosen
+
+
 def main() -> int:
     import sys as _sys
     if len(_sys.argv) > 1 and _sys.argv[1] == "--new-era":
@@ -208,6 +289,7 @@ def main() -> int:
             ledger[(track, name)] = {
                 "track": track, "name": name, "score": round(score, 2),
                 "pass": passed, "round": rel.split("/")[1],
+                "scored_row": deepcopy(row),
                 # The picture this score was given to; an anchor ride checks it.
                 **({"shape_id": row["shape_id"]} if row.get("shape_id") else {}),
                 **({"certificate_id": row["certificate_id"]} if row.get("certificate_id") else {}),
@@ -377,6 +459,8 @@ def main() -> int:
                if id(item) == id(best_by_sentence[
                    item["name"].split("~")[0].split("^")[0]])]
 
+    # Presentation only: the complete scored ledger remains below unchanged.
+    curated = exact_presentation_aliases(curated)
     board = []
     counters = {"K": 0, "O": 0}
     for track in ("K", "O"):
@@ -388,7 +472,9 @@ def main() -> int:
                           "name": item["name"], "score": item["score"],
                           "round": item["round"],
                           **({"shape_id": item["shape_id"]} if item.get("shape_id") else {}),
-                          **({"certificate_id": item["certificate_id"]} if item.get("certificate_id") else {})})
+                          **({"certificate_id": item["certificate_id"]} if item.get("certificate_id") else {}),
+                          **({"exact_geometry_aliases": item["exact_geometry_aliases"]}
+                             if item.get("exact_geometry_aliases") else {})})
     # The canon is not a contestant. Section 11 promises the standard
     # repertoire is ALWAYS present, and for a season it wasn't: the canon
     # round was authored, closed-looped and never juried, so the wide slab,

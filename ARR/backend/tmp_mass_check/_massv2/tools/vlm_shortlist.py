@@ -130,6 +130,13 @@ def jury_caption(source, site, *, gross_m2=None, storey_m=None):
     return certified_caption(source, site, '', gross_m2=gross_m2, storey_m=storey_m)
 
 
+def certificate_digest(cert):
+    """The existing name-bound certificate digest, before adding its own ID."""
+    import hashlib
+    payload = {key: value for key, value in cert.items() if key != 'certificate_id'}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:20]
+
+
 def seat_certificate(name, source, book, site, *, book_entry=None):
     """Numeric evidence and exact source identity, shared by all delivery views.
 
@@ -190,8 +197,7 @@ def seat_certificate(name, source, book, site, *, book_entry=None):
     if is_mesh_authoritative(source) and not standing.stands:
         raise ValueError(f"{name}: mesh gravity screen: {', '.join(standing.reasons)}")
     cert['structure'] = standing.evidence()
-    import hashlib
-    cert['certificate_id'] = hashlib.sha256(json.dumps(cert, sort_keys=True).encode()).hexdigest()[:20]
+    cert['certificate_id'] = certificate_digest(cert)
     return cert
 
 

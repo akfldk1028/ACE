@@ -44,6 +44,19 @@ class DeliveryIntegrityTests(unittest.TestCase):
                              [box(3, 3, 7, 7).exterior.coords]))
         self.assertNotEqual(vlm_shortlist.shape_id(whole), vlm_shortlist.shape_id(court))
 
+    def test_identical_plans_with_valley_and_mansard_keep_their_actual_sections(self):
+        original = mass()
+        volume = original.volumes[0]
+        valley = replace(original, volumes=(replace(volume,
+            top_drop=.5, top_profile=((0., 1.), (.5, .5), (1., 1.)), profile_across=(1., 0.)),))
+        mansard = replace(original, volumes=(replace(volume,
+            top_drop=.5, top_profile=((0., .5), (.2, 1.), (.8, 1.), (1., .5)), profile_across=(1., 0.)),))
+        self.assertTrue(valley.volumes[0].footprint.equals(mansard.volumes[0].footprint))
+        self.assertGreater(valley.plan_at(9.).symmetric_difference(mansard.plan_at(9.)).area, 0.)
+        self.assertNotEqual(vlm_shortlist.shape_id(valley), vlm_shortlist.shape_id(mansard))
+        self.assertEqual(vlm_shortlist.shape_id(valley),
+                         vlm_shortlist.shape_id(replace(valley, name='another source caption')))
+
     def test_stale_or_unbound_sequence_is_never_attached(self):
         from PIL import Image
         with tempfile.TemporaryDirectory() as tmp:

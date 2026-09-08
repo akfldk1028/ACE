@@ -62,6 +62,9 @@ class SolidPresentationTests(SimpleTestCase):
         result = self.match(source, moved)
         self.assertEqual(result['duplicate_of'], 'first', result)
         self.assertEqual(result['proof']['normalization']['policy'], 'translation_uniform_xyz')
+        sunken = replace(source, metadata={**source.metadata, 'datum_m': 2})
+        scaled_sunken = replace(moved, metadata={**moved.metadata, 'datum_m': 6})
+        self.assertEqual(self.match(sunken, scaled_sunken)['duplicate_of'], 'first')
 
     def test_same_plan_different_roof_stays_distinct(self):
         source = body()
@@ -85,6 +88,18 @@ class SolidPresentationTests(SimpleTestCase):
 
     def test_changed_height_proportion_stays_distinct(self):
         self.assertIsNone(self.match(body(10), body(12))['duplicate_of'])
+
+    def test_changed_ground_datum_is_not_normalized_away(self):
+        source = body()
+        for datum in (2, 1e-10):
+            with self.subTest(datum=datum):
+                sunken = replace(source, metadata={**source.metadata, 'datum_m': datum})
+                self.assertIsNone(self.match(source, sunken)['duplicate_of'])
+
+    def test_raised_body_keeps_its_ground_clearance(self):
+        source = body()
+        raised = replace(source, volumes=(replace(source.volumes[0], bottom_fraction=.2),))
+        self.assertIsNone(self.match(body(8), raised)['duplicate_of'])
 
     def test_no_rotation_or_independent_axis_normalization(self):
         source = body()

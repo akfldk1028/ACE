@@ -1,6 +1,8 @@
 """Presentation-only equality of complete occupied, uniformly normalized solids.
 
 This never changes source shape IDs, certificates, scores or source records.
+The normalized ground plane remains significant: a sunken or raised body
+is not equivalent to the same isolated shape standing on grade.
 Typed bodies use the source owner's sampled columns; BOOK uses its complete
 authoritative mesh. Unsupported conversion keeps a choice separate.
 """
@@ -20,6 +22,7 @@ from design.maas.source_geometry.ir import SourceMass
 
 
 POLICY = 'translation_uniform_xyz'
+EQUALITY = 'both_closed_boolean_differences_empty_and_same_ground_relation'
 
 
 @dataclass(frozen=True)
@@ -104,16 +107,23 @@ def _prepare(source):
     if not all(isfinite(v) for v in bounds) or min(extents) <= 0:
         raise ValueError('finite three-dimensional occupied bounds required')
     ruler = max(extents)
+    datum = float((source.metadata or {}).get('datum_m') or 0)
+    if not isfinite(datum):
+        raise ValueError('finite ground datum required')
+    normalized_ground = (datum - bounds[2]) / ruler
     normalized = _valid(solid.translate(tuple(-v for v in bounds[:3])).scale((1/ruler,)*3))
     # Existing export precision is ONLY a candidate-bucket key, not a vertex
     # snap or a geometric equality tolerance. Both differences still must be
     # valid kernel results and completely empty before any alias is admitted.
     signature = [round(v/ruler, EXPORT_DECIMAL_PLACES) for v in extents]
+    signature.append(round(normalized_ground, EXPORT_DECIMAL_PLACES))
     key = hashlib.sha256(json.dumps(signature).encode()).hexdigest()[:20]
     proof = {'authority': authority, 'closed_kernel_solid': True,
         'normalization': {'policy': POLICY, 'original_bounds': list(bounds),
             'translation_xyz': [-v for v in bounds[:3]], 'uniform_xyz_scale': 1/ruler,
             'normalized_bounds': list(normalized.bounding_box()),
+            'normalized_ground_z': normalized_ground,
+            'ground_relation_preserved': True,
             'rotation_or_axis_stretch': False},
         'bucket_key': key, 'bucket_signature': signature,
         'bucket_precision': EXPORT_DECIMAL_PLACES,
@@ -127,6 +137,8 @@ def _compare(a, b):
     b_minus_a = _valid(m3d.Manifold.batch_boolean([b.solid, a.solid], m3d.OpType.Subtract), allow_empty=True)
     return {'a_minus_b_empty': bool(a_minus_b.is_empty()),
             'b_minus_a_empty': bool(b_minus_a.is_empty()),
+            'normalized_ground_equal': a.proof['normalization']['normalized_ground_z'] ==
+                                       b.proof['normalization']['normalized_ground_z'],
             'a_minus_b_volume': float(a_minus_b.volume()),
             'b_minus_a_volume': float(b_minus_a.volume()),
             'valid_closed_difference_results': True}
@@ -144,14 +156,15 @@ class SolidPresentationRegistry:
             for other_name, other in self._buckets.get(candidate.key, ()):
                 comparison = _compare(other, candidate)
                 checked.append({'name': other_name, **comparison})
-                if comparison['a_minus_b_empty'] and comparison['b_minus_a_empty']:
+                if (comparison['a_minus_b_empty'] and comparison['b_minus_a_empty']
+                        and comparison['normalized_ground_equal']):
                     return {'duplicate_of': other_name, 'status': 'verified', 'proof': {
                         **candidate.proof, **comparison, 'representative': other.proof,
-                        'comparison_policy': 'both_closed_boolean_differences_empty'}}
+                        'comparison_policy': EQUALITY}}
             self._buckets.setdefault(candidate.key, []).append((name, candidate))
             return {'duplicate_of': None, 'status': 'verified', 'proof': {
                 **candidate.proof, 'comparisons': checked,
-                'comparison_policy': 'both_closed_boolean_differences_empty'}}
+                'comparison_policy': EQUALITY}}
         except (ValueError, TypeError, AttributeError, OverflowError, RuntimeError) as error:
             return {'duplicate_of': None, 'status': 'unsupported', 'proof': {
                 'normalization': {'policy': POLICY},

@@ -183,6 +183,50 @@ def nest(frame, op) -> None:
     frame.placements = rest + picked + made
 
 
+# The BOOK's third transformation, which this grammar never had a name for.
+#
+# Its thirty base operatives are filed on the page as Add, Subtract or
+# **Displace**, and every word massv2 still disagrees with is a Displace one:
+# Intersect p.19, Interlock p.18, Lodge p.21, Lift p.20, Rotate p.23, Shift
+# p.24, Split p.16. Displace means the material is neither made nor destroyed -
+# it is moved, and whatever a word stands outside the host it has to take from
+# inside it. massv2 read every relational word as an addition, so a host stayed
+# whole while a second body appeared beside it and the mass grew by the whole
+# of the guest.
+#
+# This is that accounting, done in the host's own unit space: how much of a
+# piece lies outside the host is what the host owes, and it pays by giving up
+# that much of its own length.
+def _outside_share(low, high) -> float:
+    """The part of a unit-space region that stands proud of its host."""
+
+    whole = 1.0
+    inside = 1.0
+    for axis in range(3):
+        span = max(high[axis] - low[axis], 0.0)
+        overlap = max(min(high[axis], 1.0) - max(low[axis], 0.0), 0.0)
+        whole *= span
+        inside *= overlap
+    return max(whole - inside, 0.0)
+
+
+# How much of what stands outside the host is actually paid for. Not all of it:
+# the payment is computed in the host's unit space, before the envelope is
+# known, and on a host that fills the plot the outreach is clipped away - so
+# charging the whole overhang buys material that is never delivered. Measured,
+# the full charge took `locked_arms_gate`'s interlock down to 1.5% of the mass
+# and the silence gate refused it, which is a word doing nothing said a
+# different way.
+_DELIVERED_SHARE_OF_AN_OVERHANG = 0.5
+
+
+def _paid_from(host, role: str, owed: float, share: float = 1.0):
+    """The host, shortened by what its guests stand outside it and keep."""
+
+    keep = _clamp(1.0 - owed * _DELIVERED_SHARE_OF_AN_OVERHANG, 0.25, 1.0)
+    return _region(host, role, (0.0, 0.0, 0.0), (keep, 1.0, share))
+
+
 def interlock(frame, op) -> None:
     """Two arms from opposite faces, meshed at different heights.
 
@@ -219,13 +263,14 @@ def interlock(frame, op) -> None:
         #
         # Consuming the host outright was the other error: two arms `size`
         # wide cannot carry a whole body between them, and the mass fell by
-        # two thirds. So the host stays and gives up exactly the length the
-        # arms reach past it, which leaves the composition's extent where the
-        # sentence put it.
-        made.append(_region(
-            host, host.role,
-            (reach, 0.0, 0.0), (1.0 - reach, 1.0, 1.0),
-        ))
+        # two thirds. So the host stays and pays for exactly what the arms
+        # stand outside it - the BOOK files interlock on p.18 as Displace, and
+        # a displacement neither makes nor destroys material.
+        owed = sum(_outside_share((1.0 - bite, centre, _GRIP),
+                                  (1.0 + reach, centre + width, 0.5))
+                   for _ in (0,))
+        owed += _outside_share((-reach, centre, 0.5), (bite, centre + width, 1.0))
+        made.append(_paid_from(host, host.role, owed))
     frame.placements = rest + made
 
 
@@ -266,7 +311,15 @@ def lodge(frame, op) -> None:
         made.append(_region(
             host, f"{host.role}_lodged", low_corner, high_corner,
         ))
-    frame.placements = rest + picked + made
+        # p.21 files Lodge under Displace, so the bar that rests across the
+        # host is carried by it, not added to it: what hangs past both sides is
+        # paid for out of what carries it. The overhang IS the word, and an
+        # overhang that costs nothing is a bar that appeared from nowhere -
+        # massv2 was delivering the whole host plus the whole bar.
+        made.append(_paid_from(
+            host, host.role, _outside_share(low_corner, high_corner)))
+    # The host is replaced by the body that paid for the bar.
+    frame.placements = rest + made
 
 
 def overlap(frame, op) -> None:

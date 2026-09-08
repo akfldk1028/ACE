@@ -9,6 +9,7 @@ BOOK. Current shape and numeric certificate must match the recorded judgement.
 import html
 import base64
 import json
+import hashlib
 import sys
 from pathlib import Path
 
@@ -128,6 +129,49 @@ def _score_matches(row, source):
     return bool(row.get("shape_id")) and row["shape_id"] == shape_id(source)
 
 
+def _recommendation_identity(row):
+    """Bind the comparison hint to the exact scored candidate, not its caption."""
+    return {key: row.get(key) for key in ('name', 'shape_id', 'certificate_id', 'round', 'score')}
+
+
+def _recommendation_lineages(run, rows, path):
+    """Read coordinator-owned ancestry; ARR never imports an agent resolver."""
+    if path is None:
+        return None  # Historical invocations retain explicit score-order behavior.
+    context = json.loads(Path(path).read_text(encoding='utf-8'))
+    board = ROOT / 'runs/board/board-key.json'
+    expected_sha = hashlib.sha256(board.read_bytes()).hexdigest()
+    if (not isinstance(context, dict)
+            or context.get('schema') != 'arr.maas.recommendation_context.v1'
+            or context.get('run') != run or context.get('board_sha256') != expected_sha
+            or not isinstance(context.get('candidates'), list)
+            or len(context['candidates']) != len(rows)):
+        raise ValueError('Malformed or stale recommendation context; regenerate through the cycle')
+    lineages = {}
+    for row, entry in zip(rows, context['candidates']):
+        if (not isinstance(entry, dict) or entry.get('identity') != _recommendation_identity(row)
+                or not isinstance(entry.get('lineage'), str) or not entry['lineage'].strip()
+                or row['name'] in lineages):
+            raise ValueError('Recommendation ancestry does not match the ranked scored candidates')
+        lineages[row['name']] = entry['lineage']
+    return lineages
+
+
+def _comparison_rows(rows, lineages, accepted_lineages):
+    """Offer independent sources first; only actually delivered rows reserve a source.
+
+    Deferred descendants remain available for backfill and in the full choice pool.
+    Ancestry is not geometric equivalence; exact shape checks remain downstream.
+    """
+    deferred = []
+    for row in rows:
+        if lineages is not None and lineages[row['name']] in accepted_lineages:
+            deferred.append(row)
+        else:
+            yield row
+    yield from deferred
+
+
 def _argument(record, reading):
     """Observable composition and a development question, without invented access."""
     if reading.lifted:
@@ -184,17 +228,20 @@ def _parking_html(block, out):
         f'<p class="facts">조건부 수량 근거: {esc((requirement.get("source") or {}).get("source_appendix") or "기준 미확정")}</p>')
 
 
-def main(run, out_name=""):
+def main(run, out_name="", recommendation_context=None):
     from presentation import write_sequence, drawing_evidence, artifact_stem
     from book_import import _refused, entry_for_judged_row
     from design.maas.massv2.site_planning import assess_site_parking, write_site_parking_plan
+    rows = _candidate_rows(run)
+    lineages = _recommendation_lineages(run, rows, recommendation_context)
     book, site, buildable, axis, base = seat_context()
     out = ROOT / "runs" / (out_name or f"study-{run}")
     out.mkdir(parents=True, exist_ok=True)
     blocks, rejected, seen, shown_shapes = [], [], set(), set()
-    for row in _candidate_rows(run):
+    accepted_lineages = set()
+    for row in _comparison_rows(rows, lineages, accepted_lineages):
         name, family = row["name"], _family(row["name"])
-        if family in seen:
+        if lineages is None and family in seen:
             continue
         try:
             book_entry = entry_for_judged_row(row) if name.startswith('book:') else None
@@ -251,11 +298,18 @@ def main(run, out_name=""):
                        "source_track": "BOOK" if name.startswith("book:") else "저작 문장"})
         seen.add(family)
         shown_shapes.add(cert['shape_id'])
+        if lineages is not None:
+            accepted_lineages.add(lineages[name])
         if len(blocks) == 3:
             break
     (out / "study.json").write_text(json.dumps({"run": run,
                                                "site": site.evidence() if hasattr(site, 'evidence') else {},
                                                "alternatives": blocks,
+                                               "comparison_selection": {
+                                                   "policy": "source-ancestry-first-with-shape-backfill.v1" if lineages is not None else "legacy-score-order.v1",
+                                                   "context": str(recommendation_context) if recommendation_context is not None else None,
+                                                   "ranked_candidates": rows,
+                                                   "note": "Scores and the full judged choice pool are unchanged; unshown candidates are not individually revalidated by this sheet."},
                                                "rejected": rejected}, ensure_ascii=False, indent=2), encoding="utf-8")
     if not blocks:
         (out / 'study.html').write_text(

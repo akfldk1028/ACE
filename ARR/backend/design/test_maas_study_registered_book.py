@@ -30,7 +30,7 @@ class RegisteredBookStudyTests(SimpleTestCase):
         self.assertIsNotNone(self.source, entry)
         self.registry = {self.name:entry}
 
-    def run_study(self, root, row):
+    def run_study(self, root, row, recommendation_context=None):
         caption = vlm_shortlist.certified_caption(self.source, self.site, '',
             gross_m2=self.registry[self.name]['floor_area_m2'])
         snapshots = root / 'books'
@@ -50,7 +50,7 @@ class RegisteredBookStudyTests(SimpleTestCase):
                  {}, self.site, self.buildable, (1,0), 15.2)), \
              patch.object(study_sheet, '_candidate_rows', return_value=[row]), \
              patch.object(study_sheet, 'rebuild_seat', return_value=(self.source, caption)):
-            return study_sheet.main('registered-fixture')
+            return study_sheet.main('registered-fixture', recommendation_context=recommendation_context)
 
     def test_top_book_remains_in_study_with_full_registered_frame_and_exact_certificate(self):
         with patch.object(book_import, 'registry', return_value=self.registry):

@@ -694,9 +694,26 @@ def bend(frame, op) -> None:
             band = compose_matrix4(_slab(index, count, 0), item.matrix, chain)
             made.append(_section_turned(
                 replace(item, matrix=validate_matrix4(band)), step * index))
+            # The hinge is on the edge the kink opens away from, not down the
+            # middle of the shared face. Turning about mid-depth swings half of
+            # each segment into the one before it and the union absorbs the
+            # wedge: measured on a 20x12x8 bar the loss runs with the angle -
+            # -1.31% at ten degrees, -2.62% at twenty, -5.3% at forty - and it
+            # does not fall with more segments, which is what says the joint
+            # rather than the sampling. A rigid chain cannot lose volume; a
+            # chain hinged through its own body can.
+            #
+            # `bend` is Barr's deformation in the BOOK's hands (p.14, Displace)
+            # and Barr's arc preserves volume exactly. Hinged on the edge the
+            # kink turns away from, this measures 0.00% at ten, twenty and
+            # forty degrees - the chain is rigid and now the delivery says so.
+            # Which edge: the one the kink turns AWAY from. Hinging on the
+            # other opened the wedge inward and quadrupled the loss (-5.25% at
+            # ten degrees), which is the same defect said backwards.
+            side = 1.0 if step >= 0.0 else 0.0
             joint = transform_point3(
                 compose_matrix4(item.matrix, chain),
-                ((index + 1) / count, 0.5, 0.0),
+                ((index + 1) / count, side, 0.0),
             )
             chain = compose_matrix4(
                 chain,

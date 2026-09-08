@@ -13,6 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
+from design.maas.massv2.grammar import STACK_CONTRAST_RANGE
+
 # The verb list drifted from the executor twice: once an authoring agent hit
 # a `tie` floor the executor no longer had, and once this file refused seven
 # real words (gable, vault, canopy, lodge, nest, branch, mansard) and the
@@ -150,7 +152,7 @@ PER_VERB_RANGES = {
     ("expand", "ratio"): (1.0, 1.6),
     ("inflate", "ratio"): (1.0, 1.6),
     ("compress", "ratio"): (0.6, 1.0),
-    ("stack", "contrast"): (1.2, 3.5),
+    ("stack", "contrast"): STACK_CONTRAST_RANGE,
     ("split", "contrast"): (1.2, 3.5),
     ("aggregate", "spread"): (1.05, 2.5),
 }

@@ -48,6 +48,8 @@ from .grammar import (
     MAX_OFFSET_RATIO,
     MIN_OFFSET_RATIO,
     MIN_TIER_CONTRAST,
+    STACK_CONTRAST_RANGE,
+    DEFAULT_STACK_CONTRAST,
     Operation,
     Parti,
     seed_rectangle,
@@ -66,8 +68,8 @@ def _clamp(value: float, low: float, high: float) -> float:
 MAX_FIELD_OBJECTS = 12
 
 # How much the objects in a field may differ in size. The floor used to be
-# MIN_TIER_CONTRAST, the same rule that stops `stack` making a barracks of equal
-# tiers - but Nishizawa rejected volumes that were *identical*, not volumes that
+# MIN_TIER_CONTRAST, formerly also applied to every authored stack - but
+# Nishizawa rejected volumes that were *identical*, not volumes that
 # were *similar*, and at Moriyama and Towada the near-equality is the content:
 # it is what makes the result read as a neighbourhood rather than as a house
 # with outbuildings. Equal is still refused; close is now allowed.
@@ -643,12 +645,10 @@ def _extrude(frame: _Frame, op: Operation) -> None:
 
 
 def _stack(frame: _Frame, op: Operation) -> None:
-    """Tiers that are never the same size.
+    """Tiers with the author's relative dimensions, including equal bodies.
 
-    `contrast` is how much smaller each tier is than the one below, and it is
-    held at or past `MIN_TIER_CONTRAST` whatever the author asked for. A stack
-    of equal plates is the barracks Nishizawa refused, and it is what our
-    archive was full of.
+    Subsequent targeted transforms may rotate or displace each named tier.
+    Geometric support and site eligibility remain downstream checks.
     """
 
     count = int(_clamp(float(op.params.get("n", 3)), 2, 6))
@@ -656,9 +656,8 @@ def _stack(frame: _Frame, op: Operation) -> None:
     # a contrast of 3.5 inside one figure. A ceiling of 2.0 made that sentence
     # unwritable, so the cap is the built work's rather than a guess, and the
     # storey and structure gates decide whether the result stands.
-    contrast = _clamp(float(op.params.get("contrast", 1.35)), MIN_TIER_CONTRAST, 3.5)
-    # Which way the tiers change size. The corpus rule is that tiers are never
-    # equal, not that they always get smaller: Vancouver House grows floor by
+    contrast = _clamp(float(op.params.get("contrast", DEFAULT_STACK_CONTRAST)), *STACK_CONTRAST_RANGE)
+    # Which way unequal tiers change size: Vancouver House grows floor by
     # floor once it clears the bridge, and Korean briefs put the assembly hall
     # on the top storey - 만수6동's says so in as many words - where a long-span
     # roof costs least because nothing has to be carried over it.

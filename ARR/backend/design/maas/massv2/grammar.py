@@ -10,19 +10,15 @@ So the unit of authorship is a sentence, not a picture. BIG publish their own
 partis exactly this way, one operation per diagram caption - 79&Park is
 EXTRUSION -> POROSITY -> DAYLIGHT -> LANDMARK - and every one of OMA's fifteen
 patents in *Content* is a transformation of a known type rather than a form
-from nothing. Across thirty-two built projects by BIG, OMA and SANAA, no mass
-is a set of equal blocks: seven of ten BIG projects deform a single volume,
-OMA runs one or three-to-five unequal peers, SANAA a single volume or a pure
-boundary holding inscribed objects. Two equal masses never occurs, and neither
-does six to ten undifferentiated lumps - which is precisely where our
-`block_sw / block_se / block_nw / block_ne` compositions sat.
+from nothing. Earlier corpus preferences for unequal bodies were encoded as
+universal restrictions. They are not universal: repeated equal bodies can
+organize different frontages, overlaps and courts. Authored relations must be
+executed and checked rather than silently replaced with preferred proportions.
 
 The seed comes from the parcel, so the site is present from the first move
-rather than arriving at the end as a cutter. What the executor holds fixed is
-grammar, not style: dimensioned offsets, no interpenetration, one dominant
-volume. Those are legibility, and they are shared by three offices whose work
-looks nothing like each other's - which is what tells you they are a property
-of the medium rather than a preference. What the author chooses is which
+rather than arriving at the end as a cutter. The executor owns supported
+geometry and parameter semantics; site and structural screens remain separate.
+What the author chooses is which
 operations, in what order, and toward what on this particular site. Magnitude
 is geometric; direction is programmatic - Seattle's shear is 0.26 of its plan
 depth, and its engineers state the direction was picked "not on structural
@@ -53,10 +49,15 @@ MIN_OFFSET_RATIO = 0.15
 # `structure`'s question and it is still asked.
 MAX_OFFSET_RATIO = 0.9
 
-# Repeated volumes are never the same size in built work - they spread ten to
-# twenty times in plan and two to four in height. Nishizawa rejected identical
-# units at Moriyama in as many words: they "looked like a barracks".
+# Legacy split/sampler contrast. This is not a universal architectural rule:
+# equal occupied bodies can form a deliberate rotated or offset composition.
 MIN_TIER_CONTRAST = 1.25
+
+# Authored stack dimensions: unity preserves equal tiers; grow selects the
+# direction of the size progression. Validation consumes this same interval.
+# Keep the existing default and ceiling; remove only forced inequality.
+STACK_CONTRAST_RANGE = (1.0, 3.5)
+DEFAULT_STACK_CONTRAST = 1.35
 
 # Two volumes meeting hold a joint rather than merging: Toledo keeps 760 mm
 # everywhere its cells meet, two glass walls and not one, and Louvre-Lens's five
@@ -417,6 +418,8 @@ __all__ = [
     "MAX_OFFSET_RATIO",
     "MIN_OFFSET_RATIO",
     "MIN_TIER_CONTRAST",
+    "STACK_CONTRAST_RANGE",
+    "DEFAULT_STACK_CONTRAST",
     "Operation",
     "PLOT_MODES",
     "Parti",

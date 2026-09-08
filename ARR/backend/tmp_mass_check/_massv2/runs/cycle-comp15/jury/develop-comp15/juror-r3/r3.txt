@@ -1,0 +1,4 @@
+PAIR p01: A - The recessed court reads more clearly, while B introduces a pinched projecting connector beneath its upper bar.
+PAIR p02: B - The distinct parallel upper volumes frame a clearer central outdoor recess and produce simpler upper footprints.
+PAIR p03: B - The broader upper connection and cleaner court edge unify the stepped tower with the lower wing.
+PAIR p04: A - The orthogonal upper connection gives clearer room geometry and a more consistent stepped composition than B's diagonal band.

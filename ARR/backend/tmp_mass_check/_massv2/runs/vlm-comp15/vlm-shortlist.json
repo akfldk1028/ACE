@@ -1,0 +1,68 @@
+[
+ {
+  "tile": "t02",
+  "score": 3.92,
+  "corrected": 3.92,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "coverage_pct": 26.5,
+  "shape_id": "64c94edfe13ebcdc018e",
+  "certificate_id": "1f9e9d919af107b31378"
+ },
+ {
+  "tile": "t05",
+  "score": 3.67,
+  "corrected": 3.67,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "kite_twins_across_a_lane~full_ground^cross_open",
+  "coverage_pct": 56.1,
+  "shape_id": "ce518c1da5b478bf7861",
+  "certificate_id": "2d00d4fa2c8bcd4f66f0"
+ },
+ {
+  "tile": "t03",
+  "score": 3.6,
+  "corrected": 3.6,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "field_under_butterfly_wings~held_ground^off_open",
+  "coverage_pct": 23.9,
+  "shape_id": "70528bdaf5bc33848939",
+  "certificate_id": "aa7b732f39e0ee2f62d2"
+ },
+ {
+  "tile": "t01",
+  "score": 3.5,
+  "corrected": 3.5,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "field_under_butterfly_wings~full_ground^cross_open",
+  "coverage_pct": 31.9,
+  "shape_id": "9da7ed72f37d14a457ef",
+  "certificate_id": "fe5979d39eb5a0038648"
+ },
+ {
+  "tile": "t06",
+  "score": 3.35,
+  "corrected": 3.35,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "coverage_pct": 17.6,
+  "shape_id": "40115b02b09902f83d13",
+  "certificate_id": "d5daa53a0e5d499ddf13"
+ },
+ {
+  "tile": "t04",
+  "score": 3.07,
+  "corrected": 3.07,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "oval_dome_hall_sunk~held_ground^off_open",
+  "coverage_pct": 27.0,
+  "shape_id": "946726936757dfbf6b5a",
+  "certificate_id": "2f73ec9d59bca10b940f"
+ }
+]

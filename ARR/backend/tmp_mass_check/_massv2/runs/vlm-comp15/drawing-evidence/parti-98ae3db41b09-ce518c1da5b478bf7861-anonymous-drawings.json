@@ -1,0 +1,20 @@
+{
+  "name": "kite_twins_across_a_lane~full_ground^cross_open",
+  "shape_id": "ce518c1da5b478bf7861",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1402.0130164621455,
+    1402.0130164621455
+  ],
+  "section_area_m2": 694.5025398744378,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "156a79d2081a6c44534626dc18de9b8f29d24ea01ed4a81f82078a2c5afc681e"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "field_under_butterfly_wings~held_ground^off_open",
+  "shape_id": "70528bdaf5bc33848939",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    598.4356725923279,
+    547.275305759497
+  ],
+  "section_area_m2": 192.8756618718079,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "9127330a21d1d315df39792d478d71b8350c3306dd04e1a798560834b67fee38"
+}

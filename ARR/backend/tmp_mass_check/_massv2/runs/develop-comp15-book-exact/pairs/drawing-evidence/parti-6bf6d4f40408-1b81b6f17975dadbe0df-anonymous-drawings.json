@@ -1,0 +1,20 @@
+{
+  "name": "book:book-develop-comp15:exact-authored-development:creative-003",
+  "shape_id": "1b81b6f17975dadbe0df",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    533.3333334542847,
+    387.2300470371414
+  ],
+  "section_area_m2": 309.44365104850067,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "d60b6591c2490dc25e4949146faed86cc23d0ad114ac56adf2be8bef0abd1b08"
+}

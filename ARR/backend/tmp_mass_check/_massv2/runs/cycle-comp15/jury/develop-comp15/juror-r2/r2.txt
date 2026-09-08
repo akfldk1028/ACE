@@ -1,0 +1,4 @@
+PAIR p01: A - The broader continuous upper mass gives a calmer roof composition than B's narrow central projections.
+PAIR p02: B - Compact upper wings and a clearly stepped tower organize the recessed forecourt more legibly.
+PAIR p03: B - The broader upper volume integrates the stepped tower into a stronger, more coherent roof composition.
+PAIR p04: A - The orthogonal upper connection aligns more convincingly with the lower masses than B's diagonal connector.

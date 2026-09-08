@@ -1,0 +1,100 @@
+TILE t01
+CONCEPT 3.0 | A perimeter courtyard ring under a single raked top is legible, but the toothed outer notches and the loose small boxes at grade dilute the one idea rather than articulate it.
+FEASIBILITY 3.5 | Continuous bearing perimeter with a modest central void; the section's two solid legs stack cleanly, only the detached grade pieces are unexplained.
+SITE 3.0 | The block sits rotated within the parcel and keeps a margin all round, but no edge, frontage or orientation is specifically answered.
+EDITABILITY 3.5 | A closed ring of consistent depth accepts floors, a core in any leg and a straightforward facade without losing the courtyard idea.
+WEIGHTED 3.23
+
+TILE t02
+CONCEPT 2.0 | Four small L-bars with attached fins are scattered without hierarchy, dominant piece or figural void; the drawing shows dispersal, not a parti.
+FEASIBILITY 2.5 | Each bar is individually simple, but the tall thin plates standing free beside them read as unsupported single-thickness members in both plan and section.
+SITE 2.0 | 12% coverage and 26% FAR leave the parcel largely undeclared; the pieces float mid-site without addressing any edge.
+EDITABILITY 2.0 | Footprints this small and this thin leave almost no room to develop cores or circulation while keeping the aggregate reading.
+WEIGHTED 2.13
+
+TILE t03
+CONCEPT 3.0 | A concentric stepped ziggurat is one clear idea with real sectional hierarchy, but it is a generic terraced cake and the stray tail at the base is unresolved.
+FEASIBILITY 4.0 | Loads stack directly through concentric setbacks; nothing cantilevers or transfers, and the section confirms a continuous descending pyramid.
+SITE 2.5 | The base at z=1.2 runs past the drawn parcel outline on the right and trails a spur beyond it; the footprint is set by the form, not by the boundary.
+EDITABILITY 4.0 | Regular stacked plates with a natural central core; terraces and facade can be developed without touching the stepping idea.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 2.5 | Three gabled houses read as a small village, a legible if slight idea; none dominates, and the gable is the only articulation offered.
+FEASIBILITY 4.0 | Small independent pitched volumes, three storeys, no cantilever or transfer anywhere in the evidence.
+SITE 2.5 | 15% coverage and 38% FAR barely occupy the parcel, and the three pieces sit at loose angles without addressing frontage or edge.
+EDITABILITY 3.0 | Each house takes floors and a stair easily, but the footprints are too small to develop cores or a deep plan.
+WEIGHTED 2.98
+
+TILE t05
+CONCEPT 3.5 | A large thin horizontal plate held above a smaller recessed ground volume is a strong, distinctive datum idea, clearly carried in the section.
+FEASIBILITY 2.5 | The section shows an unbroken thin slab reaching far past the small base on every side; the overhangs demand transfers the drawing does not show.
+SITE 3.0 | The plate covers 55% of the parcel and hovers near its edges, giving shelter at grade, but only 61% FAR is realised against the supplied capacity.
+EDITABILITY 2.5 | The idea depends on the plate staying thin, so adding floors or a facade to it works against the very move that makes it.
+WEIGHTED 2.95
+
+TILE t06
+CONCEPT 3.5 | A courtyard loop capped by a deep folded, ridged roof gives a genuine top-to-base hierarchy and a distinctive silhouette, though the folds read slightly noisy.
+FEASIBILITY 3.5 | The perimeter walls are solid and continuous; only the multi-fold roof and its jagged corner are thin and awkward in the section's serrated cut.
+SITE 3.0 | The ring sits diagonally with a clear central void and a held margin, but neither the parcel edge nor an orientation is specifically taken up.
+EDITABILITY 3.5 | The constant-depth ring develops floors and circulation easily; the folded roof constrains only the uppermost level.
+WEIGHTED 3.40
+
+TILE t07
+CONCEPT 2.5 | A field of six small towers could be an idea, but only one carries the flared plate stack shown across the whole sequence, so the rule is applied to a single piece and reads arbitrary.
+FEASIBILITY 2.5 | The stacked flaring plates overhang their tower on all sides with nothing beneath them; the towers themselves are simple.
+SITE 2.5 | 19% coverage scattered in a loose ring leaves the parcel edges unclaimed and nothing responds to frontage or orientation.
+EDITABILITY 2.5 | The small square footprints make cores and circulation hard, and the flared crown would be the first thing lost in development.
+WEIGHTED 2.50
+
+TILE t08
+CONCEPT 3.5 | A wide layered plateau lifted over small ground pieces is a clear parti, and the section's deep undercut states it plainly; the striations read as slab edges rather than considered articulation.
+FEASIBILITY 2.5 | The section shows a broad plate carried on two narrow legs with long cantilevers each side, and the plans show several disconnected small footprints under one large upper floorplate.
+SITE 3.5 | 56% coverage against a 60% ground capacity, the footprint broadly follows the parcel figure, and the undercut gives usable covered ground.
+EDITABILITY 3.0 | The layers are already floors and develop readily, but the lifted plate leaves few places for a core to come down.
+WEIGHTED 3.15
+
+TILE t09
+CONCEPT 3.0 | Two chamfered prisms offset one over the other give a legible shift and a terrace, but the move is plain and the articulation stops at the chamfer.
+FEASIBILITY 3.0 | The upper prism oversails the lower on one side by a moderate amount; the F-shaped section is otherwise a straightforward two-piece stack.
+SITE 2.0 | Both plan cuts show the mass crossing outside the drawn parcel outline, the upper level markedly so; 152% FAR is delivered by ignoring the edge.
+EDITABILITY 3.5 | Large regular floorplates take cores, circulation and facade very easily without disturbing the offset.
+WEIGHTED 2.90
+
+TILE t10
+CONCEPT 3.5 | Offset plates pinwheel over a plinth to make terraces and undercuts; the composition has a clear dominant plate and subordinate ones, and it is distinctive.
+FEASIBILITY 2.5 | Several plates project well beyond anything drawn beneath them, and both plan cuts show only two small separated footprints supporting much larger floorplates.
+SITE 2.5 | The plinth aligns to one edge, but the mass runs past the parcel outline at the lower right and the stepping is driven by composition rather than boundary.
+EDITABILITY 3.5 | Stacked plates convert directly into floors, and the shifting rule survives replanning as long as the supports are resolved.
+WEIGHTED 3.05
+
+TILE t11
+CONCEPT 4.0 | One strong move: a large volume cleaved by a full-height slot into two faceted, gable-topped halves; the void is figural, the section shows two distinct solids, and the hierarchy is unmistakable.
+FEASIBILITY 4.0 | Two solid, well-proportioned masses with a generous separation; no cantilever, no thin member, and the gabled tops sit directly on the walls.
+SITE 3.0 | 56% coverage and 224% FAR use the parcel harder than anything else here and the figure roughly follows its geometry, but both plan cuts overrun the drawn boundary at the western corner.
+EDITABILITY 4.0 | Two deep halves with the slot as an obvious circulation spine; floors, cores and facade all develop while the cleft remains the idea.
+WEIGHTED 3.80
+
+TILE t12
+CONCEPT 2.5 | A courtyard loop with a warped top is stated, but the capping pieces read as buckled, mismatched panels that do not close on the ring, so the idea is not under control.
+FEASIBILITY 2.5 | The plans show a thin single-thickness ring carried five storeys, and the broken upper elements have no continuous bearing beneath them.
+SITE 2.5 | 18% coverage places a small rotated ring off toward one side of the parcel with no edge, frontage or orientation taken up.
+EDITABILITY 3.0 | The ring plan itself would take floors and a core, but the deformed top is the idea and it is the least developable part.
+WEIGHTED 2.60
+
+TILE t13
+CONCEPT 3.0 | A clean concentric terraced stack, better resolved than a rough ziggurat, with legible sectional hierarchy, but the type is generic and offers no further articulation.
+FEASIBILITY 4.0 | Direct stacking with continuous setbacks; the section is a solid pyramid with no transfer, cantilever or thin member.
+SITE 3.0 | 60% coverage sits at the supplied ground capacity and the base broadly takes the parcel figure, though it grazes the drawn outline and the terracing answers geometry rather than frontage.
+EDITABILITY 4.0 | Large regular plates, an obvious central core, and terraces that can be developed and glazed without losing the stepped idea.
+WEIGHTED 3.45
+
+TILE t14
+CONCEPT 3.0 | A single faceted drum with a crowned top set on a low plinth is a clear figure-on-podium relation, but it is one gesture with no void and little articulation.
+FEASIBILITY 4.0 | A simple compact solid over a continuous base; the section is one uninterrupted volume with no cantilever or thin member.
+SITE 3.5 | The plinth follows the parcel figure and the drum is pushed to one side, leaving a substantial piece of open ground as a deliberate residue.
+EDITABILITY 3.5 | A round deep plate suits a central core and radial circulation; only the crowned top would need care during development.
+WEIGHTED 3.45
+
+RANKING: t11, t13, t14, t06, t03, t01, t08, t10, t04, t05, t09, t12, t07, t02
+VERDICT: The set divides into masses that make one controlled move and masses that merely scatter or float; t11 is the clear leader, cleaving a well-used volume with a figural slot that is at once the idea, the circulation and the buildable logic, and it should advance. Behind it t13, t14 and t06 each hold a single legible idea with plausible structure and real room to develop, and are worth carrying forward. The lifted-plate and shifted-plate schemes (t05, t08, t10) are the most ambitious sectionally but repeatedly show large floorplates over small or disconnected supports, while t02, t07 and t12 fail on all four counts - dispersed, under-occupied and thin - and should not proceed.

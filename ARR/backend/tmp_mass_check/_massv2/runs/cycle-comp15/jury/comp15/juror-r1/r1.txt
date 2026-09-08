@@ -1,0 +1,44 @@
+TILE t01
+CONCEPT 3 | Repeated butterfly roofs establish a family of pavilions, but the low volumes and intervening gaps provide limited overall sectional hierarchy.
+FEASIBILITY 4 | Grounded blocks and short individual spans appear plausible, with roof valleys and the thin upper occupancy requiring careful development.
+SITE 3 | The dispersed footprints leave substantial open ground and engage several parcel edges, but the spaces between them lack a clear organizing order.
+EDITABILITY 3 | Each pavilion can develop independently, though fragmented circulation and diminishing upper floor widths constrain a unified building arrangement.
+WEIGHTED 3.25
+
+TILE t02
+CONCEPT 4 | The combination of an enclosed court, an open recess and a ground-level passage produces a clear and differentiated solid-void composition.
+FEASIBILITY 4 | Continuous upper bars and substantial grounded volumes are plausible, with the bridging areas above ground openings needing structural resolution.
+SITE 4 | The bent perimeter addresses the irregular parcel while distributing open space between an internal court, a side recess and external margins.
+EDITABILITY 4 | Connected upper floor bands and two distinct voids offer a useful basis for circulation and facades, although the ground passage complicates vertical continuity.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 4 | Taller principal pavilions and lower foreground pieces give the repeated butterfly section a legible hierarchy and a stronger clustered identity.
+FEASIBILITY 4 | The separate volumes remain grounded with no evident major cantilevers; roof valleys and upper-level tapering are the main development challenges.
+SITE 3 | Concentrating the cluster leaves a substantial open side of the parcel, but the relationship between that space and the narrow internal gaps is unresolved.
+EDITABILITY 3 | The taller blocks retain useful lower floor plates, while separate cores, interbuilding circulation and roof-limited upper floors need careful coordination.
+WEIGHTED 3.60
+
+TILE t04
+CONCEPT 2 | A rounded monolithic volume is legible, but its shallow crown adds little sectional hierarchy or solid-void differentiation.
+FEASIBILITY 4 | Vertically continuous occupancy and a simple overall mass appear structurally straightforward; the apparent site platform cannot establish a measured terrain response.
+SITE 2 | The compact rounded footprint leaves extensive open ground but demonstrates little specific engagement with the parcel geometry beyond its placement.
+EDITABILITY 4 | Repeated broad floor plates permit several core and partition arrangements, though interior depth and facade access remain unresolved.
+WEIGHTED 2.90
+
+TILE t05
+CONCEPT 4 | A continuous diagonal cleft divides two substantial pitched volumes into a strong and readily understood architectural composition.
+FEASIBILITY 4 | The grounded blocks and repeated floor footprints are plausible, with the larger roof spans and irregular perimeter needing conventional structural development.
+SITE 3 | The blocks closely register the parcel shape, but the narrow cleft and tight peripheral margins limit the quality of the demonstrated open space.
+EDITABILITY 3 | Large continuous floor plates are adaptable, although their depth, separate circulation systems and narrow facing gap require resolution without weakening the split.
+WEIGHTED 3.60
+
+TILE t06
+CONCEPT 3 | A compact courtyard ring is clear, but the localized roof folds contribute little hierarchy to the tall, largely uniform enclosure.
+FEASIBILITY 4 | Continuous ground and upper occupancy provide a credible load path, with no evident large transfers or detached elements.
+SITE 3 | The ring leaves a generous open portion of the parcel, though its placement and enclosed court do not establish a convincing relationship to that space.
+EDITABILITY 2 | The narrow occupied bands around a relatively tall court leave limited flexibility for cores, circulation and usable floor depth while preserving the ring.
+WEIGHTED 3.05
+
+RANKING: t02, t03, t05, t01, t06, t04
+VERDICT: Advance t02 for its coherent combination of connected mass, differentiated voids and a workable development framework. Retain t03 and t05 as alternatives: t03 offers stronger volumetric hierarchy, while t05 offers a forceful split but needs better resolution of its narrow gap and deep floor plates. These are architectural judgments from the supplied evidence; statutory height and exact building-line compliance remain unverified.

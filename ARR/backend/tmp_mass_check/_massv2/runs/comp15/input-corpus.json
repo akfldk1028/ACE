@@ -1,0 +1,390 @@
+{
+  "schemes": [
+    {
+      "name": "oval_dome_hall_sunk",
+      "primary_language": "solid_body",
+      "secondary_language": "a low oval hall whose own top rises to a dome, its floor sunk a half-level so the dome sits low to the street",
+      "formal_principle": "One figure, one section: the oval plan has no corners to answer the parcel's skew, the domed top makes the hall's centre its tallest room, and sinking the floor keeps the dome low to the street so the building reads as a single civic volume rather than a drum.",
+      "dominant_gesture": "an oval hall crowned by a dome, sunk to the street",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "타원 평면에 돔 지붕, 바닥을 낮춰 거리에서 낮게 읽힌다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "oval",
+          "height": 0.5,
+          "storeys": 3,
+          "why": "An oval plan turns the skewed parcel into a figure with no corner to resolve; three storeys under the five-storey law."
+        },
+        {
+          "op": "crown",
+          "form": "dome",
+          "sag": 0.35,
+          "why": "The hall's own top rises to its centre - the tallest room is the middle one, so the section says what the plan says."
+        },
+        {
+          "op": "sink",
+          "depth": 0.25,
+          "why": "A quarter of the body below grade keeps the dome low to the street and gives the hall a lower entry level."
+        }
+      ]
+    },
+    {
+      "name": "stadium_saddle_terraces",
+      "primary_language": "solid_body",
+      "secondary_language": "three stacked tiers on a stadium plan whose top tier carries a saddle roof",
+      "formal_principle": "Hierarchy by stacking on a rounded-end plan: each tier is smaller than the one below so the terraces face the open side, and the saddle gives the highest tier a ridge across the parcel instead of a flat lid.",
+      "dominant_gesture": "stepped stadium tiers under a saddle crest",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "스타디움 평면의 3단 적층, 꼭대기는 안장 지붕.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.5,
+          "height": 0.8,
+          "profile": "stadium",
+          "why": "Three tiers on a stadium plan; contrast 1.5 keeps every tier a room, well clear of the crumb share."
+        },
+        {
+          "op": "crown",
+          "form": "saddle",
+          "sag": 0.3,
+          "along": "long",
+          "why": "The top tier's roof rises at its long ends and dips at the middle - a crest across the parcel."
+        }
+      ]
+    },
+    {
+      "name": "hexagon_court_under_vaults",
+      "primary_language": "open_figure",
+      "secondary_language": "a hexagonal ring around a court, its bar carrying three vaults, the court carved down a level",
+      "formal_principle": "A court is the figure and the vaults are its rhythm: the hexagonal ring holds a shared garden away from the street, three vaults give the bar a repeating section legible from every side, and the court is carved a level down so it has depth as well as enclosure.",
+      "dominant_gesture": "a vaulted hexagonal ring around a sunken court",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "육각 링에 볼트 셋, 가운데 마당은 한 단 아래.",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.5,
+          "storeys": 3,
+          "profile": "hexagon",
+          "why": "A hexagonal ring of three storeys; bar 0.3 keeps rooms one span deep and daylit from both sides."
+        },
+        {
+          "op": "vault",
+          "rise": 0.8,
+          "bays": 3,
+          "why": "Three vaults across the bar give the ring a rhythm and a section that is not a slab."
+        },
+        {
+          "op": "carve",
+          "size": 0.45,
+          "why": "The court is carved into the ring's centre at nearly half the body so the fit cannot close it."
+        }
+      ]
+    },
+    {
+      "name": "kite_twins_across_a_lane",
+      "primary_language": "solid_body",
+      "secondary_language": "a kite-shaped body split into two bars across a six-metre lane, each bar under its own gable",
+      "formal_principle": "Two bars, one lane: splitting the kite opens a lane the width of a room that the street sees through, and the gables make the pair read as two houses of one family rather than one block with a slot.",
+      "dominant_gesture": "twin gabled kites across a lane",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "연 모양 몸을 6m 골목으로 가르고 각각 박공을 얹는다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "kite",
+          "height": 0.6,
+          "storeys": 4,
+          "why": "A kite follows the parcel's skew to a point; four storeys under the five-storey law."
+        },
+        {
+          "op": "split",
+          "ratio": 0.45,
+          "gap": 6,
+          "along": "long",
+          "why": "Split along the long axis with a six-metre lane - wide enough to read as a street, not a joint."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.8,
+          "along": "long",
+          "bays": 2,
+          "why": "Each bar carries a gable so the pair reads as two houses; two bays keep the ridge within a storey."
+        }
+      ]
+    },
+    {
+      "name": "dished_field_on_a_triangle",
+      "primary_language": "porous_field",
+      "secondary_language": "four triangular room-blocks standing apart with dished tops, the ground graded up between them",
+      "formal_principle": "A field rather than a block: four rooms stand apart so the ground runs between them, the dish tops collect the sky at each room's centre, and the graded ground makes the space between them a single rising public room.",
+      "dominant_gesture": "four dished triangular rooms over a rising ground",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "삼각 방 넷을 벌려 세우고 접시 지붕, 사이 지반은 걸어 오르는 마당.",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.5,
+          "height": 0.5,
+          "storeys": 3,
+          "tie": 0,
+          "profile": "triangular",
+          "why": "Four triangular rooms spread 1.5 leave ground between them and answer the parcel's angled edges."
+        },
+        {
+          "op": "crown",
+          "form": "dish",
+          "sag": 0.35,
+          "why": "Each room's top dips to its centre - a roof that holds, not a lid."
+        },
+        {
+          "op": "grade",
+          "smooth": true,
+          "run": 0.6,
+          "toward": "open",
+          "walk": true,
+          "why": "The ground between the rooms rises toward the open side as one walkable public surface."
+        }
+      ]
+    },
+    {
+      "name": "concave_plinth_folded_crown",
+      "primary_language": "carved_body",
+      "secondary_language": "a concave-L plinth of two storeys carrying a lodged upper body under a folded roof, the plinth punctured twice",
+      "formal_principle": "A plinth and a crown: the low concave-L base takes the parcel's re-entrant corner, the lodged body above is the figure the street sees, and the folded roof gives that figure a profile; two punctures bring daylight down through the plinth.",
+      "dominant_gesture": "a folded-roof body lodged on a punctured concave plinth",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.6,
+      "design_argument_ko": "오목 L자 기단 위에 몸을 얹고 접힌 지붕, 기단은 두 번 뚫는다.",
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "concave_l",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "A two-storey concave-L plinth wraps the parcel's re-entrant corner and stays low."
+        },
+        {
+          "op": "lodge",
+          "size": 0.4,
+          "over": 0.3,
+          "height": 0.6,
+          "why": "A smaller body lodged on the plinth is the figure; size 0.4 leaves the plinth roof as terrace."
+        },
+        {
+          "op": "fold",
+          "folds": 2,
+          "pitch": 0.5,
+          "why": "The lodged body's roof folds twice - a profile, not a lid, declared shallow to survive delivery."
+        },
+        {
+          "op": "puncture",
+          "n": 2,
+          "size": 0.25,
+          "why": "Two punctures through the plinth bring daylight to the deep rooms below."
+        }
+      ]
+    },
+    {
+      "name": "loop_butterfly_open__d07_bar+",
+      "primary_language": "open_figure",
+      "secondary_language": "a four-storey loop ring whose every bar carries a butterfly roof draining toward the court - a basin of roofs over a garden of rain",
+      "formal_principle": "The court is the ring's centre but a flat ring drains rain away from it; giving every bar a butterfly that drains toward the court makes the court a rain garden that the building actively feeds - the building is organised around its own hydrological logic, the butterfly valleys as gutters pointing inward.",
+      "dominant_gesture": "a court ring of butterfly roofs draining to the court",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.265,
+          "height": 0.65,
+          "storeys": 4,
+          "why": "Input: a four-storey ring tall enough that the butterfly's valley is visible above the bar's eaves; height 0.65 declares mid-tall. Bar 0.23 gives each arm enough depth for a readable butterfly across its short dimension. Limit: four storeys keep the ring civic-scaled; bar 0.23 avoids making the arms too deep for the butterfly to register."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.55,
+          "at": 0.3,
+          "along": "cross",
+          "why": "Input: the butterfly valley runs along each bar's cross axis (parallel to the court edge) so the valley is the deepest point closest to the court; at 0.3 biases the valley toward the court face so the deep wing is over the court and the shallow wing faces outward. Limit: pitch 0.55 on bar depth 0.23 reads cleanly within the cap; along cross runs the valley perpendicular to each bar's own length."
+        }
+      ]
+    },
+    {
+      "name": "sangok_c04_develop_perforated_base",
+      "primary_language": "carved_body",
+      "secondary_language": "Perforated base beneath a continuous upper body",
+      "formal_principle": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded.",
+      "dominant_gesture": "Perforated base beneath a continuous upper body",
+      "reference_basis": "Exact scored comp04 parent; architectural massing development. Public-office and meeting uses remain hypotheses.",
+      "floor_height_m": 3.9,
+      "growth": "plan",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "storeys": 2,
+          "why": "Retain the parent two-storey, 7.8 m maximum envelope and 3.9 m authored storey height."
+        },
+        {
+          "op": "shape",
+          "on": "body",
+          "plan_region": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.0
+                ],
+                [
+                  1.0,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.3
+                ],
+                [
+                  0.61,
+                  0.69
+                ],
+                [
+                  1.0,
+                  0.69
+                ],
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  1.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ]
+              ],
+              [
+                [
+                  0.2,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.28
+                ],
+                [
+                  0.43,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.72
+                ],
+                [
+                  0.2,
+                  0.28
+                ]
+              ]
+            ]
+          },
+          "top_surface": {
+            "type": "constant",
+            "height": 1
+          },
+          "bottom_surface": {
+            "type": "profile",
+            "points": [
+              [
+                0,
+                0
+              ],
+              [
+                0.4,
+                0
+              ],
+              [
+                0.44,
+                0.42
+              ],
+              [
+                0.56,
+                0.42
+              ],
+              [
+                0.6,
+                0
+              ],
+              [
+                1,
+                0
+              ]
+            ],
+            "axis": [
+              0,
+              1
+            ],
+            "span": [
+              0,
+              1
+            ]
+          },
+          "why": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded. Developed: bottom_surface {'type': 'constant', 'height': 0} -> {'type': 'profile', 'points': [[0, 0], [0.4, 0], [0.44, 0.42], [0.56, 0.42], [0.6, 0], [1, 0]], 'axis': [0, 1], 'span': [0, 1]}, chosen over the parent by a unanimous blind pairwise jury."
+        }
+      ],
+      "design_argument_ko": {
+        "title": "Perforated base beneath a continuous upper body",
+        "spatial_strategy": "Lift a narrow transverse strip of the underside to form a covered ground passage through the central body and rear wall. The continuous upper volume frames the two carved courts while the retained north and south masses remain grounded.",
+        "tradeoff": "The passage is a modeled void, not a verified door, circulation route or engineered transfer structure. Its upper bridge needs structural development."
+      }
+    },
+    {
+      "name": "field_under_butterfly_wings",
+      "primary_language": "porous_field",
+      "secondary_language": "five three-storey pavilions standing apart, each under a V-shaped butterfly roof - valleys catching the rain in the middle of every roof",
+      "formal_principle": "Rain and daylight both want to be collected at the centre of each pavilion, so every roof folds inward as a butterfly: five valleys in a field, each pavilion's two wings lifting its eaves outward to the yard.",
+      "dominant_gesture": "a field of V roofs",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.6,
+          "height": 0.55,
+          "tie": 0,
+          "storeys": 3,
+          "why": "Input: five pavilions in a yard. Limit: height 0.55 declares mid; spread 1.6 keeps yard between."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.8,
+          "at": 0.5,
+          "why": "Input: each pavilion collects rain and light at its centre. Limit: pitch 0.8 keeps the valley inside the cap on pavilions this size."
+        }
+      ]
+    }
+  ],
+  "control_note": "Comp15 reuses the six comp14 authored propositions as explicit geometry-preservation controls after engine repair. They are not six new inventions.",
+  "development_feedback": "D:/Data/25_ACE/ARR/backend/tmp_mass_check/_massv2/inputs/gen-develop.json",
+  "run_scope": "round",
+  "repertoire_sentences": 0,
+  "repertoire_families": 0,
+  "round_sentences": 6
+}

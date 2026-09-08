@@ -1,0 +1,20 @@
+{
+  "name": "oval_dome_hall_sunk~held_ground^off_open",
+  "shape_id": "946726936757dfbf6b5a",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    5.7,
+    9.299999999999999
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    676.0905522757495,
+    676.0905522757495
+  ],
+  "section_area_m2": 558.8282844502372,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "c0eb07f2b483b60e8dc6ddd60a2925a82431ae14400f671ebd7f77edd8a9097c"
+}

@@ -1,0 +1,299 @@
+[
+ {
+  "track": "O",
+  "name": "kite_twins_across_a_lane~full_ground^cross_open",
+  "score": 3.83,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "ce518c1da5b478bf7861",
+  "certificate_id": "2d00d4fa2c8bcd4f66f0"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-008",
+  "score": 3.82,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "fbce6f52c2a7f49c67a3",
+  "certificate_id": "f8de62dfbfec78cbf42d"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-003",
+  "score": 3.58,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "4abaecbf93d355347425",
+  "certificate_id": "b842c7da765ce75f5627"
+ },
+ {
+  "track": "O",
+  "name": "oval_dome_hall_sunk~held_ground^off_open",
+  "score": 3.51,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "946726936757dfbf6b5a",
+  "certificate_id": "2f73ec9d59bca10b940f"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-007",
+  "score": 3.48,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "a6d538b20ff30bda1021",
+  "certificate_id": "e814f6879963b7506c92"
+ },
+ {
+  "track": "O",
+  "name": "wide01_0197_stack_taper",
+  "score": 3.48,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "7a563815fa7e72f2bf5a",
+  "certificate_id": "602322e82fbe84004e66"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-009",
+  "score": 3.45,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "6986b5f575dbc867aefb",
+  "certificate_id": "cd8faea4ba30437578ee"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-curved-mid:creative-017",
+  "score": 3.45,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "ca455078be81b48394ef",
+  "certificate_id": "6e08b3ef159b4d02a415"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-voided-mid:creative-022",
+  "score": 3.44,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "3d917098a599d62d9bb5",
+  "certificate_id": "471417df77e29dab23e5"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-curved-low:creative-001",
+  "score": 3.4,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate_id": "c1c4fee108ba63969304"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp11:morph-compact-mid:creative-012",
+  "score": 3.3,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "dacbb205cef6ed7a1d3e",
+  "certificate_id": "4589e41b0f45a7cf59bf"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-010",
+  "score": 3.3,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "267e54956b66b4d74d7e",
+  "certificate_id": "c92e61df2571eaa1dcf8"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-012",
+  "score": 3.3,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "dacbb205cef6ed7a1d3e",
+  "certificate_id": "0fe78997bb57f52bfec0"
+ },
+ {
+  "track": "O",
+  "name": "sweep-figures01_0016_stack_branch",
+  "score": 3.28,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "003c87fd11dc7e4420db",
+  "certificate_id": "9ae414f8285439227f05"
+ },
+ {
+  "track": "O",
+  "name": "chamfered_ring_field~full_ground^centred",
+  "score": 3.26,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "6faf67ab5ba43fbff362",
+  "certificate_id": "c15d6d631bced76fb250"
+ },
+ {
+  "track": "O",
+  "name": "book:book-develop-comp12:exact-authored-development:creative-002",
+  "score": 3.23,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "f413c82b42c717e26a69",
+  "certificate_id": "823870db6d402401af54"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-mid:creative-011",
+  "score": 3.18,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "ce63ea701f8ca3bb4096",
+  "certificate_id": "8ca1c721955353318a21"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-curved-low:creative-016",
+  "score": 3.18,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "57f5d53804c6dfebde6e",
+  "certificate_id": "1471699b8a6b95c5206b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-oblique-mid:creative-013",
+  "score": 3.18,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "a409fca6dd65719b9333",
+  "certificate_id": "feed5ee16c6bd10eb4ab"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-low:creative-006",
+  "score": 3.15,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "7eb610212c8594efa9ee",
+  "certificate_id": "598c6360fc5d4583e43b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-curved-mid:creative-004",
+  "score": 3.15,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "d8c7681d14fdb92697f1",
+  "certificate_id": "35a93ffce138bfcc6ea4"
+ },
+ {
+  "track": "O",
+  "name": "mies_square_plate~worked_ground^centred",
+  "score": 3.15,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "8c6c9965bef26d7e8cdf",
+  "certificate_id": "a8a4b5d9e09f665a9ff0"
+ },
+ {
+  "track": "O",
+  "name": "ruled_winding_taper",
+  "score": 3.15,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "9fd1dfd167855ec2a6dc",
+  "certificate_id": "6e0151aba7cb2fcfd940"
+ },
+ {
+  "track": "O",
+  "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+  "score": 3.06,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "536350c6419e5917d6a7",
+  "certificate_id": "61058cb880ca3a41fe6b"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-oblique-mid:creative-002",
+  "score": 3.03,
+  "pass": true,
+  "round": "vlm-book-comp14",
+  "shape_id": "27b052d1ca884a5599b2",
+  "certificate_id": "e6eba74e0ac8eadbc346"
+ },
+ {
+  "track": "O",
+  "name": "wide01_0115_aggregate_taper",
+  "score": 3.01,
+  "pass": true,
+  "round": "vlm-comp14",
+  "shape_id": "bdd79cbfc29194111026",
+  "certificate_id": "e377d86129e0e5381306"
+ },
+ {
+  "track": "O",
+  "name": "sweep03_0022_loop_mansard_fold~held_ground^centred",
+  "score": 2.93,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "df4eaeec67895d7378b7",
+  "certificate_id": "3adecf8dd0a43028f5f4"
+ },
+ {
+  "track": "O",
+  "name": "book:book-comp14:morph-compact-low:creative-005",
+  "score": 2.9,
+  "pass": false,
+  "round": "vlm-book-comp14",
+  "shape_id": "81f24c49fd99a2f213c3",
+  "certificate_id": "9d5a982b044e953eb476"
+ },
+ {
+  "track": "O",
+  "name": "sangok_c05_radial_three_wings~held_ground",
+  "score": 2.85,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "9488af685a38c2c075f9",
+  "certificate_id": "c36370346d5c3854a339"
+ },
+ {
+  "track": "O",
+  "name": "slipped_crown",
+  "score": 2.62,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "cf66a8bcda0bd043951a",
+  "certificate_id": "60eff22bcf6ecd898d2d"
+ },
+ {
+  "track": "O",
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "score": 2.52,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "40115b02b09902f83d13",
+  "certificate_id": "d5daa53a0e5d499ddf13"
+ },
+ {
+  "track": "O",
+  "name": "ring_warped_roofs~worked_ground^cross_open",
+  "score": 2.51,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "fa7f3df5e60b203b3a2e",
+  "certificate_id": "bb74a96c7edbd8d36ca1"
+ },
+ {
+  "track": "O",
+  "name": "stilted_tall_cluster",
+  "score": 2.03,
+  "pass": false,
+  "round": "vlm-comp14",
+  "shape_id": "58c8bf31798ebff3f0e0",
+  "certificate_id": "2b2e024908dfd33a7291"
+ }
+]

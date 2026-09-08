@@ -1,0 +1,6 @@
+{
+ "name": "oval_dome_hall_sunk~held_ground^off_open",
+ "shape_id": "946726936757dfbf6b5a",
+ "certificate_id": "2f73ec9d59bca10b940f",
+ "architectural_reason": "An oval hall with a domed top and a sunk floor is the one seat here whose plan, section and ground all say the same thing, and each of the three is still open. The oval has no corner to resolve against the skewed parcel; the dome makes the centre the tallest room instead of hanging a hat on a box; sinking the floor keeps the whole figure low to the street. Development can test how deep the sink goes, whether the dome carries one room or a ring of them, and how the oval meets the open side - decisions that change the building rather than its parameters."
+}

@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 4 | The continuous concave volume clearly defines an open court, although its section remains uniform.
+FEASIBILITY 5 | Repeated ground and upper footprints and a fully grounded section offer a straightforward structural starting point.
+SITE 4 | The crescent encloses a substantial open part of the parcel while its faceted outer edge acknowledges the irregular boundary.
+EDITABILITY 4 | Continuous floor plates can accommodate architectural development, with the curved inner edge requiring careful planning.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | Rotated and displaced horizontal volumes create a distinctive layered composition and pronounced sectional compression.
+FEASIBILITY 2 | Large offsets and locally narrow overlaps imply substantial transfers whose support strategy is not demonstrated.
+SITE 3 | The stack retains space around its footprint, but its rotations have only a weak visible relationship to parcel edges.
+EDITABILITY 2 | Changing plate orientation and limited common overlap would constrain a consistent core and circulation arrangement.
+WEIGHTED 2.90
+
+TILE t03
+CONCEPT 3 | Parallel lower bars and an offset upper volume establish hierarchy, but small notches dilute the overall reading.
+FEASIBILITY 3 | Broad lower masses are plausible, while the separated section fragment and upper offsets need structural resolution.
+SITE 3 | The two bars roughly follow a parcel direction and preserve surrounding space without a stronger site-specific gesture.
+EDITABILITY 3 | Rectangular portions are usable, but the split floors and local projections complicate coherent connections.
+WEIGHTED 3.00
+
+TILE t04
+CONCEPT 3 | A warped solid is clearly legible, but its distinction lies mainly in the envelope rather than a developed solid-void hierarchy.
+FEASIBILITY 3 | The continuous mass is plausible, although changing perimeter geometry makes the structure and facade less straightforward.
+SITE 3 | The compact placement leaves peripheral space, but the twist is not visibly tied to parcel geometry or orientation.
+EDITABILITY 3 | A central core appears developable within the solid, while changing floor edges constrain repeated planning and facade modules.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 3 | Intersecting wings produce recognizable plan articulation, but a uniform extrusion gives limited sectional hierarchy.
+FEASIBILITY 5 | The fully grounded, repeated footprint avoids conspicuous transfers or unsupported pieces.
+SITE 3 | Its compact winged footprint leaves generous open ground, although the wing directions have limited demonstrated site logic.
+EDITABILITY 4 | Connected floor plates permit a coherent circulation strategy, with acute junctions needing refinement.
+WEIGHTED 3.70
+
+TILE t06
+CONCEPT 3 | Two parallel bars and a small end link form a clear idea, but the narrow slot and equal heights limit spatial hierarchy.
+FEASIBILITY 5 | Grounded rectangular volumes offer simple load paths, and the lower connecting piece is modest.
+SITE 3 | The long bars fit within the parcel, though their orientation leaves residual wedges rather than a clearly shaped exterior space.
+EDITABILITY 4 | Regular bars are adaptable, with upper-level connection and the usefulness of the narrow interstitial space still unresolved.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A continuous upper bar spanning two substantial end masses creates a strong gateway section.
+FEASIBILITY 4 | The deep upper volume and broad end supports make the span credible for further structural development.
+SITE 3 | The opening establishes permeability within the parcel, but its relationship to a confirmed frontage or route is unknown.
+EDITABILITY 4 | The broad support volumes and regular spanning plate provide a workable basis for cores and circulation.
+WEIGHTED 3.80
+
+TILE t08
+CONCEPT 4 | Terraced wings and an elevated terminal block create a legible ascending hierarchy around an open notch.
+FEASIBILITY 4 | Most upper volumes sit over substantial lower masses, with localized offsets requiring coordination.
+SITE 4 | The relatively compact footprint and open-sided recess divide the parcel into distinct built and open areas.
+EDITABILITY 3 | Regular individual blocks can be developed, but separated upper occupancy and numerous level changes complicate circulation.
+WEIGHTED 3.80
+
+TILE t09
+CONCEPT 4 | A lower wing and elevated return frame an open recess with a clear contrast of horizontal mass and sectional void.
+FEASIBILITY 4 | Substantial bearing masses support a plausible composition, while the projecting upper wing needs an explicit transfer design.
+SITE 4 | The edge-oriented wings shape a recognizable exterior opening and use the parcel geometry more deliberately than a central object.
+EDITABILITY 4 | Broad connected plates and a restrained number of levels allow architectural refinement without losing the idea.
+WEIGHTED 4.00
+
+TILE t10
+CONCEPT 4 | A courtyard ring articulated into stepped upper blocks gives a strong central void and varied roof hierarchy.
+FEASIBILITY 4 | The blocks generally stack over the continuous lower ring, with only moderate local projections.
+SITE 4 | The court and surrounding margins establish a clear organization of open space within a compact footprint.
+EDITABILITY 3 | The lower ring is coherent, but four separate upper footprints would require carefully resolved vertical and horizontal circulation.
+WEIGHTED 3.80
+
+TILE t11
+CONCEPT 3 | Two displaced solids create a readable step and overhang but only a modest hierarchy of positive and negative space.
+FEASIBILITY 4 | A large common bearing zone makes the offset plausible, subject to resolution of the projecting edge.
+SITE 3 | A compact rectangular mass leaves open ground but shows limited response to the irregular parcel boundary.
+EDITABILITY 4 | Simple overlapping floor plates support straightforward planning with a stable shared core zone.
+WEIGHTED 3.45
+
+TILE t12
+CONCEPT 4 | Two stepped masses joined above a central opening create a convincing sectional figure and a clear hierarchy.
+FEASIBILITY 4 | Substantial flanking blocks make the bridge plausible, although its precise bearing and transfer arrangement remain to be developed.
+SITE 4 | The compact paired masses preserve open ground and articulate an opening through the composition.
+EDITABILITY 4 | Broad regular blocks provide useful planning zones, with a limited number of connections to resolve.
+WEIGHTED 4.00
+
+TILE t13
+CONCEPT 3 | The twisted envelope forms a recognizable object, but the solid section supplies little internal spatial hierarchy.
+FEASIBILITY 3 | Continuous occupancy supports a plausible main structure, while changing perimeter profiles and a local section kink need rationalization.
+SITE 3 | The object sits compactly within the parcel without a demonstrated reason for its particular twist or orientation.
+EDITABILITY 3 | A continuous interior can receive a core, but variable edges complicate repeated floors and facade development.
+WEIGHTED 3.00
+
+TILE t14
+CONCEPT 4 | The spanning bar and two grounded ends produce a strong gateway, though the shallow irregular recess weakens its clarity.
+FEASIBILITY 3 | Broad end masses support the overall span, but the locally thinned and notched connection needs further justification.
+SITE 3 | A large central opening offers a clear spatial opportunity, while its connection to site frontage remains unestablished.
+EDITABILITY 3 | The main volumes are usable, but the irregular recess adds constraints to the bridge edge and facade coordination.
+WEIGHTED 3.35
+
+TILE t15
+CONCEPT 3 | Terraces and an elevated terminal block remain legible, but competing cuts, ledges and projections weaken the principal idea.
+FEASIBILITY 3 | The broad stacked parts are credible, while thin projecting shelves and interrupted overlaps need additional structural explanation.
+SITE 4 | The compact footprint and open recess retain a useful organization of built mass and open parcel area.
+EDITABILITY 2 | Numerous local notches and offset layers would make floor continuity, envelope detailing and circulation difficult to regularize.
+WEIGHTED 3.00
+
+TILE t16
+CONCEPT 4 | The elevated return and lower wing define a clear open-sided void, with a minor roof element adding little to that hierarchy.
+FEASIBILITY 4 | The main masses have substantial bearing zones, although the upper projection needs a developed structural scheme.
+SITE 4 | The wings organize a distinct exterior opening and broadly acknowledge the parcel direction.
+EDITABILITY 3 | The much smaller displayed upper occupancy and local roof detail make floor continuity less straightforward to establish.
+WEIGHTED 3.80
+
+TILE t17
+CONCEPT 3 | Two slender parallel wings of unequal height form a clear open-ended space, but sectional articulation is limited.
+FEASIBILITY 5 | Both bars are grounded and regular, and the low connecting element introduces no conspicuous large transfer.
+SITE 3 | The open-ended composition preserves much of the parcel, but its relation to frontage and orientation is not demonstrated.
+EDITABILITY 4 | Regular linear floor plates are adaptable, with separate upper wings requiring a deliberate circulation strategy.
+WEIGHTED 3.70
+
+TILE t18
+CONCEPT 4 | Stepped flanking masses and an elevated link frame a strong central opening with a legible sectional hierarchy.
+FEASIBILITY 4 | Substantial lower masses make the upper connection plausible, pending detailed resolution of bearing and span.
+SITE 4 | The compact arrangement shapes an opening while leaving generous exterior space within the parcel.
+EDITABILITY 4 | Broad floor zones and restrained stepping provide room for cores and facade development while retaining the concept.
+WEIGHTED 4.00
+
+TILE t19
+CONCEPT 5 | The stepped paired volumes and carefully exposed intermediate link produce the clearest integration of sectional hierarchy and central void.
+FEASIBILITY 4 | Broad grounded wings and a substantial connecting volume suggest a credible structural scheme, with its transfer still to be designed.
+SITE 4 | The composition shapes a central opening and preserves ample surrounding ground while maintaining a coherent parcel orientation.
+EDITABILITY 4 | Connected upper occupancy and regular flanking blocks offer a convincing basis for circulation and floor development.
+WEIGHTED 4.35
+
+RANKING: t19, t01, t09, t12, t18, t08, t10, t07, t16, t17, t06, t05, t11, t14, t03, t04, t13, t15, t02
+VERDICT: Advance t19 for its integrated stepped masses and connected sectional organization, with t01 and t09 offering strong alternative approaches to defining exterior space. The set is strongest where a few substantial volumes establish a clear void; excessive offsets and local notches tend to weaken both feasibility and editability. These rankings assess the shown geometry and do not establish legal compliance, programme fit or an unknown statutory height cap.

@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "round": "comp15",
+  "steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "feedback": {
+    "parent": "book:book-comp15:morph-compact-mid:creative-008",
+    "champion": "book:book-develop-comp15:exact-authored-development:creative-002",
+    "source": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\develop-comp15-book-exact\\champion.json",
+    "feedback_written": true
+  },
+  "board": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\cycle-comp15\\board\\board.html",
+  "sheet": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\runs\\study-comp15\\study.html"
+}

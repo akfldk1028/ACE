@@ -1,0 +1,44 @@
+TILE t01
+CONCEPT 3 | Repeated butterfly volumes establish a coherent family, but roof repetition is stronger than the hierarchy of spaces between them.
+FEASIBILITY 4 | Compact grounded pavilions have plausible load paths; valley roofs and their sharply reduced upper occupancy need careful development.
+SITE 4 | Distributed footprints respond to several parcel edges and leave interconnected exterior gaps at a modest scale.
+EDITABILITY 3 | Separate buildings and narrow upper-level remnants complicate circulation and floor planning while preserving the roof language.
+WEIGHTED 3.45
+
+TILE t02
+CONCEPT 4 | A substantial perimeter figure combines an enclosed court with an open recess, giving the solid-void composition a clear hierarchy.
+FEASIBILITY 3 | Most volumes are grounded, but the upper connection across the ground-level discontinuity requires a resolved transfer and support strategy.
+SITE 4 | The bent outer perimeter engages the parcel shape while the court and recess subdivide the mass and exterior space.
+EDITABILITY 4 | Continuous upper bands and broad occupied wings offer useful flexibility for circulation, cores and facade development.
+WEIGHTED 3.75
+
+TILE t03
+CONCEPT 4 | Taller and shorter butterfly volumes form a legible sectional hierarchy, with the roof valleys extending the idea into the actual sections.
+FEASIBILITY 4 | The pavilions remain directly grounded and reasonably compact, with complex roofs rather than unsupported major masses.
+SITE 3 | The cluster creates passages and differentiated edges, although the large residual area on one side lacks an equally clear relationship to the buildings.
+EDITABILITY 3 | Several blocks retain useful upper occupancy, but independent circulation and roof-constrained upper floors would need coordinated development.
+WEIGHTED 3.60
+
+TILE t04
+CONCEPT 2 | A rounded compact object is legible, but the shallow roof crown provides little sectional articulation or developed solid-void hierarchy.
+FEASIBILITY 5 | Stacked, continuous occupancy and a fully grounded perimeter present a straightforward mass for structural development.
+SITE 2 | The isolated rounded footprint leaves extensive residual land with limited visible response to the parcel's angular boundaries.
+EDITABILITY 4 | Broad continuous floor plates readily accommodate further subdivision, although their depth and curved edge require planning care.
+WEIGHTED 3.15
+
+TILE t05
+CONCEPT 4 | A full-height diagonal cut separates two substantial roofed masses and remains clearly legible in plan and section.
+FEASIBILITY 4 | Both pieces are grounded and vertically consistent; their broad roof spans and irregular outlines require development but appear plausible.
+SITE 3 | The masses closely track the parcel perimeter, but the narrow separation and large footprints leave limited flexibility for exterior spatial development.
+EDITABILITY 3 | Broad uninterrupted plates provide capacity, while deep interiors and the tight full-height slot constrain circulation and facade planning.
+WEIGHTED 3.60
+
+TILE t06
+CONCEPT 4 | A compact courtyard ring and folded roof perimeter create a coherent positive-volume and central-void relationship.
+FEASIBILITY 4 | The continuous grounded ring supports plausible vertical construction, with local roof folds needing detailed resolution.
+SITE 2 | The compact object occupies one end of the parcel, leaving a large undifferentiated remainder with little visible spatial connection.
+EDITABILITY 3 | Continuous perimeter circulation is conceivable, but narrow occupied bands limit placement of cores and usable floor areas around the tall court.
+WEIGHTED 3.40
+
+RANKING: t02, t03, t05, t01, t06, t04
+VERDICT: Advance t02 for its combination of connected mass, differentiated voids and parcel response, subject to resolving the upper connection over the ground-level gap. Keep t03 and t05 as alternatives: the former offers stronger sectional hierarchy among separate volumes, while the latter presents a forceful split mass whose deep floors and narrow slot need further study. These judgments concern architectural development; the supplied evidence does not verify legal compliance.

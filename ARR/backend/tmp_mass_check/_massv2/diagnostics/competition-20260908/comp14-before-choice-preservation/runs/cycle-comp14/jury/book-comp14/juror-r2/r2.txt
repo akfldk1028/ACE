@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 3 | A single crescent extrusion reads clearly as one gesture, but plan at 1.2m and 7.1m are identical so the idea never develops in section.
+FEASIBILITY 4 | Continuous curved wall of constant depth, no cantilever or transfer visible; the section shows two ordinary solid limbs.
+SITE 3 | The arc opens toward one parcel edge and sits inside the boundary, yet the remaining ground is undifferentiated leftover.
+EDITABILITY 3 | Floors and a core drop into the curved band easily, but with no sectional variation there is little idea left to preserve.
+WEIGHTED 3.25
+
+TILE t02
+CONCEPT 4 | Rotated stacked plates with open horizontal gaps make a distinctive pinwheel section; the solid-void alternation is the strongest sectional statement in the set.
+FEASIBILITY 2 | The upper plates are thin and read as long unsupported oversails, with one plate connected only by a hairline element and no transfer shown.
+SITE 3 | The stack is centred and rotated off the parcel geometry; it acknowledges no frontage or edge.
+EDITABILITY 3 | Floor plates are generous, but the deep oversails will need structure that would erode the floating idea.
+WEIGHTED 3.10
+
+TILE t03
+CONCEPT 3 | Two parallel bars with a raised, notched upper bar over them gives a legible two-part hierarchy and a real court between.
+FEASIBILITY 4 | Bars are stacked and aligned, the section shows separated, self-supporting pieces of ordinary depth.
+SITE 4 | The bars run with the long parcel diagonal, keep clear of the boundary and hold the slot open to the site.
+EDITABILITY 4 | Regular parallel bars accept floors, cores and facade bays without losing the two-bar-plus-lid idea.
+WEIGHTED 3.65
+
+TILE t04
+CONCEPT 3 | One faceted block that widens as it rises is unmistakably a single idea, but it is stated once and never articulated further.
+FEASIBILITY 3 | The batter runs around the whole perimeter, so every floor oversails the one below and needs a leaning or transferred structure not shown.
+SITE 3 | The narrowed base releases ground generously; the blob-like footprint answers no parcel edge.
+EDITABILITY 3 | Floors stay simple, but a facade that changes plan on every level constrains any development that keeps the taper.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 2 | A star-shaped figure extruded at constant height; the idea lives entirely in plan and the section is a single flat slab.
+FEASIBILITY 4 | Simple continuous extrusion with no thin members, cantilevers or separations.
+SITE 3 | Centred within the boundary, the many re-entrant corners face no particular edge or orientation.
+EDITABILITY 3 | Plentiful perimeter for daylight, but the jagged figure gives awkward residual corners for planning.
+WEIGHTED 2.90
+
+TILE t06
+CONCEPT 2 | Two long parallel bars separated by a hairline slot; the slot is too narrow to work as void and the parti reads as a single block that has been scored.
+FEASIBILITY 4 | Two independent bars of ordinary depth, section shows one solid piece.
+SITE 2 | In the site plan the bars run past the parcel outline on one side, and the composition ignores the parcel's actual shape.
+EDITABILITY 4 | Bars take floors and cores readily, though the slot cannot be developed as usable space.
+WEIGHTED 2.90
+
+TILE t07
+CONCEPT 4 | A long bar lifted clear of the ground on two legs; the section states the portal and the released ground plane unambiguously.
+FEASIBILITY 3 | The span between the legs plus cantilevers at both ends is a serious structural claim, and the drawing shows only a slab of ordinary depth to make it.
+SITE 3 | Lifting the mass opens the ground across the parcel, but the bar is set on the diagonal without reference to any frontage.
+EDITABILITY 3 | Cores can only sit in the two legs, which fixes circulation tightly if the lifted idea is to survive.
+WEIGHTED 3.35
+
+TILE t08
+CONCEPT 4 | A courtyard plinth from which volumes step up toward one corner: the two plans differ genuinely (U-shape below, two pieces above) and the section confirms the terracing.
+FEASIBILITY 4 | Everything stacks over what is beneath it; no cantilever, thin member or separated piece is asked for.
+SITE 4 | The mass keeps within the boundary, holds a court, and its stepping gives a low edge on one side and height on the other.
+EDITABILITY 4 | Regular rectangular pieces accept floors, cores and facades while the terraced idea survives the development.
+WEIGHTED 4.00
+
+TILE t09
+CONCEPT 3 | A large slab cut by a deep slot and set on a lower plinth; the two-height hierarchy is clear if not surprising.
+FEASIBILITY 4 | Solid, grounded pieces of substantial depth; the section shows two separate stable masses.
+SITE 3 | The figure sits across the parcel with the slot facing one edge, but a large area of ground is left as residue.
+EDITABILITY 4 | Deep, regular floorplates with an obvious position for cores at the slot ends.
+WEIGHTED 3.45
+
+TILE t10
+CONCEPT 4 | A continuous ring plinth below dissolving into four separate pavilions above is the clearest plan-to-plan transformation in the set.
+FEASIBILITY 3 | Four separate upper pieces standing on a ring imply several cores and edge-loaded supports that the drawing does not resolve.
+SITE 3 | The courtyard idea is real, but at 23% coverage and 42% of the FAR allowance the mass is much smaller than the parcel it sits in.
+EDITABILITY 3 | Each pavilion is developable, yet servicing four separated volumes constrains circulation and multiplies vertical cores.
+WEIGHTED 3.35
+
+TILE t11
+CONCEPT 2 | A plain rectangular block with two small notches taken out of one face; no sectional idea and identical plans at both levels.
+FEASIBILITY 5 | An ordinary grounded box with no thin members, spans or separations of any kind.
+SITE 3 | Rotated to sit comfortably inside the boundary, but it answers no edge, frontage or orientation.
+EDITABILITY 4 | Maximum freedom for floors, cores and facade, precisely because there is little idea to preserve.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 3 | Two offset bars of different height linked over a ground-level slot; the height difference gives a modest hierarchy.
+FEASIBILITY 4 | Both bars are grounded and stable, and the link reads as a full-depth piece rather than a thin plate.
+SITE 3 | The bars sit on the parcel diagonal with the slot open, but at 19% coverage they occupy little of the site.
+EDITABILITY 4 | Two regular bars accept floors and a core each without disturbing the offset parti.
+WEIGHTED 3.45
+
+TILE t13
+CONCEPT 2 | The same plain notched block as elsewhere in the set; the stepped section is a small offset, not an architectural idea.
+FEASIBILITY 5 | Grounded, thick-walled, entirely conventional to build.
+SITE 3 | Comfortably within the parcel and rotated to it, but with no response to edge or frontage.
+EDITABILITY 4 | Simple deep floorplate, free core placement, nothing fragile to protect.
+WEIGHTED 3.35
+
+TILE t14
+CONCEPT 4 | A swept curved bar collided with an orthogonal block is genuinely distinctive, and the curve is carried through both plan cuts.
+FEASIBILITY 2 | The left wing is drawn as a thin roof plate flying over open ground with a dotted separation and nothing beneath it.
+SITE 3 | The curve sweeps across the parcel and reaches one corner, but the far end oversails ground with no shown support.
+EDITABILITY 3 | The curved band takes floors, though the cantilevered wing cannot be developed without structure that would change the idea.
+WEIGHTED 3.10
+
+TILE t15
+CONCEPT 3 | Two parallel bars beneath a raised, keyed upper bar; the added notching gives slightly more articulation than the bare version of this parti.
+FEASIBILITY 4 | Stacked, aligned, grounded pieces with a section of ordinary members.
+SITE 4 | Bars follow the parcel diagonal, hold a court, and stay clear of the boundary.
+EDITABILITY 4 | Regular bays throughout; the extra notches are facade-scale and do not obstruct planning.
+WEIGHTED 3.65
+
+TILE t16
+CONCEPT 3 | The terraced courtyard idea is present and the plans genuinely differ, but the serrated ground perimeter is fussy and blurs the hierarchy.
+FEASIBILITY 4 | All pieces stack on what is below; nothing thin or separated is asked to span.
+SITE 4 | Keeps a court, sits within the boundary and steps down at one side.
+EDITABILITY 3 | The many small jogs in the perimeter make floor and facade development harder than the idea requires.
+WEIGHTED 3.45
+
+TILE t17
+CONCEPT 3 | Two thin tall slabs holding a wide slot between them; a clean, austere parti with a small ground-level connector.
+FEASIBILITY 4 | The slabs are slender but continuous to ground; the section shows two independent stable pieces.
+SITE 3 | Set on the diagonal with a generous slot, but at 18% coverage and 41% of the allowance the parcel is barely engaged.
+EDITABILITY 3 | The floorplates are narrow, so cores and circulation will consume a large share of each slab.
+WEIGHTED 3.25
+
+TILE t18
+CONCEPT 3 | Offset bars of unequal height across a ground slot; a legible if familiar two-piece composition.
+FEASIBILITY 4 | Grounded bars, full-depth link, nothing fragile in the section.
+SITE 3 | Diagonal placement with an open slot, but only 19% of the ground and half the permitted floor area are used.
+EDITABILITY 4 | Regular bars take floors, cores and facade bays cleanly.
+WEIGHTED 3.45
+
+TILE t19
+CONCEPT 3 | Two ground pieces that merge into one continuous Z-figure above the ground floor is a real sectional move, visible in the difference between the two plans.
+FEASIBILITY 3 | The upper bridging element crosses over the ground-level gap and needs a transfer that the section does not show.
+SITE 3 | Sits on the parcel diagonal with a covered passage at ground, but engages little of the available site.
+EDITABILITY 4 | Both bars are regular, and the bridge is deep enough to carry floors once structure is resolved.
+WEIGHTED 3.20
+
+RANKING: t08, t03, t15, t09, t16, t12, t18, t07, t10, t13, t11, t01, t17, t19, t02, t14, t04, t05, t06
+VERDICT: Only t08 and its relatives t16 and t10 show a mass whose plan actually changes between the two cuts, and t08 does it while remaining entirely buildable, so it should advance first; t03 and t15 follow as the most disciplined site-responsive schemes, with t07's lifted bar worth advancing as a distinct idea if its span is resolved. The lower half of the set is dominated by constant extrusions whose whole idea is a plan silhouette (t05, t06, t11, t13) and by two ambitious pieces, t02 and t14, whose thin oversailing plates are not supported by anything drawn. A weakness across the set is scale: most alternatives use only 40-60% of the permitted floor area and under 30% ground coverage, so the parcel is engaged far below its stated capacity.

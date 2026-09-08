@@ -1,0 +1,165 @@
+{
+ "parent": "oval_dome_hall_sunk~held_ground^off_open",
+ "parent_shape_id": "946726936757dfbf6b5a",
+ "schemes": [
+  {
+   "name": "oval_dome_hall_with_a_court",
+   "primary_language": "carved_body",
+   "secondary_language": "an oval hall under a dome with a court carved through its centre, so the dome becomes a ring over a lit void",
+   "formal_principle": "The jury called the drum inert: a court carved through the centre turns the solid into a ring, and the dome then spans a lit void instead of a filled one - the section gains the interior the drawing lacked.",
+   "dominant_gesture": "a domed ring around a carved court",
+   "reference_basis": "development of oval_dome_hall_sunk: the oval, the dome and the sunk floor are kept; the jury's inert drum, missing void, unused ground and absent front are answered",
+   "floor_height_m": 3.6,
+   "design_argument_ko": {
+    "title": "타원 홀 가운데를 파내 링으로 만들고 돔이 빈 공간을 덮는다.",
+    "spatial_strategy": "The jury called the drum inert: a court carved through the centre turns the solid into a ring, and the dome then spans a lit void instead of a filled one - the section gains the interior the drawing lacked.",
+    "tradeoff": "파낸 마당의 채광과 배수, 링 폭의 실내 깊이를 검토해야 한다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "The parent's oval, unchanged."
+    },
+    {
+     "op": "crown",
+     "form": "dome",
+     "sag": 0.35,
+     "why": "The hall's own top still rises to its centre - the dome is the parent's idea and every child keeps it."
+    },
+    {
+     "op": "carve",
+     "size": 0.4,
+     "why": "A court carved at 40% of the body turns the drum into a ring and gives the section a void the jury asked for."
+    },
+    {
+     "op": "sink",
+     "depth": 0.25,
+     "why": "The floor stays a quarter below grade so the figure reads low from the street, as the parent does."
+    }
+   ]
+  },
+  {
+   "name": "oval_dome_hall_on_a_wide_plinth",
+   "primary_language": "carved_body",
+   "secondary_language": "an oval hall under a dome standing on a plinth widened toward the open side to take the ground the parent left",
+   "formal_principle": "The jury noted 27% coverage: widening the ground toward the open side takes the allowance the parent left unused and gives the drum a terrace to stand on rather than a residue.",
+   "dominant_gesture": "a domed hall on a widened plinth",
+   "reference_basis": "development of oval_dome_hall_sunk: the oval, the dome and the sunk floor are kept; the jury's inert drum, missing void, unused ground and absent front are answered",
+   "floor_height_m": 3.6,
+   "design_argument_ko": {
+    "title": "열린 변으로 기단을 넓혀 남던 지면을 쓴다.",
+    "spatial_strategy": "The jury noted 27% coverage: widening the ground toward the open side takes the allowance the parent left unused and gives the drum a terrace to stand on rather than a residue.",
+    "tradeoff": "넓힌 기단의 옥외 이용과 상부 드럼의 하중 전달을 검토해야 한다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "The parent's oval, unchanged."
+    },
+    {
+     "op": "crown",
+     "form": "dome",
+     "sag": 0.35,
+     "why": "The hall's own top still rises to its centre - the dome is the parent's idea and every child keeps it."
+    },
+    {
+     "op": "expand",
+     "ratio": 1.3,
+     "toward": "open",
+     "why": "The body grows toward the open side so the unused ground becomes plinth and terrace."
+    },
+    {
+     "op": "sink",
+     "depth": 0.25,
+     "why": "The floor stays a quarter below grade so the figure reads low from the street, as the parent does."
+    }
+   ]
+  },
+  {
+   "name": "oval_dome_hall_broadened_across",
+   "primary_language": "carved_body",
+   "secondary_language": "an oval hall under a dome broadened across its short axis so the drum becomes a room-deep hall",
+   "formal_principle": "The jury called the drum inert and the ground underused: broadening the oval across its short axis turns a deep drum into a hall with two long faces, so daylight reaches the middle and the plan takes ground the parent left.",
+   "dominant_gesture": "a broadened domed hall",
+   "reference_basis": "development of oval_dome_hall_sunk: the oval, the dome and the sunk floor are kept; the jury's inert drum, unused ground and absent front are answered",
+   "floor_height_m": 3.6,
+   "design_argument_ko": {
+    "title": "짧은 축으로 넓혀 깊은 드럼을 홀로 바꾼다.",
+    "spatial_strategy": "The jury called the drum inert and the ground underused: broadening the oval across its short axis turns a deep drum into a hall with two long faces, so daylight reaches the middle and the plan takes ground the parent left.",
+    "tradeoff": "넓힌 평면의 중앙 채광과 돔 스팬의 구조를 검토해야 한다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "The parent's oval, unchanged."
+    },
+    {
+     "op": "crown",
+     "form": "dome",
+     "sag": 0.35,
+     "why": "The hall's own top still rises to its centre - the dome is the parent's idea and every child keeps it."
+    },
+    {
+     "op": "expand",
+     "ratio": 1.15,
+     "toward": "cross",
+     "why": "Widening across the short axis makes the plan a hall rather than a drum, and takes ground the parent left unused."
+    },
+    {
+     "op": "sink",
+     "depth": 0.25,
+     "why": "The floor stays a quarter below grade so the figure reads low from the street, as the parent does."
+    }
+   ]
+  },
+  {
+   "name": "oval_dome_hall_offset_to_the_street",
+   "primary_language": "carved_body",
+   "secondary_language": "an oval hall under a dome pushed toward the open side so the street meets the building and the yard falls behind",
+   "formal_principle": "The jury found no frontage: offsetting the whole figure toward the open side puts the hall on the street and gathers the leftover ground into one yard behind it, instead of a residue on every side.",
+   "dominant_gesture": "a domed oval set to the street",
+   "reference_basis": "development of oval_dome_hall_sunk: the oval, the dome and the sunk floor are kept; the jury's inert drum, unused ground and absent front are answered",
+   "floor_height_m": 3.6,
+   "design_argument_ko": {
+    "title": "열린 변으로 밀어 거리에 붙이고 남는 땅을 뒤로 모은다.",
+    "spatial_strategy": "The jury found no frontage: offsetting the whole figure toward the open side puts the hall on the street and gathers the leftover ground into one yard behind it, instead of a residue on every side.",
+    "tradeoff": "거리 쪽 진입 폭과 뒤뜰의 접근·채광을 검토해야 한다."
+   },
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "The parent's oval, unchanged."
+    },
+    {
+     "op": "crown",
+     "form": "dome",
+     "sag": 0.35,
+     "why": "The hall's own top still rises to its centre - the dome is the parent's idea and every child keeps it."
+    },
+    {
+     "op": "offset",
+     "ratio": 0.2,
+     "toward": "open",
+     "why": "Pushing the figure toward the open side gives it a street address and collects the leftover ground into one yard."
+    },
+    {
+     "op": "sink",
+     "depth": 0.25,
+     "why": "The floor stays a quarter below grade so the figure reads low from the street, as the parent does."
+    }
+   ]
+  }
+ ]
+}

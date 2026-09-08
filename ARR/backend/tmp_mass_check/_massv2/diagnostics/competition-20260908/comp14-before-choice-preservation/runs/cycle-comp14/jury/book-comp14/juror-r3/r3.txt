@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 4 | A single crescent volume with one height break; the arc is legible in the axonometric, both plans and the site figure, and the taper gives it a front and a back.
+FEASIBILITY 3 | The long curved shear face and the thin detached sliver read in the section would need a transfer or a joint that is not evidenced, though nothing here is impossible.
+SITE 3 | The arc sits centrally and leaves large undifferentiated residual ground on all sides; it does not take up any parcel edge or frontage.
+EDITABILITY 3 | Curved floor plates repeat cleanly, but the two plans are identical so no core or circulation spine is yet implied by the geometry.
+WEIGHTED 3.35
+
+TILE t02
+CONCEPT 4 | Rotating stacked plates with open horizontal gaps make a strong, distinctive sectional idea rather than an extruded footprint.
+FEASIBILITY 2 | Plates overhang deeply at their corners with only a narrow vertical sliver visible between them; the drawn evidence shows very little continuous vertical structure.
+SITE 3 | The rotated stack is centred and reads as an object on the parcel, with no edge, frontage or orientation response drawn.
+EDITABILITY 3 | Misaligned plates at each level make a continuous core hard to carry without losing the shifting that is the idea itself.
+WEIGHTED 3.10
+
+TILE t03
+CONCEPT 3 | Two parallel bars with a slot between them and a raised, notched upper bar; the hierarchy is clear but the parti is a common one.
+FEASIBILITY 4 | Orthogonal bars of ordinary depth with a modest raised element; the section shows simple bearing pieces.
+SITE 3 | Bars run diagonally across the parcel and pick up its long direction, but the ends stop short of any edge and the slot is not addressed to frontage.
+EDITABILITY 4 | Regular bar depths take floors, cores and facade bays without disturbing the two-bar reading.
+WEIGHTED 3.45
+
+TILE t04
+CONCEPT 4 | One faceted monolith flaring outward as it rises; a single uncompromising figure that reads the same in plan, section and volume.
+FEASIBILITY 3 | The mass leans out over a smaller base on every side, which is plausible with transfers but is real structural work not yet evidenced.
+SITE 3 | The largest volume of the set is set centrally on the parcel with a blank perimeter and no ground-level differentiation.
+EDITABILITY 3 | Floor plates grow at every level and the battered faces constrain a repeating facade, though a single central core is easy to imagine.
+WEIGHTED 3.35
+
+TILE t05
+CONCEPT 2 | A single low star-shaped plate extruded to a uniform height; the outline is busy but there is no section and no hierarchy.
+FEASIBILITY 4 | A low, thick, continuous plate with short spans is about as buildable as the set gets.
+SITE 3 | The figure sits centrally and its re-entrant corners face nothing in particular; the parcel edges are not engaged.
+EDITABILITY 3 | Deep re-entrant plan corners give awkward residual depth for floors and daylight, though the outline is easy to adjust.
+WEIGHTED 2.90
+
+TILE t06
+CONCEPT 2 | Twin long bars separated by a narrow slot; legible and consistent, but the slot is too tight to register as a space and there is no sectional move.
+FEASIBILITY 4 | Two straight bars of constant depth and two storeys; the simplest structural proposition here.
+SITE 3 | The bars take the long diagonal of the parcel and reach close to its edges, though the residual ground is left undefined.
+EDITABILITY 4 | Constant-depth bars accept cores, corridors and repeated bays without touching the idea.
+WEIGHTED 3.10
+
+TILE t07
+CONCEPT 4 | A bar lifted clear of the ground on two blocks; the section drawing carries the idea, and the released ground plane is the strongest single move in the set.
+FEASIBILITY 3 | A long span between two supports with cantilevers beyond each, which is bold rather than impossible but demands transfer structure that is not drawn.
+SITE 4 | The lifted bar crosses the parcel on its long axis and keeps the ground continuous beneath, which is a real response to the site rather than an object placed on it.
+EDITABILITY 3 | Floors in the bar repeat easily and the two legs are the obvious places for vertical service, but the span sets a depth the idea cannot give up.
+WEIGHTED 3.55
+
+TILE t08
+CONCEPT 3 | A terracing aggregation stepping up toward one corner, with the ground U opening into separate upper pieces; readable, if additive.
+FEASIBILITY 4 | Stacked orthogonal boxes bearing on the mass below; short spans throughout.
+SITE 3 | The stepped cluster is centred with the low side facing outward, but no edge or frontage is claimed.
+EDITABILITY 4 | Boxes of consistent depth take floors and cores well and the terracing survives adjustment.
+WEIGHTED 3.45
+
+TILE t09
+CONCEPT 3 | An L-shaped upper volume over a lower plinth with a deep slot cut into it; the two-part hierarchy is clear but the composition stays inert.
+FEASIBILITY 4 | Simple orthogonal volumes with a modest overhang along one edge; nothing thin or separated.
+SITE 3 | The largest footprint of the set sits diagonally on the parcel and the slot faces the open side, but the edges are not otherwise addressed.
+EDITABILITY 4 | Generous constant depths take floors, cores and facade development without weakening the L.
+WEIGHTED 3.45
+
+TILE t10
+CONCEPT 4 | A perimeter ring at ground that breaks into four separate pavilions above; the two plans record a genuine transformation rather than an extrusion.
+FEASIBILITY 3 | The upper pieces land on the ring below, which is reasonable, but the set of small separated volumes multiplies structure and envelope for little volume.
+SITE 4 | The ring holds a courtyard and gives the mass an inside and an outside, the clearest ground-level ordering in the set.
+EDITABILITY 3 | Four separate small blocks above fragment circulation and cores, and each would need its own vertical run.
+WEIGHTED 3.55
+
+TILE t11
+CONCEPT 2 | A single block with small notches bitten out of two corners; the notches are too small to establish either hierarchy or articulation.
+FEASIBILITY 4 | A compact orthogonal block with regular spans and a simple stepped section.
+SITE 3 | Centred on the parcel and rotated with it, but the block neither reaches an edge nor shapes the ground around it.
+EDITABILITY 4 | Nothing in the geometry constrains floors, cores or facade; the idea is thin enough that development would not damage it.
+WEIGHTED 3.10
+
+TILE t12
+CONCEPT 3 | Two blocks of different height joined by a low link; the dumbbell is legible and the height difference gives some hierarchy.
+FEASIBILITY 4 | Orthogonal volumes and a short connecting piece; ordinary spans and bearing.
+SITE 3 | The pair runs on the parcel diagonal and opens a gap between the halves, but neither block addresses an edge or frontage.
+EDITABILITY 4 | Two regular volumes take separate cores and repeated bays while the paired reading holds.
+WEIGHTED 3.45
+
+TILE t13
+CONCEPT 2 | A plain block with two small corner notches; the section step is the only incident and it does not amount to an idea.
+FEASIBILITY 4 | Compact orthogonal mass, short spans, simple stepped profile.
+SITE 3 | Centred and rotated with the parcel, with generous but shapeless ground left over on every side.
+EDITABILITY 4 | Fully regular plates accept any core, circulation or facade strategy.
+WEIGHTED 3.10
+
+TILE t14
+CONCEPT 4 | A long curved wall paired with a rectilinear block, the two nearly touching at a drawn gap; the collision of curve and orthogonal is distinctive and carries into the plans.
+FEASIBILITY 3 | The tall continuous curved face and the near-touching separated block are bold moves whose junction is not evidenced in the section.
+SITE 3 | The sweep spans much of the parcel width but stops short of the edges, and the concave side faces undefined ground.
+EDITABILITY 3 | Curved plates repeat, but the tapering width along the arc and the near-detached block complicate cores and corridors.
+WEIGHTED 3.35
+
+TILE t15
+CONCEPT 3 | Two bars with a raised upper bar as in the simpler variants, here given a serrated top edge; the extra teeth add incident without adding hierarchy.
+FEASIBILITY 3 | The fine serrations and thin fins along the upper bar are small members that would not survive as drawn.
+SITE 3 | The bars follow the parcel diagonal but the serration faces nothing and no edge is taken up.
+EDITABILITY 3 | The serrated edge fixes a facade rhythm at a scale too small to develop, and simplifying it would erase what distinguishes this from a plain bar pair.
+WEIGHTED 3.00
+
+TILE t16
+CONCEPT 3 | The terraced cluster again, here with crenellated small steps; the stepping still reads but the extra teeth blur it.
+FEASIBILITY 3 | Several very small stepped pieces and thin re-entrant slivers appear at a scale that would not be built as drawn.
+SITE 3 | Centrally placed with the low side outward, and the fussier perimeter makes no additional site response.
+EDITABILITY 3 | Small crenellated pieces cannot take floors or facade bays at their drawn size, so development would have to coarsen them.
+WEIGHTED 3.00
+
+TILE t17
+CONCEPT 2 | Two tall parallel slabs with a small hook at ground; consistent but generic, and the space between them is not shaped.
+FEASIBILITY 4 | Straight slabs of even depth with no cantilever, overhang or separated piece.
+SITE 3 | The slabs take the parcel diagonal, but the lowest occupancy of the set leaves the parcel largely unclaimed with no compensating ground idea.
+EDITABILITY 4 | Even slab depth takes cores, corridors and repeated bays without touching the parti.
+WEIGHTED 3.10
+
+TILE t18
+CONCEPT 3 | Two blocks of unequal height with a low link between them; a clear paired figure with mild hierarchy.
+FEASIBILITY 4 | Orthogonal volumes, short connector, ordinary spans.
+SITE 3 | Set on the parcel diagonal with a gap between halves, but no edge, frontage or orientation is engaged.
+EDITABILITY 4 | Regular volumes take separate cores and facades while the pairing survives.
+WEIGHTED 3.45
+
+TILE t19
+CONCEPT 4 | Two separate volumes at ground that join into one continuous figure above; the two plans show the inversion, which is a real sectional idea rather than an extrusion.
+FEASIBILITY 3 | The upper level spans the gap held open below, a modest but genuine transfer that the drawings assert without showing.
+SITE 3 | The pair follows the parcel diagonal and keeps the ground between them open, though the edges remain unaddressed.
+EDITABILITY 3 | Floors change from two plates to one across the joint, so cores and circulation must resolve at the bridge if the idea is kept.
+WEIGHTED 3.35
+
+RANKING: t07, t10, t09, t08, t03, t18, t12, t14, t01, t19, t04, t02, t06, t17, t11, t13, t15, t16, t05
+VERDICT: Only a handful of these propose anything in section - t07 lifts a bar clear of the ground, t10 dissolves a courtyard ring into pavilions above, and t19 joins above what it separates below - and those three are what I would advance. A second group (t01, t02, t04, t14) is formally ambitious but leaves its boldest junctions, cantilevers and near-touching pieces unevidenced, and would have to show how they stand before being taken further. The remainder are extruded footprints of varying outline complexity; t15 and t16 in particular add serration at a size too small to build or develop, and t05, t11, t13 and t17 offer no architectural idea beyond a shape on a plot.

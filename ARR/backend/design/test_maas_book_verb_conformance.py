@@ -18,14 +18,20 @@ from design.maas.book_language.execution import (
     operator_for,
     undeclared_divergences,
 )
-from design.maas.book_language.execution import base_volumes, grammar_of
+from design.maas.book_language.execution import (
+    base_volumes,
+    grammar_of,
+    massv2_only_verbs,
+)
 from design.maas.book_language.execution.canonical import semantics_of
 
-# What was true when this test was written, on 2026-09-08: thirty-one of the
-# BOOK's thirty-five words also exist in `massv2._VERBS`, and four of those had
-# been read side by side. The number may fall - that is the work - and it may
-# not rise without somebody recording why.
-REVIEWED_BASELINE = 27
+# Thirty-one of the BOOK's thirty-five words also exist in `massv2._VERBS`.
+# All but one have now been read side by side and the reading recorded in the
+# word's own file; `extrude` is the exception, because the bench that measures
+# them seeds every comparison with an extrude and so has nothing to say about
+# it. The number may fall further - that is the work - and it may not rise
+# without somebody recording why.
+REVIEWED_BASELINE = 1
 
 
 class BookOwnsItsWordsTests(SimpleTestCase):
@@ -84,6 +90,21 @@ class BookOwnsItsWordsTests(SimpleTestCase):
                           f"{verb} sits in the table with no BOOK layer")
             self.assertTrue(grammar["evidence"] or grammar["aggregation_evidence"],
                             f"{verb} cites no page of the BOOK")
+
+    def test_the_whole_vocabulary_is_recorded_not_just_the_book_half(self):
+        """massv2 says things the BOOK cannot, and an agent has to see those too.
+
+        `crown`, `fold`, `gable`, `mansard`, `butterfly`, `vault`, `loop`,
+        `aggregate`, `align`, `approach` - roofs, rings, fields and regulating
+        lines. They cannot be reconciled with a BOOK word because there is none;
+        they are kept or retired, and either way they are written down.
+        """
+
+        only = massv2_only_verbs()
+        self.assertGreaterEqual(len(only), 15)
+        for verb in ("crown", "fold", "gable", "loop", "aggregate", "align"):
+            self.assertIn(verb, only)
+            self.assertFalse(only[verb]["book_has_this_word"])
 
     def test_a_declared_divergence_carries_its_reading(self):
         report = conformance_report()

@@ -117,6 +117,28 @@ def base_volumes() -> dict[str, dict[str, Any]]:
     return found
 
 
+@lru_cache(maxsize=1)
+def massv2_only_verbs() -> dict[str, dict[str, Any]]:
+    """Words massv2 has that the BOOK does not carry.
+
+    `crown`, `fold`, `gable`, `mansard`, `butterfly`, `vault`, `loop`,
+    `aggregate`, `align`, `approach` and the rest: fifteen words that say things
+    about roofs, rings, fields and regulating lines the BOOK's thirty-five
+    cannot. They cannot be reconciled with anything - only kept or retired -
+    and they are recorded so the language an agent reads is the whole language
+    rather than the BOOK half of it.
+    """
+
+    directory = _language_dir() / "massv2-verbs"
+    if not directory.is_dir():
+        return {}
+    found = {}
+    for path in sorted(directory.glob("*.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        found[str(record["verb"])] = record
+    return found
+
+
 def grammar_of(verb: str) -> dict[str, Any]:
     """All three parts of the BOOK sentence this word can stand in."""
 

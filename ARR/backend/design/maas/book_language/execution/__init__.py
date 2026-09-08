@@ -19,6 +19,7 @@ from .canonical import (
     base_volumes,
     book_verbs,
     grammar_of,
+    massv2_only_verbs,
     operator_for,
     semantics_of,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "base_volumes",
     "book_verbs",
     "grammar_of",
+    "massv2_only_verbs",
     "semantics_of",
     "conformance_report",
     "operator_for",

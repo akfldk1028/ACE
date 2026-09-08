@@ -605,8 +605,18 @@ def _append_book_call(
             "short_axis": "y",
             "vertical": "z",
         }.get(scope_orientation, axis)
+        # Six, not the minimum two. A Barr twist rotates each cross-section
+        # rigidly, so it preserves volume exactly; what the mesh loses is the
+        # flat chord between the sampled sections. For a section turned by d
+        # per segment the interpolated area is A(1 - 2t(1-t)(1-cos d)), giving
+        # a per-segment volume ratio of exactly 1 - (1-cos d)/3 whatever the
+        # section's shape - so the loss falls as one over n squared. Measured
+        # on a 20x12x8 host it was -2.3% at two segments; six brings that to
+        # roughly a quarter of one per cent, which is meshing rather than the
+        # operation. `compiler.py` clamps this to six, so this asks for the
+        # most the kernel will give.
         return add("modifier", "twist", (current,), {
-            "axis": twist_axis, "angle_degrees": angle, "subdivisions": 2,
+            "axis": twist_axis, "angle_degrees": angle, "subdivisions": 6,
         }, verb=verb)
     if verb == "skew":
         shear_amount = max(-0.38, min(0.38, tan(radians(angle)) * 0.45))

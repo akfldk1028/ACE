@@ -1,0 +1,114 @@
+TILE t01
+CONCEPT 3 | The continuous bent bar defines an open concavity, but its uniform extrusion offers limited sectional hierarchy.
+FEASIBILITY 5 | Ground and upper occupancy align, with substantial continuous mass and no apparent transfer or unsupported component.
+SITE 3 | The compact footprint preserves generous exterior space, although the opening has no demonstrated relationship to a specific frontage or orientation.
+EDITABILITY 4 | Repeated floor plates and a continuous bar allow development, with core placement and circulation around the bends still unresolved.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 2 | A simple block gains a sloping roof, but little positive-volume articulation or meaningful solid-void hierarchy is demonstrated.
+FEASIBILITY 5 | Broad aligned occupancy and a continuous base provide a straightforward mass for structural development.
+SITE 3 | The block sits comfortably within the depicted parcel, with only a general alignment and no specific frontage response established.
+EDITABILITY 5 | A simple continuous footprint provides considerable freedom for floors, cores and facades; the sloping roof mainly affects upper-level accommodation.
+WEIGHTED 3.55
+
+TILE t03
+CONCEPT 4 | A central court and changing perimeter geometry establish a coherent contrast between the hollow center and sculpted enclosing mass.
+FEASIBILITY 3 | The occupied ring is continuous, but changing wall inclinations and floor outlines require an explicit load-path strategy.
+SITE 3 | The court creates internal openness while the outer mass retains parcel margins; orientation and frontage relationships are unproven.
+EDITABILITY 3 | The ring can organize circulation around the void, but variable perimeter geometry and limited band depth constrain core and facade development.
+WEIGHTED 3.35
+
+TILE t04
+CONCEPT 3 | The tapered monolith and large lower notch form a readable idea, although the solid remains dominant over the localized opening.
+FEASIBILITY 3 | The notch leaves a relatively slender outer leg beneath a heavy upper mass, requiring development of the transfer and inclined support geometry.
+SITE 3 | The compact placement leaves perimeter space, but the notch is not tied by evidence to an access route or frontage.
+EDITABILITY 3 | The main body can accommodate floors, while the interrupted lower footprint and taper complicate circulation and structural continuity.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 4 | Intersecting bars and rising roof profiles create a strong central junction and a legible hierarchy of low and tall ends.
+FEASIBILITY 4 | Broad connected ground occupancy supports the rising masses plausibly, with the central junction and roof transitions needing resolution.
+SITE 3 | The arms distribute the mass across the parcel and form exterior pockets, but no specific orientation or frontage role is shown.
+EDITABILITY 4 | Connected bar-shaped plates offer a workable circulation framework, although slopes reduce flexibility near the upper extremities.
+WEIGHTED 3.80
+
+TILE t06
+CONCEPT 3 | The rounded mound has a clear silhouette but little internal solid-void or sectional differentiation beyond its enclosing curvature.
+FEASIBILITY 4 | The continuously grounded volume is plausible, with a curved envelope and diminishing upper area requiring an appropriate structural system.
+SITE 2 | The oval occupies a substantial central area while displaying little geometric response to the irregular parcel edges.
+EDITABILITY 2 | Shrinking floor plates and a continuously curved perimeter make standard floors and facades harder to develop without altering the dominant form.
+WEIGHTED 2.85
+
+TILE t07
+CONCEPT 3 | The waist between two opposing tapers is legible in section, but the proposal remains a single solid with limited spatial differentiation.
+FEASIBILITY 3 | The upper flare expands beyond the narrowed middle and needs a resolved transfer or inclined-support system; none is demonstrated.
+SITE 3 | The block maintains visible parcel margins, but its sectional gesture has no established connection to frontage or orientation.
+EDITABILITY 3 | Continuous central occupancy permits a possible core zone, while changing floor extents and inclined facades constrain development.
+WEIGHTED 3.00
+
+TILE t08
+CONCEPT 4 | The large arched void transforms an otherwise simple block into a clear relationship between grounded legs and an overhead connecting mass.
+FEASIBILITY 3 | An arch-like load path is plausible, but the broad opening and substantial upper mass need structural depth and support verification.
+SITE 3 | The opening creates ground-level permeability, although no shown access or contextual axis establishes where that permeability leads.
+EDITABILITY 3 | Separated lower occupied strips and a curved underside complicate cores and floor continuity while preserving the arch.
+WEIGHTED 3.35
+
+TILE t09
+CONCEPT 3 | The bent bar retains a strong concavity, but small projecting teeth and inner folds weaken the clarity of its main outline.
+FEASIBILITY 4 | Most occupancy stacks directly, with narrow perimeter projections and folds needing local structural and envelope resolution.
+SITE 3 | The small footprint preserves ample open ground, but the irregular edge accents do not demonstrate a particular parcel response.
+EDITABILITY 3 | The connected bar remains developable, although jagged edges and tight inner folds complicate usable planning depth and facade rationalization.
+WEIGHTED 3.25
+
+TILE t10
+CONCEPT 3 | The tapered notched mass is clear, while the thin bent face element adds limited spatial hierarchy beyond surface articulation.
+FEASIBILITY 3 | The major notch still requires a transfer to its narrow outer leg, and attachment of the thin face element is unresolved.
+SITE 3 | The parcel margins remain legible, but neither the notch nor the face element has a demonstrated frontage or orientation role.
+EDITABILITY 3 | The solid main body offers planning space, with the notch, taper and projecting face geometry imposing coordination constraints.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 4 | Crossed rising volumes produce a strong sectional composition; small roof-edge interruptions add articulation without changing the main idea.
+FEASIBILITY 4 | The connected footprint broadly supports the volumes, though the thin roof-edge pieces and central meeting point require detail development.
+SITE 3 | The projecting arms form several exterior recesses within the parcel, without evidence for their specific use or orientation.
+EDITABILITY 4 | The connected bars provide a plausible planning framework, with sloped upper areas and roof-edge details requiring accommodation.
+WEIGHTED 3.80
+
+TILE t12
+CONCEPT 3 | The pinched section remains the principal gesture; the small rooftop mass adds a secondary accent with little demonstrated spatial relationship.
+FEASIBILITY 3 | The upper flare places material beyond the narrowed middle, requiring a resolved load path that the small rooftop addition does not clarify.
+SITE 3 | Visible margins surround the footprint, but the form does not establish a distinct relationship to parcel edges or frontage.
+EDITABILITY 3 | A continuous central planning zone is possible, while changing floor outlines and the added roof volume need coordination with cores and facades.
+WEIGHTED 3.00
+
+TILE t13
+CONCEPT 3 | Parallel bars of unequal height frame a clear linear open space, although the composition has relatively little further articulation.
+FEASIBILITY 5 | The two substantial bars rise directly from their footprints with no significant cantilever or transfer apparent in the supplied geometry.
+SITE 4 | The elongated open space and modest coverage give the parcel a legible balance of built edges and exterior ground, without proving access or orientation benefits.
+EDITABILITY 4 | Regular bar-shaped floors and vertical faces support development, while separated upper occupancy requires explicit circulation and core decisions.
+WEIGHTED 3.90
+
+TILE t14
+CONCEPT 4 | Stepped end masses and a connecting upper zone produce a legible sectional composition around a lower opening.
+FEASIBILITY 4 | Broad bases and setbacks are plausible, with the occupied connection over the lower void requiring structural resolution.
+SITE 4 | The paired masses and intervening opening organize exterior space while the stepped edges moderate the apparent scale within the parcel.
+EDITABILITY 4 | Rectilinear plates and clear setbacks offer workable floor and facade development; circulation through the elevated connection remains to be designed.
+WEIGHTED 4.00
+
+TILE t15
+CONCEPT 4 | The terraced end volumes and clearly elevated linking bar establish a particularly legible hierarchy between grounded masses, bridge and open center.
+FEASIBILITY 4 | Substantial end blocks provide plausible bridge support, although the bridge span, depth and interfaces still require structural development.
+SITE 4 | The ground opening and layered setbacks organize built and open areas coherently within the depicted parcel, without establishing a particular access route.
+EDITABILITY 4 | Orthogonal volumes and demonstrated upper continuity support planning around the linking level, with cores and bridge circulation still unresolved.
+WEIGHTED 4.00
+
+TILE t16
+CONCEPT 4 | Unequal terraced stacks frame an open recess and create a strong low-to-high hierarchy, though several small edge steps dilute the larger composition.
+FEASIBILITY 4 | The masses are predominantly supported by broad lower volumes; local offsets and projections require coordination but present no inherently implausible gesture.
+SITE 4 | The low connecting base, central recess and unequal heights create a considered distribution of mass and open ground within the parcel.
+EDITABILITY 4 | Rectilinear setbacks permit floor and facade development, while the separated upper masses require deliberate core and circulation arrangements.
+WEIGHTED 4.00
+
+RANKING: t15, t14, t16, t13, t05, t11, t01, t02, t03, t08, t09, t04, t10, t07, t12, t06
+VERDICT: I would advance t15, t14 and t16 for their combined volumetric hierarchy, legible open spaces and plausible architectural development, with t15 strongest in the relationship between its grounded end masses and elevated connection. The crossed rising bars of t05 also merit further study for their distinctive section. These judgments concern demonstrated geometry; programme, core layouts, exact building-line compliance and a statutory height cap remain unverified.

@@ -1,0 +1,1228 @@
+{
+  "author": "Codex host LLM: eight relational compositions",
+  "geometry_programs": [
+    {
+      "name": "comp17_three_equal_turned_bodies",
+      "nodes": [
+        {
+          "id": "lower_room",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 20,
+            "depth": 12,
+            "height": 3.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "middle_room",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 20,
+            "depth": 12,
+            "height": 3.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "middle_direction",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "middle_room"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              24
+            ],
+            "pivot": [
+              10,
+              6,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "middle_level",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "middle_direction"
+          ],
+          "parameters": {
+            "vector": [
+              1,
+              0,
+              3.6
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_room",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 20,
+            "depth": 12,
+            "height": 3.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_direction",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "upper_room"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              -18
+            ],
+            "pivot": [
+              10,
+              6,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_level",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "upper_direction"
+          ],
+          "parameters": {
+            "vector": [
+              0,
+              1,
+              7.2
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "assembly",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "lower_room",
+            "middle_level",
+            "upper_level"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "assembly",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "Three equally sized occupied rooms keep independent directions and substantial overlap. Exposed lower roof edges differ by level; actual cores and terrace access remain undesigned.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 3.6,
+          "target_gfa_m2": 1050,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_paired_crossing_strata",
+      "nodes": [
+        {
+          "id": "ground_left",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 24,
+            "depth": 8,
+            "height": 3.8
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "ground_right",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 24,
+            "depth": 8,
+            "height": 3.8
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "ground_right_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "ground_right"
+          ],
+          "parameters": {
+            "vector": [
+              0,
+              14,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_front",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 8,
+            "depth": 22,
+            "height": 3.8
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_front_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "upper_front"
+          ],
+          "parameters": {
+            "vector": [
+              2,
+              0,
+              3.8
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_rear",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 8,
+            "depth": 22,
+            "height": 3.8
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "upper_rear_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "upper_rear"
+          ],
+          "parameters": {
+            "vector": [
+              14,
+              0,
+              3.8
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "assembly",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "ground_left",
+            "ground_right_position",
+            "upper_front_position",
+            "upper_rear_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "assembly",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "Two grounded longitudinal rooms carry two transverse occupied rooms. A central open slot and covered ends distinguish four architectural bodies in one connected solid; transfer structures remain unverified.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 2,
+          "storey_height_m": 3.8,
+          "target_gfa_m2": 1200,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_three_curved_halls_and_court",
+      "nodes": [
+        {
+          "id": "left_hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 18,
+            "depth": 24,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "left_roof",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "left_hall"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.7
+                ],
+                [
+                  1,
+                  0,
+                  0.6
+                ],
+                [
+                  2,
+                  0,
+                  -0.6
+                ],
+                [
+                  0,
+                  1,
+                  0.6
+                ],
+                [
+                  0,
+                  2,
+                  -0.6
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "right_hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 18,
+            "depth": 24,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "right_roof",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "right_hall"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  1.0
+                ],
+                [
+                  1,
+                  0,
+                  -0.65
+                ],
+                [
+                  2,
+                  0,
+                  0.65
+                ],
+                [
+                  0,
+                  1,
+                  -0.65
+                ],
+                [
+                  0,
+                  2,
+                  0.65
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "right_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "right_roof"
+          ],
+          "parameters": {
+            "vector": [
+              30,
+              0,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "back_hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 18,
+            "depth": 12,
+            "height": 9
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "back_roof",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "back_hall"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.82
+                ],
+                [
+                  1,
+                  0,
+                  -0.64
+                ],
+                [
+                  2,
+                  0,
+                  0.64
+                ],
+                [
+                  0,
+                  1,
+                  0.64
+                ],
+                [
+                  0,
+                  2,
+                  -0.64
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "back_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "back_roof"
+          ],
+          "parameters": {
+            "vector": [
+              15,
+              22,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "low_front_connection",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 48,
+            "depth": 6,
+            "height": 3.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "assembly",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "left_roof",
+            "right_position",
+            "back_position",
+            "low_front_connection"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "assembly",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "Three occupied halls have different top surfaces and grounded undersides. A low front room joins them around an open court; its interior route and the higher roofs have separate architectural roles.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1650,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_two_saddles_and_shared_threshold",
+      "nodes": [
+        {
+          "id": "first_hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 26,
+            "depth": 12,
+            "height": 11
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "first_saddle",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "first_hall"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.82
+                ],
+                [
+                  1,
+                  0,
+                  -0.64
+                ],
+                [
+                  2,
+                  0,
+                  0.64
+                ],
+                [
+                  0,
+                  1,
+                  0.64
+                ],
+                [
+                  0,
+                  2,
+                  -0.64
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "second_hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 22,
+            "depth": 12,
+            "height": 9
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "second_saddle",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "second_hall"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  1.0
+                ],
+                [
+                  1,
+                  0,
+                  -0.65
+                ],
+                [
+                  2,
+                  0,
+                  0.65
+                ],
+                [
+                  0,
+                  1,
+                  -0.65
+                ],
+                [
+                  0,
+                  2,
+                  0.65
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "second_direction",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "second_saddle"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              48
+            ],
+            "pivot": [
+              0,
+              0,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "second_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "second_direction"
+          ],
+          "parameters": {
+            "vector": [
+              22,
+              4,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "threshold",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 12,
+            "depth": 12,
+            "height": 3.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "threshold_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "threshold"
+          ],
+          "parameters": {
+            "vector": [
+              16,
+              0,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "assembly",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "first_saddle",
+            "second_position",
+            "threshold_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "assembly",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "Two differently directed curved occupied halls share a lower entrance room. The changing heights and concave exterior edge distinguish their meeting from a repeated box cluster.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 3.8,
+          "target_gfa_m2": 1400,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_curved_perimeter_with_open_court",
+      "nodes": [
+        {
+          "id": "perimeter",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 32,
+            "depth": 26,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "court",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 14,
+            "depth": 10,
+            "height": 14
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "court_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "court"
+          ],
+          "parameters": {
+            "vector": [
+              9,
+              8,
+              -1
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "open_perimeter",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "perimeter",
+            "court_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "perimeter_roof",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "open_perimeter"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.82
+                ],
+                [
+                  1,
+                  0,
+                  -0.64
+                ],
+                [
+                  2,
+                  0,
+                  0.64
+                ],
+                [
+                  0,
+                  1,
+                  0.64
+                ],
+                [
+                  0,
+                  2,
+                  -0.64
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "perimeter_roof",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "One continuous occupied perimeter surrounds an actual through-court. A two-axis top surface shapes the same holed solid, keeping the central opening instead of filling it with a new bounding envelope.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1750,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_vaulted_room_over_passage",
+      "nodes": [
+        {
+          "id": "spanning_body",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 30,
+            "depth": 18,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "curved_top",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "spanning_body"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.7
+                ],
+                [
+                  1,
+                  0,
+                  0.6
+                ],
+                [
+                  2,
+                  0,
+                  -0.6
+                ],
+                [
+                  0,
+                  1,
+                  0.6
+                ],
+                [
+                  0,
+                  2,
+                  -0.6
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "passage",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 10,
+            "depth": 20,
+            "height": 5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "passage_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "passage"
+          ],
+          "parameters": {
+            "vector": [
+              10,
+              -1,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "inhabited_span",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "curved_top",
+            "passage_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "inhabited_span",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "A curved occupied room spans a finite-height ground passage, supported by two grounded side bodies. Upper material remains above the opening; load capacity and public access remain unverified.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1450,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_crossing_inclined_rooms",
+      "nodes": [
+        {
+          "id": "long_room",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 30,
+            "depth": 10,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "inclined_section",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "long_room"
+          ],
+          "parameters": {
+            "normal": [
+              -0.22,
+              0,
+              1
+            ],
+            "offset": 5.2,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "cross_direction",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "inclined_section"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              58
+            ],
+            "pivot": [
+              15,
+              5,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "crossing",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "inclined_section",
+            "cross_direction"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "crossing",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "Two grounded rooms intersect with a continuous inclined upper section. The central crossing and four open edges provide a non-curved control for the relation studies.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1450,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    },
+    {
+      "name": "comp17_concave_hall_and_roof_opening",
+      "nodes": [
+        {
+          "id": "hall",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 32,
+            "depth": 24,
+            "height": 12
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "corner_cut",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 13,
+            "depth": 11,
+            "height": 14
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "corner_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "corner_cut"
+          ],
+          "parameters": {
+            "vector": [
+              20,
+              14,
+              -1
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "concave_body",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "hall",
+            "corner_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "curved_body",
+          "kind": "modifier",
+          "operator": "bound_surfaces",
+          "inputs": [
+            "concave_body"
+          ],
+          "parameters": {
+            "top_surface": {
+              "type": "polynomial",
+              "terms": [
+                [
+                  0,
+                  0,
+                  0.7
+                ],
+                [
+                  1,
+                  0,
+                  0.6
+                ],
+                [
+                  2,
+                  0,
+                  -0.6
+                ],
+                [
+                  0,
+                  1,
+                  0.6
+                ],
+                [
+                  0,
+                  2,
+                  -0.6
+                ]
+              ]
+            },
+            "bottom_surface": {
+              "type": "constant",
+              "height": 0.0
+            }
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "lightwell",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 6,
+            "depth": 6,
+            "height": 14
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "lightwell_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "lightwell"
+          ],
+          "parameters": {
+            "vector": [
+              9,
+              8,
+              -1
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "curved_body",
+            "lightwell_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
+        "architectural_response": "A concave occupied hall retains both an open corner and a separate roof-to-ground lightwell beneath a continuous curved crown. Two distinct void relations must survive the surface operation and export.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Room schedule, cores, doors, accessible routes, structural members and parking operation require further design and verification.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1550,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "commission": "Architectural composition preservation; multiple client-selectable organizations, not maximum FAR"
+      }
+    }
+  ]
+}

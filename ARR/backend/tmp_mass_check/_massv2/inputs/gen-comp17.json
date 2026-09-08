@@ -1,0 +1,218 @@
+{
+  "schemes": [
+    {
+      "name": "comp17_equal_rotated_rooms",
+      "primary_language": "solid_body",
+      "secondary_language": "같은 크기의 세 몸체가 서로 다른 방향을 향하며 겹침과 노출된 지붕 공간을 만든다.",
+      "formal_principle": "같은 크기의 세 몸체가 서로 다른 방향을 향하며 겹침과 노출된 지붕 공간을 만든다.",
+      "dominant_gesture": "equal rotated rooms",
+      "floor_height_m": 3.6,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.0,
+          "storeys": 3,
+          "profile": "square",
+          "why": "With no mandatory area schedule, test three equivalent occupied strata rather than a tapered hierarchy; cores remain undesigned."
+        },
+        {
+          "op": "rotate",
+          "degrees": 22,
+          "on": "tier_1",
+          "why": "Turn the middle body toward a second frontage while keeping its dimensions; inspect real bearing overlap."
+        },
+        {
+          "op": "rotate",
+          "degrees": -16,
+          "on": "tier_2",
+          "why": "Turn the upper body in the opposite direction to expose different lower roof edges; accessible terraces are not yet verified."
+        }
+      ]
+    },
+    {
+      "name": "comp17_offset_strata",
+      "primary_language": "solid_body",
+      "secondary_language": "네 켜의 점유 매스를 번갈아 이동해 입면과 층 사이의 외부 여백을 조직한다.",
+      "formal_principle": "네 켜의 점유 매스를 번갈아 이동해 입면과 층 사이의 외부 여백을 조직한다.",
+      "dominant_gesture": "offset strata",
+      "floor_height_m": 3.6,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 4,
+          "contrast": 1.0,
+          "storeys": 4,
+          "profile": "chamfered",
+          "why": "Compare four equivalent strata against the rotated three-body alternative under the same five-storey ceiling."
+        },
+        {
+          "op": "shift",
+          "ratio": 0.15,
+          "toward": "open",
+          "on": "tier_1",
+          "why": "Move one named stratum along the open-side axis; the actual overlap must survive fitting."
+        },
+        {
+          "op": "shift",
+          "ratio": 0.15,
+          "toward": "cross",
+          "on": "tier_2",
+          "why": "Move the next stratum across that axis to make a different sectional relation; structural members remain unverified."
+        }
+      ]
+    },
+    {
+      "name": "comp17_paired_curved_rooms",
+      "primary_language": "solid_body",
+      "secondary_language": "맞닿은 두 실내 몸체에 서로 다른 곡면 지붕을 부여해 단면으로 공간의 성격을 나눈다.",
+      "formal_principle": "맞닿은 두 실내 몸체에 서로 다른 곡면 지붕을 부여해 단면으로 공간의 성격을 나눈다.",
+      "dominant_gesture": "paired curved rooms",
+      "floor_height_m": 4.0,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "storeys": 3,
+          "profile": "square",
+          "why": "Use a three-storey envelope as a provisional occupied-body study, with room programme unknown."
+        },
+        {
+          "op": "split",
+          "ratio": 0.56,
+          "along": "cross",
+          "first": "large_room",
+          "second": "small_room",
+          "contrast": 1.25,
+          "gap": 0,
+          "why": "Divide the envelope into named room-bearing parts while keeping material contact; internal passage is still undesigned."
+        },
+        {
+          "op": "crown",
+          "form": "dome",
+          "sag": 0.26,
+          "on": "large_room",
+          "why": "Shape the large room itself into a raised-centre roof, rather than adding a detached cap."
+        },
+        {
+          "op": "crown",
+          "form": "saddle",
+          "sag": 0.24,
+          "on": "small_room",
+          "why": "Give the adjoining room a shallow saddle section; inspect the join and retained occupied depth."
+        }
+      ]
+    },
+    {
+      "name": "comp17_curved_court_perimeter",
+      "primary_language": "open_figure",
+      "secondary_language": "열린 중정을 둘러싼 점유 몸체의 지붕이 두 방향으로 오르내리며 외곽과 내부를 함께 조직한다.",
+      "formal_principle": "열린 중정을 둘러싼 점유 몸체의 지붕이 두 방향으로 오르내리며 외곽과 내부를 함께 조직한다.",
+      "dominant_gesture": "curved court perimeter",
+      "floor_height_m": 4.0,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.28,
+          "height": 1.0,
+          "storeys": 3,
+          "profile": "square",
+          "why": "Keep the actual central void as the organizing control; a continuous perimeter differs from stacked independent bodies."
+        },
+        {
+          "op": "crown",
+          "form": "saddle",
+          "sag": 0.28,
+          "why": "Shape the actual occupied perimeter with a two-axis saddle; preserve the open central void through delivery."
+        }
+      ]
+    },
+    {
+      "name": "comp17_folded_edge_and_room",
+      "primary_language": "carved_body",
+      "secondary_language": "접힌 단면의 긴 몸체와 낮은 실내 몸체가 맞물리고 전면의 파인 공간이 진입 여백을 만든다.",
+      "formal_principle": "접힌 단면의 긴 몸체와 낮은 실내 몸체가 맞물리고 전면의 파인 공간이 진입 여백을 만든다.",
+      "dominant_gesture": "folded edge and room",
+      "floor_height_m": 4.0,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "storeys": 3,
+          "profile": "chamfered",
+          "why": "Start from an occupied envelope inside the supplied storey ceiling, with no invented FAR target."
+        },
+        {
+          "op": "split",
+          "ratio": 0.62,
+          "along": "cross",
+          "first": "main_room",
+          "second": "side_room",
+          "contrast": 1.4,
+          "gap": 0,
+          "why": "Name the main room and side room before modifying their sections, retaining contact."
+        },
+        {
+          "op": "fold",
+          "folds": 2,
+          "pitch": 20,
+          "along": "long",
+          "on": "main_room",
+          "why": "Fold only the principal room roof, keeping the smaller body legible; no structural shell claim."
+        },
+        {
+          "op": "carve",
+          "size": 0.25,
+          "at": "open",
+          "reach": 0.25,
+          "why": "Open a substantial front recess in the actual body as an entrance-space hypothesis; doors and accessible paths remain unresolved."
+        }
+      ]
+    },
+    {
+      "name": "comp17_crossing_room_and_recess",
+      "primary_language": "carved_body",
+      "secondary_language": "사선으로 맞물린 두 점유 몸체와 전면의 파인 공간이 서로 다른 방향의 건축적 주소를 만든다.",
+      "formal_principle": "사선으로 맞물린 두 점유 몸체와 전면의 파인 공간이 서로 다른 방향의 건축적 주소를 만든다.",
+      "dominant_gesture": "crossing room and recess",
+      "floor_height_m": 3.6,
+      "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "storeys": 3,
+          "profile": "hexagon",
+          "why": "Use a compact three-storey body as a contrast to the perimeter and repeated strata."
+        },
+        {
+          "op": "intersect",
+          "size": 0.5,
+          "level": 0.28,
+          "climb": 0.12,
+          "degrees": 32,
+          "first": "cross_room",
+          "why": "Intersect a second substantial occupied body at an oblique angle; evaluate the joint instead of adding decorative fins."
+        },
+        {
+          "op": "carve",
+          "size": 0.28,
+          "at": "open",
+          "reach": 0.3,
+          "why": "Carve a front-facing recess to expose the relation of the two bodies to an exterior arrival space; programme and egress remain unknown."
+        }
+      ]
+    }
+  ],
+  "author": "Codex host LLM, comp17 relational composition",
+  "assumptions": [
+    "No mandatory area or room schedule supplied.",
+    "No landscape substitution, FAR maximization or forced reference imitation.",
+    "Actual-site fit, support, parking, circulation and independent jury remain to be evaluated."
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "schemes": [
+    {
+      "name": "comp16_diagonal_court",
+      "primary_language": "open_figure",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.26,
+          "height": 1.0,
+          "storeys": 4,
+          "why": "Use the existing four-storey court as a control of a continuous perimeter and useful occupied depth."
+        },
+        {
+          "op": "grade",
+          "run": 0.66,
+          "toward": "diagonal",
+          "smooth": true,
+          "why": "Grade the perimeter toward one diagonal so the section changes across the court; stop before the shallow edge loses occupied depth."
+        }
+      ],
+      "floor_height_m": 3.0,
+      "secondary_language": "A diagonal top plane unifies the occupied court perimeter while leaving the centre open.",
+      "formal_principle": "A diagonal top plane unifies the occupied court perimeter while leaving the centre open.",
+      "dominant_gesture": "diagonal court",
+      "reference_basis": "Explicit replay/adaptation of archived j_sail_over_court visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "j_sail_over_court"
+    },
+    {
+      "name": "comp16_folded_section",
+      "primary_language": "solid_body",
+      "floor_height_m": 3.5,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "storeys": 3,
+          "why": "Retain the existing three-storey body as the occupied budget for the folds."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "contrast": 1.4,
+          "storeys": 3,
+          "why": "Split the long body into unequal bars so the folds have legible runs; an undrawn doorway or connection is not assumed."
+        },
+        {
+          "op": "fold",
+          "folds": 3,
+          "pitch": 0.35,
+          "along": "long",
+          "why": "Use three folds of the existing controlled pitch; actual roof sections must survive delivery."
+        }
+      ],
+      "secondary_language": "Two unequal occupied bars share a repeated folded section, so the roofs and long body are read together.",
+      "formal_principle": "Two unequal occupied bars share a repeated folded section, so the roofs and long body are read together.",
+      "dominant_gesture": "folded section",
+      "reference_basis": "Explicit replay/adaptation of archived folded_plate_bar visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "folded_plate_bar"
+    },
+    {
+      "name": "comp16_inclined_canyon",
+      "primary_language": "carved_body",
+      "floor_height_m": 3.5,
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.7,
+          "storeys": 4,
+          "why": "Keep the existing four-storey occupied depth as a current-engine control."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "gap": 8,
+          "contrast": 1.2,
+          "storeys": 4,
+          "why": "Separate two unequal bodies along the long axis; preserve the authored gap as a spatial proposition, not proof of a public access route."
+        },
+        {
+          "op": "grade",
+          "smooth": true,
+          "toward": "open",
+          "why": "Grade toward the open side and check the actual roof slope after fitting; the occupied body must not become a thin decorative wedge."
+        }
+      ],
+      "secondary_language": "Two inclined occupied bodies define an open lane, with roof directions reinforcing the approach.",
+      "formal_principle": "Two inclined occupied bodies define an open lane, with roof directions reinforcing the approach.",
+      "dominant_gesture": "inclined canyon",
+      "reference_basis": "Explicit replay/adaptation of archived canyon_twin_wedges visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "canyon_twin_wedges"
+    },
+    {
+      "name": "comp16_turning_hexagon",
+      "primary_language": "solid_body",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "hexagon",
+          "storeys": 5,
+          "why": "Reauthor the archived thirteen-storey proposition at five occupied storeys; the reduced stature is explicit, not an exemption from the current site gate."
+        },
+        {
+          "op": "twist",
+          "degrees": 75,
+          "why": "Turn the section through seventy-five degrees so a helical edge is visible; a core, transfer structure and usable floor perimeter remain unresolved."
+        }
+      ],
+      "secondary_language": "A five-storey hexagonal body turns through its section, with repeated changing edges instead of a flat prismatic silhouette.",
+      "formal_principle": "A five-storey hexagonal body turns through its section, with repeated changing edges instead of a flat prismatic silhouette.",
+      "dominant_gesture": "turning hexagon",
+      "reference_basis": "Explicit replay/adaptation of archived bt_rotating_stack visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "bt_rotating_stack",
+      "floor_height_m": 3.5
+    },
+    {
+      "name": "comp16_bent_body",
+      "primary_language": "solid_body",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "profile": "square",
+          "storeys": 4,
+          "why": "Reauthor the archived seven-storey body at four storeys and retain its continuous occupied form."
+        },
+        {
+          "op": "bend",
+          "degrees": 42,
+          "segments": 6,
+          "why": "Bend through forty-two degrees in six existing segments; check actual overlaps and depth rather than treating the segment count as architectural quality."
+        }
+      ],
+      "secondary_language": "One occupied bar bends into a concave figure and frames an exterior room without becoming a box cluster.",
+      "formal_principle": "One occupied bar bends into a concave figure and frames an exterior room without becoming a box cluster.",
+      "dominant_gesture": "bent body",
+      "reference_basis": "Explicit replay/adaptation of archived bt_bent_bar visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "bt_bent_bar",
+      "floor_height_m": 3.5
+    },
+    {
+      "name": "comp16_waisted_court",
+      "primary_language": "open_figure",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.24,
+          "height": 1.0,
+          "storeys": 4,
+          "why": "Reauthor the archived seven-storey court at four storeys; preserve an actual open void and occupied perimeter."
+        },
+        {
+          "op": "pinch",
+          "ratio": 0.35,
+          "segments": 6,
+          "why": "Pinch the body in plan to differentiate the two ends while retaining material connectivity; do not infer routes through solid contact."
+        }
+      ],
+      "secondary_language": "Compress the court perimeter into a waisted figure so enclosure varies along its length.",
+      "formal_principle": "Compress the court perimeter into a waisted figure so enclosure varies along its length.",
+      "dominant_gesture": "waisted court",
+      "reference_basis": "Explicit replay/adaptation of archived bt_pressed_ring visible in the user-supplied study atlas; not a claim of new vocabulary.",
+      "reference_control": "bt_pressed_ring",
+      "floor_height_m": 3.5
+    }
+  ],
+  "author": "Codex comp16 geometric breadth: three preserved geometric controls and three explicit stature adaptations",
+  "assumptions": [
+    "Whole-repertoire family supply is required; round-only is not used for this production comparison.",
+    "The archived high-rise versions remain preserved; new four/five-storey adaptations are separate authored choices.",
+    "Programme, accessible circulation, parking strategy and engineered structure remain unverified. No universal FAR target is imposed."
+  ]
+}

@@ -103,6 +103,12 @@ GEOMETRY_AUTHOR_PROMPT_CONTRACT · BASE_SEED_SPECS · BASE_FORM_SPECS ·
 AUTHOR_GEOMETRY_GATE_POLICY와 `creative_program_author.authored_programs_from_payload`
 (페이로드 형식과 검증), 그리고 아핀 권위 규칙(유닛 박스 기저 사슬 위 matrix4 하나).
 
+BOOK의 `bound_surfaces`는 공유 typed 상하면과 기존 입력 고체의 교집합이다. 몸체별로
+상하면을 저작한 뒤 행렬·조합으로 배치하며, 기존 구멍·오목한 평면·유한 높이 공극을
+바운딩박스로 대체하지 않는다. 곡면 샘플링은 실제 모델 크기를 사용한다. 뒤쪽 확대·부착·
+변형이 요구 해상도를 잃으면 명시적으로 거절하므로, 크기 결정과 비선형 몸체 변형을 먼저
+저작한다. 상세 계약과 수치는 코드 소유자에서 읽으며, 적응형 재샘플링 완성을 뜻하지 않는다.
+
 `recipe_fixture`는 회귀·데모용 결정론 소스다. 그걸로 돌리면 십자·L·중정 같은
 일반형만 나온다.
 

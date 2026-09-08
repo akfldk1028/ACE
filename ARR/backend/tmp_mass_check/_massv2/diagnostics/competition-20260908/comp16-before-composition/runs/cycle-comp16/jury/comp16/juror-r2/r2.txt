@@ -1,0 +1,107 @@
+TILE t01
+CONCEPT 3 | The notched upper cap unifies the pieces, but its layered rim dominates a less coherent arrangement of ground volumes.
+FEASIBILITY 2 | The section shows a broad cap projecting beyond a concentrated support volume; transfer depths and connections are unresolved.
+SITE 3 | Chamfered outer edges acknowledge the parcel shape, while the ground fragments leave an uneven and weakly ordered open field.
+EDITABILITY 2 | Disconnected lower occupancies and a shallow unifying cap make continuous circulation and floor development difficult to preserve without substantial additions.
+WEIGHTED 2.55
+
+TILE t02
+CONCEPT 3 | Repeated low plates establish a recognizable field, although neither a dominant volume nor a clear hierarchy of voids emerges.
+FEASIBILITY 3 | The low grounded pieces appear broadly plausible, but very thin sloping plate edges and ambiguous interconnections require development.
+SITE 3 | The dispersed composition occupies the parcel with multiple gaps, without demonstrating a particular frontage or orientation response.
+EDITABILITY 2 | Fragmented and shallow occupancies constrain continuous floors and circulation; linking them could change the field concept substantially.
+WEIGHTED 2.80
+
+TILE t03
+CONCEPT 4 | A continuous courtyard ring with unequal sloping roof heights gives the positive volume a clear sectional hierarchy.
+FEASIBILITY 4 | Ground and upper rings align with straightforward grounded masses; the angled roof intersections remain a manageable architectural question.
+SITE 3 | The courtyard and surrounding clearance are legible, but the largely regular ring has only limited correspondence with the irregular parcel.
+EDITABILITY 4 | Continuous perimeter occupancy supports connected floor development, although narrower bands and sloping upper limits need careful core and floor placement.
+WEIGHTED 3.80
+
+TILE t04
+CONCEPT 4 | A single courtyard block gains a distinctive sectional identity from its smoothly dipping roof perimeter.
+FEASIBILITY 4 | Aligned continuous wall masses provide plausible support, while the curved roof geometry requires further structural and drainage definition.
+SITE 3 | The central void and modest footprint preserve exterior space, but the regular court figure provides limited evidence of response to specific parcel edges.
+EDITABILITY 4 | The continuous ring can accommodate coordinated floors and circulation while retaining its courtyard and roof idea; upper floor heights remain unresolved.
+WEIGHTED 3.80
+
+TILE t05
+CONCEPT 3 | Lifted bent wall volumes create a recognizable sculptural family, but their dispersed sizes do not establish a convincing shared spatial center.
+FEASIBILITY 2 | Large elevated faces bear on much smaller lower pieces, introducing substantial transfers and uncertain lateral stability.
+SITE 2 | Small separated footprints leave abundant residual ground without clearly shaping a courtyard, edge, or collective relationship to the parcel.
+EDITABILITY 2 | Thin bent occupancies and isolated lifted pieces provide little demonstrated continuity for usable floors, cores, or shared circulation.
+WEIGHTED 2.35
+
+TILE t06
+CONCEPT 4 | Three vaulted bars form a clear family with differentiated heights and widths, and the intervening voids remain legible in plan and section.
+FEASIBILITY 4 | Continuous grounded bars offer credible support for the curved roofs, with no evident major transfers; roof construction is still unspecified.
+SITE 4 | The clipped outer bar follows the oblique parcel edge while parallel gaps organize the remaining open ground consistently.
+EDITABILITY 4 | Regular bar occupancies allow floor and facade development while preserving the roof identity, although connections and separate core requirements remain unresolved.
+WEIGHTED 4.00
+
+TILE t07
+CONCEPT 3 | The open courtyard is clear and the unequal arm heights add hierarchy, though the roof undulation contributes only modest additional articulation.
+FEASIBILITY 5 | Continuous aligned ground and upper occupancy, grounded arms, and the absence of evident large transfers make this a highly plausible massing basis.
+SITE 4 | The open court connects the principal void to the parcel perimeter, and clipped ends mediate the irregular boundary without demonstrating a specific entrance.
+EDITABILITY 4 | Connected bands and an open courtyard support coherent floor and circulation development while retaining the massing idea; actual cores are not shown.
+WEIGHTED 3.90
+
+TILE t08
+CONCEPT 2 | An oversized cap dominates scattered lower blocks, producing a weak relationship between the main positive volume and the ground voids.
+FEASIBILITY 2 | The thin broad cap bridges substantial gaps between small lower occupancies, with no demonstrated transfer system.
+SITE 3 | Its chamfered cap reflects the parcel outline, but this relationship is less convincing in the dispersed ground plan.
+EDITABILITY 2 | Separate lower blocks and a shallow continuous upper element leave floor continuity, cores, and usable interior depth difficult to establish without changing the idea.
+WEIGHTED 2.20
+
+TILE t09
+CONCEPT 4 | A lower courtyard ring and an upper open-sided volume create a clear two-level hierarchy of enclosure and opening.
+FEASIBILITY 5 | The stepped upper mass sits within a broad grounded base, with aligned court edges and no apparent demanding transfers.
+SITE 4 | The polygonal base responds to the parcel geometry while the upper opening and setback create a legible hierarchy of exterior spaces.
+EDITABILITY 4 | Connected lower occupancy and a continuous upper band permit coordinated floors and circulation while preserving the court, subject to actual core and access design.
+WEIGHTED 4.25
+
+TILE t10
+CONCEPT 3 | A shared canopy over two substantial bases is readable, but the offset outlines add limited spatial depth beyond the dominant horizontal cap.
+FEASIBILITY 3 | The two bases offer substantial support, although the located section crosses a long unsupported canopy span whose structure is unknown.
+SITE 3 | Clipped edges and a gap between the bases acknowledge the site, but the broad upper plane weakens the legibility of that ground arrangement.
+EDITABILITY 3 | The bases could support regular floor development, while circulation across the gap and accommodation within the shallow upper element remain unresolved.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 4 | A central bridging volume with offset upper and lower blocks produces a strong, if busy, sectional composition.
+FEASIBILITY 2 | The broad elevated middle volume spans between separated bases and carries offset upper loads, requiring substantial unshown transfer and stability measures.
+SITE 3 | The separated bases retain a cross-site void, but the rotated upper elements have a less consistent relationship with parcel edges.
+EDITABILITY 2 | Repeated footprint shifts complicate vertical cores and load continuity, and regularizing them could erase the composition's principal identity.
+WEIGHTED 2.90
+
+TILE t12
+CONCEPT 3 | A repeated folded roof gives a clear silhouette, but the plan and section otherwise remain a nearly undifferentiated solid block.
+FEASIBILITY 4 | The continuous grounded envelope is plausible, while the broad interior span and folded roof support arrangement remain unspecified.
+SITE 3 | The clipped footprint closely follows the parcel geometry, but its extensive occupation offers little articulated open-space response.
+EDITABILITY 3 | A continuous volume offers substantial freedom for floors and cores, although developing deep interior circulation and environmental access may require new voids.
+WEIGHTED 3.25
+
+TILE t13
+CONCEPT 3 | Two unequal graded bars establish a simple hierarchy and continuous slot, but articulation beyond this split remains limited.
+FEASIBILITY 5 | Both masses remain continuously grounded with aligned upper footprints and straightforward sloping tops, showing no conspicuous transfer problem.
+SITE 4 | The outer profiles track the parcel edges and the separating slot makes a clear longitudinal open-space division.
+EDITABILITY 4 | Continuous bar footprints permit regular floors and facades, while the narrow gap and separate volumes require an explicit circulation strategy.
+WEIGHTED 3.90
+
+TILE t14
+CONCEPT 4 | The pinched courtyard ring gives both positive volume and internal void a distinctive shared geometry, although its height remains largely uniform.
+FEASIBILITY 4 | Aligned grounded occupancy avoids major transfers, with reentrant corners and local thin projections requiring refinement.
+SITE 3 | A retained courtyard and clipped outer edge respond in part to the parcel, but the offset placement leaves a large residual area with no demonstrated role.
+EDITABILITY 3 | A continuous ring supports connected development, but its pinched bands and angular courtyard constrain regular floor layouts and core placement.
+WEIGHTED 3.60
+
+TILE t15
+CONCEPT 4 | Successive rotated plates create a distinctive stacked silhouette and consistent articulation, though internal solid-void hierarchy remains weak.
+FEASIBILITY 3 | Large overlapping floor areas suggest a possible continuous structural zone, but shifting edges introduce recurring cantilevers and unshown support demands.
+SITE 3 | The stack occupies the parcel compactly, yet rotating edges have an inconsistent relationship with its perimeter and create little organized ground void.
+EDITABILITY 3 | The common central overlap could accommodate continuous floors and cores, while rotating facade edges and deep solid plates limit easy adaptation.
+WEIGHTED 3.35
+
+RANKING: t09, t06, t07, t13, t04, t03, t14, t15, t12, t10, t11, t02, t01, t05, t08
+VERDICT: I would advance t09 and t06 for their legible positive volumes, coherent voids, and credible development potential, with t07 and t13 as restrained alternatives; among the equal-scoring courtyard schemes, t04 has the more distinctive roof section. Several lifted and capped compositions remain visually assertive but show unresolved transfers and fragmented floor continuity. These are massing judgments only: exact building-line compliance, statutory height, measured terrain, programme, access, and budget remain unverified or unspecified, and the storey proxies do not establish legal approval.

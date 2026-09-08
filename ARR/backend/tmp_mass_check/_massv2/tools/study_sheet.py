@@ -238,6 +238,8 @@ def main(run, out_name="", recommendation_context=None):
     out = ROOT / "runs" / (out_name or f"study-{run}")
     out.mkdir(parents=True, exist_ok=True)
     blocks, rejected, seen, shown_shapes = [], [], set(), set()
+    from solid_presentation import SolidPresentationRegistry
+    solid_forms = SolidPresentationRegistry()
     accepted_lineages = set()
     for row in _comparison_rows(rows, lineages, accepted_lineages):
         name, family = row["name"], _family(row["name"])
@@ -279,6 +281,12 @@ def main(run, out_name="", recommendation_context=None):
         if cert['shape_id'] in shown_shapes:
             rejected.append({'name': name, 'reason': 'The same evaluated geometry is already shown'})
             continue
+        form_comparison = solid_forms.find_or_add(name, source)
+        if form_comparison.get('duplicate_of'):
+            rejected.append({'name': name, 'reason': 'The same occupied 3D form is already shown',
+                             'same_form_as': form_comparison['duplicate_of'],
+                             'certificate': cert, 'comparison': form_comparison})
+            continue
         tile = out / (artifact_stem(name, cert["shape_id"]) + "-mass.png")
         render_masses([(f"대안 {len(blocks) + 1}", source, caption)], tile,
                       site_ring=list(buildable.exterior.coords), columns=1, tile=(900, 800), style="massing")
@@ -293,6 +301,7 @@ def main(run, out_name="", recommendation_context=None):
             parking = {'status':'unavailable', 'reason':str(error), 'source_shape_id':cert['shape_id'],
                        'certificate_id':cert['certificate_id'], 'legal_approval':False}
         blocks.append({**row, **cert, **discussion, "tile": tile.name,
+                       'solid_presentation': form_comparison,
                        "sequence": sequence.name, "drawings": drawings.name,
                        'site_parking':parking, 'parking_plan':parking_plan,
                        "source_track": "BOOK" if name.startswith("book:") else "저작 문장"})

@@ -169,6 +169,8 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
 
     batch, sheet, drawn, failed, repeated = [], 0, 0, 0, 0
     seen_shapes: dict[str, str] = {}
+    from solid_presentation import SolidPresentationRegistry
+    solid_forms = SolidPresentationRegistry()
     suppressed: list[dict] = []
     drawings: list = []
     index = 0
@@ -197,6 +199,14 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
             suppressed.append({'name': name, 'shape_id': identity,
                                'same_geometry_as': seen_shapes[identity]})
             continue
+        form_comparison = solid_forms.find_or_add(name, source)
+        if form_comparison.get('duplicate_of'):
+            repeated += 1
+            suppressed.append({'name': name, 'shape_id': identity,
+                               'same_form_as': form_comparison['duplicate_of'],
+                               'storeys': storeys, 'gross_m2': gross,
+                               'comparison': form_comparison})
+            continue
         # Similar ground plans may conceal different upper levels, roofs,
         # holes or siting cuts. Record the relation without deleting a choice.
         mark = _drawing_signature(source)
@@ -208,7 +218,8 @@ def main(run: str, out_name: str = "", mode: str = "") -> int:
         index += 1
         drawn += 1
         kept.append({"rank": index, "storeys": round(storeys, 1), "name": name,
-                     "shape_id": identity, "similar_plan_to": similar_to})
+                     "shape_id": identity, "similar_plan_to": similar_to,
+                     "solid_presentation": form_comparison})
         meta = {
             "층": f"{storeys:.1f}", "용적": f"{gross / parcel * 100:.0f}%",
             "": family[:24],

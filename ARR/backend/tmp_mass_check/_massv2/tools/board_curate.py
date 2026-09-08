@@ -461,6 +461,10 @@ def main() -> int:
 
     # Presentation only: the complete scored ledger remains below unchanged.
     curated = exact_presentation_aliases(curated)
+    from presentation_aliases import current_source_loader, group_presentations
+    curated, presentation_audit = group_presentations(
+        curated, sorted(ledger.values(), key=lambda row: (-row['score'], row['name'])),
+        current_source_loader())
     board = []
     counters = {"K": 0, "O": 0}
     for track in ("K", "O"):
@@ -474,7 +478,9 @@ def main() -> int:
                           **({"shape_id": item["shape_id"]} if item.get("shape_id") else {}),
                           **({"certificate_id": item["certificate_id"]} if item.get("certificate_id") else {}),
                           **({"exact_geometry_aliases": item["exact_geometry_aliases"]}
-                             if item.get("exact_geometry_aliases") else {})})
+                             if item.get("exact_geometry_aliases") else {}),
+                          **{key: item[key] for key in ('presentation_group', 'presentation_comparison',
+                                                       'solid_form_aliases') if key in item}})
     # The canon is not a contestant. Section 11 promises the standard
     # repertoire is ALWAYS present, and for a season it wasn't: the canon
     # round was authored, closed-looped and never juried, so the wide slab,
@@ -523,6 +529,8 @@ def main() -> int:
                           "round": judged["round"] if judged else "canon"})
     out = ROOT / "runs" / "board"
     out.mkdir(parents=True, exist_ok=True)
+    (out / 'solid-presentation.json').write_text(
+        json.dumps(presentation_audit, ensure_ascii=False, indent=2), encoding='utf-8')
     (out / "ledger.json").write_text(
         json.dumps(sorted(ledger.values(), key=lambda r: (-r["score"], r["name"])),
                    ensure_ascii=False, indent=1), encoding="utf-8")

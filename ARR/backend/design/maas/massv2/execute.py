@@ -114,6 +114,33 @@ class Centre:
     born: str = "site"
 
 
+# The BOOK's six fractions. A fraction is not a scalar on every axis at once -
+# taking a quarter vertically is a tower and taking it across is a bar - so the
+# orientation says which axis carries it, and the other two are left alone. The
+# two fractions the BOOK draws as connected octant groups rather than boxes,
+# 3/8 and 1/16, are taken here as their bounding extent: the L and the corner
+# cluster need a plan figure this grammar cannot yet write, and pretending a
+# box is an L would be worse than saying so.
+_BASE_VOLUME_FRACTION = {
+    "1/1": 1.0, "3/8": 0.375, "1/2": 0.5, "1/4": 0.25, "1/8": 0.125, "1/16": 0.0625,
+}
+_TOPOLOGY_NOT_YET_A_FIGURE = frozenset({"3/8", "1/16"})
+
+
+def _base_volume_extent(width: float, depth: float, label, orientation):
+    """(width, depth, height share) after taking the BOOK's fraction."""
+
+    fraction = _BASE_VOLUME_FRACTION.get(str(label or "1/1"), 1.0)
+    if fraction >= 1.0 - 1e-9:
+        return width, depth, 1.0
+    where = str(orientation or "long_axis")
+    if where == "vertical":
+        return width, depth, fraction
+    if where == "short_axis":
+        return width, depth * fraction, 1.0
+    return width * fraction, depth, 1.0
+
+
 class _Frame:
     """The site's own box, the volumes standing in it, and what regulates them.
 
@@ -137,8 +164,21 @@ class _Frame:
         axis: tuple[float, float],
         height_m: float,
         storey_m: float = 0.0,
+        base_volume: str | None = None,
+        base_orientation: str | None = None,
     ):
         cx, cy, width, depth, rotation = seed_rectangle(buildable, axis)
+        # The BOOK chooses what to act on before it acts. Its base operatives
+        # are three parts - a relative base volume and an orientation, then one
+        # action, then that action's bounded variations - and this grammar only
+        # ever had the middle part: the seed was always the parcel's own
+        # rectangle, so every mass began as the plot and the jury kept writing
+        # "an object placed on the parcel rather than a building that has
+        # reckoned with its edges". A quarter taken vertically is a tower; a
+        # half taken across is a bar. Silence still gives the whole plot on the
+        # open side, so nothing already written moves.
+        width, depth, self.height_share = _base_volume_extent(
+            width, depth, base_volume, base_orientation)
         # Which edge faces the lane. `siting` computes it and the frame threw it
         # away, so `approach` - the one verb whose whole subject is the street -
         # had no way to ask.
@@ -146,7 +186,7 @@ class _Frame:
         self.cx, self.cy = cx, cy
         self.width, self.depth = width, depth
         self.rotation = rotation
-        self.height = height_m
+        self.height = height_m * self.height_share
         # A room is at least a storey. Heights in a sentence are ratios of the
         # whole, and an author writing about a single-storey building writes a
         # small one - Louvre-Lens at 0.15 - which on a parcel affording four
@@ -1818,7 +1858,9 @@ def execute_steps(
     frame and taking a copy after each one costs one extra compile per word.
     """
 
-    frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m)
+    frame = _Frame(buildable, axis, height_m, storey_m=storey_height_m,
+                   base_volume=parti.base_volume,
+                   base_orientation=parti.base_orientation)
     steps: list[tuple[Operation, MatrixForm]] = []
     for op in parti.ops:
         handler = _VERBS.get(op.verb)

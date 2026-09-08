@@ -22,6 +22,22 @@
 | `skew` | `degrees` -30~30 · `toward` long\|cross · `on` | 수직에서 **기울인다**. shear는 미는 것, skew는 넘어뜨리는 것 |
 | `twist` | `degrees` 5~90 · `on` | 올라가며 단면이 **점진적으로 회전**. 세분화로 구현 (Vancouver House) |
 
+## 기저 볼륨 `base_volume` + `base_orientation` (문장 맨 위, 선택)
+
+BOOK의 첫 수다. 조작은 세 부분이다 — **무엇에 할지 고르고**, 하나의 동작을 하고, 그 동작의
+제한된 변형을 본다. 이 문법은 오랫동안 가운데만 있었고 모든 문장이 필지 사각형에서 출발했다.
+
+| 값 | 뜻 |
+|---|---|
+| `base_volume` | `1/1` `3/8` `1/2` `1/4` `1/8` `1/16` — 필지 씨앗의 몇 분의 몇에서 시작할지 |
+| `base_orientation` | `long_axis` `short_axis` `vertical` — 그 분수를 어느 축이 진다 |
+
+`1/4` + `vertical`은 높이를 4분의 1로 접은 낮은 판이고, `1/4` + `long_axis`는 길이를 4분의 1로
+줄인 바다. **말하지 않으면 지금까지처럼 `1/1` 전체 필지**이므로 기존 문장은 아무것도 바뀌지 않는다.
+
+⚠️ `3/8`과 `1/16`은 BOOK이 **연결된 옥탄트 묶음**(L자·모서리 뭉치)으로 그리는데 이 문법은 아직
+그 평면 도형을 못 쓴다. 지금은 그 경계 상자로 받는다 — 상자를 L자인 척하지 않기 위해 적어둔다.
+
 ## 기반 도형 `profile` (첫 동사에 한 번, 문장 전체에 적용)
 
 `square` `oval` `stadium` `hexagon` `chamfered` `faceted` `trapezoidal` `triangular` `kite` `concave_l`

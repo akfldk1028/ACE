@@ -206,6 +206,15 @@ class Parti:
     reference_basis: str = ""
     floor_height_m: float | None = None
     growth: str | None = None
+    # The BOOK's first move, which this grammar never had. A base operative is
+    # three parts - choose a relative base volume and an orientation, perform
+    # one action, explore the action's bounded variations - and massv2 only
+    # ever had the middle one: every sentence started from `seed_rectangle`,
+    # the parcel's own extent, so every mass began as the plot. Six fractions
+    # and three orientations are eighteen openings nothing here could say.
+    # Silence still means 1/1 on the open side, so the corpus is unaffected.
+    base_volume: str | None = None
+    base_orientation: str | None = None
 
     def plot_mode(self) -> PlotMode:
         return plot_mode_of(self.ops)
@@ -217,6 +226,9 @@ class Parti:
             "plot_mode": self.plot_mode(),
             "operations": [op.evidence() for op in self.ops],
             **({"growth": self.growth} if self.growth is not None else {}),
+            **({"base_volume": self.base_volume} if self.base_volume else {}),
+            **({"base_orientation": self.base_orientation}
+               if self.base_orientation else {}),
         }
 
 
@@ -232,6 +244,12 @@ _AXIS_WORDS = frozenset({
     "long", "cross", "short", "side", "corner", "diagonal",
     "open", "to_open", "off_open", "back", "front",
 })
+# The BOOK's own six fractions and three orientations, from
+# `book_language.corpus_contract`. Named here rather than imported so the
+# grammar stays readable on its own; the conformance test holds them equal.
+BASE_VOLUME_LABELS = frozenset({"1/1", "3/8", "1/2", "1/4", "1/8", "1/16"})
+BASE_ORIENTATIONS = frozenset({"long_axis", "short_axis", "vertical"})
+
 _ENUMERATED: dict[str, frozenset[str]] = {
     "along": _AXIS_WORDS,
     "toward": _AXIS_WORDS,
@@ -347,6 +365,15 @@ def parti_from_record(record: dict[str, Any]) -> Parti | None:
         reference_basis=str(record.get("reference_basis") or ""),
         floor_height_m=record.get("floor_height_m"),
         growth=record.get("growth"),
+        # Unknown labels are dropped rather than guessed at, the same rule the
+        # enumerated words follow: a base volume nobody can name is silence,
+        # and silence is 1/1 on the open side.
+        base_volume=(str(record["base_volume"])
+                     if str(record.get("base_volume") or "") in BASE_VOLUME_LABELS
+                     else None),
+        base_orientation=(str(record["base_orientation"])
+                          if str(record.get("base_orientation") or "")
+                          in BASE_ORIENTATIONS else None),
     )
 
 

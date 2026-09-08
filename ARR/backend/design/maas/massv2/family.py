@@ -171,7 +171,10 @@ FAMILY_OF_VERB = {
     "branch": "field", "embed": "relational",
 }
 OPENERS = ("extrude", "loop", "aggregate", "stack")
-QUIET = {"compress", "expand", "inflate", "shift", "offset", "rotate",
+# `offset` has left this set. QUIET is for words that change a body without
+# changing the composition, and offset now makes a second volume - the BOOK
+# reads it as add on multiple, and a verb that delivers a twin is not quiet.
+QUIET = {"compress", "expand", "inflate", "shift", "rotate",
          "skew", "align", "realign", "approach"}
 
 

@@ -137,7 +137,20 @@ def embed(frame, op) -> None:
         else:  # long: out of the far x face
             low = (1.0 - body * depth, centre, z0)
             high = (1.0 - body * depth + span, centre + body, z0 + share)
-        made.append(_region(host, role, low, high))
+        # Delivered as a cutter, not as a body. The BOOK reads embed as
+        # subtract on p.36, `_embed_void_macro` is `base - cutter`, and Ching
+        # files it under space within a space - a smaller volume contained by
+        # a larger, the contained space relying on the larger for its relation
+        # to the outside. massv2 was adding a second body instead, so the one
+        # word in the vocabulary whose subject is a room inside a room was
+        # delivering a lump stuck to the outside of one.
+        #
+        # The region already straddles the face, which is what opens the void
+        # onto it, so only its kind changes - the same shape `extract` and
+        # `inscribe` already deliver. `depth` therefore stops meaning "how much
+        # of the guest is inside" and starts meaning how deep the notch goes.
+        made.append(replace(_region(host, role, low, high),
+                            kind="subtractive", occupiable=False))
     frame.placements = rest + picked + made
 
 

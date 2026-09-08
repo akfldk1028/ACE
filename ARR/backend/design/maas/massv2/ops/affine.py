@@ -212,13 +212,13 @@ AFFINE_VERBS: dict[str, Callable] = {
             for axis in (*_toward(p), 0.0)
         ),
     }),
-    "offset": _verb("translate", lambda p, span: {
-        "vector": tuple(
-            axis * _clamp(float(p.get("ratio", 0.2)), _MIN_MOVE, _MAX_MOVE)
-            * (span[0] if abs(_toward(p)[0]) >= abs(_toward(p)[1]) else span[1])
-            for axis in (*_toward(p), 0.0)
-        ),
-    }),
+    # `offset` is not here any more. The BOOK reads it on p.12 as add on
+    # multiple volumes - duplicate and translate a RELATED volume - and
+    # `book_lowering_contract.py` names `translate` among its FORBIDDEN
+    # operators, a page-reviewed statement that lowering offset to a plain move
+    # is wrong. It was written here as the same expression as `shift` with a
+    # different default, so the body moved and nothing was made. It now stands
+    # beside `overlap` in `ops.relational`, where a twin is what it delivers.
     # Turn it. Progressive across a stack would need the stack's own order, so
     # that stays in the executor; this is the plain turn.
     "rotate": _verb("rotate", lambda p, span: {

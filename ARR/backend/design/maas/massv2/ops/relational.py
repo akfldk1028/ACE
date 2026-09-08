@@ -209,7 +209,24 @@ def interlock(frame, op) -> None:
             host, f"{host.role}_jaw_high",
             (-reach, centre, 0.5), (bite, centre + width, 1.0),
         ))
-    frame.placements = rest + picked + made
+        # The reach is paid for out of the host, not added to it. This
+        # function's own first line asks for "clasped fingers rather than a
+        # lump", and leaving the host at full length behind two arms that each
+        # stand `reach` proud of it is what made the lump - measured, the
+        # result came back 16% larger than the host it was meshed into. The
+        # BOOK's `interlock_related` crosses two modules and thins what they
+        # mesh into.
+        #
+        # Consuming the host outright was the other error: two arms `size`
+        # wide cannot carry a whole body between them, and the mass fell by
+        # two thirds. So the host stays and gives up exactly the length the
+        # arms reach past it, which leaves the composition's extent where the
+        # sentence put it.
+        made.append(_region(
+            host, host.role,
+            (reach, 0.0, 0.0), (1.0 - reach, 1.0, 1.0),
+        ))
+    frame.placements = rest + made
 
 
 def lodge(frame, op) -> None:
@@ -269,10 +286,62 @@ def overlap(frame, op) -> None:
     share = _clamp(float(op.params.get("height", 0.8)), 0.2, 1.2)
     made: list[Placement] = []
     for host in hosts:
-        shift = 1.0 - bite
+        # The pair is cut FROM the host, not stood beside it. The BOOK's
+        # `overlap_related` crosses two bars and thins the host into one of
+        # them - the material is paid for rather than added on top - and
+        # measured, massv2 was delivering the whole host plus a whole twin,
+        # nearly twice the mass the sentence asked to overlap.
+        #
+        # Each bar takes half the host's length plus half the bite, so the two
+        # span exactly the host's own footprint and share `bite` of it. Total
+        # material: 2(0.5 + bite/2) - bite = 1. Conserved, and the shared
+        # region - which is the statement - is still exactly `bite`.
+        half = 0.5 + bite / 2.0
+        # The first bar IS the host, thinned - so it keeps the host's own
+        # height. `height` belongs to the twin, which is what the sentence is
+        # adding to the composition; reading it onto both halves made the pair
+        # shorter than the mass it replaced.
+        made.append(_region(
+            host, host.role,
+            (0.0, 0.0, 0.0), (half, 1.0, 1.0),
+        ))
         made.append(_region(
             host, f"{host.role}_twin",
-            (shift, side, _GRIP), (shift + 1.0, side + 1.0, share),
+            (1.0 - half, side, _GRIP), (1.0, side + 1.0, share),
+        ))
+    # The hosts are consumed: what stands is the crossing pair.
+    frame.placements = rest + made
+
+
+def offset(frame, op) -> None:
+    """A twin set clear of its host, the gap between them being the space.
+
+    The BOOK reads this on p.12 as add on multiple volumes - duplicate and
+    translate a related volume - and its executor `nested_related` scales a
+    copy, shifts it in plan and lifts it so the roof shows. Ching files the
+    same move under space within a space, held clear.
+
+    It used to be one entry in `AFFINE_VERBS`, the same translation as `shift`
+    with a different default: the body moved and nothing was made, which is
+    what `book_lowering_contract` forbids by naming `translate` among offset's
+    forbidden operators. `overlap` is the same shape as this and differs only
+    in that its twin must share plan; this one's need not.
+    """
+
+    picked, rest = frame.pick(op)
+    hosts = _hosts(picked)
+    if not hosts:
+        return
+    away = _clamp(float(op.params.get("ratio", 0.2)), 0.15, 0.5)
+    share = _clamp(float(op.params.get("height", 0.85)), 0.2, 1.2)
+    made: list[Placement] = []
+    for host in hosts:
+        # Clear of the host by `ratio` of its own dimension, so the gap between
+        # them is the space. The host stays: the BOOK records this as an
+        # addition, not a move.
+        made.append(_region(
+            host, f"{host.role}_offset",
+            (1.0 + away, 0.0, _GRIP), (2.0 + away, 1.0, share),
         ))
     frame.placements = rest + picked + made
 
@@ -503,6 +572,7 @@ def roof(frame, op) -> None:
 
 
 RELATIONAL_VERBS: dict[str, Callable] = {
+    "offset": offset,
     "roof": roof,
     "merge": merge,
     "nest": nest,

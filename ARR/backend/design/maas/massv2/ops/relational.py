@@ -210,20 +210,32 @@ def _outside_share(low, high) -> float:
     return max(whole - inside, 0.0)
 
 
-# How much of what stands outside the host is actually paid for. Not all of it:
-# the payment is computed in the host's unit space, before the envelope is
-# known, and on a host that fills the plot the outreach is clipped away - so
-# charging the whole overhang buys material that is never delivered. Measured,
-# the full charge took `locked_arms_gate`'s interlock down to 1.5% of the mass
-# and the silence gate refused it, which is a word doing nothing said a
-# different way.
-_DELIVERED_SHARE_OF_AN_OVERHANG = 0.5
+# How much of what stands outside the host is actually paid for. Not all of it,
+# and not the same fraction for every word: `_outside_share` measures a piece's
+# bounding box against the unit cube, and how much of that box is really new
+# mass depends on the figure - two thin arms reaching past a body are not a bar
+# lying across its roof.
+#
+# So the fraction is solved rather than guessed. Sweeping the coefficient and
+# reading the delivered volume against the seed, on an extrude+split pair on the
+# Uijeongbu parcel, uncut by the envelope:
+#
+#     interlock   0.25 -> +3.84%   0.50 -> +1.68%   0.75 -> -0.48%   1.00 -> -2.64%
+#     lodge       0.25 -> +13.08%  0.50 ->  +8.18%  0.75 -> +3.29%   1.00 -> -1.62%
+#
+# which crosses zero at 0.694 and 0.918. Those are the numbers, and a Displace
+# word conserves at them. Re-solve with `scratchpad/solve_payment.py` if either
+# word's geometry changes; a coefficient that no longer conserves is the sign
+# that it did.
+_OVERHANG_DELIVERED = {"interlock": 0.694, "lodge": 0.918}
+_OVERHANG_DELIVERED_DEFAULT = 0.8
 
 
-def _paid_from(host, role: str, owed: float, share: float = 1.0):
+def _paid_from(host, role: str, owed: float, share: float = 1.0, word: str = ""):
     """The host, shortened by what its guests stand outside it and keep."""
 
-    keep = _clamp(1.0 - owed * _DELIVERED_SHARE_OF_AN_OVERHANG, 0.25, 1.0)
+    delivered = _OVERHANG_DELIVERED.get(word, _OVERHANG_DELIVERED_DEFAULT)
+    keep = _clamp(1.0 - owed * delivered, 0.25, 1.0)
     return _region(host, role, (0.0, 0.0, 0.0), (keep, 1.0, share))
 
 
@@ -270,7 +282,7 @@ def interlock(frame, op) -> None:
                                   (1.0 + reach, centre + width, 0.5))
                    for _ in (0,))
         owed += _outside_share((-reach, centre, 0.5), (bite, centre + width, 1.0))
-        made.append(_paid_from(host, host.role, owed))
+        made.append(_paid_from(host, host.role, owed, word="interlock"))
     frame.placements = rest + made
 
 
@@ -317,7 +329,8 @@ def lodge(frame, op) -> None:
         # overhang that costs nothing is a bar that appeared from nowhere -
         # massv2 was delivering the whole host plus the whole bar.
         made.append(_paid_from(
-            host, host.role, _outside_share(low_corner, high_corner)))
+            host, host.role, _outside_share(low_corner, high_corner),
+            word="lodge"))
     # The host is replaced by the body that paid for the bar.
     frame.placements = rest + made
 

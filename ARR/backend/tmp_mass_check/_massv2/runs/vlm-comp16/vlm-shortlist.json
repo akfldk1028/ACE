@@ -1,0 +1,167 @@
+[
+ {
+  "tile": "t09",
+  "score": 4.38,
+  "corrected": 4.38,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "court_bitten_slab_pile",
+  "coverage_pct": 46.4,
+  "shape_id": "40d0c30a8787b49ae2ef",
+  "certificate_id": "903f767f9d09c647cbee"
+ },
+ {
+  "tile": "t07",
+  "score": 4.27,
+  "corrected": 4.27,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c04_civic_court",
+  "coverage_pct": 32.8,
+  "shape_id": "1383191c9cfbbec4c6b1",
+  "certificate_id": "352cb7e5b0e08c72b562"
+ },
+ {
+  "tile": "t06",
+  "score": 4.17,
+  "corrected": 4.17,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "kr_three_ranges_one_tall_vault~held_ground",
+  "coverage_pct": 35.4,
+  "shape_id": "004258622e3e59e71e4c",
+  "certificate_id": "f857f87f41d832bf5e6c"
+ },
+ {
+  "tile": "t14",
+  "score": 3.9,
+  "corrected": 3.9,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp16_waisted_court~full_ground^to_open",
+  "coverage_pct": 26.7,
+  "shape_id": "5c06a4302496616680bc",
+  "certificate_id": "149680eaeb5264600aca"
+ },
+ {
+  "tile": "t13",
+  "score": 3.9,
+  "corrected": 3.9,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp16_inclined_canyon",
+  "coverage_pct": 44.1,
+  "shape_id": "d37441c57f729d0e9b40",
+  "certificate_id": "350291fa9945ad82ac9c"
+ },
+ {
+  "tile": "t04",
+  "score": 3.8,
+  "corrected": 3.8,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+  "coverage_pct": 26.6,
+  "shape_id": "5307259b76e79138a459",
+  "certificate_id": "1d7d37bd040dc38a3e71"
+ },
+ {
+  "tile": "t03",
+  "score": 3.73,
+  "corrected": 3.73,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp16_diagonal_court~full_ground^off_open",
+  "coverage_pct": 18.8,
+  "shape_id": "24575545180611c489c3",
+  "certificate_id": "65a657a206cc0482c9d1"
+ },
+ {
+  "tile": "t12",
+  "score": 3.55,
+  "corrected": 3.55,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp16_folded_section~full_ground^to_open",
+  "coverage_pct": 59.6,
+  "shape_id": "b7924ed536e647b471ec",
+  "certificate_id": "443f7f6ab985c25bedb6"
+ },
+ {
+  "tile": "t15",
+  "score": 3.48,
+  "corrected": 3.48,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp16_turning_hexagon^off_open",
+  "coverage_pct": 56.6,
+  "shape_id": "e6bd415e1bd76a12a6e5",
+  "certificate_id": "a359eb57d11af3885c15"
+ },
+ {
+  "tile": "t10",
+  "score": 3.0,
+  "corrected": 3.0,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "slipped_crown",
+  "coverage_pct": 54.9,
+  "shape_id": "cf66a8bcda0bd043951a",
+  "certificate_id": "60eff22bcf6ecd898d2d"
+ },
+ {
+  "tile": "t01",
+  "score": 2.92,
+  "corrected": 2.92,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "one_cut_four_towers",
+  "coverage_pct": 44.4,
+  "shape_id": "8e3936691de1c56ec088",
+  "certificate_id": "7ebf776a09d147cd82c6"
+ },
+ {
+  "tile": "t11",
+  "score": 2.9,
+  "corrected": 2.9,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "ruled_winding_taper",
+  "coverage_pct": 41.0,
+  "shape_id": "9fd1dfd167855ec2a6dc",
+  "certificate_id": "6e0151aba7cb2fcfd940"
+ },
+ {
+  "tile": "t02",
+  "score": 2.8,
+  "corrected": 2.8,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "wild01_0116_aggregate_grade",
+  "coverage_pct": 33.8,
+  "shape_id": "a1f4a3270d94c93cfc5e",
+  "certificate_id": "43e9812498a91c861e3a"
+ },
+ {
+  "tile": "t05",
+  "score": 2.72,
+  "corrected": 2.72,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "stilted_tall_cluster",
+  "coverage_pct": 16.2,
+  "shape_id": "6a82c9db7cb5ff5f630a",
+  "certificate_id": "bb967663aa589e9c1d88"
+ },
+ {
+  "tile": "t08",
+  "score": 2.65,
+  "corrected": 2.65,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "wide01_0115_aggregate_taper",
+  "coverage_pct": 55.5,
+  "shape_id": "bdd79cbfc29194111026",
+  "certificate_id": "e377d86129e0e5381306"
+ }
+]

@@ -1,0 +1,3347 @@
+{
+  "dimensional_intent_evidence": {
+    "requested": {
+      "schema_version": "arr.maas.dimensional_intent.v1",
+      "storey_count": 4,
+      "storey_height_m": 3.6,
+      "target_gfa_m2": 1800.0,
+      "delivery_policy": "preserve_physical_dimensions",
+      "programme_status": "unknown"
+    },
+    "effective": {
+      "storey_count": 4,
+      "storey_height_m": 3.6,
+      "height_m": 14.4,
+      "gfa_m2": 1800.000000061875
+    },
+    "programme_status": "unknown"
+  },
+  "candidate_id": "creative-003",
+  "family": "morph-curved-mid",
+  "source_family": "llm_authored",
+  "posthoc_family": "morph-curved-mid",
+  "form_class": "posthoc_morphology",
+  "variation_index": 2,
+  "capacity_band": "authored_target",
+  "program_hash": "efcf7a79aa999d2abef97f36883662c24695c21d9720b2b049923d5b87c64201",
+  "geometry_hash": "921f9fa0d4162c25848544e3f4f913bf20b4859fee1bcf152536aad26230040b",
+  "normalized_authored_mesh_hash": "d01e690cbccf6e6ed67cdf0247fb6c9efd44199aacde44c883fb6c88b784c65c",
+  "geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp16_twisted_court__creative_physical",
+    "root_id": "creative_occupied_storeys_union",
+    "nodes": [
+      {
+        "id": "outer",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "outer_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              2.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.7,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.6,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 2.0,
+            "depth": 1.7,
+            "height": 1.6
+          }
+        }
+      },
+      {
+        "id": "court_position",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              0.95,
+              0.0,
+              0.0,
+              0.525
+            ],
+            [
+              0.0,
+              0.72,
+              0.0,
+              0.49
+            ],
+            [
+              0.0,
+              0.0,
+              1.9,
+              -0.1
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 0.95,
+            "depth": 0.72,
+            "height": 1.9
+          },
+          "lowered_affine_operator": "translate",
+          "composed_matrix4_node_ids": [
+            "court",
+            "court_position"
+          ]
+        }
+      },
+      {
+        "id": "ring",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "outer_matrix4",
+          "court_position"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_mass",
+        "provenance": {}
+      },
+      {
+        "id": "result",
+        "kind": "modifier",
+        "operator": "twist",
+        "inputs": [
+          "ring"
+        ],
+        "parameters": {
+          "axis": "z",
+          "angle_degrees": 23,
+          "subdivisions": 3
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {}
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "result"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              12.793308271532835,
+              0.0,
+              0.0,
+              -12.793308271532833
+            ],
+            [
+              0.0,
+              12.793308271532835,
+              0.0,
+              -10.874312030802908
+            ],
+            [
+              0.0,
+              0.0,
+              9.0,
+              -0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "physical_storey_capacity_fit",
+        "provenance": {
+          "creative_family": "morph-curved-mid",
+          "capacity_band": "authored_target",
+          "storey_count": 4,
+          "target_gfa_m2": 1800.0
+        }
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              33.3324888,
+              0.0,
+              0.0,
+              -16.6662444
+            ],
+            [
+              0.0,
+              31.2992208,
+              0.0,
+              -15.6496104
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              1.74
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 1,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 1,
+          "center_elevation_m": 1.8,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              33.3324888,
+              0.0,
+              0.0,
+              -16.6662444
+            ],
+            [
+              0.0,
+              31.2992208,
+              0.0,
+              -15.6496104
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              5.340000000000001
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 2,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 2,
+          "center_elevation_m": 5.4,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              33.3324888,
+              0.0,
+              0.0,
+              -16.6662444
+            ],
+            [
+              0.0,
+              31.2992208,
+              0.0,
+              -15.6496104
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              8.94
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 3,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 3,
+          "center_elevation_m": 9.0,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_floor_04_cutter_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              33.3324888,
+              0.0,
+              0.0,
+              -16.6662444
+            ],
+            [
+              0.0,
+              31.2992208,
+              0.0,
+              -15.6496104
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              12.54
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_floor_cutter",
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "storey_number": 4,
+          "prelegal": true
+        }
+      },
+      {
+        "id": "creative_floor_04_occupied_plate",
+        "kind": "boolean",
+        "operator": "intersection",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_04_cutter_matrix4"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_floor_plate",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "storey_number": 4,
+          "center_elevation_m": 12.6,
+          "legal_certified": false
+        }
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "kind": "boolean",
+        "operator": "union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate",
+          "creative_floor_04_occupied_plate"
+        ],
+        "parameters": {},
+        "semantic_role": "connected_mass_with_occupied_floor_plates",
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate",
+            "creative_floor_04_occupied_plate"
+          ],
+          "set_identity": "host_union_subsets_equals_host",
+          "legal_certified": false
+        }
+      }
+    ],
+    "metadata": {
+      "author_provider": "codex_session",
+      "author_model": "current_session",
+      "author_prompt_contract": "comp16_nonbox_geometric_principles",
+      "architectural_response": "A single occupied courtyard solid changes orientation continuously through its height. The central opening and surrounding rooms twist together, creating a spatial relation through section rather than separate rotated blocks.",
+      "programme_status": "unknown",
+      "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4",
+      "creative_capacity_band": "authored_target",
+      "creative_storey_count": 4,
+      "creative_target_gfa_m2": 1800.0,
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4",
+        "creative_floor_04_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate",
+        "creative_floor_04_occupied_plate"
+      ]
+    }
+  },
+  "author_evidence": {
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program",
+    "provider": "codex_session",
+    "model": "current_session",
+    "response_id": "",
+    "cache_hit": false,
+    "prompt_contract": "comp16_nonbox_geometric_principles"
+  },
+  "matrix4_trace": [
+    {
+      "node_id": "outer_matrix4",
+      "semantic_role": "occupied_mass",
+      "matrix4": [
+        [
+          2.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.7,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.6,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "court_position",
+      "semantic_role": "occupied_mass",
+      "matrix4": [
+        [
+          0.95,
+          0.0,
+          0.0,
+          0.525
+        ],
+        [
+          0.0,
+          0.72,
+          0.0,
+          0.49
+        ],
+        [
+          0.0,
+          0.0,
+          1.9,
+          -0.1
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit",
+      "matrix4": [
+        [
+          12.793308271532835,
+          0.0,
+          0.0,
+          -12.793308271532833
+        ],
+        [
+          0.0,
+          12.793308271532835,
+          0.0,
+          -10.874312030802908
+        ],
+        [
+          0.0,
+          0.0,
+          9.0,
+          -0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          33.3324888,
+          0.0,
+          0.0,
+          -16.6662444
+        ],
+        [
+          0.0,
+          31.2992208,
+          0.0,
+          -15.6496104
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          1.74
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          33.3324888,
+          0.0,
+          0.0,
+          -16.6662444
+        ],
+        [
+          0.0,
+          31.2992208,
+          0.0,
+          -15.6496104
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          5.340000000000001
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          33.3324888,
+          0.0,
+          0.0,
+          -16.6662444
+        ],
+        [
+          0.0,
+          31.2992208,
+          0.0,
+          -15.6496104
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          8.94
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "node_id": "creative_floor_04_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter",
+      "matrix4": [
+        [
+          33.3324888,
+          0.0,
+          0.0,
+          -16.6662444
+        ],
+        [
+          0.0,
+          31.2992208,
+          0.0,
+          -15.6496104
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          12.54
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "mesh": {
+    "vertices": [
+      [
+        -12.79330827,
+        -10.87431203,
+        0.0
+      ],
+      [
+        -10.55447932,
+        -8.78473835,
+        0.0
+      ],
+      [
+        -11.22821069,
+        -12.48385691,
+        4.8
+      ],
+      [
+        -12.79330827,
+        -3.62477068,
+        0.0
+      ],
+      [
+        -8.31565038,
+        -6.69516466,
+        0.0
+      ],
+      [
+        -10.55447932,
+        -1.53519699,
+        0.0
+      ],
+      [
+        -12.19536934,
+        -5.29911934,
+        4.8
+      ],
+      [
+        -6.50326504,
+        -8.78473835,
+        0.0
+      ],
+      [
+        -4.26443609,
+        -10.87431203,
+        0.0
+      ],
+      [
+        -2.77557825,
+        -11.34602321,
+        4.8
+      ],
+      [
+        -6.07682143,
+        -4.60559098,
+        0.0
+      ],
+      [
+        -4.26443609,
+        -6.69516466,
+        0.0
+      ],
+      [
+        -6.07682143,
+        -1.53519699,
+        0.0
+      ],
+      [
+        -2.02560714,
+        -4.60559098,
+        0.0
+      ],
+      [
+        -0.2132218,
+        -6.69516466,
+        0.0
+      ],
+      [
+        -5.40807041,
+        -5.37512803,
+        4.8
+      ],
+      [
+        -5.81769055,
+        -2.33218035,
+        4.8
+      ],
+      [
+        -1.39307001,
+        -4.83465702,
+        4.8
+      ],
+      [
+        -9.46237476,
+        -13.87021495,
+        9.6
+      ],
+      [
+        -10.35999162,
+        -8.33536278,
+        14.4
+      ],
+      [
+        -11.37940115,
+        -6.87873015,
+        9.6
+      ],
+      [
+        -13.19261309,
+        -1.66212478,
+        14.4
+      ],
+      [
+        -9.11560019,
+        -5.5371199,
+        14.4
+      ],
+      [
+        -1.23709853,
+        -11.61488978,
+        9.6
+      ],
+      [
+        -7.52737014,
+        -15.00860078,
+        14.4
+      ],
+      [
+        -6.28297872,
+        -12.2103579,
+        14.4
+      ],
+      [
+        -5.03858729,
+        -9.41211502,
+        14.4
+      ],
+      [
+        -4.64263372,
+        -6.04856835,
+        9.6
+      ],
+      [
+        -6.26646784,
+        -0.12636946,
+        9.6
+      ],
+      [
+        -5.45455078,
+        -3.0874689,
+        9.6
+      ],
+      [
+        -0.73562751,
+        -4.97728889,
+        9.6
+      ],
+      [
+        -4.99389437,
+        -3.78755958,
+        14.4
+      ],
+      [
+        -7.87120876,
+        -2.73887702,
+        14.4
+      ],
+      [
+        -6.19359287,
+        -0.96124701,
+        14.4
+      ],
+      [
+        -3.79419586,
+        -6.61387214,
+        14.4
+      ],
+      [
+        -0.06503345,
+        -5.03093661,
+        14.4
+      ],
+      [
+        -12.79330827,
+        3.62477068,
+        0.0
+      ],
+      [
+        -8.31565038,
+        0.55437669,
+        0.0
+      ],
+      [
+        -8.31565038,
+        3.62477068,
+        0.0
+      ],
+      [
+        -10.55447932,
+        5.71434436,
+        0.0
+      ],
+      [
+        -8.31565038,
+        6.69516466,
+        0.0
+      ],
+      [
+        -13.16252798,
+        1.88561824,
+        4.8
+      ],
+      [
+        -12.79330827,
+        10.87431203,
+        0.0
+      ],
+      [
+        -10.55447932,
+        8.78473835,
+        0.0
+      ],
+      [
+        -14.12968663,
+        9.07035581,
+        4.8
+      ],
+      [
+        -6.07682143,
+        1.53519699,
+        0.0
+      ],
+      [
+        -6.07682143,
+        4.60559098,
+        0.0
+      ],
+      [
+        -2.02560714,
+        4.60559098,
+        0.0
+      ],
+      [
+        -6.22731068,
+        0.71076733,
+        4.8
+      ],
+      [
+        -6.63693081,
+        3.75371501,
+        4.8
+      ],
+      [
+        -2.6219304,
+        4.29418601,
+        4.8
+      ],
+      [
+        -4.26443609,
+        10.87431203,
+        0.0
+      ],
+      [
+        -2.02560714,
+        8.78473835,
+        0.0
+      ],
+      [
+        -5.67705419,
+        10.20818951,
+        4.8
+      ],
+      [
+        -13.29642754,
+        0.11275465,
+        9.6
+      ],
+      [
+        -15.21345394,
+        7.10423944,
+        9.6
+      ],
+      [
+        -16.02523457,
+        5.01111322,
+        14.4
+      ],
+      [
+        -13.14792017,
+        3.96243067,
+        14.4
+      ],
+      [
+        -11.94822166,
+        1.1361181,
+        14.4
+      ],
+      [
+        -10.27060578,
+        2.91374811,
+        14.4
+      ],
+      [
+        -9.07090727,
+        0.08743555,
+        14.4
+      ],
+      [
+        -9.41875776,
+        5.5453662,
+        14.4
+      ],
+      [
+        -8.17436633,
+        8.34360908,
+        14.4
+      ],
+      [
+        -7.07838491,
+        2.83472998,
+        9.6
+      ],
+      [
+        -3.1713787,
+        3.90600944,
+        9.6
+      ],
+      [
+        -7.39329138,
+        1.86506555,
+        14.4
+      ],
+      [
+        -6.54144336,
+        4.49668364,
+        14.4
+      ],
+      [
+        -3.66412897,
+        3.44800108,
+        14.4
+      ],
+      [
+        -2.81228095,
+        6.07961917,
+        14.4
+      ],
+      [
+        -6.9881777,
+        9.35956461,
+        9.6
+      ],
+      [
+        -1.56788952,
+        8.87786205,
+        14.4
+      ],
+      [
+        -0.32349809,
+        11.67610493,
+        14.4
+      ],
+      [
+        2.02560714,
+        -8.78473835,
+        0.0
+      ],
+      [
+        4.26443609,
+        -10.87431203,
+        0.0
+      ],
+      [
+        5.67705419,
+        -10.20818951,
+        4.8
+      ],
+      [
+        2.02560714,
+        -4.60559098,
+        0.0
+      ],
+      [
+        6.07682143,
+        -4.60559098,
+        0.0
+      ],
+      [
+        6.07682143,
+        -1.53519699,
+        0.0
+      ],
+      [
+        2.6219304,
+        -4.29418601,
+        4.8
+      ],
+      [
+        6.63693081,
+        -3.75371501,
+        4.8
+      ],
+      [
+        6.22731068,
+        -0.71076733,
+        4.8
+      ],
+      [
+        10.55447932,
+        -8.78473835,
+        0.0
+      ],
+      [
+        12.79330827,
+        -10.87431203,
+        0.0
+      ],
+      [
+        14.12968663,
+        -9.07035581,
+        4.8
+      ],
+      [
+        8.31565038,
+        -6.69516466,
+        0.0
+      ],
+      [
+        10.55447932,
+        -5.71434436,
+        0.0
+      ],
+      [
+        8.31565038,
+        -3.62477068,
+        0.0
+      ],
+      [
+        8.31565038,
+        -0.55437669,
+        0.0
+      ],
+      [
+        12.79330827,
+        -3.62477068,
+        0.0
+      ],
+      [
+        13.16252798,
+        -1.88561824,
+        4.8
+      ],
+      [
+        6.9881777,
+        -9.35956461,
+        9.6
+      ],
+      [
+        0.32349809,
+        -11.67610493,
+        14.4
+      ],
+      [
+        1.56788952,
+        -8.87786205,
+        14.4
+      ],
+      [
+        3.1713787,
+        -3.90600944,
+        9.6
+      ],
+      [
+        7.07838491,
+        -2.83472998,
+        9.6
+      ],
+      [
+        2.81228095,
+        -6.07961917,
+        14.4
+      ],
+      [
+        3.66412897,
+        -3.44800108,
+        14.4
+      ],
+      [
+        6.54144336,
+        -4.49668364,
+        14.4
+      ],
+      [
+        7.39329138,
+        -1.86506555,
+        14.4
+      ],
+      [
+        8.17436633,
+        -8.34360908,
+        14.4
+      ],
+      [
+        15.21345394,
+        -7.10423944,
+        9.6
+      ],
+      [
+        13.29642754,
+        -0.11275465,
+        9.6
+      ],
+      [
+        9.41875776,
+        -5.5453662,
+        14.4
+      ],
+      [
+        9.07090727,
+        -0.08743555,
+        14.4
+      ],
+      [
+        10.27060578,
+        -2.91374811,
+        14.4
+      ],
+      [
+        11.94822166,
+        -1.1361181,
+        14.4
+      ],
+      [
+        13.14792017,
+        -3.96243067,
+        14.4
+      ],
+      [
+        16.02523457,
+        -5.01111322,
+        14.4
+      ],
+      [
+        0.2132218,
+        6.69516466,
+        0.0
+      ],
+      [
+        2.02560714,
+        4.60559098,
+        0.0
+      ],
+      [
+        6.07682143,
+        1.53519699,
+        0.0
+      ],
+      [
+        4.26443609,
+        6.69516466,
+        0.0
+      ],
+      [
+        6.07682143,
+        4.60559098,
+        0.0
+      ],
+      [
+        1.39307001,
+        4.83465702,
+        4.8
+      ],
+      [
+        5.81769055,
+        2.33218035,
+        4.8
+      ],
+      [
+        5.40807041,
+        5.37512803,
+        4.8
+      ],
+      [
+        4.26443609,
+        10.87431203,
+        0.0
+      ],
+      [
+        6.50326504,
+        8.78473835,
+        0.0
+      ],
+      [
+        2.77557825,
+        11.34602321,
+        4.8
+      ],
+      [
+        10.55447932,
+        1.53519699,
+        0.0
+      ],
+      [
+        8.31565038,
+        6.69516466,
+        0.0
+      ],
+      [
+        12.79330827,
+        3.62477068,
+        0.0
+      ],
+      [
+        12.19536934,
+        5.29911934,
+        4.8
+      ],
+      [
+        10.55447932,
+        8.78473835,
+        0.0
+      ],
+      [
+        12.79330827,
+        10.87431203,
+        0.0
+      ],
+      [
+        11.22821069,
+        12.48385691,
+        4.8
+      ],
+      [
+        0.73562751,
+        4.97728889,
+        9.6
+      ],
+      [
+        5.45455078,
+        3.0874689,
+        9.6
+      ],
+      [
+        6.26646784,
+        0.12636946,
+        9.6
+      ],
+      [
+        4.64263372,
+        6.04856835,
+        9.6
+      ],
+      [
+        0.06503345,
+        5.03093661,
+        14.4
+      ],
+      [
+        3.79419586,
+        6.61387214,
+        14.4
+      ],
+      [
+        6.19359287,
+        0.96124701,
+        14.4
+      ],
+      [
+        7.87120876,
+        2.73887702,
+        14.4
+      ],
+      [
+        4.99389437,
+        3.78755958,
+        14.4
+      ],
+      [
+        1.23709853,
+        11.61488978,
+        9.6
+      ],
+      [
+        5.03858729,
+        9.41211502,
+        14.4
+      ],
+      [
+        6.28297872,
+        12.2103579,
+        14.4
+      ],
+      [
+        7.52737014,
+        15.00860078,
+        14.4
+      ],
+      [
+        11.37940115,
+        6.87873015,
+        9.6
+      ],
+      [
+        9.11560019,
+        5.5371199,
+        14.4
+      ],
+      [
+        13.19261309,
+        1.66212478,
+        14.4
+      ],
+      [
+        9.46237476,
+        13.87021495,
+        9.6
+      ],
+      [
+        10.35999162,
+        8.33536278,
+        14.4
+      ]
+    ],
+    "triangles": [
+      [
+        1,
+        0,
+        3
+      ],
+      [
+        6,
+        0,
+        2
+      ],
+      [
+        2,
+        0,
+        8
+      ],
+      [
+        7,
+        0,
+        1
+      ],
+      [
+        6,
+        2,
+        20
+      ],
+      [
+        3,
+        0,
+        6
+      ],
+      [
+        36,
+        5,
+        3
+      ],
+      [
+        3,
+        6,
+        41
+      ],
+      [
+        1,
+        3,
+        5
+      ],
+      [
+        5,
+        4,
+        1
+      ],
+      [
+        5,
+        37,
+        4
+      ],
+      [
+        54,
+        41,
+        6
+      ],
+      [
+        2,
+        8,
+        9
+      ],
+      [
+        8,
+        0,
+        7
+      ],
+      [
+        7,
+        1,
+        11
+      ],
+      [
+        8,
+        7,
+        72
+      ],
+      [
+        73,
+        9,
+        8
+      ],
+      [
+        14,
+        72,
+        7
+      ],
+      [
+        9,
+        18,
+        2
+      ],
+      [
+        4,
+        11,
+        1
+      ],
+      [
+        4,
+        13,
+        11
+      ],
+      [
+        4,
+        10,
+        13
+      ],
+      [
+        37,
+        10,
+        4
+      ],
+      [
+        12,
+        10,
+        37
+      ],
+      [
+        11,
+        14,
+        7
+      ],
+      [
+        11,
+        75,
+        14
+      ],
+      [
+        13,
+        75,
+        11
+      ],
+      [
+        18,
+        20,
+        2
+      ],
+      [
+        18,
+        24,
+        19
+      ],
+      [
+        19,
+        24,
+        25
+      ],
+      [
+        18,
+        19,
+        20
+      ],
+      [
+        19,
+        25,
+        22
+      ],
+      [
+        20,
+        54,
+        6
+      ],
+      [
+        20,
+        21,
+        54
+      ],
+      [
+        19,
+        21,
+        20
+      ],
+      [
+        22,
+        21,
+        19
+      ],
+      [
+        22,
+        58,
+        21
+      ],
+      [
+        32,
+        58,
+        22
+      ],
+      [
+        32,
+        60,
+        58
+      ],
+      [
+        9,
+        23,
+        18
+      ],
+      [
+        23,
+        24,
+        18
+      ],
+      [
+        25,
+        24,
+        91
+      ],
+      [
+        26,
+        22,
+        25
+      ],
+      [
+        91,
+        24,
+        23
+      ],
+      [
+        92,
+        26,
+        25
+      ],
+      [
+        25,
+        91,
+        92
+      ],
+      [
+        92,
+        95,
+        26
+      ],
+      [
+        26,
+        32,
+        22
+      ],
+      [
+        26,
+        34,
+        32
+      ],
+      [
+        32,
+        34,
+        31
+      ],
+      [
+        32,
+        31,
+        60
+      ],
+      [
+        31,
+        33,
+        60
+      ],
+      [
+        95,
+        34,
+        26
+      ],
+      [
+        35,
+        34,
+        95
+      ],
+      [
+        41,
+        36,
+        3
+      ],
+      [
+        36,
+        42,
+        39
+      ],
+      [
+        41,
+        44,
+        36
+      ],
+      [
+        36,
+        39,
+        5
+      ],
+      [
+        39,
+        37,
+        5
+      ],
+      [
+        38,
+        37,
+        39
+      ],
+      [
+        39,
+        43,
+        38
+      ],
+      [
+        40,
+        38,
+        43
+      ],
+      [
+        55,
+        44,
+        41
+      ],
+      [
+        44,
+        42,
+        36
+      ],
+      [
+        39,
+        42,
+        43
+      ],
+      [
+        43,
+        42,
+        51
+      ],
+      [
+        53,
+        42,
+        44
+      ],
+      [
+        53,
+        44,
+        69
+      ],
+      [
+        38,
+        12,
+        37
+      ],
+      [
+        45,
+        12,
+        38
+      ],
+      [
+        40,
+        45,
+        38
+      ],
+      [
+        40,
+        46,
+        45
+      ],
+      [
+        108,
+        46,
+        40
+      ],
+      [
+        47,
+        46,
+        108
+      ],
+      [
+        52,
+        108,
+        40
+      ],
+      [
+        52,
+        40,
+        43
+      ],
+      [
+        51,
+        42,
+        53
+      ],
+      [
+        43,
+        51,
+        52
+      ],
+      [
+        116,
+        52,
+        51
+      ],
+      [
+        51,
+        53,
+        118
+      ],
+      [
+        135,
+        118,
+        53
+      ],
+      [
+        54,
+        55,
+        41
+      ],
+      [
+        21,
+        56,
+        54
+      ],
+      [
+        58,
+        56,
+        21
+      ],
+      [
+        57,
+        56,
+        58
+      ],
+      [
+        54,
+        56,
+        55
+      ],
+      [
+        61,
+        56,
+        57
+      ],
+      [
+        55,
+        56,
+        62
+      ],
+      [
+        57,
+        58,
+        60
+      ],
+      [
+        60,
+        59,
+        57
+      ],
+      [
+        60,
+        33,
+        59
+      ],
+      [
+        62,
+        56,
+        61
+      ],
+      [
+        59,
+        66,
+        57
+      ],
+      [
+        61,
+        57,
+        66
+      ],
+      [
+        55,
+        69,
+        44
+      ],
+      [
+        55,
+        62,
+        69
+      ],
+      [
+        33,
+        65,
+        59
+      ],
+      [
+        59,
+        65,
+        67
+      ],
+      [
+        59,
+        67,
+        66
+      ],
+      [
+        66,
+        68,
+        61
+      ],
+      [
+        68,
+        70,
+        61
+      ],
+      [
+        67,
+        130,
+        66
+      ],
+      [
+        66,
+        130,
+        68
+      ],
+      [
+        69,
+        135,
+        53
+      ],
+      [
+        62,
+        61,
+        70
+      ],
+      [
+        62,
+        71,
+        69
+      ],
+      [
+        69,
+        71,
+        135
+      ],
+      [
+        70,
+        71,
+        62
+      ],
+      [
+        72,
+        73,
+        8
+      ],
+      [
+        73,
+        74,
+        9
+      ],
+      [
+        72,
+        81,
+        73
+      ],
+      [
+        73,
+        82,
+        74
+      ],
+      [
+        84,
+        81,
+        72
+      ],
+      [
+        74,
+        23,
+        9
+      ],
+      [
+        14,
+        84,
+        72
+      ],
+      [
+        75,
+        76,
+        14
+      ],
+      [
+        14,
+        76,
+        84
+      ],
+      [
+        84,
+        76,
+        77
+      ],
+      [
+        84,
+        77,
+        86
+      ],
+      [
+        77,
+        110,
+        86
+      ],
+      [
+        86,
+        110,
+        87
+      ],
+      [
+        81,
+        82,
+        73
+      ],
+      [
+        85,
+        82,
+        81
+      ],
+      [
+        74,
+        82,
+        83
+      ],
+      [
+        83,
+        82,
+        88
+      ],
+      [
+        74,
+        83,
+        90
+      ],
+      [
+        84,
+        86,
+        81
+      ],
+      [
+        85,
+        81,
+        86
+      ],
+      [
+        86,
+        87,
+        85
+      ],
+      [
+        87,
+        119,
+        85
+      ],
+      [
+        88,
+        85,
+        119
+      ],
+      [
+        88,
+        82,
+        85
+      ],
+      [
+        83,
+        88,
+        89
+      ],
+      [
+        121,
+        89,
+        88
+      ],
+      [
+        89,
+        100,
+        83
+      ],
+      [
+        74,
+        90,
+        23
+      ],
+      [
+        91,
+        23,
+        90
+      ],
+      [
+        99,
+        92,
+        91
+      ],
+      [
+        90,
+        99,
+        91
+      ],
+      [
+        99,
+        102,
+        92
+      ],
+      [
+        97,
+        35,
+        95
+      ],
+      [
+        96,
+        35,
+        97
+      ],
+      [
+        102,
+        95,
+        92
+      ],
+      [
+        97,
+        95,
+        102
+      ],
+      [
+        104,
+        96,
+        97
+      ],
+      [
+        104,
+        98,
+        96
+      ],
+      [
+        132,
+        98,
+        104
+      ],
+      [
+        83,
+        100,
+        90
+      ],
+      [
+        90,
+        100,
+        99
+      ],
+      [
+        89,
+        101,
+        100
+      ],
+      [
+        102,
+        106,
+        97
+      ],
+      [
+        104,
+        97,
+        106
+      ],
+      [
+        99,
+        107,
+        102
+      ],
+      [
+        103,
+        132,
+        104
+      ],
+      [
+        103,
+        104,
+        106
+      ],
+      [
+        106,
+        105,
+        103
+      ],
+      [
+        101,
+        107,
+        100
+      ],
+      [
+        100,
+        107,
+        99
+      ],
+      [
+        102,
+        107,
+        106
+      ],
+      [
+        106,
+        107,
+        105
+      ],
+      [
+        105,
+        107,
+        141
+      ],
+      [
+        141,
+        107,
+        101
+      ],
+      [
+        109,
+        47,
+        111
+      ],
+      [
+        111,
+        47,
+        108
+      ],
+      [
+        111,
+        108,
+        117
+      ],
+      [
+        110,
+        112,
+        87
+      ],
+      [
+        87,
+        112,
+        120
+      ],
+      [
+        120,
+        112,
+        109
+      ],
+      [
+        120,
+        109,
+        111
+      ],
+      [
+        120,
+        111,
+        123
+      ],
+      [
+        117,
+        108,
+        52
+      ],
+      [
+        118,
+        116,
+        51
+      ],
+      [
+        116,
+        117,
+        52
+      ],
+      [
+        117,
+        123,
+        111
+      ],
+      [
+        116,
+        124,
+        117
+      ],
+      [
+        118,
+        125,
+        116
+      ],
+      [
+        142,
+        125,
+        118
+      ],
+      [
+        87,
+        120,
+        119
+      ],
+      [
+        120,
+        123,
+        119
+      ],
+      [
+        119,
+        123,
+        121
+      ],
+      [
+        119,
+        121,
+        88
+      ],
+      [
+        121,
+        122,
+        89
+      ],
+      [
+        121,
+        124,
+        122
+      ],
+      [
+        122,
+        101,
+        89
+      ],
+      [
+        117,
+        124,
+        123
+      ],
+      [
+        125,
+        124,
+        116
+      ],
+      [
+        123,
+        124,
+        121
+      ],
+      [
+        122,
+        124,
+        125
+      ],
+      [
+        122,
+        125,
+        139
+      ],
+      [
+        130,
+        131,
+        68
+      ],
+      [
+        68,
+        131,
+        136
+      ],
+      [
+        134,
+        132,
+        103
+      ],
+      [
+        133,
+        134,
+        103
+      ],
+      [
+        133,
+        131,
+        134
+      ],
+      [
+        136,
+        131,
+        133
+      ],
+      [
+        140,
+        136,
+        133
+      ],
+      [
+        135,
+        142,
+        118
+      ],
+      [
+        68,
+        136,
+        70
+      ],
+      [
+        70,
+        137,
+        71
+      ],
+      [
+        136,
+        137,
+        70
+      ],
+      [
+        71,
+        138,
+        135
+      ],
+      [
+        137,
+        136,
+        140
+      ],
+      [
+        135,
+        138,
+        142
+      ],
+      [
+        137,
+        138,
+        71
+      ],
+      [
+        122,
+        139,
+        101
+      ],
+      [
+        133,
+        103,
+        105
+      ],
+      [
+        140,
+        133,
+        105
+      ],
+      [
+        105,
+        141,
+        140
+      ],
+      [
+        139,
+        143,
+        141
+      ],
+      [
+        143,
+        140,
+        141
+      ],
+      [
+        141,
+        101,
+        139
+      ],
+      [
+        125,
+        142,
+        139
+      ],
+      [
+        139,
+        142,
+        143
+      ],
+      [
+        143,
+        137,
+        140
+      ],
+      [
+        142,
+        138,
+        143
+      ],
+      [
+        143,
+        138,
+        137
+      ],
+      [
+        13,
+        10,
+        15
+      ],
+      [
+        15,
+        10,
+        16
+      ],
+      [
+        16,
+        10,
+        12
+      ],
+      [
+        16,
+        12,
+        48
+      ],
+      [
+        13,
+        17,
+        75
+      ],
+      [
+        13,
+        15,
+        17
+      ],
+      [
+        48,
+        28,
+        16
+      ],
+      [
+        15,
+        16,
+        29
+      ],
+      [
+        15,
+        27,
+        17
+      ],
+      [
+        15,
+        29,
+        27
+      ],
+      [
+        16,
+        28,
+        29
+      ],
+      [
+        17,
+        27,
+        30
+      ],
+      [
+        31,
+        27,
+        29
+      ],
+      [
+        31,
+        34,
+        27
+      ],
+      [
+        29,
+        28,
+        33
+      ],
+      [
+        29,
+        33,
+        31
+      ],
+      [
+        27,
+        34,
+        30
+      ],
+      [
+        30,
+        34,
+        35
+      ],
+      [
+        45,
+        48,
+        12
+      ],
+      [
+        45,
+        46,
+        49
+      ],
+      [
+        45,
+        49,
+        48
+      ],
+      [
+        49,
+        46,
+        50
+      ],
+      [
+        50,
+        46,
+        47
+      ],
+      [
+        50,
+        47,
+        113
+      ],
+      [
+        49,
+        63,
+        48
+      ],
+      [
+        64,
+        49,
+        50
+      ],
+      [
+        113,
+        126,
+        50
+      ],
+      [
+        48,
+        63,
+        28
+      ],
+      [
+        63,
+        49,
+        64
+      ],
+      [
+        64,
+        50,
+        126
+      ],
+      [
+        63,
+        65,
+        28
+      ],
+      [
+        67,
+        63,
+        64
+      ],
+      [
+        28,
+        65,
+        33
+      ],
+      [
+        67,
+        65,
+        63
+      ],
+      [
+        126,
+        130,
+        64
+      ],
+      [
+        67,
+        64,
+        130
+      ],
+      [
+        78,
+        76,
+        75
+      ],
+      [
+        78,
+        75,
+        17
+      ],
+      [
+        79,
+        76,
+        78
+      ],
+      [
+        77,
+        76,
+        79
+      ],
+      [
+        80,
+        110,
+        77
+      ],
+      [
+        77,
+        79,
+        80
+      ],
+      [
+        17,
+        30,
+        78
+      ],
+      [
+        93,
+        79,
+        78
+      ],
+      [
+        94,
+        80,
+        79
+      ],
+      [
+        93,
+        78,
+        30
+      ],
+      [
+        94,
+        79,
+        93
+      ],
+      [
+        94,
+        128,
+        80
+      ],
+      [
+        30,
+        35,
+        93
+      ],
+      [
+        96,
+        93,
+        35
+      ],
+      [
+        96,
+        94,
+        93
+      ],
+      [
+        94,
+        98,
+        128
+      ],
+      [
+        96,
+        98,
+        94
+      ],
+      [
+        128,
+        98,
+        132
+      ],
+      [
+        109,
+        113,
+        47
+      ],
+      [
+        109,
+        115,
+        113
+      ],
+      [
+        114,
+        112,
+        110
+      ],
+      [
+        80,
+        114,
+        110
+      ],
+      [
+        109,
+        112,
+        115
+      ],
+      [
+        115,
+        112,
+        114
+      ],
+      [
+        115,
+        129,
+        113
+      ],
+      [
+        115,
+        114,
+        127
+      ],
+      [
+        128,
+        114,
+        80
+      ],
+      [
+        113,
+        129,
+        126
+      ],
+      [
+        128,
+        127,
+        114
+      ],
+      [
+        127,
+        129,
+        115
+      ],
+      [
+        129,
+        131,
+        126
+      ],
+      [
+        126,
+        131,
+        130
+      ],
+      [
+        128,
+        132,
+        127
+      ],
+      [
+        132,
+        134,
+        127
+      ],
+      [
+        127,
+        134,
+        129
+      ],
+      [
+        134,
+        131,
+        129
+      ]
+    ]
+  },
+  "mesh_evidence": {
+    "connected": true,
+    "watertight": true,
+    "manifold": true,
+    "closed_solid": true,
+    "component_count": 1,
+    "bounds": [
+      [
+        -16.025235,
+        -15.008601,
+        0.0
+      ],
+      [
+        16.025235,
+        15.008601,
+        14.4
+      ]
+    ],
+    "triangle_count": 288,
+    "self_intersection_checked_by_kernel": true,
+    "outward_normals": true,
+    "volume": 6477.6106
+  },
+  "storey_evidence": {
+    "schema_version": "arr.maas.creative_storey_evidence.v1",
+    "storey_count": 4,
+    "typical_storey_height_m": 3.6,
+    "floor_elevations_m": [
+      0.0,
+      3.6,
+      7.2,
+      10.8,
+      14.4
+    ],
+    "floor_center_elevations_m": [
+      1.8,
+      5.4,
+      9.0,
+      12.6
+    ],
+    "actual_floor_areas_m2": [
+      451.991168,
+      448.008832,
+      448.008832,
+      451.991168
+    ],
+    "actual_gfa_m2": 1800.0,
+    "target_gfa_m2": 1800.0,
+    "capacity_band": "authored_target",
+    "capacity_authority": "soft_authored_target; programme_unknown",
+    "floor_cutter_node_ids": [
+      "creative_floor_01_cutter_matrix4",
+      "creative_floor_02_cutter_matrix4",
+      "creative_floor_03_cutter_matrix4",
+      "creative_floor_04_cutter_matrix4"
+    ],
+    "floor_plate_node_ids": [
+      "creative_floor_01_occupied_plate",
+      "creative_floor_02_occupied_plate",
+      "creative_floor_03_occupied_plate",
+      "creative_floor_04_occupied_plate"
+    ],
+    "floor_plate_compiled_volumes_m3": [
+      54.238741,
+      53.760861,
+      53.760861,
+      54.238741
+    ],
+    "authority": "authored_prelegal_horizontal_sections",
+    "legal_certified": false,
+    "measurement": "final_manifold_occupied_floor_plate_center_slice"
+  },
+  "connectivity_evidence": {
+    "schema_version": "arr.maas.creative_contact_witness.v1",
+    "hard_pass": true,
+    "contact_type": "compiled_connected_solid",
+    "witness_node_id": "result",
+    "witness_operator": "twist",
+    "witness_compiled_volume": 4.397508,
+    "final_component_count": 1,
+    "compiled_component_count": 1,
+    "measurement": "compiler_trace_positive_volume_and_final_component_count"
+  },
+  "morphology_evidence": {
+    "schema_version": "arr.maas.creative_morphology.v1",
+    "descriptor": {
+      "schema_version": "arr.maas.creative_morphology.v1",
+      "axis_ratios": [
+        0.693540611022,
+        0.649542701549,
+        0.311601828825
+      ],
+      "z_slice_occupancies": [
+        0.0,
+        0.0,
+        0.153421737399,
+        0.34657826253,
+        0.346578262572,
+        0.153421737499,
+        0.0,
+        0.0
+      ],
+      "floor_area_profile": [
+        0.125632516614,
+        0.125158129159,
+        0.124683741705,
+        0.124525612546,
+        0.124525612536,
+        0.124683741683,
+        0.125158129147,
+        0.12563251661
+      ],
+      "convexity": 0.719048929341,
+      "void_fraction": 0.532428800504,
+      "normal_bins": [
+        0.15575786653,
+        0.19082039602,
+        0.15575786653,
+        0.19082039602,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.261853824506,
+        0.0,
+        0.044989650392,
+        0.0
+      ],
+      "radial_bins": [
+        0.0,
+        0.0,
+        0.026889386683,
+        0.142184241752,
+        0.071222885543,
+        0.176117943436,
+        0.31335871966,
+        0.270226822926
+      ],
+      "silhouette_front": [
+        0.666666666667,
+        1.0,
+        1.0,
+        0.666666666667,
+        0.666666666667,
+        1.0,
+        1.0,
+        0.666666666667,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_side": [
+        0.555555555556,
+        1.0,
+        1.0,
+        0.555555555556,
+        0.666666666667,
+        1.0,
+        1.0,
+        0.666666666667,
+        0.777777777778,
+        1.0,
+        1.0,
+        0.777777777778,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "silhouette_isometric": [
+        0.222222222222,
+        0.777777777778,
+        0.555555555556,
+        0.111111111111,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.555555555556,
+        1.0,
+        1.0,
+        1.0,
+        0.111111111111,
+        0.888888888889,
+        0.666666666667,
+        0.333333333333
+      ],
+      "component_count": 1,
+      "contact_topology": "compiled_connected_solid"
+    },
+    "decision": {
+      "decision": "accepted",
+      "accepted": true,
+      "nearest_distance": 0.109171204594,
+      "nearest_within_family_distance": null,
+      "threshold": 0.015,
+      "within_family_threshold": 0.025,
+      "closest_candidate_id": "creative-001",
+      "closest_family_candidate_id": null,
+      "failed_components": [],
+      "distance": {
+        "total": 0.109171204594,
+        "components": {
+          "component": 0.0,
+          "axis": 0.077713230697,
+          "z_slice": 0.184982355902,
+          "floor": 0.00158129153,
+          "convexity": 0.034184512322,
+          "void": 0.051226730118,
+          "normal": 0.115605631834,
+          "radial": 0.293175267558,
+          "silhouette": 0.12037037037,
+          "contact": 0.0
+        },
+        "weighted_components": {
+          "component": 0.0,
+          "axis": 0.009325587684,
+          "z_slice": 0.022197882708,
+          "floor": 0.000189754984,
+          "convexity": 0.002734760986,
+          "void": 0.004098138409,
+          "normal": 0.016184788457,
+          "radial": 0.035181032107,
+          "silhouette": 0.019259259259,
+          "contact": 0.0
+        }
+      },
+      "diagnostic": "morphology accepted; closest_candidate=creative-001; distance=0.109171; failed_components=none"
+    },
+    "comparison_scope": "authored_originals"
+  },
+  "legal_review": {
+    "schema_version": "arr.maas.prelegal_review.v1",
+    "status": "not_evaluated",
+    "hard_pass": false,
+    "capacity_ceiling_m2": 1497.877,
+    "capacity_authority": "user_supplied_prelegal_target",
+    "required_authorities": [
+      "neo4j_law_agent",
+      "exact_geometry_gate"
+    ]
+  },
+  "lineage": {
+    "schema_version": "arr.maas.creative_lineage.v1",
+    "stages": [
+      "llm_authored_geometry_program",
+      "canonical_unitbox",
+      "physical_storey_capacity_matrix4",
+      "typed_book_relation",
+      "connected_mass",
+      "storey_contract",
+      "legal_review_pending"
+    ],
+    "unitbox_node_id": "outer",
+    "relation_node_id": "result",
+    "physical_envelope_node_id": "creative_physical_storey_capacity_matrix4",
+    "physical_root_node_id": "creative_occupied_storeys_union"
+  },
+  "candidate_origin": "authored_original",
+  "source_program_hash": "ac34fee29c5c60fb2cf955b34297f39476d7b09093c846486c9260b8d0ac9ac1",
+  "normalized_source_program_hash": "ac34fee29c5c60fb2cf955b34297f39476d7b09093c846486c9260b8d0ac9ac1",
+  "authored_geometry_program": {
+    "schema_version": "arr.maas.geometry_program.v1",
+    "name": "comp16_twisted_court",
+    "root_id": "result",
+    "nodes": [
+      {
+        "id": "outer",
+        "kind": "primitive",
+        "operator": "box",
+        "inputs": [],
+        "parameters": {
+          "width": 1.0,
+          "depth": 1.0,
+          "height": 1.0
+        },
+        "semantic_role": "base_authority",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        }
+      },
+      {
+        "id": "outer_matrix4",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              2.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.7,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.6,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 2.0,
+            "depth": 1.7,
+            "height": 1.6
+          }
+        }
+      },
+      {
+        "id": "court_position",
+        "kind": "transform",
+        "operator": "matrix4",
+        "inputs": [
+          "outer"
+        ],
+        "parameters": {
+          "matrix4": [
+            [
+              0.95,
+              0.0,
+              0.0,
+              0.525
+            ],
+            [
+              0.0,
+              0.72,
+              0.0,
+              0.49
+            ],
+            [
+              0.0,
+              0.0,
+              1.9,
+              -0.1
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "authored_operator": "box",
+          "authored_box_parameters": {
+            "width": 0.95,
+            "depth": 0.72,
+            "height": 1.9
+          },
+          "lowered_affine_operator": "translate",
+          "composed_matrix4_node_ids": [
+            "court",
+            "court_position"
+          ]
+        }
+      },
+      {
+        "id": "ring",
+        "kind": "boolean",
+        "operator": "difference",
+        "inputs": [
+          "outer_matrix4",
+          "court_position"
+        ],
+        "parameters": {},
+        "semantic_role": "occupied_mass",
+        "provenance": {}
+      },
+      {
+        "id": "result",
+        "kind": "modifier",
+        "operator": "twist",
+        "inputs": [
+          "ring"
+        ],
+        "parameters": {
+          "axis": "z",
+          "angle_degrees": 23,
+          "subdivisions": 3
+        },
+        "semantic_role": "occupied_mass",
+        "provenance": {}
+      }
+    ],
+    "metadata": {
+      "author_provider": "codex_session",
+      "author_model": "current_session",
+      "author_prompt_contract": "comp16_nonbox_geometric_principles",
+      "architectural_response": "A single occupied courtyard solid changes orientation continuously through its height. The central opening and surrounding rooms twist together, creating a spatial relation through section rather than separate rotated blocks.",
+      "programme_status": "unknown",
+      "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "base_volume_authority": "1/1 UnitBox",
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "affine_authority": "explicit_matrix4"
+    }
+  },
+  "book_language_evidence": {},
+  "run_id": "book-comp16",
+  "pnu": "4115011300106840001",
+  "identity": {
+    "schema_version": "arr.maas.creative_candidate_identity.v1",
+    "candidate_id": "creative-003",
+    "program_hash": "efcf7a79aa999d2abef97f36883662c24695c21d9720b2b049923d5b87c64201",
+    "geometry_hash": "921f9fa0d4162c25848544e3f4f913bf20b4859fee1bcf152536aad26230040b"
+  },
+  "candidate_json": "candidates/creative-003.json",
+  "render_png": "renders/creative-003.png",
+  "mass_directory": "masses/creative-003",
+  "mass_manifest": "masses/creative-003/manifest.json",
+  "elevation_research_handoff": "masses/creative-003/elevation-research/handoff.json"
+}

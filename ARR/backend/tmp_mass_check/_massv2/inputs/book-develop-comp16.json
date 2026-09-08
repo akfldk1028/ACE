@@ -1,0 +1,449 @@
+{
+  "parent": "book:book-comp16:morph-oblique-mid:creative-005",
+  "parent_shape_id": "e198a511523e807b176e",
+  "parent_program_hash": "399ab3235f8d5b4dd2a0cd8caec676a8e8a427a913114fae1b21640af37834d2",
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "geometry_programs": [
+    {
+      "name": "comp16_wing_unequal_crossing_room",
+      "nodes": [
+        {
+          "id": "wing",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 0.72,
+            "height": 1.5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "incline",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "wing"
+          ],
+          "parameters": {
+            "normal": [
+              -0.5,
+              0,
+              1
+            ],
+            "offset": 0.42,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "counter_wing",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "incline"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              62
+            ],
+            "pivot": [
+              0.93,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "incline",
+            "counter_wing"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_frozen_exact_book_development",
+        "architectural_response": "Move the crossing toward the lower end of the long wing. The meeting space becomes an asymmetric hinge with one longer inclined arm and a shorter arrival arm, while both complete occupied wings remain grounded.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "status": "authored_against_frozen_parent_pending_delivery",
+        "source_seed_name": "comp16_intersecting_inclined_wings",
+        "parent_shape_id": "e198a511523e807b176e",
+        "parking_response": "The offset crossing tests redistribution of the outer projection and the conservative reserved court hull, with the same inherited area. It may create a more useful continuous edge for parking, but the owner must remeasure it; no extra spaces or vehicle access are asserted.",
+        "measured_repair_requests": [
+          {
+            "operation": "increase_parking_envelope_or_switch_strategy",
+            "reason": "10 required parking spaces are not placed.",
+            "target_agent": "maas_geometry_agent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "comp16_wing_opposed_rising_ends",
+      "nodes": [
+        {
+          "id": "wing",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 0.72,
+            "height": 1.5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "incline",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "wing"
+          ],
+          "parameters": {
+            "normal": [
+              -0.5,
+              0,
+              1
+            ],
+            "offset": 0.42,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "counter_wing",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "incline"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              242
+            ],
+            "pivot": [
+              1.3,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "incline",
+            "counter_wing"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_frozen_exact_book_development",
+        "architectural_response": "Reverse the inclined direction of the crossing wing while retaining the same intersecting plan axes. The two higher occupied ends now face different approaches, and the shared middle is framed by opposed rising sections instead of two aligned slopes.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "status": "authored_against_frozen_parent_pending_delivery",
+        "source_seed_name": "comp16_intersecting_inclined_wings",
+        "parent_shape_id": "e198a511523e807b176e",
+        "parking_response": "Opposed slopes chiefly address sectional hierarchy, not the measured parking deficit. Preserve the crossing and inherited area; test whether physicalization changes the envelope. A separate parking strategy is still required if the ground layout stays deficient; no unmodelled basement capacity is credited.",
+        "measured_repair_requests": [
+          {
+            "operation": "increase_parking_envelope_or_switch_strategy",
+            "reason": "10 required parking spaces are not placed.",
+            "target_agent": "maas_geometry_agent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "comp16_wing_broader_crossing_hall",
+      "nodes": [
+        {
+          "id": "wing",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 0.72,
+            "height": 1.5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "incline",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "wing"
+          ],
+          "parameters": {
+            "normal": [
+              -0.5,
+              0,
+              1
+            ],
+            "offset": 0.42,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "broaden_crossing",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "incline"
+          ],
+          "parameters": {
+            "vector": [
+              1.0,
+              1.35,
+              1.0
+            ],
+            "pivot": [
+              1.3,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "broader_occupied_crossing_wing"
+        },
+        {
+          "id": "counter_wing",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "broaden_crossing"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              62
+            ],
+            "pivot": [
+              1.3,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "incline",
+            "counter_wing"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_frozen_exact_book_development",
+        "architectural_response": "Make the transverse inclined wing wider than the longitudinal wing. Their material intersection becomes a more substantial shared room, with unequal usable depths and a clearer hierarchy between the two arms. Recheck the inherited target area through actual physicalization.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "status": "authored_against_frozen_parent_pending_delivery",
+        "source_seed_name": "comp16_intersecting_inclined_wings",
+        "parent_shape_id": "e198a511523e807b176e",
+        "parking_response": "The broader shared crossing reallocates occupied depth at the same inherited area, testing a more compact outer span and continuous perimeter availability. Recompute the parking envelope and actual stalls; widening itself is not evidence of additional spaces.",
+        "measured_repair_requests": [
+          {
+            "operation": "increase_parking_envelope_or_switch_strategy",
+            "reason": "10 required parking spaces are not placed.",
+            "target_agent": "maas_geometry_agent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "comp16_wing_recessed_approach",
+      "nodes": [
+        {
+          "id": "wing",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 0.72,
+            "height": 1.5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "incline",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "wing"
+          ],
+          "parameters": {
+            "normal": [
+              -0.5,
+              0,
+              1
+            ],
+            "offset": 0.42,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "counter_wing",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "incline"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              62
+            ],
+            "pivot": [
+              1.3,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "joined_body",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "incline",
+            "counter_wing"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "recess_cutter",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 0.7,
+            "depth": 0.5,
+            "height": 0.48
+          },
+          "semantic_role": "approach_recess_cutter"
+        },
+        {
+          "id": "recess_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "recess_cutter"
+          ],
+          "parameters": {
+            "vector": [
+              0.25,
+              -0.12,
+              -0.03
+            ]
+          },
+          "semantic_role": "approach_recess_position"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "joined_body",
+            "recess_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_wings_with_recessed_threshold"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_frozen_exact_book_development",
+        "architectural_response": "Carve a substantial sheltered recess into the lower edge of one inclined arm. Remaining material along its rear edge preserves continuity and grounding. The cut studies a protected approach rather than claiming a resolved entrance, door or accessible route.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        },
+        "status": "authored_against_frozen_parent_pending_delivery",
+        "source_seed_name": "comp16_intersecting_inclined_wings",
+        "parent_shape_id": "e198a511523e807b176e",
+        "parking_response": "The carved lower approach protects a pedestrian threshold rather than treating that recess as parking. The current owner excludes the complete upper projection, so this cut is not claimed to solve the shortfall. Recheck the remaining envelope; alternative parking strategy and access design remain unresolved.",
+        "measured_repair_requests": [
+          {
+            "operation": "increase_parking_envelope_or_switch_strategy",
+            "reason": "10 required parking spaces are not placed.",
+            "target_agent": "maas_geometry_agent"
+          }
+        ]
+      }
+    }
+  ]
+}

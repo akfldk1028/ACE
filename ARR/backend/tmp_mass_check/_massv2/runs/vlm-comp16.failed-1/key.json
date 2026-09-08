@@ -1,0 +1,114 @@
+[
+ {
+  "tile": "t01",
+  "run": "comp16",
+  "name": "one_cut_four_towers",
+  "cell": "standing_body|paired_bodies",
+  "coverage_pct": 44.4,
+  "storeys": 1.7
+ },
+ {
+  "tile": "t02",
+  "run": "comp16",
+  "name": "wild01_0116_aggregate_grade",
+  "cell": "seated_figure|field_of_parts",
+  "coverage_pct": 33.8,
+  "storeys": 1.4
+ },
+ {
+  "tile": "t03",
+  "run": "comp16",
+  "name": "comp16_diagonal_court~full_ground^off_open",
+  "cell": "standing_body|stacked_tiers",
+  "coverage_pct": 18.8,
+  "storeys": 5.1
+ },
+ {
+  "tile": "t04",
+  "run": "comp16",
+  "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+  "cell": "standing_body|single_body",
+  "coverage_pct": 26.6,
+  "storeys": 4.0
+ },
+ {
+  "tile": "t05",
+  "run": "comp16",
+  "name": "stilted_tall_cluster",
+  "cell": "standing_body|lifted_body",
+  "coverage_pct": 16.2,
+  "storeys": 2.3
+ },
+ {
+  "tile": "t06",
+  "run": "comp16",
+  "name": "kr_three_ranges_one_tall_vault~held_ground",
+  "cell": "standing_body|field_of_parts",
+  "coverage_pct": 35.4,
+  "storeys": 3.0
+ },
+ {
+  "tile": "t07",
+  "run": "comp16",
+  "name": "sangok_c04_civic_court",
+  "cell": "seated_figure|single_body",
+  "coverage_pct": 32.8,
+  "storeys": 3.0
+ },
+ {
+  "tile": "t08",
+  "run": "comp16",
+  "name": "wide01_0115_aggregate_taper",
+  "cell": "seated_figure|body_and_parts",
+  "coverage_pct": 55.5,
+  "storeys": 0.9
+ },
+ {
+  "tile": "t09",
+  "run": "comp16",
+  "name": "court_bitten_slab_pile",
+  "cell": "seated_figure|stacked_tiers",
+  "coverage_pct": 46.4,
+  "storeys": 1.4
+ },
+ {
+  "tile": "t10",
+  "run": "comp16",
+  "name": "slipped_crown",
+  "cell": "seated_figure|paired_bodies",
+  "coverage_pct": 54.9,
+  "storeys": 1.1
+ },
+ {
+  "tile": "t11",
+  "run": "comp16",
+  "name": "ruled_winding_taper",
+  "cell": "standing_body|body_and_parts",
+  "coverage_pct": 41.0,
+  "storeys": 2.1
+ },
+ {
+  "tile": "t12",
+  "run": "comp16",
+  "name": "sangok_c07_grounded_wings_common_roof~full_ground^to_open",
+  "cell": "standing_body|paired_bodies",
+  "coverage_pct": 26.2,
+  "storeys": 1.9
+ },
+ {
+  "tile": "t13",
+  "run": "comp16",
+  "name": "sangok_terrace_lantern^centred",
+  "cell": "standing_body|stacked_tiers",
+  "coverage_pct": 59.9,
+  "storeys": 2.6
+ },
+ {
+  "tile": "t14",
+  "run": "comp16",
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "cell": "standing_body|single_body",
+  "coverage_pct": 23.4,
+  "storeys": 4.0
+ }
+]

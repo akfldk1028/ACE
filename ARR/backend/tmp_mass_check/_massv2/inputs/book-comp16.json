@@ -1,0 +1,581 @@
+{
+  "author": "Codex session: eight newly authored non-box spatial principles",
+  "geometry_programs": [
+    {
+      "name": "comp16_continuous_crescent",
+      "nodes": [
+        {
+          "id": "bar",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 3.0,
+            "depth": 0.7,
+            "height": 1.15
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "bar"
+          ],
+          "parameters": {
+            "axis": "x",
+            "angle_degrees": 104,
+            "subdivisions": 4
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "One continuously bent occupied bar holds an open concave arrival space. Its two ends remain parts of one curved body; no separately stacked rooms or cosmetic roof pieces are added.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6,
+          "target_gfa_m2": 1250.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_whole_height_inclined_body",
+      "nodes": [
+        {
+          "id": "body",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.4,
+            "depth": 1.6,
+            "height": 1.8
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "body"
+          ],
+          "parameters": {
+            "normal": [
+              -0.55,
+              0,
+              1
+            ],
+            "offset": 0.59,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "An occupied wedge rises through the full section from a low civic edge to a taller rear volume. The incline is a boundary of usable mass, not a thin roof applied to an unchanged box.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.8,
+          "target_gfa_m2": 1850.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_twisted_court",
+      "nodes": [
+        {
+          "id": "outer",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.0,
+            "depth": 1.7,
+            "height": 1.6
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "court",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 0.95,
+            "depth": 0.72,
+            "height": 1.9
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "court_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "court"
+          ],
+          "parameters": {
+            "vector": [
+              0.525,
+              0.49,
+              -0.1
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "ring",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "outer",
+            "court_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "modifier",
+          "operator": "twist",
+          "inputs": [
+            "ring"
+          ],
+          "parameters": {
+            "axis": "z",
+            "angle_degrees": 23,
+            "subdivisions": 3
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "A single occupied courtyard solid changes orientation continuously through its height. The central opening and surrounding rooms twist together, creating a spatial relation through section rather than separate rotated blocks.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6,
+          "target_gfa_m2": 1800.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_faceted_carved_monolith",
+      "nodes": [
+        {
+          "id": "body",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.0,
+            "depth": 1.6,
+            "height": 1.7
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "taper",
+          "kind": "modifier",
+          "operator": "taper",
+          "inputs": [
+            "body"
+          ],
+          "parameters": {
+            "axis": "z",
+            "start_scale": [
+              1,
+              1
+            ],
+            "end_scale": [
+              0.7,
+              0.9
+            ],
+            "subdivisions": 2
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "facet",
+          "kind": "modifier",
+          "operator": "cut_corner",
+          "inputs": [
+            "taper"
+          ],
+          "parameters": {
+            "corner": "ne",
+            "ratio": 0.32
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "entry_cut",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 0.72,
+            "depth": 0.72,
+            "height": 0.65
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "entry_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "entry_cut"
+          ],
+          "parameters": {
+            "vector": [
+              0.2,
+              -0.1,
+              -0.05
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "facet",
+            "entry_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "A tapering occupied monolith presents unequal oblique faces and one deep recessed entry. Its outer facets and carved base establish a hierarchy between a compact body and a protected civic threshold.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 5,
+          "storey_height_m": 3.6,
+          "target_gfa_m2": 2300.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_intersecting_inclined_wings",
+      "nodes": [
+        {
+          "id": "wing",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 0.72,
+            "height": 1.5
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "incline",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "wing"
+          ],
+          "parameters": {
+            "normal": [
+              -0.5,
+              0,
+              1
+            ],
+            "offset": 0.42,
+            "keep_side": "negative"
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "counter_wing",
+          "kind": "transform",
+          "operator": "rotate",
+          "inputs": [
+            "incline"
+          ],
+          "parameters": {
+            "angles": [
+              0,
+              0,
+              62
+            ],
+            "pivot": [
+              1.3,
+              0.36,
+              0
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "union",
+          "inputs": [
+            "incline",
+            "counter_wing"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "Two inhabited inclined wings physically intersect around a shared central room. Their changing upper section and oblique crossing create different open edges, while each wing bears on the ground along its length.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.7,
+          "target_gfa_m2": 1450.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_occupied_vaulted_lens",
+      "nodes": [
+        {
+          "id": "bounds",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.6,
+            "depth": 1.8,
+            "height": 2.0
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "ellipsoid",
+          "kind": "modifier",
+          "operator": "ellipsoidize",
+          "inputs": [
+            "bounds"
+          ],
+          "parameters": {
+            "segments": 24
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "modifier",
+          "operator": "slice",
+          "inputs": [
+            "ellipsoid"
+          ],
+          "parameters": {
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "offset": 1.0,
+            "keep_side": "positive"
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "A broad grounded vaulted occupied body replaces a prismatic roof-and-wall division. Its upper floor plates contract continuously toward the crown. The low vault is inhabitable mass, not a landscape mound or a floating canopy.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 3,
+          "storey_height_m": 4.0,
+          "target_gfa_m2": 1650.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_waisted_occupied_body",
+      "nodes": [
+        {
+          "id": "body",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.8,
+            "depth": 1.4,
+            "height": 2.0
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "modifier",
+          "operator": "pinch",
+          "inputs": [
+            "body"
+          ],
+          "parameters": {
+            "axis": "z",
+            "waist_scale": 0.61,
+            "profile_power": 2,
+            "subdivisions": 4
+          },
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "One occupied solid draws inward through its middle floors and expands again above. The curved waist creates a continuous sectional figure while keeping a substantial grounded base and floor depth.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 5,
+          "storey_height_m": 3.6,
+          "target_gfa_m2": 2050.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    },
+    {
+      "name": "comp16_inhabited_arch",
+      "nodes": [
+        {
+          "id": "body",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 2.5,
+            "depth": 1.55,
+            "height": 1.7
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "arch_bounds",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": {
+            "width": 1.9,
+            "depth": 4.0,
+            "height": 2.1
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "arch_curve",
+          "kind": "modifier",
+          "operator": "ellipsoidize",
+          "inputs": [
+            "arch_bounds"
+          ],
+          "parameters": {
+            "segments": 24
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "arch_position",
+          "kind": "transform",
+          "operator": "translate",
+          "inputs": [
+            "arch_curve"
+          ],
+          "parameters": {
+            "vector": [
+              0.3,
+              -1.2,
+              -0.65
+            ]
+          },
+          "semantic_role": "occupied_mass"
+        },
+        {
+          "id": "result",
+          "kind": "boolean",
+          "operator": "difference",
+          "inputs": [
+            "body",
+            "arch_position"
+          ],
+          "parameters": {},
+          "semantic_role": "occupied_mass"
+        }
+      ],
+      "root_id": "result",
+      "metadata": {
+        "author_provider": "codex_session",
+        "author_model": "current_session",
+        "author_prompt_contract": "comp16_nonbox_geometric_principles",
+        "architectural_response": "A broad curved subtraction creates a through passage beneath one inhabited spanning body. The opening has an arched upper boundary and the side masses remain grounded; the actual support span still requires engineering.",
+        "programme_status": "unknown",
+        "unresolved_conflicts": "Programme, doors, stairs, accessible roof routes, structural member capacity and parking operation remain to be designed and independently verified.",
+        "dimensional_intent": {
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.8,
+          "target_gfa_m2": 1350.0,
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown"
+        }
+      }
+    }
+  ]
+}

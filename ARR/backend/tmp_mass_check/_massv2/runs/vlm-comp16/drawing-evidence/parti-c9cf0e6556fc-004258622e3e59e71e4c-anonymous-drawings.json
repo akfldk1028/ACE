@@ -1,0 +1,20 @@
+{
+  "name": "kr_three_ranges_one_tall_vault~held_ground",
+  "shape_id": "004258622e3e59e71e4c",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    884.868305676848,
+    884.868305676848
+  ],
+  "section_area_m2": 284.8762582084215,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "d9d72f7dbce52787e0e567b125c0e90379dc58cafb8a68afe5a012b890688337"
+}

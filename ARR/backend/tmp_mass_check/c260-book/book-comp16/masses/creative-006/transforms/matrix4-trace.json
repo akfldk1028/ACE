@@ -1,0 +1,161 @@
+{
+  "identity": {
+    "candidate_id": "creative-006",
+    "geometry_hash": "c623176c5ad3536b115a055455446a7746a74bb24f86a4eb0dd86733849eb9d9",
+    "pnu": "4115011300106840001",
+    "program_hash": "47cb9a09d306cc2875ea73ec4a18690050a725a3b1bc2f0eafc7a0b9944d3829",
+    "run_id": "book-comp16"
+  },
+  "matrix4_trace": [
+    {
+      "matrix4": [
+        [
+          2.6,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.8,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          2.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "bounds_matrix4",
+      "semantic_role": "occupied_mass"
+    },
+    {
+      "matrix4": [
+        [
+          15.196038089643668,
+          0.0,
+          0.0,
+          -19.75484951653677
+        ],
+        [
+          0.0,
+          15.196038089643668,
+          0.0,
+          -13.676434280679302
+        ],
+        [
+          0.0,
+          0.0,
+          12.0,
+          -12.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_physical_storey_capacity_matrix4",
+      "semantic_role": "physical_storey_capacity_fit"
+    },
+    {
+      "matrix4": [
+        [
+          41.090088,
+          0.0,
+          0.0,
+          -20.545044
+        ],
+        [
+          0.0,
+          28.933256,
+          0.0,
+          -14.466628
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          1.94
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_01_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          41.090088,
+          0.0,
+          0.0,
+          -20.545044
+        ],
+        [
+          0.0,
+          28.933256,
+          0.0,
+          -14.466628
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          5.94
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_02_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    },
+    {
+      "matrix4": [
+        [
+          41.090088,
+          0.0,
+          0.0,
+          -20.545044
+        ],
+        [
+          0.0,
+          28.933256,
+          0.0,
+          -14.466628
+        ],
+        [
+          0.0,
+          0.0,
+          0.12,
+          9.94
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "node_id": "creative_floor_03_cutter_matrix4",
+      "semantic_role": "occupied_floor_cutter"
+    }
+  ]
+}

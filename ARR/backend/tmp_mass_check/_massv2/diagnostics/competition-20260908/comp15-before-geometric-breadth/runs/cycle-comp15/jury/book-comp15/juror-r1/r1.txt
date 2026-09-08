@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 4 | The faceted crescent establishes a strong concave exterior space, although its section remains uniform.
+FEASIBILITY 5 | Continuous ground-to-roof occupancy offers a straightforward load path without visible transfers.
+SITE 4 | The curved recess makes a deliberate open area within the angular parcel while retaining peripheral space.
+EDITABILITY 4 | A continuous floor band can accommodate architectural development, with extra care at its narrowing ends.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | Successively rotated plates give the mass a legible dynamic stacking idea and a stepped section.
+FEASIBILITY 3 | Changing plate orientations introduce substantial overhangs and transfers that require structural development.
+SITE 3 | The stack sits within the parcel, but its rotations show limited specific engagement with the parcel edges.
+EDITABILITY 3 | Overlapping floors offer potential core locations, while their changing outlines complicate consistent circulation and facades.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 3 | Parallel lower bars and a shifted upper mass suggest a hierarchy, but small notches weaken its clarity.
+FEASIBILITY 3 | The section includes a detached small piece and offset upper occupancy whose support is unresolved.
+SITE 4 | The bars establish a directional slot and broadly follow the parcel diagonal with surrounding open space.
+EDITABILITY 3 | Bar-shaped floors are usable starting points, but separated pieces and the elevated connection complicate circulation.
+WEIGHTED 3.20
+
+TILE t04
+CONCEPT 3 | The warped monolith is recognizable, but positive-volume hierarchy and inhabited void relationships are limited.
+FEASIBILITY 4 | The broad continuous body is plausible, with sloping perimeter geometry requiring coordinated structure and envelope.
+SITE 3 | The compact placement preserves open ground, although little differentiated response to individual edges is evident.
+EDITABILITY 4 | Broad overlapping floor areas allow cores and layouts, with varying perimeter geometry adding facade work.
+WEIGHTED 3.45
+
+TILE t05
+CONCEPT 3 | The branching footprint creates several recesses, but its uniform extrusion lacks sectional development.
+FEASIBILITY 5 | The continuous low mass presents direct support and no demanding visible cantilevers.
+SITE 3 | The footprint leaves generous surrounding ground, while the angular branches have no clearly demonstrated edge-specific role.
+EDITABILITY 4 | Connected floor areas are readily developable, though the central junction and reentrant corners require planning.
+WEIGHTED 3.70
+
+TILE t06
+CONCEPT 3 | Two parallel bars and a low end link form a clear but minimally articulated composition.
+FEASIBILITY 5 | The simple grounded bars and short connector offer straightforward structural development.
+SITE 3 | The internal slit is legible, but the long bars relate only loosely to the parcel geometry.
+EDITABILITY 4 | Regular floor plates are adaptable; the narrow separation and end-only connection constrain circulation options.
+WEIGHTED 3.70
+
+TILE t07
+CONCEPT 4 | A strong spanning bar over two grounded ends creates a clear portal and solid-void hierarchy.
+FEASIBILITY 4 | The substantial end masses make the bridge plausible, although its long clear span needs engineered resolution.
+SITE 3 | The portal creates open ground through the mass, with limited evidence tying its orientation to a specific frontage.
+EDITABILITY 4 | The broad end volumes and simple upper bar support architectural development while preserving the portal.
+WEIGHTED 3.80
+
+TILE t08
+CONCEPT 4 | Asymmetric terraces rise from a U-shaped base into a clear high point, with some excessive small steps.
+FEASIBILITY 4 | Most upper masses step back over lower volumes, producing generally credible support.
+SITE 4 | The open-ended base and stepped profile organize both an interior recess and peripheral site space.
+EDITABILITY 3 | Multiple terraces and separated upper floor areas complicate cores and circulation while retaining usable block dimensions.
+WEIGHTED 3.80
+
+TILE t09
+CONCEPT 4 | A thick upper arm and lower opposing bar create a coherent open court with a strong sectional offset.
+FEASIBILITY 4 | Broad bearing areas make the mass plausible, while the projecting upper arm needs explicit structural resolution.
+SITE 4 | The court opens toward the wider residual ground and the long leg follows a parcel direction.
+EDITABILITY 4 | Substantial continuous floor bands provide a workable basis for cores and facades without losing the court.
+WEIGHTED 4.00
+
+TILE t10
+CONCEPT 4 | A courtyard ring broken into stepped upper pavilions establishes a recognizable solid-void composition.
+FEASIBILITY 4 | The upper pieces mostly sit on the lower ring, giving credible support despite local projections.
+SITE 3 | A central void and generous perimeter space are evident, but the compact object has limited edge differentiation.
+EDITABILITY 3 | Four separated upper occupancies make vertical circulation and connections more demanding than the ground ring suggests.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 3 | The shifted upper block produces a readable sectional step but little richer hierarchy or void definition.
+FEASIBILITY 4 | Substantial overlap between the broad blocks makes the offsets plausible with local transfers.
+SITE 3 | The compact mass leaves usable surrounding space but offers little specific response to the irregular parcel.
+EDITABILITY 4 | Large overlapping plates allow flexible floors and core placement while preserving the offset silhouette.
+WEIGHTED 3.45
+
+TILE t12
+CONCEPT 4 | Stepped end masses joined above an open passage create a clear bridge composition with sectional hierarchy.
+FEASIBILITY 4 | The bridge bears on substantial grounded volumes; the visible opening requires deliberate span design.
+SITE 4 | The two masses frame a directional gap and retain generous ground around the composition.
+EDITABILITY 4 | Broad end plates offer plausible core zones, while the connecting upper mass can organize shared circulation.
+WEIGHTED 4.00
+
+TILE t13
+CONCEPT 3 | The twisting monolith has a distinctive envelope but little differentiation of volumes or exterior voids.
+FEASIBILITY 4 | The continuous broad body is plausible, with changing perimeter slopes requiring structural and facade coordination.
+SITE 3 | The freestanding placement preserves open ground but does not articulate a clear relationship to different parcel edges.
+EDITABILITY 4 | Overlapping floor areas support flexible planning, though the irregular envelope complicates repeated facade details.
+WEIGHTED 3.45
+
+TILE t14
+CONCEPT 4 | The long portal remains legible, but its thin recessed ledge and local cuts weaken the otherwise clear composition.
+FEASIBILITY 3 | The deep end supports are credible, while the thin exposed strip and long span need more convincing resolution.
+SITE 3 | Open ground beneath the bar is useful spatial evidence, but its relationship to a particular frontage is unknown.
+EDITABILITY 3 | The end blocks are developable, although the narrow ledge and irregular upper junctions constrain clean floor and facade integration.
+WEIGHTED 3.35
+
+TILE t15
+CONCEPT 3 | Stacked terraces suggest a rising hierarchy, but numerous slivers, cuts and ledges compete with that idea.
+FEASIBILITY 3 | Thin projecting elements and several offset pieces leave more support questions than the larger blocks resolve.
+SITE 3 | The U-shaped ground occupancy gives a recess, while the fragmented upper mass adds little clear parcel response.
+EDITABILITY 3 | Irregular connectors, local cuts and separated upper areas make consistent floors and circulation difficult to establish.
+WEIGHTED 3.00
+
+TILE t16
+CONCEPT 4 | The upper arm and low opposing block define a strong sectional court, with a minor roof feature adding little clarity.
+FEASIBILITY 3 | The offset upper occupancy and projecting arm require transfer design that is not established by the section.
+SITE 4 | The long ground leg responds to a parcel direction and frames an open-sided exterior space.
+EDITABILITY 3 | The sampled upper occupancy is much less connected than the roof silhouette suggests, complicating continuous floor organization.
+WEIGHTED 3.55
+
+TILE t17
+CONCEPT 4 | Two slender bars of unequal height define a clear open slot and a restrained sectional hierarchy.
+FEASIBILITY 5 | Grounded prismatic bars give direct load paths, with no major unsupported upper masses evident.
+SITE 4 | The bars frame a substantial exterior gap and relate to the parcel diagonal while retaining generous open ground.
+EDITABILITY 4 | Regular bar floors are developable, although separate upper occupancies require a deliberate circulation strategy.
+WEIGHTED 4.25
+
+TILE t18
+CONCEPT 4 | Stepped blocks and an elevated connector establish a coherent hierarchy around the central ground opening.
+FEASIBILITY 4 | Substantial grounded ends provide a plausible basis for the bridge, subject to span and junction design.
+SITE 4 | The composition frames a directional passage and distributes open ground around both blocks.
+EDITABILITY 4 | The end volumes can accept developed floor plates and cores while the upper connection preserves the central idea.
+WEIGHTED 4.00
+
+TILE t19
+CONCEPT 5 | A lower connecting neck between unequal stepped blocks produces the clearest hierarchy of volumes, terraces and sectional void.
+FEASIBILITY 4 | Broad grounded blocks support the upper masses, while the connecting portion still requires engineered spanning.
+SITE 4 | The separated ground blocks create a legible passage and retain ample peripheral space within the parcel.
+EDITABILITY 4 | Connected upper occupancy and substantial end plates give a strong basis for circulation and cores while preserving the massing idea.
+WEIGHTED 4.35
+
+RANKING: t19, t17, t01, t12, t18, t09, t08, t07, t06, t05, t10, t16, t04, t13, t11, t02, t14, t03, t15
+VERDICT: Advance t19 for its strong sectional hierarchy and connected upper occupancy, with t17 and t01 as simpler, credible alternatives offering distinctly different exterior spaces. The strongest proposals organize substantial volumes around a legible void; the weaker ones accumulate small cuts or transfers without comparable spatial benefit. Site judgments remain provisional because frontage, verified building-line geometry and statutory height evidence are incomplete.

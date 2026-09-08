@@ -1,0 +1,20 @@
+{
+  "name": "ruled_winding_taper",
+  "shape_id": "9fd1dfd167855ec2a6dc",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.7
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    574.8022974805413,
+    476.76829555578803
+  ],
+  "section_area_m2": 165.16527381339392,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "48c4c24c64cd0e4d5feff565a235a3f940bc1b4a566497be19eff094adaf65ab"
+}

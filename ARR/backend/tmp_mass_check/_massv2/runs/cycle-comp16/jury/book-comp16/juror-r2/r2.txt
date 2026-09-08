@@ -1,0 +1,114 @@
+TILE t01
+CONCEPT 3 | The bent bar defines an open concavity clearly, but its uniform extrusion offers little sectional hierarchy.
+FEASIBILITY 5 | Continuous vertically aligned occupancy and substantial grounded ends provide a straightforward basis for structural development.
+SITE 3 | The compact bent footprint leaves generous surrounding space, although its relationship to particular parcel edges is weakly expressed.
+EDITABILITY 4 | Repeated floor footprints and a continuous bar support development, with angular bends requiring careful circulation planning.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 2 | A broad solid block with a sloping roof is legible but offers limited articulation or solid-void richness.
+FEASIBILITY 5 | Broad continuous ground support and the absence of major transfers make the delivered mass readily plausible.
+SITE 3 | The mass sits within the drawn parcel with open margins, but establishes little hierarchy among the surrounding spaces.
+EDITABILITY 5 | The large continuous floor plates offer substantial freedom for cores and circulation while retaining the simple envelope.
+WEIGHTED 3.55
+
+TILE t03
+CONCEPT 4 | The central void and tapering perimeter produce a coherent courtyard object with an expressive section.
+FEASIBILITY 3 | Continuous perimeter masses provide support, but changing wall alignments and upper projections require structural resolution.
+SITE 4 | A central open space and surrounding parcel clearances establish a meaningful balance of built footprint and void.
+EDITABILITY 3 | The ring permits connected development, but varying perimeter geometry and the courtyard constrain floor and core arrangements.
+WEIGHTED 3.55
+
+TILE t04
+CONCEPT 4 | A tall faceted body lifted over a localized opening creates a strong contrast between compression and release.
+FEASIBILITY 3 | The opening leaves an uneven support arrangement and a slender end that need explicit transfer and stability design.
+SITE 3 | The ground incision gives the footprint some porosity, though no demonstrated frontage or access relationship fixes its site purpose.
+EDITABILITY 3 | The main body is developable, but the large lower subtraction and sloping side constrain core continuity and usable edges.
+WEIGHTED 3.35
+
+TILE t05
+CONCEPT 4 | Intersecting bars rise toward distinct high ends, making the roof and positive volumes express a clear sectional idea.
+FEASIBILITY 4 | Grounded continuous arms avoid obvious transfers, although their acute central junction needs disciplined structural development.
+SITE 3 | The radial footprint distributes open pockets around the mass, but does not establish a particularly clear relationship to parcel edges.
+EDITABILITY 4 | Connected arms can sustain circulation and facade development, with the sloping roof requiring adjustment of upper floor extents.
+WEIGHTED 3.80
+
+TILE t06
+CONCEPT 3 | The low domed volume is coherent and recognizable, but remains a single undifferentiated solid without an articulated void.
+FEASIBILITY 4 | A broad grounded base and continuous curved envelope are plausible, with the eventual structural system still undemonstrated.
+SITE 3 | The compact rounded footprint preserves peripheral space but shows little directional response to the polygonal parcel.
+EDITABILITY 2 | Shrinking curved floor extents and low perimeter headroom would strongly constrain conventional floors and facade subdivision.
+WEIGHTED 3.05
+
+TILE t07
+CONCEPT 4 | The opposed tapers create a memorable waist and an unusually clear sectional silhouette.
+FEASIBILITY 3 | The narrow middle must support expanding upper floors, introducing inclined load paths or transfers that remain unresolved.
+SITE 3 | The centrally placed object retains parcel margins but gives little spatial hierarchy to the surrounding ground.
+EDITABILITY 3 | A central core may be developable, but the changing floor widths and upper expansion limit flexible layouts.
+WEIGHTED 3.35
+
+TILE t08
+CONCEPT 4 | A large arch cut transforms the rectangular body into a clear inhabited-span concept with a substantial ground void.
+FEASIBILITY 3 | Two grounded side masses and an arch profile suggest a plausible strategy, but the large span and crown depth require verification.
+SITE 4 | The opening creates a strong spatial connection through the footprint while preserving open ground around the volume.
+EDITABILITY 3 | The side masses offer possible development zones, but separated lower occupancy and a curved overhead limit continuous floor planning.
+WEIGHTED 3.55
+
+TILE t09
+CONCEPT 3 | The bent bar remains legible, but repeated thin incisions and jagged ends do not establish a stronger volumetric hierarchy.
+FEASIBILITY 4 | The main mass is continuously grounded, while the slender edge articulations need clarification as buildable elements.
+SITE 3 | The concave footprint preserves ample open parcel area, but its additional notches have no demonstrated site relationship.
+EDITABILITY 3 | The connected bar can be developed, although irregular tips and tight incisions complicate facade and floor planning.
+WEIGHTED 3.25
+
+TILE t10
+CONCEPT 3 | The faceted body and lower opening are forceful, but the thin applied-looking groove introduces a competing scale of articulation.
+FEASIBILITY 3 | The lower opening and slender end demand structural resolution, and the narrow edge feature adds an unresolved detail.
+SITE 3 | The incision provides some ground porosity, but its relationship to frontage, orientation and access remains unshown.
+EDITABILITY 3 | The substantial body allows development, with the opening, taper and narrow facade feature constraining continuous planning.
+WEIGHTED 3.00
+
+TILE t11
+CONCEPT 3 | The crossing rising arms have a clear basic idea, but small roof-edge steps interrupt the overall sectional clarity.
+FEASIBILITY 4 | The main arms are continuously grounded and plausible, with local projecting roof-edge pieces needing detail development.
+SITE 3 | Open pockets occur between the arms, although their orientation does not demonstrate a specific parcel-edge response.
+EDITABILITY 4 | The connected footprint permits circulation development, while sloped and locally stepped roof edges constrain the highest occupied zones.
+WEIGHTED 3.45
+
+TILE t12
+CONCEPT 3 | The pinched double taper remains distinctive, but the small roof projection adds little to its principal spatial idea.
+FEASIBILITY 3 | Expansion above the waist requires a deliberate load-transfer strategy, and the roof projection has no demonstrated support arrangement.
+SITE 3 | The footprint maintains open margins but gives no clear directional structure to the surrounding site spaces.
+EDITABILITY 3 | The variable floor envelope can be developed with care, though the waist and small rooftop mass reduce planning freedom.
+WEIGHTED 3.00
+
+TILE t13
+CONCEPT 4 | Parallel bars of unequal height create a restrained but clear hierarchy around a long open space.
+FEASIBILITY 5 | Substantial directly grounded bars and simple sections provide a strong basis for conventional structural development.
+SITE 4 | The elongated space between the bars organizes the parcel interior while the outer edges retain useful clearances.
+EDITABILITY 4 | Regular bar footprints are adaptable, but separate upper occupancy requires circulation and core arrangements to be demonstrated.
+WEIGHTED 4.25
+
+TILE t14
+CONCEPT 5 | Stepped positive volumes and an elevated connection integrate terraces, ground separation and a strong sectional hierarchy.
+FEASIBILITY 4 | The major masses are grounded and the bridge has substantial depth, although its span and connections require engineering development.
+SITE 4 | Separated ground footprints create a meaningful open interval, with stepped edges mediating between the larger masses and open parcel space.
+EDITABILITY 4 | Orthogonal floor zones and setbacks support architectural development, while the elevated connection requires careful circulation alignment.
+WEIGHTED 4.35
+
+TILE t15
+CONCEPT 4 | Stepped paired volumes and a lower connecting element create a rich solid-void composition, though several recesses compete for emphasis.
+FEASIBILITY 4 | Broad grounded bodies and limited visible projections are plausible, with the narrow connecting region needing structural clarification.
+SITE 4 | The paired ground masses and intermediate void give the site a clear internal spatial organization with surrounding open margins.
+EDITABILITY 4 | Orthogonal masses and terraces offer workable floor zones, although the changing connection levels complicate circulation continuity.
+WEIGHTED 4.00
+
+TILE t16
+CONCEPT 5 | Unequal stepped stacks rise from a connected lower footprint, producing the strongest hierarchy of low enclosure, terraces and upper volume.
+FEASIBILITY 4 | Predominantly nested masses provide credible support paths, with local projections and the connecting portions still requiring verification.
+SITE 4 | The open-sided lower footprint organizes a defined exterior space while the unequal heights give the parcel interior a useful spatial hierarchy.
+EDITABILITY 4 | Rectilinear steps permit flexible architectural development, though separate upper footprints and the small crown require deliberate core planning.
+WEIGHTED 4.35
+
+RANKING: t16, t14, t13, t15, t05, t01, t03, t08, t02, t11, t04, t07, t09, t06, t10, t12
+VERDICT: Advance t16 and t14 for their strong positive-volume and sectional hierarchies, with t13 as a restrained, readily developable alternative. The set demonstrates several credible massing ideas, but circulation, structural systems, exact building-line compliance and the statutory height cap remain unverified; the ranking is an architectural assessment rather than legal approval.

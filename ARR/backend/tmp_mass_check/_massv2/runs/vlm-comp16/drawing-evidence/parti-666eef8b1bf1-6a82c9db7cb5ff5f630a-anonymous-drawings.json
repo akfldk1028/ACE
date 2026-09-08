@@ -1,0 +1,20 @@
+{
+  "name": "stilted_tall_cluster",
+  "shape_id": "6a82c9db7cb5ff5f630a",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    169.45738385597886,
+    169.45738385597886
+  ],
+  "section_area_m2": 50.61421527883584,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "77424af8cea5497bfbaf5b2349a8b92e00e3d0de24710580ed909b33b84fc8a6"
+}

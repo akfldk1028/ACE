@@ -1,0 +1,20 @@
+{
+  "name": "comp16_diagonal_court~full_ground^off_open",
+  "shape_id": "24575545180611c489c3",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.2
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    468.7126676729605,
+    468.7126676729605
+  ],
+  "section_area_m2": 107.98901448225824,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "8d33591cf9dc0064008bdaaad47791dd901426f744a54f1c4f8744d5f18826d1"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "book:book-comp16:morph-compact-mid:creative-007",
+  "shape_id": "534fbfd62849a284fb72",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    567.6118556900452,
+    396.1732483785752
+  ],
+  "section_area_m2": 475.97021683869855,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "73ef15557d5c81cf4f5d00590686a72cbfd76e7a412e70a7118da575c7b88d9e"
+}

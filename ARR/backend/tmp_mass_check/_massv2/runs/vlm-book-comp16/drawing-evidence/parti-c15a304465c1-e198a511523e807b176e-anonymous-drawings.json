@@ -1,0 +1,20 @@
+{
+  "name": "book:book-comp16:morph-oblique-mid:creative-005",
+  "shape_id": "e198a511523e807b176e",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "complete_export_surface_mesh",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8999999999999995
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    496.73629871457393,
+    484.47925965068805
+  ],
+  "section_area_m2": 354.04646339058434,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "381a024bd3636c49ba21f1c4098a350c14b7c7a7096885ffc3ce2f6730803a2e"
+}

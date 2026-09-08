@@ -1,0 +1,20 @@
+{
+  "name": "comp16_turning_hexagon^off_open",
+  "shape_id": "e6bd415e1bd76a12a6e5",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.7
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1177.9677629351377,
+    1164.6256950115157
+  ],
+  "section_area_m2": 607.930968324921,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "9a3b225e79461a132e3af4253d276db49be1af7f56209b69a9d7b643ec636bf5"
+}

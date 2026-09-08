@@ -1,0 +1,44 @@
+TILE t01
+CONCEPT 4 | A family of butterfly-roofed pavilions creates a legible collective form, with larger rear volumes and smaller foreground pieces establishing hierarchy.
+FEASIBILITY 4 | Grounded compact blocks and limited spans are plausible, although the deep roof valleys and diminishing upper occupancy need careful development.
+SITE 4 | The dispersed arrangement follows several parcel edges while retaining a connected field of open space between the volumes.
+EDITABILITY 3 | Individual blocks can accept floors and facades, but separate circulation systems and sharply reduced upper plates constrain a unified building.
+WEIGHTED 3.80
+
+TILE t02
+CONCEPT 4 | A continuous angular body combines an enclosed courtyard with an open notch, producing a clear hierarchy of solid and void.
+FEASIBILITY 4 | Broad grounded wings are credible, while the upper connections across ground-level gaps require explicit structural resolution.
+SITE 4 | The faceted outer edge and differentiated internal openings engage the parcel geometry without consuming the whole site.
+EDITABILITY 4 | Connected upper wings and comparatively regular depths provide a useful framework for floors and circulation, subject to resolving the ground-level breaks.
+WEIGHTED 4.00
+
+TILE t03
+CONCEPT 4 | Repeated butterfly profiles and varied pavilion heights establish a recognizable cluster with a dominant central volume.
+FEASIBILITY 4 | The volumes remain directly grounded and structurally credible, with roof valleys and small upper fragments requiring refinement.
+SITE 3 | The cluster concentrates toward one part of the parcel and leaves a substantial open flank whose relationship to the composition is weakly articulated.
+EDITABILITY 3 | Compact separate floor plates and steep roof cuts limit internal flexibility and make shared circulation difficult to establish without additions.
+WEIGHTED 3.60
+
+TILE t04
+CONCEPT 2 | A rounded solitary volume is coherent but offers little sectional hierarchy or developed solid-void articulation beyond its shallow crown.
+FEASIBILITY 5 | Continuous ground and upper footprints, a broad solid section and the absence of visible transfers make the mass straightforward to develop structurally.
+SITE 2 | The rounded footprint sits toward one side of the angular parcel with little visible articulation of the remaining open ground or parcel edges.
+EDITABILITY 4 | A continuous floor plate readily accommodates architectural subdivision, although its depth and curved perimeter need resolution for light and planning.
+WEIGHTED 3.15
+
+TILE t05
+CONCEPT 4 | Two unequal roofed masses separated by a continuous cut form a strong and legible composition, reinforced by distinct roof heights.
+FEASIBILITY 4 | Broad grounded volumes and aligned lower and upper occupancy are plausible, with the complex roof junctions requiring considered detailing.
+SITE 3 | The perimeter closely follows the parcel, but the large coverage and narrow dividing slot offer limited differentiation of outdoor space.
+EDITABILITY 4 | Generous continuous plates can accommodate floors and cores while preserving the split, though deep interiors and the tight gap constrain facade development.
+WEIGHTED 3.80
+
+TILE t06
+CONCEPT 4 | A tall compact courtyard ring has a strong central void and an articulated roof perimeter, although most sectional variation remains at the crown.
+FEASIBILITY 4 | Vertically aligned perimeter wings are credible and avoid major transfers, while the slender wing proportions warrant structural coordination.
+SITE 3 | The ring preserves a substantial open area but its offset compact placement gives only a limited response to the full parcel geometry.
+EDITABILITY 3 | Continuous perimeter circulation is possible in principle, but narrow wings and the tall courtyard proportion constrain cores, floor layouts and facade development.
+WEIGHTED 3.60
+
+RANKING: t02, t01, t05, t03, t06, t04
+VERDICT: Advance t02 for its coherent connected mass, complementary voids and adaptable wings. Retain t01 and t05 as contrasting alternatives with strong roof identities; the former needs a convincing circulation strategy and the latter needs development of its narrow central gap. These judgments concern the shown massing and do not establish legal compliance or an undisclosed programme.

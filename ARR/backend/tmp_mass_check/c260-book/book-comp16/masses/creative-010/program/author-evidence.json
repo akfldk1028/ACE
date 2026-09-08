@@ -1,0 +1,18 @@
+{
+  "author_evidence": {
+    "cache_hit": false,
+    "model": "current_session",
+    "prompt_contract": "comp16_nonbox_geometric_principles",
+    "provider": "codex_session",
+    "response_id": "",
+    "schema_version": "arr.maas.creative_author_evidence.v1",
+    "source_kind": "llm_authored_geometry_program"
+  },
+  "identity": {
+    "candidate_id": "creative-010",
+    "geometry_hash": "891de55e4437bf993eb90b27e0c668c015b5f4667df56a685f5b8f6517cf21e8",
+    "pnu": "4115011300106840001",
+    "program_hash": "bd40018fed8709386b8b85a98e2a3f3d455f70e1410e3f393abaa45e32cbfa46",
+    "run_id": "book-comp16"
+  }
+}

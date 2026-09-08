@@ -1,0 +1,20 @@
+{
+  "name": "comp16_inclined_canyon",
+  "shape_id": "d37441c57f729d0e9b40",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.7
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1103.279889465175,
+    1103.279889465175
+  ],
+  "section_area_m2": 470.5286425565521,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "0426fcbb3bdc12be1ce9a08408cb4a53c7d2b4415c07cc1e8a3168c5615828ca"
+}

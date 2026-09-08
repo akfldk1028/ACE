@@ -1,0 +1,79 @@
+{
+  "facade_planes": [
+    {
+      "extent_m": [
+        33.157958,
+        14.8
+      ],
+      "normal": [
+        0,
+        -1,
+        0
+      ],
+      "origin": [
+        -16.578979,
+        -16.793762,
+        0.0
+      ],
+      "view": "front"
+    },
+    {
+      "extent_m": [
+        33.587524,
+        14.8
+      ],
+      "normal": [
+        1,
+        0,
+        0
+      ],
+      "origin": [
+        16.578979,
+        -16.793762,
+        0.0
+      ],
+      "view": "right"
+    },
+    {
+      "extent_m": [
+        33.157958,
+        14.8
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "origin": [
+        16.578979,
+        16.793762,
+        0.0
+      ],
+      "view": "back"
+    },
+    {
+      "extent_m": [
+        33.587524,
+        14.8
+      ],
+      "normal": [
+        -1,
+        0,
+        0
+      ],
+      "origin": [
+        -16.578979,
+        16.793762,
+        0.0
+      ],
+      "view": "left"
+    }
+  ],
+  "identity": {
+    "candidate_id": "creative-004",
+    "geometry_hash": "a2f1d06e00fc530e02e0f8bba4df3b267d89ddb71cc6e60dba5c8087f5367dce",
+    "pnu": "4115011300106840001",
+    "program_hash": "11c7957e43c6a8f2784dc56631b75b3ed16c16b711c47954bc4deef940e5db97",
+    "run_id": "book-develop-comp16"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "comp16_folded_section~full_ground^to_open",
+  "shape_id": "b7924ed536e647b471ec",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.7
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1491.0276633256854,
+    1491.0276633256854
+  ],
+  "section_area_m2": 616.3331005872363,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "cb761af25323032ed03c66b0928b23663d4c36d8d80011656c9956d93d948a0f"
+}

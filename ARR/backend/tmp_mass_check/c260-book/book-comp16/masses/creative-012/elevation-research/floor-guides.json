@@ -1,0 +1,18 @@
+{
+  "authority": "authored_prelegal_storey_contract",
+  "floor_guides_m": [
+    0.0,
+    3.6,
+    7.2,
+    10.8,
+    14.4,
+    18.0
+  ],
+  "identity": {
+    "candidate_id": "creative-012",
+    "geometry_hash": "d7107a044214224358002182398d63392958ad9322d94ba74259bb6c863044dc",
+    "pnu": "4115011300106840001",
+    "program_hash": "b96c6556debc82acc07be002add2245f2c2a8360ba0dc097a69ad4e60c33018d",
+    "run_id": "book-comp16"
+  }
+}

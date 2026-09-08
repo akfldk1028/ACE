@@ -1,0 +1,2489 @@
+{
+  "geometry_program": {
+    "metadata": {
+      "affine_authority": "explicit_matrix4",
+      "architectural_response": "Carve a substantial sheltered recess into the lower edge of one inclined arm. Remaining material along its rear edge preserves continuity and grounding. The cut studies a protected approach rather than claiming a resolved entrance, door or accessible route.",
+      "author_model": "current_session",
+      "author_prompt_contract": "comp16_frozen_exact_book_development",
+      "author_provider": "codex_session",
+      "base_volume_authority": "1/1 UnitBox",
+      "book_exact_development": {
+        "authored_program": {
+          "metadata": {
+            "architectural_response": "Carve a substantial sheltered recess into the lower edge of one inclined arm. Remaining material along its rear edge preserves continuity and grounding. The cut studies a protected approach rather than claiming a resolved entrance, door or accessible route.",
+            "author_model": "current_session",
+            "author_prompt_contract": "comp16_frozen_exact_book_development",
+            "author_provider": "codex_session",
+            "dimensional_intent": {
+              "delivery_policy": "preserve_physical_dimensions",
+              "programme_status": "unknown",
+              "schema_version": "arr.maas.dimensional_intent.v1",
+              "storey_count": 4,
+              "storey_height_m": 3.6999999999999997,
+              "target_gfa_m2": 1450.000001320733
+            },
+            "measured_repair_requests": [
+              {
+                "operation": "increase_parking_envelope_or_switch_strategy",
+                "reason": "10 required parking spaces are not placed.",
+                "target_agent": "maas_geometry_agent"
+              }
+            ],
+            "parent_shape_id": "e198a511523e807b176e",
+            "parking_response": "The carved lower approach protects a pedestrian threshold rather than treating that recess as parking. The current owner excludes the complete upper projection, so this cut is not claimed to solve the shortfall. Recheck the remaining envelope; alternative parking strategy and access design remain unresolved.",
+            "programme_status": "unknown",
+            "source_seed_name": "comp16_intersecting_inclined_wings",
+            "status": "authored_against_frozen_parent_pending_delivery",
+            "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission."
+          },
+          "name": "comp16_wing_recessed_approach",
+          "nodes": [
+            {
+              "id": "wing",
+              "inputs": [],
+              "kind": "primitive",
+              "operator": "box",
+              "parameters": {
+                "depth": 0.72,
+                "height": 1.5,
+                "width": 2.6
+              },
+              "provenance": {},
+              "semantic_role": "occupied_mass"
+            },
+            {
+              "id": "incline",
+              "inputs": [
+                "wing"
+              ],
+              "kind": "modifier",
+              "operator": "slice",
+              "parameters": {
+                "keep_side": "negative",
+                "normal": [
+                  -0.5,
+                  0,
+                  1
+                ],
+                "offset": 0.42
+              },
+              "provenance": {},
+              "semantic_role": "occupied_mass"
+            },
+            {
+              "id": "counter_wing",
+              "inputs": [
+                "incline"
+              ],
+              "kind": "transform",
+              "operator": "rotate",
+              "parameters": {
+                "angles": [
+                  0,
+                  0,
+                  62
+                ],
+                "pivot": [
+                  1.3,
+                  0.36,
+                  0
+                ]
+              },
+              "provenance": {},
+              "semantic_role": "occupied_mass"
+            },
+            {
+              "id": "joined_body",
+              "inputs": [
+                "incline",
+                "counter_wing"
+              ],
+              "kind": "boolean",
+              "operator": "union",
+              "parameters": {},
+              "provenance": {},
+              "semantic_role": "occupied_mass"
+            },
+            {
+              "id": "recess_cutter",
+              "inputs": [],
+              "kind": "primitive",
+              "operator": "box",
+              "parameters": {
+                "depth": 0.5,
+                "height": 0.48,
+                "width": 0.7
+              },
+              "provenance": {},
+              "semantic_role": "approach_recess_cutter"
+            },
+            {
+              "id": "recess_position",
+              "inputs": [
+                "recess_cutter"
+              ],
+              "kind": "transform",
+              "operator": "translate",
+              "parameters": {
+                "vector": [
+                  0.25,
+                  -0.12,
+                  -0.03
+                ]
+              },
+              "provenance": {},
+              "semantic_role": "approach_recess_position"
+            },
+            {
+              "id": "result",
+              "inputs": [
+                "joined_body",
+                "recess_position"
+              ],
+              "kind": "boolean",
+              "operator": "difference",
+              "parameters": {},
+              "provenance": {},
+              "semantic_role": "occupied_wings_with_recessed_threshold"
+            }
+          ],
+          "root_id": "result",
+          "schema_version": "arr.maas.geometry_program.v1"
+        },
+        "authored_program_hash": "03c2010a96363632dca9ce553d2ce1b20d7fe129f8a915d4a8fc79687299e76a",
+        "mode": "exact-authored-development",
+        "parent_contract": {
+          "height_m": 14.8,
+          "parent": "book:book-comp16:morph-oblique-mid:creative-005",
+          "parent_certificate_id": "2b39cb76940546957c22",
+          "parent_program_hash": "399ab3235f8d5b4dd2a0cd8caec676a8e8a427a913114fae1b21640af37834d2",
+          "parent_shape_id": "e198a511523e807b176e",
+          "site_feedback": {
+            "author_instruction": "Address the measured parking repair_requests in the authored development, preserving the parent spatial principle and verified dimensional contract. Explain which request each child addresses and any unresolved conflict. Use the attached conditional legal evidence and actual available-area geometry; do not infer a site maximum or reduce programme without authorization. After delivery, remeasure each child with the same site-planning owner and its new shape_id and certificate. Counts alone do not verify vehicle access, pedestrian access, swept paths, or permit compliance.",
+            "certificate_id": "2b39cb76940546957c22",
+            "law_requirement_evidence_sha256": "307d1693f47fecd1bb32f44f6a781c415712a1ef0c2f9f778a9f6db5e8192c8f",
+            "law_source_sha256": "e04127b1c70c3927c55154f47b127a3a9adfe6476ebf14d970a234ca47a492ae",
+            "legal_approval": false,
+            "measurement_owner": "design.maas.massv2.site_planning.assess_site_parking",
+            "parking_solved": false,
+            "repair_requests": [
+              {
+                "operation": "increase_parking_envelope_or_switch_strategy",
+                "reason": "10 required parking spaces are not placed.",
+                "target_agent": "maas_geometry_agent"
+              }
+            ],
+            "schema": "massagent.development_site_feedback.v1",
+            "site_parking": {
+              "available_area_m2": 1771.5502113516927,
+              "certificate_id": "2b39cb76940546957c22",
+              "component_count": 1,
+              "component_evaluations": [
+                {
+                  "area_m2": 1771.5502113516927,
+                  "component_index": 0,
+                  "geometry_checks": {
+                    "drive_building_overlap_m2": 0.0,
+                    "drive_geometry_present": true,
+                    "drive_outside_site_m2": 0.0,
+                    "drive_public_overlap_m2": 0.0,
+                    "export_coordinate_precision_m": 0.0001,
+                    "reported_count_matches_geometry": true,
+                    "rounding_area_uncertainty_m2": {
+                      "drive": 0.002729445944240183,
+                      "stall": 0.0025880245865721463
+                    },
+                    "satisfied": true,
+                    "stall_building_overlap_m2": 0.0,
+                    "stall_outside_site_m2": 9.231993150745838e-05,
+                    "stall_public_overlap_m2": 0.0
+                  },
+                  "layout": {
+                    "adjacency": {
+                      "cluster_contiguous_ok": true,
+                      "connected_components": 1,
+                      "contiguous_ok": true,
+                      "gap_pairs": 0,
+                      "max_gap_m": 0.0,
+                      "min_gap_m": 0.0,
+                      "row_contiguous_ok": true,
+                      "row_groups": 1,
+                      "row_touching_pairs": 4,
+                      "status": "row_contiguous",
+                      "touching_pairs": 4
+                    },
+                    "column_clearance": {
+                      "reason": "Column clearance is only evaluated for piloti parking in this precheck.",
+                      "status": "not_applicable"
+                    },
+                    "coordinate_precision_m": 0.0001,
+                    "drive_aisle_clearance": {
+                      "drive_cell_count": 5,
+                      "provided_width_m": 6.0,
+                      "required_width_m": 6.0,
+                      "source": "generated_drive_cells",
+                      "status": "pass"
+                    },
+                    "drive_cells": [
+                      [
+                        [
+                          59.6899,
+                          11.3089
+                        ],
+                        [
+                          62.5527,
+                          9.6674
+                        ],
+                        [
+                          59.5683,
+                          4.4623
+                        ],
+                        [
+                          56.7055,
+                          6.1038
+                        ],
+                        [
+                          59.6899,
+                          11.3089
+                        ]
+                      ],
+                      [
+                        [
+                          57.5211,
+                          12.5524
+                        ],
+                        [
+                          59.6899,
+                          11.3089
+                        ],
+                        [
+                          56.7055,
+                          6.1038
+                        ],
+                        [
+                          54.5367,
+                          7.3473
+                        ],
+                        [
+                          57.5211,
+                          12.5524
+                        ]
+                      ],
+                      [
+                        [
+                          55.3523,
+                          13.7959
+                        ],
+                        [
+                          57.5211,
+                          12.5524
+                        ],
+                        [
+                          54.5367,
+                          7.3473
+                        ],
+                        [
+                          52.3679,
+                          8.5908
+                        ],
+                        [
+                          55.3523,
+                          13.7959
+                        ]
+                      ],
+                      [
+                        [
+                          53.1835,
+                          15.0394
+                        ],
+                        [
+                          55.3523,
+                          13.7959
+                        ],
+                        [
+                          52.3679,
+                          8.5908
+                        ],
+                        [
+                          50.1991,
+                          9.8343
+                        ],
+                        [
+                          53.1835,
+                          15.0394
+                        ]
+                      ],
+                      [
+                        [
+                          51.0147,
+                          16.2829
+                        ],
+                        [
+                          53.1835,
+                          15.0394
+                        ],
+                        [
+                          50.1991,
+                          9.8343
+                        ],
+                        [
+                          48.0303,
+                          11.0778
+                        ],
+                        [
+                          51.0147,
+                          16.2829
+                        ]
+                      ]
+                    ],
+                    "entrance_connector_polygon": null,
+                    "grid_solver": {
+                      "candidate_stalls": 46,
+                      "cell_step_m": 0.5,
+                      "drive_cells": [
+                        [
+                          [
+                            59.6899,
+                            11.3089
+                          ],
+                          [
+                            62.5527,
+                            9.6674
+                          ],
+                          [
+                            59.5683,
+                            4.4623
+                          ],
+                          [
+                            56.7055,
+                            6.1038
+                          ],
+                          [
+                            59.6899,
+                            11.3089
+                          ]
+                        ],
+                        [
+                          [
+                            57.5211,
+                            12.5524
+                          ],
+                          [
+                            59.6899,
+                            11.3089
+                          ],
+                          [
+                            56.7055,
+                            6.1038
+                          ],
+                          [
+                            54.5367,
+                            7.3473
+                          ],
+                          [
+                            57.5211,
+                            12.5524
+                          ]
+                        ],
+                        [
+                          [
+                            55.3523,
+                            13.7959
+                          ],
+                          [
+                            57.5211,
+                            12.5524
+                          ],
+                          [
+                            54.5367,
+                            7.3473
+                          ],
+                          [
+                            52.3679,
+                            8.5908
+                          ],
+                          [
+                            55.3523,
+                            13.7959
+                          ]
+                        ],
+                        [
+                          [
+                            53.1835,
+                            15.0394
+                          ],
+                          [
+                            55.3523,
+                            13.7959
+                          ],
+                          [
+                            52.3679,
+                            8.5908
+                          ],
+                          [
+                            50.1991,
+                            9.8343
+                          ],
+                          [
+                            53.1835,
+                            15.0394
+                          ]
+                        ],
+                        [
+                          [
+                            51.0147,
+                            16.2829
+                          ],
+                          [
+                            53.1835,
+                            15.0394
+                          ],
+                          [
+                            50.1991,
+                            9.8343
+                          ],
+                          [
+                            48.0303,
+                            11.0778
+                          ],
+                          [
+                            51.0147,
+                            16.2829
+                          ]
+                        ]
+                      ],
+                      "drive_components_connected": true,
+                      "entrance_connected": true,
+                      "entrance_connection_method": "road_frontage_geometry",
+                      "entrance_connection_type": "direct",
+                      "entrance_connector_length_m": null,
+                      "entrance_connector_polygon": null,
+                      "entrance_connector_width_m": null,
+                      "entrance_edge_count": 1,
+                      "entrance_min_distance_m": 0.239,
+                      "entrance_verified": true,
+                      "schema_version": "arr.maas.parking_grid_solver.v0",
+                      "selected_stalls": 5,
+                      "variable_mapping": {
+                        "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary",
+                        "x": "selected stall candidates",
+                        "y": "drive aisle cells adjacent to selected stalls"
+                      }
+                    },
+                    "layout_formula": {
+                      "aisle": {
+                        "small_attached_parallel_width_m": 3.0,
+                        "two_way_90deg_width_m": 6.0
+                      },
+                      "mode": "grid_connected_90",
+                      "module": {
+                        "double_loaded_90_depth_m": 16.0,
+                        "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                        "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m",
+                        "single_loaded_90_depth_m": 11.0,
+                        "single_loaded_90_formula": "stall_length + aisle_width"
+                      },
+                      "required_spaces": 15,
+                      "schema_version": "arr.maas.parking_formula.v1",
+                      "small_attached_parking": {
+                        "entrance_width_m": 3.0,
+                        "max_spaces": 8,
+                        "tandem_allowed_max_spaces": 5
+                      },
+                      "stall": {
+                        "accessible_length_m": 5.0,
+                        "accessible_width_m": 3.3,
+                        "parallel_length_m": 6.0,
+                        "parallel_width_m": 2.0,
+                        "residential_undivided_road_parallel_length_m": 5.0,
+                        "standard_length_m": 5.0,
+                        "standard_width_m": 2.5
+                      }
+                    },
+                    "limitations": [
+                      "grid_solver_first_feasible_not_global_mip_optimum",
+                      "does_not_model_swept_path_columns_or_core_obstructions"
+                    ],
+                    "mass_stage_parking": {
+                      "accessible_ok": true,
+                      "aisle_module_ok": true,
+                      "authority_review_required": true,
+                      "count_ok": false,
+                      "entrance_ok": true,
+                      "final_layout_status": "fail",
+                      "frontage_or_relief_ok": true,
+                      "reason": "Required parking spaces are not fully placed.",
+                      "row_or_cluster_ok": true,
+                      "schema_version": "arr.maas.parking_mass_stage.v0",
+                      "status": "fail"
+                    },
+                    "placement_mode": "grid_connected_90",
+                    "provided_accessible_spaces": 1,
+                    "provided_spaces": 5,
+                    "reason": "grid_solver_insufficient_stall_candidates",
+                    "repair_requests": [
+                      {
+                        "operation": "increase_parking_envelope_or_switch_strategy",
+                        "reason": "10 required parking spaces are not placed.",
+                        "target_agent": "maas_geometry_agent"
+                      }
+                    ],
+                    "required_accessible_spaces": 1,
+                    "required_spaces": 15,
+                    "schema_version": "arr.maas.parking_layout_candidate.v0",
+                    "small_attached_parking_relief": {
+                      "applies_to": "attached_self_parking_total_spaces_8_or_less",
+                      "entrance_width": {
+                        "dead_end_road_approval_min_width_m": null,
+                        "min_width_m": 3.0
+                      },
+                      "limitations": [
+                        "does_not_replace_required_stall_count",
+                        "needs_actual_road_geometry_and_centerline",
+                        "needs_local_authority_no_traffic_obstruction_review"
+                      ],
+                      "required_spaces": 15,
+                      "road_as_aisle_options": [
+                        {
+                          "aisle_width_counting_road_m": 6.0,
+                          "available": false,
+                          "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                          "key": "undivided_road_under_12m",
+                          "parallel_aisle_width_counting_road_m": 4.0,
+                          "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                        },
+                        {
+                          "available": false,
+                          "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                          "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                          "needs_authority_review": true,
+                          "parking_angle": "perpendicular_only",
+                          "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                        }
+                      ],
+                      "road_context": {
+                        "has_sidewalk_separation": null,
+                        "is_dead_end_road": false,
+                        "road_width_m": null
+                      },
+                      "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+                      "status": "evaluated",
+                      "tandem_parking": {
+                        "available": false,
+                        "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                        "max_depth_from_aisle": 2
+                      }
+                    },
+                    "stalls": [
+                      {
+                        "length_m": 5.0,
+                        "mode": "grid_connected_90",
+                        "orientation": "u",
+                        "polygon": [
+                          [
+                            56.7055,
+                            6.1038
+                          ],
+                          [
+                            59.5683,
+                            4.4623
+                          ],
+                          [
+                            57.0812,
+                            0.1247
+                          ],
+                          [
+                            54.2184,
+                            1.7662
+                          ],
+                          [
+                            56.7055,
+                            6.1038
+                          ]
+                        ],
+                        "row": 2,
+                        "stall_id": "P01",
+                        "type": "accessible",
+                        "width_m": 3.3
+                      },
+                      {
+                        "length_m": 5.0,
+                        "mode": "grid_connected_90",
+                        "orientation": "u",
+                        "polygon": [
+                          [
+                            54.5367,
+                            7.3473
+                          ],
+                          [
+                            56.7055,
+                            6.1038
+                          ],
+                          [
+                            54.2184,
+                            1.7662
+                          ],
+                          [
+                            52.0496,
+                            3.0097
+                          ],
+                          [
+                            54.5367,
+                            7.3473
+                          ]
+                        ],
+                        "row": 2,
+                        "stall_id": "P02",
+                        "type": "standard",
+                        "width_m": 2.5
+                      },
+                      {
+                        "length_m": 5.0,
+                        "mode": "grid_connected_90",
+                        "orientation": "u",
+                        "polygon": [
+                          [
+                            52.3679,
+                            8.5908
+                          ],
+                          [
+                            54.5367,
+                            7.3473
+                          ],
+                          [
+                            52.0496,
+                            3.0097
+                          ],
+                          [
+                            49.8808,
+                            4.2532
+                          ],
+                          [
+                            52.3679,
+                            8.5908
+                          ]
+                        ],
+                        "row": 2,
+                        "stall_id": "P03",
+                        "type": "standard",
+                        "width_m": 2.5
+                      },
+                      {
+                        "length_m": 5.0,
+                        "mode": "grid_connected_90",
+                        "orientation": "u",
+                        "polygon": [
+                          [
+                            50.1991,
+                            9.8343
+                          ],
+                          [
+                            52.3679,
+                            8.5908
+                          ],
+                          [
+                            49.8808,
+                            4.2532
+                          ],
+                          [
+                            47.7121,
+                            5.4967
+                          ],
+                          [
+                            50.1991,
+                            9.8343
+                          ]
+                        ],
+                        "row": 2,
+                        "stall_id": "P04",
+                        "type": "standard",
+                        "width_m": 2.5
+                      },
+                      {
+                        "length_m": 5.0,
+                        "mode": "grid_connected_90",
+                        "orientation": "u",
+                        "polygon": [
+                          [
+                            48.0303,
+                            11.0778
+                          ],
+                          [
+                            50.1991,
+                            9.8343
+                          ],
+                          [
+                            47.7121,
+                            5.4967
+                          ],
+                          [
+                            45.5433,
+                            6.7402
+                          ],
+                          [
+                            48.0303,
+                            11.0778
+                          ]
+                        ],
+                        "row": 2,
+                        "stall_id": "P05",
+                        "type": "standard",
+                        "width_m": 2.5
+                      }
+                    ],
+                    "status": "fail",
+                    "strategy": "ground_surface",
+                    "turning_clearance": {
+                      "contiguous_row_frontage_relief": {
+                        "available": true,
+                        "basis": "contiguous grid row with one generated drive cell per stall",
+                        "cluster_contiguous_ok": true,
+                        "connected_components": 1,
+                        "drive_cell_count": 5,
+                        "row_groups": 1,
+                        "small_attached_cluster_relief": true,
+                        "touching_pairs": 4
+                      },
+                      "entrance_connected": true,
+                      "entrance_connection_type": "direct",
+                      "frontage_checked": true,
+                      "frontage_checks": [
+                        {
+                          "connected": true,
+                          "provided_frontage_m": 3.3,
+                          "required_frontage_m": 2.475,
+                          "stall_id": "P01"
+                        },
+                        {
+                          "connected": true,
+                          "provided_frontage_m": 2.5,
+                          "required_frontage_m": 2.0,
+                          "stall_id": "P02"
+                        },
+                        {
+                          "connected": true,
+                          "provided_frontage_m": 2.5,
+                          "required_frontage_m": 2.0,
+                          "stall_id": "P03"
+                        },
+                        {
+                          "connected": true,
+                          "provided_frontage_m": 2.5,
+                          "required_frontage_m": 2.0,
+                          "stall_id": "P04"
+                        },
+                        {
+                          "connected": true,
+                          "provided_frontage_m": 2.5,
+                          "required_frontage_m": 2.0,
+                          "stall_id": "P05"
+                        }
+                      ],
+                      "frontage_connected_stalls": 5,
+                      "frontage_total_stalls": 5,
+                      "method": "stall_frontage_and_entrance_connector_v1",
+                      "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+                      "required_aisle_width_m": 6.0,
+                      "small_attached_tandem_relief": {
+                        "available": false,
+                        "max_spaces": 5,
+                        "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+                      },
+                      "status": "v1_pass"
+                    },
+                    "unmet_accessible_spaces": 0,
+                    "unmet_spaces": 10
+                  }
+                }
+              ],
+              "component_policy": "each component evaluated; one conservative single parking area selected; counts not summed",
+              "count_target_met": false,
+              "evaluated_component_count": 1,
+              "facility_area_assumption_m2": 1450.000001320733,
+              "facility_area_basis": "certificate mass-area value used as a conditional programme scenario; statutory parking-area exclusions unverified",
+              "floor_area_basis": "delivered SourceSurface mesh at transformed authored floor centers",
+              "geometry": {
+                "available": {
+                  "coordinates": [
+                    [
+                      [
+                        11.59371943201404,
+                        39.50109809124842
+                      ],
+                      [
+                        29.64010443945881,
+                        50.43758501717821
+                      ],
+                      [
+                        46.434598230640404,
+                        61.34179168846458
+                      ],
+                      [
+                        76.16706880752463,
+                        44.32430054806173
+                      ],
+                      [
+                        78.23247281974182,
+                        36.59896623622626
+                      ],
+                      [
+                        57.298764832085,
+                        0.0
+                      ],
+                      [
+                        33.13071452913573,
+                        13.857184919528663
+                      ],
+                      [
+                        0.0,
+                        32.85654268087819
+                      ],
+                      [
+                        11.59371943201404,
+                        39.50109809124842
+                      ]
+                    ],
+                    [
+                      [
+                        49.187091979882,
+                        15.996604506388998
+                      ],
+                      [
+                        57.073208109455,
+                        20.39884552596
+                      ],
+                      [
+                        61.577702645774,
+                        28.255047995232
+                      ],
+                      [
+                        61.393061796175,
+                        37.284802222612
+                      ],
+                      [
+                        41.176226657475,
+                        48.876487091391
+                      ],
+                      [
+                        33.290110527902,
+                        44.47424607182
+                      ],
+                      [
+                        28.785615991583,
+                        36.618043602549
+                      ],
+                      [
+                        28.970256841182,
+                        27.588289375168
+                      ],
+                      [
+                        49.187091979882,
+                        15.996604506388998
+                      ]
+                    ]
+                  ],
+                  "type": "Polygon"
+                },
+                "building_projection": {
+                  "coordinates": [
+                    [
+                      [
+                        42.56116788527756,
+                        27.86619698065099
+                      ],
+                      [
+                        28.970256841182,
+                        27.588289375168
+                      ],
+                      [
+                        28.785615991583,
+                        36.618043602549
+                      ],
+                      [
+                        37.575321551197,
+                        36.797775924186
+                      ],
+                      [
+                        33.290110527902,
+                        44.47424607182
+                      ],
+                      [
+                        41.176226657475,
+                        48.876487091391
+                      ],
+                      [
+                        47.802150752079,
+                        37.00689461713
+                      ],
+                      [
+                        61.393061796175,
+                        37.284802222612
+                      ],
+                      [
+                        61.577702645774,
+                        28.255047995232
+                      ],
+                      [
+                        52.78799708616,
+                        28.075315673595
+                      ],
+                      [
+                        57.073208109455,
+                        20.39884552596
+                      ],
+                      [
+                        49.187091979882,
+                        15.996604506388998
+                      ],
+                      [
+                        45.890617169153,
+                        21.901865726765
+                      ],
+                      [
+                        42.56116788527756,
+                        27.86619698065099
+                      ]
+                    ],
+                    [
+                      [
+                        45.181659318679664,
+                        32.43654579888983
+                      ],
+                      [
+                        45.18165931867966,
+                        32.43654579888984
+                      ],
+                      [
+                        45.18165931867965,
+                        32.43654579888984
+                      ],
+                      [
+                        45.181659318679664,
+                        32.43654579888983
+                      ]
+                    ]
+                  ],
+                  "type": "Polygon"
+                },
+                "public_reserve": {
+                  "coordinates": [
+                    [
+                      [
+                        [
+                          42.56116788527756,
+                          27.86619698065099
+                        ],
+                        [
+                          45.890617169153,
+                          21.901865726765
+                        ],
+                        [
+                          49.187091979882,
+                          15.996604506388998
+                        ],
+                        [
+                          28.970256841182,
+                          27.588289375168
+                        ],
+                        [
+                          42.56116788527756,
+                          27.86619698065099
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        [
+                          37.575321551197,
+                          36.797775924186
+                        ],
+                        [
+                          28.785615991583,
+                          36.618043602549
+                        ],
+                        [
+                          33.290110527902,
+                          44.47424607182
+                        ],
+                        [
+                          37.575321551197,
+                          36.797775924186
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        [
+                          47.802150752079,
+                          37.00689461713
+                        ],
+                        [
+                          41.176226657475,
+                          48.876487091391
+                        ],
+                        [
+                          61.393061796175,
+                          37.284802222612
+                        ],
+                        [
+                          47.802150752079,
+                          37.00689461713
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        [
+                          52.78799708616,
+                          28.075315673595
+                        ],
+                        [
+                          61.577702645774,
+                          28.255047995232
+                        ],
+                        [
+                          57.073208109455,
+                          20.39884552596
+                        ],
+                        [
+                          52.78799708616,
+                          28.075315673595
+                        ]
+                      ]
+                    ],
+                    [
+                      [
+                        [
+                          45.18165931867966,
+                          32.43654579888984
+                        ],
+                        [
+                          45.181659318679664,
+                          32.43654579888983
+                        ],
+                        [
+                          45.18165931867965,
+                          32.43654579888984
+                        ],
+                        [
+                          45.18165931867966,
+                          32.43654579888984
+                        ]
+                      ]
+                    ]
+                  ],
+                  "type": "MultiPolygon"
+                },
+                "site": {
+                  "coordinates": [
+                    [
+                      [
+                        0.0,
+                        32.85654268087819
+                      ],
+                      [
+                        11.59371943201404,
+                        39.50109809124842
+                      ],
+                      [
+                        29.64010443945881,
+                        50.43758501717821
+                      ],
+                      [
+                        46.434598230640404,
+                        61.34179168846458
+                      ],
+                      [
+                        76.16706880752463,
+                        44.32430054806173
+                      ],
+                      [
+                        78.23247281974182,
+                        36.59896623622626
+                      ],
+                      [
+                        57.298764832085,
+                        0.0
+                      ],
+                      [
+                        33.13071452913573,
+                        13.857184919528663
+                      ],
+                      [
+                        0.0,
+                        32.85654268087819
+                      ]
+                    ]
+                  ],
+                  "type": "Polygon"
+                }
+              },
+              "geometry_checks": {
+                "drive_building_overlap_m2": 0.0,
+                "drive_geometry_present": true,
+                "drive_outside_site_m2": 0.0,
+                "drive_public_overlap_m2": 0.0,
+                "export_coordinate_precision_m": 0.0001,
+                "reported_count_matches_geometry": true,
+                "rounding_area_uncertainty_m2": {
+                  "drive": 0.002729445944240183,
+                  "stall": 0.0025880245865721463
+                },
+                "satisfied": true,
+                "stall_building_overlap_m2": 0.0,
+                "stall_outside_site_m2": 9.231993150745838e-05,
+                "stall_public_overlap_m2": 0.0
+              },
+              "law_requirement_evidence_sha256": "307d1693f47fecd1bb32f44f6a781c415712a1ef0c2f9f778a9f6db5e8192c8f",
+              "law_source_sha256": "e04127b1c70c3927c55154f47b127a3a9adfe6476ebf14d970a234ca47a492ae",
+              "layout": {
+                "adjacency": {
+                  "cluster_contiguous_ok": true,
+                  "connected_components": 1,
+                  "contiguous_ok": true,
+                  "gap_pairs": 0,
+                  "max_gap_m": 0.0,
+                  "min_gap_m": 0.0,
+                  "row_contiguous_ok": true,
+                  "row_groups": 1,
+                  "row_touching_pairs": 4,
+                  "status": "row_contiguous",
+                  "touching_pairs": 4
+                },
+                "column_clearance": {
+                  "reason": "Column clearance is only evaluated for piloti parking in this precheck.",
+                  "status": "not_applicable"
+                },
+                "coordinate_precision_m": 0.0001,
+                "drive_aisle_clearance": {
+                  "drive_cell_count": 5,
+                  "provided_width_m": 6.0,
+                  "required_width_m": 6.0,
+                  "source": "generated_drive_cells",
+                  "status": "pass"
+                },
+                "drive_cells": [
+                  [
+                    [
+                      59.6899,
+                      11.3089
+                    ],
+                    [
+                      62.5527,
+                      9.6674
+                    ],
+                    [
+                      59.5683,
+                      4.4623
+                    ],
+                    [
+                      56.7055,
+                      6.1038
+                    ],
+                    [
+                      59.6899,
+                      11.3089
+                    ]
+                  ],
+                  [
+                    [
+                      57.5211,
+                      12.5524
+                    ],
+                    [
+                      59.6899,
+                      11.3089
+                    ],
+                    [
+                      56.7055,
+                      6.1038
+                    ],
+                    [
+                      54.5367,
+                      7.3473
+                    ],
+                    [
+                      57.5211,
+                      12.5524
+                    ]
+                  ],
+                  [
+                    [
+                      55.3523,
+                      13.7959
+                    ],
+                    [
+                      57.5211,
+                      12.5524
+                    ],
+                    [
+                      54.5367,
+                      7.3473
+                    ],
+                    [
+                      52.3679,
+                      8.5908
+                    ],
+                    [
+                      55.3523,
+                      13.7959
+                    ]
+                  ],
+                  [
+                    [
+                      53.1835,
+                      15.0394
+                    ],
+                    [
+                      55.3523,
+                      13.7959
+                    ],
+                    [
+                      52.3679,
+                      8.5908
+                    ],
+                    [
+                      50.1991,
+                      9.8343
+                    ],
+                    [
+                      53.1835,
+                      15.0394
+                    ]
+                  ],
+                  [
+                    [
+                      51.0147,
+                      16.2829
+                    ],
+                    [
+                      53.1835,
+                      15.0394
+                    ],
+                    [
+                      50.1991,
+                      9.8343
+                    ],
+                    [
+                      48.0303,
+                      11.0778
+                    ],
+                    [
+                      51.0147,
+                      16.2829
+                    ]
+                  ]
+                ],
+                "entrance_connector_polygon": null,
+                "grid_solver": {
+                  "candidate_stalls": 46,
+                  "cell_step_m": 0.5,
+                  "drive_cells": [
+                    [
+                      [
+                        59.6899,
+                        11.3089
+                      ],
+                      [
+                        62.5527,
+                        9.6674
+                      ],
+                      [
+                        59.5683,
+                        4.4623
+                      ],
+                      [
+                        56.7055,
+                        6.1038
+                      ],
+                      [
+                        59.6899,
+                        11.3089
+                      ]
+                    ],
+                    [
+                      [
+                        57.5211,
+                        12.5524
+                      ],
+                      [
+                        59.6899,
+                        11.3089
+                      ],
+                      [
+                        56.7055,
+                        6.1038
+                      ],
+                      [
+                        54.5367,
+                        7.3473
+                      ],
+                      [
+                        57.5211,
+                        12.5524
+                      ]
+                    ],
+                    [
+                      [
+                        55.3523,
+                        13.7959
+                      ],
+                      [
+                        57.5211,
+                        12.5524
+                      ],
+                      [
+                        54.5367,
+                        7.3473
+                      ],
+                      [
+                        52.3679,
+                        8.5908
+                      ],
+                      [
+                        55.3523,
+                        13.7959
+                      ]
+                    ],
+                    [
+                      [
+                        53.1835,
+                        15.0394
+                      ],
+                      [
+                        55.3523,
+                        13.7959
+                      ],
+                      [
+                        52.3679,
+                        8.5908
+                      ],
+                      [
+                        50.1991,
+                        9.8343
+                      ],
+                      [
+                        53.1835,
+                        15.0394
+                      ]
+                    ],
+                    [
+                      [
+                        51.0147,
+                        16.2829
+                      ],
+                      [
+                        53.1835,
+                        15.0394
+                      ],
+                      [
+                        50.1991,
+                        9.8343
+                      ],
+                      [
+                        48.0303,
+                        11.0778
+                      ],
+                      [
+                        51.0147,
+                        16.2829
+                      ]
+                    ]
+                  ],
+                  "drive_components_connected": true,
+                  "entrance_connected": true,
+                  "entrance_connection_method": "road_frontage_geometry",
+                  "entrance_connection_type": "direct",
+                  "entrance_connector_length_m": null,
+                  "entrance_connector_polygon": null,
+                  "entrance_connector_width_m": null,
+                  "entrance_edge_count": 1,
+                  "entrance_min_distance_m": 0.239,
+                  "entrance_verified": true,
+                  "schema_version": "arr.maas.parking_grid_solver.v0",
+                  "selected_stalls": 5,
+                  "variable_mapping": {
+                    "connectivity": "drive cells must touch into one component and connect to road/frontage or site access boundary",
+                    "x": "selected stall candidates",
+                    "y": "drive aisle cells adjacent to selected stalls"
+                  }
+                },
+                "layout_formula": {
+                  "aisle": {
+                    "small_attached_parallel_width_m": 3.0,
+                    "two_way_90deg_width_m": 6.0
+                  },
+                  "mode": "grid_connected_90",
+                  "module": {
+                    "double_loaded_90_depth_m": 16.0,
+                    "double_loaded_90_formula": "stall_length + aisle_width + stall_length",
+                    "parallel_stall_formula": "parallel_length 6.0m x parallel_width 2.0m",
+                    "single_loaded_90_depth_m": 11.0,
+                    "single_loaded_90_formula": "stall_length + aisle_width"
+                  },
+                  "required_spaces": 15,
+                  "schema_version": "arr.maas.parking_formula.v1",
+                  "small_attached_parking": {
+                    "entrance_width_m": 3.0,
+                    "max_spaces": 8,
+                    "tandem_allowed_max_spaces": 5
+                  },
+                  "stall": {
+                    "accessible_length_m": 5.0,
+                    "accessible_width_m": 3.3,
+                    "parallel_length_m": 6.0,
+                    "parallel_width_m": 2.0,
+                    "residential_undivided_road_parallel_length_m": 5.0,
+                    "standard_length_m": 5.0,
+                    "standard_width_m": 2.5
+                  }
+                },
+                "limitations": [
+                  "grid_solver_first_feasible_not_global_mip_optimum",
+                  "does_not_model_swept_path_columns_or_core_obstructions"
+                ],
+                "mass_stage_parking": {
+                  "accessible_ok": true,
+                  "aisle_module_ok": true,
+                  "authority_review_required": true,
+                  "count_ok": false,
+                  "entrance_ok": true,
+                  "final_layout_status": "fail",
+                  "frontage_or_relief_ok": true,
+                  "reason": "Required parking spaces are not fully placed.",
+                  "row_or_cluster_ok": true,
+                  "schema_version": "arr.maas.parking_mass_stage.v0",
+                  "status": "fail"
+                },
+                "placement_mode": "grid_connected_90",
+                "provided_accessible_spaces": 1,
+                "provided_spaces": 5,
+                "reason": "grid_solver_insufficient_stall_candidates",
+                "repair_requests": [
+                  {
+                    "operation": "increase_parking_envelope_or_switch_strategy",
+                    "reason": "10 required parking spaces are not placed.",
+                    "target_agent": "maas_geometry_agent"
+                  }
+                ],
+                "required_accessible_spaces": 1,
+                "required_spaces": 15,
+                "schema_version": "arr.maas.parking_layout_candidate.v0",
+                "small_attached_parking_relief": {
+                  "applies_to": "attached_self_parking_total_spaces_8_or_less",
+                  "entrance_width": {
+                    "dead_end_road_approval_min_width_m": null,
+                    "min_width_m": 3.0
+                  },
+                  "limitations": [
+                    "does_not_replace_required_stall_count",
+                    "needs_actual_road_geometry_and_centerline",
+                    "needs_local_authority_no_traffic_obstruction_review"
+                  ],
+                  "required_spaces": 15,
+                  "road_as_aisle_options": [
+                    {
+                      "aisle_width_counting_road_m": 6.0,
+                      "available": false,
+                      "condition": "No sidewalk/roadway separation, road width under 12m, total attached self-parking spaces 8 or less.",
+                      "key": "undivided_road_under_12m",
+                      "parallel_aisle_width_counting_road_m": 4.0,
+                      "road_inclusion_scope": "to_centerline_or_opposite_boundary_if_no_centerline"
+                    },
+                    {
+                      "available": false,
+                      "condition": "Sidewalk/roadway separated road 12m or wider, total spaces 5 or less, no obstruction to parking use.",
+                      "key": "sidewalk_separated_road_12m_or_more_perpendicular",
+                      "needs_authority_review": true,
+                      "parking_angle": "perpendicular_only",
+                      "sidewalk_separation_evidence": "unknown_needs_site_or_road_evidence"
+                    }
+                  ],
+                  "road_context": {
+                    "has_sidewalk_separation": null,
+                    "is_dead_end_road": false,
+                    "road_width_m": null
+                  },
+                  "source": "Parking Lot Act Enforcement Rule Article 11(5)",
+                  "status": "evaluated",
+                  "tandem_parking": {
+                    "available": false,
+                    "condition": "For 5 or fewer stalls, up to two stalls may be placed in tandem from the aisle.",
+                    "max_depth_from_aisle": 2
+                  }
+                },
+                "stalls": [
+                  {
+                    "length_m": 5.0,
+                    "mode": "grid_connected_90",
+                    "orientation": "u",
+                    "polygon": [
+                      [
+                        56.7055,
+                        6.1038
+                      ],
+                      [
+                        59.5683,
+                        4.4623
+                      ],
+                      [
+                        57.0812,
+                        0.1247
+                      ],
+                      [
+                        54.2184,
+                        1.7662
+                      ],
+                      [
+                        56.7055,
+                        6.1038
+                      ]
+                    ],
+                    "row": 2,
+                    "stall_id": "P01",
+                    "type": "accessible",
+                    "width_m": 3.3
+                  },
+                  {
+                    "length_m": 5.0,
+                    "mode": "grid_connected_90",
+                    "orientation": "u",
+                    "polygon": [
+                      [
+                        54.5367,
+                        7.3473
+                      ],
+                      [
+                        56.7055,
+                        6.1038
+                      ],
+                      [
+                        54.2184,
+                        1.7662
+                      ],
+                      [
+                        52.0496,
+                        3.0097
+                      ],
+                      [
+                        54.5367,
+                        7.3473
+                      ]
+                    ],
+                    "row": 2,
+                    "stall_id": "P02",
+                    "type": "standard",
+                    "width_m": 2.5
+                  },
+                  {
+                    "length_m": 5.0,
+                    "mode": "grid_connected_90",
+                    "orientation": "u",
+                    "polygon": [
+                      [
+                        52.3679,
+                        8.5908
+                      ],
+                      [
+                        54.5367,
+                        7.3473
+                      ],
+                      [
+                        52.0496,
+                        3.0097
+                      ],
+                      [
+                        49.8808,
+                        4.2532
+                      ],
+                      [
+                        52.3679,
+                        8.5908
+                      ]
+                    ],
+                    "row": 2,
+                    "stall_id": "P03",
+                    "type": "standard",
+                    "width_m": 2.5
+                  },
+                  {
+                    "length_m": 5.0,
+                    "mode": "grid_connected_90",
+                    "orientation": "u",
+                    "polygon": [
+                      [
+                        50.1991,
+                        9.8343
+                      ],
+                      [
+                        52.3679,
+                        8.5908
+                      ],
+                      [
+                        49.8808,
+                        4.2532
+                      ],
+                      [
+                        47.7121,
+                        5.4967
+                      ],
+                      [
+                        50.1991,
+                        9.8343
+                      ]
+                    ],
+                    "row": 2,
+                    "stall_id": "P04",
+                    "type": "standard",
+                    "width_m": 2.5
+                  },
+                  {
+                    "length_m": 5.0,
+                    "mode": "grid_connected_90",
+                    "orientation": "u",
+                    "polygon": [
+                      [
+                        48.0303,
+                        11.0778
+                      ],
+                      [
+                        50.1991,
+                        9.8343
+                      ],
+                      [
+                        47.7121,
+                        5.4967
+                      ],
+                      [
+                        45.5433,
+                        6.7402
+                      ],
+                      [
+                        48.0303,
+                        11.0778
+                      ]
+                    ],
+                    "row": 2,
+                    "stall_id": "P05",
+                    "type": "standard",
+                    "width_m": 2.5
+                  }
+                ],
+                "status": "fail",
+                "strategy": "ground_surface",
+                "turning_clearance": {
+                  "contiguous_row_frontage_relief": {
+                    "available": true,
+                    "basis": "contiguous grid row with one generated drive cell per stall",
+                    "cluster_contiguous_ok": true,
+                    "connected_components": 1,
+                    "drive_cell_count": 5,
+                    "row_groups": 1,
+                    "small_attached_cluster_relief": true,
+                    "touching_pairs": 4
+                  },
+                  "entrance_connected": true,
+                  "entrance_connection_type": "direct",
+                  "frontage_checked": true,
+                  "frontage_checks": [
+                    {
+                      "connected": true,
+                      "provided_frontage_m": 3.3,
+                      "required_frontage_m": 2.475,
+                      "stall_id": "P01"
+                    },
+                    {
+                      "connected": true,
+                      "provided_frontage_m": 2.5,
+                      "required_frontage_m": 2.0,
+                      "stall_id": "P02"
+                    },
+                    {
+                      "connected": true,
+                      "provided_frontage_m": 2.5,
+                      "required_frontage_m": 2.0,
+                      "stall_id": "P03"
+                    },
+                    {
+                      "connected": true,
+                      "provided_frontage_m": 2.5,
+                      "required_frontage_m": 2.0,
+                      "stall_id": "P04"
+                    },
+                    {
+                      "connected": true,
+                      "provided_frontage_m": 2.5,
+                      "required_frontage_m": 2.0,
+                      "stall_id": "P05"
+                    }
+                  ],
+                  "frontage_connected_stalls": 5,
+                  "frontage_total_stalls": 5,
+                  "method": "stall_frontage_and_entrance_connector_v1",
+                  "note": "This is a mass-stage v1 frontage/aisle/entrance check, not a vehicle swept-path simulation.",
+                  "required_aisle_width_m": 6.0,
+                  "small_attached_tandem_relief": {
+                    "available": false,
+                    "max_spaces": 5,
+                    "reason": "Tandem relief is only applied to explicit road-as-aisle tandem layouts."
+                  },
+                  "status": "v1_pass"
+                },
+                "unmet_accessible_spaces": 0,
+                "unmet_spaces": 10
+              },
+              "legal_approval": false,
+              "limitations": [
+                "전체 건물 투영의 볼록껍질 안 빈 공간을 마당·집 사이 길로 예약하는 임시 보수적 공간 가설이다.",
+                "전체 상부 투영도 제외하므로 필로티 아래 주차 가능성을 포함하지 않는다.",
+                "인증서의 매스 면적을 조건부 시설면적으로 사용했다. 실제 실별 면적 및 법정 주차 산정 제외 항목은 미확정이다.",
+                "기준이 확정된 경우 모든 분리 영역을 개별 검토한 후 한 곳을 선택한다. 부족은 이 배치의 용량 부족이며 대지 최대해나 위법 판정이 아니다.",
+                "확정 출입구·보행 연결·차량 회전 궤적·도로 폭·실별 용도는 미검증이다. 수량 충족만으로 허가 적합을 뜻하지 않는다."
+              ],
+              "pedestrian_access_status": "unverified",
+              "programme_assumption": "공공업무시설 및 장애인전용주차구역 적용 대상이라는 조건부 설계 가정",
+              "programme_classification_verified": false,
+              "projection_area_m2": 496.7362987004368,
+              "projection_basis": "complete_export_surface_xy_projection",
+              "provided_accessible_spaces": 1,
+              "provided_spaces": 5,
+              "public_reserve_area_m2": 231.40407340739182,
+              "public_reserve_basis": "temporary_convex_hull_void_reservation",
+              "public_reserve_building_overlap_m2": 0.0,
+              "public_reserve_outside_site_m2": 0.0,
+              "registered_approach": {
+                "basis": "decision15 page6: roads adjoin these registered NE, corner and SE edges",
+                "coordinate_frame": "parcel UTM translated by its minimum x,y; metres",
+                "edge_indices_0_based": [
+                  3,
+                  4,
+                  5
+                ],
+                "evidence_grade": "official_plan_registered",
+                "geometry": {
+                  "coordinates": [
+                    [
+                      78.23247281974182,
+                      36.59896623622626
+                    ],
+                    [
+                      57.298764832085,
+                      0.0
+                    ]
+                  ],
+                  "type": "LineString"
+                },
+                "prohibited_geometry": {
+                  "coordinates": [
+                    [
+                      [
+                        46.434598230640404,
+                        61.34179168846458
+                      ],
+                      [
+                        76.16706880752463,
+                        44.32430054806173
+                      ]
+                    ],
+                    [
+                      [
+                        76.16706880752463,
+                        44.32430054806173
+                      ],
+                      [
+                        78.23247281974182,
+                        36.59896623622626
+                      ]
+                    ],
+                    [
+                      [
+                        78.23247281974182,
+                        36.59896623622626
+                      ],
+                      [
+                        73.62868408060275,
+                        28.550038223959213
+                      ]
+                    ]
+                  ],
+                  "type": "MultiLineString"
+                },
+                "purpose": "pedestrian_address_orientation; vehicle_prohibition_is_separate",
+                "reference_ring_is_ccw": false,
+                "registration_id": "gosan-public1-decision15-frontages-20260906",
+                "segments_local_m": [
+                  [
+                    [
+                      46.434598230640404,
+                      61.34179168846458
+                    ],
+                    [
+                      76.16706880752463,
+                      44.32430054806173
+                    ]
+                  ],
+                  [
+                    [
+                      76.16706880752463,
+                      44.32430054806173
+                    ],
+                    [
+                      78.23247281974182,
+                      36.59896623622626
+                    ]
+                  ],
+                  [
+                    [
+                      78.23247281974182,
+                      36.59896623622626
+                    ],
+                    [
+                      57.298764832085,
+                      0.0
+                    ]
+                  ]
+                ],
+                "source_pdf_page_1_based": 6,
+                "source_pdf_sha256": "0225c991a7c2c8ca7dc497c8576eaa1d29668f57b5d78ebd43727e22349bb3cd",
+                "source_pdf_url": "https://apply.lh.or.kr/lhapply/lhFile.do?fileid=67554543",
+                "status": "registered_road_minus_vehicle_prohibition",
+                "survey_verified": false,
+                "vehicle_access_permission": null,
+                "vehicle_access_status": "not_assessed_by_pedestrian_orientation",
+                "vehicle_access_verified": false
+              },
+              "requirement": {
+                "accessible": {
+                  "accessible_max": 1,
+                  "accessible_min": 1,
+                  "applicability": "Facilities requiring accessible parking under the accessibility decree article 4 or transport accessibility decree article 12; caller must establish applicability.",
+                  "ratio": 0.03,
+                  "source_appendix": "의정부시 주차장 설치 및 관리 조례 별표3 비고2",
+                  "status": "computed"
+                },
+                "assessment_scope": "count_for_declared_use_and_facility_area; not_final_building_approval",
+                "base_rule_id": "parking_appendix1_row_02",
+                "building_type": "공공업무시설",
+                "building_use_code": "appendix1_14_a",
+                "formula_detail": null,
+                "graph_status": "not_requested",
+                "jurisdiction_code": "41150",
+                "metric": "facility_area_m2",
+                "metric_value": 1450.0,
+                "pnu": "4115011300106840001",
+                "raw_spaces": 14.50000001320733,
+                "reason": null,
+                "required_spaces": 15,
+                "rounding_rule": "appendix_note_6_half_up_total_under_one_zero",
+                "rule_repository_source": "local_structured_seed",
+                "selected_rule_id": "uijeongbu_parking_appendix3_row_02",
+                "source": {
+                  "effective_date": "2026-01-09",
+                  "rule_kind": "local_override",
+                  "source_appendix": "의정부시 주차장 설치 및 관리 조례 별표3 제2호",
+                  "source_ordinance": "의정부시 주차장 설치 및 관리 조례 별표3 부설주차장 설치대상 시설물 종류 및 설치기준",
+                  "source_parse_status": "official_hwp_and_official_preview_visual_review",
+                  "source_sha256": "e04127b1c70c3927c55154f47b127a3a9adfe6476ebf14d970a234ca47a492ae",
+                  "source_url": "https://www.law.go.kr/LSW/ordinInfoP.do?ordinSeq=2107023"
+                },
+                "status": "computed",
+                "unit_schedule": null,
+                "use_basis": "caller_classification"
+              },
+              "road_context": {
+                "road_frontages": [
+                  {
+                    "geometry": {
+                      "coordinates": [
+                        [
+                          78.23247281974182,
+                          36.59896623622626
+                        ],
+                        [
+                          57.298764832085,
+                          0.0
+                        ]
+                      ],
+                      "type": "LineString"
+                    }
+                  }
+                ]
+              },
+              "schema": "arr.maas.site_parking_study.v1",
+              "selected_component_index": 0,
+              "site_geometry_sha256": "ad51f6bac8fd676d3874a1fd1e5a78ab65d3d23989f400c4c4a0a5bb82f84103",
+              "site_maximum_proven": false,
+              "site_pnu": "4115011300106840001",
+              "source_name": "book:book-comp16:morph-oblique-mid:creative-005",
+              "source_projection_sha256": "2455868fe56f1265b455a63544263a858b2627696cf304744f1e4c715909067f",
+              "source_shape_id": "e198a511523e807b176e",
+              "status": "current_layout_capacity_shortfall",
+              "swept_path_status": "unverified",
+              "vehicle_access_status": "unverified"
+            },
+            "site_pnu": "4115011300106840001",
+            "source_shape_id": "e198a511523e807b176e"
+          },
+          "site_pnu": "4115011300106840001",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733
+        },
+        "parent_contract_hash": "d030d06ca7093c062ad0377c2b1299ffa23a4fee5bf0b7c8f1027a95dffe645e"
+      },
+      "box_instance_contract": "shared_unitbox_matrix4",
+      "creative_capacity_band": "inherited_parent",
+      "creative_floor_cutter_node_ids": [
+        "creative_floor_01_cutter_matrix4",
+        "creative_floor_02_cutter_matrix4",
+        "creative_floor_03_cutter_matrix4",
+        "creative_floor_04_cutter_matrix4"
+      ],
+      "creative_floor_plate_node_ids": [
+        "creative_floor_01_occupied_plate",
+        "creative_floor_02_occupied_plate",
+        "creative_floor_03_occupied_plate",
+        "creative_floor_04_occupied_plate"
+      ],
+      "creative_storey_count": 4,
+      "creative_target_gfa_m2": 1450.000001,
+      "dimensional_intent_transition": {
+        "effective_authority": "verified_parent_delivery",
+        "historical_proposal": {
+          "delivery_policy": "preserve_physical_dimensions",
+          "programme_status": "unknown",
+          "schema_version": "arr.maas.dimensional_intent.v1",
+          "storey_count": 4,
+          "storey_height_m": 3.6999999999999997,
+          "target_gfa_m2": 1450.000001320733
+        },
+        "parent_contract_hash": "d030d06ca7093c062ad0377c2b1299ffa23a4fee5bf0b7c8f1027a95dffe645e"
+      },
+      "measured_repair_requests": [
+        {
+          "operation": "increase_parking_envelope_or_switch_strategy",
+          "reason": "10 required parking spaces are not placed.",
+          "target_agent": "maas_geometry_agent"
+        }
+      ],
+      "parent_shape_id": "e198a511523e807b176e",
+      "parking_response": "The carved lower approach protects a pedestrian threshold rather than treating that recess as parking. The current owner excludes the complete upper projection, so this cut is not claimed to solve the shortfall. Recheck the remaining envelope; alternative parking strategy and access design remain unresolved.",
+      "programme_status": "unknown",
+      "source_seed_name": "comp16_intersecting_inclined_wings",
+      "status": "authored_against_frozen_parent_pending_delivery",
+      "unresolved_conflicts": "Required programme, doors, stairs, circulation, engineered structure, vehicle access and swept paths remain unresolved. The parent ground-parking layout is deficient; child counts require fresh owner measurement and do not establish permission."
+    },
+    "name": "comp16_wing_recessed_approach__creative_physical",
+    "nodes": [
+      {
+        "id": "wing",
+        "inputs": [],
+        "kind": "primitive",
+        "operator": "box",
+        "parameters": {
+          "depth": 1.0,
+          "height": 1.0,
+          "width": 1.0
+        },
+        "provenance": {
+          "canonical_base_model": "1/1 UnitBox",
+          "unitbox_authority": true
+        },
+        "semantic_role": "base_authority"
+      },
+      {
+        "id": "wing_matrix4",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              2.6,
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.72,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authored_box_parameters": {
+            "depth": 0.72,
+            "height": 1.5,
+            "width": 2.6
+          },
+          "authored_operator": "box",
+          "canonical_base_model": "1/1 UnitBox"
+        },
+        "semantic_role": "occupied_mass"
+      },
+      {
+        "id": "incline",
+        "inputs": [
+          "wing_matrix4"
+        ],
+        "kind": "modifier",
+        "operator": "slice",
+        "parameters": {
+          "keep_side": "negative",
+          "normal": [
+            -0.5,
+            0,
+            1
+          ],
+          "offset": 0.42
+        },
+        "provenance": {},
+        "semantic_role": "occupied_mass"
+      },
+      {
+        "id": "counter_wing",
+        "inputs": [
+          "incline"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              0.46947156278589086,
+              -0.8829475928589269,
+              0.0,
+              1.0075481018075556
+            ],
+            [
+              0.8829475928589269,
+              0.46947156278589086,
+              0.0,
+              -0.9568416333195259
+            ],
+            [
+              0.0,
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "lowered_affine_operator": "rotate"
+        },
+        "semantic_role": "occupied_mass"
+      },
+      {
+        "id": "joined_body",
+        "inputs": [
+          "incline",
+          "counter_wing"
+        ],
+        "kind": "boolean",
+        "operator": "union",
+        "parameters": {},
+        "provenance": {},
+        "semantic_role": "occupied_mass"
+      },
+      {
+        "id": "recess_position",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              0.7,
+              0.0,
+              0.0,
+              0.25
+            ],
+            [
+              0.0,
+              0.5,
+              0.0,
+              -0.12
+            ],
+            [
+              0.0,
+              0.0,
+              0.48,
+              -0.03
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authored_box_parameters": {
+            "depth": 0.5,
+            "height": 0.48,
+            "width": 0.7
+          },
+          "authored_operator": "box",
+          "canonical_base_model": "1/1 UnitBox",
+          "composed_matrix4_node_ids": [
+            "recess_cutter",
+            "recess_position"
+          ],
+          "lowered_affine_operator": "translate"
+        },
+        "semantic_role": "approach_recess_position"
+      },
+      {
+        "id": "result",
+        "inputs": [
+          "joined_body",
+          "recess_position"
+        ],
+        "kind": "boolean",
+        "operator": "difference",
+        "parameters": {},
+        "provenance": {},
+        "semantic_role": "occupied_wings_with_recessed_threshold"
+      },
+      {
+        "id": "creative_physical_storey_capacity_matrix4",
+        "inputs": [
+          "result"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              12.753061073540643,
+              0.0,
+              0.0,
+              -16.578979395602836
+            ],
+            [
+              0.0,
+              12.753061073540643,
+              0.0,
+              -4.591101986474631
+            ],
+            [
+              0.0,
+              0.0,
+              9.866666666666665,
+              -0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "capacity_band": "inherited_parent",
+          "creative_family": "exact-authored-development",
+          "storey_count": 4,
+          "target_gfa_m2": 1450.000001
+        },
+        "semantic_role": "physical_storey_capacity_fit"
+      },
+      {
+        "id": "creative_floor_01_cutter_matrix4",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              34.50145896,
+              0.0,
+              0.0,
+              -17.25072948
+            ],
+            [
+              0.0,
+              34.93102496,
+              0.0,
+              -17.46551248
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              1.79
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 1
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_01_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 1.85,
+          "legal_certified": false,
+          "storey_number": 1
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_floor_02_cutter_matrix4",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              34.50145896,
+              0.0,
+              0.0,
+              -17.25072948
+            ],
+            [
+              0.0,
+              34.93102496,
+              0.0,
+              -17.46551248
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              5.490000000000001
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 2
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_02_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_02_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 5.55,
+          "legal_certified": false,
+          "storey_number": 2
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_floor_03_cutter_matrix4",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              34.50145896,
+              0.0,
+              0.0,
+              -17.25072948
+            ],
+            [
+              0.0,
+              34.93102496,
+              0.0,
+              -17.46551248
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              9.19
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 3
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_03_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_03_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 9.25,
+          "legal_certified": false,
+          "storey_number": 3
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_floor_04_cutter_matrix4",
+        "inputs": [
+          "wing"
+        ],
+        "kind": "transform",
+        "operator": "matrix4",
+        "parameters": {
+          "matrix4": [
+            [
+              34.50145896,
+              0.0,
+              0.0,
+              -17.25072948
+            ],
+            [
+              0.0,
+              34.93102496,
+              0.0,
+              -17.46551248
+            ],
+            [
+              0.0,
+              0.0,
+              0.12,
+              12.89
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "provenance": {
+          "authority": "canonical_unitbox",
+          "prelegal": true,
+          "storey_number": 4
+        },
+        "semantic_role": "occupied_floor_cutter"
+      },
+      {
+        "id": "creative_floor_04_occupied_plate",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_04_cutter_matrix4"
+        ],
+        "kind": "boolean",
+        "operator": "intersection",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "center_elevation_m": 12.95,
+          "legal_certified": false,
+          "storey_number": 4
+        },
+        "semantic_role": "occupied_floor_plate"
+      },
+      {
+        "id": "creative_occupied_storeys_union",
+        "inputs": [
+          "creative_physical_storey_capacity_matrix4",
+          "creative_floor_01_occupied_plate",
+          "creative_floor_02_occupied_plate",
+          "creative_floor_03_occupied_plate",
+          "creative_floor_04_occupied_plate"
+        ],
+        "kind": "boolean",
+        "operator": "union",
+        "parameters": {},
+        "provenance": {
+          "authority": "authored_prelegal_storey_contract",
+          "floor_plate_node_ids": [
+            "creative_floor_01_occupied_plate",
+            "creative_floor_02_occupied_plate",
+            "creative_floor_03_occupied_plate",
+            "creative_floor_04_occupied_plate"
+          ],
+          "legal_certified": false,
+          "set_identity": "host_union_subsets_equals_host"
+        },
+        "semantic_role": "connected_mass_with_occupied_floor_plates"
+      }
+    ],
+    "root_id": "creative_occupied_storeys_union",
+    "schema_version": "arr.maas.geometry_program.v1"
+  },
+  "identity": {
+    "candidate_id": "creative-004",
+    "geometry_hash": "a2f1d06e00fc530e02e0f8bba4df3b267d89ddb71cc6e60dba5c8087f5367dce",
+    "pnu": "4115011300106840001",
+    "program_hash": "11c7957e43c6a8f2784dc56631b75b3ed16c16b711c47954bc4deef940e5db97",
+    "run_id": "book-develop-comp16"
+  }
+}

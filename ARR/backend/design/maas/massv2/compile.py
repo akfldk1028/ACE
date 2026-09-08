@@ -136,6 +136,23 @@ def _plan_between(placement: Placement, low: float, high: float) -> Polygon:
         return _upright_plan(placement)
     lower = max(0.0, min(1.0, (low - low_z) / span))
     upper = max(0.0, min(1.0, (high - low_z) / span))
+    # The section at the band's own mid-height, not the hull of the two that
+    # bound it. A shear translates a box's section without changing its area,
+    # so a band's true volume is that area times the band's height - and the
+    # hull of the bottom and top sections is strictly larger than either. Read
+    # that way `skew` came back adding 140 m3 to a 1,920 m3 body, +7.28%, on an
+    # operator whose matrix has |det| = 1: measured against the determinant the
+    # placement itself carries, the geometry was right and the reading was not.
+    #
+    # The midpoint is also what the rest of this function already assumes - the
+    # legal envelope four lines down is sampled at `(low + high) / 2.0`, so the
+    # band was being cut by the line at its middle while being drawn as the
+    # smear of its whole height. For an affine box the mid-section is exact in
+    # both area and centroid; for a tapering one it is the midpoint rule, which
+    # is far closer than an upper bound.
+    middle = _ordered(_ring_at(placement, (lower + upper) / 2.0))
+    if not middle.is_empty and middle.area > 0.0:
+        return middle
     points = _ring_at(placement, lower) + _ring_at(placement, upper)
     hull = Polygon(points).convex_hull
     return hull if isinstance(hull, Polygon) else Polygon()

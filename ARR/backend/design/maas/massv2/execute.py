@@ -33,7 +33,7 @@ from design.maas.geometry_language.affine_matrix import (
     translation_matrix4,
     validate_matrix4,
 )
-from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY
+from design.maas.massv2.plausibility import DAYLIT_DEPTH_PER_STOREY, MINIMUM_STOREY_WIDTH_M
 
 from .compile import _plan
 from .form import MatrixForm, Placement, place, stack
@@ -847,6 +847,18 @@ def _notch(frame: _Frame, op: Operation) -> None:
     )
 
 
+# How much of the span between the outer walls the wells may spread across.
+# Kept off the edges, because a puncture that reaches one is a recess.
+_PUNCTURE_INBOARD = 0.8
+
+
+def _plan_of(item: Placement) -> Polygon:
+    """The placement's own outline in world XY."""
+
+    corners = item.corners()
+    return Polygon([(c[0], c[1]) for c in corners[:4]]).convex_hull
+
+
 def _puncture(frame: _Frame, op: Operation) -> None:
     """Drive a hole clean through, top to bottom.
 
@@ -860,19 +872,54 @@ def _puncture(frame: _Frame, op: Operation) -> None:
     share = _clamp(float(op.params.get("size", 0.22)), 0.1, 0.45)
     count = int(_clamp(float(op.params.get("n", 1)), 1, 3))
     w, d = frame.width * share, frame.depth * share
+    # Two wells with no floor between them are one well, and `n` was quietly
+    # ignored for most of its range: the centres sit 0.8*(width - w)/(count + 1)
+    # apart, which for any size at or above 0.21 is less than the hole's own
+    # width. Measured over the corpus, six of the eight sentences that ask for
+    # two or three wells deliver one - `sangok_three_light_gardens` declares
+    # three light gardens and hands the jury a single slot - and the default
+    # size, 0.22, is on the wrong side of the line.
+    #
+    # So the size gives way and the count does not: the count is what the
+    # sentence is about, the size is a dimension the growth loop rescales
+    # anyway. Solved rather than iterated - with centres (width - w)/k apart
+    # over the inboard span, a plate that holds a storey survives between
+    # neighbours when w <= (span * width - k * plate) / (span + k). A frame too
+    # small even for that keeps one honest hole rather than delivering a merged
+    # one under the name of three.
+    placed: list = []
+    if count > 1:
+        k = count + 1
+        widest = ((frame.width * _PUNCTURE_INBOARD - k * MINIMUM_STOREY_WIDTH_M)
+                  / (_PUNCTURE_INBOARD + k))
+        if widest < MINIMUM_STOREY_WIDTH_M:
+            count = 1
+        else:
+            w = min(w, widest)
+            d = min(d, widest)
     for index in range(count):
         # Spaced along the length rather than stacked on one spot, and kept off
         # the edges so each one is surrounded by building.
         along = (index + 1) / (count + 1) - 0.5
-        frame.placements.append(
-            frame.box(
-                f"puncture_{index}",
-                w=w, d=d, z=-frame.height, h=frame.height * 3.0,
-                dx=along * (frame.width - w) * 0.8,
-                dy=0.0,
-                kind="subtractive",
-            )
+        cut = frame.box(
+            f"puncture_{index}",
+            w=w, d=d, z=-frame.height, h=frame.height * 3.0,
+            dx=along * (frame.width - w) * _PUNCTURE_INBOARD,
+            dy=0.0,
+            kind="subtractive",
         )
+        # And the arithmetic is checked against the delivered plan, because the
+        # frame's own axes are not the world's and a formula that reads right
+        # can still hand back two wells that touch. Only this word's own wells
+        # are tested: a puncture that coincides with a court an earlier word
+        # cut is that sentence's composition to answer for, and dropping it
+        # here deleted both wells of `concave_plinth_folded_crown` and left a
+        # solid block - worse than the merge this is meant to fix.
+        plan = _plan_of(cut)
+        if any(plan.intersects(_plan_of(other)) for other in placed):
+            continue
+        placed.append(cut)
+        frame.placements.append(cut)
 
 
 

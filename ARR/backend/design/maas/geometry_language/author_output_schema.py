@@ -15,6 +15,7 @@ from .mutation import OPERATOR_PARAMETER_CONTRACTS
 
 
 _REQUIRED_PARAMETER_COUNTS = {
+    "bound_surfaces": 1,
     "book_base_volume": 2,
     "box": 4,
     "carve_void": 1,

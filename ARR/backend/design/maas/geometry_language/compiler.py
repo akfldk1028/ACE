@@ -217,6 +217,17 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
         }
         if node.kind == "transform" and inputs:
             trace_row["matrix4"] = matrix4_to_lists(_transform_matrix4(node, inputs[0]))
+        if node.kind == "modifier" and node.operator == "taper":
+            start = _scale_pair(node.parameters.get("start_scale", (1.0, 1.0)))
+            end = _scale_pair(node.parameters.get("end_scale", node.parameters.get("scale_top", (.6, .6))))
+            if start == end:
+                axis = {"x": 0, "y": 1, "z": 2}[str(node.parameters.get("axis") or "z").lower()]
+                scales = list(start)
+                scales.insert(axis, 1.0)
+                # Constant taper is affine. Translation about its pivot does
+                # not affect sampling density; the actual warp remains owner.
+                trace_row["sampling_linear_matrix4"] = matrix4_to_lists(
+                    matrix4_for_transform("scale", {"vector": scales}))
         if node.kind == "pattern" and node.operator == "matrix_array":
             trace_row["matrix_entries"] = [
                 {
@@ -261,6 +272,12 @@ def compile_geometry_program(program: GeometryProgram) -> CompilationResult:
 
     try:
         solid = evaluate(program.root_id)
+        from .surface_bounds import surface_sampling_issue
+
+        sampling_issue = surface_sampling_issue(program, cache, trace)
+        if sampling_issue:
+            code, message, node_id = sampling_issue
+            raise GeometryCompileError(code, message, node_id)
         mesh = solid.to_mesh64()
         raw_vertices = np.asarray(mesh.vert_properties, dtype=float)[:, :3]
         raw_triangles = np.asarray(mesh.tri_verts, dtype=np.int64)
@@ -661,6 +678,13 @@ def _macro_affine_matrix4(node: GeometryNode):
 
 def _modifier(node: GeometryNode, solid):
     p = node.parameters
+    if node.operator == "bound_surfaces":
+        from .surface_bounds import intersect_surface_bounds
+
+        try:
+            return intersect_surface_bounds(solid, p)
+        except ValueError as exc:
+            raise GeometryCompileError("invalid_surface_envelope", str(exc), node.id) from exc
     if node.operator == "taper":
         return _warp_taper(solid, p, node.id)
     if node.operator == "twist":

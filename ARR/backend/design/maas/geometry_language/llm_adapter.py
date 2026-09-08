@@ -52,7 +52,7 @@ from design.maas.book_language.paid_provider_admission import (
 
 
 DEFAULT_GEOMETRY_AUTHOR_MODEL = "gpt-5.4-mini"
-GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v34_explicit_dimensional_intent"
+GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v35_occupied_surface_bounds"
 LEGACY_GEOMETRY_AUTHOR_PROMPT_CONTRACT = "arr.maas.geometry_llm_author.v24_nonfragmenting_relation_pairs"
 MAX_AUTHOR_COMPILER_REPAIR_GENERATIONS = 3
 
@@ -1575,7 +1575,7 @@ Example concept (the schema, not prose, is authoritative): unit box -> scale vec
 
 Allowed primitives: box, cylinder, extruded_polygon, wedge, sweep, loft.
 Allowed transforms: translate/move, rotate, scale, mirror, shear.
-Allowed modifiers: ellipsoidize, tetrahedralize, bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner.
+Allowed modifiers: ellipsoidize, tetrahedralize, bend, taper, twist, pinch, inflate, slice, clip, clip_fraction, cut_corner, bound_surfaces.
 Allowed booleans: union, subtract/difference, intersection.
 Allowed patterns: duplicate, linear_array, radial_array, mirror_array, stack.
 Allowed compositions: attach, bridge.
@@ -1584,6 +1584,21 @@ Program-conditioned allowed macros: {allowed_macro_operators}.
 Rules:
 - Every node is one typed function call; parameters are explicit typed JSON values.
 - A prior node can be reused; input references must remain acyclic.
+- bound_surfaces intersects its existing input with typed top_surface and/or bottom_surface records carried
+  as structured_json. Defaults are constant height 1 above and 0 below. Coordinates u,v are [0,1] across the
+  input's current axis-aligned XY bounds; surface heights are shares of its current Z band. All values must
+  remain in [0,1], with top provably above bottom. Types: constant (height), polynomial (terms [u_power,v_power,
+  coefficient]), profile (points, axis, span), affine (surface, world_to_authored [a,b,d,e,xoff,yoff], scale, offset).
+  Bound each occupied body separately before composing halls and connectors; a following underside represents
+  a plate with air below, not a ground-filled hall. Existing holes and profiles are retained by intersection.
+  Later transforms carry the finished mesh. Earlier transforms define the current axis-aligned surface frame;
+  apply bounds before rotation when the surface must follow a body's local axes. No other operator accepts
+  top_surface or bottom_surface. Surface bounds are body shaping and precede the terminal access suffix.
+  Apply model/dimensional sizing before bound_surfaces. Enlarging a coarsely sampled curved body afterwards
+  is explicitly refused; later rigid poses carry its mesh and preserve its occupied measurements.
+  Apply nonlinear body warps and stack patterns before bound_surfaces. Their post-surface sampling transport
+  is unsupported and refused; a constant taper has an affine proof and uses the ordinary scaling check.
+  Attach resolves guest sizing from the host: size and bound the guest sufficiently before attachment too.
 - semantic_role must name the architectural job carried by that executable node, using program_context
   semantic-invariant roles where applicable. The current program is {program_id}; its role vocabulary is:
   {role_vocabulary_text}. Do not borrow hall, gallery, tower, roof-section, or other roles from another program

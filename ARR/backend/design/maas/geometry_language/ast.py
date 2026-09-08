@@ -33,7 +33,7 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "bend", "taper", "twist", "pinch", "inflate",
         "slice", "clip", "clip_fraction", "book_base_volume", "cut_corner",
         "legal_section_clip", "circularize", "ellipsoidize",
-        "tetrahedralize", "profile_sweep_3d",
+        "tetrahedralize", "profile_sweep_3d", "bound_surfaces",
     }),
     "boolean": frozenset({"union", "difference", "intersection"}),
     "pattern": frozenset({
@@ -419,8 +419,23 @@ MACRO_VERTICAL_ANCHORS = ("center", "input_base")
 MACRO_VERTICAL_ANCHOR_OPERATORS = ("book_branch", "related_array")
 
 
+def surface_parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
+    from .surface_bounds import SURFACE_PARAMETERS, parse_surface_bounds
+
+    if node.operator != "bound_surfaces":
+        if SURFACE_PARAMETERS.intersection(node.parameters):
+            return [GeometryIssue("unsupported_surface_parameters",
+                "top_surface/bottom_surface require the bound_surfaces modifier", node.id)]
+        return []
+    try:
+        parse_surface_bounds(node.parameters)
+    except (ValueError, TypeError, OverflowError) as exc:
+        return [GeometryIssue("invalid_surface_bounds", str(exc), node.id)]
+    return []
+
+
 def _parameter_issues(node: GeometryNode) -> list[GeometryIssue]:
-    issues: list[GeometryIssue] = []
+    issues: list[GeometryIssue] = surface_parameter_issues(node)
     params = node.parameters
     if node.operator in MACRO_VERTICAL_ANCHOR_OPERATORS:
         if params.get("vertical_anchor", "center") not in MACRO_VERTICAL_ANCHORS:

@@ -18,7 +18,7 @@ from .affine_matrix import (
     scale_matrix4,
     translation_matrix4,
 )
-from .ast import GeometryNode, GeometryProgram
+from .ast import GeometryNode, GeometryProgram, surface_parameter_issues
 
 
 _UNIT_PARAMETERS = {"width": 1.0, "depth": 1.0, "height": 1.0}
@@ -32,6 +32,10 @@ def normalize_unitbox_program(program: GeometryProgram) -> GeometryProgram:
         if node.kind == "primitive" and node.operator == "box"
     ]
     if not box_nodes:
+        return program
+    if any(surface_parameter_issues(node) for node in program.nodes):
+        # Preserve invalid authored fields for the semantic validator instead
+        # of erasing them while canonicalizing a dimensional box.
         return program
     if not all(_has_positive_finite_dimensions(node) for node in box_nodes):
         # Leave malformed author input untouched so the ordinary semantic

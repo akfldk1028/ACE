@@ -16,6 +16,8 @@ _STRUCTURED_PARAMETERS = frozenset({
     "points",
     "profiles",
     "section_controls",
+    "top_surface",
+    "bottom_surface",
 })
 
 

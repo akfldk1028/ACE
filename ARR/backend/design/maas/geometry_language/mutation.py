@@ -265,6 +265,7 @@ OPERATOR_PARAMETER_CONTRACTS: dict[str, frozenset[str]] = {
         "podium_scale", "podium_height_ratio",
     }),
     "profiled_hall": frozenset({"section_family", "section_controls", "span_axis"}),
+    "bound_surfaces": frozenset({"top_surface", "bottom_surface"}),
     "cantilever": frozenset({"start_ratio", "vector"}),
     "cross_mass": frozenset({"angle_degrees"}),
     "grid_mass": frozenset({"row_spacing_ratio", "column_offset_ratio"}),

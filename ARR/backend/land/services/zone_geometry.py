@@ -21,8 +21,12 @@ Nothing here decides anything legal. It returns areas. What the areas mean is
 
 from __future__ import annotations
 
+import datetime
+import hashlib
+import json
 import logging
 import os
+import pathlib
 from typing import Any, Iterable
 
 import httpx
@@ -81,6 +85,16 @@ def fetch_zone_features(
         response.raise_for_status()
         payload = response.json()
     except (httpx.HTTPError, ValueError) as error:
+        # The zone split of a fixed parcel is a constant, and this was the one
+        # Vworld call with nothing behind it: a single read timeout raised
+        # LegalSiteUnavailable and killed a whole massing run, because 제84조
+        # needs the areas. Land use next door already keeps its last real
+        # answer for exactly this; the split now does the same. Cached means
+        # cached - it says so in the log, and it is never a substitute for a
+        # first fetch, so a parcel never measured still fails loudly.
+        cached = _load_feature_cache(parcel_wgs84)
+        if cached is not None:
+            return cached
         raise ZoneGeometryUnavailable(f"Vworld {VWORLD_ZONE_LAYER} failed: {error}") from error
 
     body = payload.get("response") or {}
@@ -89,7 +103,53 @@ def fetch_zone_features(
             f"Vworld {VWORLD_ZONE_LAYER} returned {body.get('status')}"
         )
     collection = (body.get("result") or {}).get("featureCollection") or {}
-    return list(collection.get("features") or ())
+    features = list(collection.get("features") or ())
+    if features:
+        _store_feature_cache(parcel_wgs84, features)
+    return features
+
+
+ZONE_FEATURE_CACHE_DIR = (
+    pathlib.Path(__file__).resolve().parent.parent.parent / "runtime" / "vworld_zone_features"
+)
+
+
+def _feature_cache_path(parcel_wgs84: Polygon) -> pathlib.Path:
+    """Keyed by the queried box, which is what the answer actually depends on."""
+
+    box = ",".join(f"{value:.6f}" for value in parcel_wgs84.bounds)
+    stamp = hashlib.sha256(f"{VWORLD_ZONE_LAYER}|{box}".encode("utf-8")).hexdigest()[:16]
+    return ZONE_FEATURE_CACHE_DIR / f"{stamp}.json"
+
+
+def _store_feature_cache(parcel_wgs84: Polygon, features: list) -> None:
+    try:
+        ZONE_FEATURE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        _feature_cache_path(parcel_wgs84).write_text(
+            json.dumps({"fetched_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                        "bounds": list(parcel_wgs84.bounds),
+                        "layer": VWORLD_ZONE_LAYER,
+                        "features": features}, ensure_ascii=False),
+            encoding="utf-8")
+    except OSError as error:
+        logger.warning("Could not cache zone features: %s", error)
+
+
+def _load_feature_cache(parcel_wgs84: Polygon) -> list | None:
+    path = _feature_cache_path(parcel_wgs84)
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        logger.warning("Unreadable zone feature cache: %s", error)
+        return None
+    features = payload.get("features")
+    if not isinstance(features, list) or not features:
+        return None
+    logger.warning("Vworld unavailable; using the cached real %s features fetched at %s",
+                   VWORLD_ZONE_LAYER, payload.get("fetched_at"))
+    return features
 
 
 class ZoneGeometryUnavailable(RuntimeError):

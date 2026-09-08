@@ -222,6 +222,10 @@ LOGGING = {
         },
     },
     'loggers': {
+        # HTTP request INFO logs include complete Vworld query URLs and their
+        # API keys. Preserve failures while omitting credential-bearing traces.
+        'httpx': {'level': 'WARNING'},
+        'httpcore': {'level': 'WARNING'},
         'django': {
             'handlers': ['console', 'django_file'],
             'level': 'INFO',

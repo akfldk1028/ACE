@@ -54,7 +54,7 @@ def ledger() -> str:
         "4. gable은 발자국을 넓혀 선언한 틈을 닫는다 — 틈이 논지면 gable 금지.",
         "5. `extract`의 gap은 **호스트폭 비율** 좌표계다 — 미터 규칙과 혼동 금지.",
         "6. stack으로 밴드가 된 몸에 cantilever는 조용하다.",
-        "7. 대지 꽉 찬 몸 위에서 cantilever·shear 금지 — 일조 봉투가 먹는다.",
+        "7. 대지 꽉 찬 몸 위에서 cantilever·stagger 금지 — 일조 봉투가 먹는다.",
         f"8. `cantilever`·`canopy`의 reach 상한 {reach_ceiling:.2f} — 구조 게이트 "
         f"backspan {CANTILEVER_BACKSPAN_RATIO}의 역산 r/(1+r) × {CANTILEVER_CEILING_SHARE}. "
         f"실측 통과값 {CANTILEVER_REACH_MEASURED_OK}.",

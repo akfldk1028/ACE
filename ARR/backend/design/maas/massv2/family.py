@@ -166,7 +166,7 @@ FAMILY_OF_VERB = {
     "vault": "section", "fold": "section", "grade": "section",
     "split": "cut", "carve": "cut", "notch": "cut", "puncture": "cut",
     "inscribe": "cut", "fracture": "cut", "intersect": "cut",
-    "cantilever": "banding", "shear": "banding", "twist": "banding",
+    "cantilever": "banding", "stagger": "banding", "twist": "banding",
     "taper": "banding", "bend": "banding", "pinch": "banding",
     "canopy": "plate",
     "roof": "plate",

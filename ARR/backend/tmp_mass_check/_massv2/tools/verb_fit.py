@@ -52,7 +52,7 @@ RULES = [
     # spine, and the bare \bapart\b flagged the idiom. Same trap family as
     # `ring` inside "bring", recorded at the bottom of this file.
     ("떨어져 섬", r"\b(?<!told )(?<!tell )apart\b|\bseparate\b|streets between|between them|사이가|사이로|떨어져",
-     {"split", "aggregate", "loop", "shear", "branch"}),
+     {"split", "aggregate", "loop", "stagger", "branch"}),
     # 박공 is sayable now - two wedges meeting at a ridge, real planes since
     # `top_drop` entered the IR. Vaults still are not: no curved-section term.
     ("지붕 형태", r"\b(gable|gabled|pitched|ridge)\b|박공", {"gable"}),

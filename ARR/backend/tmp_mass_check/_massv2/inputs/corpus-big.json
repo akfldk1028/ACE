@@ -103,7 +103,7 @@
           "why": "차의 영역과 사람의 영역을 한 덩어리 안에서 갈라놔야 주차가 주거의 조망과 빛을 잠식하지 않는다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.3,
           "on": "homes",
           "toward": "open",
@@ -185,7 +185,7 @@
           "why": "양쪽 강안의 지반 높이와 숲의 성격이 서로 달라 두 끝을 같은 것으로 취급하면 어느 한쪽 입구가 땅에 묻힌다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.35,
           "on": "high_end",
           "toward": "cross",
@@ -223,7 +223,7 @@
           "why": "고가도로 밑의 버려진 땅은 저층 상업으로 따로 채워야 다리 아래가 죽은 공간으로 남지 않는다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.2,
           "on": "tower",
           "toward": "open",
@@ -261,7 +261,7 @@
           "why": "맨 위 한 덩어리만 다르게 다뤄야 낮은 마을 스카이라인 속에서 이 집의 입구가 어디인지 멀리서 읽힌다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.25,
           "on": "object_3",
           "toward": "cross",
@@ -330,7 +330,7 @@
           "why": "33 m2 소형 세대가 대부분이라 외피를 전 높이에 걸쳐 파내 모든 세대에 자기 몫의 외부공간을 돌려줘야 한다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.18,
           "on": "object_1",
           "toward": "cross",
@@ -361,14 +361,14 @@
           "why": "고가공원과 강 사이 한 블록 전체를 한 덩어리로 채우면 하이라인 산책로가 벽에 갇히므로 크기가 다른 두 동으로 쪼갠다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.3,
           "on": "object_0",
           "toward": "open",
           "why": "높은 동을 강 쪽으로 틀어야 상층 주거가 허드슨 정면 조망을 확보한다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.25,
           "on": "object_1",
           "toward": "back",
@@ -400,14 +400,14 @@
           "why": "만과 다운타운 스카이라인이라는 두 방향의 조망을 나눠 가지려면 한 동보다 서로 크기가 다른 두 동이 유리하다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.32,
           "on": "object_0",
           "toward": "open",
           "why": "앞 동을 만 쪽으로 비틀어야 모든 세대가 각기 다른 각도의 수변 조망을 갖는다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.22,
           "on": "object_1",
           "toward": "cross",

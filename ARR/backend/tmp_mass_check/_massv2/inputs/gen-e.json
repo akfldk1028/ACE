@@ -1,110 +1,110 @@
 {
- "schemes": [
-  {
-   "name": "e_hyeopgok_mom",
-   "primary_language": "carved_body",
-   "secondary_language": "a tall body split by one deep canyon, one wall sheared higher than the other",
-   "formal_principle": "몸 하나를 협곡 하나가 가른다 — 두 벽은 같은 몸이었고, 한쪽이 어긋나 오르며 골이 빛의 틈이 된다.",
-   "dominant_gesture": "a canyon through one body, walls offset",
-   "reference_basis": "저작 신작",
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "height": 0.9,
-     "why": "협곡은 높은 몸에서만 골짜기다."
+      "name": "e_hyeopgok_mom",
+      "primary_language": "carved_body",
+      "secondary_language": "a tall body split by one deep canyon, one wall sheared higher than the other",
+      "formal_principle": "몸 하나를 협곡 하나가 가른다 — 두 벽은 같은 몸이었고, 한쪽이 어긋나 오르며 골이 빛의 틈이 된다.",
+      "dominant_gesture": "a canyon through one body, walls offset",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "협곡은 높은 몸에서만 골짜기다."
+        },
+        {
+          "op": "compress",
+          "ratio": 0.5,
+          "toward": "cross",
+          "why": "골이 달릴 방향을 세운다."
+        },
+        {
+          "op": "split",
+          "ratio": 0.5,
+          "along": "cross",
+          "gap": 5,
+          "first": "west_wall",
+          "second": "east_wall",
+          "why": "협곡이 먼저다 — 폭 5m의 빛."
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.4,
+          "on": "east_wall",
+          "toward": "long",
+          "why": "두 벽이 어긋나야 골이 정적이 아니라 사건이 된다."
+        }
+      ]
     },
     {
-     "op": "compress",
-     "ratio": 0.5,
-     "toward": "cross",
-     "why": "골이 달릴 방향을 세운다."
+      "name": "e_dollin_pandeul",
+      "primary_language": "solid_body",
+      "secondary_language": "four plates climbing, each turned and slid past the one below",
+      "formal_principle": "판 넷이 오르며 돌고 미끄러진다 — 층마다 방향이 다른 모서리가 나와, 탑인데 정면이 없다.",
+      "dominant_gesture": "a climbing twist of slipped plates",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.1,
+          "height": 1.0,
+          "tie": 0.0,
+          "turn": 30,
+          "method": "stack",
+          "storeys": 2,
+          "levels": 4,
+          "reach": 0.15,
+          "why": "슬래브를 집처럼 쌓는다 — 돌고 미끄러지는 것이 이 탑의 유일한 말."
+        }
+      ]
     },
     {
-     "op": "split",
-     "ratio": 0.5,
-     "along": "cross",
-     "gap": 5,
-     "first": "west_wall",
-     "second": "east_wall",
-     "why": "협곡이 먼저다 — 폭 5m의 빛."
+      "name": "e_madang_gwan",
+      "primary_language": "carved_body",
+      "secondary_language": "a low court ring with towers rising proud from its bars",
+      "formal_principle": "낮은 마당 고리에서 탑들이 솟는다 — 수평의 안마당과 수직의 관들이 한 몸. 바닥의 비움과 하늘의 세움이 서로의 이유다.",
+      "dominant_gesture": "a ring below, crowns above",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.4,
+          "why": "마당이 기단이다."
+        },
+        {
+          "op": "nest",
+          "size": 0.35,
+          "proud": 0.9,
+          "why": "고리의 몸 안에서 관이 솟는다 — 포함 관계가 수직이 된다."
+        }
+      ]
     },
     {
-     "op": "shear",
-     "ratio": 0.4,
-     "on": "east_wall",
-     "toward": "long",
-     "why": "두 벽이 어긋나야 골이 정적이 아니라 사건이 된다."
+      "name": "e_gyedan_hyeopgok",
+      "primary_language": "carved_body",
+      "secondary_language": "a stepped mass with a canyon carved down through every step",
+      "formal_principle": "계단으로 줄어드는 몸을 협곡이 끝까지 관통한다 — 오르는 형상과 내려가는 빈 곳이 한 단면에 있다.",
+      "dominant_gesture": "steps up, canyon down",
+      "reference_basis": "저작 신작",
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.25,
+          "height": 1.0,
+          "why": "오르는 몸."
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "long",
+          "reach": 1.0,
+          "why": "내려가는 빈 곳 — 모든 단을 한 칼로 가른다."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "e_dollin_pandeul",
-   "primary_language": "solid_body",
-   "secondary_language": "four plates climbing, each turned and slid past the one below",
-   "formal_principle": "판 넷이 오르며 돌고 미끄러진다 — 층마다 방향이 다른 모서리가 나와, 탑인데 정면이 없다.",
-   "dominant_gesture": "a climbing twist of slipped plates",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 4,
-     "spread": 1.1,
-     "height": 1.0,
-     "tie": 0.0,
-     "turn": 30,
-     "method": "stack",
-     "storeys": 2,
-     "levels": 4,
-     "reach": 0.15,
-     "why": "슬래브를 집처럼 쌓는다 — 돌고 미끄러지는 것이 이 탑의 유일한 말."
-    }
-   ]
-  },
-  {
-   "name": "e_madang_gwan",
-   "primary_language": "carved_body",
-   "secondary_language": "a low court ring with towers rising proud from its bars",
-   "formal_principle": "낮은 마당 고리에서 탑들이 솟는다 — 수평의 안마당과 수직의 관들이 한 몸. 바닥의 비움과 하늘의 세움이 서로의 이유다.",
-   "dominant_gesture": "a ring below, crowns above",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.4,
-     "why": "마당이 기단이다."
-    },
-    {
-     "op": "nest",
-     "size": 0.35,
-     "proud": 0.9,
-     "why": "고리의 몸 안에서 관이 솟는다 — 포함 관계가 수직이 된다."
-    }
-   ]
-  },
-  {
-   "name": "e_gyedan_hyeopgok",
-   "primary_language": "carved_body",
-   "secondary_language": "a stepped mass with a canyon carved down through every step",
-   "formal_principle": "계단으로 줄어드는 몸을 협곡이 끝까지 관통한다 — 오르는 형상과 내려가는 빈 곳이 한 단면에 있다.",
-   "dominant_gesture": "steps up, canyon down",
-   "reference_basis": "저작 신작",
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.25,
-     "height": 1.0,
-     "why": "오르는 몸."
-    },
-    {
-     "op": "carve",
-     "size": 0.3,
-     "at": "long",
-     "reach": 1.0,
-     "why": "내려가는 빈 곳 — 모든 단을 한 칼로 가른다."
-    }
-   ]
-  }
- ]
+  ]
 }

@@ -9,10 +9,34 @@
       "dominant_gesture": "서남서로 열린 쪽엔 마당을 두르고, 이웃 다섯 면엔 등을 돌린 벽 하나를 세운다.",
       "reference_basis": "OMA Kunsthal — 알려진 유형(단일 블록)을 둘로 자르고 한쪽만 비우는 특허의 변형",
       "ops": [
-        {"op": "extrude", "height": 0.5, "why": "대지 전체를 낮은 한 판으로 먼저 붙여 이후 두 조각이 분리되지 않게 지면에서 묶는다."},
-        {"op": "split", "along": "cross", "ratio": 0.62, "first": "yard_side", "second": "neighbour_side", "gap": 0, "why": "-30° 장축을 가로질러 불균등하게 갈라, 큰 쪽을 서남서 개방면에 배정한다."},
-        {"op": "loop", "on": "yard_side", "bar": 0.26, "why": "개방면 쪽 조각만 네 개의 바로 중정을 둘러, 이웃이 없는 방향으로 외부공간을 연다."},
-        {"op": "stack", "on": "neighbour_side", "n": 3, "contrast": 1.35, "align": "back", "why": "인접 대지쪽은 뒷면을 그대로 붙인 채 위로 갈수록 물러나 정북일조 봉투를 따라간다."}
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "대지 전체를 낮은 한 판으로 먼저 붙여 이후 두 조각이 분리되지 않게 지면에서 묶는다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.62,
+          "first": "yard_side",
+          "second": "neighbour_side",
+          "gap": 0,
+          "why": "-30° 장축을 가로질러 불균등하게 갈라, 큰 쪽을 서남서 개방면에 배정한다."
+        },
+        {
+          "op": "loop",
+          "on": "yard_side",
+          "bar": 0.26,
+          "why": "개방면 쪽 조각만 네 개의 바로 중정을 둘러, 이웃이 없는 방향으로 외부공간을 연다."
+        },
+        {
+          "op": "stack",
+          "on": "neighbour_side",
+          "n": 3,
+          "contrast": 1.35,
+          "align": "back",
+          "why": "인접 대지쪽은 뒷면을 그대로 붙인 채 위로 갈수록 물러나 정북일조 봉투를 따라간다."
+        }
       ]
     },
     {
@@ -23,10 +47,35 @@
       "dominant_gesture": "길에 면한 쪽만 한 입 베어물어 사람이 들어설 자리를 만들고, 안쪽은 통짜로 둔다.",
       "reference_basis": "BIG LEGO House — 하나의 덩어리를 변형해 지면 높이의 공공 광장을 파내는 조작",
       "ops": [
-        {"op": "extrude", "height": 0.4, "why": "저층 4.2층 대지라 지면 판을 얇게 깔아 두 조각의 접합만 확보한다."},
-        {"op": "split", "along": "long", "ratio": 0.55, "first": "street_side", "second": "inner_side", "why": "장축을 따라 갈라 개방된 서남서 전면과 이웃에 접한 안쪽을 다른 역할로 나눈다."},
-        {"op": "carve", "on": "street_side", "size": 0.42, "at": "open", "reach": 0.7, "why": "가로측 조각만 개방 방향에서 파내 전면 오목부를 만든다. 건폐율은 낮아지지만 평면이 도형이 된다."},
-        {"op": "stack", "on": "inner_side", "n": 2, "contrast": 1.4, "align": "back", "why": "안쪽 조각은 이웃 경계면을 유지한 채 두 단으로만 올려 저층 규모를 지킨다."}
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "why": "저층 4.2층 대지라 지면 판을 얇게 깔아 두 조각의 접합만 확보한다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.55,
+          "first": "street_side",
+          "second": "inner_side",
+          "why": "장축을 따라 갈라 개방된 서남서 전면과 이웃에 접한 안쪽을 다른 역할로 나눈다."
+        },
+        {
+          "op": "carve",
+          "on": "street_side",
+          "size": 0.42,
+          "at": "open",
+          "reach": 0.7,
+          "why": "가로측 조각만 개방 방향에서 파내 전면 오목부를 만든다. 건폐율은 낮아지지만 평면이 도형이 된다."
+        },
+        {
+          "op": "stack",
+          "on": "inner_side",
+          "n": 2,
+          "contrast": 1.4,
+          "align": "back",
+          "why": "안쪽 조각은 이웃 경계면을 유지한 채 두 단으로만 올려 저층 규모를 지킨다."
+        }
       ]
     },
     {
@@ -37,10 +86,33 @@
       "dominant_gesture": "마당을 가로지르는 팔 하나만 공중에 띄우고, 나머지 몸통은 땅에 붙여 밀어둔다.",
       "reference_basis": "OMA Villa dall'Ava — 한쪽 볼륨만 기둥 위로 들어 대지를 통과시키는 조작",
       "ops": [
-        {"op": "extrude", "height": 0.6, "why": "들어올린 날개가 떨어져 보이지 않도록 대지 전체를 낮은 판으로 먼저 접지시킨다."},
-        {"op": "split", "along": "cross", "ratio": 0.68, "first": "ground_wing", "second": "yard_wing", "gap": 0, "why": "큰 쪽은 땅에 남기고 작은 쪽만 마당을 건너는 날개로 삼는다."},
-        {"op": "lift", "on": "yard_wing", "clearance": 0.3, "why": "마당쪽 날개만 네 지점 위로 들어 서남서 개방부에서 대지 안쪽으로 시선과 동선을 통과시킨다."},
-        {"op": "shear", "on": "ground_wing", "ratio": 0.22, "why": "땅에 남은 몸통을 개방면으로 밀어 -30° 사선 대지의 비틀림을 형태로 받는다.", "toward": "open"}
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "why": "들어올린 날개가 떨어져 보이지 않도록 대지 전체를 낮은 판으로 먼저 접지시킨다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.68,
+          "first": "ground_wing",
+          "second": "yard_wing",
+          "gap": 0,
+          "why": "큰 쪽은 땅에 남기고 작은 쪽만 마당을 건너는 날개로 삼는다."
+        },
+        {
+          "op": "lift",
+          "on": "yard_wing",
+          "clearance": 0.3,
+          "why": "마당쪽 날개만 네 지점 위로 들어 서남서 개방부에서 대지 안쪽으로 시선과 동선을 통과시킨다."
+        },
+        {
+          "op": "stagger",
+          "on": "ground_wing",
+          "ratio": 0.22,
+          "why": "땅에 남은 몸통을 개방면으로 밀어 -30° 사선 대지의 비틀림을 형태로 받는다.",
+          "toward": "open"
+        }
       ]
     },
     {
@@ -51,11 +123,46 @@
       "dominant_gesture": "이웃 쪽엔 등뼈를 하나 두고, 열린 쪽으로 이 두 개를 내밀어 그 사이를 마당으로 쓴다.",
       "reference_basis": "OMA Educaturium — 하나의 몸을 자르고 다시 잘라 불균등한 3~5 동료로 만드는 방식",
       "ops": [
-        {"op": "extrude", "height": 0.5, "why": "세 조각이 각각 떨어지지 않도록 대지 전체 판을 먼저 깐다."},
-        {"op": "split", "along": "long", "ratio": 0.63, "first": "spine", "second": "teeth", "gap": 0, "why": "장축 방향으로 등뼈와 빗살 영역을 불균등하게 나눈다."},
-        {"op": "split", "on": "teeth", "along": "cross", "ratio": 0.45, "first": "tooth_west", "second": "tooth_east", "gap": 0, "why": "빗살 영역을 다시 둘로 갈라 크기가 다른 두 개의 이를 만든다."},
-        {"op": "carve", "on": "tooth_west", "size": 0.35, "at": "open", "reach": 0.55, "why": "서남서로 열린 쪽 이만 파내 두 이 사이 간격을 도형으로 읽히게 한다."},
-        {"op": "stack", "on": "spine", "n": 2, "contrast": 1.3, "align": "back", "why": "등뼈는 이웃 경계에 붙인 면을 유지한 채 두 단으로만 올린다."}
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "세 조각이 각각 떨어지지 않도록 대지 전체 판을 먼저 깐다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.63,
+          "first": "spine",
+          "second": "teeth",
+          "gap": 0,
+          "why": "장축 방향으로 등뼈와 빗살 영역을 불균등하게 나눈다."
+        },
+        {
+          "op": "split",
+          "on": "teeth",
+          "along": "cross",
+          "ratio": 0.45,
+          "first": "tooth_west",
+          "second": "tooth_east",
+          "gap": 0,
+          "why": "빗살 영역을 다시 둘로 갈라 크기가 다른 두 개의 이를 만든다."
+        },
+        {
+          "op": "carve",
+          "on": "tooth_west",
+          "size": 0.35,
+          "at": "open",
+          "reach": 0.55,
+          "why": "서남서로 열린 쪽 이만 파내 두 이 사이 간격을 도형으로 읽히게 한다."
+        },
+        {
+          "op": "stack",
+          "on": "spine",
+          "n": 2,
+          "contrast": 1.3,
+          "align": "back",
+          "why": "등뼈는 이웃 경계에 붙인 면을 유지한 채 두 단으로만 올린다."
+        }
       ]
     },
     {
@@ -66,10 +173,33 @@
       "dominant_gesture": "한쪽 반만 서남서로 밀어내 대지의 비틀림을 건물의 어긋남으로 바꾼다.",
       "reference_basis": "BIG VM Houses — 하나의 슬래브를 밀고 좁혀 한 몸 안에서 두 성격을 만드는 변형",
       "ops": [
-        {"op": "extrude", "height": 0.45, "why": "미는 조각과 좁히는 조각이 분리되지 않도록 공통 지면 판을 먼저 만든다."},
-        {"op": "split", "along": "cross", "ratio": 0.6, "first": "open_half", "second": "back_half", "gap": 0, "why": "이웃이 없는 서남서 쪽에 큰 반을 배정해 그쪽만 자유롭게 움직이게 한다."},
-        {"op": "shear", "on": "open_half", "ratio": 0.3, "toward": "open", "why": "아무것도 맞대지 않은 개방면으로만 밀어 이웃 다섯 면과의 이격은 건드리지 않는다."},
-        {"op": "taper", "on": "back_half", "ratio": 0.8, "why": "이웃측 반은 위로 갈수록 좁혀 정북일조 봉투 안으로 들인다."}
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "why": "미는 조각과 좁히는 조각이 분리되지 않도록 공통 지면 판을 먼저 만든다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.6,
+          "first": "open_half",
+          "second": "back_half",
+          "gap": 0,
+          "why": "이웃이 없는 서남서 쪽에 큰 반을 배정해 그쪽만 자유롭게 움직이게 한다."
+        },
+        {
+          "op": "stagger",
+          "on": "open_half",
+          "ratio": 0.3,
+          "toward": "open",
+          "why": "아무것도 맞대지 않은 개방면으로만 밀어 이웃 다섯 면과의 이격은 건드리지 않는다."
+        },
+        {
+          "op": "taper",
+          "on": "back_half",
+          "ratio": 0.8,
+          "why": "이웃측 반은 위로 갈수록 좁혀 정북일조 봉투 안으로 들인다."
+        }
       ]
     },
     {
@@ -80,10 +210,35 @@
       "dominant_gesture": "몸통 옆구리를 크게 파고 팔 하나를 열린 쪽으로 꺾어 대지를 감싸 안는다.",
       "reference_basis": "OMA Casa da Música — 하나의 몸에 큰 관통 공동을 뚫어 도형으로 만드는 특허",
       "ops": [
-        {"op": "extrude", "height": 0.5, "why": "갈고리의 몸통과 팔이 한 몸으로 남도록 대지 판에서 시작한다."},
-        {"op": "split", "along": "long", "ratio": 0.7, "first": "body", "second": "arm", "gap": 0, "why": "몸통을 크게, 팔을 작게 두어 두 조각이 절대 같은 크기가 되지 않게 한다."},
-        {"op": "carve", "on": "body", "size": 0.5, "at": "cross", "reach": 0.85, "why": "몸통 측면을 대지 단축 방향으로 깊게 파내 갈고리의 안쪽 면을 만든다."},
-        {"op": "shear", "on": "arm", "ratio": 0.25, "toward": "open", "why": "팔만 서남서 개방부로 밀어 갈고리가 열린 쪽을 향해 벌어지게 한다."}
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "갈고리의 몸통과 팔이 한 몸으로 남도록 대지 판에서 시작한다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.7,
+          "first": "body",
+          "second": "arm",
+          "gap": 0,
+          "why": "몸통을 크게, 팔을 작게 두어 두 조각이 절대 같은 크기가 되지 않게 한다."
+        },
+        {
+          "op": "carve",
+          "on": "body",
+          "size": 0.5,
+          "at": "cross",
+          "reach": 0.85,
+          "why": "몸통 측면을 대지 단축 방향으로 깊게 파내 갈고리의 안쪽 면을 만든다."
+        },
+        {
+          "op": "stagger",
+          "on": "arm",
+          "ratio": 0.25,
+          "toward": "open",
+          "why": "팔만 서남서 개방부로 밀어 갈고리가 열린 쪽을 향해 벌어지게 한다."
+        }
       ]
     },
     {
@@ -94,9 +249,25 @@
       "dominant_gesture": "건물은 끝까지 하나다. 다만 뒤쪽 배를 깊게 도려내 그 안에 마당이 들어앉는다.",
       "reference_basis": "BIG Mountain Dwellings — 하나의 볼륨만 변형해 단차와 공동을 동시에 얻는 방식",
       "ops": [
-        {"op": "extrude", "height": 0.4, "why": "저층 대지이므로 기단은 얇게 두고 형태는 위쪽 조작에 맡긴다."},
-        {"op": "stack", "n": 3, "contrast": 1.45, "align": "open", "why": "서남서 개방면을 한 면으로 세우고 나머지 면만 물러나게 해 동심원 케이크가 되지 않게 한다."},
-        {"op": "carve", "size": 0.55, "at": "back", "reach": 0.9, "why": "이웃에 접한 뒤쪽을 깊게 파내 채광과 중정을 동시에 확보한다. 건폐율은 내려가지만 평면이 도형이 된다."}
+        {
+          "op": "extrude",
+          "height": 0.4,
+          "why": "저층 대지이므로 기단은 얇게 두고 형태는 위쪽 조작에 맡긴다."
+        },
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.45,
+          "align": "open",
+          "why": "서남서 개방면을 한 면으로 세우고 나머지 면만 물러나게 해 동심원 케이크가 되지 않게 한다."
+        },
+        {
+          "op": "carve",
+          "size": 0.55,
+          "at": "back",
+          "reach": 0.9,
+          "why": "이웃에 접한 뒤쪽을 깊게 파내 채광과 중정을 동시에 확보한다. 건폐율은 내려가지만 평면이 도형이 된다."
+        }
       ]
     },
     {
@@ -107,10 +278,34 @@
       "dominant_gesture": "마당이 두 개다 — 하나는 완전히 둘러싸이고, 하나는 서쪽으로 터져 있다.",
       "reference_basis": "SANAA Zollverein School — 단일 경계 안에서 성격이 다른 공동을 병치하는 조작",
       "ops": [
-        {"op": "extrude", "height": 0.55, "why": "성격이 다른 두 마당이 각각 떨어진 몸이 되지 않도록 지면에서 하나로 묶는다."},
-        {"op": "split", "along": "cross", "ratio": 0.42, "first": "north_court", "second": "south_body", "gap": 0, "why": "작은 쪽을 북측에 두어 정북일조로 어차피 낮아질 자리에 닫힌 중정을 배정한다."},
-        {"op": "loop", "on": "north_court", "bar": 0.2, "why": "북측 조각만 네 바가 코너에서 만나는 닫힌 고리로 만들어 완전히 둘러싸인 마당을 얻는다."},
-        {"op": "carve", "on": "south_body", "size": 0.45, "at": "open", "reach": 0.6, "why": "남측 큰 조각은 개방면에서 절개해 서남서로 터진 마당을 만든다."}
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "why": "성격이 다른 두 마당이 각각 떨어진 몸이 되지 않도록 지면에서 하나로 묶는다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.42,
+          "first": "north_court",
+          "second": "south_body",
+          "gap": 0,
+          "why": "작은 쪽을 북측에 두어 정북일조로 어차피 낮아질 자리에 닫힌 중정을 배정한다."
+        },
+        {
+          "op": "loop",
+          "on": "north_court",
+          "bar": 0.2,
+          "why": "북측 조각만 네 바가 코너에서 만나는 닫힌 고리로 만들어 완전히 둘러싸인 마당을 얻는다."
+        },
+        {
+          "op": "carve",
+          "on": "south_body",
+          "size": 0.45,
+          "at": "open",
+          "reach": 0.6,
+          "why": "남측 큰 조각은 개방면에서 절개해 서남서로 터진 마당을 만든다."
+        }
       ]
     },
     {
@@ -121,8 +316,18 @@
       "dominant_gesture": "건물이 아니라 지붕 하나 아래 흩어진 다섯 덩어리다. 그 사이가 전부 외부다.",
       "reference_basis": "SANAA Moriyama House — 하나의 대지 위 불균등한 개체군, 사이 공간이 주인공",
       "ops": [
-        {"op": "extrude", "height": 0.7, "why": "다섯 개체가 각각 떨어진 몸이 되지 않도록 대지 전체를 하나의 낮은 판으로 접지시킨다."},
-        {"op": "aggregate", "n": 5, "spread": 1.7, "tie": 0.22, "why": "2,499 m² 대지에 크기 차가 큰 다섯 개체를 평면으로만 퍼뜨려 4.2층 저층 규모를 유지한다."}
+        {
+          "op": "extrude",
+          "height": 0.7,
+          "why": "다섯 개체가 각각 떨어진 몸이 되지 않도록 대지 전체를 하나의 낮은 판으로 접지시킨다."
+        },
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.7,
+          "tie": 0.22,
+          "why": "2,499 m² 대지에 크기 차가 큰 다섯 개체를 평면으로만 퍼뜨려 4.2층 저층 규모를 유지한다."
+        }
       ]
     },
     {
@@ -133,10 +338,36 @@
       "dominant_gesture": "이웃 다섯 면엔 벽 한 장, 열린 서쪽엔 흩어진 네 덩어리.",
       "reference_basis": "OMA Rotterdam(변형) — 한 몸을 벽과 군집이라는 이질적 두 동료로 자르는 방식",
       "ops": [
-        {"op": "extrude", "height": 0.5, "why": "밭과 바가 하나의 대지 판 위에서 접지되도록 먼저 깔아둔다."},
-        {"op": "split", "along": "long", "ratio": 0.58, "first": "open_field", "second": "neighbour_bar", "gap": 0, "why": "장축을 따라 갈라 서남서 개방부에 큰 몫을 주고 이웃측은 얇게 남긴다."},
-        {"op": "aggregate", "on": "open_field", "n": 4, "spread": 1.5, "tie": 0.16, "why": "열린 쪽에만 크기가 다른 네 개체를 흩어 그 사이가 전부 외부로 읽히게 한다."},
-        {"op": "stack", "on": "neighbour_bar", "n": 2, "contrast": 1.5, "align": "back", "why": "이웃 접면은 그대로 세워 경계를 막고, 반대쪽만 물러나 일조 봉투를 따른다."}
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "밭과 바가 하나의 대지 판 위에서 접지되도록 먼저 깔아둔다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.58,
+          "first": "open_field",
+          "second": "neighbour_bar",
+          "gap": 0,
+          "why": "장축을 따라 갈라 서남서 개방부에 큰 몫을 주고 이웃측은 얇게 남긴다."
+        },
+        {
+          "op": "aggregate",
+          "on": "open_field",
+          "n": 4,
+          "spread": 1.5,
+          "tie": 0.16,
+          "why": "열린 쪽에만 크기가 다른 네 개체를 흩어 그 사이가 전부 외부로 읽히게 한다."
+        },
+        {
+          "op": "stack",
+          "on": "neighbour_bar",
+          "n": 2,
+          "contrast": 1.5,
+          "align": "back",
+          "why": "이웃 접면은 그대로 세워 경계를 막고, 반대쪽만 물러나 일조 봉투를 따른다."
+        }
       ]
     },
     {
@@ -147,10 +378,34 @@
       "dominant_gesture": "마당 위에 뜬 세 덩어리 아래로 대지가 그대로 지나간다.",
       "reference_basis": "SANAA Rolex Learning Center — 지면을 비우고 그 위에 다공 볼륨을 얹는 조작",
       "ops": [
-        {"op": "extrude", "height": 0.6, "why": "들어올린 군집이 공중에 떠 버리지 않도록 대지 전체를 접지 판으로 먼저 잡는다."},
-        {"op": "split", "along": "cross", "ratio": 0.65, "first": "yard_field", "second": "ground_bar", "gap": 0, "why": "큰 쪽을 마당쪽으로 배정해 들어올릴 대상과 땅에 붙일 대상을 나눈다."},
-        {"op": "aggregate", "on": "yard_field", "n": 3, "spread": 1.6, "tie": 0.3, "why": "마당쪽 조각을 크기가 다른 세 개체로 흩어 밀도를 낮춘다."},
-        {"op": "lift", "on": "yard_field", "clearance": 0.25, "why": "그 군집만 지지대 위로 들어 마당을 건물 아래로 연속시킨다."}
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "why": "들어올린 군집이 공중에 떠 버리지 않도록 대지 전체를 접지 판으로 먼저 잡는다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.65,
+          "first": "yard_field",
+          "second": "ground_bar",
+          "gap": 0,
+          "why": "큰 쪽을 마당쪽으로 배정해 들어올릴 대상과 땅에 붙일 대상을 나눈다."
+        },
+        {
+          "op": "aggregate",
+          "on": "yard_field",
+          "n": 3,
+          "spread": 1.6,
+          "tie": 0.3,
+          "why": "마당쪽 조각을 크기가 다른 세 개체로 흩어 밀도를 낮춘다."
+        },
+        {
+          "op": "lift",
+          "on": "yard_field",
+          "clearance": 0.25,
+          "why": "그 군집만 지지대 위로 들어 마당을 건물 아래로 연속시킨다."
+        }
       ]
     },
     {
@@ -161,9 +416,23 @@
       "dominant_gesture": "경계는 하나의 도형, 그 안은 채워지지 않은 채 네 덩어리가 떠 있다.",
       "reference_basis": "SANAA 21세기 미술관 가나자와 — 불규칙 대지 위 순수 경계 + 내접 개체",
       "ops": [
-        {"op": "extrude", "height": 0.35, "why": "고리와 내부 개체가 하나의 몸으로 접지되도록 얇은 판에서 시작한다."},
-        {"op": "loop", "bar": 0.18, "why": "-30°로 비틀린 불규칙 대지에 얇은 네 바의 순수 경계를 세워 대지 형상과 무관한 도형을 만든다."},
-        {"op": "aggregate", "n": 4, "spread": 1.4, "tie": 0.1, "why": "그 경계 안에 크기가 모두 다른 네 개체를 내접시켜 건폐율보다 사이 공간을 우선한다."}
+        {
+          "op": "extrude",
+          "height": 0.35,
+          "why": "고리와 내부 개체가 하나의 몸으로 접지되도록 얇은 판에서 시작한다."
+        },
+        {
+          "op": "loop",
+          "bar": 0.18,
+          "why": "-30°로 비틀린 불규칙 대지에 얇은 네 바의 순수 경계를 세워 대지 형상과 무관한 도형을 만든다."
+        },
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.4,
+          "tie": 0.1,
+          "why": "그 경계 안에 크기가 모두 다른 네 개체를 내접시켜 건폐율보다 사이 공간을 우선한다."
+        }
       ]
     },
     {
@@ -174,10 +443,36 @@
       "dominant_gesture": "가로쪽은 흩어지고 안쪽은 뭉쳐 있다 — 같은 대지에서 밀도가 두 번 바뀐다.",
       "reference_basis": "OMA Seattle Library — 밀도가 다른 층위를 하나의 대지 안에 병치하는 특허",
       "ops": [
-        {"op": "extrude", "height": 0.5, "why": "밀도가 다른 두 영역이 한 몸으로 남도록 지면 판을 먼저 깐다."},
-        {"op": "split", "along": "long", "ratio": 0.52, "first": "street_field", "second": "yard_block", "gap": 0, "why": "장축을 따라 갈라 가로에 면한 쪽과 대지 안쪽을 다른 밀도로 다룬다."},
-        {"op": "aggregate", "on": "street_field", "n": 4, "spread": 1.35, "tie": 0.14, "why": "가로측만 네 개체로 흩어 접근면을 다공으로 만든다."},
-        {"op": "carve", "on": "yard_block", "size": 0.4, "at": "cross", "reach": 0.5, "why": "안쪽 블록은 단축 방향으로 한 번만 파내 이웃 다섯 면에 대한 채광 홈을 만든다."}
+        {
+          "op": "extrude",
+          "height": 0.5,
+          "why": "밀도가 다른 두 영역이 한 몸으로 남도록 지면 판을 먼저 깐다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.52,
+          "first": "street_field",
+          "second": "yard_block",
+          "gap": 0,
+          "why": "장축을 따라 갈라 가로에 면한 쪽과 대지 안쪽을 다른 밀도로 다룬다."
+        },
+        {
+          "op": "aggregate",
+          "on": "street_field",
+          "n": 4,
+          "spread": 1.35,
+          "tie": 0.14,
+          "why": "가로측만 네 개체로 흩어 접근면을 다공으로 만든다."
+        },
+        {
+          "op": "carve",
+          "on": "yard_block",
+          "size": 0.4,
+          "at": "cross",
+          "reach": 0.5,
+          "why": "안쪽 블록은 단축 방향으로 한 번만 파내 이웃 다섯 면에 대한 채광 홈을 만든다."
+        }
       ]
     },
     {
@@ -188,12 +483,52 @@
       "dominant_gesture": "세 조각 모두 마당을 갖지만 마당의 종류가 셋 다 다르다.",
       "reference_basis": "OMA — 알려진 블록을 두 번 잘라 불균등한 3 동료로 만드는 방식",
       "ops": [
-        {"op": "extrude", "height": 0.55, "why": "세 조각이 한 몸으로 접지되도록 대지 전체 판에서 시작한다."},
-        {"op": "split", "along": "cross", "ratio": 0.62, "first": "upper_field", "second": "lower_field", "gap": 0, "why": "먼저 가로로 불균등하게 갈라 큰 쪽을 개체군에 배정한다."},
-        {"op": "split", "on": "lower_field", "along": "long", "ratio": 0.55, "first": "lower_west", "second": "lower_east", "gap": 0, "why": "작은 쪽을 다시 장축으로 갈라 서남서 개방면과 이웃 접면을 분리한다."},
-        {"op": "aggregate", "on": "upper_field", "n": 3, "spread": 1.5, "tie": 0.18, "why": "가장 큰 조각만 세 개체로 흩어 대지 절반 이상을 외부로 남긴다."},
-        {"op": "loop", "on": "lower_west", "bar": 0.22, "why": "개방면에 붙은 조각은 고리로 만들어 그 안에 닫힌 마당을 하나 확보한다."},
-        {"op": "carve", "on": "lower_east", "size": 0.3, "at": "back", "reach": 0.4, "why": "이웃 접면 조각은 얕게만 파내 경계는 유지하고 채광만 얻는다."}
+        {
+          "op": "extrude",
+          "height": 0.55,
+          "why": "세 조각이 한 몸으로 접지되도록 대지 전체 판에서 시작한다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.62,
+          "first": "upper_field",
+          "second": "lower_field",
+          "gap": 0,
+          "why": "먼저 가로로 불균등하게 갈라 큰 쪽을 개체군에 배정한다."
+        },
+        {
+          "op": "split",
+          "on": "lower_field",
+          "along": "long",
+          "ratio": 0.55,
+          "first": "lower_west",
+          "second": "lower_east",
+          "gap": 0,
+          "why": "작은 쪽을 다시 장축으로 갈라 서남서 개방면과 이웃 접면을 분리한다."
+        },
+        {
+          "op": "aggregate",
+          "on": "upper_field",
+          "n": 3,
+          "spread": 1.5,
+          "tie": 0.18,
+          "why": "가장 큰 조각만 세 개체로 흩어 대지 절반 이상을 외부로 남긴다."
+        },
+        {
+          "op": "loop",
+          "on": "lower_west",
+          "bar": 0.22,
+          "why": "개방면에 붙은 조각은 고리로 만들어 그 안에 닫힌 마당을 하나 확보한다."
+        },
+        {
+          "op": "carve",
+          "on": "lower_east",
+          "size": 0.3,
+          "at": "back",
+          "reach": 0.4,
+          "why": "이웃 접면 조각은 얕게만 파내 경계는 유지하고 채광만 얻는다."
+        }
       ]
     },
     {
@@ -204,11 +539,42 @@
       "dominant_gesture": "이웃에는 벽 한 장을 대고, 그 뒤에 기둥 위로 뜬 네 덩어리 숲을 심는다.",
       "reference_basis": "SANAA Vitra Factory + BIG — 얇은 경계와 다공 군집의 대비",
       "ops": [
-        {"op": "extrude", "height": 0.65, "why": "들어올릴 군집이 대지에서 떨어지지 않도록 접지 판을 먼저 두껍게 잡는다."},
-        {"op": "split", "along": "long", "ratio": 0.6, "first": "grove", "second": "edge_wall", "gap": 0, "why": "장축을 따라 갈라 숲과 벽이라는 성격이 완전히 다른 두 조각을 만든다."},
-        {"op": "aggregate", "on": "grove", "n": 4, "spread": 1.45, "tie": 0.12, "why": "숲 쪽만 크기가 다른 네 개체로 흩어 사이 공간을 최대화한다."},
-        {"op": "lift", "on": "grove", "clearance": 0.35, "why": "그 숲 전체를 들어 아래를 통과 가능한 그늘 마당으로 남긴다."},
-        {"op": "stack", "on": "edge_wall", "n": 2, "contrast": 1.3, "align": "back", "why": "벽은 이웃 접면을 유지한 채 두 단으로만 올려 정북일조 봉투를 넘지 않게 한다."}
+        {
+          "op": "extrude",
+          "height": 0.65,
+          "why": "들어올릴 군집이 대지에서 떨어지지 않도록 접지 판을 먼저 두껍게 잡는다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.6,
+          "first": "grove",
+          "second": "edge_wall",
+          "gap": 0,
+          "why": "장축을 따라 갈라 숲과 벽이라는 성격이 완전히 다른 두 조각을 만든다."
+        },
+        {
+          "op": "aggregate",
+          "on": "grove",
+          "n": 4,
+          "spread": 1.45,
+          "tie": 0.12,
+          "why": "숲 쪽만 크기가 다른 네 개체로 흩어 사이 공간을 최대화한다."
+        },
+        {
+          "op": "lift",
+          "on": "grove",
+          "clearance": 0.35,
+          "why": "그 숲 전체를 들어 아래를 통과 가능한 그늘 마당으로 남긴다."
+        },
+        {
+          "op": "stack",
+          "on": "edge_wall",
+          "n": 2,
+          "contrast": 1.3,
+          "align": "back",
+          "why": "벽은 이웃 접면을 유지한 채 두 단으로만 올려 정북일조 봉투를 넘지 않게 한다."
+        }
       ]
     },
     {
@@ -219,10 +585,34 @@
       "dominant_gesture": "서쪽 반은 뚫려 하늘이 보이고, 동쪽 반은 위로 갈수록 오므라든다.",
       "reference_basis": "BIG Superkilen/8 House — 하나의 몸을 관통시켜 대지를 가로지르게 하는 변형",
       "ops": [
-        {"op": "extrude", "height": 0.45, "why": "관통된 반과 좁혀진 반이 분리되지 않도록 지면 판에서 시작한다."},
-        {"op": "split", "along": "cross", "ratio": 0.68, "first": "porous_half", "second": "dense_half", "gap": 0, "why": "큰 쪽을 아무것도 맞대지 않은 서남서 개방부에 배정해 마음껏 뚫을 수 있게 한다."},
-        {"op": "carve", "on": "porous_half", "size": 0.58, "at": "open", "reach": 1.0, "why": "개방면 조각만 끝까지 관통시켜 대지를 가로지르는 외부 통로를 만든다."},
-        {"op": "taper", "on": "dense_half", "ratio": 0.75, "why": "이웃측 반은 위로 좁혀 정북일조로 줄어드는 평면을 형태로 받아들인다."}
+        {
+          "op": "extrude",
+          "height": 0.45,
+          "why": "관통된 반과 좁혀진 반이 분리되지 않도록 지면 판에서 시작한다."
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.68,
+          "first": "porous_half",
+          "second": "dense_half",
+          "gap": 0,
+          "why": "큰 쪽을 아무것도 맞대지 않은 서남서 개방부에 배정해 마음껏 뚫을 수 있게 한다."
+        },
+        {
+          "op": "carve",
+          "on": "porous_half",
+          "size": 0.58,
+          "at": "open",
+          "reach": 1.0,
+          "why": "개방면 조각만 끝까지 관통시켜 대지를 가로지르는 외부 통로를 만든다."
+        },
+        {
+          "op": "taper",
+          "on": "dense_half",
+          "ratio": 0.75,
+          "why": "이웃측 반은 위로 좁혀 정북일조로 줄어드는 평면을 형태로 받아들인다."
+        }
       ]
     }
   ]

@@ -9,8 +9,17 @@
       "dominant_gesture": "One block, tilted off its own base toward the only side that is not a neighbour.",
       "reference_basis": "OMA — Timmerhuis (displacement by fixed module, no rotation)",
       "ops": [
-        {"op": "extrude", "height": 0.95, "why": "4.2층밖에 못 올리는 대지라 용적률은 높이가 아니라 한 덩어리의 부피로 채운다"},
-        {"op": "shear", "ratio": 0.26, "toward": "open", "why": "다섯 면이 인접필지에 붙어 있으므로 상부를 유일한 개방면(서남서)으로만 밀어 그늘과 이격을 그쪽에 몰아준다"}
+        {
+          "op": "extrude",
+          "height": 0.95,
+          "why": "4.2층밖에 못 올리는 대지라 용적률은 높이가 아니라 한 덩어리의 부피로 채운다"
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.26,
+          "toward": "open",
+          "why": "다섯 면이 인접필지에 붙어 있으므로 상부를 유일한 개방면(서남서)으로만 밀어 그늘과 이격을 그쪽에 몰아준다"
+        }
       ]
     },
     {
@@ -21,7 +30,13 @@
       "dominant_gesture": "The building keeps one straight face to the open side and walks away from every neighbour.",
       "reference_basis": "BIG — 79&Park (extrusion then daylight step)",
       "ops": [
-        {"op": "stack", "n": 3, "contrast": 1.32, "align": "open", "why": "정북일조로 위층이 깎일 수밖에 없으니 그 축소분을 인접 5면 쪽으로 전부 보내고 개방면은 한 면으로 세운다"}
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.32,
+          "align": "open",
+          "why": "정북일조로 위층이 깎일 수밖에 없으니 그 축소분을 인접 5면 쪽으로 전부 보내고 개방면은 한 면으로 세운다"
+        }
       ]
     },
     {
@@ -32,8 +47,18 @@
       "dominant_gesture": "It stands hard on the party line and falls back over the yard as it rises.",
       "reference_basis": "OMA — Rothschild Tower (one figure, one retreating edge)",
       "ops": [
-        {"op": "stack", "n": 4, "contrast": 1.27, "align": "back", "why": "붙어 있는 뒷면은 어차피 창이 안 나므로 그 면을 벽으로 굳히고 축소는 마당 쪽에서만 일어나게 한다"},
-        {"op": "taper", "ratio": 0.62, "why": "최상층을 더 당겨 정북일조 사선에 부딪히는 부분을 형태로 미리 흡수한다"}
+        {
+          "op": "stack",
+          "n": 4,
+          "contrast": 1.27,
+          "align": "back",
+          "why": "붙어 있는 뒷면은 어차피 창이 안 나므로 그 면을 벽으로 굳히고 축소는 마당 쪽에서만 일어나게 한다"
+        },
+        {
+          "op": "taper",
+          "ratio": 0.62,
+          "why": "최상층을 더 당겨 정북일조 사선에 부딪히는 부분을 형태로 미리 흡수한다"
+        }
       ]
     },
     {
@@ -44,7 +69,13 @@
       "dominant_gesture": "Not one building and not a row: three different-sized bodies caught under a single slab.",
       "reference_basis": "OMA — Educatorium / SANAA Moriyama (unequal peers, never twins)",
       "ops": [
-        {"op": "aggregate", "n": 3, "spread": 1.9, "tie": 0.22, "why": "부정형 필지(외접 3,707 중 건축가능 1,922)라 하나의 큰 사각형은 남는 자투리를 못 쓴다 — 크기가 다른 세 덩어리가 남는 구석까지 앉는다"}
+        {
+          "op": "aggregate",
+          "n": 3,
+          "spread": 1.9,
+          "tie": 0.22,
+          "why": "부정형 필지(외접 3,707 중 건축가능 1,922)라 하나의 큰 사각형은 남는 자투리를 못 쓴다 — 크기가 다른 세 덩어리가 남는 구석까지 앉는다"
+        }
       ]
     },
     {
@@ -55,8 +86,16 @@
       "dominant_gesture": "The mass never touches the yard — you walk under the whole building.",
       "reference_basis": "SANAA — Zollverein School / Kunstlinie (one volume, ground released)",
       "ops": [
-        {"op": "extrude", "height": 0.9, "why": "층수 여유가 없으니 부피는 한 판으로 확보하고 변화는 지면에서 만든다"},
-        {"op": "lift", "clearance": 0.3, "why": "도로 폴리곤이 없고 서남서 한 면만 열려 있어 접근이 좁다 — 지면을 통째로 비워 개방면에서 필지 안쪽까지 들어오게 한다"}
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "층수 여유가 없으니 부피는 한 판으로 확보하고 변화는 지면에서 만든다"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.3,
+          "why": "도로 폴리곤이 없고 서남서 한 면만 열려 있어 접근이 좁다 — 지면을 통째로 비워 개방면에서 필지 안쪽까지 들어오게 한다"
+        }
       ]
     },
     {
@@ -67,8 +106,16 @@
       "dominant_gesture": "A single long prism lying along the site's own direction, sharpened at the top.",
       "reference_basis": "BIG — Kistefos / Mountain (one volume deformed once)",
       "ops": [
-        {"op": "extrude", "height": 1.0, "why": "장축이 -30°로 기울어진 좁고 긴 대지라 그 축을 그대로 따르는 한 몸이 가장 많은 바닥을 얻는다"},
-        {"op": "taper", "ratio": 0.55, "why": "정북일조가 높이에 따라 평면을 깎으므로 최상층을 미리 당겨 잘린 자국이 아니라 형태로 읽히게 한다"}
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "장축이 -30°로 기울어진 좁고 긴 대지라 그 축을 그대로 따르는 한 몸이 가장 많은 바닥을 얻는다"
+        },
+        {
+          "op": "taper",
+          "ratio": 0.55,
+          "why": "정북일조가 높이에 따라 평면을 깎으므로 최상층을 미리 당겨 잘린 자국이 아니라 형태로 읽히게 한다"
+        }
       ]
     },
     {
@@ -79,8 +126,19 @@
       "dominant_gesture": "A broad plinth with one small piece slid sideways off it.",
       "reference_basis": "OMA — Casa da Musica plinth logic (base and one differing body)",
       "ops": [
-        {"op": "stack", "n": 2, "contrast": 1.55, "align": "cross", "why": "4.2층 대지에서 단면 사건은 한 번뿐이다 — 큰 기단과 확연히 작은 한 층으로 위계를 한 번에 만든다"},
-        {"op": "shear", "ratio": 0.2, "toward": "cross", "why": "긴 축이 아니라 짧은 축으로 밀어 개방면 조망은 남기고 인접면 쪽 채광창을 단 위로 띄운다"}
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.55,
+          "align": "cross",
+          "why": "4.2층 대지에서 단면 사건은 한 번뿐이다 — 큰 기단과 확연히 작은 한 층으로 위계를 한 번에 만든다"
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.2,
+          "toward": "cross",
+          "why": "긴 축이 아니라 짧은 축으로 밀어 개방면 조망은 남기고 인접면 쪽 채광창을 단 위로 띄운다"
+        }
       ]
     },
     {
@@ -91,8 +149,18 @@
       "dominant_gesture": "The building bites one piece out of itself where the street would be.",
       "reference_basis": "OMA — Kunsthal (one figure, one removal)",
       "ops": [
-        {"op": "extrude", "height": 0.92, "why": "한 몸으로 건폐율을 채운 뒤 필요한 만큼만 덜어낸다 — 처음부터 흩는 것보다 면적이 유리하다"},
-        {"op": "carve", "size": 0.45, "at": "open", "reach": 0.55, "why": "도로 폴리곤이 없어 접근 마당이 없다 — 유일한 개방면(서남서)에서 전면 마당을 몸에서 파낸다"}
+        {
+          "op": "extrude",
+          "height": 0.92,
+          "why": "한 몸으로 건폐율을 채운 뒤 필요한 만큼만 덜어낸다 — 처음부터 흩는 것보다 면적이 유리하다"
+        },
+        {
+          "op": "carve",
+          "size": 0.45,
+          "at": "open",
+          "reach": 0.55,
+          "why": "도로 폴리곤이 없어 접근 마당이 없다 — 유일한 개방면(서남서)에서 전면 마당을 몸에서 파낸다"
+        }
       ]
     },
     {
@@ -103,7 +171,12 @@
       "dominant_gesture": "A ring: every room faces its own courtyard, none face the neighbours.",
       "reference_basis": "SANAA — Kanazawa 21st Century (boundary holding a void)",
       "ops": [
-        {"op": "loop", "bar": 0.3, "height": 0.78, "why": "다섯 면이 인접필지라 바깥으로 낼 창이 없다 — 채광과 조망을 필지 안쪽 중정에서 자급한다"}
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.78,
+          "why": "다섯 면이 인접필지라 바깥으로 낼 창이 없다 — 채광과 조망을 필지 안쪽 중정에서 자급한다"
+        }
       ]
     },
     {
@@ -114,8 +187,18 @@
       "dominant_gesture": "One cut, right through — but the mass is still a single body.",
       "reference_basis": "BIG — Superkilen/8 House slot logic (single incision)",
       "ops": [
-        {"op": "extrude", "height": 0.88, "why": "저층 4.2층에서는 평면 깊이가 깊어져 중앙부가 어두워진다 — 우선 한 몸으로 최대 바닥을 만든다"},
-        {"op": "carve", "size": 0.22, "at": "cross", "reach": 1.0, "why": "짧은 축을 관통시켜 깊은 평면 중앙까지 빛을 넣되, 한쪽 끝을 붙여 두 동이 아니라 한 몸으로 남긴다"}
+        {
+          "op": "extrude",
+          "height": 0.88,
+          "why": "저층 4.2층에서는 평면 깊이가 깊어져 중앙부가 어두워진다 — 우선 한 몸으로 최대 바닥을 만든다"
+        },
+        {
+          "op": "carve",
+          "size": 0.22,
+          "at": "cross",
+          "reach": 1.0,
+          "why": "짧은 축을 관통시켜 깊은 평면 중앙까지 빛을 넣되, 한쪽 끝을 붙여 두 동이 아니라 한 몸으로 남긴다"
+        }
       ]
     },
     {
@@ -126,8 +209,20 @@
       "dominant_gesture": "It steps in section on one side and is bitten in plan on the other.",
       "reference_basis": "OMA — Milstein Hall (section step plus plan removal)",
       "ops": [
-        {"op": "stack", "n": 2, "contrast": 1.38, "align": "open", "why": "개방면은 한 면으로 세우고 정북일조 축소분을 인접면 쪽으로 몰아준다"},
-        {"op": "carve", "size": 0.3, "at": "cross", "reach": 0.6, "why": "측면 인접필지와의 사이에 채광 노치를 파서 이격거리 대신 형태로 프라이버시를 만든다"}
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 1.38,
+          "align": "open",
+          "why": "개방면은 한 면으로 세우고 정북일조 축소분을 인접면 쪽으로 몰아준다"
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "cross",
+          "reach": 0.6,
+          "why": "측면 인접필지와의 사이에 채광 노치를 파서 이격거리 대신 형태로 프라이버시를 만든다"
+        }
       ]
     },
     {
@@ -138,8 +233,18 @@
       "dominant_gesture": "A courtyard that leans — the void widens toward the open side at the top.",
       "reference_basis": "BIG — VIA 57 West (courtyard deformed once)",
       "ops": [
-        {"op": "loop", "bar": 0.35, "height": 0.72, "why": "인접 5면에 창을 못 내므로 중정형으로 시작한다"},
-        {"op": "shear", "ratio": 0.24, "toward": "open", "why": "상부를 서남서로 밀어 중정 상단을 개방면 쪽으로 벌려 오후 빛과 하늘을 중정에 넣는다"}
+        {
+          "op": "loop",
+          "bar": 0.35,
+          "height": 0.72,
+          "why": "인접 5면에 창을 못 내므로 중정형으로 시작한다"
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.24,
+          "toward": "open",
+          "why": "상부를 서남서로 밀어 중정 상단을 개방면 쪽으로 벌려 오후 빛과 하늘을 중정에 넣는다"
+        }
       ]
     },
     {
@@ -150,9 +255,23 @@
       "dominant_gesture": "You walk under it, and the yard it hides is carved into its back.",
       "reference_basis": "SANAA — Rolex Learning Centre (single body, ground and plan both released)",
       "ops": [
-        {"op": "extrude", "height": 0.8, "why": "낮은 대지이므로 부피는 넓은 한 판으로 잡는다"},
-        {"op": "lift", "clearance": 0.25, "why": "접근 폭이 좁은 개방면에서 지면을 통과시켜 필지 뒤편까지 도달하게 한다"},
-        {"op": "carve", "size": 0.3, "at": "back", "reach": 0.7, "why": "인접필지에 막힌 뒷면에 안마당을 파서 뒤쪽 실들도 채광을 확보한다"}
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "낮은 대지이므로 부피는 넓은 한 판으로 잡는다"
+        },
+        {
+          "op": "lift",
+          "clearance": 0.25,
+          "why": "접근 폭이 좁은 개방면에서 지면을 통과시켜 필지 뒤편까지 도달하게 한다"
+        },
+        {
+          "op": "carve",
+          "size": 0.3,
+          "at": "back",
+          "reach": 0.7,
+          "why": "인접필지에 막힌 뒷면에 안마당을 파서 뒤쪽 실들도 채광을 확보한다"
+        }
       ]
     },
     {
@@ -163,8 +282,20 @@
       "dominant_gesture": "Solid against the neighbours, split open toward the one free side.",
       "reference_basis": "OMA — De Rotterdam (one figure held on one face, opened on another)",
       "ops": [
-        {"op": "stack", "n": 3, "contrast": 1.3, "align": "back", "why": "창을 못 내는 인접면을 벽으로 세우고 축소는 개방면 쪽에서만 일어나게 한다"},
-        {"op": "carve", "size": 0.5, "at": "open", "reach": 1.0, "why": "서남서 개방면에서 몸 끝까지 파고들어가 유일한 조망·채광 방향을 평면 깊숙이 끌어들인다"}
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.3,
+          "align": "back",
+          "why": "창을 못 내는 인접면을 벽으로 세우고 축소는 개방면 쪽에서만 일어나게 한다"
+        },
+        {
+          "op": "carve",
+          "size": 0.5,
+          "at": "open",
+          "reach": 1.0,
+          "why": "서남서 개방면에서 몸 끝까지 파고들어가 유일한 조망·채광 방향을 평면 깊숙이 끌어들인다"
+        }
       ]
     }
   ]

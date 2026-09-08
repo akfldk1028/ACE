@@ -97,7 +97,14 @@ PLOT_MODES: dict[str, PlotMode] = {
     "split": "inherit",
     "extrude": "inherit",
     "stack": "inherit",
-    "shear": "inherit",
+    # The stepped stack that used to be called `shear`. It slides volumes
+    # inside a mass that still takes the plot's outline, which is the reading
+    # that put it here in the first place.
+    "stagger": "inherit",
+    # And `shear` is the BOOK's p.32 oblique cut now, so it imposes for the
+    # same reason `carve` and `grade` do: a void is the point of the scheme and
+    # a clip to the boundary erases it.
+    "shear": "impose",
     # 내밈. A slide inside a mass that still takes the plot's outline.
     "cantilever": "inherit",
     "taper": "inherit",

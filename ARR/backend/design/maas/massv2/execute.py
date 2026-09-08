@@ -30,6 +30,8 @@ from shapely.ops import unary_union
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
+    scale_matrix4,
+    transform_point3,
     translation_matrix4,
     validate_matrix4,
 )
@@ -535,6 +537,7 @@ def _split(frame: _Frame, op: Operation) -> None:
 
     made: list[Placement] = []
     for item in picked:
+        pending: list[dict] = []
         low, high = item.z_span()
         cx, cy, _frame_x, _frame_y = _bounds_of([item], frame)
         # On the volume's own axes, and the pieces go back at its own bearing.
@@ -567,8 +570,15 @@ def _split(frame: _Frame, op: Operation) -> None:
         # For a square parent the two readings are identical, which is why the
         # cap could be dropped rather than made conditional.
         across = span_y if abs(ux) >= abs(uy) else span_x
-        first = along * ratio - gap / 2.0
-        second = along * (1.0 - ratio) - gap / 2.0
+        # The gap moves the halves, it does not eat them. Requicha (1980):
+        # a plane cuts a solid into its intersections with the two closed
+        # half-spaces, and those two together ARE the solid - so the material
+        # is conserved and what opens between them is a displacement. Taking
+        # `gap / 2` off each piece instead deleted the space it opened, which
+        # is why the BOOK reads this word as Displace (p.16) and massv2
+        # measured it removing 154 m3 of a 1,920 m3 body.
+        first = along * ratio
+        second = along * (1.0 - ratio)
         # Where each piece sits on the cut axis, in the parent's own unit terms,
         # so it can carry the parent's outline between those stations rather
         # than a rectangle standing in for it.
@@ -594,7 +604,9 @@ def _split(frame: _Frame, op: Operation) -> None:
             # deliver splinters.
             if size <= DEFAULT_MINIMUM_CLEAR_DEPTH_M or across <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
                 continue
-            shift = side * (along - size) / 2.0
+            # Each half steps out by half the gap, so the cut line stays where
+            # the sentence put it and the pair straddles it symmetrically.
+            shift = side * ((along - size) / 2.0 + gap / 2.0)
             # The two halves step apart along the volume's own axis, which is
             # the frame's turned by `turn`. Offsetting on the frame's axes
             # instead slid them off the cut line by the sine of that angle.
@@ -627,9 +639,9 @@ def _split(frame: _Frame, op: Operation) -> None:
                 )
             if piece_width <= DEFAULT_MINIMUM_CLEAR_DEPTH_M:
                 continue
-            made.append(
-                frame.box(
-                    name,
+            pending.append(
+                dict(
+                    role=name,
                     w=size if abs(ux) >= abs(uy) else piece_width,
                     d=piece_width if abs(ux) >= abs(uy) else size,
                     z=low, h=tall,
@@ -658,6 +670,26 @@ def _split(frame: _Frame, op: Operation) -> None:
                     occupiable=item.occupiable,
                 )
             )
+        # What the lesser piece gives up in height, the greater one takes.
+        #
+        # The contrast above is an architectural rule with its reason written
+        # beside it - two halves of one height standing flush are a drawing of
+        # the box they came from - but it was paid for by deleting the material
+        # it shortened, which is why the BOOK reads Displace on p.16 and massv2
+        # measured 8.00% removed. A displacement moves material; it does not
+        # spend it. So the pair still holds what the parent held, at the
+        # parent's own footprint: the low half is low, the tall half is taller
+        # for it, and nothing has to grow sideways into the 건폐율.
+        if len(pending) > 1:
+            full = high - low
+            areas = [piece["w"] * piece["d"] * max(plan_fill(piece["plan"]), 1e-9)
+                     for piece in pending]
+            owed = sum(area * (full - piece["h"])
+                       for area, piece in zip(areas, pending))
+            if owed > 1e-9:
+                index = max(range(len(pending)), key=lambda i: pending[i]["h"])
+                pending[index]["h"] += owed / areas[index]
+        made.extend(frame.box(piece.pop("role"), **piece) for piece in pending)
         # The cut is an alignment line the rest of the sentence can hold onto.
         # It is the composition's own axis rather than the site's, and it is
         # exactly what an architect draws first and keeps.
@@ -1250,6 +1282,23 @@ def _approach(frame: _Frame, op: Operation) -> None:
     )
 
 
+def _local_volume(item: Placement) -> float:
+    """The volume of a placement's own box, from the determinant it carries.
+
+    A placement is the image of the unit cube under its 4x4, so |det| of the
+    linear part IS its volume - exact at any bearing, lean or scale, and not a
+    footprint-times-height proxy that a leaning body would get wrong.
+    """
+
+    origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
+    columns = [
+        tuple(a - b for a, b in zip(transform_point3(item.matrix, axis), origin))
+        for axis in ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+    ]
+    (a, b, c), (d, e, f), (g, h, i) = columns
+    return abs(a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g))
+
+
 def _lift(frame: _Frame, op: Operation) -> None:
     """Raise what is standing and put a smaller thing under it.
 
@@ -1290,6 +1339,7 @@ def _lift(frame: _Frame, op: Operation) -> None:
         # also spends its void twice. Keep the local frame and all roof fields.
         matrix = compose_matrix4(item.matrix, translation_matrix4((0.0, 0.0, clearance)))
         raised.append(replace(item, matrix=validate_matrix4(matrix)))
+
     # Four supports, a third of the plan each, so what is raised spans between
     # neighbours rather than corner to corner. Two of them left a slab spanning
     # 632 times its own depth, which the span rule refused and was right to.
@@ -1330,6 +1380,22 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # word that moves the plate moves what holds it up.
     owner = str(op.params.get("on") or "").strip()
     leg_role = f"{owner}_support" if owner else "support"
+    # The legs are structure, not floor area.
+    #
+    # A lift is a translation in z and a translation has a determinant of 1 -
+    # the BOOK reads the word as Displace on p.20, the architectural
+    # literature reads pilotis the same way (the mass is moved upward, the
+    # ground is freed, the enclosed volume above is unchanged), and the tests
+    # beside this one pin the body as a rigid translation: same plan, same
+    # crown section, top and bottom both risen by exactly the clearance. That
+    # contract IS the BOOK's reading and it is already kept.
+    #
+    # What made the word measure as an addition was the four legs, and the
+    # answer is not to shave the body to pay for them - tried, and it breaks
+    # the rigid translation the BOOK asks for. The legs are already marked
+    # `occupiable=False` because that is what they are: columns are built and
+    # they are not 연면적. A ruler that counts them counts the scaffolding as
+    # the building.
     frame.placements = rest + raised + [
         # Under the volume that was lifted, not under the site. These bounds
         # were being computed and then ignored: the supports were sized and

@@ -40,6 +40,7 @@ from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
     rotation_matrix4,
     scale_matrix4,
+    shear_matrix4,
     transform_point3,
     translation_matrix4,
     validate_matrix4,
@@ -420,6 +421,79 @@ def twist(frame, op) -> None:
     frame.placements = rest + made
 
 
+# An oblique cutter needs no tuck. A graft grips what it grows from because two
+# solids sharing a face exactly merge in mathematics and split in floating
+# point; this plane is vertical only at the single height where it meets the
+# face and crosses the interior everywhere above it, so there is no coincident
+# face to defend against. Tucking anyway cost a flat 1% - 19.2 m3 of a 1,920 m3
+# body at every angle, the grip times the whole flank - on top of the wedge the
+# angle actually asks for.
+_CUT_GRIP = 0.0
+
+
+def shear(frame, op) -> None:
+    """One oblique plane through the volume - the BOOK's Shear, p.32.
+
+    Recorded there as Subtract on a Single Volume with one variation
+    parameter, `angle`, and that is the whole of it: a half-space whose
+    boundary makes an angle with the vertical, differenced from the body. It is
+    not `grade`, which is a monotone staircase cut into a face (p.29), and it
+    is not `taper`, which scales the two axes normal to a third (p.33). It is
+    one cut with one plane, and what it leaves is a battered flank.
+
+    The affine shear of the same name lives in this grammar as `skew`, where
+    Barr (1984) and every package put it. Volume is preserved there and spent
+    here, which is exactly the difference the two senses of the word carry.
+
+    The cutter is a slab standing outside one face, sheared so it enters
+    nothing at the bottom and has eaten `tan(angle) x height` of the length by
+    the top. Written in the host's own unit space, so the plane is oblique to
+    the building rather than to the parcel, on any bearing.
+    """
+
+    picked, rest = frame.pick(op)
+    hosts = [item for item in picked if item.kind == "additive"]
+    if not hosts:
+        return
+    angle = _clamp(float(op.params.get("angle", op.params.get("degrees", 20.0))),
+                   5.0, 45.0)
+    across = str(op.params.get("toward") or "long").lower() in (
+        "cross", "short", "side")
+    # Which face the plane leans away from. The default takes the far one, so
+    # `shear` on a bar reads as a raking end rather than as a lean into the
+    # street.
+    near = str(op.params.get("side") or "far").lower() in ("near", "front", "first")
+    made = list(picked)
+    for host in hosts:
+        axis = 1 if across else 0
+        length = _span_along_unit_axis(host, axis)
+        rise = _span_along_unit_axis(host, 2)
+        if length <= 1e-6 or rise <= 1e-6:
+            continue
+        # In the host's own unit terms: how much of its length the plane has
+        # taken by the time it reaches the top.
+        reach = _clamp(math.tan(math.radians(angle)) * rise / length, 0.02, 0.9)
+        lean = shear_matrix4("y" if across else "x", "z",
+                             reach if near else -reach)
+        if near:
+            low = (-1.0, 0.0, 0.0) if not across else (0.0, -1.0, 0.0)
+            high = (_CUT_GRIP, 1.0, 1.0) if not across else (1.0, _CUT_GRIP, 1.0)
+        else:
+            low = (1.0 - _CUT_GRIP, 0.0, 0.0) if not across else (0.0, 1.0 - _CUT_GRIP, 0.0)
+            high = (2.0, 1.0, 1.0) if not across else (1.0, 2.0, 1.0)
+        size = tuple(max(1e-6, b - a) for a, b in zip(low, high))
+        matrix = compose_matrix4(
+            scale_matrix4(size), translation_matrix4(low), lean, host.matrix)
+        made.append(replace(
+            host, role=f"{host.role}_shear", kind="subtractive", occupiable=False,
+            plan="square", matrix=validate_matrix4(matrix),
+            top_surface=None, bottom_surface=None, plan_region=None,
+            top_drop=0.0, drop_toward=None, ridge_along=None,
+            top_profile=None, profile_across=None, warp=None,
+        ))
+    frame.placements = rest + made
+
+
 def grade(frame, op) -> None:
     """Cut it back a step at a time, holding one face still.
 
@@ -595,8 +669,18 @@ def _slid_no_further_than_the_gap(frame, op, picked, rest, ratio, clearance):
     return shares
 
 
-def shear(frame, op) -> None:
+def stagger(frame, op) -> None:
     """Displace the upper volumes, each by a step of its own dimension.
+
+    This was called `shear` and is not one. In graphics the word has a settled
+    meaning - Maya's transform node calls it Shear, 3ds Max's modifier calls it
+    Skew, and they are the same affine transform, which this grammar already
+    says as `skew`. The BOOK gives the word a third meaning on p.32, an oblique
+    cut, and that is the one it is owed: the BOOK is the language. What this
+    function does - stepping stacked volumes past one another - is a real move
+    that 212 authored sentences depend on, and `stagger` is what a set of
+    progressively offset elements is called.
+
 
     One translation per volume, composed onto the matrix it already carries -
     so a volume keeps where it stood, which is the invariant the old
@@ -1310,6 +1394,7 @@ SWEPT_VERBS: dict[str, Callable] = {
     "taper": taper,
     "twist": twist,
     "grade": grade,
+    "stagger": stagger,
     "shear": shear,
     "cantilever": cantilever,
     "bend": bend,

@@ -214,6 +214,49 @@
      "why": "A quarter of the body below grade keeps the dome low to the street and gives the hall a lower entry level."
     }
    ]
+  },
+  {
+   "name": "comp17_folded_edge_and_room",
+   "primary_language": "carved_body",
+   "secondary_language": "접힌 단면의 긴 몸체와 낮은 실내 몸체가 맞물리고 전면의 파인 공간이 진입 여백을 만든다.",
+   "formal_principle": "접힌 단면의 긴 몸체와 낮은 실내 몸체가 맞물리고 전면의 파인 공간이 진입 여백을 만든다.",
+   "dominant_gesture": "folded edge and room",
+   "floor_height_m": 4.0,
+   "reference_basis": "Original relational authorship following the supplied reference study; no building attribution or programme compliance claim.",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 1.0,
+     "storeys": 3,
+     "profile": "chamfered",
+     "why": "Start from an occupied envelope inside the supplied storey ceiling, with no invented FAR target."
+    },
+    {
+     "op": "split",
+     "ratio": 0.62,
+     "along": "cross",
+     "first": "main_room",
+     "second": "side_room",
+     "contrast": 1.4,
+     "gap": 0,
+     "why": "Name the main room and side room before modifying their sections, retaining contact."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 20,
+     "along": "long",
+     "on": "main_room",
+     "why": "Fold only the principal room roof, keeping the smaller body legible; no structural shell claim."
+    },
+    {
+     "op": "carve",
+     "size": 0.25,
+     "at": "open",
+     "reach": 0.25,
+     "why": "Open a substantial front recess in the actual body as an entrance-space hypothesis; doors and accessible paths remain unresolved."
+    }
+   ]
   }
  ]
 }

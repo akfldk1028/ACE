@@ -1,230 +1,230 @@
 {
- "schemes": [
-  {
-   "name": "north_sun_offset_step",
-   "primary_language": "solid_body",
-   "secondary_language": "one square mid-rise body whose north band alone drops a storey - the setback said as an offset step, not a wedding cake",
-   "formal_principle": "북쪽 이웃의 해가 밀면 몸 전체가 아니라 북측 켜 하나만 내려앉는다 — 물러섬은 동심의 고리가 아니라 압력이 온 가장자리에서만 일어나는 한 단의 오프셋 스텝이다.",
-   "dominant_gesture": "북쪽 켜만 내려앉은 한 단",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "profile": "square",
-     "height": 0.55,
-     "storeys": 4,
-     "why": "입력: 2,500㎡ 위 250% 상한이 부르는 과밀이 밀고 → 몸은 탑이 아니라 중층의 찬 판으로 물러선다. extrude(square)가 4켜의 대지형 몸으로 태어나 저층 켜에 210㎡ 대회의실이 한 판으로 담긴다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱(0.42·0.72)에서 멀고 storeys 4가 사람 크기를 선언한다(규범 6). 이 몸의 사건은 다음 한 수다."
+      "name": "north_sun_offset_step",
+      "primary_language": "solid_body",
+      "secondary_language": "one square mid-rise body whose north band alone drops a storey - the setback said as an offset step, not a wedding cake",
+      "formal_principle": "북쪽 이웃의 해가 밀면 몸 전체가 아니라 북측 켜 하나만 내려앉는다 — 물러섬은 동심의 고리가 아니라 압력이 온 가장자리에서만 일어나는 한 단의 오프셋 스텝이다.",
+      "dominant_gesture": "북쪽 켜만 내려앉은 한 단",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 2,500㎡ 위 250% 상한이 부르는 과밀이 밀고 → 몸은 탑이 아니라 중층의 찬 판으로 물러선다. extrude(square)가 4켜의 대지형 몸으로 태어나 저층 켜에 210㎡ 대회의실이 한 판으로 담긴다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱(0.42·0.72)에서 멀고 storeys 4가 사람 크기를 선언한다(규범 6). 이 몸의 사건은 다음 한 수다."
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.35,
+          "first": "north_shoulder",
+          "second": "hall_body",
+          "contrast": 1.5,
+          "why": "입력: 북쪽 이웃의 해가 밀고 → 몸의 북측 상부가 물러선다. split(along long, ratio 0.35)이 몸을 이웃 쪽 켜와 가로 쪽 켜로 가르고, 몫이 작은 첫째 조각(북측)이 contrast 1.5로 낮아져 실루엣이 이웃 쪽 가장자리에서만 한 단 내려앉는다 — 동심 스텝이 사방을 똑같이 물러서는 봉투 잔여물이라면, 이 스텝은 압력이 온 쪽에서만 일어나는 화살표다. 낮아진 북측 어깨 지붕은 남는 몸의 테라스가 된다. 한계: 틈(gap)은 논지가 아니므로 선언하지 않고(단면 규칙 5), 자름은 한 번에서 멈춘다 — 둘째 스텝은 이 문장의 말이 아니다."
+        }
+      ]
     },
     {
-     "op": "split",
-     "along": "long",
-     "ratio": 0.35,
-     "first": "north_shoulder",
-     "second": "hall_body",
-     "contrast": 1.5,
-     "why": "입력: 북쪽 이웃의 해가 밀고 → 몸의 북측 상부가 물러선다. split(along long, ratio 0.35)이 몸을 이웃 쪽 켜와 가로 쪽 켜로 가르고, 몫이 작은 첫째 조각(북측)이 contrast 1.5로 낮아져 실루엣이 이웃 쪽 가장자리에서만 한 단 내려앉는다 — 동심 스텝이 사방을 똑같이 물러서는 봉투 잔여물이라면, 이 스텝은 압력이 온 쪽에서만 일어나는 화살표다. 낮아진 북측 어깨 지붕은 남는 몸의 테라스가 된다. 한계: 틈(gap)은 논지가 아니므로 선언하지 않고(단면 규칙 5), 자름은 한 번에서 멈춘다 — 둘째 스텝은 이 문장의 말이 아니다."
+      "name": "stadium_view_portal",
+      "primary_language": "carved_body",
+      "secondary_language": "a tall stadium-plan slab pierced once from street face to back - a portal the view passes through, set off to one side",
+      "formal_principle": "열린면의 조망이 당기면 몸이 비켜서는 대신 스스로 뚫린다 — 관통의 축은 남서 열린면을 정확히 향하고, 구멍의 자리는 몸의 중심이 아니라 한쪽으로 치우쳐 지상 몇 켜만 연다.",
+      "dominant_gesture": "조망 축으로 뚫린 치우친 관문",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "stadium",
+          "height": 0.85,
+          "storeys": 7,
+          "why": "입력: 과밀 상한이 밀고 → 발자국이 좁아지며 몸이 높이로 물러선다. extrude(stadium)가 양끝 반원의 7켜 높은 판으로 태어나, 직선 장변이 균질한 실의 줄을 받고 저층 깊은 켜에 210㎡ 대회의실이 담긴다. 한계: 높이 0.85는 tall 선언으로 문턱 0.72에서 여유 있게 위이고, storeys 7의 선언이 대지 평균 층수에 눌리지 않게 한다(선언 자세의 면제). 다음 한 수가 이 몸의 유일한 사건이다."
+        },
+        {
+          "op": "carve",
+          "at": "cross",
+          "size": 0.28,
+          "reach": 0.5,
+          "up_to": 0.5,
+          "through": true,
+          "why": "입력: 남서 열린면의 조망이 당기고 → 몸의 지상부가 뚫려 물러선다. carve(through, up_to 0.5)가 가로면에서 뒷면까지 관통하는 구멍 하나를 낸다 — 축은 열린면을 정확히 향해 가로에 선 사람의 시선이 몸을 통과하고, 위 절반은 온전한 판으로 남아 구멍의 인방이 된다. 자리는 at cross·reach 0.5로 몸의 중심이 아니라 한쪽으로 치우친다(동심 금지 — 치우침이 곧 진입 모퉁이를 가리킨다). 한계: 구멍은 하나에서 멈추고(BIG 지배 무브), 폭 0.28은 양쪽 다리가 몸으로 남는 몫이며, 상부 스팬은 구멍 폭의 두 배 깊이라 구조 게이트 안이다."
+        }
+      ]
+    },
+    {
+      "name": "street_wall_leant_back",
+      "primary_language": "solid_body",
+      "secondary_language": "a trapezoidal mid-rise shield parked on the street line, its street wall leaning back over the quiet court it frees behind",
+      "formal_principle": "가로 소음이 밀면 벽이 기울어 등을 돌린다 — 몸이 가로선에 붙어 방패로 서고, 그 벽의 상부가 뒤로 누워 소리를 하늘로 되쏘며, 몸이 비켜 준 뒤편이 소음 없는 마당으로 열린다.",
+      "dominant_gesture": "가로에 등을 돌려 기운 벽",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "trapezoidal",
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 과밀 상한이 밀고 → 몸은 중층 판으로 물러선다. extrude(trapezoidal)가 대지의 결을 따라 이미 방향을 가진 사변형 4켜로 태어난다(민짜 상자 금지, 규범 2). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 어디에 서고 어떻게 기우는가가 다음 두 단어다."
+        },
+        {
+          "op": "shift",
+          "toward": "open",
+          "ratio": 0.22,
+          "why": "입력: 가로 소음이 밀고 → 마당이 가로에서 물러선다. shift(toward open, 0.22)가 몸을 가로선에 붙여 세워 몸 자체가 방음의 방패가 되고, 비워진 뒤편 한 켜의 깊이가 소음이 닿지 않는 마당이 된다 — 마당은 대지 중앙이 아니라 압력의 반대쪽으로 치우친다(동심 금지). 한계: 0.22는 이동 바닥 0.15 위이고, 이 이동이 트랩 7의 조건을 푼다 — 다음 단어의 기울임이 누울 방을 여기서 먼저 만든다."
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.3,
+          "toward": "back",
+          "why": "입력: 같은 가로 소음이 벽면을 밀고 → 가로 쪽 벽의 상부가 기울어 물러선다. shear(0.3, toward back)가 밑동을 가로선에 둔 채 켜들을 마당 쪽으로 밀어, 가로 입면이 뒤로 누운 사면이 되어 소리에 등을 돌리고 하늘로 되쏜다 — 기운 상부는 앞 단어가 비워 둔 뒤편 슬랙 안에 눕는다(대지 꽉 찬 몸 위의 shear 금지, 트랩 7 회피). 한계: 0.3은 이 단어의 상한 안의 분명한 기울기이고, 마당 쪽으로 나간 상부가 마당의 처마가 되는 것까지가 이 문장이며, 둘째 형태 동사는 없다."
+        }
+      ]
+    },
+    {
+      "name": "court_ring_mouth_at_corner",
+      "primary_language": "open_figure",
+      "secondary_language": "a courtyard ring whose street bar alone is broken - a C opening its mouth to the open corner, the other three bars kept for the neighbours",
+      "formal_principle": "링은 세 이웃에게 등을 대고 마당을 지키되, 남서 열린면의 가로가 당기면 그쪽 바 하나만 끊긴다 — 마당이 가로에 입을 여는 자리는 정면 한가운데가 아니라 열린 모퉁이 쪽으로 치우친 C의 입이다.",
+      "dominant_gesture": "모퉁이로 입을 연 C자 링",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.3,
+          "height": 0.55,
+          "storeys": 3,
+          "why": "입력: 세 변의 이웃(시선·소음)이 밀고 → 방들이 바깥을 등지고 마당을 돌아선다. loop(bar 0.3)가 마당을 감싸는 네 바의 ㅁ자로 태어나, 모든 실이 마당 쪽 채광을 얻고 바 폭 0.3은 방 유효깊이를 넘는 진짜 판이다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 3이 사람 크기를 준다. 링은 닫힌 채로는 대지와 계약이 없다 — 어디가 끊기는가가 다음 한 수다."
+        },
+        {
+          "op": "carve",
+          "at": "diagonal",
+          "size": 0.3,
+          "reach": 0.9,
+          "why": "입력: 남서 열린면의 가로가 당기고 → 링의 가로 바만 끊겨 물러선다. carve(at diagonal, reach 0.9)가 절단 볼륨을 열린면 모퉁이 쪽으로 몰아 가로 바를 전 높이로 끊는다 — ㅁ이 C가 되고 마당이 가로에 입을 열되, 입은 정면 중앙이 아니라 모퉁이로 치우쳐(동심 금지) 진입이 모퉁이 광장에서 시작된다. 세 이웃 쪽 바는 온전히 남아 마당의 등이 된다. 한계: 끊김은 하나에서 멈추고(C이지 파편이 아니다), 틈 폭은 선언하지 않는다 — 논지는 입의 방향이지 치수가 아니다(단면 규칙 5)."
+        }
+      ]
+    },
+    {
+      "name": "ceded_corner_ground_pilotis",
+      "primary_language": "solid_body",
+      "secondary_language": "a chamfered mid-rise body that backs away from the street and then lifts whole - the freed open-face strip and the undercroft joining into one corner plaza",
+      "formal_principle": "지상 공공이 밀면 지상을 통째로 내준다 — 몸이 이웃 쪽으로 물러앉으며 들려, 열린면 앞의 빈 띠와 기둥 사이 그늘이 하나의 모퉁이 광장으로 이어진다: 들림은 동심의 제스처가 아니라 물러앉음이 가리킨 쪽의 광장이다.",
+      "dominant_gesture": "물러앉아 들린 몸 아래 모퉁이 광장",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "chamfered",
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 과밀 상한이 밀고 → 몸은 중층의 찬 판으로 물러선다. extrude(chamfered)가 모서리 깎인 4켜 몸으로 태어나, 깎인 모퉁이가 태생부터 진입의 결을 갖는다(규범 2). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 이 몸의 사건은 서는 방식이 아니라 지상을 내주는 방식이다."
+        },
+        {
+          "op": "shift",
+          "toward": "back",
+          "ratio": 0.2,
+          "why": "입력: 지상 공공(가로의 사람들)이 밀고 → 몸이 이웃 쪽으로 물러앉는다. shift(toward back, 0.2)가 발자국을 가로에서 거두어 열린면 앞에 몸 깊이 5분의 1의 빈 띠를 내준다 — 광장의 자리가 대지 중앙이 아니라 압력이 온 열린면 모퉁이로 치우친다(동심 금지의 화살표). 한계: 0.2는 이동 바닥 0.15 위이고, 이 물러앉음이 다음 단어의 들림에게 방향을 준다 — 들림 혼자는 동심이다."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.35,
+          "why": "입력: 같은 지상 공공이 밀고 → 남은 발자국의 지상도 물러선다. lift(clearance 0.35)가 물러앉은 몸을 통째로 들어 지상 전부를 기둥과 그늘로 내주고, 앞 단어가 연 열린면 띠와 몸 아래 그늘이 한 장의 모퉁이 광장으로 이어진다 — 열린면 쪽 절반은 하늘 아래, 나머지는 그늘 아래인 반들림의 광장. 상부 4켜의 단면은 무손상이다. 한계: 0.35는 침묵 바닥 위·상한 0.4 아래의 당당한 한 층 반 다리이고(극세 필로티 기각 전례의 반대), 들림은 한 번, 볼륨은 하나다."
+        }
+      ]
+    },
+    {
+      "name": "low_body_neighbor_bevel",
+      "primary_language": "solid_body",
+      "secondary_language": "a low faceted two-storey body that declines to occupy its neighbour-side corner - one offset bite, the rest of the block kept whole",
+      "formal_principle": "이웃 지붕선이 밀면 낮은 몸은 키를 다투는 대신 모퉁이를 내준다 — 이웃 쪽 모서리 하나만 베어 물린 오프셋 베벨이 저층 맥락에 건네는 인사이고, 나머지 몸은 온전한 한 덩어리로 남는다.",
+      "dominant_gesture": "이웃쪽 모서리만 베어 문 낮은 몸",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "faceted",
+          "height": 0.3,
+          "storeys": 2,
+          "why": "입력: 세 변의 저층 이웃 지붕선이 밀고 → 몸이 낮게 물러선다. extrude(faceted)가 다면의 2켜 낮은 몸으로 태어나, 꺾인 바깥 면들이 낮은 덩어리에 결정질의 표정을 주고(규범 2) 넓은 발자국의 찬 판에 210㎡ 대회의실이 무주 한 판으로 담긴다. 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있다 — 낮음이 논지이므로 why에 명시한다(규범 3). 사건은 다음 한 수다."
+        },
+        {
+          "op": "notch",
+          "at": "back",
+          "size": 0.4,
+          "why": "입력: 이웃 지붕선이 가장 가깝게 미는 곳은 이웃쪽 모퉁이다 → 그 모서리만 물러선다. notch(at back, 0.4)가 이웃 쪽 코너 하나를 전 높이로 베어 물어, 몸이 그 모퉁이의 점유를 사양하고 이웃의 처마 앞에 마당 조각을 내준다 — 깎임은 사방 균등한 면치기가 아니라 압력이 온 코너 하나의 오프셋 베벨이고, faceted의 깎인 결과 같은 어휘라 부가물이 아니라 몸의 문법이다. 한계: 물림은 하나에서 멈추고(정갈함의 법 — 사건 하나), 가로 쪽 세 모서리는 온전해 몸이 여전히 한 덩어리로 읽힌다."
+        }
+      ]
+    },
+    {
+      "name": "slid_roof_plate_porch",
+      "primary_language": "solid_body",
+      "secondary_language": "a two-tier square body whose upper plate is drawn toward the street - shade porch under its overhang in front, a ceded terrace strip to the neighbour behind",
+      "formal_principle": "위 판이 열린면으로 미끄러지는 한 수가 두 빚을 한꺼번에 갚는다 — 가로 쪽에서는 내민 끝이 그늘 포치가 되고, 이웃 쪽에서는 물러난 뒤가 정북의 빚을 갚는 테라스가 된다: 미끄러짐의 방향이 곧 압력의 지도다.",
+      "dominant_gesture": "가로로 미끄러져 나온 위 판",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "profile": "square",
+          "n": 2,
+          "contrast": 1.4,
+          "height": 0.55,
+          "align": "back",
+          "why": "입력: 과밀 상한이 밀고 → 몸이 기단과 위 판의 두 켜로 물러선다. stack(n 2, contrast 1.4, align back)이 찬 기단 위에 작은 위 판을 이웃 쪽 면에 붙여 앉힌다 — 위 판이 뒤에서 태어나야 가로로 미끄러질 활주로(기단 지붕)가 앞에 열린다. 기단 저층에 210㎡ 대회의실이 담긴다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 n 2로 켜당 볼륨이 층수 상한 안이다(규범 9)."
+        },
+        {
+          "op": "overlap",
+          "on": "tier_1",
+          "bite": 0.4,
+          "height": 1.0,
+          "why": "입력: 남서 열린면의 가로(볕과 사람)가 당기고 → 위 판이 그쪽으로 밀려 나간다. overlap(on tier_1, bite 0.4)이 위 판의 쌍둥이를 자기 평면의 6할만큼 가로 쪽으로 밀어 겹친다 — 같은 높이의 두 판이 겹쳐 한 장의 긴 위 켜로 읽히고, 그 끝이 기단 지붕을 건너 가로 모서리 밖으로 나가기 시작한다. 밀린 판은 기단 지붕 위를 미끄러지므로 뜬 것이 아니라 얹힌 것이다. 한계: bite 0.4는 겹침이 논지로 남는 몫이고, 내밈의 완성은 다음 단어가 맡는다."
+        },
+        {
+          "op": "shift",
+          "on": "tier_1",
+          "toward": "open",
+          "ratio": 0.18,
+          "why": "입력: 같은 열린면이 당기고, 북쪽 이웃의 해가 밀고 → 위 켜 전체가 가로로 마저 미끄러진다. shift(on tier_1, toward open, 0.18)가 위 판과 그 쌍둥이를 함께 열린면으로 밀어, 내민 끝이 기단 밖 그늘 포치의 처마가 되고(입력의 당김) 뒤에서는 위 켜가 기단 모서리에서 물러나 이웃에게 하늘 한 켜를 돌려준다(입력의 밀림) — 한 이동의 앞뒤가 두 압력에 각각 답한다. 한계: 0.18은 이동 바닥 0.15 위이고, 합산 내밈은 실측 통과값 0.28 어깨의 몫이라 캔틸레버 게이트(상한 0.40) 안이며, 미끄러짐은 한 방향 한 번이다."
+        }
+      ]
+    },
+    {
+      "name": "hexagon_bitten_at_two_corners",
+      "primary_language": "carved_body",
+      "secondary_language": "a mid-rise hexagonal body bitten at two diagonally opposite corners - a large bite bowing to the open corner, a smaller one paying the north neighbour's light",
+      "formal_principle": "대각으로 마주 보는 두 압력에는 두 응답이 있다 — 남서 열린 모퉁이는 크게 물려 진입 광장이 되고 북동 이웃 모퉁이는 작게 물려 일조의 빚을 갚되, 두 물림의 크기가 달라 어느 쪽이 주인 압력인지 실루엣이 말한다.",
+      "dominant_gesture": "대각의 두 모퉁이만 물린 육각 몸",
+      "reference_basis": "저작 신작",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "hexagon",
+          "height": 0.55,
+          "storeys": 4,
+          "why": "입력: 과밀 상한이 밀고 → 몸은 중층의 찬 육각 판으로 물러선다. extrude(hexagon)가 여섯 면의 4켜 몸으로 태어나 정면 없는 다면이 네 방향의 맥락을 고루 받고, 깊은 저층 켜에 210㎡ 대회의실이 담긴다(규범 2 — 도형이 이미 형상이다). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 사건은 두 모퉁이의 물림이다."
+        },
+        {
+          "op": "notch",
+          "at": "open",
+          "size": 0.4,
+          "why": "입력: 남서 열린 모퉁이에서 가로와 조망이 당기고 → 그 모퉁이가 크게 물러선다. notch(at open, 0.4)가 열린면 쪽 코너를 전 높이로 베어 물어 진입 모퉁이 광장을 만든다 — 물림의 자리가 정면 중앙이 아니라 압력이 오는 대각 코너 그 자체다(동심 금지). 한계: 0.4는 두 물림 중 큰 쪽 — 주인 압력의 응답이 커야 위계가 선다(규범: 동급 경쟁 금지)."
+        },
+        {
+          "op": "notch",
+          "at": "back",
+          "size": 0.28,
+          "why": "입력: 북쪽 이웃의 해가 대각 반대편에서 밀고 → 이웃쪽 모퉁이가 작게 물러선다. notch(at back, 0.28)가 이웃 코너를 베어 물어 정북의 빚을 코너 하나로 갚는다 — 첫 물림과 대각으로 마주 보는 자리라 두 응답이 한 축 위에서 읽히고, 크기가 달라 복제가 아니라 위계다. 한계: 반복은 같은 동사·다른 크기·대각 축 통일로만 허락되고(규범 8) 셋째 물림은 없다 — 두 압력, 두 응답에서 문장이 끝난다."
+        }
+      ]
     }
-   ]
-  },
-  {
-   "name": "stadium_view_portal",
-   "primary_language": "carved_body",
-   "secondary_language": "a tall stadium-plan slab pierced once from street face to back - a portal the view passes through, set off to one side",
-   "formal_principle": "열린면의 조망이 당기면 몸이 비켜서는 대신 스스로 뚫린다 — 관통의 축은 남서 열린면을 정확히 향하고, 구멍의 자리는 몸의 중심이 아니라 한쪽으로 치우쳐 지상 몇 켜만 연다.",
-   "dominant_gesture": "조망 축으로 뚫린 치우친 관문",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "stadium",
-     "height": 0.85,
-     "storeys": 7,
-     "why": "입력: 과밀 상한이 밀고 → 발자국이 좁아지며 몸이 높이로 물러선다. extrude(stadium)가 양끝 반원의 7켜 높은 판으로 태어나, 직선 장변이 균질한 실의 줄을 받고 저층 깊은 켜에 210㎡ 대회의실이 담긴다. 한계: 높이 0.85는 tall 선언으로 문턱 0.72에서 여유 있게 위이고, storeys 7의 선언이 대지 평균 층수에 눌리지 않게 한다(선언 자세의 면제). 다음 한 수가 이 몸의 유일한 사건이다."
-    },
-    {
-     "op": "carve",
-     "at": "cross",
-     "size": 0.28,
-     "reach": 0.5,
-     "up_to": 0.5,
-     "through": true,
-     "why": "입력: 남서 열린면의 조망이 당기고 → 몸의 지상부가 뚫려 물러선다. carve(through, up_to 0.5)가 가로면에서 뒷면까지 관통하는 구멍 하나를 낸다 — 축은 열린면을 정확히 향해 가로에 선 사람의 시선이 몸을 통과하고, 위 절반은 온전한 판으로 남아 구멍의 인방이 된다. 자리는 at cross·reach 0.5로 몸의 중심이 아니라 한쪽으로 치우친다(동심 금지 — 치우침이 곧 진입 모퉁이를 가리킨다). 한계: 구멍은 하나에서 멈추고(BIG 지배 무브), 폭 0.28은 양쪽 다리가 몸으로 남는 몫이며, 상부 스팬은 구멍 폭의 두 배 깊이라 구조 게이트 안이다."
-    }
-   ]
-  },
-  {
-   "name": "street_wall_leant_back",
-   "primary_language": "solid_body",
-   "secondary_language": "a trapezoidal mid-rise shield parked on the street line, its street wall leaning back over the quiet court it frees behind",
-   "formal_principle": "가로 소음이 밀면 벽이 기울어 등을 돌린다 — 몸이 가로선에 붙어 방패로 서고, 그 벽의 상부가 뒤로 누워 소리를 하늘로 되쏘며, 몸이 비켜 준 뒤편이 소음 없는 마당으로 열린다.",
-   "dominant_gesture": "가로에 등을 돌려 기운 벽",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "trapezoidal",
-     "height": 0.55,
-     "storeys": 4,
-     "why": "입력: 과밀 상한이 밀고 → 몸은 중층 판으로 물러선다. extrude(trapezoidal)가 대지의 결을 따라 이미 방향을 가진 사변형 4켜로 태어난다(민짜 상자 금지, 규범 2). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 어디에 서고 어떻게 기우는가가 다음 두 단어다."
-    },
-    {
-     "op": "shift",
-     "toward": "open",
-     "ratio": 0.22,
-     "why": "입력: 가로 소음이 밀고 → 마당이 가로에서 물러선다. shift(toward open, 0.22)가 몸을 가로선에 붙여 세워 몸 자체가 방음의 방패가 되고, 비워진 뒤편 한 켜의 깊이가 소음이 닿지 않는 마당이 된다 — 마당은 대지 중앙이 아니라 압력의 반대쪽으로 치우친다(동심 금지). 한계: 0.22는 이동 바닥 0.15 위이고, 이 이동이 트랩 7의 조건을 푼다 — 다음 단어의 기울임이 누울 방을 여기서 먼저 만든다."
-    },
-    {
-     "op": "shear",
-     "ratio": 0.3,
-     "toward": "back",
-     "why": "입력: 같은 가로 소음이 벽면을 밀고 → 가로 쪽 벽의 상부가 기울어 물러선다. shear(0.3, toward back)가 밑동을 가로선에 둔 채 켜들을 마당 쪽으로 밀어, 가로 입면이 뒤로 누운 사면이 되어 소리에 등을 돌리고 하늘로 되쏜다 — 기운 상부는 앞 단어가 비워 둔 뒤편 슬랙 안에 눕는다(대지 꽉 찬 몸 위의 shear 금지, 트랩 7 회피). 한계: 0.3은 이 단어의 상한 안의 분명한 기울기이고, 마당 쪽으로 나간 상부가 마당의 처마가 되는 것까지가 이 문장이며, 둘째 형태 동사는 없다."
-    }
-   ]
-  },
-  {
-   "name": "court_ring_mouth_at_corner",
-   "primary_language": "open_figure",
-   "secondary_language": "a courtyard ring whose street bar alone is broken - a C opening its mouth to the open corner, the other three bars kept for the neighbours",
-   "formal_principle": "링은 세 이웃에게 등을 대고 마당을 지키되, 남서 열린면의 가로가 당기면 그쪽 바 하나만 끊긴다 — 마당이 가로에 입을 여는 자리는 정면 한가운데가 아니라 열린 모퉁이 쪽으로 치우친 C의 입이다.",
-   "dominant_gesture": "모퉁이로 입을 연 C자 링",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.3,
-     "height": 0.55,
-     "storeys": 3,
-     "why": "입력: 세 변의 이웃(시선·소음)이 밀고 → 방들이 바깥을 등지고 마당을 돌아선다. loop(bar 0.3)가 마당을 감싸는 네 바의 ㅁ자로 태어나, 모든 실이 마당 쪽 채광을 얻고 바 폭 0.3은 방 유효깊이를 넘는 진짜 판이다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 3이 사람 크기를 준다. 링은 닫힌 채로는 대지와 계약이 없다 — 어디가 끊기는가가 다음 한 수다."
-    },
-    {
-     "op": "carve",
-     "at": "diagonal",
-     "size": 0.3,
-     "reach": 0.9,
-     "why": "입력: 남서 열린면의 가로가 당기고 → 링의 가로 바만 끊겨 물러선다. carve(at diagonal, reach 0.9)가 절단 볼륨을 열린면 모퉁이 쪽으로 몰아 가로 바를 전 높이로 끊는다 — ㅁ이 C가 되고 마당이 가로에 입을 열되, 입은 정면 중앙이 아니라 모퉁이로 치우쳐(동심 금지) 진입이 모퉁이 광장에서 시작된다. 세 이웃 쪽 바는 온전히 남아 마당의 등이 된다. 한계: 끊김은 하나에서 멈추고(C이지 파편이 아니다), 틈 폭은 선언하지 않는다 — 논지는 입의 방향이지 치수가 아니다(단면 규칙 5)."
-    }
-   ]
-  },
-  {
-   "name": "ceded_corner_ground_pilotis",
-   "primary_language": "solid_body",
-   "secondary_language": "a chamfered mid-rise body that backs away from the street and then lifts whole - the freed open-face strip and the undercroft joining into one corner plaza",
-   "formal_principle": "지상 공공이 밀면 지상을 통째로 내준다 — 몸이 이웃 쪽으로 물러앉으며 들려, 열린면 앞의 빈 띠와 기둥 사이 그늘이 하나의 모퉁이 광장으로 이어진다: 들림은 동심의 제스처가 아니라 물러앉음이 가리킨 쪽의 광장이다.",
-   "dominant_gesture": "물러앉아 들린 몸 아래 모퉁이 광장",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "chamfered",
-     "height": 0.55,
-     "storeys": 4,
-     "why": "입력: 과밀 상한이 밀고 → 몸은 중층의 찬 판으로 물러선다. extrude(chamfered)가 모서리 깎인 4켜 몸으로 태어나, 깎인 모퉁이가 태생부터 진입의 결을 갖는다(규범 2). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 이 몸의 사건은 서는 방식이 아니라 지상을 내주는 방식이다."
-    },
-    {
-     "op": "shift",
-     "toward": "back",
-     "ratio": 0.2,
-     "why": "입력: 지상 공공(가로의 사람들)이 밀고 → 몸이 이웃 쪽으로 물러앉는다. shift(toward back, 0.2)가 발자국을 가로에서 거두어 열린면 앞에 몸 깊이 5분의 1의 빈 띠를 내준다 — 광장의 자리가 대지 중앙이 아니라 압력이 온 열린면 모퉁이로 치우친다(동심 금지의 화살표). 한계: 0.2는 이동 바닥 0.15 위이고, 이 물러앉음이 다음 단어의 들림에게 방향을 준다 — 들림 혼자는 동심이다."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.35,
-     "why": "입력: 같은 지상 공공이 밀고 → 남은 발자국의 지상도 물러선다. lift(clearance 0.35)가 물러앉은 몸을 통째로 들어 지상 전부를 기둥과 그늘로 내주고, 앞 단어가 연 열린면 띠와 몸 아래 그늘이 한 장의 모퉁이 광장으로 이어진다 — 열린면 쪽 절반은 하늘 아래, 나머지는 그늘 아래인 반들림의 광장. 상부 4켜의 단면은 무손상이다. 한계: 0.35는 침묵 바닥 위·상한 0.4 아래의 당당한 한 층 반 다리이고(극세 필로티 기각 전례의 반대), 들림은 한 번, 볼륨은 하나다."
-    }
-   ]
-  },
-  {
-   "name": "low_body_neighbor_bevel",
-   "primary_language": "solid_body",
-   "secondary_language": "a low faceted two-storey body that declines to occupy its neighbour-side corner - one offset bite, the rest of the block kept whole",
-   "formal_principle": "이웃 지붕선이 밀면 낮은 몸은 키를 다투는 대신 모퉁이를 내준다 — 이웃 쪽 모서리 하나만 베어 물린 오프셋 베벨이 저층 맥락에 건네는 인사이고, 나머지 몸은 온전한 한 덩어리로 남는다.",
-   "dominant_gesture": "이웃쪽 모서리만 베어 문 낮은 몸",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "faceted",
-     "height": 0.3,
-     "storeys": 2,
-     "why": "입력: 세 변의 저층 이웃 지붕선이 밀고 → 몸이 낮게 물러선다. extrude(faceted)가 다면의 2켜 낮은 몸으로 태어나, 꺾인 바깥 면들이 낮은 덩어리에 결정질의 표정을 주고(규범 2) 넓은 발자국의 찬 판에 210㎡ 대회의실이 무주 한 판으로 담긴다. 한계: 높이 0.3은 low 선언으로 문턱 0.42 아래 여유가 있다 — 낮음이 논지이므로 why에 명시한다(규범 3). 사건은 다음 한 수다."
-    },
-    {
-     "op": "notch",
-     "at": "back",
-     "size": 0.4,
-     "why": "입력: 이웃 지붕선이 가장 가깝게 미는 곳은 이웃쪽 모퉁이다 → 그 모서리만 물러선다. notch(at back, 0.4)가 이웃 쪽 코너 하나를 전 높이로 베어 물어, 몸이 그 모퉁이의 점유를 사양하고 이웃의 처마 앞에 마당 조각을 내준다 — 깎임은 사방 균등한 면치기가 아니라 압력이 온 코너 하나의 오프셋 베벨이고, faceted의 깎인 결과 같은 어휘라 부가물이 아니라 몸의 문법이다. 한계: 물림은 하나에서 멈추고(정갈함의 법 — 사건 하나), 가로 쪽 세 모서리는 온전해 몸이 여전히 한 덩어리로 읽힌다."
-    }
-   ]
-  },
-  {
-   "name": "slid_roof_plate_porch",
-   "primary_language": "solid_body",
-   "secondary_language": "a two-tier square body whose upper plate is drawn toward the street - shade porch under its overhang in front, a ceded terrace strip to the neighbour behind",
-   "formal_principle": "위 판이 열린면으로 미끄러지는 한 수가 두 빚을 한꺼번에 갚는다 — 가로 쪽에서는 내민 끝이 그늘 포치가 되고, 이웃 쪽에서는 물러난 뒤가 정북의 빚을 갚는 테라스가 된다: 미끄러짐의 방향이 곧 압력의 지도다.",
-   "dominant_gesture": "가로로 미끄러져 나온 위 판",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "profile": "square",
-     "n": 2,
-     "contrast": 1.4,
-     "height": 0.55,
-     "align": "back",
-     "why": "입력: 과밀 상한이 밀고 → 몸이 기단과 위 판의 두 켜로 물러선다. stack(n 2, contrast 1.4, align back)이 찬 기단 위에 작은 위 판을 이웃 쪽 면에 붙여 앉힌다 — 위 판이 뒤에서 태어나야 가로로 미끄러질 활주로(기단 지붕)가 앞에 열린다. 기단 저층에 210㎡ 대회의실이 담긴다. 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 n 2로 켜당 볼륨이 층수 상한 안이다(규범 9)."
-    },
-    {
-     "op": "overlap",
-     "on": "tier_1",
-     "bite": 0.4,
-     "height": 1.0,
-     "why": "입력: 남서 열린면의 가로(볕과 사람)가 당기고 → 위 판이 그쪽으로 밀려 나간다. overlap(on tier_1, bite 0.4)이 위 판의 쌍둥이를 자기 평면의 6할만큼 가로 쪽으로 밀어 겹친다 — 같은 높이의 두 판이 겹쳐 한 장의 긴 위 켜로 읽히고, 그 끝이 기단 지붕을 건너 가로 모서리 밖으로 나가기 시작한다. 밀린 판은 기단 지붕 위를 미끄러지므로 뜬 것이 아니라 얹힌 것이다. 한계: bite 0.4는 겹침이 논지로 남는 몫이고, 내밈의 완성은 다음 단어가 맡는다."
-    },
-    {
-     "op": "shift",
-     "on": "tier_1",
-     "toward": "open",
-     "ratio": 0.18,
-     "why": "입력: 같은 열린면이 당기고, 북쪽 이웃의 해가 밀고 → 위 켜 전체가 가로로 마저 미끄러진다. shift(on tier_1, toward open, 0.18)가 위 판과 그 쌍둥이를 함께 열린면으로 밀어, 내민 끝이 기단 밖 그늘 포치의 처마가 되고(입력의 당김) 뒤에서는 위 켜가 기단 모서리에서 물러나 이웃에게 하늘 한 켜를 돌려준다(입력의 밀림) — 한 이동의 앞뒤가 두 압력에 각각 답한다. 한계: 0.18은 이동 바닥 0.15 위이고, 합산 내밈은 실측 통과값 0.28 어깨의 몫이라 캔틸레버 게이트(상한 0.40) 안이며, 미끄러짐은 한 방향 한 번이다."
-    }
-   ]
-  },
-  {
-   "name": "hexagon_bitten_at_two_corners",
-   "primary_language": "carved_body",
-   "secondary_language": "a mid-rise hexagonal body bitten at two diagonally opposite corners - a large bite bowing to the open corner, a smaller one paying the north neighbour's light",
-   "formal_principle": "대각으로 마주 보는 두 압력에는 두 응답이 있다 — 남서 열린 모퉁이는 크게 물려 진입 광장이 되고 북동 이웃 모퉁이는 작게 물려 일조의 빚을 갚되, 두 물림의 크기가 달라 어느 쪽이 주인 압력인지 실루엣이 말한다.",
-   "dominant_gesture": "대각의 두 모퉁이만 물린 육각 몸",
-   "reference_basis": "저작 신작",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "hexagon",
-     "height": 0.55,
-     "storeys": 4,
-     "why": "입력: 과밀 상한이 밀고 → 몸은 중층의 찬 육각 판으로 물러선다. extrude(hexagon)가 여섯 면의 4켜 몸으로 태어나 정면 없는 다면이 네 방향의 맥락을 고루 받고, 깊은 저층 켜에 210㎡ 대회의실이 담긴다(규범 2 — 도형이 이미 형상이다). 한계: 높이 0.55는 mid 선언으로 양쪽 문턱에서 멀고 storeys 4가 사람 크기를 준다. 사건은 두 모퉁이의 물림이다."
-    },
-    {
-     "op": "notch",
-     "at": "open",
-     "size": 0.4,
-     "why": "입력: 남서 열린 모퉁이에서 가로와 조망이 당기고 → 그 모퉁이가 크게 물러선다. notch(at open, 0.4)가 열린면 쪽 코너를 전 높이로 베어 물어 진입 모퉁이 광장을 만든다 — 물림의 자리가 정면 중앙이 아니라 압력이 오는 대각 코너 그 자체다(동심 금지). 한계: 0.4는 두 물림 중 큰 쪽 — 주인 압력의 응답이 커야 위계가 선다(규범: 동급 경쟁 금지)."
-    },
-    {
-     "op": "notch",
-     "at": "back",
-     "size": 0.28,
-     "why": "입력: 북쪽 이웃의 해가 대각 반대편에서 밀고 → 이웃쪽 모퉁이가 작게 물러선다. notch(at back, 0.28)가 이웃 코너를 베어 물어 정북의 빚을 코너 하나로 갚는다 — 첫 물림과 대각으로 마주 보는 자리라 두 응답이 한 축 위에서 읽히고, 크기가 달라 복제가 아니라 위계다. 한계: 반복은 같은 동사·다른 크기·대각 축 통일로만 허락되고(규범 8) 셋째 물림은 없다 — 두 압력, 두 응답에서 문장이 끝난다."
-    }
-   ]
-  }
- ]
+  ]
 }

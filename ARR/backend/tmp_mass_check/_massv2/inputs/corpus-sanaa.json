@@ -148,14 +148,14 @@
           "why": "양옆이 맞벽인 좁고 깊은 보워리 필지에서는 위로 쌓는 것 외에 전시 면적을 얻을 방법이 없다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.24,
           "toward": "open",
           "on": "tier_2",
           "why": "거리 쪽으로 한 층을 내밀어 보행자가 올려다볼 때 미술관의 입구가 무엇인지 알게 한다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.2,
           "toward": "cross",
           "on": "tier_4",

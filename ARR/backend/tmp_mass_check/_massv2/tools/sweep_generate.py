@@ -115,7 +115,7 @@ _MODS = (
     ("skew", lambda r: {"degrees": r.choice((10, 15, 20)), "toward": "open"}),
     ("bend", lambda r: {"degrees": r.choice((15, 20, 30)),
                         "segments": r.choice((2, 3))}),
-    ("shear", lambda r: {"ratio": round(r.uniform(0.15, 0.3), 2),
+    ("stagger", lambda r: {"ratio": round(r.uniform(0.15, 0.3), 2),
                          "toward": r.choice(_AIM)}),
     ("fracture", lambda r: {"n": r.choice((2, 3)), "degrees": r.choice((8, 12, 20)),
                             "slot": round(r.uniform(0.05, 0.15), 2)}),
@@ -176,7 +176,7 @@ _EXTREME_MODS = (
     ("cantilever", lambda r: {"reach": 0.34, "levels": 3, "toward": "open"}),
     ("taper", lambda r: {"ratio": r.choice((0.4, 0.45))}),
     ("lift", lambda r: {"clearance": 0.4}),
-    ("shear", lambda r: {"ratio": 0.38, "toward": "open"}),
+    ("stagger", lambda r: {"ratio": 0.38, "toward": "open"}),
     ("carve", lambda r: {"size": 0.6, "at": 0.5, "reach": 0.8}),
     ("grade", lambda r: {"smooth": True, "run": 0.9, "toward": "open",
                          "walk": r.random() < 0.5}),
@@ -206,7 +206,8 @@ _SAYS = {
     "lift": "lifted clear of the ground on supports",
     "carve": "carved open", "split": "split in two",
     "taper": "tapering as it rises", "twist": "turning as it rises",
-    "shear": "sheared along its length", "notch": "notched at a corner",
+    "stagger": "staggered along its length",
+    "shear": "raked back by one oblique plane", "notch": "notched at a corner",
     "puncture": "punctured through", "inscribe": "with an inscribed court",
     "nest": "with a nested body set proud", "cantilever": "cantilevered toward the open side",
     "canopy": "under a canopy", "pinch": "pinched at the waist",
@@ -237,7 +238,7 @@ _WHY = ("swept from the grammar - the funnel, not this sentence, argues; "
 # on a parcel-filling extrusion the legal line takes all of it and the whole
 # sentence is dropped as clipped (audit A/B, 09-03).
 _NEEDS_ROOM = frozenset({
-    "expand", "offset", "shift", "shear", "skew", "cantilever", "canopy",
+    "expand", "offset", "shift", "stagger", "skew", "cantilever", "canopy",
     "lodge", "extract", "nest", "branch", "embed", "intersect", "inscribe",
     "interlock", "overlap", "roof",
 })

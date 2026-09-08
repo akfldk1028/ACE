@@ -17,14 +17,14 @@
           "why": "도서관의 다섯 프로그램은 성격도 면적도 서로 달라 같은 층판을 쓸 수 없고, 크기가 다른 판을 겹쳐야 그 사이에 남는 공간이 시민이 쓰는 홀이 된다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.3,
           "toward": "open",
           "on": "tier_1",
           "why": "열람 층판을 시가지 조망 쪽으로 내민 것은 구조 균형 때문이 아니라 시내 전망과 원하는 빛·그늘을 얻기 위한 선택이다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.22,
           "toward": "back",
           "on": "tier_3",
@@ -55,7 +55,7 @@
           "profile": "concave_l"
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.22,
           "toward": "open",
           "on": "bar_w",
@@ -87,14 +87,14 @@
           "why": "사무·주거·호텔이 하나로 굳으면 임대 단위를 바꿀 수 없어, 크기가 다른 세 동을 저층 플린스 하나가 묶는 방식이 필요했다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.24,
           "toward": "open",
           "on": "object_1",
           "why": "강 쪽 동을 수변으로 밀어야 부두 보행로에서 항만 조망이 잘리지 않고 세 동에 고르게 배분된다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.3,
           "toward": "back",
           "on": "object_2",
@@ -231,7 +231,7 @@
           "why": "제방 쪽 전시홀을 들어올려야 그 아래로 차도가 지나가면서도 전시 순로가 끊기지 않는다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.22,
           "toward": "open",
           "on": "park_hall",
@@ -262,7 +262,7 @@
           "why": "대강당과 식당·시험장은 쓰는 시간대가 달라 판을 불균등하게 갈라 각각 다른 출입을 갖게 한다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.26,
           "toward": "open",
           "on": "hall_stack",
@@ -335,7 +335,7 @@
           "why": "가운데 판을 들어올려 야시장 골목의 보행 흐름이 대지 밑을 그대로 통과하게 한다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.26,
           "toward": "open",
           "on": "object_0",
@@ -372,7 +372,7 @@
           "why": "탑은 층마다 다른 천장 높이의 전시실을 요구해 위로 갈수록 좁아지고, 그 덕에 밀라노 외곽 스카이라인에 한 점이 선다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.24,
           "toward": "cross",
           "on": "object_1",
@@ -410,7 +410,7 @@
           "why": "그 덩어리를 불균등하게 갈라 하나는 자유롭게 서는 몸통으로, 하나는 이웃에 붙는 얇은 띠로 두면 그 사이에 보호된 중정이 생긴다."
         },
         {
-          "op": "shear",
+          "op": "stagger",
           "ratio": 0.2,
           "toward": "cross",
           "on": "wall_wing",

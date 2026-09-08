@@ -1,570 +1,551 @@
 {
- "schemes": [
-
-  {
-   "name": "chamfered_inscribed_court",
-   "primary_language": "carved_body",
-   "secondary_language": "a three-storey chamfered monolith with a sunken courtyard inscribed into its roof - the corners of the body are cut and the court sits inside as a shadow pit",
-   "formal_principle": "The open face brings oblique sunlight from the south-west; chamfering the body's corners reduces the shadow cast on the neighbouring parcel while the inscribed court sinks the light where programmes gather - the chamfer is the site law, the inscribed court is the answer to it.",
-   "dominant_gesture": "a chamfered monolith with an inscribed sunken court on its roof",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
+  "schemes": [
     {
-     "op": "extrude",
-     "profile": "chamfered",
-     "height": 0.55,
-     "storeys": 3,
-     "why": "Input: oblique parcel corner and solar easement pressure the full-square body; chamfered profile cuts the plan corners that would exceed the setback envelope, distributing the body to the centre and releasing the corner zones; height 0.55 declares mid so the inscribed court reads as a meaningful depth below the roof plane. Limit: chamfered is a valid profile; 0.55 gives three usable storeys above the inscribed pit."
+      "name": "chamfered_inscribed_court",
+      "primary_language": "carved_body",
+      "secondary_language": "a three-storey chamfered monolith with a sunken courtyard inscribed into its roof - the corners of the body are cut and the court sits inside as a shadow pit",
+      "formal_principle": "The open face brings oblique sunlight from the south-west; chamfering the body's corners reduces the shadow cast on the neighbouring parcel while the inscribed court sinks the light where programmes gather - the chamfer is the site law, the inscribed court is the answer to it.",
+      "dominant_gesture": "a chamfered monolith with an inscribed sunken court on its roof",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "chamfered",
+          "height": 0.55,
+          "storeys": 3,
+          "why": "Input: oblique parcel corner and solar easement pressure the full-square body; chamfered profile cuts the plan corners that would exceed the setback envelope, distributing the body to the centre and releasing the corner zones; height 0.55 declares mid so the inscribed court reads as a meaningful depth below the roof plane. Limit: chamfered is a valid profile; 0.55 gives three usable storeys above the inscribed pit."
+        },
+        {
+          "op": "inscribe",
+          "size": 0.45,
+          "depth": 0.35,
+          "why": "Input: the roof of the chamfered body is the site's only flat outdoor surface; inscribing a court into it at size 0.45 creates a court whose plan dimension is just under half the body's own plan, large enough to read as a room rather than a skylight; depth 0.35 sinks the court to just over one storey below the roof plane, producing a walled outdoor room that is shadow-protected on its east and west sides by the body's remaining mass. Limit: size 0.45 is within 0.15-0.6; depth 0.35 is within 0.1-0.5."
+        }
+      ]
     },
     {
-     "op": "inscribe",
-     "size": 0.45,
-     "depth": 0.35,
-     "why": "Input: the roof of the chamfered body is the site's only flat outdoor surface; inscribing a court into it at size 0.45 creates a court whose plan dimension is just under half the body's own plan, large enough to read as a room rather than a skylight; depth 0.35 sinks the court to just over one storey below the roof plane, producing a walled outdoor room that is shadow-protected on its east and west sides by the body's remaining mass. Limit: size 0.45 is within 0.15-0.6; depth 0.35 is within 0.1-0.5."
+      "name": "spine_vault_arcade",
+      "primary_language": "solid_body",
+      "secondary_language": "a five-storey bar whose roof is three barrel vaults running the length of the bar - an arcade of vaults that reads from outside as a rippled crown",
+      "formal_principle": "The open face is a long civic edge; three barrel vaults running the bar's full length expose the roof's corrugated profile to the open face as a reading from across the parcel - the vault bays declare the programme's interior rhythm on the outside, the number of vaults is the number of structural bays.",
+      "dominant_gesture": "a tall bar under three longitudinal barrel vaults",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.8,
+          "storeys": 5,
+          "why": "Input: a five-storey bar body tall enough that the three barrel vaults above register as a distinct crown rather than a thin cap; height 0.8 declares tall so the vault crowns sit against the sky and read from the open face as three separate arcs above the parapet line. Profile square fills the parcel width to give each vault bay a real span. Limit: height 0.8 gives the vaults enough vertical clearance above the last storey to read at building scale."
+        },
+        {
+          "op": "vault",
+          "rise": 0.6,
+          "bays": 3,
+          "along": "long",
+          "why": "Input: three bays along the long axis divide the bar into three equal structural bays each under its own arc - the bay division is the programme's structural grid made visible on the exterior; rise 0.6 times the body's section gives each vault a curvature visible from the open face, not a flat token. Along long runs all three arcs parallel to the bar's long axis so from the open face the three parallel barrel forms read as a rippled crown across the bar's full width. Limit: bays 3 is within 1-6; rise 0.6 on the bar's cross-axis dimension is within the 1.5-storey section cap."
+        }
+      ]
+    },
+    {
+      "name": "stadium_notch_canopy",
+      "primary_language": "carved_body",
+      "secondary_language": "a four-storey stadium-profile bar with a notch cut from its back face and a canopy projecting from the notched opening toward the street - the notch is the address from the back lane",
+      "formal_principle": "The back boundary faces a pedestrian lane that has no dedicated covered threshold; notching the stadium body at its back face creates a recessed entry court legible from the lane while the canopy projecting from the notch declares the entry to passersby - the notch is carved from the programme, the canopy gives it a roof.",
+      "dominant_gesture": "a stadium bar notched from the back with a canopy at the notch",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 2,
+          "spread": 1.5,
+          "height": 0.7,
+          "tie": 0.15,
+          "storeys": 4,
+          "arrangement": "pack",
+          "why": "Input: two bodies spread 1.5 apart at mid-tall height form the paired mass from which the notched-back reading is made; spread 1.5 with a tie 0.15 at the base keeps them as a single reading with a recessed lane between them; n 2 gives the paired body its bilateral symmetry; height 0.7 declares mid-tall so the notch cut from the back face reads as a full-storey-height recess. Limit: storeys 4 per body; tie 0.15 within 0-0.4."
+        },
+        {
+          "op": "notch",
+          "size": 0.3,
+          "at": "back",
+          "why": "Input: the back lane pressure requires a recessed entry carved from the bar's back face; notch at back cuts a recess 0.3 wide into the rear of each body, creating the threshold alcove that addresses the lane; size 0.3 removes enough mass that the recess reads as a shelter rather than a decoration. Limit: size 0.3 within the notch range; at back targets the face toward the back lane."
+        },
+        {
+          "op": "canopy",
+          "reach": 0.35,
+          "at": 0.85,
+          "toward": "back",
+          "why": "Input: the notched recess at the back face needs a horizontal threshold element that is visible from the lane approach; a canopy at reach 0.35 projecting from the notched opening toward the back lane covers the recess and declares it as a sheltered entry rather than a mere cut in the wall; at 0.85 places the canopy near the body top. Limit: reach 0.35 within the 0.45 structural maximum; toward back is a valid axis word."
+        }
+      ]
+    },
+    {
+      "name": "stacked_nest_crown",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-tier diminishing stack carrying a nested inner body that rises above the top tier as a mansard-crowned tower - a pagoda whose inner body breaks free at the summit",
+      "formal_principle": "The stepped-back tower gives the parcel its datum but its flat top leaves the summit undeclared; nesting a tighter inner body inside the top tier that rises above it and crowning that inner body with a mansard makes the summit a double event - the diminishing stack is the civic scale datum and the risen inner body is its address point.",
+      "dominant_gesture": "a diminishing stack with a mansard-crowned nested body rising from its top tier",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.8,
+          "align": "open",
+          "height": 0.6,
+          "storeys": 3,
+          "why": "Input: the parcel's stepped setback generates a three-tier diminishing tower that responds to the sky-plane limit; n 3 tiers with contrast 1.8 gives a clear reading of three diminishing bands without the top tier becoming invisibly small; align open faces the diminishing body toward the open face so the stepped profile is the face that the open-face boundary reads; height 0.6 declares mid so three real storeys per tier are achievable. Limit: contrast 1.8 is within 1.2-3.5; n 3 prevents the top tier from vanishing at contrast 1.8."
+        },
+        {
+          "op": "nest",
+          "size": 0.35,
+          "proud": 0.7,
+          "turn": 30,
+          "why": "Input: the top tier of the stack is wide enough to receive a nested body of meaningful footprint; size 0.35 places an inner body that covers just over one-third of the top tier's plan, leaving a visible ring of setback between the inner body and the tier's edge; proud 0.7 declares the nested body to rise 70% of the host tier's height above the top tier, making the inner body clearly visible as a separate object above the stack's summit; turn 30 rotates the nested body 30 degrees within the top tier, making the corner asymmetry visible from all four directions and declaring the inner body as an autonomous object rather than a continuation of the stack. Limit: size 0.35 within 0.15-0.6; proud 0.7 within 0.1-1.0; turn 30 within ±60."
+        },
+        {
+          "op": "mansard",
+          "pitch": 0.85,
+          "shoulder": 0.2,
+          "along": "long",
+          "why": "Input: the nested inner body needs a crown that is legible as a separate top above the stack's stepped silhouette; a mansard with a steep shoulder on the nested body's compact footprint reads as a miniature mansard tower crown visible from the open face against the sky; the mansard applies to the last produced body (the nested inner volume) after the nest op has placed it above the stack; pitch 0.85 on the inner body's small footprint reads as a steep shoulder. Limit: shoulder 0.2 within 0.1-0.4."
+        }
+      ]
+    },
+    {
+      "name": "cascade_ramp_tower",
+      "primary_language": "solid_body",
+      "secondary_language": "a two-tier stack whose top tier wears a walkable grade ramp that steps down toward the open face - the building is a tower with a hill for a crown",
+      "formal_principle": "The open face calls for a public surface visible from below; a wide lower tier declares the datum and a narrower upper tier whose roof becomes a smooth walkable ramp stepping down toward the open face extends the public ground to the building's top - the ramp is the roof and the park simultaneously.",
+      "dominant_gesture": "a two-tier stack crowned with a walkable ramp descending toward the open face",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 2,
+          "contrast": 2.0,
+          "align": "back",
+          "height": 0.7,
+          "storeys": 4,
+          "why": "Input: a two-tier stack where the wide base is the civic datum and the narrower upper tier becomes the hill; contrast 2.0 makes the base clearly wider than the upper tier without making the upper tier too narrow for the ramp to register; align back pushes the upper tier to the back of the parcel so the ramp descends toward the open face; height 0.7 with storeys 4 declares mid-tall so the ramp's vertical run is legible. Limit: contrast 2.0 within 1.2-3.5; n 2 minimum for two-tier stack."
+        },
+        {
+          "op": "grade",
+          "smooth": true,
+          "run": 0.8,
+          "toward": "open",
+          "walk": true,
+          "why": "Input: the upper tier's roof must become a walkable public ramp descending toward the open face; smooth true declares a continuous ramp rather than steps; run 0.8 covers 80% of the upper tier's plan depth as the ramp slope, giving a full public promenade from the rear of the upper tier to the open face; walk true marks the ramp as public landscape in the tile; toward open orients the ramp's descent toward the open face. Limit: toward must be 'open' for grade; smooth true avoids the stepped-grade silence trap."
+        }
+      ]
+    },
+    {
+      "name": "sheared_gable_tower",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-tier stack whose tiers shear progressively toward the back boundary, the top tier far off-centre and crowned with a steep gable - a tower leaning against the back wall",
+      "formal_principle": "The open face is at the south-west and the back boundary at the north-east; shearing the tower's tiers progressively toward the back boundary leans the mass away from the open face, making the lean visible as the tower's dominant posture and the gabled crown at the off-centre peak declares the address at the displaced top.",
+      "dominant_gesture": "a three-tier stack sheared progressively toward the back boundary",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.6,
+          "align": "back",
+          "height": 0.72,
+          "storeys": 3,
+          "why": "Input: a three-tier stack aligned to the back of the parcel so its diminishing tiers read as a tower leaning back; contrast 1.6 keeps each tier distinctly narrower than the one below without collapsing the top tier; height 0.72 declares mid-tall so the three tiers produce a tower silhouette; align back pushes the diminishing body toward the back boundary. Limit: n 3 with contrast 1.6 keeps the top tier at a usable scale; storeys 3 per tier."
+        },
+        {
+          "op": "stagger",
+          "why": "Input: applying shear to the stacked body slides the upper tiers progressively toward the back boundary, making the lean visible as a continuous tilt in the tower's profile; from the open face the tower reads as a leaning body with its peak displaced toward the back - the shear declares the tower's posture as a deliberate formal gesture rather than a symmetric stack. Limit: shear has no magnitude parameter in the corpus schema - its application is the executor's default shear event applied to the stack."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.85,
+          "along": "cross",
+          "bays": 1,
+          "why": "Input: the sheared top tier is a compact narrow body; a single steep gable along the cross axis places a sharp ridge on the leaning crown - visible from the open face as a house-scale pitched top on the displaced peak; pitch 0.85 on the narrow top tier reads as a steep alpine pitch; along cross makes the gable ends face the open face and the back boundary respectively. Limit: bays 1 on the narrow top tier; pitch 0.85 within 0.15-1.2."
+        }
+      ]
+    },
+    {
+      "name": "lodge_bridge_spine",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-storey spine bar carrying a shorter bridging bar lodged across its roof, overhanging both flanks - a cross-plan of body and bridge",
+      "formal_principle": "The spine runs north-south and its flanks are in shadow; a shorter cross-bar lodged on the spine's roof and overhanging east and west delivers daylight to the spine's flanks from above the lodged bar's underside - the lodge is a bridge of light, its overhang is the reason it exists.",
+      "dominant_gesture": "a bar bridging across the roof of a spine with bilateral overhang",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.55,
+          "storeys": 3,
+          "why": "Input: a three-storey spine bar that will carry the lodged cross-bar; height 0.55 mid so the spine has three real programme storeys and the lodged bar above reads as an additional bridging element rather than a rooftop plant room; profile square gives the spine its full parcel width to give the lodged bar a long flank to bridge across. Limit: height 0.55 keeps the spine below the tall threshold so the lodged bar registers at the summit."
+        },
+        {
+          "op": "lodge",
+          "size": 0.4,
+          "over": 0.3,
+          "height": 0.6,
+          "at": 0.5,
+          "why": "Input: the cross-bar lodges on the spine's roof at the mid-point, overhang 0.3 each side; size 0.4 gives the lodged bar 40% of the spine's plan dimension as its own footprint - compact enough to read as a separate crossing body; over 0.3 declares the bilateral overhang so the bar's eaves reach both flanks of the spine and deliver the light-shelf effect; at 0.5 places the lodge at the spine's mid-length, maximising the cross-plan symmetry; height 0.6 declares the lodged bar's own height relative to the host so it reads as a distinct body above the spine. Limit: size 0.4 within 0.15-0.6; over 0.3 within 0.05-0.6; height 0.6 within 0.2-1.0."
+        }
+      ]
+    },
+    {
+      "name": "loop_shift_butterfly",
+      "primary_language": "open_figure",
+      "secondary_language": "a four-storey loop ring shifted toward the open face so the ring is asymmetric, the open-face bar wider than the back bar, and the open-face bar wears a butterfly roof draining into the court",
+      "formal_principle": "A symmetric ring addresses four boundaries equally; shifting the ring toward the open face widens the open-face bar, making it the dominant wall of the court, and a butterfly on that bar drains rainwater into the court - the shift is the answer to the open face's claim and the butterfly is the answer to water.",
+      "dominant_gesture": "an asymmetric ring shifted to the open face with a butterfly on the dominant bar",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.6,
+          "storeys": 4,
+          "why": "Input: four bars forming a ring before the shift asymmetrises the ring; bar 0.22 keeps each arm at a depth that can receive a butterfly roof with enough pitch to read; height 0.6 declares mid so four storeys give the court walls enough height for the butterfly to read as a crown against the sky. Limit: bar 0.22 gives a slender-arm ring; storeys 4 at height 0.6."
+        },
+        {
+          "op": "shift",
+          "toward": "open",
+          "ratio": 0.25,
+          "why": "Input: shifting the entire ring 25% toward the open face widens the open-face bar relative to the back bar, breaking the ring's symmetry and declaring the open face as the address side; the wider open-face bar becomes the primary court wall and the back bar becomes the secondary; ratio 0.25 gives a legible asymmetry without displacing the ring so far that the back bar loses room depth. Limit: toward open is a valid axis word; ratio 0.25 is above the 0.15 minimum."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.6,
+          "at": 0.5,
+          "along": "long",
+          "on": "bar_s",
+          "why": "Input: the widened open-face bar (bar_s facing the open face) receives a butterfly roof whose valley runs along the bar's long axis and drains toward the court; the butterfly valley is the gutter that collects the open-face bar's rainfall and delivers it to the court below, making the court a rain garden; on bar_s targets only the dominant open-face bar so the back bar and side bars remain flat and the butterfly is a single formal event on the dominant wall. Pitch 0.6 on bar depth reads as a real V-section. Limit: on bar_s targets the loop bar role; along long runs the valley parallel to the bar's length."
+        }
+      ]
+    },
+    {
+      "name": "pavilion_field_canopy",
+      "primary_language": "porous_field",
+      "secondary_language": "five low two-storey pavilions in a loose grid each under a warped roof plate with one corner lifted, a shared canopy linking their open-face edges into a single sheltered threshold",
+      "formal_principle": "A field of pavilions leaves the street edge undefined; a canopy stitching the pavilions' open-face edges into one continuous threshold declares the field's address to the open face while each pavilion retains its individual warped roof visible from above - the canopy is the street wall and the roofs are the field.",
+      "dominant_gesture": "a field of five warped-roof pavilions stitched by a canopy at the open-face edge",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.3,
+          "height": 0.35,
+          "tie": 0.0,
+          "storeys": 2,
+          "arrangement": "pack",
+          "why": "Input: five low pavilions spread loosely across the parcel so the field reads as a porous organisation rather than a compact block; n 5 gives enough pavilions to declare a field without filling the parcel; spread 1.3 keeps legible open space between each pavilion; height 0.35 declares low so each pavilion reads as a two-storey garden building; arrangement pack distributes them in a loose grid suited to the parcel's rectangular geometry. Limit: storeys 2 at height 0.35 keeps each pavilion at domestic scale."
+        },
+        {
+          "op": "roof",
+          "rise": 0.8,
+          "eave": 0.3,
+          "corners": "one",
+          "sag": 0.2,
+          "thin": 0.1,
+          "why": "Input: each pavilion needs a warped roof plate that is individually directional; one corner lifted at rise 0.8 gives each pavilion a strongly asymmetric warped plate visible from above the field as a collection of tilted surfaces; eave 0.3 gives each plate a real overhang that casts shadow; sag 0.2 curves the eave line so the lifted corner reads as a bent plate rather than a flat lid; thin 0.1 declares the plate as a roof element. Limit: rise 0.8 within 0.2-1.5; corners one on each pavilion."
+        },
+        {
+          "op": "canopy",
+          "reach": 0.38,
+          "at": 0.95,
+          "toward": "open",
+          "why": "Input: the open-face edges of the pavilions need stitching into one declared threshold; a canopy at reach 0.38 projecting toward the open face from each pavilion's open-face edge connects their overhangs into a shared threshold strip that reads as a continuous street arcade; at 0.95 places the canopy near the pavilion tops; toward open projects the canopy toward the open face. Limit: reach 0.38 is within the 0.45 structural maximum."
+        }
+      ]
+    },
+    {
+      "name": "intersecting_bars_cross",
+      "primary_language": "solid_body",
+      "secondary_language": "a five-storey bar intersected by a shorter crossing bar at mid-length - the crossing bar is at a different height so the two bars read as a plus-sign in section as much as in plan",
+      "formal_principle": "A single bar reads as a spine; a second bar intersecting it at mid-length and at a different level turns the spine into a cross whose central junction is both the highest and the busiest point - the intersection is the building's address and the arms are its four orientations, each arm reading a different site edge.",
+      "dominant_gesture": "a spine bar intersected at mid-length by a crossing bar at a different height",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.8,
+          "storeys": 5,
+          "why": "Input: a five-storey spine bar that will be intersected at mid-length; height 0.8 declares tall so the central intersection at a different level reads as a section event - the two crossing bars at different heights produce a cross-section joint with real spatial consequence rather than a graphic overlay. Profile square fills the parcel's long axis. Limit: height 0.8 is in the tall band; five storeys give the crossing bar room to sit at a different level."
+        },
+        {
+          "op": "intersect",
+          "size": 0.35,
+          "level": 0.4,
+          "climb": 0.0,
+          "degrees": 90,
+          "why": "Input: a crossing bar intersects the spine at 90 degrees, size 0.35 of the spine's width, at level 0.4 of the spine's height - the crossing bar enters at the spine's mid-height level, not at grade, so the intersection reads as an elevated crossing room where the two bars share one floor; level 0.4 places the crossing bar at the two-storey mid-point of the spine; degrees 90 makes the cross reading unambiguous; size 0.35 gives the crossing bar enough plan area to read as a wing. Limit: intersect is a valid relational verb; degrees 90 within ±90; level 0.4 within valid range."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.75,
+          "along": "long",
+          "bays": 2,
+          "why": "Input: the tall cross needs a roof that reads as two independent gable trusses - one over the spine arm and one over the crossing arm; two gable bays along the long axis of the spine divide the roof into two bay-pairs whose ridges are visible from all four arms of the cross, the roofline declaring the cross composition in section; pitch 0.75 on the body's cross-axis depth reads as a domestic steep pitch. Limit: bays 2; along long runs ridges parallel to the spine's long axis."
+        }
+      ]
+    },
+    {
+      "name": "loop_extract_satellite",
+      "primary_language": "open_figure",
+      "secondary_language": "a three-storey loop ring with one corner piece extracted and stood beside its socket - the ring is three-quarters complete and the extracted corner becomes a freestanding pavilion",
+      "formal_principle": "A closed ring keeps the court for itself; extracting one corner from the ring and standing it beside its socket opens the court at the missing corner while the extracted piece reads as a freestanding pavilion that marks the open-face entry - the ring and the pavilion are paired bodies from one origin, the gap between them the building's entrance.",
+      "dominant_gesture": "a loop ring with one corner extracted and placed as a freestanding pavilion",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.22,
+          "height": 0.5,
+          "storeys": 3,
+          "why": "Input: a three-storey ring that will have one corner extracted; bar 0.22 keeps each arm narrow enough that the extracted corner piece reads as a compact separate pavilion rather than a slab; height 0.5 declares mid so the ring and the extracted pavilion are at the same civic scale and read as the same family. Limit: bar 0.22 gives the corner piece a compact footprint after extraction."
+        },
+        {
+          "op": "extract",
+          "size": 0.28,
+          "gap": 0.22,
+          "height": 0.9,
+          "level": 0,
+          "why": "Input: extracting a piece sized 0.28 from the ring's corner and standing it at gap 0.22 (in host-width ratio coordinates) beside its socket creates the open corner and the freestanding pavilion simultaneously; size 0.28 removes one complete corner zone, large enough to read as a missing piece rather than a notch; height 0.9 gives the extracted pavilion almost the same height as the ring so the pair reads at the same scale; level 0 extracts from the base so the pavilion stands on grade alongside the ring. Limit: extract gap is in host-width ratio coordinates; height 0.9 within the extract range; size 0.28 within the extract range."
+        },
+        {
+          "op": "vault",
+          "rise": 0.55,
+          "bays": 1,
+          "along": "long",
+          "why": "Input: the extracted pavilion needs a distinct roof that declares it as a separate object from the ring's flat-topped bars; a barrel vault applied after the extract op crowns the extracted piece as a chapel or gatehouse, visible from the open face as a curved profile against the ring's flat roofline; rise 0.55 on the pavilion's compact footprint gives a legible vault curvature; the vault applies to the most recent body produced after the extract. Limit: rise 0.55 within 0.15-1.2."
+        }
+      ]
+    },
+    {
+      "name": "radial_quartet_butterfly",
+      "primary_language": "open_figure",
+      "secondary_language": "four two-storey wings arranged radially facing a shared court, each wing under a butterfly roof draining into the court - a basin of four inward-pitched roofs",
+      "formal_principle": "Four wings on a radial ring each face the court; giving each wing a butterfly roof whose valley drains toward the court makes the roofs a collective basin - the water from all four wings converges in the court, the court is both the plan's centre and the section's drainage point, and the four valleys are visible from above as a pinwheel of V-profiles.",
+      "dominant_gesture": "four radial wings each with a butterfly roof draining into a shared court",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.25,
+          "height": 0.45,
+          "tie": 0.05,
+          "storeys": 2,
+          "arrangement": "radial",
+          "why": "Input: four wings on a radial ring each face the court centre; n 4 gives a clear four-wing reading with legible inter-wing gaps; spread 1.25 keeps the wing tips from touching while the ring still reads as a coherent court; tie 0.05 gives a minimal shared base at the ring's centre; height 0.45 with storeys 2 declares mid-low so the butterfly valleys above each wing read at eye level from inside the court. Limit: arrangement radial places each wing facing the court centre; n 4 avoids the n 5 radial + gable silence trap from agent07."
+        },
+        {
+          "op": "butterfly",
+          "pitch": 0.7,
+          "at": 0.45,
+          "along": "long",
+          "why": "Input: each wing's butterfly valley runs along the wing's long axis and drains toward the court centre; at 0.45 offsets the valley slightly toward the court side so the court-facing slope is shorter and steeper, channelling more water toward the court than away; pitch 0.7 gives each valley a visible V depth above the two-storey wing; along long runs the valley parallel to each wing's length so the valley faces the court gap between wings. Limit: at 0.45 within 0.2-0.8; pitch 0.7 within 0.15-1.2."
+        }
+      ]
+    },
+    {
+      "name": "pinwheel_gable_quartet",
+      "primary_language": "porous_field",
+      "secondary_language": "four two-storey slabs in a pinwheel, each slab under a gable roof, the pinwheel spinning the four ridges into a rotating crown",
+      "formal_principle": "A pinwheel field spins in plan; giving each slab a gable roof with its ridge running along the slab's long axis makes the four ridges rotate 90 degrees from one slab to the next - the spinning field reads not only in plan but in section, the ridges at four angles declaring the rotation in the building's crown as much as in its footprint.",
+      "dominant_gesture": "four pinwheel slabs each with a gable whose ridges rotate quarter-turn to quarter-turn",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 4,
+          "spread": 1.2,
+          "height": 0.4,
+          "tie": 0.0,
+          "storeys": 2,
+          "arrangement": "pinwheel",
+          "why": "Input: four slabs in a pinwheel arrangement each rotate 90 degrees from the previous; n 4 is the minimum pinwheel count where the rotation is complete (four quarter-turns = one full revolution); spread 1.2 gives legible gaps between slab corners; height 0.4 declares low so the four gables above read as the dominant element, the slabs serving as the bases from which the ridges rise; arrangement pinwheel is the only arrangement that makes four sequential 90-degree rotations. Limit: tie 0 keeps each slab independent."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.8,
+          "along": "long",
+          "bays": 1,
+          "why": "Input: each slab carries a single steep gable along its own long axis; because the pinwheel arrangement rotates each slab 90 degrees, the ridge of slab 0 runs north-south, slab 1 east-west, slab 2 north-south, slab 3 east-west - the four ridges alternate direction and from any external viewpoint two or three ridges are visible as a rotating figure of pitched roofs; pitch 0.8 on each slab's narrow plan gives a steep legible pitch; along long is each slab's own long axis, auto-rotating with the pinwheel. Limit: bays 1 keeps each slab under a single ridge; pitch 0.8 within 0.15-1.2."
+        }
+      ]
+    },
+    {
+      "name": "house_stack_vault",
+      "primary_language": "porous_field",
+      "secondary_language": "five house units stacked in alternating reach, the topmost unit under a barrel vault - a cascade of gabled house units with a vaulted apex",
+      "formal_principle": "The VitraHaus cascade reads as a field of houses; adding a single barrel vault on the topmost unit distinguishes the apex from the cascade below it - the vault declares the top as a different space from the house units (a hall, not a house) and the contrast between the gabled cascade and the vaulted crown makes the apex the building's memorable address point.",
+      "dominant_gesture": "a house cascade with a barrel-vaulted apex unit",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 5,
+          "spread": 1.0,
+          "height": 0.5,
+          "tie": 0.0,
+          "storeys": 2,
+          "method": "stack",
+          "unit": "house",
+          "reach": 0.28,
+          "why": "Input: five house units stacked with reach 0.28 - the empirically proven gate-safe value that delivers without backspan refusal; method stack layers each unit above the previous; unit house gives each unit its built-in 45-degree gable without an extra verb; reach 0.28 slides each unit out on alternating sides as the cascade of overhanging gable rooftops; height 0.5 with storeys 2 per unit keeps each at domestic house scale; n 5 gives more cascade steps than agent07's n 4 house_stack_reach. Limit: reach 0.28 proven maximum; n 5 gives five steps in the cascade."
+        },
+        {
+          "op": "vault",
+          "rise": 0.6,
+          "bays": 1,
+          "along": "cross",
+          "on": "object_4",
+          "why": "Input: the topmost house unit (object_4) needs a different roof to distinguish the apex from the cascade; a barrel vault along the cross axis on the topmost unit gives it a curved profile perpendicular to the house cascade's gables - the vault's arc is visible from the open face as a different silhouette shape at the top of the staircase, declaring the apex as a hall rather than another house; on object_4 targets only the top unit, leaving all other units with their native house gables; rise 0.6 gives the vault a curvature visible at the cascade's peak. Limit: on object_4 targets the topmost unit in a 5-unit aggregate."
+        }
+      ]
+    },
+    {
+      "name": "ring_warped_roofs",
+      "primary_language": "open_figure",
+      "secondary_language": "six two-storey wings in radial arrangement each under a warped roof plate with all corners lifted - the six warped plates hover above the court as a crown of ascending eaves",
+      "formal_principle": "Six radial wings form a court whose perimeter is the building; giving each wing a warped roof plate with all four corners lifted makes the court's ceiling a ring of ascending eaves - each plate is a hyperbolic paraboloid that reads from within the court as a rising corner and from outside as a curved lid, the six warped plates together forming a crown whose collective lift is the building's civic gesture.",
+      "dominant_gesture": "six radial wings each under a warped plate with all corners lifted",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "aggregate",
+          "n": 6,
+          "spread": 1.3,
+          "height": 0.7,
+          "tie": 0.0,
+          "storeys": 4,
+          "arrangement": "radial",
+          "why": "Input: six wings on a radial ring at mid-tall height so the warped roof plates above each wing have enough elevation to read as ascending eaves visible from within the court; n 6 gives a nearly complete ring with court definition; spread 1.3 keeps legible inter-wing gaps; height 0.7 with storeys 4 declares mid-tall, distinguishing this stature from the mid-height radial_quartet_butterfly sentence; arrangement radial places all wings facing the court. Limit: n 6 radial proven delivery-stable from agent07; tie 0 keeps each wing freestanding."
+        },
+        {
+          "op": "roof",
+          "rise": 0.7,
+          "eave": 0.3,
+          "corners": "all",
+          "sag": 0.3,
+          "thin": 0.1,
+          "why": "Input: each wing carries a warped plate with all four corners lifted at rise 0.7 - the maximum-lift variant that gives each plate a strongly curved hypar profile readable from the court as ascending eaves on all sides; corners all lifts every corner of each wing's plate so the plate reads as a crown from all four cardinal views simultaneously; sag 0.3 curves the eave lines into genuine hyperbolic curves; eave 0.3 gives each plate a real overhang; thin 0.1 declares the plate as a roof element. Limit: rise 0.7 within 0.2-1.5; corners all gives maximum lift; sag 0.3 within 0-0.6."
+        }
+      ]
+    },
+    {
+      "name": "pilotis_gable_volume",
+      "primary_language": "solid_body",
+      "secondary_language": "a four-storey bar lifted one storey on pilotis with a steep gable running along its short axis - a house in the air whose gable end faces the open face",
+      "formal_principle": "The open face wants a figure visible from across the parcel; lifting a gabled bar on pilotis presents the gable end to the open face while the pilotis free the ground below as a continuous public threshold - the gable is the face and the pilotis are the legs, the building a house held up so the city passes underneath.",
+      "dominant_gesture": "a gable-ended bar lifted on pilotis presenting its gable to the open face",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "extrude",
+          "profile": "square",
+          "height": 0.7,
+          "storeys": 4,
+          "why": "Input: a four-storey bar body that will be lifted on pilotis; height 0.7 declares mid-tall so after the lift clearance the bar retains three real programme storeys above the pilotis level; profile square gives the bar enough cross-axis depth for the gable pitch to read above the parapet. Limit: height 0.7 gives adequate section budget for lift plus gable crown."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.22,
+          "why": "Input: the bar must be lifted clear of the ground so the public threshold beneath is a full-storey open space; clearance 0.22 of total body height gives a clear storey-height of public ground below the bar; the pilotis read from the open face as thin legs holding the gabled bar above the street; clearance 0.22 is above the 0.15 structural minimum and within the established working range. Limit: clearance 0.22 within the safe delivery range proven in agent07's butterfly_hall."
+        },
+        {
+          "op": "gable",
+          "pitch": 0.9,
+          "along": "cross",
+          "bays": 1,
+          "why": "Input: the lifted bar needs a steep gable whose face presents to the open face; along cross places the ridge running perpendicular to the bar's long axis so the gable end - the triangle - faces the open face as the building's public face; pitch 0.9 on the bar's cross-axis depth reads as a steep alpine gable visible from the open face above the pilotis; bays 1 on the bar's cross-axis gives one clean ridge. Limit: pitch 0.9 within 0.15-1.2; along cross has the gable end face the open face."
+        }
+      ]
+    },
+    {
+      "name": "lifted_ring_fold",
+      "primary_language": "open_figure",
+      "secondary_language": "a three-storey loop ring lifted one storey on pilotis, the ring's bars each folded once along their short axis to produce a sawtooth crown above the pilotis",
+      "formal_principle": "A lifted ring at grade reads as a frame on legs; folding each bar's roof once along its short axis makes the lifted ring's crown a sawtooth at each bar's width - from below the public floor the folded crowns are the ceiling of the open space, from outside they read as a corrugated ring floating above the pilotis.",
+      "dominant_gesture": "a lifted loop ring whose bars each carry a single folded sawtooth crown",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "loop",
+          "bar": 0.2,
+          "height": 0.6,
+          "storeys": 3,
+          "why": "Input: three-storey ring bars that will be lifted and folded; bar 0.2 keeps each arm narrow enough that a single fold across the arm's short depth reads as a distinct sawtooth; height 0.6 declares mid so after lift clearance the ring retains usable programme height; the ring's four bars each present their fold to a different cardinal direction. Limit: bar 0.2 gives the narrow arm needed for the fold to register."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.25,
+          "why": "Input: the ring must be lifted a full storey on pilotis so the public floor beneath the ring is uninterrupted by the bars' walls; clearance 0.25 of total body height gives a clear storey of public ground; the fold crowns above are visible from the public floor below as a corrugated ceiling. Limit: clearance 0.25 is the same proven value as agent07's lifted_ring; above 0.15 minimum."
+        },
+        {
+          "op": "fold",
+          "folds": 1,
+          "pitch": 0.7,
+          "along": "cross",
+          "why": "Input: one fold along each bar's cross axis (perpendicular to the bar's long axis) divides each bar's roof into two alternating pitches - from below the ring the fold reads as a single ridge line across each bar's narrow depth; pitch 0.7 per fold-facet gives a legible slope across the bar's narrow dimension; folds 1 keeps the crown readable as one ridge per bar rather than a complex multi-crease crown. Along cross puts the fold across each arm's short axis so each ridge runs parallel to the bar's long axis and is seen from the outside as a single gable silhouette floating above the pilotis. Limit: folds 1 within 1-3; pitch 0.7 within 0.15-1.2."
+        }
+      ]
+    },
+    {
+      "name": "vault_bridge_pilotis",
+      "primary_language": "solid_body",
+      "secondary_language": "a three-tier diminishing stack lifted on pilotis, the top tier under a barrel vault - a tower on legs with a vaulted crown floating above the public ground",
+      "formal_principle": "The parcel's open face demands a vertical address visible from across the street; lifting a three-tier diminishing stack on pilotis frees the entire ground plane while the stack above reads as a tower; the barrel vault on the top tier crowns the tower with a curved profile readable from the street as a singular silhouette - a vaulted tower on legs.",
+      "dominant_gesture": "a diminishing stack on pilotis with a barrel-vaulted top tier",
+      "reference_basis": "authored new work",
+      "floor_height_m": 3.4,
+      "ops": [
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.7,
+          "align": "open",
+          "height": 0.75,
+          "storeys": 3,
+          "why": "Input: a three-tier diminishing stack that will be lifted on pilotis; n 3 with contrast 1.7 gives three visible tiers diminishing from base to crown without the top tier becoming too narrow for the vault to read; align open faces the diminishing body toward the open face so the silhouette is read from the street; height 0.75 declares mid-tall so after lift clearance the three-tier tower is above the pilotis at civic height. Limit: storeys 3 per tier keeps each tier at real floor height; contrast 1.7 within 1.2-3.5."
+        },
+        {
+          "op": "lift",
+          "clearance": 0.2,
+          "why": "Input: the three-tier stack must be lifted clear of the ground so the public ground plane is continuous under the tower; clearance 0.2 of total body height gives a clear storey of public threshold below the tower base; from the open face the tower reads as three diminishing tiers hovering above the pilotis. Limit: clearance 0.2 is above the 0.15 minimum; within the proven delivery range."
+        },
+        {
+          "op": "vault",
+          "rise": 0.5,
+          "bays": 1,
+          "along": "long",
+          "on": "tier_2",
+          "why": "Input: the topmost tier of the diminishing stack needs a curved crown that terminates the tower silhouette; a barrel vault on tier_2 (the narrowest top tier) gives the crown a rounded profile readable from the open face as the tower's terminus; on tier_2 targets only the top tier, leaving tier_0 and tier_1 with flat tops so the vault is the single roof event at the tower's peak; rise 0.5 on the narrow top tier gives a curvature visible at building scale. Limit: on tier_2 targets the stack's top tier role; vault on a stack tier (not after taper) avoids the taper+vault silence trap from agent07; rise 0.5 within 0.15-1.2."
+        }
+      ]
     }
-   ]
-  },
-
-  {
-   "name": "spine_vault_arcade",
-   "primary_language": "solid_body",
-   "secondary_language": "a five-storey bar whose roof is three barrel vaults running the length of the bar - an arcade of vaults that reads from outside as a rippled crown",
-   "formal_principle": "The open face is a long civic edge; three barrel vaults running the bar's full length expose the roof's corrugated profile to the open face as a reading from across the parcel - the vault bays declare the programme's interior rhythm on the outside, the number of vaults is the number of structural bays.",
-   "dominant_gesture": "a tall bar under three longitudinal barrel vaults",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "square",
-     "height": 0.8,
-     "storeys": 5,
-     "why": "Input: a five-storey bar body tall enough that the three barrel vaults above register as a distinct crown rather than a thin cap; height 0.8 declares tall so the vault crowns sit against the sky and read from the open face as three separate arcs above the parapet line. Profile square fills the parcel width to give each vault bay a real span. Limit: height 0.8 gives the vaults enough vertical clearance above the last storey to read at building scale."
-    },
-    {
-     "op": "vault",
-     "rise": 0.6,
-     "bays": 3,
-     "along": "long",
-     "why": "Input: three bays along the long axis divide the bar into three equal structural bays each under its own arc - the bay division is the programme's structural grid made visible on the exterior; rise 0.6 times the body's section gives each vault a curvature visible from the open face, not a flat token. Along long runs all three arcs parallel to the bar's long axis so from the open face the three parallel barrel forms read as a rippled crown across the bar's full width. Limit: bays 3 is within 1-6; rise 0.6 on the bar's cross-axis dimension is within the 1.5-storey section cap."
-    }
-   ]
-  },
-
-  {
-   "name": "stadium_notch_canopy",
-   "primary_language": "carved_body",
-   "secondary_language": "a four-storey stadium-profile bar with a notch cut from its back face and a canopy projecting from the notched opening toward the street - the notch is the address from the back lane",
-   "formal_principle": "The back boundary faces a pedestrian lane that has no dedicated covered threshold; notching the stadium body at its back face creates a recessed entry court legible from the lane while the canopy projecting from the notch declares the entry to passersby - the notch is carved from the programme, the canopy gives it a roof.",
-   "dominant_gesture": "a stadium bar notched from the back with a canopy at the notch",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 2,
-     "spread": 1.5,
-     "height": 0.7,
-     "tie": 0.15,
-     "storeys": 4,
-     "arrangement": "pack",
-     "why": "Input: two bodies spread 1.5 apart at mid-tall height form the paired mass from which the notched-back reading is made; spread 1.5 with a tie 0.15 at the base keeps them as a single reading with a recessed lane between them; n 2 gives the paired body its bilateral symmetry; height 0.7 declares mid-tall so the notch cut from the back face reads as a full-storey-height recess. Limit: storeys 4 per body; tie 0.15 within 0-0.4."
-    },
-    {
-     "op": "notch",
-     "size": 0.3,
-     "at": "back",
-     "why": "Input: the back lane pressure requires a recessed entry carved from the bar's back face; notch at back cuts a recess 0.3 wide into the rear of each body, creating the threshold alcove that addresses the lane; size 0.3 removes enough mass that the recess reads as a shelter rather than a decoration. Limit: size 0.3 within the notch range; at back targets the face toward the back lane."
-    },
-    {
-     "op": "canopy",
-     "reach": 0.35,
-     "at": 0.85,
-     "toward": "back",
-     "why": "Input: the notched recess at the back face needs a horizontal threshold element that is visible from the lane approach; a canopy at reach 0.35 projecting from the notched opening toward the back lane covers the recess and declares it as a sheltered entry rather than a mere cut in the wall; at 0.85 places the canopy near the body top. Limit: reach 0.35 within the 0.45 structural maximum; toward back is a valid axis word."
-    }
-   ]
-  },
-
-  {
-   "name": "stacked_nest_crown",
-   "primary_language": "solid_body",
-   "secondary_language": "a three-tier diminishing stack carrying a nested inner body that rises above the top tier as a mansard-crowned tower - a pagoda whose inner body breaks free at the summit",
-   "formal_principle": "The stepped-back tower gives the parcel its datum but its flat top leaves the summit undeclared; nesting a tighter inner body inside the top tier that rises above it and crowning that inner body with a mansard makes the summit a double event - the diminishing stack is the civic scale datum and the risen inner body is its address point.",
-   "dominant_gesture": "a diminishing stack with a mansard-crowned nested body rising from its top tier",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.8,
-     "align": "open",
-     "height": 0.6,
-     "storeys": 3,
-     "why": "Input: the parcel's stepped setback generates a three-tier diminishing tower that responds to the sky-plane limit; n 3 tiers with contrast 1.8 gives a clear reading of three diminishing bands without the top tier becoming invisibly small; align open faces the diminishing body toward the open face so the stepped profile is the face that the open-face boundary reads; height 0.6 declares mid so three real storeys per tier are achievable. Limit: contrast 1.8 is within 1.2-3.5; n 3 prevents the top tier from vanishing at contrast 1.8."
-    },
-    {
-     "op": "nest",
-     "size": 0.35,
-     "proud": 0.7,
-     "turn": 30,
-     "why": "Input: the top tier of the stack is wide enough to receive a nested body of meaningful footprint; size 0.35 places an inner body that covers just over one-third of the top tier's plan, leaving a visible ring of setback between the inner body and the tier's edge; proud 0.7 declares the nested body to rise 70% of the host tier's height above the top tier, making the inner body clearly visible as a separate object above the stack's summit; turn 30 rotates the nested body 30 degrees within the top tier, making the corner asymmetry visible from all four directions and declaring the inner body as an autonomous object rather than a continuation of the stack. Limit: size 0.35 within 0.15-0.6; proud 0.7 within 0.1-1.0; turn 30 within ±60."
-    },
-    {
-     "op": "mansard",
-     "pitch": 0.85,
-     "shoulder": 0.2,
-     "along": "long",
-     "why": "Input: the nested inner body needs a crown that is legible as a separate top above the stack's stepped silhouette; a mansard with a steep shoulder on the nested body's compact footprint reads as a miniature mansard tower crown visible from the open face against the sky; the mansard applies to the last produced body (the nested inner volume) after the nest op has placed it above the stack; pitch 0.85 on the inner body's small footprint reads as a steep shoulder. Limit: shoulder 0.2 within 0.1-0.4."
-    }
-   ]
-  },
-
-  {
-   "name": "cascade_ramp_tower",
-   "primary_language": "solid_body",
-   "secondary_language": "a two-tier stack whose top tier wears a walkable grade ramp that steps down toward the open face - the building is a tower with a hill for a crown",
-   "formal_principle": "The open face calls for a public surface visible from below; a wide lower tier declares the datum and a narrower upper tier whose roof becomes a smooth walkable ramp stepping down toward the open face extends the public ground to the building's top - the ramp is the roof and the park simultaneously.",
-   "dominant_gesture": "a two-tier stack crowned with a walkable ramp descending toward the open face",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "n": 2,
-     "contrast": 2.0,
-     "align": "back",
-     "height": 0.7,
-     "storeys": 4,
-     "why": "Input: a two-tier stack where the wide base is the civic datum and the narrower upper tier becomes the hill; contrast 2.0 makes the base clearly wider than the upper tier without making the upper tier too narrow for the ramp to register; align back pushes the upper tier to the back of the parcel so the ramp descends toward the open face; height 0.7 with storeys 4 declares mid-tall so the ramp's vertical run is legible. Limit: contrast 2.0 within 1.2-3.5; n 2 minimum for two-tier stack."
-    },
-    {
-     "op": "grade",
-     "smooth": true,
-     "run": 0.8,
-     "toward": "open",
-     "walk": true,
-     "why": "Input: the upper tier's roof must become a walkable public ramp descending toward the open face; smooth true declares a continuous ramp rather than steps; run 0.8 covers 80% of the upper tier's plan depth as the ramp slope, giving a full public promenade from the rear of the upper tier to the open face; walk true marks the ramp as public landscape in the tile; toward open orients the ramp's descent toward the open face. Limit: toward must be 'open' for grade; smooth true avoids the stepped-grade silence trap."
-    }
-   ]
-  },
-
-  {
-   "name": "sheared_gable_tower",
-   "primary_language": "solid_body",
-   "secondary_language": "a three-tier stack whose tiers shear progressively toward the back boundary, the top tier far off-centre and crowned with a steep gable - a tower leaning against the back wall",
-   "formal_principle": "The open face is at the south-west and the back boundary at the north-east; shearing the tower's tiers progressively toward the back boundary leans the mass away from the open face, making the lean visible as the tower's dominant posture and the gabled crown at the off-centre peak declares the address at the displaced top.",
-   "dominant_gesture": "a three-tier stack sheared progressively toward the back boundary",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.6,
-     "align": "back",
-     "height": 0.72,
-     "storeys": 3,
-     "why": "Input: a three-tier stack aligned to the back of the parcel so its diminishing tiers read as a tower leaning back; contrast 1.6 keeps each tier distinctly narrower than the one below without collapsing the top tier; height 0.72 declares mid-tall so the three tiers produce a tower silhouette; align back pushes the diminishing body toward the back boundary. Limit: n 3 with contrast 1.6 keeps the top tier at a usable scale; storeys 3 per tier."
-    },
-    {
-     "op": "shear",
-     "why": "Input: applying shear to the stacked body slides the upper tiers progressively toward the back boundary, making the lean visible as a continuous tilt in the tower's profile; from the open face the tower reads as a leaning body with its peak displaced toward the back - the shear declares the tower's posture as a deliberate formal gesture rather than a symmetric stack. Limit: shear has no magnitude parameter in the corpus schema - its application is the executor's default shear event applied to the stack."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.85,
-     "along": "cross",
-     "bays": 1,
-     "why": "Input: the sheared top tier is a compact narrow body; a single steep gable along the cross axis places a sharp ridge on the leaning crown - visible from the open face as a house-scale pitched top on the displaced peak; pitch 0.85 on the narrow top tier reads as a steep alpine pitch; along cross makes the gable ends face the open face and the back boundary respectively. Limit: bays 1 on the narrow top tier; pitch 0.85 within 0.15-1.2."
-    }
-   ]
-  },
-
-  {
-   "name": "lodge_bridge_spine",
-   "primary_language": "solid_body",
-   "secondary_language": "a three-storey spine bar carrying a shorter bridging bar lodged across its roof, overhanging both flanks - a cross-plan of body and bridge",
-   "formal_principle": "The spine runs north-south and its flanks are in shadow; a shorter cross-bar lodged on the spine's roof and overhanging east and west delivers daylight to the spine's flanks from above the lodged bar's underside - the lodge is a bridge of light, its overhang is the reason it exists.",
-   "dominant_gesture": "a bar bridging across the roof of a spine with bilateral overhang",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "square",
-     "height": 0.55,
-     "storeys": 3,
-     "why": "Input: a three-storey spine bar that will carry the lodged cross-bar; height 0.55 mid so the spine has three real programme storeys and the lodged bar above reads as an additional bridging element rather than a rooftop plant room; profile square gives the spine its full parcel width to give the lodged bar a long flank to bridge across. Limit: height 0.55 keeps the spine below the tall threshold so the lodged bar registers at the summit."
-    },
-    {
-     "op": "lodge",
-     "size": 0.4,
-     "over": 0.3,
-     "height": 0.6,
-     "at": 0.5,
-     "why": "Input: the cross-bar lodges on the spine's roof at the mid-point, overhang 0.3 each side; size 0.4 gives the lodged bar 40% of the spine's plan dimension as its own footprint - compact enough to read as a separate crossing body; over 0.3 declares the bilateral overhang so the bar's eaves reach both flanks of the spine and deliver the light-shelf effect; at 0.5 places the lodge at the spine's mid-length, maximising the cross-plan symmetry; height 0.6 declares the lodged bar's own height relative to the host so it reads as a distinct body above the spine. Limit: size 0.4 within 0.15-0.6; over 0.3 within 0.05-0.6; height 0.6 within 0.2-1.0."
-    }
-   ]
-  },
-
-  {
-   "name": "loop_shift_butterfly",
-   "primary_language": "open_figure",
-   "secondary_language": "a four-storey loop ring shifted toward the open face so the ring is asymmetric, the open-face bar wider than the back bar, and the open-face bar wears a butterfly roof draining into the court",
-   "formal_principle": "A symmetric ring addresses four boundaries equally; shifting the ring toward the open face widens the open-face bar, making it the dominant wall of the court, and a butterfly on that bar drains rainwater into the court - the shift is the answer to the open face's claim and the butterfly is the answer to water.",
-   "dominant_gesture": "an asymmetric ring shifted to the open face with a butterfly on the dominant bar",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.22,
-     "height": 0.6,
-     "storeys": 4,
-     "why": "Input: four bars forming a ring before the shift asymmetrises the ring; bar 0.22 keeps each arm at a depth that can receive a butterfly roof with enough pitch to read; height 0.6 declares mid so four storeys give the court walls enough height for the butterfly to read as a crown against the sky. Limit: bar 0.22 gives a slender-arm ring; storeys 4 at height 0.6."
-    },
-    {
-     "op": "shift",
-     "toward": "open",
-     "ratio": 0.25,
-     "why": "Input: shifting the entire ring 25% toward the open face widens the open-face bar relative to the back bar, breaking the ring's symmetry and declaring the open face as the address side; the wider open-face bar becomes the primary court wall and the back bar becomes the secondary; ratio 0.25 gives a legible asymmetry without displacing the ring so far that the back bar loses room depth. Limit: toward open is a valid axis word; ratio 0.25 is above the 0.15 minimum."
-    },
-    {
-     "op": "butterfly",
-     "pitch": 0.6,
-     "at": 0.5,
-     "along": "long",
-     "on": "bar_s",
-     "why": "Input: the widened open-face bar (bar_s facing the open face) receives a butterfly roof whose valley runs along the bar's long axis and drains toward the court; the butterfly valley is the gutter that collects the open-face bar's rainfall and delivers it to the court below, making the court a rain garden; on bar_s targets only the dominant open-face bar so the back bar and side bars remain flat and the butterfly is a single formal event on the dominant wall. Pitch 0.6 on bar depth reads as a real V-section. Limit: on bar_s targets the loop bar role; along long runs the valley parallel to the bar's length."
-    }
-   ]
-  },
-
-  {
-   "name": "pavilion_field_canopy",
-   "primary_language": "porous_field",
-   "secondary_language": "five low two-storey pavilions in a loose grid each under a warped roof plate with one corner lifted, a shared canopy linking their open-face edges into a single sheltered threshold",
-   "formal_principle": "A field of pavilions leaves the street edge undefined; a canopy stitching the pavilions' open-face edges into one continuous threshold declares the field's address to the open face while each pavilion retains its individual warped roof visible from above - the canopy is the street wall and the roofs are the field.",
-   "dominant_gesture": "a field of five warped-roof pavilions stitched by a canopy at the open-face edge",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 5,
-     "spread": 1.3,
-     "height": 0.35,
-     "tie": 0.0,
-     "storeys": 2,
-     "arrangement": "pack",
-     "why": "Input: five low pavilions spread loosely across the parcel so the field reads as a porous organisation rather than a compact block; n 5 gives enough pavilions to declare a field without filling the parcel; spread 1.3 keeps legible open space between each pavilion; height 0.35 declares low so each pavilion reads as a two-storey garden building; arrangement pack distributes them in a loose grid suited to the parcel's rectangular geometry. Limit: storeys 2 at height 0.35 keeps each pavilion at domestic scale."
-    },
-    {
-     "op": "roof",
-     "rise": 0.8,
-     "eave": 0.3,
-     "corners": "one",
-     "sag": 0.2,
-     "thin": 0.1,
-     "why": "Input: each pavilion needs a warped roof plate that is individually directional; one corner lifted at rise 0.8 gives each pavilion a strongly asymmetric warped plate visible from above the field as a collection of tilted surfaces; eave 0.3 gives each plate a real overhang that casts shadow; sag 0.2 curves the eave line so the lifted corner reads as a bent plate rather than a flat lid; thin 0.1 declares the plate as a roof element. Limit: rise 0.8 within 0.2-1.5; corners one on each pavilion."
-    },
-    {
-     "op": "canopy",
-     "reach": 0.38,
-     "at": 0.95,
-     "toward": "open",
-     "why": "Input: the open-face edges of the pavilions need stitching into one declared threshold; a canopy at reach 0.38 projecting toward the open face from each pavilion's open-face edge connects their overhangs into a shared threshold strip that reads as a continuous street arcade; at 0.95 places the canopy near the pavilion tops; toward open projects the canopy toward the open face. Limit: reach 0.38 is within the 0.45 structural maximum."
-    }
-   ]
-  },
-
-  {
-   "name": "intersecting_bars_cross",
-   "primary_language": "solid_body",
-   "secondary_language": "a five-storey bar intersected by a shorter crossing bar at mid-length - the crossing bar is at a different height so the two bars read as a plus-sign in section as much as in plan",
-   "formal_principle": "A single bar reads as a spine; a second bar intersecting it at mid-length and at a different level turns the spine into a cross whose central junction is both the highest and the busiest point - the intersection is the building's address and the arms are its four orientations, each arm reading a different site edge.",
-   "dominant_gesture": "a spine bar intersected at mid-length by a crossing bar at a different height",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "square",
-     "height": 0.8,
-     "storeys": 5,
-     "why": "Input: a five-storey spine bar that will be intersected at mid-length; height 0.8 declares tall so the central intersection at a different level reads as a section event - the two crossing bars at different heights produce a cross-section joint with real spatial consequence rather than a graphic overlay. Profile square fills the parcel's long axis. Limit: height 0.8 is in the tall band; five storeys give the crossing bar room to sit at a different level."
-    },
-    {
-     "op": "intersect",
-     "size": 0.35,
-     "level": 0.4,
-     "climb": 0.0,
-     "degrees": 90,
-     "why": "Input: a crossing bar intersects the spine at 90 degrees, size 0.35 of the spine's width, at level 0.4 of the spine's height - the crossing bar enters at the spine's mid-height level, not at grade, so the intersection reads as an elevated crossing room where the two bars share one floor; level 0.4 places the crossing bar at the two-storey mid-point of the spine; degrees 90 makes the cross reading unambiguous; size 0.35 gives the crossing bar enough plan area to read as a wing. Limit: intersect is a valid relational verb; degrees 90 within ±90; level 0.4 within valid range."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.75,
-     "along": "long",
-     "bays": 2,
-     "why": "Input: the tall cross needs a roof that reads as two independent gable trusses - one over the spine arm and one over the crossing arm; two gable bays along the long axis of the spine divide the roof into two bay-pairs whose ridges are visible from all four arms of the cross, the roofline declaring the cross composition in section; pitch 0.75 on the body's cross-axis depth reads as a domestic steep pitch. Limit: bays 2; along long runs ridges parallel to the spine's long axis."
-    }
-   ]
-  },
-
-  {
-   "name": "loop_extract_satellite",
-   "primary_language": "open_figure",
-   "secondary_language": "a three-storey loop ring with one corner piece extracted and stood beside its socket - the ring is three-quarters complete and the extracted corner becomes a freestanding pavilion",
-   "formal_principle": "A closed ring keeps the court for itself; extracting one corner from the ring and standing it beside its socket opens the court at the missing corner while the extracted piece reads as a freestanding pavilion that marks the open-face entry - the ring and the pavilion are paired bodies from one origin, the gap between them the building's entrance.",
-   "dominant_gesture": "a loop ring with one corner extracted and placed as a freestanding pavilion",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.22,
-     "height": 0.5,
-     "storeys": 3,
-     "why": "Input: a three-storey ring that will have one corner extracted; bar 0.22 keeps each arm narrow enough that the extracted corner piece reads as a compact separate pavilion rather than a slab; height 0.5 declares mid so the ring and the extracted pavilion are at the same civic scale and read as the same family. Limit: bar 0.22 gives the corner piece a compact footprint after extraction."
-    },
-    {
-     "op": "extract",
-     "size": 0.28,
-     "gap": 0.22,
-     "height": 0.9,
-     "level": 0,
-     "why": "Input: extracting a piece sized 0.28 from the ring's corner and standing it at gap 0.22 (in host-width ratio coordinates) beside its socket creates the open corner and the freestanding pavilion simultaneously; size 0.28 removes one complete corner zone, large enough to read as a missing piece rather than a notch; height 0.9 gives the extracted pavilion almost the same height as the ring so the pair reads at the same scale; level 0 extracts from the base so the pavilion stands on grade alongside the ring. Limit: extract gap is in host-width ratio coordinates; height 0.9 within the extract range; size 0.28 within the extract range."
-    },
-    {
-     "op": "vault",
-     "rise": 0.55,
-     "bays": 1,
-     "along": "long",
-     "why": "Input: the extracted pavilion needs a distinct roof that declares it as a separate object from the ring's flat-topped bars; a barrel vault applied after the extract op crowns the extracted piece as a chapel or gatehouse, visible from the open face as a curved profile against the ring's flat roofline; rise 0.55 on the pavilion's compact footprint gives a legible vault curvature; the vault applies to the most recent body produced after the extract. Limit: rise 0.55 within 0.15-1.2."
-    }
-   ]
-  },
-
-  {
-   "name": "radial_quartet_butterfly",
-   "primary_language": "open_figure",
-   "secondary_language": "four two-storey wings arranged radially facing a shared court, each wing under a butterfly roof draining into the court - a basin of four inward-pitched roofs",
-   "formal_principle": "Four wings on a radial ring each face the court; giving each wing a butterfly roof whose valley drains toward the court makes the roofs a collective basin - the water from all four wings converges in the court, the court is both the plan's centre and the section's drainage point, and the four valleys are visible from above as a pinwheel of V-profiles.",
-   "dominant_gesture": "four radial wings each with a butterfly roof draining into a shared court",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 4,
-     "spread": 1.25,
-     "height": 0.45,
-     "tie": 0.05,
-     "storeys": 2,
-     "arrangement": "radial",
-     "why": "Input: four wings on a radial ring each face the court centre; n 4 gives a clear four-wing reading with legible inter-wing gaps; spread 1.25 keeps the wing tips from touching while the ring still reads as a coherent court; tie 0.05 gives a minimal shared base at the ring's centre; height 0.45 with storeys 2 declares mid-low so the butterfly valleys above each wing read at eye level from inside the court. Limit: arrangement radial places each wing facing the court centre; n 4 avoids the n 5 radial + gable silence trap from agent07."
-    },
-    {
-     "op": "butterfly",
-     "pitch": 0.7,
-     "at": 0.45,
-     "along": "long",
-     "why": "Input: each wing's butterfly valley runs along the wing's long axis and drains toward the court centre; at 0.45 offsets the valley slightly toward the court side so the court-facing slope is shorter and steeper, channelling more water toward the court than away; pitch 0.7 gives each valley a visible V depth above the two-storey wing; along long runs the valley parallel to each wing's length so the valley faces the court gap between wings. Limit: at 0.45 within 0.2-0.8; pitch 0.7 within 0.15-1.2."
-    }
-   ]
-  },
-
-  {
-   "name": "pinwheel_gable_quartet",
-   "primary_language": "porous_field",
-   "secondary_language": "four two-storey slabs in a pinwheel, each slab under a gable roof, the pinwheel spinning the four ridges into a rotating crown",
-   "formal_principle": "A pinwheel field spins in plan; giving each slab a gable roof with its ridge running along the slab's long axis makes the four ridges rotate 90 degrees from one slab to the next - the spinning field reads not only in plan but in section, the ridges at four angles declaring the rotation in the building's crown as much as in its footprint.",
-   "dominant_gesture": "four pinwheel slabs each with a gable whose ridges rotate quarter-turn to quarter-turn",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 4,
-     "spread": 1.2,
-     "height": 0.4,
-     "tie": 0.0,
-     "storeys": 2,
-     "arrangement": "pinwheel",
-     "why": "Input: four slabs in a pinwheel arrangement each rotate 90 degrees from the previous; n 4 is the minimum pinwheel count where the rotation is complete (four quarter-turns = one full revolution); spread 1.2 gives legible gaps between slab corners; height 0.4 declares low so the four gables above read as the dominant element, the slabs serving as the bases from which the ridges rise; arrangement pinwheel is the only arrangement that makes four sequential 90-degree rotations. Limit: tie 0 keeps each slab independent."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.8,
-     "along": "long",
-     "bays": 1,
-     "why": "Input: each slab carries a single steep gable along its own long axis; because the pinwheel arrangement rotates each slab 90 degrees, the ridge of slab 0 runs north-south, slab 1 east-west, slab 2 north-south, slab 3 east-west - the four ridges alternate direction and from any external viewpoint two or three ridges are visible as a rotating figure of pitched roofs; pitch 0.8 on each slab's narrow plan gives a steep legible pitch; along long is each slab's own long axis, auto-rotating with the pinwheel. Limit: bays 1 keeps each slab under a single ridge; pitch 0.8 within 0.15-1.2."
-    }
-   ]
-  },
-
-  {
-   "name": "house_stack_vault",
-   "primary_language": "porous_field",
-   "secondary_language": "five house units stacked in alternating reach, the topmost unit under a barrel vault - a cascade of gabled house units with a vaulted apex",
-   "formal_principle": "The VitraHaus cascade reads as a field of houses; adding a single barrel vault on the topmost unit distinguishes the apex from the cascade below it - the vault declares the top as a different space from the house units (a hall, not a house) and the contrast between the gabled cascade and the vaulted crown makes the apex the building's memorable address point.",
-   "dominant_gesture": "a house cascade with a barrel-vaulted apex unit",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 5,
-     "spread": 1.0,
-     "height": 0.5,
-     "tie": 0.0,
-     "storeys": 2,
-     "method": "stack",
-     "unit": "house",
-     "reach": 0.28,
-     "why": "Input: five house units stacked with reach 0.28 - the empirically proven gate-safe value that delivers without backspan refusal; method stack layers each unit above the previous; unit house gives each unit its built-in 45-degree gable without an extra verb; reach 0.28 slides each unit out on alternating sides as the cascade of overhanging gable rooftops; height 0.5 with storeys 2 per unit keeps each at domestic house scale; n 5 gives more cascade steps than agent07's n 4 house_stack_reach. Limit: reach 0.28 proven maximum; n 5 gives five steps in the cascade."
-    },
-    {
-     "op": "vault",
-     "rise": 0.6,
-     "bays": 1,
-     "along": "cross",
-     "on": "object_4",
-     "why": "Input: the topmost house unit (object_4) needs a different roof to distinguish the apex from the cascade; a barrel vault along the cross axis on the topmost unit gives it a curved profile perpendicular to the house cascade's gables - the vault's arc is visible from the open face as a different silhouette shape at the top of the staircase, declaring the apex as a hall rather than another house; on object_4 targets only the top unit, leaving all other units with their native house gables; rise 0.6 gives the vault a curvature visible at the cascade's peak. Limit: on object_4 targets the topmost unit in a 5-unit aggregate."
-    }
-   ]
-  },
-
-  {
-   "name": "ring_warped_roofs",
-   "primary_language": "open_figure",
-   "secondary_language": "six two-storey wings in radial arrangement each under a warped roof plate with all corners lifted - the six warped plates hover above the court as a crown of ascending eaves",
-   "formal_principle": "Six radial wings form a court whose perimeter is the building; giving each wing a warped roof plate with all four corners lifted makes the court's ceiling a ring of ascending eaves - each plate is a hyperbolic paraboloid that reads from within the court as a rising corner and from outside as a curved lid, the six warped plates together forming a crown whose collective lift is the building's civic gesture.",
-   "dominant_gesture": "six radial wings each under a warped plate with all corners lifted",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "aggregate",
-     "n": 6,
-     "spread": 1.3,
-     "height": 0.7,
-     "tie": 0.0,
-     "storeys": 4,
-     "arrangement": "radial",
-     "why": "Input: six wings on a radial ring at mid-tall height so the warped roof plates above each wing have enough elevation to read as ascending eaves visible from within the court; n 6 gives a nearly complete ring with court definition; spread 1.3 keeps legible inter-wing gaps; height 0.7 with storeys 4 declares mid-tall, distinguishing this stature from the mid-height radial_quartet_butterfly sentence; arrangement radial places all wings facing the court. Limit: n 6 radial proven delivery-stable from agent07; tie 0 keeps each wing freestanding."
-    },
-    {
-     "op": "roof",
-     "rise": 0.7,
-     "eave": 0.3,
-     "corners": "all",
-     "sag": 0.3,
-     "thin": 0.1,
-     "why": "Input: each wing carries a warped plate with all four corners lifted at rise 0.7 - the maximum-lift variant that gives each plate a strongly curved hypar profile readable from the court as ascending eaves on all sides; corners all lifts every corner of each wing's plate so the plate reads as a crown from all four cardinal views simultaneously; sag 0.3 curves the eave lines into genuine hyperbolic curves; eave 0.3 gives each plate a real overhang; thin 0.1 declares the plate as a roof element. Limit: rise 0.7 within 0.2-1.5; corners all gives maximum lift; sag 0.3 within 0-0.6."
-    }
-   ]
-  },
-
-  {
-   "name": "pilotis_gable_volume",
-   "primary_language": "solid_body",
-   "secondary_language": "a four-storey bar lifted one storey on pilotis with a steep gable running along its short axis - a house in the air whose gable end faces the open face",
-   "formal_principle": "The open face wants a figure visible from across the parcel; lifting a gabled bar on pilotis presents the gable end to the open face while the pilotis free the ground below as a continuous public threshold - the gable is the face and the pilotis are the legs, the building a house held up so the city passes underneath.",
-   "dominant_gesture": "a gable-ended bar lifted on pilotis presenting its gable to the open face",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "extrude",
-     "profile": "square",
-     "height": 0.7,
-     "storeys": 4,
-     "why": "Input: a four-storey bar body that will be lifted on pilotis; height 0.7 declares mid-tall so after the lift clearance the bar retains three real programme storeys above the pilotis level; profile square gives the bar enough cross-axis depth for the gable pitch to read above the parapet. Limit: height 0.7 gives adequate section budget for lift plus gable crown."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.22,
-     "why": "Input: the bar must be lifted clear of the ground so the public threshold beneath is a full-storey open space; clearance 0.22 of total body height gives a clear storey-height of public ground below the bar; the pilotis read from the open face as thin legs holding the gabled bar above the street; clearance 0.22 is above the 0.15 structural minimum and within the established working range. Limit: clearance 0.22 within the safe delivery range proven in agent07's butterfly_hall."
-    },
-    {
-     "op": "gable",
-     "pitch": 0.9,
-     "along": "cross",
-     "bays": 1,
-     "why": "Input: the lifted bar needs a steep gable whose face presents to the open face; along cross places the ridge running perpendicular to the bar's long axis so the gable end - the triangle - faces the open face as the building's public face; pitch 0.9 on the bar's cross-axis depth reads as a steep alpine gable visible from the open face above the pilotis; bays 1 on the bar's cross-axis gives one clean ridge. Limit: pitch 0.9 within 0.15-1.2; along cross has the gable end face the open face."
-    }
-   ]
-  },
-
-  {
-   "name": "lifted_ring_fold",
-   "primary_language": "open_figure",
-   "secondary_language": "a three-storey loop ring lifted one storey on pilotis, the ring's bars each folded once along their short axis to produce a sawtooth crown above the pilotis",
-   "formal_principle": "A lifted ring at grade reads as a frame on legs; folding each bar's roof once along its short axis makes the lifted ring's crown a sawtooth at each bar's width - from below the public floor the folded crowns are the ceiling of the open space, from outside they read as a corrugated ring floating above the pilotis.",
-   "dominant_gesture": "a lifted loop ring whose bars each carry a single folded sawtooth crown",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "loop",
-     "bar": 0.2,
-     "height": 0.6,
-     "storeys": 3,
-     "why": "Input: three-storey ring bars that will be lifted and folded; bar 0.2 keeps each arm narrow enough that a single fold across the arm's short depth reads as a distinct sawtooth; height 0.6 declares mid so after lift clearance the ring retains usable programme height; the ring's four bars each present their fold to a different cardinal direction. Limit: bar 0.2 gives the narrow arm needed for the fold to register."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.25,
-     "why": "Input: the ring must be lifted a full storey on pilotis so the public floor beneath the ring is uninterrupted by the bars' walls; clearance 0.25 of total body height gives a clear storey of public ground; the fold crowns above are visible from the public floor below as a corrugated ceiling. Limit: clearance 0.25 is the same proven value as agent07's lifted_ring; above 0.15 minimum."
-    },
-    {
-     "op": "fold",
-     "folds": 1,
-     "pitch": 0.7,
-     "along": "cross",
-     "why": "Input: one fold along each bar's cross axis (perpendicular to the bar's long axis) divides each bar's roof into two alternating pitches - from below the ring the fold reads as a single ridge line across each bar's narrow depth; pitch 0.7 per fold-facet gives a legible slope across the bar's narrow dimension; folds 1 keeps the crown readable as one ridge per bar rather than a complex multi-crease crown. Along cross puts the fold across each arm's short axis so each ridge runs parallel to the bar's long axis and is seen from the outside as a single gable silhouette floating above the pilotis. Limit: folds 1 within 1-3; pitch 0.7 within 0.15-1.2."
-    }
-   ]
-  },
-
-  {
-   "name": "vault_bridge_pilotis",
-   "primary_language": "solid_body",
-   "secondary_language": "a three-tier diminishing stack lifted on pilotis, the top tier under a barrel vault - a tower on legs with a vaulted crown floating above the public ground",
-   "formal_principle": "The parcel's open face demands a vertical address visible from across the street; lifting a three-tier diminishing stack on pilotis frees the entire ground plane while the stack above reads as a tower; the barrel vault on the top tier crowns the tower with a curved profile readable from the street as a singular silhouette - a vaulted tower on legs.",
-   "dominant_gesture": "a diminishing stack on pilotis with a barrel-vaulted top tier",
-   "reference_basis": "authored new work",
-   "floor_height_m": 3.4,
-   "ops": [
-    {
-     "op": "stack",
-     "n": 3,
-     "contrast": 1.7,
-     "align": "open",
-     "height": 0.75,
-     "storeys": 3,
-     "why": "Input: a three-tier diminishing stack that will be lifted on pilotis; n 3 with contrast 1.7 gives three visible tiers diminishing from base to crown without the top tier becoming too narrow for the vault to read; align open faces the diminishing body toward the open face so the silhouette is read from the street; height 0.75 declares mid-tall so after lift clearance the three-tier tower is above the pilotis at civic height. Limit: storeys 3 per tier keeps each tier at real floor height; contrast 1.7 within 1.2-3.5."
-    },
-    {
-     "op": "lift",
-     "clearance": 0.2,
-     "why": "Input: the three-tier stack must be lifted clear of the ground so the public ground plane is continuous under the tower; clearance 0.2 of total body height gives a clear storey of public threshold below the tower base; from the open face the tower reads as three diminishing tiers hovering above the pilotis. Limit: clearance 0.2 is above the 0.15 minimum; within the proven delivery range."
-    },
-    {
-     "op": "vault",
-     "rise": 0.5,
-     "bays": 1,
-     "along": "long",
-     "on": "tier_2",
-     "why": "Input: the topmost tier of the diminishing stack needs a curved crown that terminates the tower silhouette; a barrel vault on tier_2 (the narrowest top tier) gives the crown a rounded profile readable from the open face as the tower's terminus; on tier_2 targets only the top tier, leaving tier_0 and tier_1 with flat tops so the vault is the single roof event at the tower's peak; rise 0.5 on the narrow top tier gives a curvature visible at building scale. Limit: on tier_2 targets the stack's top tier role; vault on a stack tier (not after taper) avoids the taper+vault silence trap from agent07; rise 0.5 within 0.15-1.2."
-    }
-   ]
-  }
-
- ]
+  ]
 }

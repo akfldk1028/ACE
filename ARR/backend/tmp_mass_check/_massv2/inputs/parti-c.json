@@ -9,10 +9,35 @@
       "dominant_gesture": "The building leans its stepped shoulder toward the open west and lies flat against the neighbours.",
       "reference_basis": "BIG, VIA 57 West — single volume deformed at one corner only",
       "ops": [
-        {"op": "extrude", "height": 0.85, "why": "건폐율 60% 한도를 1층에서 먼저 채우고, 위에서 어떤 조작을 해도 두 부분이 한 몸으로 남게 하는 공통 바닥을 깐다"},
-        {"op": "split", "along": "long", "ratio": 0.62, "first": "west", "second": "east", "gap": 0, "why": "장축이 -30°로 기울어진 대지라 장축을 따라 나누면 서남 개방면과 북동 인접면이 서로 다른 성격의 덩어리로 갈라진다"},
-        {"op": "stack", "on": "west", "n": 3, "contrast": 1.35, "height": 0.72, "align": "open", "why": "서남쪽은 유일하게 아무것도 붙어 있지 않은 면이므로 그 면만 플러시로 세우고 나머지 세 방향으로만 층이 물러난다"},
-        {"op": "taper", "on": "east", "ratio": 0.74, "why": "북동쪽은 다섯 필지가 붙어 있고 정북일조 사선이 위로 갈수록 평면을 깎으므로 동측 덩어리는 미리 좁혀 사선 안에 앉힌다"}
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "건폐율 60% 한도를 1층에서 먼저 채우고, 위에서 어떤 조작을 해도 두 부분이 한 몸으로 남게 하는 공통 바닥을 깐다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.62,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "장축이 -30°로 기울어진 대지라 장축을 따라 나누면 서남 개방면과 북동 인접면이 서로 다른 성격의 덩어리로 갈라진다"
+        },
+        {
+          "op": "stack",
+          "on": "west",
+          "n": 3,
+          "contrast": 1.35,
+          "height": 0.72,
+          "align": "open",
+          "why": "서남쪽은 유일하게 아무것도 붙어 있지 않은 면이므로 그 면만 플러시로 세우고 나머지 세 방향으로만 층이 물러난다"
+        },
+        {
+          "op": "taper",
+          "on": "east",
+          "ratio": 0.74,
+          "why": "북동쪽은 다섯 필지가 붙어 있고 정북일조 사선이 위로 갈수록 평면을 깎으므로 동측 덩어리는 미리 좁혀 사선 안에 앉힌다"
+        }
       ]
     },
     {
@@ -23,10 +48,36 @@
       "dominant_gesture": "The back wall stays one dead-straight plane and everything else slides away from it toward the west.",
       "reference_basis": "OMA, De Rotterdam — one block shifted against a held datum face",
       "ops": [
-        {"op": "extrude", "height": 0.7, "why": "2,499.7 m² 대지에서 4층밖에 못 올리므로 층수 대신 1층 바닥면적을 최대로 벌려 연면적을 확보한다"},
-        {"op": "split", "along": "long", "ratio": 0.42, "first": "west", "second": "east", "gap": 0, "why": "개방면 쪽을 일부러 작게 잘라 코퍼스가 금지하는 동일 크기 두 덩어리를 피한다"},
-        {"op": "stack", "on": "east", "n": 4, "contrast": 1.3, "height": 0.66, "align": "back", "why": "인접 필지에 면한 뒷면을 하나의 평면으로 유지해야 좁은 이격에서 벽이 들쭉날쭉해지지 않는다"},
-        {"op": "shear", "on": "west", "ratio": 0.28, "toward": "open", "why": "작은 서측 덩어리만 개방면으로 밀어내 4층짜리 낮은 건물에서도 단면에 사건이 생긴다"}
+        {
+          "op": "extrude",
+          "height": 0.7,
+          "why": "2,499.7 m² 대지에서 4층밖에 못 올리므로 층수 대신 1층 바닥면적을 최대로 벌려 연면적을 확보한다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.42,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "개방면 쪽을 일부러 작게 잘라 코퍼스가 금지하는 동일 크기 두 덩어리를 피한다"
+        },
+        {
+          "op": "stack",
+          "on": "east",
+          "n": 4,
+          "contrast": 1.3,
+          "height": 0.66,
+          "align": "back",
+          "why": "인접 필지에 면한 뒷면을 하나의 평면으로 유지해야 좁은 이격에서 벽이 들쭉날쭉해지지 않는다"
+        },
+        {
+          "op": "stagger",
+          "on": "west",
+          "ratio": 0.28,
+          "toward": "open",
+          "why": "작은 서측 덩어리만 개방면으로 밀어내 4층짜리 낮은 건물에서도 단면에 사건이 생긴다"
+        }
       ]
     },
     {
@@ -37,10 +88,33 @@
       "dominant_gesture": "The front end noses out over the open corner and the back end quietly ducks.",
       "reference_basis": "OMA, Kunsthal — a known slab type split across and displaced",
       "ops": [
-        {"op": "extrude", "height": 0.9, "why": "기울어진 필지 외곽을 그대로 물려받은 낮은 판이 두 부분을 지면에서 붙들어 준다"},
-        {"op": "split", "along": "cross", "ratio": 0.55, "first": "front", "second": "rear", "gap": 0, "why": "장축을 가로질러 잘라 서남 개방 코너를 향한 머리와 인접면에 묻힌 꼬리를 구분한다"},
-        {"op": "shear", "on": "front", "ratio": 0.32, "toward": "open", "why": "밀어낼 수 있는 방향은 아무것도 세워지지 않은 서남쪽뿐이고 나머지 다섯 면은 이웃이 막고 있다"},
-        {"op": "taper", "on": "rear", "ratio": 0.82, "why": "정북일조 포락선이 높이에 따라 평면을 줄이므로 뒤쪽은 처음부터 좁혀 위법 절단을 피한다"}
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "기울어진 필지 외곽을 그대로 물려받은 낮은 판이 두 부분을 지면에서 붙들어 준다"
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.55,
+          "first": "front",
+          "second": "rear",
+          "gap": 0,
+          "why": "장축을 가로질러 잘라 서남 개방 코너를 향한 머리와 인접면에 묻힌 꼬리를 구분한다"
+        },
+        {
+          "op": "stagger",
+          "on": "front",
+          "ratio": 0.32,
+          "toward": "open",
+          "why": "밀어낼 수 있는 방향은 아무것도 세워지지 않은 서남쪽뿐이고 나머지 다섯 면은 이웃이 막고 있다"
+        },
+        {
+          "op": "taper",
+          "on": "rear",
+          "ratio": 0.82,
+          "why": "정북일조 포락선이 높이에 따라 평면을 줄이므로 뒤쪽은 처음부터 좁혀 위법 절단을 피한다"
+        }
       ]
     },
     {
@@ -51,11 +125,43 @@
       "dominant_gesture": "Three unequal bars step down from the neighbours toward the open side like a cascade.",
       "reference_basis": "OMA, Timmerhuis — three to five unequal peers under one rule",
       "ops": [
-        {"op": "extrude", "height": 0.8, "why": "세 부분이 각자 다른 조작을 받아도 하나의 몸으로 남으려면 공통 저층부가 먼저 있어야 한다"},
-        {"op": "split", "along": "long", "ratio": 0.35, "first": "west", "second": "east", "gap": 0, "why": "1,922 m²의 좁고 긴 건축가능 영역은 장축 방향으로 나눌 때만 각 부분이 쓸 만한 폭을 갖는다"},
-        {"op": "split", "along": "long", "ratio": 0.55, "first": "mid", "second": "far", "gap": 0, "why": "다시 한 번 불균등하게 나눠 세 개의 서로 다른 폭을 만든다 — 동일 크기 두 덩어리는 코퍼스에 없다"},
-        {"op": "stack", "on": "mid", "n": 3, "contrast": 1.4, "height": 0.6, "why": "가운데 바만 층을 쌓아 위계를 만들고 양옆은 낮게 남긴다"},
-        {"op": "taper", "on": "far", "ratio": 0.68, "why": "가장 북동쪽 바가 정북일조 사선을 가장 먼저 맞으므로 여기서만 강하게 좁힌다"}
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "세 부분이 각자 다른 조작을 받아도 하나의 몸으로 남으려면 공통 저층부가 먼저 있어야 한다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.35,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "1,922 m²의 좁고 긴 건축가능 영역은 장축 방향으로 나눌 때만 각 부분이 쓸 만한 폭을 갖는다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.55,
+          "first": "mid",
+          "second": "far",
+          "gap": 0,
+          "why": "다시 한 번 불균등하게 나눠 세 개의 서로 다른 폭을 만든다 — 동일 크기 두 덩어리는 코퍼스에 없다"
+        },
+        {
+          "op": "stack",
+          "on": "mid",
+          "n": 3,
+          "contrast": 1.4,
+          "height": 0.6,
+          "why": "가운데 바만 층을 쌓아 위계를 만들고 양옆은 낮게 남긴다"
+        },
+        {
+          "op": "taper",
+          "on": "far",
+          "ratio": 0.68,
+          "why": "가장 북동쪽 바가 정북일조 사선을 가장 먼저 맞으므로 여기서만 강하게 좁힌다"
+        }
       ]
     },
     {
@@ -66,10 +172,35 @@
       "dominant_gesture": "You walk in underneath the small front block and the big block behind carries the building.",
       "reference_basis": "SANAA, Rolex Learning Center — one body, ground pulled through it",
       "ops": [
-        {"op": "extrude", "height": 0.75, "why": "대지 외곽을 그대로 쓴 저층부가 건축면적 1,497.9 m² 한도를 채우면서 들린 부분을 지면에 묶는다"},
-        {"op": "split", "along": "cross", "ratio": 0.38, "first": "front", "second": "rear", "gap": 0, "why": "서남 개방 코너 쪽 조각을 작게 떼어 낸다 — 들어올릴 것은 작은 쪽이어야 지지 골격이 무리하지 않는다"},
-        {"op": "lift", "on": "front", "clearance": 0.3, "why": "유일하게 열린 서남쪽에서 진입하므로 그쪽 조각 밑을 비워 대지 안쪽으로 사람을 끌어들인다"},
-        {"op": "stack", "on": "rear", "n": 3, "contrast": 1.32, "height": 0.7, "align": "back", "why": "용적률÷건폐율이 4.2층밖에 허용하지 않으므로 높이는 인접면에 붙은 큰 조각에 몰아준다"}
+        {
+          "op": "extrude",
+          "height": 0.75,
+          "why": "대지 외곽을 그대로 쓴 저층부가 건축면적 1,497.9 m² 한도를 채우면서 들린 부분을 지면에 묶는다"
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.38,
+          "first": "front",
+          "second": "rear",
+          "gap": 0,
+          "why": "서남 개방 코너 쪽 조각을 작게 떼어 낸다 — 들어올릴 것은 작은 쪽이어야 지지 골격이 무리하지 않는다"
+        },
+        {
+          "op": "lift",
+          "on": "front",
+          "clearance": 0.3,
+          "why": "유일하게 열린 서남쪽에서 진입하므로 그쪽 조각 밑을 비워 대지 안쪽으로 사람을 끌어들인다"
+        },
+        {
+          "op": "stack",
+          "on": "rear",
+          "n": 3,
+          "contrast": 1.32,
+          "height": 0.7,
+          "align": "back",
+          "why": "용적률÷건폐율이 4.2층밖에 허용하지 않으므로 높이는 인접면에 붙은 큰 조각에 몰아준다"
+        }
       ]
     },
     {
@@ -80,10 +211,35 @@
       "dominant_gesture": "Half the site is one calm block, the other half breaks into a family of unequal lumps under a single roof plate.",
       "reference_basis": "SANAA, Moriyama House — unequal objects inside one boundary",
       "ops": [
-        {"op": "extrude", "height": 0.9, "why": "낮은 건물이라 성격은 평면에서 나야 하고, 그 평면 전체를 먼저 한 장으로 깐다"},
-        {"op": "split", "along": "long", "ratio": 0.55, "first": "west", "second": "east", "gap": 0, "why": "서남 개방면에 면한 쪽은 통짜로 두고 이웃에 둘러싸인 쪽만 잘게 쪼갤 대상으로 지정한다"},
-        {"op": "aggregate", "on": "east", "n": 3, "spread": 1.5, "tie": 0.3, "why": "다섯 이웃과 만나는 면을 하나의 큰 벽 대신 크기가 다른 세 덩이로 받아 스케일을 낮춘다"},
-        {"op": "shear", "on": "west", "ratio": 0.2, "toward": "open", "why": "통짜로 남은 서측을 개방면으로 조금 밀어 두 반쪽이 서로 다른 논리로 움직였음을 드러낸다"}
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "낮은 건물이라 성격은 평면에서 나야 하고, 그 평면 전체를 먼저 한 장으로 깐다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.55,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "서남 개방면에 면한 쪽은 통짜로 두고 이웃에 둘러싸인 쪽만 잘게 쪼갤 대상으로 지정한다"
+        },
+        {
+          "op": "aggregate",
+          "on": "east",
+          "n": 3,
+          "spread": 1.5,
+          "tie": 0.3,
+          "why": "다섯 이웃과 만나는 면을 하나의 큰 벽 대신 크기가 다른 세 덩이로 받아 스케일을 낮춘다"
+        },
+        {
+          "op": "stagger",
+          "on": "west",
+          "ratio": 0.2,
+          "toward": "open",
+          "why": "통짜로 남은 서측을 개방면으로 조금 밀어 두 반쪽이 서로 다른 논리로 움직였음을 드러낸다"
+        }
       ]
     },
     {
@@ -94,9 +250,22 @@
       "dominant_gesture": "One block, tilted and narrowed, doing everything with a single continuous surface.",
       "reference_basis": "BIG, Kaktus / 8 House logic — seven of ten BIG projects deform ONE volume",
       "ops": [
-        {"op": "extrude", "height": 1.0, "why": "1,922 m²의 기울어진 건축가능 형상 자체가 이미 특이한 도형이라 자르지 않고 그대로 밀어 올린다"},
-        {"op": "taper", "ratio": 0.58, "why": "정북일조 포락선이 위로 갈수록 평면을 줄이므로 전체를 하나의 쐐기로 좁혀 사선과 형태를 일치시킨다"},
-        {"op": "shear", "ratio": 0.24, "toward": "open", "why": "좁아지는 방향을 서남 개방면 쪽으로 몰아 이웃에 그림자를 더 주지 않으면서 열린 쪽으로 몸을 기울인다"}
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "1,922 m²의 기울어진 건축가능 형상 자체가 이미 특이한 도형이라 자르지 않고 그대로 밀어 올린다"
+        },
+        {
+          "op": "taper",
+          "ratio": 0.58,
+          "why": "정북일조 포락선이 위로 갈수록 평면을 줄이므로 전체를 하나의 쐐기로 좁혀 사선과 형태를 일치시킨다"
+        },
+        {
+          "op": "stagger",
+          "ratio": 0.24,
+          "toward": "open",
+          "why": "좁아지는 방향을 서남 개방면 쪽으로 몰아 이웃에 그림자를 더 주지 않으면서 열린 쪽으로 몸을 기울인다"
+        }
       ]
     },
     {
@@ -107,10 +276,36 @@
       "dominant_gesture": "The big rear mass slides along the party line and the little front mass squares itself to the open sky.",
       "reference_basis": "OMA, Educatorium — one type cut in two and offset",
       "ops": [
-        {"op": "extrude", "height": 0.8, "why": "슬롯을 넣어도 두 부분이 분리된 몸이 되지 않도록 지면에 공통 판을 먼저 깐다"},
-        {"op": "split", "along": "cross", "ratio": 0.68, "first": "rear", "second": "front", "gap": 0.8, "why": "장축을 가로질러 크게-작게 나누고 그 사이에 좁은 틈을 두어 이웃 다섯 면 사이로 빛과 바람이 지나갈 통로를 만든다"},
-        {"op": "shear", "on": "rear", "ratio": 0.22, "toward": "cross", "why": "큰 뒤쪽 덩어리를 장축 직각 방향으로만 밀어 정북 쪽 이격을 층마다 다르게 벌린다"},
-        {"op": "stack", "on": "front", "n": 2, "contrast": 1.6, "height": 0.55, "align": "open", "why": "작은 앞쪽 덩어리는 개방면에 딱 맞춘 두 단으로 세워 큰 쪽과 대비를 크게 준다"}
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "슬롯을 넣어도 두 부분이 분리된 몸이 되지 않도록 지면에 공통 판을 먼저 깐다"
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.68,
+          "first": "rear",
+          "second": "front",
+          "gap": 0.8,
+          "why": "장축을 가로질러 크게-작게 나누고 그 사이에 좁은 틈을 두어 이웃 다섯 면 사이로 빛과 바람이 지나갈 통로를 만든다"
+        },
+        {
+          "op": "stagger",
+          "on": "rear",
+          "ratio": 0.22,
+          "toward": "cross",
+          "why": "큰 뒤쪽 덩어리를 장축 직각 방향으로만 밀어 정북 쪽 이격을 층마다 다르게 벌린다"
+        },
+        {
+          "op": "stack",
+          "on": "front",
+          "n": 2,
+          "contrast": 1.6,
+          "height": 0.55,
+          "align": "open",
+          "why": "작은 앞쪽 덩어리는 개방면에 딱 맞춘 두 단으로 세워 큰 쪽과 대비를 크게 준다"
+        }
       ]
     },
     {
@@ -121,10 +316,37 @@
       "dominant_gesture": "A single bite is taken out of the far half so the courtyard opens straight through toward the west.",
       "reference_basis": "OMA, Villa dall'Ava — a known volume with one piece removed",
       "ops": [
-        {"op": "extrude", "height": 0.85, "why": "중정을 파내면 건축면적이 줄기 때문에 1층은 외곽 전체를 써서 1,497.9 m² 한도에 최대한 붙인다"},
-        {"op": "split", "along": "long", "ratio": 0.6, "first": "west", "second": "east", "gap": 0, "why": "장축을 따라 크게-작게 나누어 중정을 어느 반쪽에 넣을지 지명할 수 있게 한다"},
-        {"op": "carve", "on": "east", "size": 0.42, "at": "open", "reach": 0.8, "why": "이웃에 둘러싸인 동측 덩어리는 스스로 빛을 못 받으므로 서남 개방면 쪽으로 열린 중정을 파서 채광을 끌어온다"},
-        {"op": "stack", "on": "west", "n": 2, "contrast": 1.45, "height": 0.62, "align": "open", "why": "중정 반대편만 두 단으로 올려 파낸 쪽과 쌓은 쪽의 위계를 분명히 한다"}
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "중정을 파내면 건축면적이 줄기 때문에 1층은 외곽 전체를 써서 1,497.9 m² 한도에 최대한 붙인다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.6,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "장축을 따라 크게-작게 나누어 중정을 어느 반쪽에 넣을지 지명할 수 있게 한다"
+        },
+        {
+          "op": "carve",
+          "on": "east",
+          "size": 0.42,
+          "at": "open",
+          "reach": 0.8,
+          "why": "이웃에 둘러싸인 동측 덩어리는 스스로 빛을 못 받으므로 서남 개방면 쪽으로 열린 중정을 파서 채광을 끌어온다"
+        },
+        {
+          "op": "stack",
+          "on": "west",
+          "n": 2,
+          "contrast": 1.45,
+          "height": 0.62,
+          "align": "open",
+          "why": "중정 반대편만 두 단으로 올려 파낸 쪽과 쌓은 쪽의 위계를 분명히 한다"
+        }
       ]
     },
     {
@@ -135,10 +357,36 @@
       "dominant_gesture": "A ring of rooms holds a courtyard on the open side, welded to a plain slab behind.",
       "reference_basis": "BIG, 8 House — a bar knotted into a loop on one part only",
       "ops": [
-        {"op": "extrude", "height": 0.7, "why": "고리와 슬래브가 서로 다른 도형이라 지면에서 한 몸임을 보증할 공통 저층부가 필요하다"},
-        {"op": "split", "along": "long", "ratio": 0.48, "first": "west", "second": "east", "gap": 0, "why": "장축을 따라 살짝 불균등하게 나눠 고리가 앉을 폭과 슬래브가 앉을 폭을 다르게 준다"},
-        {"op": "loop", "on": "west", "bar": 0.32, "height": 0.66, "why": "서남 개방면 쪽 반쪽만 고리로 만들면 중정이 열린 하늘을 그대로 받고 나머지 세 면은 바가 막아 준다"},
-        {"op": "stack", "on": "east", "n": 3, "contrast": 1.3, "height": 0.7, "align": "back", "why": "이웃 다섯 필지에 면한 쪽은 뒷면을 플러시로 유지한 채 정북일조만큼만 물러나며 쌓는다"}
+        {
+          "op": "extrude",
+          "height": 0.7,
+          "why": "고리와 슬래브가 서로 다른 도형이라 지면에서 한 몸임을 보증할 공통 저층부가 필요하다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.48,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "장축을 따라 살짝 불균등하게 나눠 고리가 앉을 폭과 슬래브가 앉을 폭을 다르게 준다"
+        },
+        {
+          "op": "loop",
+          "on": "west",
+          "bar": 0.32,
+          "height": 0.66,
+          "why": "서남 개방면 쪽 반쪽만 고리로 만들면 중정이 열린 하늘을 그대로 받고 나머지 세 면은 바가 막아 준다"
+        },
+        {
+          "op": "stack",
+          "on": "east",
+          "n": 3,
+          "contrast": 1.3,
+          "height": 0.7,
+          "align": "back",
+          "why": "이웃 다섯 필지에 면한 쪽은 뒷면을 플러시로 유지한 채 정북일조만큼만 물러나며 쌓는다"
+        }
       ]
     },
     {
@@ -149,10 +397,34 @@
       "dominant_gesture": "The building bites a notch out of its own back so the north side never sits in a solid wall.",
       "reference_basis": "OMA, Wyly Theatre — subtraction as the whole patent",
       "ops": [
-        {"op": "extrude", "height": 0.9, "why": "노치를 전 층으로 파낼 것이므로 1층 바닥면적은 외곽 전체로 확보해 둔다"},
-        {"op": "split", "along": "cross", "ratio": 0.62, "first": "rear", "second": "front", "gap": 0, "why": "장축을 가로질러 나눠 이웃에 묻힌 뒤쪽을 파낼 대상으로 따로 지명한다"},
-        {"op": "carve", "on": "rear", "size": 0.5, "at": "back", "reach": 1.0, "why": "정북일조 사선이 어차피 위층을 깎아 내므로 그 자리를 처음부터 노치로 비워 사선과 형태를 일치시킨다"},
-        {"op": "taper", "on": "front", "ratio": 0.85, "why": "앞쪽은 살짝만 좁혀 노치의 깊이가 유일한 사건으로 읽히게 한다"}
+        {
+          "op": "extrude",
+          "height": 0.9,
+          "why": "노치를 전 층으로 파낼 것이므로 1층 바닥면적은 외곽 전체로 확보해 둔다"
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.62,
+          "first": "rear",
+          "second": "front",
+          "gap": 0,
+          "why": "장축을 가로질러 나눠 이웃에 묻힌 뒤쪽을 파낼 대상으로 따로 지명한다"
+        },
+        {
+          "op": "carve",
+          "on": "rear",
+          "size": 0.5,
+          "at": "back",
+          "reach": 1.0,
+          "why": "정북일조 사선이 어차피 위층을 깎아 내므로 그 자리를 처음부터 노치로 비워 사선과 형태를 일치시킨다"
+        },
+        {
+          "op": "taper",
+          "on": "front",
+          "ratio": 0.85,
+          "why": "앞쪽은 살짝만 좁혀 노치의 깊이가 유일한 사건으로 읽히게 한다"
+        }
       ]
     },
     {
@@ -163,11 +435,44 @@
       "dominant_gesture": "Three bars, and the one in the middle is emptied out to become the yard.",
       "reference_basis": "SANAA, Zollverein School — a boundary holding a void in the middle",
       "ops": [
-        {"op": "extrude", "height": 0.75, "why": "가운데를 비울 것이므로 바깥 두 바가 저층에서 서로 이어져 있어야 한 몸이 유지된다"},
-        {"op": "split", "along": "long", "ratio": 0.34, "first": "west", "second": "east", "gap": 0, "why": "기울어진 장축을 따라 첫 바를 좁게 떼어 낸다"},
-        {"op": "split", "along": "long", "ratio": 0.5, "first": "mid", "second": "far", "gap": 0, "why": "남은 부분을 다시 나눠 폭이 다른 세 바를 만든다 — 가운데가 비워질 자리다"},
-        {"op": "carve", "on": "mid", "size": 0.55, "at": "cross", "reach": 0.7, "why": "가운데 바를 장축 직각 방향으로 파내면 이웃에 둘러싸인 대지 안쪽까지 빛이 관통한다"},
-        {"op": "shear", "on": "west", "ratio": 0.18, "toward": "open", "why": "개방면에 면한 첫 바만 서남으로 밀어 중정 입구를 넓힌다"}
+        {
+          "op": "extrude",
+          "height": 0.75,
+          "why": "가운데를 비울 것이므로 바깥 두 바가 저층에서 서로 이어져 있어야 한 몸이 유지된다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.34,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "기울어진 장축을 따라 첫 바를 좁게 떼어 낸다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.5,
+          "first": "mid",
+          "second": "far",
+          "gap": 0,
+          "why": "남은 부분을 다시 나눠 폭이 다른 세 바를 만든다 — 가운데가 비워질 자리다"
+        },
+        {
+          "op": "carve",
+          "on": "mid",
+          "size": 0.55,
+          "at": "cross",
+          "reach": 0.7,
+          "why": "가운데 바를 장축 직각 방향으로 파내면 이웃에 둘러싸인 대지 안쪽까지 빛이 관통한다"
+        },
+        {
+          "op": "stagger",
+          "on": "west",
+          "ratio": 0.18,
+          "toward": "open",
+          "why": "개방면에 면한 첫 바만 서남으로 밀어 중정 입구를 넓힌다"
+        }
       ]
     },
     {
@@ -178,9 +483,26 @@
       "dominant_gesture": "One block with one hole in it, stepping back on three sides and standing straight on the fourth.",
       "reference_basis": "SANAA, 21st Century Museum Kanazawa — one boundary, one inscribed void",
       "ops": [
-        {"op": "extrude", "height": 1.0, "why": "자르지 않고 대지 외곽 전체를 한 덩어리로 세워 파낸 구멍 하나만이 사건이 되게 한다"},
-        {"op": "carve", "size": 0.36, "at": "cross", "reach": 0.55, "why": "이웃 다섯 면에 갇힌 평면 깊숙한 곳까지 빛이 닿게 하려면 외곽이 아니라 몸통 한가운데를 뚫어야 한다"},
-        {"op": "stack", "n": 3, "contrast": 1.28, "height": 0.68, "align": "open", "why": "서남 개방면만 플러시로 두고 나머지 세 면이 정북일조와 이격을 따라 물러난다"}
+        {
+          "op": "extrude",
+          "height": 1.0,
+          "why": "자르지 않고 대지 외곽 전체를 한 덩어리로 세워 파낸 구멍 하나만이 사건이 되게 한다"
+        },
+        {
+          "op": "carve",
+          "size": 0.36,
+          "at": "cross",
+          "reach": 0.55,
+          "why": "이웃 다섯 면에 갇힌 평면 깊숙한 곳까지 빛이 닿게 하려면 외곽이 아니라 몸통 한가운데를 뚫어야 한다"
+        },
+        {
+          "op": "stack",
+          "n": 3,
+          "contrast": 1.28,
+          "height": 0.68,
+          "align": "open",
+          "why": "서남 개방면만 플러시로 두고 나머지 세 면이 정북일조와 이격을 따라 물러난다"
+        }
       ]
     },
     {
@@ -191,10 +513,34 @@
       "dominant_gesture": "A courtyard cut into the big half and a shaded undercroft under the small half, reading as one continuous emptiness.",
       "reference_basis": "OMA, Casa da Musica — one solid, two kinds of removal",
       "ops": [
-        {"op": "extrude", "height": 0.8, "why": "들어올린 조각과 파낸 조각이 각각 다른 층위에서 비므로 지면에서는 하나의 판으로 묶어 둔다"},
-        {"op": "split", "along": "long", "ratio": 0.7, "first": "west", "second": "east", "gap": 0, "why": "0.7로 크게 갈라 큰 쪽에는 중정을, 작은 쪽에는 들림을 배정한다"},
-        {"op": "carve", "on": "west", "size": 0.38, "at": "open", "reach": 0.75, "why": "서남 개방면 쪽 큰 덩어리에 중정을 파면 중정이 열린 방향과 대지가 열린 방향이 일치한다"},
-        {"op": "lift", "on": "east", "clearance": 0.26, "why": "이웃에 갇힌 작은 덩어리 밑을 비워 필지 안쪽으로 통과 동선을 만든다"}
+        {
+          "op": "extrude",
+          "height": 0.8,
+          "why": "들어올린 조각과 파낸 조각이 각각 다른 층위에서 비므로 지면에서는 하나의 판으로 묶어 둔다"
+        },
+        {
+          "op": "split",
+          "along": "long",
+          "ratio": 0.7,
+          "first": "west",
+          "second": "east",
+          "gap": 0,
+          "why": "0.7로 크게 갈라 큰 쪽에는 중정을, 작은 쪽에는 들림을 배정한다"
+        },
+        {
+          "op": "carve",
+          "on": "west",
+          "size": 0.38,
+          "at": "open",
+          "reach": 0.75,
+          "why": "서남 개방면 쪽 큰 덩어리에 중정을 파면 중정이 열린 방향과 대지가 열린 방향이 일치한다"
+        },
+        {
+          "op": "lift",
+          "on": "east",
+          "clearance": 0.26,
+          "why": "이웃에 갇힌 작은 덩어리 밑을 비워 필지 안쪽으로 통과 동선을 만든다"
+        }
       ]
     },
     {
@@ -205,10 +551,35 @@
       "dominant_gesture": "The courtyard is not a shaft — it twists as the back half slides across it.",
       "reference_basis": "OMA, Seattle Central Library — stacked plates offset over a held void",
       "ops": [
-        {"op": "extrude", "height": 0.85, "why": "낮은 4층 건물에서 단면 사건을 만들려면 저층부를 넓게 깔고 그 위에서만 어긋내야 한다"},
-        {"op": "split", "along": "cross", "ratio": 0.44, "first": "front", "second": "rear", "gap": 0.6, "why": "장축을 가로질러 불균등하게 나누고 좁은 틈을 남겨 중정과 이어지는 관통로를 만든다"},
-        {"op": "carve", "on": "front", "size": 0.34, "at": "open", "reach": 0.6, "why": "서남으로 열린 앞쪽 조각에서 노치를 파 열린 방향과 파낸 방향을 같게 한다"},
-        {"op": "shear", "on": "rear", "ratio": 0.3, "toward": "cross", "why": "뒤쪽만 장축 직각으로 밀면 층이 오를수록 중정 평면이 달라져 하나의 구멍이 여러 방을 만든다"}
+        {
+          "op": "extrude",
+          "height": 0.85,
+          "why": "낮은 4층 건물에서 단면 사건을 만들려면 저층부를 넓게 깔고 그 위에서만 어긋내야 한다"
+        },
+        {
+          "op": "split",
+          "along": "cross",
+          "ratio": 0.44,
+          "first": "front",
+          "second": "rear",
+          "gap": 0.6,
+          "why": "장축을 가로질러 불균등하게 나누고 좁은 틈을 남겨 중정과 이어지는 관통로를 만든다"
+        },
+        {
+          "op": "carve",
+          "on": "front",
+          "size": 0.34,
+          "at": "open",
+          "reach": 0.6,
+          "why": "서남으로 열린 앞쪽 조각에서 노치를 파 열린 방향과 파낸 방향을 같게 한다"
+        },
+        {
+          "op": "stagger",
+          "on": "rear",
+          "ratio": 0.3,
+          "toward": "cross",
+          "why": "뒤쪽만 장축 직각으로 밀면 층이 오를수록 중정 평면이 달라져 하나의 구멍이 여러 방을 만든다"
+        }
       ]
     },
     {
@@ -219,9 +590,22 @@
       "dominant_gesture": "A single ring of rooms whose courtyard opens wider the higher you go.",
       "reference_basis": "SANAA, Grace Farms / OMA courtyard type — one boundary defining one void",
       "ops": [
-        {"op": "extrude", "height": 0.6, "why": "고리 아래에 낮은 판을 먼저 두면 중정 바닥이 대지에 고정되고 고리가 한 몸으로 성립한다"},
-        {"op": "loop", "bar": 0.28, "height": 0.8, "why": "이웃이 다섯 면을 막고 있으므로 외곽 전체를 바로 두르고 채광을 안쪽 중정에서 받는 것이 이 필지에 맞는 유형이다"},
-        {"op": "taper", "ratio": 0.72, "why": "바를 위로 갈수록 좁히면 정북일조 사선을 자동으로 지키면서 중정이 위에서 더 넓어진다"}
+        {
+          "op": "extrude",
+          "height": 0.6,
+          "why": "고리 아래에 낮은 판을 먼저 두면 중정 바닥이 대지에 고정되고 고리가 한 몸으로 성립한다"
+        },
+        {
+          "op": "loop",
+          "bar": 0.28,
+          "height": 0.8,
+          "why": "이웃이 다섯 면을 막고 있으므로 외곽 전체를 바로 두르고 채광을 안쪽 중정에서 받는 것이 이 필지에 맞는 유형이다"
+        },
+        {
+          "op": "taper",
+          "ratio": 0.72,
+          "why": "바를 위로 갈수록 좁히면 정북일조 사선을 자동으로 지키면서 중정이 위에서 더 넓어진다"
+        }
       ]
     }
   ]

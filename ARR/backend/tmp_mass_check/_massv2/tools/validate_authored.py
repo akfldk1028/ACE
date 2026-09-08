@@ -29,7 +29,10 @@ _HAND_PARAMS = {
     "stack":     {"n", "contrast", "align", "height", "grow"},
     "aggregate": {"n", "spread", "height", "tie"},
     "loop":      {"bar", "height", "step"},
-    "shear":     {"ratio", "toward"},
+    "stagger":   {"ratio", "toward"},
+    # The BOOK's Shear (p.32) is one oblique plane through the body, and its
+    # page carries one variation parameter. `side` names which flank it rakes.
+    "shear":     {"angle", "toward", "side"},
     "taper":     {"ratio"},
     "lift":      {"clearance"},
     "carve":     {"size", "at", "reach"},

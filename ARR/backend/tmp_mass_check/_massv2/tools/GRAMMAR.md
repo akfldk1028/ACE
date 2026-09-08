@@ -12,14 +12,15 @@
 | `stack` | `n` 2~6 · `contrast` 1.2~2.0 (단끼리 크기 차) · `align` open\|back\|cross · `height` · `grow` true | 단을 쌓는다. `grow:true`면 위가 커진다(대공간을 최상층에) |
 | `aggregate` | `n` 2~6 · `spread` 1.2~2.0 · `height` 0.1~1.0 · `tie` 0.08~0.4 | 흩어진 오브젝트 n개 + 묶는 판. `spread`는 **오브젝트끼리 크기가 얼마나 벌어지는가**(1.0이면 전부 같은 크기 = 금지). `tie`는 묶는 판의 두께 비율. SANAA 필드형 |
 | `loop` | `bar` 0.2~0.45 · `height` | 중정을 감싸는 고리(ㅁ자). 진짜 perimeter block일 때만 |
-| `shear` | `ratio` 0.15~0.35 · `toward` long\|cross\|back · `on` | 겨냥한 볼륨을 자기 치수의 비율만큼 민다 |
+| `stagger` | `ratio` 0.15~0.35 · `toward` long\|cross\|back · `on` | 겹친 볼륨을 위로 갈수록 한 칸씩 민다. 예전 이름이 `shear`였는데 그 이름은 BOOK에 임자가 있어 돌려줬다 |
+| `shear` | `angle` 5~45 · `toward` long\|cross · `side` far\|near · `on` | BOOK p.32. 비스듬한 **평면 하나**로 한쪽 옆면을 깎아낸다 (제거 부피 = ½·tanθ·H²·D). 계단식은 `grade`, 기울이는 것은 `skew` |
 | `taper` | `ratio` 0.3~0.95 · `on` | 겨냥한 것이 **올라가며 좁아진다**. 세분화로 구현됨. 상자 하나엔 안 쓴다 |
 | `lift` | `clearance` 0.1~0.4 · `on` | 들어올리고 밑을 비운다. 필로티. 밑 높이는 1~2개층으로 제한됨 |
 | `carve` | `size` 0.15~0.6 · `at` long\|cross\|back · `reach` 0~1 · `on` | 중정/슬롯을 판다 |
 | `notch` | `size` 0.15~0.5 · `at` | **모서리**를 베어 문다. carve는 변에서 파고, notch는 코너다 |
 | `puncture` | `size` 0.1~0.45 · `n` 1~3 | 안쪽에 **관통** 구멍. 하늘로 열린 중정이 아니라 통로·광정 |
 | `rotate` | `degrees` -45~45 · `on` | 평면에서 돌린다. 스택에 걸면 단마다 더 돌아간다 (Kaktus·Grove) |
-| `skew` | `degrees` -30~30 · `toward` long\|cross · `on` | 수직에서 **기울인다**. shear는 미는 것, skew는 넘어뜨리는 것 |
+| `skew` | `degrees` -30~30 · `toward` long\|cross · `on` | 수직에서 **기울인다** (아핀 전단, 부피 보존). 그래픽스에서 Maya의 Shear·3ds Max의 Skew가 바로 이것이다 |
 | `twist` | `degrees` 5~90 · `on` | 올라가며 단면이 **점진적으로 회전**. 세분화로 구현 (Vancouver House) |
 
 ## 기저 볼륨 `base_volume` + `base_orientation` (문장 맨 위, 선택)

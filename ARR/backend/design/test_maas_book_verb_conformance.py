@@ -18,6 +18,7 @@ from design.maas.book_language.execution import (
     operator_for,
     undeclared_divergences,
 )
+from design.maas.book_language.execution import base_volumes, grammar_of
 from design.maas.book_language.execution.canonical import semantics_of
 
 # What was true when this test was written, on 2026-09-08: thirty-one of the
@@ -54,6 +55,35 @@ class BookOwnsItsWordsTests(SimpleTestCase):
             "recording what the two readings are: "
             f"{sorted(set(undeclared))}. Read them side by side and write the "
             "reading into that word's file under DIVERGENCE, with REVIEWED = True.")
+
+    def test_the_grammar_is_three_parts_not_one(self):
+        """A BOOK sentence is a base volume, an action, and its variations.
+
+        The word files carried only the action at first, which is the mistake
+        the BOOK's own semantics warns against in its first paragraph: it
+        begins by choosing a relative solid and an orientation, and only then
+        acts.
+        """
+
+        volumes = base_volumes()
+        self.assertEqual(len(volumes), 6)
+        self.assertEqual(volumes["3/8"]["topology"], "connected_three_octant_l")
+        self.assertEqual(len(volumes["3/8"]["octant_cells"]), 3)
+
+        carve = grammar_of("carve")
+        self.assertEqual(carve["layer"], "base_operative")
+        self.assertEqual(len(carve["base_volume_labels"]), 6)
+        self.assertEqual(carve["orientations"], ("long_axis", "short_axis", "vertical"))
+        self.assertEqual(carve["bounded_variations"], 11)
+        self.assertEqual(carve["evidence"][0]["transformation"], "subtract")
+
+    def test_every_word_is_traceable_to_a_page_of_the_book(self):
+        for verb in BOOK_VERB_OPERATOR:
+            grammar = grammar_of(verb)
+            self.assertIn(grammar["layer"], {"base_operative", "aggregation"},
+                          f"{verb} sits in the table with no BOOK layer")
+            self.assertTrue(grammar["evidence"] or grammar["aggregation_evidence"],
+                            f"{verb} cites no page of the BOOK")
 
     def test_a_declared_divergence_carries_its_reading(self):
         report = conformance_report()

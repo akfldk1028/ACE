@@ -39,15 +39,19 @@ class BookLanguageUnavailable(RuntimeError):
     """
 
 
-def _verbs_dir() -> Path:
-    """`agents/MassAgent/book-language/verbs`, or MASSAGENT_ROOT if it is set."""
+def _language_dir() -> Path:
+    """`agents/MassAgent/book-language`, or MASSAGENT_ROOT if it is set."""
 
     root = os.environ.get("MASSAGENT_ROOT")
     if root:
-        return Path(root) / "book-language" / "verbs"
+        return Path(root) / "book-language"
     # backend/design/maas/book_language/execution -> 25_ACE
     workspace = Path(__file__).resolve().parents[6]
-    return workspace / "agents" / "MassAgent" / "book-language" / "verbs"
+    return workspace / "agents" / "MassAgent" / "book-language"
+
+
+def _verbs_dir() -> Path:
+    return _language_dir() / "verbs"
 
 
 @lru_cache(maxsize=1)
@@ -90,6 +94,41 @@ def semantics_of(verb: str) -> dict[str, Any]:
         "topology": record.get("topology", ""),
         "variation_parameters": tuple(record.get("variation_parameters") or ()),
         "orientation_modes": tuple(record.get("orientation_modes") or ()),
+    }
+
+
+@lru_cache(maxsize=1)
+def base_volumes() -> dict[str, dict[str, Any]]:
+    """The first third of the BOOK's grammar: which relative solid to act on.
+
+    The BOOK does not begin with a parcel-sized box. It begins by choosing a
+    fraction of the whole - 1/1, 3/8, 1/2, 1/4, 1/8, 1/16 - and an orientation
+    for it, and only then performs one action and explores its bounded
+    variations. A word file carries the action; these carry what it acts on.
+    """
+
+    directory = _language_dir() / "base-volumes"
+    if not directory.is_dir():
+        raise BookLanguageUnavailable(f"BOOK base volumes not found at {directory}")
+    found = {}
+    for path in sorted(directory.glob("*.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        found[str(record["label"])] = record
+    return found
+
+
+def grammar_of(verb: str) -> dict[str, Any]:
+    """All three parts of the BOOK sentence this word can stand in."""
+
+    record = _words().get(str(verb)) or {}
+    return {
+        "layer": record.get("book_layer", ""),
+        "base_volume_labels": tuple((record.get("book_grammar") or {}).get(
+            "base_volume_labels") or ()),
+        "orientations": tuple((record.get("book_grammar") or {}).get("orientations") or ()),
+        "bounded_variations": (record.get("book_grammar") or {}).get("bounded_variations"),
+        "evidence": tuple(record.get("book_evidence") or ()),
+        "aggregation_evidence": tuple(record.get("book_aggregation_evidence") or ()),
     }
 
 

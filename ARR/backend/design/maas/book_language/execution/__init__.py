@@ -16,15 +16,21 @@ written down rather than discovered in a jury sheet.
 from .canonical import (
     BOOK_VERB_OPERATOR,
     DECLARED_DIVERGENCES,
+    base_volumes,
     book_verbs,
+    grammar_of,
     operator_for,
+    semantics_of,
 )
 from .conformance import conformance_report, undeclared_divergences
 
 __all__ = [
     "BOOK_VERB_OPERATOR",
     "DECLARED_DIVERGENCES",
+    "base_volumes",
     "book_verbs",
+    "grammar_of",
+    "semantics_of",
     "conformance_report",
     "operator_for",
     "undeclared_divergences",

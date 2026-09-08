@@ -944,11 +944,13 @@ def _compile_candidate(
     target_gfa_m2 = float(physical_contract["target_gfa_m2"]) if physical_contract is not None else (
         capacity_ceiling_m2 * CAPACITY_TARGET_RATIOS[capacity_band]
     )
-    normalized_bounds = authored_compilation.metrics.get("bounds") or ()
-    if len(normalized_bounds) != 2:
+    # Report bounds are rounded for export. The sizing matrix and section
+    # ruler must use the same live solid, otherwise non-decimal roof peaks
+    # acquire a tiny Z stretch and fail exact dimensional delivery.
+    if authored_compilation._solid is None:
         return None
-    minimum = normalized_bounds[0]
-    maximum = normalized_bounds[1]
+    live_bounds = authored_compilation._solid.bounding_box()
+    minimum, maximum = live_bounds[:3], live_bounds[3:]
     normalized_height = float(maximum[2]) - float(minimum[2])
     if normalized_height <= 1e-9:
         return None
@@ -983,9 +985,10 @@ def _compile_candidate(
     envelope_compilation = compile_geometry_program(physical_envelope)
     if not _connected_compilation(envelope_compilation):
         return None
-    physical_bounds = envelope_compilation.metrics.get("bounds") or ()
-    if len(physical_bounds) != 2:
+    if envelope_compilation._solid is None:
         return None
+    envelope_bounds = envelope_compilation._solid.bounding_box()
+    physical_bounds = (envelope_bounds[:3], envelope_bounds[3:])
     physical, cutter_ids, plate_ids = _with_occupied_floor_plates(
         physical_envelope,
         bounds=physical_bounds,

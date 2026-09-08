@@ -27,6 +27,33 @@ def physical(program, index=0):
 
 
 class DimensionalIntentTests(unittest.TestCase):
+    def test_live_height_not_rounded_report_controls_physical_dimensions(self):
+        from design.maas.geometry_language.compiler import compile_geometry_program
+        from design.test_maas_book_delivered_areas import book_import
+        from types import SimpleNamespace
+        contract = intent()
+        contract.update(storey_count=3, storey_height_m=3.8)
+        # A non-six-decimal peak also occurs on composed polynomial roofs.
+        program = replace(source(contract), nodes=(GeometryNode(
+            'body', 'primitive', 'box', parameters={
+                'width': 20., 'depth': 10., 'height': 10.767777777777777}),))
+        candidate = physical(program)
+        self.assertIsNotNone(candidate)
+        compiled = compile_geometry_program(GeometryProgram.from_dict(candidate['geometry_program']))
+        live_bounds = compiled._solid.bounding_box()
+        self.assertAlmostEqual(live_bounds[5] - live_bounds[2], 11.4, places=10)
+        areas = candidate['storey_evidence']['actual_floor_areas_m2']
+        record = {'trace_sequence_name': 'live-height', 'geometry_artifact': {
+            'authoredGeometryProgram': candidate['geometry_program'],
+            'storeyEvidence': candidate['storey_evidence'],
+            'projectedVisualCertificate': {'physical_height_m': candidate['mesh_evidence']['bounds'][1][2]},
+            'hardGates': {'projectedMetrics': {
+                'footprint_area_m2': areas[0], 'floor_area_m2': sum(areas)}}}}
+        site = SimpleNamespace(pnu='test', ground_capacity_m2=1500, far_capacity_m2=6000,
+                               floor_height_m=3.8, parcel_area_m2=10000)
+        result, evidence = book_import._compile_record(record, box(0, 0, 45, 35), site)
+        self.assertIsNotNone(result, evidence)
+
     def test_explicit_physical_dimensions_do_not_depend_on_index(self):
         first, second = physical(source(intent()), 0), physical(source(intent()), 1)
         self.assertIsNotNone(first)

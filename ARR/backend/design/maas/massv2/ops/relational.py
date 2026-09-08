@@ -333,15 +333,28 @@ def offset(frame, op) -> None:
     if not hosts:
         return
     away = _clamp(float(op.params.get("ratio", 0.2)), 0.15, 0.5)
-    share = _clamp(float(op.params.get("height", 0.85)), 0.2, 1.2)
+    # Taller than the host by default, because a copy no taller than the body
+    # it stands in is buried in it: measured, an 0.85 twin redrew 0.9% of the
+    # building and the silence gate refused it. The BOOK's own `nested_related`
+    # comes out +3.3% with the extent growing only in z - the roof reveal is
+    # the whole of what the word delivers.
+    share = _clamp(float(op.params.get("height", 1.15)), 0.2, 1.4)
     made: list[Placement] = []
     for host in hosts:
-        # Clear of the host by `ratio` of its own dimension, so the gap between
-        # them is the space. The host stays: the BOOK records this as an
-        # addition, not a move.
+        # A scaled copy set INSIDE the host's own footprint and standing taller
+        # so its roof shows - which is what the BOOK's `nested_related` builds,
+        # and what Ching means by a space held clear within a space.
+        #
+        # The first attempt put a full-size twin beyond the host, at x from
+        # 1+ratio to 2+ratio. On a host that already fills the plot that lands
+        # off-site and the envelope clips it away entirely: measured on
+        # `oval_dome_hall_offset_to_the_street`, the word redrew 0.0% of the
+        # building and the silence gate was right to refuse it. The gap is the
+        # space, so the gap has to be on the parcel.
+        keep = 1.0 - away
         made.append(_region(
             host, f"{host.role}_offset",
-            (1.0 + away, 0.0, _GRIP), (2.0 + away, 1.0, share),
+            (away, away, _GRIP), (away + keep, away + keep, share),
         ))
     frame.placements = rest + picked + made
 

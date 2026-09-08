@@ -158,6 +158,10 @@ FAMILY_OF_VERB = {
     # what kind of statement a verb is, at the level a jury reads
     "nest": "relational", "lodge": "relational", "overlap": "relational",
     "interlock": "relational", "merge": "relational", "extract": "relational",
+    # `offset` joins them: it used to be a translation and had no family at
+    # all, only a place in QUIET. It now delivers a twin held clear of its
+    # host, which is the same kind of statement `overlap` makes.
+    "offset": "relational",
     "gable": "section", "butterfly": "section", "mansard": "section",
     "vault": "section", "fold": "section", "grade": "section",
     "split": "cut", "carve": "cut", "notch": "cut", "puncture": "cut",
@@ -168,7 +172,11 @@ FAMILY_OF_VERB = {
     "roof": "plate",
     "sink": "ground",
     "lift": "piloti",
-    "branch": "field", "embed": "relational",
+    # `embed` is filed with the cuts now, not the relations: it delivers a void
+    # in one host rather than a second body related to it. The board curates
+    # one seat per family, so a word that changed what it makes has to change
+    # which family it is counted in or the curation is counting the old thing.
+    "branch": "field", "embed": "cut",
 }
 OPENERS = ("extrude", "loop", "aggregate", "stack")
 # `offset` has left this set. QUIET is for words that change a body without

@@ -129,7 +129,11 @@ PLOT_MODES: dict[str, PlotMode] = {
     # 접힌 판. The same polyline with its breaks left in rather than sampled
     # away - a concertina is a vault that admits it has corners.
     "fold": "inherit",
-    "embed": "inherit",
+    # A void imposes, for the reason written four lines down about `inscribe`:
+    # a cut takes the plot's outline rather than the host's. `embed` used to
+    # add a body and inherited with `branch`; now that it delivers the void the
+    # BOOK reads on p.36 it belongs with `inscribe` and `carve`.
+    "embed": "impose",
     # The book's volume-to-volume family (BOOK 045/046/052/055/056/068/069),
     # said in the host's own unit space like branch and embed, so they inherit
     # - except inscribe, which is a void, and a void imposes for the same
@@ -175,6 +179,8 @@ PLOT_MODES: dict[str, PlotMode] = {
     "skew": "inherit",
     "shift": "inherit",
     "sink": "inherit",
+    # Now that it delivers a twin rather than moving the host, it takes the
+    # host's own outline like the other relational words.
     "offset": "inherit",
     "expand": "inherit",
     "compress": "inherit",

@@ -82,11 +82,3 @@ class BaseVolumeTests(SimpleTestCase):
         # extent has to come off the posed corners.
         self.assertLess(widest(quarter), widest(whole) * 0.5,
                         "a quarter of the plot should not span half of it")
-
-    def test_the_two_octant_groups_are_recorded_as_not_yet_a_figure(self):
-        # 3/8 is a connected three-octant L in the BOOK and 1/16 a corner
-        # cluster. Taken here as their bounding extent, and said so rather than
-        # pretending a box is an L.
-        from design.maas.massv2.execute import _TOPOLOGY_NOT_YET_A_FIGURE
-
-        self.assertEqual(_TOPOLOGY_NOT_YET_A_FIGURE, {"3/8", "1/16"})

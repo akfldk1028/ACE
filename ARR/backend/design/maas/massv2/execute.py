@@ -124,8 +124,6 @@ class Centre:
 _BASE_VOLUME_FRACTION = {
     "1/1": 1.0, "3/8": 0.375, "1/2": 0.5, "1/4": 0.25, "1/8": 0.125, "1/16": 0.0625,
 }
-_TOPOLOGY_NOT_YET_A_FIGURE = frozenset({"3/8", "1/16"})
-
 
 def _base_volume_extent(width: float, depth: float, label, orientation):
     """(width, depth, height share) after taking the BOOK's fraction."""

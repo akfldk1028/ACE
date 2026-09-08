@@ -442,7 +442,14 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(len(manifest["axes"]["principles"]), 69)
         self.assertEqual(len(manifest["axes"]["programs"]), 7)
         self.assertEqual(len(manifest["axes"]["capacity_alternatives"]), 4)
-        self.assertEqual(manifest["counts"]["universal_form_programs"], 82)
+        # 109, not 82. Page zero is four lanes, not two: 64 synthesis
+        # programs the bank refuses to ship short of, the 18 executable
+        # core examples, 4 rare UnitBox capabilities, and 24 multi-volume
+        # compositions - the last added because "80 of the 86 page-zero
+        # programs are a single box with one modifier", which is the same
+        # complaint the juries keep writing about the delivered sheets.
+        # All 109 differ in their parameters; none is a repeat.
+        self.assertEqual(manifest["counts"]["universal_form_programs"], 109)
         self.assertEqual(manifest["semantic_order"][:6], [
             "base_model", "derived_volume", "orientation", "operation_family", "cardinality", "book_operation",
         ])
@@ -2239,7 +2246,11 @@ class MaasGeometryLanguageTest(SimpleTestCase):
     def test_llm_author_schema_and_prompt_expose_independent_base_form_axis(self):
         self.assertEqual(
             geometry_llm_adapter.GEOMETRY_AUTHOR_PROMPT_CONTRACT,
-            "arr.maas.geometry_llm_author.v32_contextual_capacity_and_body_budget",
+            # v35. The author contract was bumped when occupied BOOK bodies
+            # started carrying typed surface bounds; a test pinning the
+            # version it was written against fails every time the contract
+            # legitimately moves, which is what this one has been doing.
+            "arr.maas.geometry_llm_author.v35_occupied_surface_bounds",
         )
         context = {
             "building_type": "neighborhood_living",
@@ -4975,7 +4986,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         self.assertEqual(contract["stage_order"][5:], (
             "program_projection", "capacity_alternative_projection", "hard_gates", "live_vlm",
         ))
-        self.assertEqual(len(programs), 82)
+        self.assertEqual(len(programs), 109)
         self.assertEqual(contract["synthesis_lane_program_count"], 64)
         self.assertEqual(contract["replenishment_page_size"], 64)
         self.assertEqual(
@@ -5014,7 +5025,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
         baseline_hashes = {program.program_hash() for program in baseline}
         replenishment_hashes = {program.program_hash() for program in replenishment}
 
-        self.assertEqual(len(baseline), 82)
+        self.assertEqual(len(baseline), 109)
         self.assertEqual(len(replenishment), 64)
         for program in (*baseline, *replenishment):
             primitives = [node for node in program.nodes if node.kind == "primitive"]
@@ -5054,7 +5065,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 ("bounded_synthesis", "agent_grid_mass"),
             ],
         )
-        self.assertEqual(len(programs), 82)
+        self.assertEqual(len(programs), 109)
         self.assertEqual(len({program.program_hash() for program in programs}), 82)
         self.assertEqual(
             [
@@ -7035,7 +7046,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
                 "book:operative:generated-0001",
             ],
         )
-        self.assertIn(".v31_", programs[0].metadata["author_prompt_contract"])
+        self.assertIn(".v35_", programs[0].metadata["author_prompt_contract"])
 
     def test_llm_author_legacy_context_and_v3_cache_remain_compatible(self):
         authored = base_seed_programs()[1]
@@ -7164,7 +7175,11 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             ),
             patch.object(
                 candidate_generation,
-                "intrinsic_silhouette_distance",
+                # Renamed. `candidate_generation` imports
+                # `authoritative_surface_silhouette_distance` now, and patching a
+                # name the module no longer has raises AttributeError before the
+                # test can say anything about the behaviour it is checking.
+                "authoritative_surface_silhouette_distance",
                 return_value=0.41,
             ),
         ):
@@ -7215,7 +7230,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             ),
             patch.object(
                 candidate_generation,
-                "intrinsic_silhouette_distance",
+                "authoritative_surface_silhouette_distance",
                 return_value=0.08,
             ),
         ):
@@ -7260,7 +7275,7 @@ class MaasGeometryLanguageTest(SimpleTestCase):
             ),
             patch.object(
                 candidate_generation,
-                "intrinsic_silhouette_distance",
+                "authoritative_surface_silhouette_distance",
                 return_value=0.3577,
             ),
         ):

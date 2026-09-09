@@ -79,7 +79,16 @@ def reflect(frame, op) -> None:
     bodies = _bodies(picked)
     if not bodies:
         return
-    about = _clamp(float(op.params.get("about", 1.0)), 0.5, 1.5)
+    # `clear`, not `about`. `about` is a universal parameter on every verb and
+    # it names a regulating line - a string, read as one by `affine._pivot` -
+    # so reading it as a float here both stole the name and would raise on
+    # `reflect about:"spine"`, which is a sentence the grammar allows.
+    #
+    # 1.0 stands the twin against its original; above that it steps clear, and
+    # the gap between them is what `join` then has to bridge. Measured on the
+    # comp18 round: with no way to say it, `reflect` always produced an
+    # adjacent twin and the `join` after it was reported silent.
+    about = _clamp(float(op.params.get("clear", 1.0)), 1.0, 1.6)
     across = str(op.params.get("across") or "long").lower() in (
         "cross", "short", "side")
     made: list[Placement] = []

@@ -144,6 +144,21 @@ PER_VERB_RANGES = {
     ("puncture", "n"): (1, 3),
     ("stack", "n"): (2, 6),
     ("aggregate", "n"): (2, 12),
+    # `step` counts different things too. `loop` steps a ring's bars inside
+    # the figure and clamps 0.4..1.0; `array` steps a copy PAST the one before
+    # it, so anything at or under 1.0 overlaps and the run reads as one long
+    # body. Measured on comp18: an authored 0.85 - inside the advertised range
+    # - was raised to 1.05 on delivery without a word, and the `join` written
+    # to bridge the courts between the copies found no gap and was reported
+    # silent. These mirror `ops.aggregation.array` and `execute._loop`.
+    ("array", "step"): (1.05, 2.0),
+    ("array", "n"): (2, 6),
+    ("pack", "n"): (2, 9),
+    ("pack", "fill"): (0.3, 0.9),
+    ("reflect", "clear"): (1.0, 1.6),
+    ("join", "size"): (0.1, 0.5),
+    ("join", "level"): (0.0, 0.6),
+    ("shear", "angle"): (5.0, 45.0),
     # Where the executor clamps tighter than the global range, a value the
     # validator accepts is rewritten on delivery without a word: split
     # 0.3..0.75, loop bar to 0.4, carve size 0.15..0.6, cantilever reach

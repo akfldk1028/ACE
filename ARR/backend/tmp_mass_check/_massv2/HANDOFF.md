@@ -1,5 +1,45 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+**2026-09-09 / 언어 35개 정리 완료, comp18 라운드 진행 중.** BOOK 벤치가
+`agreed 30 / differ 0 / aggregation layer 5`다 — 30개는 자기 쪽지와 일치하고, 다섯(array,
+join, pack, reflect, stack)은 pp.50-58 집합층이라 BOOK이 변환을 안 적는 게 정상이며 그
+실측이 단어 파일에 기록돼 있다. 하강 계약은 조작 30개에 붙어 있고 실제 실행과 어긋난 기록은
+0, `page_audit` hard_pass·이슈 0(69쪽 69원리, 2,295회 컴파일), 기저 볼륨 감사 18조합 전부
+분수 오차 0.0000.
+
+오늘 고친 단어: `array`·`reflect`·`pack`·`join`은 `_VERBS`에만 있고 `PLOT_MODES`에 없어
+파서가 문장에서 지우고 있었다. `skew`는 기울어진 밴드를 위·아래 단면의 볼록껍질로 재던
+계측 결함이었다(중간 높이 단면으로 바꿔 10/20/30/45도 전부 +0.00%). `split`은 틈을 조각에서
+빼고 있었고(Requicha: 두 반공간의 합집합이 원본) 높이 대비도 재료를 버려서 지불했다 — 이제
+낮은 쪽이 내놓은 걸 높은 쪽이 가져간다. `lift`는 몸이 이미 강체 병진이었고 다리가
+`occupiable=False` 구조라 벤치가 `structural_bands`를 넘겨 읽게 했다. `shear`는 이름이
+바뀌었다 — massv2의 계단식 밀기는 표준 용어 **`stagger`**가 됐고(코퍼스 20파일 225건 개명,
+기하 변화 0), `shear`는 BOOK p.32의 비스듬한 평면 하나로 자르는 뺄셈이다(제거 = 1/2·tanθ·H²·D,
+오차 0.00).
+
+**BOOK 실행기 근본 수리 셋.** massv2 씨앗은 필지 사각형 자체라 첫 단어부터 미터를 들고
+법규선은 자르기만 한다. BOOK 씨앗은 비례뿐이라(block 1:1:1, slab 2.20:1.45:0.28) 크기가
+나중 host fit에서 들어왔고, 거기서 작아졌다. (1) `base_seed_program(..., site_extent=(폭,
+깊이, 층수예산))` — **평면은 필지 사각형, 높이는 예산으로 따로**(세 축에 한 스케일을 쓰면
+예산이 평면까지 지배해 1:1:1 블록이 상한의 24%가 된다) (2) `clip_to_host=True` — 경계는
+자르는 것이지 집어넣는 게 아니다(안 그러면 천장이 최대 내접 직사각형 427.7 m², 상한
+1,497.9) (3) `height_m` — fit이 z를 1.0으로 정규화하므로 법에서 온 높이를 따로 준다(안 주면
+모든 BOOK 매스가 1 m, 부피 0). 배선은 `synthesize_architectural_programs`의 request
+딕셔너리를 탄다. 의정부 실측: 씨앗 다섯 전부 건폐 상한의 96~128%로 태어나 법이 깎는다.
+
+**정직하게 남겨둘 것.** (a) 심사받는 BOOK 매스는
+`compile_site_bound_geometry_program_to_source_mass`를 타며 밴드마다 `covers()`를 요구해
+벗어나면 후보 전체를 거부한다 — 위 (2)가 거기까진 안 닿는다. (b) `_band_edges`가 0.5 m
+안쪽 절단 높이를 합치며 볼륨을 짧게 짓는다(901문장 중 230개, 벤치 43.2 m³). 고치려다 순
+-12,143 m³로 되돌렸고 올바른 목적함수는 선택 전후의 실제 합집합 부피다. (c)
+`test_maas_geometry_language` 20개 실패는 오늘 이전부터이며 목록은
+`agents/MassAgent/docs/book-language/PRE-EXISTING-TEST-FAILURES.txt`.
+
+**comp18.** 시작점(`base_volume`+`base_orientation`)을 12문장 전부가 의도적으로 선언하는
+첫 코퍼스다 — 이전 952문장은 **하나도 선언하지 않았고**, 원인은 브리프 어휘가 동사 파라미터
+표에서만 파생돼 문장 최상위 키가 실리지 않은 것이었다(저자는 선택지를 알 방법이 없었다).
+검증 통과·결함 0, `inputs/gen-comp18.json`.
+
 **LIVE correction / comp17:** Step4 has completed (366/366 compiled,193eligible,81selected). Step5 first failed `3/8 explorations`: the new surface sampling guard wrongly rejected the intersection-only `book_base_volume` selection. Removing that false warp classification restores8original+8exploration candidates from the unchanged eight-source payload in an isolated full portfolio replay. Three failing-first guard/selection regressions and41related tests pass. The same cycle is now retrying step5, owned by exec session7456; session84036 has exited. Final sheet/jury/develop remain pending. Ground-aware occupied-form grouping is committed in `9fbb6997`: raised, buried and on-grade bodies remain distinct;15focused tests and71required-plus-related tests pass. This paragraph supersedes the older RUNNING checkpoint below.
 
 **Latest steering / comp17:** The user explicitly requires no duplicate images. New presentation-only closed-solid equivalence groups identical occupied forms despite different role/decomposition-based shape IDs. Translation and uniform XYZ scale are removed; proportions, roofs, undersides and intermediate voids remain significant. Original scored rows/certificates remain intact. Board curation, pool/study sheets and frozen PDF unselected export are connected; actual comp17 sheet verification is pending. Required backend87, MassAgent96 and exporter9tests pass. The cited exact `held_ground` pair is independently rebuilt and genuinely different; do not merge by name or top_z alone. Read the new section in `agents/MassAgent/docs/reports/comp17-composition-preservation.md`. Comp17 still runs through the same cycle/era; after stabilization accumulate later rounds without repeatedly clearing the board.

@@ -1,0 +1,121 @@
+{"schemes":[
+{"name":"comp18_low_plate_over_the_whole_plot",
+ "primary_language":"solid_body","secondary_language":"one storey of office spread over the entire plot, its roof the public ground",
+ "formal_principle":"필지 전체를 덮는 한 켜의 판이 지붕을 공공 마당으로 내준다.",
+ "dominant_gesture":"a single wide low plate","reference_basis":"original authorship; the 60% coverage limit and 5-storey cap are the supplied parcel constraints",
+ "floor_height_m":3.8,"base_volume":"1/4","base_orientation":"vertical",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"the 1/4 vertical opening is the whole plot at a quarter of the height budget - a plate, not a block, and this word stands it up"},
+  {"op":"puncture","n":3,"size":0.22,"why":"three light shafts through a deep plate; without them the middle of a plot-wide floor has no daylight, and the delivered depth to any court is the limitation"},
+  {"op":"carve","size":0.32,"at":"open","reach":0.4,"why":"the entrance court is cut from the open side so the plate is entered rather than walked around"}]},
+
+{"name":"comp18_three_eighths_l_holds_the_corner",
+ "primary_language":"solid_body","secondary_language":"an L of three quarters of the plan at half the height, wrapping the street corner",
+ "formal_principle":"평면의 4분면 중 셋만 쓰는 L자가 모서리를 잡고 남은 한 칸을 마당으로 비운다.",
+ "dominant_gesture":"an L holding a corner void","reference_basis":"original authorship; the BOOK records 3/8 as three connected octants",
+ "floor_height_m":3.8,"base_volume":"3/8","base_orientation":"long_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"3/8 is the BOOK connected three-octant L; this grammar receives it as its bounding box, so the missing quadrant is cut back in below"},
+  {"op":"carve","size":0.45,"at":"back","reach":0.55,"why":"the missing fourth quadrant, cut rather than left out - the limitation is that it is a cut and not the octant figure itself"},
+  {"op":"gable","pitch":0.4,"along":"long","bays":1,"why":"the section is a base shape, not an assembly: one ridge along the long wing gives the L a front rather than a flat lid"}]},
+
+{"name":"comp18_oval_drum_and_its_mirror",
+ "primary_language":"solid_body","secondary_language":"a half-height oval drum and its mirror image standing clear across a slot",
+ "formal_principle":"타원 드럼 하나와 그 거울상이 틈을 사이에 두고 마주 선다.",
+ "dominant_gesture":"a drum and its reflection","reference_basis":"original authorship; a reflection is a 4x4 with determinant -1, so the twin is congruent rather than a copy at another size",
+ "floor_height_m":3.8,"base_volume":"1/2","base_orientation":"vertical",
+ "ops":[
+  {"op":"extrude","height":1.0,"profile":"oval","why":"no matrix turns a square into a circle - the plan family is chosen at the opening, and 1/2 vertical gives a drum of half the height budget"},
+  {"op":"reflect","across":"long","why":"the mirror stands beside what it doubles; handedness reverses and volume is preserved exactly, which is the whole content of the word"},
+  {"op":"join","size":0.3,"height":0.45,"level":0.3,"why":"the two drums are one building: a bridge crosses the slot at mid-height and stops at its neighbour"}]},
+
+{"name":"comp18_four_packed_rooms_in_one_frame",
+ "primary_language":"solid_body","secondary_language":"four equal halls set inside one plot-wide frame without touching",
+ "formal_principle":"하나의 테두리 안에 네 개의 방이 서로 닿지 않게 놓인다.",
+ "dominant_gesture":"four rooms and the gaps between them","reference_basis":"original authorship; packing is an arrangement, and what makes it legible is that the pieces do not touch",
+ "floor_height_m":3.8,"base_volume":"1/2","base_orientation":"vertical",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"the container the packing is measured in - half the height budget over the whole plot"},
+  {"op":"pack","n":4,"fill":0.72,"why":"four pieces on a grid, the container given over to what it holds; the gaps between them are the streets of the plan and the limitation is that the grid is deterministic rather than searched"},
+  {"op":"stagger","ratio":0.2,"toward":"open","why":"the row is pushed out of alignment so the four read as a settlement rather than as a waffle"}]},
+
+{"name":"comp18_raked_flank_against_the_north",
+ "primary_language":"carved_body","secondary_language":"a full-height bar whose north flank is cut back by one oblique plane",
+ "formal_principle":"북쪽 옆면을 비스듬한 평면 하나로 깎아 이웃의 하늘을 돌려준다.",
+ "dominant_gesture":"one raking cut","reference_basis":"original authorship; the supplied sunlight envelope leaves 100% of this plot to 9 m and 87% at 19 m",
+ "floor_height_m":3.8,"base_volume":"1/2","base_orientation":"short_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"half the plot depth at the full height budget - a bar that can afford to lose a flank"},
+  {"op":"shear","angle":28,"toward":"short","side":"far","why":"one oblique half-space differenced from the body, removing half of tan(angle) times height squared times depth. It draws the sunlight envelope as a decision instead of suffering it as a clip"},
+  {"op":"carve","size":0.25,"at":"open","reach":0.35,"why":"the entrance is cut on the standing flank so the raked side stays one plane"}]},
+
+{"name":"comp18_split_pair_slid_apart",
+ "primary_language":"solid_body","secondary_language":"one bar cut in two and the halves slid apart, the taller half taking what the lower gives up",
+ "formal_principle":"하나의 바를 둘로 갈라 벌리되, 낮아진 쪽이 내놓은 것을 높은 쪽이 가져간다.",
+ "dominant_gesture":"two halves and the gap between them","reference_basis":"original authorship; Requicha 1980 - a plane cuts a solid into two half-space intersections whose union is the solid",
+ "floor_height_m":3.8,"base_volume":"1/2","base_orientation":"long_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"half the plot length at the full budget"},
+  {"op":"split","ratio":0.62,"along":"long","first":"hall","second":"office","gap":6.0,"contrast":1.45,"why":"the gap is a displacement and not a deletion: the halves keep their material and step apart, and 6 m between them is a room-wide lane rather than a construction joint"},
+  {"op":"shear","angle":18,"toward":"long","side":"near","why":"the lower half is raked where it faces the lane, so the slot widens as it rises"}]},
+
+{"name":"comp18_arrayed_wings_on_one_spine",
+ "primary_language":"solid_body","secondary_language":"one wing repeated three times along a spine, each instance clear of the last",
+ "formal_principle":"하나의 날개가 등뼈를 따라 세 번 되풀이되고 사이마다 마당이 열린다.",
+ "dominant_gesture":"a rhythm of equal wings","reference_basis":"original authorship; an array is one transform applied n times, so the family reads as one decision rather than n placements",
+ "floor_height_m":3.8,"base_volume":"1/8","base_orientation":"long_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"an eighth of the plot length at the full budget - one wing, deliberately small, because the repetition is the subject"},
+  {"op":"array","n":3,"step":0.85,"why":"the same wing at an accumulated step; the courts between them are what the array makes, and the limitation is that the instances are equal by construction"},
+  {"op":"join","size":0.22,"height":0.35,"level":0.0,"why":"a low spine at ground level ties the three wings into one building without closing the courts above it"}]},
+
+{"name":"comp18_vaulted_hall_over_a_sunken_court",
+ "primary_language":"solid_body","secondary_language":"three barrel bays over a court dropped below grade",
+ "formal_principle":"세 개의 볼트가 지반 아래로 내려앉은 마당을 덮는다.",
+ "dominant_gesture":"a vaulted roof and a sunken room","reference_basis":"original authorship; a basement band is outside the floor-area ratio while building area counts the above-grade projection only",
+ "floor_height_m":3.8,"base_volume":"1/2","base_orientation":"vertical",
+ "ops":[
+  {"op":"extrude","height":1.0,"profile":"stadium","why":"a rounded-end plan at half the height budget; the plan family is part of the opening and a matrix cannot produce it later"},
+  {"op":"vault","rise":0.45,"bays":3,"along":"long","why":"the section is a base shape: three barrels sampled as a curve rather than stepped, which is what lets the hall read as one room"},
+  {"op":"sink","depth":0.35,"why":"the court goes below grade so the vault clears it; the delivered basement band is outside the floor-area ratio and the limitation is that the whole body sinks rather than the court alone"}]},
+
+{"name":"comp18_hexagonal_cluster_locked_by_one",
+ "primary_language":"solid_body","secondary_language":"a hexagonal-plan cluster with one member driven into its neighbour",
+ "formal_principle":"육각 평면의 무리 가운데 하나가 이웃을 파고들어 전체를 붙든다.",
+ "dominant_gesture":"a cluster with a keystone","reference_basis":"original authorship",
+ "floor_height_m":3.8,"base_volume":"3/8","base_orientation":"vertical",
+ "ops":[
+  {"op":"aggregate","n":4,"spread":1.35,"height":0.8,"tie":0.18,"profile":"hexagon","why":"four unequal hexagonal objects on a tying plate; the opening already halved the height so the cluster is low and wide rather than a set of towers"},
+  {"op":"interlock","size":0.4,"bite":0.5,"reach":0.35,"why":"one member is driven into its neighbour so the cluster is locked rather than merely adjacent, and the host pays for the overhang out of its own body"},
+  {"op":"carve","size":0.3,"at":"open","reach":0.45,"why":"the shared room is cut through the cluster from the street side"}]},
+
+{"name":"comp18_folded_plate_reads_as_one_surface",
+ "primary_language":"solid_body","secondary_language":"a concertina roof over a bar a quarter of the plot depth",
+ "formal_principle":"접힌 판 하나가 지붕과 벽을 한 면으로 잇는다.",
+ "dominant_gesture":"a folded surface","reference_basis":"original authorship",
+ "floor_height_m":3.8,"base_volume":"1/4","base_orientation":"short_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"profile":"trapezoidal","why":"a quarter of the plot depth at the full budget, on a splayed plan that the fold will run across"},
+  {"op":"fold","folds":5,"pitch":0.5,"along":"long","why":"the section keeps its breaks rather than sampling them away - a concertina is a vault that admits it has corners"},
+  {"op":"lift","clearance":0.28,"why":"the folded plate is raised so the ground runs under it; the columns are structure rather than floor area and the enclosed volume above is unchanged"}]},
+
+{"name":"comp18_two_bars_crossing_at_mid_height",
+ "primary_language":"solid_body","secondary_language":"two bars at right angles passing through one another above the ground",
+ "formal_principle":"두 개의 바가 공중에서 서로를 관통하며 아래를 열어 둔다.",
+ "dominant_gesture":"a crossing held in the air","reference_basis":"original authorship",
+ "floor_height_m":3.8,"base_volume":"1/4","base_orientation":"long_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"a quarter of the plot length at the full budget - a bar slender enough that a second can cross it"},
+  {"op":"reflect","across":"cross","why":"the second bar is the first turned across the plot; a reflection preserves volume exactly, so the pair costs what one bar costs twice and nothing more"},
+  {"op":"lift","clearance":0.3,"why":"the crossing is held clear of the ground so the plot runs under both bars; the columns are structure rather than floor area"}]},
+
+{"name":"comp18_mansard_wall_along_the_street",
+ "primary_language":"solid_body","secondary_language":"a narrow street wall with steep shoulders and a flat crown, said twice across a court",
+ "formal_principle":"가로를 따라 선 좁은 벽이 가파른 어깨와 평평한 정수리를 갖고, 그것이 마당을 사이에 두고 두 번 선다.",
+ "dominant_gesture":"two street walls holding a court","reference_basis":"original authorship; the mansard drop is capped at one and a half storeys and its shoulder run is derived from the declared pitch",
+ "floor_height_m":3.8,"base_volume":"1/8","base_orientation":"short_axis",
+ "ops":[
+  {"op":"extrude","height":1.0,"why":"an eighth of the plot depth at the full budget - the narrow standing wall the mansard belongs to"},
+  {"op":"mansard","pitch":0.85,"shoulder":0.22,"along":"long","why":"steep shoulders and a flat crown; on a narrow deep-set body this is a street wall rather than the tent it becomes on a wide low one"},
+  {"op":"array","n":2,"step":0.95,"why":"the wall is said twice across the plot so the space between them is a court held by two fronts rather than one wall and a leftover"}]}
+]}

@@ -37,7 +37,7 @@ from .compiler import compile_geometry_program
 from .dsl import GeometryDslError, parse_geometry_dsl, program_to_dsl
 from .gate import GeometryGatePolicy, compilation_gate
 from .mutation import OPERATOR_PARAMETER_CONTRACTS
-from .author_output_schema import author_node_schema as _author_node_schema
+from .author_output_schema import author_node_schema as _author_node_schema, schema_value_types as _schema_value_types
 from .legal_envelope import normalized_legal_field_design_context
 from .author_parameter_contract import (
     author_parameter_value_contract as _author_parameter_value_contract,
@@ -1529,9 +1529,21 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
     # says. Measured on comp18: the author read the word here, used it, and
     # its whole batch failed the schema it was also told to obey.
     allowed_operator_set = set(_allowed_author_operators(context))
+    # Rendered in the schema's vocabulary. The catalogue's own word for a
+    # parameter is its contract kind - `literal` for an unbounded ratio - and
+    # printing that raw put a word in front of the author that no schema
+    # branch accepts and the importer rejects: comp18 carried `value_type:
+    # literal` in 110 of 120 programs. Each entry now names the value_type(s)
+    # its schema branch will take, through the same translation the schema uses.
+    def rendered(operator, parameter):
+        contract = dict(_author_parameter_value_contract(operator, parameter))
+        kind = contract.pop("type", "literal")
+        contract["value_type"] = _schema_value_types(kind)
+        return contract
+
     parameter_contracts = json.dumps({
         operator: {
-            parameter: _author_parameter_value_contract(operator, parameter)
+            parameter: rendered(operator, parameter)
             for parameter in sorted(parameters)
         }
         for operator, parameters in sorted(OPERATOR_PARAMETER_CONTRACTS.items())

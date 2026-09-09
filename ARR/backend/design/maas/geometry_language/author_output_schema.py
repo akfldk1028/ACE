@@ -27,10 +27,18 @@ _REQUIRED_PARAMETER_COUNTS = {
 }
 
 
-def _parameter_variant(operator: str, name: str) -> dict[str, Any]:
-    contract = author_parameter_value_contract(operator, name)
-    contract_type = str(contract.get("type") or "literal")
-    value_type = {
+def schema_value_types(contract_type: str) -> list[str]:
+    """The `value_type` values the schema accepts for one catalogue contract kind.
+
+    The catalogue speaks in contract kinds - `literal`, `structured_literal`,
+    `numeric_vector` - and the schema and importer in value types. This is the
+    one translation both the schema and the author's prompt read, so the word
+    the author sees is the word the schema will check. Before it was shared,
+    the prompt printed the raw kind and an author wrote `value_type: literal`
+    into 110 programs.
+    """
+
+    return {
         "boolean": ["boolean"],
         "number": ["number"],
         "numeric_vector": ["vector"],
@@ -38,9 +46,15 @@ def _parameter_variant(operator: str, name: str) -> dict[str, Any]:
         "structured_literal": ["structured_json"],
         "matrix4": ["matrix4"],
     }.get(
-        contract_type,
+        str(contract_type or "literal"),
         ["number", "string", "boolean", "vector", "structured_json"],
     )
+
+
+def _parameter_variant(operator: str, name: str) -> dict[str, Any]:
+    contract = author_parameter_value_contract(operator, name)
+    contract_type = str(contract.get("type") or "literal")
+    value_type = schema_value_types(contract_type)
     numeric_value: dict[str, Any] = {"type": "number"}
     for bound in ("minimum", "maximum"):
         if bound in contract:

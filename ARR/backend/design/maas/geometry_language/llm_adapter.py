@@ -1713,12 +1713,6 @@ Rules:
   within that budget, followed by one ACCESS rule when required. Do not exceed the declared BODY RULE BUDGET and do not
   stack courtyard+notch, carve_void+lift, or lift+notch. The compiler rejects the whole candidate when either count
   is exceeded; extra nodes are not extra design quality.
-- `base_seed` is checked against the proportions your nodes actually build, and a mismatch rejects the program.
-  The importer reads the first `scale` node applied to the seed `box` and matches its vector to one seed within
-  0.08 per axis: block (1.00, 1.00, 1.00), slab (2.20, 1.45, 0.28), bar (2.80, 0.62, 0.48), tower (0.68, 0.68, 2.50);
-  a `matrix4` node is not read as a scale. With no such node it reads the box's own width/depth/height: taller than
-  1.35x its widest side is tower, plan aspect 2.2 or more is bar, lower than 0.48x its narrowest side is slab,
-  otherwise block. Declare the seed those numbers imply - or build the numbers the seed you declared implies.
 {author_rules}
 - The compiled author mesh must be one connected solid. Split/array/duplicate wings require an explicit physical
   bridge, spine or overlapping union; disconnected pieces are invalid. A connected material mesh may still contain

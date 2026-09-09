@@ -99,7 +99,7 @@ class CreativeBookSupplyTests(SimpleTestCase):
 class AuthorPromptRendersItsTemplateTests(SimpleTestCase):
     """The author prompt is an f-string template with a catalogue in it.
 
-    A rule paragraph spliced in as `""" + text + """` closed the f-string, and
+    A rule paragraph spliced in by closing and reopening the triple-quoted template ended the f-string, and
     everything after it - the operator catalogue among it - went out as the
     literal placeholder `{parameter_contracts}`. The prompt shrank from 161 KB
     to 21 KB and nothing noticed for an afternoon, because no test rendered it

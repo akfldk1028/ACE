@@ -2574,6 +2574,7 @@ def compile_geometry_program_to_source_mass(
     max_raw_surfaces: int | None = None,
     gate_policy: GeometryGatePolicy | None = None,
     height_m: float | None = None,
+    clip_to_host: bool = False,
 ) -> SourceMass | None:
     """Fit one compiled solid into a normalized host and preserve its mesh.
 
@@ -2604,6 +2605,7 @@ def compile_geometry_program_to_source_mass(
         max_raw_surfaces=max_raw_surfaces,
         gate_policy=gate_policy,
         height_m=height_m,
+        clip_to_host=clip_to_host,
     )
 
 
@@ -2614,6 +2616,7 @@ def _compile_geometry_program_to_source_mass(
     upper_host: Polygon | None = None,
     upper_fit_strength: float = 0.0,
     height_m: float | None = None,
+    clip_to_host: bool = False,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
     name: str | None = None,
@@ -2697,7 +2700,8 @@ def _compile_geometry_program_to_source_mass(
         transformed = (_pose_metric_vertices_to_host(compilation, host)
             if placement_policy == POLICY else _fit_vertices_to_host(
                 compilation, host, target_plan_area=effective_target_plan_area,
-                minimum_plan_area=minimum_plan_area))
+                minimum_plan_area=minimum_plan_area,
+                clip_to_host=clip_to_host))
         if transformed is None:
             return None
         world_vertices = transformed.world_vertices
@@ -2833,6 +2837,17 @@ def _compile_geometry_program_to_source_mass(
             # The complete mesh has already passed host containment. Do not
             # simplify away occupied slivers or discard small connected parts.
             clipped = part
+            if clip_to_host:
+                # The cut, not the shrink. A band is an arbitrary polygon here,
+                # so what stands past the boundary is removed and what stands
+                # inside keeps its own figure - the reading massv2's compiler
+                # already takes band by band.
+                trimmed = part.intersection(host)
+                clipped = trimmed if (
+                    isinstance(trimmed, Polygon)
+                    and not trimmed.is_empty
+                    and trimmed.area > 1e-9
+                ) else None
             if clipped is None:
                 if preserve_site_bound_bands:
                     return None
@@ -3641,7 +3656,20 @@ def _fit_vertices_to_host(
     *,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
+    clip_to_host: bool = False,
 ) -> HostFitTransform | None:
+    """Fit the compiled solid into the host plan.
+
+    `clip_to_host` decides which of the two readings of a legal boundary this
+    fit takes, and they are not close. Requiring the whole projection INSIDE
+    the host puts the ceiling on ground take at the largest rectangle
+    inscribed in it, which on 의정부 4115011300106840001 is 427.7 m2 - a
+    1,922.2 m2 buildable polygon sitting inside a 3,706.7 m2 bounding box.
+    massv2's compiler carries the other reading, and the same parcel and the
+    same numbers are written beside it: the legal line CUTS the building, it
+    does not shrink it. This path had never been taught that, so a BOOK mass
+    delivered 664 m2 against a 1,497.9 m2 building-area cap.
+    """
     vertices = compilation.vertices
     if not vertices:
         return None
@@ -3691,7 +3719,7 @@ def _fit_vertices_to_host(
             translation_matrix4((target_center.x, target_center.y, 0.0)),
         )
         world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
-        if _mesh_plan_projection_inside_host(
+        if clip_to_host or _mesh_plan_projection_inside_host(
             world,
             compilation.triangles,
             host,

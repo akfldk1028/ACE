@@ -1549,6 +1549,7 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
         for operator, parameters in sorted(OPERATOR_PARAMETER_CONTRACTS.items())
         if operator in allowed_operator_set
     }, ensure_ascii=False, sort_keys=True)
+    author_rules = author_rules_text()
     allowed_base_seeds = ", ".join(_allowed_author_base_seeds(context))
     allowed_base_forms = ", ".join(spec.form_id for spec in BASE_FORM_SPECS)
     allowed_macro_operators = ", ".join(_allowed_author_macro_operators(context))
@@ -1718,7 +1719,7 @@ Rules:
   a `matrix4` node is not read as a scale. With no such node it reads the box's own width/depth/height: taller than
   1.35x its widest side is tower, plan aspect 2.2 or more is bar, lower than 0.48x its narrowest side is slab,
   otherwise block. Declare the seed those numbers imply - or build the numbers the seed you declared implies.
-""" + author_rules_text() + """
+{author_rules}
 - The compiled author mesh must be one connected solid. Split/array/duplicate wings require an explicit physical
   bridge, spine or overlapping union; disconnected pieces are invalid. A connected material mesh may still contain
   several legible architectural volumes; material connectivity is not an architectural volume-count limit.

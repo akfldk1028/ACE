@@ -94,3 +94,33 @@ class CreativeBookSupplyTests(SimpleTestCase):
             for node in projected.topological_nodes()
         ))
 
+
+
+class AuthorPromptRendersItsTemplateTests(SimpleTestCase):
+    """The author prompt is an f-string template with a catalogue in it.
+
+    A rule paragraph spliced in as `""" + text + """` closed the f-string, and
+    everything after it - the operator catalogue among it - went out as the
+    literal placeholder `{parameter_contracts}`. The prompt shrank from 161 KB
+    to 21 KB and nothing noticed for an afternoon, because no test rendered it
+    with a real context and read it back.
+    """
+
+    def test_prompt_has_no_unrendered_placeholders_and_carries_the_catalogue(self):
+        import re
+        from design.maas.book_language.candidate_generation import _book_graph_author_vocabulary
+        from design.maas.geometry_language.llm_adapter import _author_prompt
+
+        context = {
+            "pnu": "4115011300106840001",
+            "capacity_ceiling_m2": 1497.877,
+            "creative_portfolio_run_id": "book-test",
+            "book_graph_vocabulary": _book_graph_author_vocabulary(),
+        }
+        prompt = _author_prompt(context, 12)
+        leftover = sorted(set(re.findall(r"\{[a-z_]+\}", prompt)))
+        self.assertEqual(leftover, [], f"unrendered template fields: {leftover}")
+        self.assertIn('"value_type": [', prompt, "the operator catalogue is missing")
+        self.assertNotIn('"type": "literal"', prompt, "the catalogue leaks its internal kind word")
+        self.assertIn("Some macros only fit some seeds", prompt, "the derived rules are missing")
+        self.assertEqual(prompt.count("`base_seed` is checked against"), 1, "the seed rule must appear once")

@@ -1431,6 +1431,10 @@ def author_rules_text() -> str:
         "rejects z even where a schema branch lists it." + chr(10) +
         "- `shear` needs `axis` and `direction` to be different axes; equal ones are an invalid affine "
         "transform." + chr(10) +
+        "- A parameter's `value_type` is one of number, string, boolean, vector, structured_json - exactly "
+        "what its schema branch names. `literal` is a parameter KIND in the catalogue, never a value_type; "
+        "a literal-kind parameter is written with the value_type and single value field the schema "
+        "branch shows for it." + chr(10) +
         "- The compiled mesh must be ONE connected solid. A body transform (bend, book_branch, book_split, "
         "book_fracture, twist, *_related) followed by courtyard, carve_void or notch is the combination that "
         "most often cuts the mass apart; keep a spine or overlap between the pieces, or cut less."

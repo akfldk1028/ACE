@@ -370,7 +370,18 @@ def ride_anchors(out: Path, key_rows: list, *, site=None) -> int:
         if known != current:
             print(f"   anchor {row['name'][:48]}: picture changed since it was scored - not riding it")
             continue
-        certificate = seat_certificate(row['name'], source, book, site)
+        # The same entry the rebuild used: a name that recurs across stages
+        # resolves by its judged row, and resolving it by name here handed
+        # the certificate another stage's entry, which raised past the
+        # ride's own "not riding it" and stopped the develop pairs.
+        try:
+            from book_import import entry_for_judged_row  # noqa: E402
+            certificate = seat_certificate(
+                row['name'], source, book, site,
+                book_entry=entry_for_judged_row(row) if row.get('certificate_id') and row['name'].startswith('book:') else None)
+        except ValueError as exc:
+            print(f"   anchor {row['name'][:48]}: {exc} - not riding it")
+            continue
         if row.get('certificate_id') != certificate['certificate_id']:
             print(f"   anchor {row['name'][:48]}: numeric certificate changed - not riding it")
             continue

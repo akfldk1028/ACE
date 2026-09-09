@@ -1403,6 +1403,40 @@ def _book_composition_path_slice(
     return compact
 
 
+def author_rules_text() -> str:
+    """The rules the importer enforces that a schema cannot express, in the author's terms.
+
+    Derived from the tables the importer itself reads, so the prompt, the
+    cycle's rejection feedback and the check cannot drift apart. Each line
+    cost comp18 a rejected program the author could not have foreseen: seven
+    declared seeds the nodes contradicted, two `split_wing` on a block seed,
+    two `intersect_related` on axis z, one `shear` with axis == direction,
+    seven compositions that came apart.
+    """
+
+    seed_scales = ", ".join(
+        f"{spec.seed_id} ({', '.join(f'{v:.2f}' for v in spec.normalized_scale)})"
+        for spec in BASE_SEED_SPECS if spec.primitive_operator == "box")
+    macro_seeds = "; ".join(
+        f"{macro} needs a {' / '.join(sorted(seeds))} seed"
+        for macro, seeds in sorted(SEMANTIC_MACRO_BASE_SEEDS.items()))
+    return (
+        "- `base_seed` is checked against the proportions your nodes build. The importer reads the first "
+        "`scale` node on the seed `box` and matches it within 0.08 per axis to " + seed_scales + "; a "
+        "`matrix4` node is not read as a scale. Without one it reads the box's own width/depth/height: "
+        "taller than 1.35x its widest side is tower, plan aspect 2.2 or more is bar, lower than 0.48x its "
+        "narrowest side is slab, otherwise block. Declare the seed those numbers imply." + chr(10) +
+        "- Some macros only fit some seeds: " + macro_seeds + ". On any other seed the program is rejected." + chr(10) +
+        "- `intersect_related` and the other *_related relations take `axis` x or y only; the compiler "
+        "rejects z even where a schema branch lists it." + chr(10) +
+        "- `shear` needs `axis` and `direction` to be different axes; equal ones are an invalid affine "
+        "transform." + chr(10) +
+        "- The compiled mesh must be ONE connected solid. A body transform (bend, book_branch, book_split, "
+        "book_fracture, twist, *_related) followed by courtyard, carve_void or notch is the combination that "
+        "most often cuts the mass apart; keep a spine or overlap between the pieces, or cut less."
+    )
+
+
 def _author_prompt(context: dict[str, Any], count: int) -> str:
     # Source-level graph memory is already bounded and coordinate-free. Keep
     # enough room for transferable post-BOOK repair priors; the previous 12k
@@ -1668,6 +1702,7 @@ Rules:
   a `matrix4` node is not read as a scale. With no such node it reads the box's own width/depth/height: taller than
   1.35x its widest side is tower, plan aspect 2.2 or more is bar, lower than 0.48x its narrowest side is slab,
   otherwise block. Declare the seed those numbers imply - or build the numbers the seed you declared implies.
+""" + author_rules_text() + """
 - The compiled author mesh must be one connected solid. Split/array/duplicate wings require an explicit physical
   bridge, spine or overlapping union; disconnected pieces are invalid. A connected material mesh may still contain
   several legible architectural volumes; material connectivity is not an architectural volume-count limit.

@@ -11,7 +11,7 @@ import os
 from collections import Counter
 from copy import deepcopy
 from dataclasses import replace
-from math import ceil, cos, floor, isfinite, sin
+from math import ceil, cos, floor, hypot, isfinite, sin
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Callable
@@ -196,6 +196,35 @@ from .legal_floor_field import validate_legal_floor_field
 
 class _PostBookVlmOnly(RuntimeError):
     """Stop pre-BOOK review after authorship; the exact final solid owns VLM."""
+
+
+def _site_seed_extent(
+    site: Polygon | None, height_m: float
+) -> tuple[float, float, float] | None:
+    """The parcel's own box: its minimum rotated rectangle, and the height.
+
+    The same rectangle massv2 starts every sentence from - `seed_rectangle` -
+    read off the polygon here rather than imported, so this layer keeps its
+    one-way dependency on massv2.
+    """
+
+    if site is None or site.is_empty or float(height_m) <= 1e-9:
+        return None
+    rectangle = site.minimum_rotated_rectangle
+    ring = getattr(rectangle, "exterior", None)
+    coordinates = list(ring.coords) if ring is not None else []
+    if len(coordinates) < 4:
+        return None
+    edges = sorted(
+        hypot(right[0] - left[0], right[1] - left[1])
+        for left, right in zip(coordinates, coordinates[1:])
+    )
+    if len(edges) < 2 or edges[-1] <= 1e-9:
+        return None
+    # A rectangle's ring gives each side twice, so the two dimensions are the
+    # longest and the shortest - taking the top two returned the long side
+    # twice and squared the parcel (57.8 x 57.8 where it is 68.7 x 54.6).
+    return (float(edges[-1]), float(edges[0]), float(height_m))
 
 
 def _book_graph_author_vocabulary() -> dict[str, Any]:
@@ -1298,6 +1327,14 @@ def _agent_mutated_seeds(
             request.get("site_access_side")
             or (_site_access_side_in_principal_frame(site, site_access_geometry) if site is not None else "closed")
         ),
+        # The parcel's own box, so the seed is authored in this site's metres.
+        # A base seed is otherwise a proportion and its size arrives later at
+        # the host fit, which is where it was going missing: fitted INSIDE the
+        # buildable polygon a BOOK mass delivered 664 m2 against a 1,497.9 m2
+        # coverage cap on 의정부 4115011300106840001. massv2's seed has been the
+        # parcel's own rectangle since it was written, which is why it has
+        # never had this problem.
+        "site_extent": _site_seed_extent(site, height),
     } for request in (synthesis_requests or ()) if isinstance(request, dict))
     effective_synthesis_requests = tuple((
         *directive_requests,

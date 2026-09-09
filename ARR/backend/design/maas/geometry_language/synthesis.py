@@ -173,6 +173,21 @@ def synthesize_architectural_programs(
             min(2, int(request.get("downstream_body_rule_reserve") or 0)),
         )
         variation_offset = max(0, min(4096, int(request.get("variation_offset") or 0)))
+        # The parcel's own box, if the caller knows it: the seed rectangle's
+        # width and depth and the storey budget the law allows. A seed authored
+        # without it is a proportion and the size arrives later, at the fit -
+        # which is where it was going missing. massv2's seed has carried the
+        # parcel's metres from its first word since it was written.
+        site_extent = request.get("site_extent")
+        if site_extent is not None:
+            try:
+                site_extent = tuple(float(value) for value in site_extent)
+            except (TypeError, ValueError):
+                site_extent = None
+            if site_extent is not None and (
+                len(site_extent) != 3 or min(site_extent) <= 1e-9
+            ):
+                site_extent = None
     except (TypeError, ValueError):
         return ()
     required_terminal_operator = str(request.get("required_terminal_operator") or "").strip().lower()
@@ -392,6 +407,7 @@ def synthesize_architectural_programs(
         program = _program_from_stack(
             seed_id,
             operators,
+            site_extent=site_extent,
             scope_count=scope_count,
             operator_variant_indices=operator_variant_indices,
             variation_index=cursor,
@@ -550,6 +566,7 @@ def _program_from_stack(
     seed_id: str,
     operators: Iterable[str],
     *,
+    site_extent: tuple[float, float, float] | None = None,
     scope_count: int = 1,
     operator_variant_indices: Iterable[int] | None = None,
     variation_index: int,
@@ -562,7 +579,8 @@ def _program_from_stack(
     required_macro_operators_all: tuple[str, ...] = (),
     typology_prior_id: str = "",
 ) -> GeometryProgram:
-    seed = base_seed_program(seed_id, variation_index=variation_index)
+    seed = base_seed_program(seed_id, variation_index=variation_index,
+                             site_extent=site_extent)
     nodes = list(seed.nodes)
     root_id = seed.root_id
     composed_scope_count = 1

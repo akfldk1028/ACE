@@ -30,8 +30,6 @@ from shapely.ops import unary_union
 from design.maas.floor_viability import DEFAULT_MINIMUM_CLEAR_DEPTH_M
 from design.maas.geometry_language.affine_matrix import (
     compose_matrix4,
-    scale_matrix4,
-    transform_point3,
     translation_matrix4,
     validate_matrix4,
 )
@@ -1293,23 +1291,6 @@ def _approach(frame: _Frame, op: Operation) -> None:
             "approach",
         ),
     )
-
-
-def _local_volume(item: Placement) -> float:
-    """The volume of a placement's own box, from the determinant it carries.
-
-    A placement is the image of the unit cube under its 4x4, so |det| of the
-    linear part IS its volume - exact at any bearing, lean or scale, and not a
-    footprint-times-height proxy that a leaning body would get wrong.
-    """
-
-    origin = transform_point3(item.matrix, (0.0, 0.0, 0.0))
-    columns = [
-        tuple(a - b for a, b in zip(transform_point3(item.matrix, axis), origin))
-        for axis in ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
-    ]
-    (a, b, c), (d, e, f), (g, h, i) = columns
-    return abs(a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g))
 
 
 def _lift(frame: _Frame, op: Operation) -> None:

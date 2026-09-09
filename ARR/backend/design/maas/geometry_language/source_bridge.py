@@ -2738,6 +2738,11 @@ def _compile_geometry_program_to_source_mass(
         world_vertices,
         compilation.triangles,
     )
+    if clip_to_host:
+        # What gets built, not what the mesh projects: the boundary has already
+        # taken the rest.
+        achieved_plan_area = _mesh_plan_projection_area(
+            world_vertices, compilation.triangles, host)
     minimum_plan_area_target = (
         max(0.2, float(minimum_plan_area))
         if minimum_plan_area is not None
@@ -2837,32 +2842,39 @@ def _compile_geometry_program_to_source_mass(
         for part_index, part in enumerate(retained_parts):
             # The complete mesh has already passed host containment. Do not
             # simplify away occupied slivers or discard small connected parts.
-            clipped = part
-            if clip_to_host:
-                # The cut, not the shrink. A band is an arbitrary polygon here,
-                # so what stands past the boundary is removed and what stands
-                # inside keeps its own figure - the reading massv2's compiler
-                # already takes band by band.
-                trimmed = part.intersection(host)
-                clipped = trimmed if (
-                    isinstance(trimmed, Polygon)
-                    and not trimmed.is_empty
-                    and trimmed.area > 1e-9
-                ) else None
-            if clipped is None:
+            # The cut, not the shrink. A band is an arbitrary polygon here, so
+            # what stands past the boundary is removed and what stands inside
+            # keeps its own figure - the reading massv2's compiler already
+            # takes band by band.
+            #
+            # A cut can leave more than one piece, and the first version of
+            # this took `intersection` and kept it only when it came back a
+            # single Polygon. On a concave parcel - the shape most of them are
+            # - a bar crossing a notch comes back a MultiPolygon and the whole
+            # band was dropped, which is a silent loss of exactly the kind the
+            # rest of this file exists to prevent. `_polygon_parts` is what the
+            # section above already uses to split one.
+            pieces = (
+                [piece for piece in _polygon_parts(part.intersection(host))
+                 if not piece.is_empty and piece.area > 1e-9]
+                if clip_to_host else [part]
+            )
+            if not pieces:
                 if preserve_site_bound_bands:
                     return None
                 continue
-            volume_records.append(SourceVolume(
-                # Height bands are legal proxies of one typed component, not
-                # separate architectural fragments. Keep component identity
-                # stable; bottom/top fractions still distinguish the bands.
-                role=volume_role,
-                footprint=clipped,
-                bottom_fraction=bottom,
-                top_fraction=top,
-                verb="geometry_program",
-            ))
+            for clipped in pieces:
+                volume_records.append(SourceVolume(
+                    # Height bands are legal proxies of one typed component,
+                    # not separate architectural fragments. Keep component
+                    # identity stable; bottom/top fractions still distinguish
+                    # the bands.
+                    role=volume_role,
+                    footprint=clipped,
+                    bottom_fraction=bottom,
+                    top_fraction=top,
+                    verb="geometry_program",
+                ))
             band_part_count += 1
         if preserve_site_bound_bands:
             if band_part_count != len(parts) or band_part_count < 1:
@@ -4098,8 +4110,16 @@ def _source_surface_plan_projection_area(source: SourceMass) -> float:
 def _mesh_plan_projection_area(
     vertices: tuple[tuple[float, float, float], ...],
     triangles: tuple[tuple[int, int, int], ...],
+    clip: Polygon | None = None,
 ) -> float:
-    """Top-view solid area without replacing a non-convex graph by its hull."""
+    """Top-view solid area without replacing a non-convex graph by its hull.
+
+    `clip` reports the area that survives a boundary. What a mesh projects is
+    not what gets built once the legal line cuts it, and read off the unclipped
+    projection an authoring target certified 1,497.877 m2 satisfied on 의정부
+    4115011300106840001 while the delivered ground plan was 1,444.7 - a target
+    met on material the line had already removed.
+    """
     projected: list[Polygon] = []
     for triangle in triangles:
         coordinates = [
@@ -4134,7 +4154,10 @@ def _mesh_plan_projection_area(
                 ]
             )
             if candidates:
-                area = float(unary_union(candidates).area)
+                merged = unary_union(candidates)
+                if clip is not None:
+                    merged = merged.intersection(clip)
+                area = float(merged.area)
                 if isfinite(area) and area >= 0.0:
                     return area
         except GEOSException:
@@ -4144,7 +4167,11 @@ def _mesh_plan_projection_area(
     # run.  The largest valid projected triangle is a conservative lower bound,
     # so capacity gates can reject the candidate instead of receiving a false
     # positive from a convex-hull or summed-area fallback.
-    return max(float(polygon.area) for polygon in projected)
+    if clip is None:
+        return max(float(polygon.area) for polygon in projected)
+    return max(
+        float(polygon.intersection(clip).area) for polygon in projected
+    )
 
 
 def _mesh_plan_projection_inside_host(

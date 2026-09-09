@@ -15,6 +15,7 @@ blind eyes as every massv2 family, which is what "use the book" means.
 """
 
 import json
+from shapely.geometry import Polygon
 import sys
 from pathlib import Path
 
@@ -214,7 +215,31 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     physical_matrix = [list(row) for row in matrix]
     physical_matrix[2] = [value * height for value in physical_matrix[2]]
     transformed = original._solid.transform(physical_matrix[:3])
-    original_areas = [float(transformed.slice(z * height).area()) for z in fractions]
+    # Delivered through a cut: the reference is the authored floor inside
+    # the host the bridge cut at, not the whole authored floor. The
+    # difference is the law's take, recorded per floor.
+    clip = source.metadata.get('legal_host_clip')
+    clip_host = None
+    if isinstance(clip, dict) and clip.get('exterior'):
+        clip_host = Polygon([tuple(pt) for pt in clip['exterior']],
+                            [[tuple(pt) for pt in hole] for hole in clip.get('holes') or ()])
+    original_areas, legal_take_areas = [], []
+    for z in fractions:
+        section = transformed.slice(z * height)
+        if clip_host is None:
+            original_areas.append(float(section.area()))
+            legal_take_areas.append(0.0)
+            continue
+        region = None
+        for contour in section.to_polygons():
+            ring = Polygon(contour)
+            if ring.is_empty or ring.area <= 0:
+                continue
+            region = ring if region is None else region.symmetric_difference(ring)
+        whole = float(region.area) if region is not None else 0.0
+        inside = float(region.intersection(clip_host).area) if region is not None else 0.0
+        original_areas.append(inside)
+        legal_take_areas.append(whole - inside)
     resolutions = [section_export_area_resolution(p, matrix) for p in sections]
     coplanar_areas = [section_coplanar_skin_area(vertices, triangles, z, matrix) for z in fractions]
     area_scale = abs(matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0])
@@ -237,7 +262,7 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
             issues.append(f'floor_{index}_mesh_area_missing_from_proxy:{missing:.9f}')
         if coplanar_areas[index-1] > resolution:
             issues.append(f'floor_{index}_ambiguous_horizontal_skin_at_center:{coplanar_areas[index-1]:.9f}')
-        if transported_areas is not None and (
+        if transported_areas is not None and clip_host is None and (
                 not isfinite(transported_areas[index-1])
                 or abs(actual - transported_areas[index-1]) > authored_resolutions[index-1]):
             issues.append(f'floor_{index}_authored_export_area_mismatch:{transported_areas[index-1]:.9f}->{actual:.9f}')
@@ -245,6 +270,8 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     return {
         'schema': 'arr.maas.book_delivered_floor_measurement.v1',
         'basis': 'delivered SourceSurface mesh at transformed authored floor centers',
+        'legal_clip': clip_host is not None,
+        'legal_take_areas_m2': [round(a, 6) for a in legal_take_areas],
         'placement_policy': 'host-fitted XY affine; independently requested Z stature',
         'center_basis': center_basis,
         'original_floor_center_elevations_m': centers,
@@ -343,12 +370,19 @@ def _compile_record(rec: dict, buildable, site=None):
         # Exact inheritance and authored intent both carry physical dimensions.
         # A bridge's ground-floor area is not its full projected footprint;
         # fitting that projection to the ground area would silently shrink it.
+        # The legal line cuts (`clip_to_host`): a footprint the author sized
+        # to the parcel is placed at its own size and the boundary takes
+        # what crosses it, the way the parcel cuts a massv2 seed. Fitted
+        # inside instead, every intent above the host's inscribed copy came
+        # back "cannot fit the legal host without resizing" - 24 of 24 when
+        # the intents were sized to the FAR cap rather than the coverage cap.
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
             placement_policy=POLICY if intent is not None or exact is not None else None,
-            max_volume_bands=int(floor_count) if floor_count else 3)
+            max_volume_bands=int(floor_count) if floor_count else 3,
+            clip_to_host=True)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:
@@ -404,7 +438,13 @@ def _compile_record(rec: dict, buildable, site=None):
         metric_pose = (all(isclose(sum(matrix[i][j] ** 2 for i in range(2)), 1.0, rel_tol=1e-8, abs_tol=1e-8) for j in range(2))
             and isclose(sum(matrix[i][0] * matrix[i][1] for i in range(2)), 0.0, abs_tol=1e-8)
             and isclose(floors['z_scale'], 1.0, rel_tol=1e-8, abs_tol=1e-8))
-        if not metric_pose or not isclose(floors['actual_gfa_m2'], book_gross_m2, rel_tol=1e-5, abs_tol=1e-3):
+        # A cut delivery keeps the authored dimensions up to the legal line:
+        # the pose stays metric (no resize), and the floor area delivered is
+        # the authored area minus the law's recorded take. An exact
+        # development inherits its parent's dimensions and is not cut.
+        legal_take = sum(floors.get('legal_take_areas_m2') or ()) if floors.get('legal_clip') else 0.0
+        expected_gfa = book_gross_m2 - legal_take if (exact is None and legal_take > 0) else book_gross_m2
+        if not metric_pose or not isclose(floors['actual_gfa_m2'], expected_gfa, rel_tol=1e-5, abs_tol=1e-3):
             return None, ('exact development dimensions changed during delivery' if exact is not None
                           else 'authored dimensional intent changed during delivery')
     if intent is not None:

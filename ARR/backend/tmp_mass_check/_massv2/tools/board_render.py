@@ -91,9 +91,17 @@ def main() -> int:
         caption = None
         book_entry = entry_for_judged_row(row) if row['name'].startswith('book:') else None
         if row['name'].startswith('book:') or (parti is not None and (track in ('O', 'C') or korea_schedule is not None)):
-            source, caption = rebuild_seat(row['name'], book, site, buildable, axis, base,
-                                            schedule=korea_schedule if track == 'K' else None,
-                                            book_entry=book_entry)
+            try:
+                source, caption = rebuild_seat(row['name'], book, site, buildable, axis, base,
+                                                schedule=korea_schedule if track == 'K' else None,
+                                                book_entry=book_entry)
+            except ValueError as fault:
+                # A seat whose stored measurement no longer matches what the
+                # engine builds is the ghost this loop already knows how to
+                # record - it was raising instead, and one comp17 BOOK seat
+                # stopped the whole bake after the executor changed.
+                print(f"cannot certify: {row['label']} {fault}")
+                source, caption = None, None
         # A tile that cannot be rebuilt is kept from the cache BY SCHEME NAME,
         # never by label: labels are reassigned at every curation, and keeping
         # `K8.png` from the previous bake once put another scheme's drawing

@@ -615,6 +615,23 @@ def score(run: str, paths: list[str]) -> int:
     if deltas:
         print(f"   anchors {len(deltas)}, session drift {drift:+.2f} (median), "
               f"delta spread {spread:.2f}")
+    if spread > 1.0 and len(deltas) >= 3:
+        # One anchor the jury simply disliked is not "no constant shift
+        # fits": comp18's massv2 jury sat at -1.05 on two anchors and -1.62
+        # on the third (spread 1.12), the BOOK jury the same night at -1.10
+        # (spread 0.27). One track was corrected +1.10 and the other not at
+        # all, a raw 3.52 met a raw 3.52 on the board as 3.52 against 4.62,
+        # and the sheet was BOOK three times over. Drop the one anchor
+        # farthest from the median; if the rest agree, their shift stands.
+        farthest = max(deltas, key=lambda d: abs(d - drift))
+        kept = [d for d in deltas if d is not farthest]
+        if kept and (max(kept) - min(kept)) <= 1.0:
+            drift = statistics.median(kept)
+            print(f"   one anchor off by {farthest - drift:+.2f} dropped; the other "
+                  f"{len(kept)} agree (spread {max(kept) - min(kept):.2f}), "
+                  f"session drift {drift:+.2f}")
+            spread = max(kept) - min(kept)
+            correction = "median_drift_one_anchor_dropped"
     if spread > 1.0:
         # No constant shift fits this jury. Applying one anyway once crowned a
         # candidate at 5.04/5 over a champion the jury simply disliked. When

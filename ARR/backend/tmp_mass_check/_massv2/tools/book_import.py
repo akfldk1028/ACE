@@ -220,9 +220,19 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     # difference is the law's take, recorded per floor.
     clip = source.metadata.get('legal_host_clip')
     clip_host = None
+    clip_bands = []
     if isinstance(clip, dict) and clip.get('exterior'):
         clip_host = Polygon([tuple(pt) for pt in clip['exterior']],
                             [[tuple(pt) for pt in hole] for hole in clip.get('holes') or ()])
+        clip_bands = [(float(b['lo']), float(b['hi']),
+                       Polygon([tuple(pt) for pt in b['exterior']],
+                               [[tuple(pt) for pt in hole] for hole in b.get('holes') or ()]))
+                      for b in clip.get('sections') or ()]
+    def host_at(z):
+        for lo, hi, poly in clip_bands:
+            if lo - 1e-9 <= z < hi + 1e-9:
+                return poly
+        return clip_host
     original_areas, legal_take_areas = [], []
     for z in fractions:
         section = transformed.slice(z * height)
@@ -237,7 +247,7 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
                 continue
             region = ring if region is None else region.symmetric_difference(ring)
         whole = float(region.area) if region is not None else 0.0
-        inside = float(region.intersection(clip_host).area) if region is not None else 0.0
+        inside = float(region.intersection(host_at(z)).area) if region is not None else 0.0
         original_areas.append(inside)
         legal_take_areas.append(whole - inside)
     resolutions = [section_export_area_resolution(p, matrix) for p in sections]
@@ -376,13 +386,22 @@ def _compile_record(rec: dict, buildable, site=None):
         # inside instead, every intent above the host's inscribed copy came
         # back "cannot fit the legal host without resizing" - 24 of 24 when
         # the intents were sized to the FAR cap rather than the coverage cap.
+        # The law floor by floor: each band's section is the legal plan at
+        # the band's top (where 정북일조 is tightest), in the fit's normalized z.
+        clip_sections = None
+        if site is not None and floor_count and scaled_height_m:
+            count = int(floor_count)
+            clip_sections = tuple(
+                (index / count, (index + 1) / count,
+                 site.plan_at(float(scaled_height_m) * (index + 1) / count))
+                for index in range(count))
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
             placement_policy=POLICY if intent is not None or exact is not None else None,
             max_volume_bands=int(floor_count) if floor_count else 3,
-            clip_to_host=True)
+            clip_to_host=True, clip_sections=clip_sections)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:

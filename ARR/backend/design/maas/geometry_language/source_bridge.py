@@ -2697,7 +2697,8 @@ def _compile_geometry_program_to_source_mass(
         if base_seed_plan_fraction is not None and target_plan_area is None:
             base_seed_area_cap = float(host.area) * base_seed_plan_fraction
             effective_target_plan_area = base_seed_area_cap
-        transformed = (_pose_metric_vertices_to_host(compilation, host)
+        transformed = (_pose_metric_vertices_to_host(
+                compilation, host, clip_to_host=clip_to_host)
             if placement_policy == POLICY else _fit_vertices_to_host(
                 compilation, host, target_plan_area=effective_target_plan_area,
                 minimum_plan_area=minimum_plan_area,
@@ -3624,8 +3625,17 @@ def _normalized_program_space_zones(
     return zones
 
 
-def _pose_metric_vertices_to_host(compilation, host):
-    """Finite rigid pose search; inability to place is a refusal, never a resize."""
+def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = False):
+    """Finite rigid pose search; inability to place is a refusal, never a resize.
+
+    `clip_to_host` does not break that contract - a cut is not a resize. It is
+    the same reading massv2 takes and the one this file's fit was just taught:
+    the legal line removes what stands past it and leaves the rest its own
+    size. Without it a seed authored in the parcel's own metres can never be
+    placed at all, because a mass the size of the parcel does not fit inside
+    an irregular parcel; the four seeds measured 0%, 0%, 2% and 24% of the
+    building-area cap trying.
+    """
     vertices = compilation.vertices
     plan = MultiPoint([(x, y) for x, y, _z in vertices]).convex_hull
     if not isinstance(plan, Polygon) or plan.area <= 1e-9:
@@ -3644,7 +3654,9 @@ def _pose_metric_vertices_to_host(compilation, host):
                 scale_matrix4((1.0, 1.0, 1.0 / span)),
                 translation_matrix4((center.x, center.y, 0.0)))
             world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
-            if _mesh_plan_projection_inside_host(world, compilation.triangles, host):
+            if clip_to_host or _mesh_plan_projection_inside_host(
+                world, compilation.triangles, host
+            ):
                 return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
                     world_vertices=world, achieved_plan_area_m2=_mesh_plan_projection_area(world, compilation.triangles))
     return None

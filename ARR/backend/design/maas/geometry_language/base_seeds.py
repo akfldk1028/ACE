@@ -172,10 +172,63 @@ def base_form_program(form_id: str) -> GeometryProgram:
     )
 
 
-def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProgram:
+def base_seed_program(
+    seed_id: str,
+    *,
+    variation_index: int = 0,
+    site_extent: tuple[float, float, float] | None = None,
+) -> GeometryProgram:
+    """One base seed, optionally authored in the parcel's own metres.
+
+    Without `site_extent` a seed is a proportion and nothing more - block is
+    1:1:1, slab is 2.20:1.45:0.28, a bar is 4.5 times as long as it is deep -
+    and the size arrives later, when the compiled solid is fitted to a host.
+    That is the difference between this executor and massv2, and it is where
+    the size goes: massv2's seed IS the parcel's own rectangle, so it carries
+    metres from its first word and the legal line only ever CUTS it. A seed
+    that arrives dimensionless has to be scaled to the site, and every scaling
+    step is a chance to come back small - fitted INSIDE the buildable polygon,
+    a BOOK mass delivered 664 m2 against a 1,497.9 m2 building-area cap on
+    의정부 4115011300106840001.
+
+    `site_extent` is that parcel's own box - the seed rectangle's width and
+    depth and the storey budget the law allows - and the seed is scaled to
+    fill it on its limiting axis, so the proportion that IS the seed's
+    identity survives and the metres are there from the first node. A bar is
+    still 4.5 times as long as it is deep; it is now as long as this site can
+    hold.
+    """
+
     spec = next((item for item in BASE_SEED_SPECS if item.seed_id == seed_id), None)
     if spec is None:
         raise KeyError(f"unknown base seed: {seed_id}")
+    site_scale = (1.0, 1.0, 1.0)
+    if site_extent is not None:
+        wanted = tuple(max(0.0, float(value)) for value in site_extent)
+        if len(wanted) != 3 or min(wanted) <= 1e-9:
+            raise ValueError("site_extent must be three positive metre lengths")
+        # The plan fills the parcel's rectangle and the height IS the storey
+        # budget - the two are separate quantities and massv2 has always
+        # treated them so. Taking one scale off all three axes lets the budget
+        # govern the plan: a 1:1:1 block on a 19 m budget came out 19 m wide,
+        # 24% of the building-area cap, and a 1:1:3.68 tower came out 5.2 m
+        # wide, 2%. Both are arithmetic and neither is a building.
+        #
+        # What survives is the seed's PLAN proportion, which is its identity in
+        # plan - slab 2.20:1.45, bar 2.80:0.62, block and tower both square.
+        # And that is an honest reading rather than a lossy one: on a parcel
+        # this law allows five storeys of, a tower and a block ARE the same
+        # figure, because the thing that separated them was a height this site
+        # does not grant.
+        plan_scale = min(
+            wanted[0] / max(spec.normalized_scale[0], 1e-9),
+            wanted[1] / max(spec.normalized_scale[1], 1e-9),
+        )
+        site_scale = (
+            plan_scale,
+            plan_scale,
+            wanted[2] / max(spec.normalized_scale[2], 1e-9),
+        )
     provenance = {
         "source": "normalized_base_seed_catalog",
         "seed_id": spec.seed_id,
@@ -192,7 +245,10 @@ def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProg
             f"seed_{spec.seed_id}", "transform", "matrix4", inputs=(unit.id,),
             parameters={
                 "matrix4": matrix4_to_lists(
-                    scale_matrix4(spec.normalized_scale),
+                    scale_matrix4(tuple(
+                        value * factor
+                        for value, factor in zip(spec.normalized_scale, site_scale)
+                    )),
                 ),
             },
             semantic_role="base_seed",
@@ -210,6 +266,22 @@ def base_seed_program(seed_id: str, *, variation_index: int = 0) -> GeometryProg
         )
         nodes = (prism,)
         root = prism.id
+        if any(abs(factor - 1.0) > 1e-9 for factor in site_scale):
+            # The profiled prism is authored by its own parameters rather than
+            # by a scale on a unit box, so the parcel's metres are composed on
+            # afterwards. Uniform, because the profile is a plan family and
+            # stretching it unevenly would be a different figure.
+            posed = GeometryNode(
+                f"seed_{spec.seed_id}_site", "transform", "matrix4",
+                inputs=(prism.id,),
+                parameters={
+                    "matrix4": matrix4_to_lists(scale_matrix4(site_scale)),
+                },
+                semantic_role="base_seed",
+                provenance={**provenance, "core_expansion": spec.core_expansion},
+            )
+            nodes = (prism, posed)
+            root = posed.id
     return GeometryProgram(
         nodes, root, name=f"base_seed_{spec.seed_id}",
         metadata={

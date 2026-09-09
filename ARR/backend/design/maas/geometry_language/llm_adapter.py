@@ -1484,12 +1484,20 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
         if offered_book_paths
         else "not supplied (legacy context)"
     )
+    # The catalogue the author reads and the enum the schema enforces must be
+    # one list. This dumped every operator contract while `_author_schema`
+    # took its operators from `_allowed_author_operators`, which withholds
+    # `book_base_volume` - the scope the cycle sets, not a word an author
+    # says. Measured on comp18: the author read the word here, used it, and
+    # its whole batch failed the schema it was also told to obey.
+    allowed_operator_set = set(_allowed_author_operators(context))
     parameter_contracts = json.dumps({
         operator: {
             parameter: _author_parameter_value_contract(operator, parameter)
             for parameter in sorted(parameters)
         }
         for operator, parameters in sorted(OPERATOR_PARAMETER_CONTRACTS.items())
+        if operator in allowed_operator_set
     }, ensure_ascii=False, sort_keys=True)
     allowed_base_seeds = ", ".join(_allowed_author_base_seeds(context))
     allowed_base_forms = ", ".join(spec.form_id for spec in BASE_FORM_SPECS)

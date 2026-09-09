@@ -130,7 +130,17 @@ def main() -> int:
     # Seats the current engine cannot rebuild are ledger ghosts (judged on
     # an engine that no longer makes that variant). Recorded here; the
     # curator reads the file and leaves them out of the next board.
-    (BOARD / "unbakeable.json").write_text(
+    # A ghost the curator left off this board was not tried this bake and
+    # is not thereby certified: the list was rewritten from this board's
+    # rows only, so seven comp17 BOOK ghosts vanished from it at the very
+    # bake that omitted them and came back at the next curation. Names not
+    # on this board carry forward; a name that baked here drops out.
+    ghosts_path = BOARD / "unbakeable.json"
+    if ghosts_path.exists():
+        on_board = {row["name"] for row in board}
+        previous = set(json.loads(ghosts_path.read_text(encoding="utf-8")))
+        unbakeable = sorted(set(unbakeable) | (previous - on_board))
+    ghosts_path.write_text(
         json.dumps(unbakeable, ensure_ascii=False, indent=1), encoding="utf-8")
     (BOARD / 'render-key.json').write_text(json.dumps(render_key, ensure_ascii=False, indent=2), encoding='utf-8')
 

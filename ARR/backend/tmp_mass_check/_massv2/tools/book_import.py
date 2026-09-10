@@ -515,7 +515,10 @@ def _compile_record(rec: dict, buildable, site=None):
         # the authored area minus the law's recorded take. An exact
         # development inherits its parent's dimensions and is not cut.
         legal_take = sum(floors.get('legal_take_areas_m2') or ()) if floors.get('legal_clip') else 0.0
-        expected_gfa = book_gross_m2 - legal_take if (exact is None and legal_take > 0) else book_gross_m2
+        # The child inherits the parent's delivered dimensions and is cut by
+        # the same law; its own take comes off the same way (comp25: all six
+        # children refused as "dimensions changed" for the take alone).
+        expected_gfa = book_gross_m2 - legal_take if legal_take > 0 else book_gross_m2
         if not metric_pose or not isclose(floors['actual_gfa_m2'], expected_gfa, rel_tol=1e-5, abs_tol=1e-3):
             return None, ('exact development dimensions changed during delivery' if exact is not None
                           else 'authored dimensional intent changed during delivery')

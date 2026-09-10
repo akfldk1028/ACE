@@ -58,9 +58,9 @@ _HAND_PARAMS = {
 _UNIVERSAL = {"on", "about", "profile", "storeys"}
 
 
-def _derived_verbs() -> dict:
+def _derived_verbs() -> tuple[dict, dict]:
     from design.maas.massv2.execute import _VERBS
-    table = {}
+    table, numeric = {}, {}
     for verb, fn in _VERBS.items():
         try:
             source = inspect.getsource(fn)
@@ -68,10 +68,16 @@ def _derived_verbs() -> dict:
             source = ""
         params = set(re.findall(r'params\.get\(\s*"([a-z_]+)"', source))
         table[verb] = params | _HAND_PARAMS.get(verb, set()) | _UNIVERSAL
-    return table
+        # A parameter the executor reads through float() is a number. comp27's
+        # author wrote `inscribe across: "court"`, the range check only looks
+        # at values that already are numbers, and the executor crashed the
+        # whole run of 246 on that one word.
+        numeric[verb] = set(re.findall(r'float\(\s*op\.params\.get\(\s*"([a-z_]+)"', source)) | set(RANGES_KEYS)
+    return table, numeric
 
 
-VERBS = _derived_verbs()
+RANGES_KEYS = ("ratio", "size", "depth", "reach", "clearance", "degrees", "n", "spread", "contrast", "gap", "rise")  # `at` is a side name for carve/notch
+VERBS, NUMERIC = _derived_verbs()
 PROFILES = {"square", "oval", "stadium", "hexagon", "chamfered", "faceted",
             "trapezoidal", "triangular", "kite", "concave_l"}
 LANGUAGES = {"solid_body", "carved_body", "open_figure", "porous_field"}
@@ -372,6 +378,10 @@ def check(path: Path) -> tuple[list, Counter, Counter]:
                 faults.append(f"{name} op{index} ({verb}): unknown params {sorted(unknown)}")
             if not str(op.get("why") or "").strip():
                 faults.append(f"{name} op{index} ({verb}): no why")
+            for key in NUMERIC.get(verb, ()):
+                value = op.get(key)
+                if key in op and (isinstance(value, bool) or not isinstance(value, (int, float))):
+                    faults.append(f"{name} op{index} ({verb}): {key} must be a number, got {value!r}")
             for key, (lo, hi) in RANGES.items():
                 if key in op and isinstance(op[key], (int, float)):
                     lo, hi = PER_VERB_RANGES.get((verb, key), (lo, hi))

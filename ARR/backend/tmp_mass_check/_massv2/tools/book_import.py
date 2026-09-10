@@ -196,6 +196,29 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     triangles = tuple((i, i+1, i+2) for i in range(0, len(vertices), 3))
     if not vertices or any(len(s.vertices_m) != 3 for s in source.surfaces):
         raise ValueError('BOOK requires a complete triangle mesh')
+    # A horizontal skin exactly at a floor's centre plane makes the section
+    # there a coin toss, and the rule below refused it. The book's joints sit
+    # at half height, and half of 5 x 3.8 m is floor 3's centre, so comp23
+    # refused every vertical sentence for it. The probe steps off the skin by
+    # 2% of a storey to the side with the smaller section - the conservative
+    # floor - and the offset is recorded.
+    probe_offsets = [0.0] * len(fractions)
+    if storey_m:
+        step = abs(float(matrix[2][2])) * 0.02 * float(storey_m)
+        probe = mesh_section_solid(vertices, triangles)
+        for index, z in enumerate(list(fractions)):
+            if section_coplanar_skin_area(vertices, triangles, z, matrix) <= 0.0:
+                continue
+            below, above = z - step, z + step
+            if not (0 < below and above < 1):
+                continue
+            candidates = []
+            for side in (below, above):
+                polygon = solid_section_polygon(probe, side)
+                candidates.append((float(polygon.area) if polygon is not None else 0.0, side))
+            area, side = min(candidates)
+            fractions[index] = side
+            probe_offsets[index] = side - z
     solid = mesh_section_solid(vertices, triangles)
     sections = [solid_section_polygon(solid, z) for z in fractions]
     empty_floors = [index for index, p in enumerate(sections) if p is None or p.is_empty or p.area <= 0]
@@ -308,6 +331,7 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
         'authored_floor_areas_at_executed_xy_m2': transported_areas,
         'authored_floor_area_comparison_resolution_m2': authored_resolutions,
         'coplanar_skin_area_at_floor_center_m2': coplanar_areas,
+        'floor_center_probe_offsets': probe_offsets,
         'export_area_comparison_resolution_m2': resolutions,
         'measurement_consistent': not issues,
         'measurement_issues': issues,

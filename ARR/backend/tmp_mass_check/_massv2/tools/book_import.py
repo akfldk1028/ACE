@@ -198,8 +198,16 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
         raise ValueError('BOOK requires a complete triangle mesh')
     solid = mesh_section_solid(vertices, triangles)
     sections = [solid_section_polygon(solid, z) for z in fractions]
-    if any(p is None or p.is_empty or p.area <= 0 for p in sections):
+    empty_floors = [index for index, p in enumerate(sections) if p is None or p.is_empty or p.area <= 0]
+    if empty_floors and not source.metadata.get('legal_host_clip'):
         raise ValueError('authored BOOK floor has no delivered occupied section')
+    # Under a cut, a floor with no section is either the law's whole take
+    # of that floor (its legal section had no room where the authored floor
+    # stood) or a pose that missed the parcel; the first is recorded below
+    # and the second still refuses.
+    removed_by_law: set[int] = set(empty_floors)
+    from shapely.geometry import Polygon as _Empty
+    sections = [p if index not in removed_by_law else _Empty() for index, p in enumerate(sections)]
     areas = [float(p.area) for p in sections]
     height = float(source.metadata['authored_height_m'])
     origin = source.footprint.centroid
@@ -248,6 +256,12 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
             region = ring if region is None else region.symmetric_difference(ring)
         whole = float(region.area) if region is not None else 0.0
         inside = float(region.intersection(host_at(z)).area) if region is not None else 0.0
+        floor_index = len(original_areas)
+        if floor_index in removed_by_law:
+            if inside > 1.0:
+                # The law left room for this floor and the delivery has none there.
+                raise ValueError('authored BOOK floor has no delivered occupied section')
+            inside = 0.0
         original_areas.append(inside)
         legal_take_areas.append(whole - inside)
     resolutions = [section_export_area_resolution(p, matrix) for p in sections]
@@ -282,6 +296,7 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
         'basis': 'delivered SourceSurface mesh at transformed authored floor centers',
         'legal_clip': clip_host is not None,
         'legal_take_areas_m2': [round(a, 6) for a in legal_take_areas],
+        'floors_removed_by_law': sorted(index + 1 for index in removed_by_law),
         'placement_policy': 'host-fitted XY affine; independently requested Z stature',
         'center_basis': center_basis,
         'original_floor_center_elevations_m': centers,
@@ -395,13 +410,25 @@ def _compile_record(rec: dict, buildable, site=None):
                 (index / count, (index + 1) / count,
                  site.plan_at(float(scaled_height_m) * (index + 1) / count))
                 for index in range(count))
+        # The sentence's road side turned to the road: program sides are
+        # east(+x)/west(-x)/north(+y)/south(-y); the site's access direction
+        # comes from the same owner the stage frames with.
+        facing_angle = None
+        facing = (program.metadata or {}).get('facing') if isinstance(program.metadata, dict) else None
+        if site is not None and isinstance(facing, dict) and facing.get('access_side'):
+            from design.maas.massv2.siting import site_open_side_direction
+            from math import atan2, degrees
+            road = site_open_side_direction(site)
+            local = {'east': (1.0, 0.0), 'north': (0.0, 1.0), 'west': (-1.0, 0.0), 'south': (0.0, -1.0)}.get(facing['access_side'])
+            if road and local:
+                facing_angle = degrees(atan2(road[1], road[0])) - degrees(atan2(local[1], local[0]))
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
             placement_policy=POLICY if intent is not None or exact is not None else None,
             max_volume_bands=int(floor_count) if floor_count else 3,
-            clip_to_host=True, clip_sections=clip_sections)
+            clip_to_host=True, clip_sections=clip_sections, facing_angle_deg=facing_angle)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:

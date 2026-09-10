@@ -349,6 +349,13 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     }
 
 
+# massv2 grammar.PLOT_MODES, the words that impose an independent shape.
+IMPOSE_WORDS = frozenset((
+    'shape', 'crown', 'shear', 'embed', 'inscribe', 'carve', 'lift', 'loop', 'aggregate', 'grade',
+    'notch', 'approach', 'puncture', 'twist', 'rotate', 'array', 'reflect', 'pack',
+))
+
+
 def _compile_record(rec: dict, buildable, site=None):
     """One book record -> SourceMass, the book's figure at this parcel's size.
 
@@ -430,7 +437,7 @@ def _compile_record(rec: dict, buildable, site=None):
         # The law floor by floor: each band's section is the legal plan at
         # the band's top (where 정북일조 is tightest), in the fit's normalized z.
         clip_sections = None
-        if site is not None and floor_count and scaled_height_m:
+        if site is not None and floor_count and scaled_height_m and hasattr(site, 'plan_at'):
             count = int(floor_count)
             clip_sections = tuple(
                 (index / count, (index + 1) / count,
@@ -448,13 +455,23 @@ def _compile_record(rec: dict, buildable, site=None):
             local = {'east': (1.0, 0.0), 'north': (0.0, 1.0), 'west': (-1.0, 0.0), 'south': (0.0, -1.0)}.get(facing['access_side'])
             if road and local:
                 facing_angle = degrees(atan2(road[1], road[0])) - degrees(atan2(local[1], local[0]))
+        # massv2's plot modes, ported: a sentence whose figure is the point
+        # (a base volume that is not the whole block, or an imposing word)
+        # is fitted inside the parcel and trimmed; a 1/1 split or stack
+        # takes the plot's outline and is cut. An exact development child
+        # inherits its parent's delivered dimensions and is never resized.
+        meta = program.metadata if isinstance(program.metadata, dict) else {}
+        impose = exact is None and (
+            str(meta.get('base_seed') or '') not in ('', '1/1', 'block', 'slab', 'bar', 'tower')
+            or any(str(word) in IMPOSE_WORDS for word in (meta.get('book_words') or ())))
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,
             minimum_plan_area=footprint_m2 or None,
             placement_policy=POLICY if intent is not None or exact is not None else None,
             max_volume_bands=int(floor_count) if floor_count else 3,
-            clip_to_host=True, clip_sections=clip_sections, facing_angle_deg=facing_angle)
+            clip_to_host=True, clip_sections=clip_sections, facing_angle_deg=facing_angle,
+            impose_fit=impose)
     except Exception as exc:  # a book record that no longer compiles is news, not a crash
         return None, f"{type(exc).__name__}: {exc}"
     if source is None:
@@ -507,9 +524,14 @@ def _compile_record(rec: dict, buildable, site=None):
     dimensional_evidence = None
     if intent is not None or exact is not None:
         matrix = floors['normalized_host_fit_matrix4']
-        metric_pose = (all(isclose(sum(matrix[i][j] ** 2 for i in range(2)), 1.0, rel_tol=1e-8, abs_tol=1e-8) for j in range(2))
+        # A metric pose, or - for an imposing figure - one uniform plan scale
+        # the fit chose and recorded, never a resize the pose invented.
+        column_norms = [sum(matrix[i][j] ** 2 for i in range(2)) ** 0.5 for j in range(2)]
+        impose_scale = float(((source.metadata.get('legal_host_clip') or {}).get('impose_scale')) or 1.0)
+        metric_pose = (all(isclose(norm, impose_scale, rel_tol=1e-6, abs_tol=1e-8) for norm in column_norms)
             and isclose(sum(matrix[i][0] * matrix[i][1] for i in range(2)), 0.0, abs_tol=1e-8)
-            and isclose(floors['z_scale'], 1.0, rel_tol=1e-8, abs_tol=1e-8))
+            and isclose(floors['z_scale'], 1.0, rel_tol=1e-8, abs_tol=1e-8)
+            and (impose_scale == 1.0 or exact is None))
         # A cut delivery keeps the authored dimensions up to the legal line:
         # the pose stays metric (no resize), and the floor area delivered is
         # the authored area minus the law's recorded take. An exact
@@ -518,7 +540,7 @@ def _compile_record(rec: dict, buildable, site=None):
         # The child inherits the parent's delivered dimensions and is cut by
         # the same law; its own take comes off the same way (comp25: all six
         # children refused as "dimensions changed" for the take alone).
-        expected_gfa = book_gross_m2 - legal_take if legal_take > 0 else book_gross_m2
+        expected_gfa = book_gross_m2 * impose_scale ** 2 - legal_take if legal_take > 0 else book_gross_m2 * impose_scale ** 2
         if not metric_pose or not isclose(floors['actual_gfa_m2'], expected_gfa, rel_tol=1e-5, abs_tol=1e-3):
             return None, ('exact development dimensions changed during delivery' if exact is not None
                           else 'authored dimensional intent changed during delivery')

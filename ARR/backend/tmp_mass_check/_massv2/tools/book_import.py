@@ -331,7 +331,9 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
         'authored_floor_areas_at_executed_xy_m2': transported_areas,
         'authored_floor_area_comparison_resolution_m2': authored_resolutions,
         'coplanar_skin_area_at_floor_center_m2': coplanar_areas,
-        'floor_center_probe_offsets': probe_offsets,
+        # Only when a probe moved: the key would change every earlier
+        # seat's certificate otherwise (comp23's sheet ghosted all of them).
+        **({'floor_center_probe_offsets': probe_offsets} if any(probe_offsets) else {}),
         'export_area_comparison_resolution_m2': resolutions,
         'measurement_consistent': not issues,
         'measurement_issues': issues,

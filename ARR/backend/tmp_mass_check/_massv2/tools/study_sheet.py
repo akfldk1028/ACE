@@ -250,7 +250,15 @@ def main(run, out_name="", recommendation_context=None):
         except ValueError as error:
             rejected.append({'name': name, 'reason': str(error)})
             continue
-        source, caption = rebuild_seat(name, book, site, buildable, axis, base, book_entry=book_entry)
+        try:
+            source, caption = rebuild_seat(name, book, site, buildable, axis, base, book_entry=book_entry)
+        except ValueError as error:
+            # A seat from an earlier round the executor no longer rebuilds
+            # as judged (comp21: a comp19 BOOK seat's floor evidence moved
+            # under the seam fix) is set aside like the board's ghosts, not
+            # a crash of the whole sheet.
+            rejected.append({'name': name, 'reason': f'재건 시 인증 불일치 — 재심사 필요 ({error})'})
+            continue
         if source is None or not _score_matches(row, source):
             rejected.append({"name": name, "reason": "재건 불가 또는 심사 당시 형상과 불일치 — 재심사 필요"})
             continue

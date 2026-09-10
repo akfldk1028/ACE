@@ -349,13 +349,6 @@ def delivered_floor_evidence(source, storeys, *, floor_count, storey_m):
     }
 
 
-# massv2 grammar.PLOT_MODES, the words that impose an independent shape.
-IMPOSE_WORDS = frozenset((
-    'shape', 'crown', 'shear', 'embed', 'inscribe', 'carve', 'lift', 'loop', 'aggregate', 'grade',
-    'notch', 'approach', 'puncture', 'twist', 'rotate', 'array', 'reflect', 'pack',
-))
-
-
 def _compile_record(rec: dict, buildable, site=None):
     """One book record -> SourceMass, the book's figure at this parcel's size.
 
@@ -455,15 +448,13 @@ def _compile_record(rec: dict, buildable, site=None):
             local = {'east': (1.0, 0.0), 'north': (0.0, 1.0), 'west': (-1.0, 0.0), 'south': (0.0, -1.0)}.get(facing['access_side'])
             if road and local:
                 facing_angle = degrees(atan2(road[1], road[0])) - degrees(atan2(local[1], local[0]))
-        # massv2's plot modes, ported: a sentence whose figure is the point
-        # (a base volume that is not the whole block, or an imposing word)
-        # is fitted inside the parcel and trimmed; a 1/1 split or stack
-        # takes the plot's outline and is cut. An exact development child
-        # inherits its parent's delivered dimensions and is never resized.
+        # massv2's plot modes, ported - but the author declares them: the
+        # sentence says `site_fit: impose` (fitted inside and trimmed) or
+        # `inherit` (placed at its size and cut to the outline). A word list
+        # deciding this here was the harness making a design call the LLM
+        # was put in the loop to make. An exact child is never resized.
         meta = program.metadata if isinstance(program.metadata, dict) else {}
-        impose = exact is None and (
-            str(meta.get('base_seed') or '') not in ('', '1/1', 'block', 'slab', 'bar', 'tower')
-            or any(str(word) in IMPOSE_WORDS for word in (meta.get('book_words') or ())))
+        impose = exact is None and str(meta.get('site_fit') or 'inherit') == 'impose'
         source = compile_geometry_program_to_source_mass(
             program, buildable, name=rec.get("trace_sequence_name"),
             target_plan_area=footprint_m2 or None,

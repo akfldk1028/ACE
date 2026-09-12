@@ -33,8 +33,7 @@
 
 ### 2) BaseVolume Affine Normalization Matrix4
 - 모든 원시 볼륨은 BaseVolume Matrix4 선형 변환 행렬을 통해 실제 대지의 미터 단위(x, y, z)와 도로 정렬 회전각(theta)으로 사영됩니다.
-- 임의의 박스 돌출(Extrude) 대신 
-ormalize_affine_basevolume_program()을 거쳐 Canonical UnitBox와의 정합성을 보장합니다.
+- 임의의 박스 돌출(Extrude) 대신 `normalize_affine_basevolume_program()`을 거쳐 Canonical UnitBox와의 정합성을 보장합니다.
 
 ---
 
@@ -88,3 +87,22 @@ ormalize_affine_basevolume_program()을 거쳐 Canonical UnitBox와의 정합성
 7. **구조 자립성 & 법규 지표 검증**: Stands == True, 건폐율 28~35% 협의점 달성.
 8. **클레이 팔레트 3D 렌더링 & 보드 합성**: style='clay', 테라코타/앰버/그린 2460x3192 고해상도 시트 생성.
 9. **웹 인터랙티브 뷰어 서빙 & 피드백**: http://localhost:8089/mass_3_proposals_presentation.html 서빙.
+
+---
+
+## 8. 2단계 하이브리드 건축 매스 평가 및 점수 에이전트 체계 (Scoring & Evaluation Agent)
+
+### 1) 2단계 분리 원칙 (Two-Tier Neuro-Symbolic Paradigm)
+- **Tier 1 (Deterministic Hard Gates)**: VLM에게 법규/물리 판정을 위임하지 않음. `overhang == 0.0000 ㎡`, `legal_pass == True`, `stands == True` (캔틸레버비 <= 1.6), `parkingPass >= legalRequired`를 파이썬 수치해석 엔진이 100% 보증. 불합격 대안은 점수와 무관하게 즉시 탈락(Pruned).
+- **Tier 2 (Multi-Agent Preference & VLM Scoring)**:
+  - `GrammarCriticAgent`: 문법 다양성, 레고형 파편화(`too_many_small_fragments`), 단면 결여 검출. `orderliness_score >= 0.74` 강제.
+  - `vlm_scorer.py`: VisionReward 기반 8대 루브릭(`gesture_clarity` 0.22, `hierarchy` 0.18, `non_stair_silhouette` 0.18, `void_publicness` 0.12, `repair_integrity` 0.14, `precedent_resonance` 0.16) 채점.
+  - `score_portfolio_board_with_openai_vlm`: 20개 대안 시블링 중복(Sibling Repetition) 및 단순 박스 쏠림 차단.
+  - `reranker.py`: 조형 원리 다양성 4개군 이상 유지(`_reserve_formal_diversity`).
+  - `ReviewAgent`: 잔여 리스크 감사 보고서 합성.
+- **Closed-Loop Neuro-Symbolic 피드백**: VLM 지적을 단순 텍스트가 아닌 CADLoop 스타일의 실행 가능한 AST 변이(`replace_operator`, `set_parameter`, `set_control_point`, `add_node`)로 환류.
+
+### 2) 상세 메모리 문서 링크 (Codex, Claude, Gemini 공통 참조)
+- **SOTA 학술 논문 정밀 분석**: [`memory/01_SCORING_AGENT_SOTA_RESEARCH.md`](./memory/01_SCORING_AGENT_SOTA_RESEARCH.md) (EvoMass, CADLoop, VisionReward)
+- **2단계 심사 파이프라인 명세**: [`memory/02_TWO_TIER_SCORING_ARCHITECTURE.md`](./memory/02_TWO_TIER_SCORING_ARCHITECTURE.md) (8대 루브릭, 54개 테스트 통과)
+- **지붕 토폴로지 및 필로티 카탈로그**: [`memory/03_ROOF_AND_PILOTI_CATALOG.md`](./memory/03_ROOF_AND_PILOTI_CATALOG.md) (Gable, Mansard, Butterfly, Piloti)

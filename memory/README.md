@@ -23,6 +23,9 @@
 3. **[03_ROOF_AND_PILOTI_CATALOG.md](./03_ROOF_AND_PILOTI_CATALOG.md)**:
    - 박공 지붕(Gable), 망사르드 지붕(Mansard), 버터플라이 지붕(Butterfly), 필로티 하부 개방(Piloti Undercroft) 기하학 및 법규 산정 기준.
 
+4. **[04_5_ARCHITECTURAL_MASTERS_PROPOSALS.md](./04_5_ARCHITECTURAL_MASTERS_PROPOSALS.md)**:
+   - 의정부 민락동 대지 위 5대 건축 거장(OMA, BIG, SANAA, MVRDV, ZHA) 매스 제안 지표, 조형 원리 및 SOTA AI 점수 매트릭스.
+
 ---
 
 ## 2. 관련 핵심 파일 링크

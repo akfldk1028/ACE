@@ -1032,6 +1032,16 @@ def geometry_programs_from_author_payload(
         if not isinstance(item, dict):
             continue
         try:
+            facing = item.get("facing")
+            if facing is not None:
+                sides = ("east", "west", "north", "south")
+                if (not isinstance(facing, dict)
+                        or set(facing) - {"access_side", "north_side"}
+                        or facing.get("access_side") not in sides
+                        or facing.get("north_side") not in (*sides, None)):
+                    raise ValueError("invalid authored facing sides")
+            if item.get("site_fit") not in (None, "inherit", "impose"):
+                raise ValueError("invalid authored site_fit")
             if isinstance(item.get("nodes"), list):
                 program = _program_from_structured_author_item(item, index=index)
             else:
@@ -1048,11 +1058,19 @@ def geometry_programs_from_author_payload(
         compilation = compile_geometry_program(program)
         gate_issues = compilation_gate(compilation, AUTHOR_GEOMETRY_GATE_POLICY)
         if compilation.status != "compiled" or gate_issues:
-            reason = (
-                compilation.status
-                if compilation.status != "compiled"
-                else ",".join(issue.code for issue in gate_issues[:4])
-            )
+            # "compile_failed" alone names nothing the author can fix; the
+            # compiler's issue says which node and why, and the gate knows
+            # how many pieces a disconnected mass came apart into.
+            if compilation.status != "compiled":
+                reason = compilation.status + "".join(
+                    f"[{issue.code}@{issue.node_id}: {issue.message}]".replace(";", ",")
+                    for issue in (compilation.issues or ())[:2]
+                )
+            else:
+                reason = ",".join(issue.code for issue in gate_issues[:4])
+                components = (compilation.metrics or {}).get("component_count")
+                if components and "disconnected_component_budget_exceeded" in reason:
+                    reason += f"[components={int(components)}]"
             rejected.append(f"{index + 1}:compile_or_clean_gate:{reason}")
             continue
         known_seeds = {spec.seed_id for spec in BASE_SEED_SPECS}
@@ -1132,6 +1150,8 @@ def geometry_programs_from_author_payload(
             "base_form_id": base_form_id,
             "intent_tags": [str(value) for value in item.get("intent_tags") or ()][:12],
             **({"dimensional_intent": validate_intent(item["dimensional_intent"])} if item.get("dimensional_intent") is not None else {}),
+            **({"facing": dict(facing)} if facing is not None else {}),
+            **({"site_fit": item["site_fit"]} if item.get("site_fit") is not None else {}),
             "operator_path": operator_path or ["prismatic"],
             "author_provider": "structured_geometry_dsl_payload",
             "parcel_coordinates_in_program": False,
@@ -1159,8 +1179,11 @@ def geometry_programs_from_author_payload(
     minimum = max(1, int(expected_count or 1))
     if len(programs) < minimum:
         raise GeometryAuthorError(
+            # The whole list. Twelve of it went to the author, the author
+            # fixed twelve, and the next twelve surfaced - the retry read
+            # "still twelve" as no progress and stopped the round.
             "geometry author batch yielded insufficient valid unique programs"
-            + (": " + "; ".join(rejected[:12]) if rejected else "")
+            + (": " + "; ".join(rejected) if rejected else "")
         )
     input_count = len(payload.get("programs") or ())
     return tuple(replace(program, metadata={
@@ -1371,15 +1394,55 @@ def _book_composition_path_slice(
         "family_supply_deficits": context.get("family_supply_deficits"),
         "book_graph_supply": context.get("book_graph_supply"),
     }, sort_keys=True, separators=(",", ":"), default=str)
-    stride = max(1, len(paths) // wanted)
-    offset = int(
-        hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12],
-        16,
-    ) % stride
-    selected = [
-        paths[(offset + index * stride) % len(paths)]
-        for index in range(wanted)
-    ]
+    if context.get("book_path_sampling_version") == 2:
+        # A stride through fraction/orientation/variation-major lattice order
+        # aliases the principle axis: 24 paths could expose only six principles.
+        # Offer each executable principle before adding any second variant.
+        # This is author vocabulary supply, not a quota on returned designs.
+        identity = json.dumps({
+            "legacy_context_identity": identity,
+            "creative_portfolio_run_id": context.get("creative_portfolio_run_id"),
+            "book_path_sampling_version": 2,
+        }, sort_keys=True, separators=(",", ":"), default=str)
+        groups: dict[str, list[Any]] = {}
+        for path in paths:
+            groups.setdefault(path.principle_id, []).append(path)
+        # Rank groups with the request identity, so a future vocabulary larger
+        # than the cap does not always lose the same alphabetical tail.
+        principle_ids = sorted(groups, key=lambda principle_id: (
+            hashlib.sha256(f"{identity}:{principle_id}".encode("utf-8")).hexdigest(),
+            principle_id,
+        ))
+        wanted = min(96, len(paths), max(wanted, len(principle_ids)))
+        variant_offsets = {
+            principle_id: int(hashlib.sha256(
+                f"{identity}:{principle_id}".encode("utf-8")
+            ).hexdigest()[:12], 16) % len(groups[principle_id])
+            for principle_id in principle_ids
+        }
+        selected = []
+        variant_index = 0
+        while len(selected) < wanted:
+            for principle_id in principle_ids:
+                variants = groups[principle_id]
+                if variant_index < len(variants):
+                    selected.append(variants[
+                        (variant_offsets[principle_id] + variant_index) % len(variants)
+                    ])
+                    if len(selected) == wanted:
+                        break
+            variant_index += 1
+    else:
+        # Frozen contexts without the version opt-in must keep their exact offer.
+        stride = max(1, len(paths) // wanted)
+        offset = int(
+            hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12],
+            16,
+        ) % stride
+        selected = [
+            paths[(offset + index * stride) % len(paths)]
+            for index in range(wanted)
+        ]
     compact: list[dict[str, Any]] = []
     seen: set[str] = set()
     for item in selected:
@@ -1435,9 +1498,15 @@ def author_rules_text() -> str:
         "what its schema branch names. `literal` is a parameter KIND in the catalogue, never a value_type; "
         "a literal-kind parameter is written with the value_type and single value field the schema "
         "branch shows for it." + chr(10) +
-        "- The compiled mesh must be ONE connected solid. A body transform (bend, book_branch, book_split, "
-        "book_fracture, twist, *_related) followed by courtyard, carve_void or notch is the combination that "
-        "most often cuts the mass apart; keep a spine or overlap between the pieces, or cut less."
+        "- Structural Support & Grounding Invariant: Architectural massing defines the external building envelope and volumetric "
+        "hierarchy (internal cores, rooms, and circulation belong to schematic floor plans, not massing). A mass should sit directly "
+        "on the ground; if an elevated undercroft or cantilever is authored (e.g. lift, piloti), it must not float unsupported in air "
+        "and should include structural columns (semantic_role='column') or anchored mass volume so that the solid reaches the ground. "
+        "Ungrounded floating components are rejected by the maximum_components=1 gate." + chr(10) +
+        "- Dynamic Storey Evaluation (1F to 5F): 5 storeys is the legal maximum ceiling, NOT a mandatory target. The author should evaluate "
+        "2F, 3F, 4F, or 5F based on program requirements and daylight setback. Proposing a 2F or 3F low-rise scheme (height <= 10m) has the "
+        "architectural advantage of completely avoiding North sunlight setback cuts (which only take effect above 10m), while maximizing "
+        "ground public courtyards and open piloti."
     )
 
 
@@ -1452,6 +1521,7 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
             "book_graph_vocabulary",
             "book_principle_ids",
             "base_capacity_contract",
+            "design_reference",
         }
     }
     program_context = (
@@ -1496,6 +1566,13 @@ def _author_prompt(context: dict[str, Any], count: int) -> str:
                 "normalized_legal_constraint_context_available": True,
             })
             bounded_context["site_relation"] = site_relation
+    # The frozen reference is a bounded package. Render it separately so a large
+    # unrelated memory cannot truncate its actual image paths and objective.
+    design_reference_text = (
+        "Frozen design reference (inspect the actual image files before authoring):\n"
+        + json.dumps(context["design_reference"], ensure_ascii=False, sort_keys=True)
+        if context.get("design_reference") else ""
+    )
     context_text = json.dumps(
         bounded_context,
         ensure_ascii=False,
@@ -1629,8 +1706,25 @@ Use the response schema's nodes array. Nodes are ordered acyclic SSA: every inpu
 and root_id must reference the final intended solid. Encode every parameter through one discriminated value_type:
 number, string, boolean, vector, or structured_json. Unused value fields stay at their schema defaults.
 Do not create a one-input union/intersection merely to name result; root_id may point directly to the last meaningful node.
-Example concept (the schema, not prose, is authoritative): unit box -> scale vector [2.2,1.45,0.28]
--> bend axis x, angle_degrees 28, subdivisions 4 -> courtyard margin_ratio 0.28, open_side matching access.
+Architectural form names and BOOK operative names are different levels. A missing operative named
+gable, mansard, butterfly or vault does not forbid those occupied geometries: use the supported
+typed primitives and profiles/surfaces, then the actual transforms and compositions. For example,
+an occupied body's upper profile can have one ridge, several folds, a central valley or a curved
+crown; independently posed bodies can intersect, bridge or join into a different spatial hierarchy.
+These illustrate available capabilities, not a required shape menu, a room programme or portfolio quota.
+The set is for architects and clients to choose between architectural possibilities. Use the entire
+live implemented repertoire as the available design space; do not narrow it to whichever example
+was mentioned most recently. Compare actual ground/support relations, plan organization, occupied
+body and section, solid/void and assembly/repetition across the whole set. Several roof variants
+or several court variants can still offer the same choice. Names, source hashes, operator totals
+and per-candidate acceptance do not prove portfolio breadth. Review the set visually and address
+overlapping or missing requested relations before submission; inspect additional exact-mesh
+views when the default view conceals supports or connections. Distinguish available, attempted
+and delivered capabilities rather than claiming all registered operations were used.
+Read the schema for the actual parameter contract. Do not append a courtyard/notch merely to match
+an example or automatically replace a refused relation with one: preserve the intended source form
+through targeted repair and inspect the delivered silhouette. A shaped solid without a court and
+a composed assembly without a decorative roof are equally legitimate when they answer the brief.
 
 Allowed primitives: box, cylinder, extruded_polygon, wedge, sweep, loft.
 Allowed transforms: translate/move, rotate, scale, mirror, shear.
@@ -1680,6 +1774,12 @@ Rules:
   an access binding. Use open_side="closed" only for a node whose semantic
   role is explicitly an internal environmental court, not the public threshold.
 - Use bounded local normalized dimensions, not parcel coordinates and not a copied famous building.
+- Optional placement: facing.access_side names the local east(+x)/north(+y)/west(-x)/south(-y)
+  side to align exactly with the supplied world access direction. facing.north_side names the nearest local
+  side toward the legal sunlight-setback removal; incompatible declarations are refused. Without directional
+  legal evidence it remains an explicitly unverified preference. It does not assert true-north measurement.
+  site_fit=inherit permits legal trimming; impose permits uniform plan shrink before trimming. Legal gates remain.
+  Use null for either optional placement field to retain legacy placement, or omit them in local legacy payloads.
 - Optional per-program dimensional_intent states an explicit physical proposal using the supplied schema:
   storey_count, storey_height_m, target_gfa_m2, delivery_policy=preserve_physical_dimensions, programme_status=unknown.
   This soft authored target is not a required project programme or a legal exemption. The importer must preserve
@@ -1761,6 +1861,7 @@ Rules:
 
 Program/site context:
 {context_text}
+{design_reference_text}
 
 Select and return a non-empty `book_principle_ids` array using exact canonical ids from the vocabulary below.
 These ids record transferable principles used by the authored AST; they are not completed-form labels.
@@ -1845,9 +1946,18 @@ def _author_schema(
                     "type": "object",
                     "additionalProperties": False,
                     "required": [
-                        "name", "base_form_id", "base_seed", "intent_tags", "nodes", "root_id", "rationale", "dimensional_intent",
+                        "name", "base_form_id", "base_seed", "intent_tags", "nodes", "root_id", "rationale", "dimensional_intent", "facing", "site_fit",
                     ],
                     "properties": {
+                        "facing": {"anyOf": [{
+                            "type": "object", "additionalProperties": False,
+                            "required": ["access_side", "north_side"],
+                            "properties": {
+                                "access_side": {"enum": ["east", "west", "north", "south"]},
+                                "north_side": {"enum": ["east", "west", "north", "south", None]},
+                            },
+                        }, {"type": "null"}]},
+                        "site_fit": {"enum": ["inherit", "impose", None]},
                         "dimensional_intent": {"anyOf": [intent_schema(), {"type": "null"}]},
                         "name": {"type": "string", "minLength": 1, "maxLength": 120},
                         "base_form_id": {

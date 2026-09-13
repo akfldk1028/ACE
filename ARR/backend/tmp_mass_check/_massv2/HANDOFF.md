@@ -1,5 +1,136 @@
 # massv2 HANDOFF — 이걸 읽으면 바로 이어서 할 수 있다
 
+## 최신 HTML / 사용자 선호 — 2026-09-13
+
+새 시트: `runs/presentation-language41-preview/index.html` (생성 진행본, 최종 아님).
+브라우저 6카드/36이미지·시점/6확대/모바일/인쇄 검증 후 열었다.
+사용자 “지금 젤마음에든다 일단”; 현재 형상과 비례를 보존 기준으로 삼는다.
+MassAgent `outputs/language41-preview/`에 HTML과 기하 저작 원본을 커밋용 보존했다.
+이번 실행은 LawAgent/MasterPlanAgent 신규 서비스 호출 없이 ARR 기존 대지/법규/
+배치·주차 코드와 site_facts를 사용했다. 실시간 3에이전트 연동 완료로 말하지 않는다.
+아래 “language41 최종 HTML 없음”은 여전히 맞지만 진행본 HTML은 이제 존재한다.
+
+## 현재 진행: language41 / 단일 BOOK·LLM·VLM 흐름 정정 — 2026-09-13
+
+사용자는 두 개의 설계 플로우가 아니라 하나의 흐름을 요구한다:
+대지·요구조건 → LLM이 BOOK BaseVolume·언어·Axis·조합을 선택하고 기하 저작 →
+엔진 실행/검증 → 실제 렌더 VLM 평가 → LLM 정확한 부모 디벨롭 → 재검증/재평가 → HTML.
+직접 AST의 BOOK 경로 ID는 전체 경로의 실제 실행을 자동 보장하지 않는다.
+선택→노드→납품 형상 효과의 의미적 일치 검증은 미완료이며, 별도 BOOK 탐색 또는
+69개 원리 노출/ID 유효성 검사로 해결됐다고 말하지 않는다. massv2 후보 생성은 보류.
+
+language41 원안 6 + 탐색 6 생성, 원안 6 전부 + 탐색 3 전달. 22개 심사 타일은
+신규 9 + 과거 13이다. 첫 구성 비평 완료. 현재 step 7 round-jury pending이며
+독립 r1/r2만 작성됨, r3 없음. 다음 호스트는 실제 pending과 ballots를 다시 확인한다.
+추가 독립 배심 생성 시 호스트가 agent thread limit 오류를 반환했다. 총괄/기존 비평자의
+대필이나 이전 판정 복사로 채우지 말고 독립된 새 컨텍스트의 r3를 확보해야 한다.
+그 뒤 부모 선택, 정확한 개발 2안, 새 독립 쌍심사/최종 참고 비평, HTML/브라우저/보존 검증.
+현재는 개발·최종 HTML 미완료다. language40은 보존된 진단 체크포인트이며 생산 완료가 아니다.
+테스트 기록: MassAgent 173, 지정 ARR 53, 샘플러/노출 8 통과. 품질 완성과 구분한다.
+원안 미리보기: `D:/Data/25_ACE/agents/MassAgent/tmp/language40-20260913/author/typed-contact.png`.
+최신 완료 HTML은 `runs/presentation-reference39/index.html`; language41 최종 HTML은 아직 없음.
+
+동일 재개 명령 (MassAgent live 경로에서):
+`bash skills/mass-cycle/scripts/cycle.sh language41 6 --book-only --book-count 6 --book-author-count 6 --develop-count 2 --agent-mode external --design-reference D:/Data/25_ACE/agents/MassAgent/config/gemini-design-reference.json`
+메인 기억: `D:/Data/25_ACE/agents/MassAgent/memory/MEMORY.md` 최상단.
+상세 보고: `docs/reports/architectural-language-20260913.md` (MassAgent 기준).
+아래 reference39는 이전 완료 기록이며 현재 architectural-language 과제 완료가 아니다.
+
+## 최신 실행 완료: reference39 참고 기반 BOOK 전체 흐름 — 2026-09-13
+
+사용자의 “그걸 보고 디벨롭시키고 전체 플로우를 구현” 지시를 구현하고 실제12단계를
+완료했다. `--design-reference`가 참고 보존→저작 입력→실제 전달→독립 구성 비평→정확한
+부모 비평 개발→쌍심사→참고 재검토→피드백/다음 brief→HTML로 연결된다.
+원안6개+탐색6개 생성, 현재9개 전달(원안6개 전부), 이전 비교12개와21개 심사, 정확한
+개발2개. 두 개발 모두AAA로 부모 유지. 최종 참고 비평은 부모/개발 모두 기준 미달이다.
+흐름 구현 완료를 조형 완성·사용자 승인으로 바꾸지 않는다. 다음 brief에 남은 비평이 전달된다.
+HTML: `runs/presentation-reference39/index.html` — 원안6개, 추가 시점12장, 참고5장,
+부모+개발 비교와 비평. 브라우저 검증 후 창을 열었다.
+162개 MassAgent/지정53개 ARR 회귀 통과.39의269개 영수증 참조/229파일, 기존35–38
+영수증과1248개 기준 백업, Gemini 원본2635개 모두 보존 확인.
+향후 쌍심사 문구에서 실의 사용성 추정을 제거하고 매스 위계·비례·지지·공극을 우선한다.
+고정 높이 절단면 크기로 총 면적·체적을 추정하면 안 된다.39의 기존 투표는 그대로며
+새 문구로 재심했다고 주장하지 않는다. massv2 후보 생성은 계속 보류한다.
+상세: `agents/MassAgent/docs/reports/reference-led-development-20260913.md`.
+
+## 최우선 사용자 지시: Gemini 기준 보존·품질 재검토 — 2026-09-13
+
+사용자가 repertoire38도 조형 수준이 부족하다고 거절했다.12단계 완료는 유효하지만
+사용자가 요구한 아름답고 다양한 건축 매스 완성으로 판단하면 안 된다.
+반드시 먼저 열어볼 기준:
+`C:/Users/SOGANG1/.gemini/antigravity-cli/brain/6837ce2b-043a-4b53-ade8-082093e379dc/mass_3_proposals_presentation.html`.
+사용자 원문: “이것처럼 다양하게해서 이쁘게해야지 메모리넣어 ... 이거 지우지말고”.
+원본 HTML·이미지·scratch 생성 스크립트 삭제/이동/덮어쓰기 금지. 해당 scratch에서
+generate_5_authentic_masters.py 등 실제 생성 소스를 찾았다. 이전 미발견 보고는 검색 범위
+한계였으므로 소스가 없다고 반복하지 않는다. 여러 매스의 위계·비례·높이·기단·지지·공극이
+하나의 건축안으로 구성되는 수준을 기준으로 삼는다. 단순 형상18종 나열은 승인되지 않았다.
+상세 지시는 MassAgent/memory/MEMORY.md와 docs/user-requirements.md 최상단에 저장했다.
+
+## 2026-09-13 최신 완료: 구현 범위와 선택지 repertoire38
+
+사용자는37회차도 박공에 치우쳤다고 지적했고, 구현한 전체 범위에서 건축사·클라이언트가
+고를 만한 다른 매스들을 요구했다. 원안 이름·연산 개수만으로 다양성을 주장하지 않는다.
+`runs/cycle-repertoire38/complete.json`으로12단계 완료 확인. 원안18개 전부와 탐색9개가
+전달됐고 이전 참고11개 포함38개 타일을 새 독립 배심3명이 심사했다. 별도의 새 배심은
+정확한 공중 연결 개발2안에 ABB/AAA로 투표해 부모를 유지했다. 개선 성공으로 과장하지 않는다.
+
+최신 HTML: `runs/presentation-repertoire38/index.html` — 원안18개 전체와 같은 실제 형상의
+추가 시점36개. 필로티·돌출·공중 연결·배열·지상 연결이 가려지지 않는 시작 시점을 직접
+확인했다. 모든 시점/확대/검색/키보드/모바일/인쇄 브라우저 검사 통과 후 HTML을 열었다.
+영수증242개 참조/192개 파일과 과거37·36·35 및baseline1248개가 모두 일치했다.
+
+기존 구현의 matrix_array·profile_sweep_3d·attach 인자 노출 누락을 고쳤고 기하 소유자와
+거부 게이트는 유지했다. 관련 백엔드77개, MassAgent128개+33하위 검사 통과. 별도 넓힌 검사에서
+기존 changed_schedule 실패가 원래 계약으로도 재현돼 보고서에 남겼다. 모든 구현의 실행을
+완료했다고 주장하지 않으며 동결된38 코호트가 사용한 범위와 이후 계약 수정은 구분한다.
+massv2 대안 생성은 계속 보류. 새 엔진·임계값 변경·기존 심사 수정·push 없음.
+
+보고서: `D:/Data/25_ACE/agents/MassAgent/docs/reports/implemented-repertoire-choice-20260913.md`.
+아래 기록은 과거 상태이며,37회차의 다양성 회복 주장은 최신 사용자 지적으로 교정됐다.
+
+## 2026-09-13 최신 완료: BOOK 형상 다양성 회복 bookbreadth37
+
+`runs/cycle-bookbreadth37/complete.json`으로12단계 완료를 확인했다. 실제 원안8개가
+모두 심사에 도달했고, 추가 탐색8개 중4개가 전달됐다. 긴 박공·절판·볼트·회전 적층·
+경사체·비틀림·기단과 쌍박공·교차 박공을 실제 typed BOOK으로 저작했다. 새 독립 배심은
+22개 타일을 평가했고, 별도의 새 배심3명이 정확한 박공 개발2안을 비교했다.
+득표BBB/BBA로 첫 개발안을 만장일치 개선안으로 채택하고 피드백에 기록했다.
+
+사용자가 요청한 실제 매스 비교 HTML을 열었다:
+`runs/presentation-bookbreadth37/index.html` — 원안8개 전부, 이미지 확대·검색·인쇄.
+낮은 점수의 형상도 숨기지 않으며 같은 부모의 개발안을 독립 원안 수에 섞지 않는다.
+형상·이미지·심사 기록 대조, 브라우저 키보드·모바일·인쇄 검증 통과. 영수증178개 참조
+전부 일치하고 이전 bookflow36/comp35/baseline도 변하지 않았다.
+
+Gemini 때의 박공·맨사드·버터플라이·필로티 기능은 공통 엔진에 남아 있다. 최근 저작과
+추천 위주 제시가 중정으로 좁아진 원인이므로 이를 엔진 기능 소실로 오판하지 않는다.
+역할·저작 스킬·향후 저작 프롬프트와 전체 원안 시트 출력을 수정했다. 고정8종 메뉴나
+중정/notch 자동 치환 규칙은 없다. massv2 대안 생성은 계속 보류하며 공통 기하 소유자는
+그대로 사용한다. 완료 회차 재실행·과거 프롬프트/투표 변경은 하지 않는다.
+
+최종 보고서: `D:/Data/25_ACE/agents/MassAgent/docs/reports/book-breadth-recovery-20260913.md`.
+생산은 MassAgent의 cycle.sh 하나로 하고, 완료 후 MASSAGENT.md의 공통 exporter 명령으로
+원안 전체 HTML을 납품한다. 이번 상대적 개선 판정이 모든 원안의 공모 완성도나 허가를
+보증하는 것은 아니다. 아래 기록은 이전 완료 상태를 보존한 이력이다.
+
+## 2026-09-13 최신 작업: BOOK 저작 플로우
+
+사용자가 BOOK 저작을 우선하고 massv2 대안 생성을 보류했다. 운영 진입점은
+`D:/Data/25_ACE/agents/MassAgent/skills/mass-cycle/scripts/cycle.sh`이며,
+기본값은 `BOOK_ONLY=1`, `BOOK_AUTHOR_MODE=ast`다. 기존 공통 기하·법규·측정 모듈은 재사용한다.
+고정 조작 개수 할당은 제거했고, 저작 스키마와 과제·이전 비평을 전달한다.
+명시한 배치 방향을 보존하며, 정확한 개발안의 조용한 절단은 거부한다.
+새 심사에는 고정된 rubric_id와 실제 심사 출처를 기록하고 호환되는 점수만 비교한다.
+
+진행 기록: `D:/Data/25_ACE/agents/MassAgent/docs/plans/book-flow-20260913.md`.
+실제 통합 라운드 `runs/cycle-bookflow36`는 12단계 완료됐다. 개발안 2개의 짝 심사 결과는
+AAA / BAB여서 부모안을 유지했다. 두 개발안 모두 추가 법규 절단 없이 형상을 전달했지만
+주차는 1/34대(조건부 필요량)이며 구조 부재 능력은 미검증이다. 영수증 참조 155개가 모두
+일치하고 다음 BOOK brief에 부모 유지·득표·실제 비평이 전달되는 것도 확인했다.
+최종 보고서: `D:/Data/25_ACE/agents/MassAgent/docs/reports/book-flow-implementation-20260913.md`.
+완료 여부는 `complete.json`으로 확인하고, 완료를 허가·주차·구조 또는 설계 개선 증명으로 읽지 않는다.
+아래 기록은 당시 상태를 보존한 이력이다.
+
 **2026-09-09 / 언어 35개 정리 완료, comp18 라운드 진행 중.** BOOK 벤치가
 `agreed 30 / differ 0 / aggregation layer 5`다 — 30개는 자기 쪽지와 일치하고, 다섯(array,
 join, pack, reflect, stack)은 pp.50-58 집합층이라 BOOK이 변환을 안 적는 게 정상이며 그
@@ -26,6 +157,32 @@ join, pack, reflect, stack)은 pp.50-58 집합층이라 BOOK이 변환을 안 �
 1,497.9) (3) `height_m` — fit이 z를 1.0으로 정규화하므로 법에서 온 높이를 따로 준다(안 주면
 모든 BOOK 매스가 1 m, 부피 0). 배선은 `synthesize_architectural_programs`의 request
 딕셔너리를 탄다. 의정부 실측: 씨앗 다섯 전부 건폐 상한의 96~128%로 태어나 법이 깎는다.
+
+**comp18 5단계가 여섯 번 같은 12개로 멈춘 이유는 저자가 아니라 사이클이었다.** 임포터가 거부하면 `cycle.py`가 `book-comp18.json`을 `unlink`하고 저자에게 "기존 파일에서 지목된 것만 고쳐라"고 했다. 고칠 파일이 없으니 저자는 생성기(`inputs/gen_book18_final.py`, 결정적)로 120개를 다시 만들었고 같은 12개가 돌아왔다. 이제 거부된 페이로드는 `book-comp18.rejected.json`으로 **옮기고** 그 경로를 되먹임에 적으며, 거부 수가 줄어드는 동안 최대 3회 재시도한다(MassAgent `699c636`). 재진입 시 `runs/cycle-comp18/state.json`의 영수증으로 5단계부터 이어진다.
+
+**comp18 완주(09-09 밤, `runs/cycle-comp18/complete.json`) — 플로우가 처음으로 12단계를 에이전트만으로 돌았다.** develop 자식 3/6 배달, 짝 심사 3:0으로 부모. 시트 `runs/study-comp18/study.html`(3안: comp12 BOOK 4.97·comp15 BOOK 4.75·**comp18 massv2 split_pair 4.73**). 완주까지 고친 문: 되먹임이 파일을 지움→`.rejected.json` 이동, 임포터 판정 `[:12]` 잘림→전체+노드 이유, validate-book 우선순위/어휘 문턱, 개수 상한 100×3, 슬롯 배정 제곱 비용(120→12, `--book-count`), 심사원 파일명, 유령 좌석 예외→기록+이월, html 빈 타일, 앵커 하나 튐→raw(한 앵커 제외 규칙), 개발자에게 스키마. **다음 1순위: BOOK 심사 경로가 "안에 넣기"라 건폐율 천장 17~23%** — 메모리 `book-language/the-judged-path-fits-inside-by-design.md`에 지도와 되돌린 실험이 있다. 옛 BOOK 좌석 12개는 실행기 변경으로 유령(`runs/board/unbakeable.json`) — 재심사 또는 `--new-era`.
+
+**BOOK 크기 해결(09-10 새벽).** 원인 둘: 저자 컨텍스트와 빌드 상한이 건축면적 상한(1,497.877)이라 저자가 연면적 780~1,400 m²를 선언했고(보존 정책), 스테이지 재빌드(`tools/book_import.py book_rebuild`)가 안에 넣기라 큰 의도는 전부 거부. 수리: `FAR_CAPACITY_M2=6241.962`(massagent.env → 저자 컨텍스트·`--capacity-ceiling-m2`), 다리가 메시를 필지선에서 자르고 `legal_host_clip`을 기록(`source_bridge._clip_world_mesh_to_host`, Mesh64), 배달 층 증거는 원본∩호스트와 비교하고 `legal_take_areas_m2`를 적음, 의도 검사는 '저작 GFA − 법의 몫'. comp18 BOOK 12개 실측: 건폐율 중앙 11%→39%(최대 55%), 용적률 44%→142%(179%). 24개 중 12 배달 — 탈락 6은 중력(잘린 뒤 지면 접촉 23 m²: 밑동이 필지 밖에 놓인 구성, 스크린이 맞음). 배치 선택기 `clip_to_legal` 실험은 결과가 같아 되돌림(메모리 `the-judged-path-fits-inside-by-design`). **comp19가 이 상태로 돌고 있다**(`runs/cycle-comp19`).
+
+**하드코딩 셋 제거·집합어 재구현(09-10 밤, comp29).** 사용자 지적으로 (1) site_fit(impose/inherit)은 저자가 문장마다 선언(스키마 필드, 단어 목록 삭제), (2) 크기는 법정 값 셋 + massv2 실측 정보만, (3) 서 있음 판정은 무게중심 물리만(15% 비율 삭제) — ARR `f86fc85`, 외부 `c58cc496`. comp28(24칸, 저자 층수 2~5): 37/48 배달, 건폐 15~58%, 용적 6~231%, 도형 다양(십자·V·중정·바·풍차); 심사 최고 3.9, **앵커 0·옛 좌석 55 유령** — Vworld 타임아웃으로 공부 면적(2,500)이 빠져 FAR 상한 6,241.962↔6,240.995 흔들림 → 완전한 zoning 답 필지별 캐시(ARR `dd6fbff`, `runtime/vworld_parcel_boundaries/<pnu>.zoning.json`). 사용자 참조 이미지(책 55쪽 회전 적층·LEGO House) 검사: **집합어 5개 실행이 책 그림과 대조된 적 없었음** — stack→stepped_mass(셋백), array/pack→related_array. book_stack(짝 변환을 층마다, 어댑터에서 스택에 접음)·book_array(평행이동군, pack은 pitch 0.92)로 재구현(ARR `c392fa3`), 집합 레시피 9개 중 8개 한 덩어리·섬(join+array:pinch만 pinch 발 때문에 뜸). 파르티 검증기 숫자 자리 단어 거부·massv2 실행기 문장 결함 격리(comp27 폐기 전 수리). **comp29**(BOOK-only 24) 진행 중.
+
+**massv2 참조·impose 이식(09-10 밤, comp28).** comp27(혼합)은 사용자 지시 위반이라 중단·폐기(massv2 트랙 금지, 참조만). 법정 5층은 지구단위계획 결정도(공공1 획지)의 값이 맞다(`parcel_policy.py`, 출처 4건). massv2가 좋은 이유를 코드에서 읽음: 사용자가 고른 좌석은 전부 FAR 56~122%·건폐 18~50%이고 `legal_fit._drawn_inside`가 도형을 필지 안에 6%씩 줄여 넣어 92% 합법이면 트림(PLOT_MODES impose/inherit). BOOK 이식: 기저볼륨≠1/1 또는 impose 단어(carve·loop·aggregate·notch…)면 `impose_fit`(source_bridge, 동일 상수 0.92/14단계), 스케일을 `legal_host_clip.impose_scale`에 기록, 의도 검사는 gross×scale²−몫(외부 `72a5ae15`); 프롬프트는 FAR 0.30~0.95 전 구간에 퍼뜨리라 하고 massv2 실측을 명시(ARR `513e9ea`). comp26 오프라인 재빌드: 1/16·1/8·3/8은 0.4~0.94로 안에 들어감. 부수: 파르티 검증기가 숫자 자리의 단어를 거부(외부 `23bc05a2`), massv2 실행기는 한 문장 결함에 죽지 않음(ARR `d24597d`), 단위 테스트 사이트에 plan_at 없을 때 가드. **comp28**(BOOK-only 24) 진행 중.
+
+**밀도가 상자를 만든다(09-10 밤) — comp27 방향.** comp26 완주(12/12, 개발자 되먹임 2회). 사용자·나 둘 다 확인: 30장 대부분 '필지 상자 + 얕은 새김', 진짜 책 도형(사슬·회전 적층·쐐기·곡면 연결)은 중력/투영 게이트에서 탈락. 원인은 코드가 아니라 제약: 5층·FAR 0.6~0.95 = 층당 1,250 m² = 건폐 50% → 어떤 씨앗도 같은 19 m 블록. 사용자 결정 '둘 다': 프롬프트 밀도 완화(층 2~5, FAR 0.35~0.95, 작은 도형은 평면을 건폐 상한 절반 아래로, 배치의 1/3은 채움; ARR `fbd6a3a`) + massv2 트랙 동시. **comp27 = `cycle.sh comp27 24 --book-count 24`(--book-only 없음)** 진행 중 — comp19 이후 첫 혼합 라운드; 파르티 저자·검증기·massv2 스테이지가 오늘 변경과 부딪히는지 볼 것.
+
+**comp26 심사 결과.** 보드에 comp26 28좌석, 최고 4.84 둘(creative-003 compact-mid, creative-028 voided-mid) — comp26 BOOK 1안이 시트 3안에 진입(comp19 massv2 4.94 · comp24 BOOK 4.85 · comp26 BOOK 4.84). 시트 `runs/study-comp26`. develop 진행 중.
+
+**comp25 완주·comp26 스테이지(09-10 밤).** comp25는 develop 수리 뒤 `--from 12`로 12단계 완주(자식 6/6 배달). comp26(`--book-count 24`, 48후보): **30 배달**(씨앗 6종 전부: 1/1·1/16 각 5, 1/2·1/4·1/8 각 6, 3/8 2; 방향 11/11/8; 원리 10종; 건폐 21~55% 중앙 43, 용적 75~216% 중앙 168). 타일 갤러리 https://claude.ai/code/artifact/3cf1abf1-56fd-4ea6-bb22-19fbef184a9a. 심사 39타일이라 오래 걸림. 사용자 원하는 것: **최대한 다양한 매스** — 이제 라운드 크기(`--book-count`)로 조절.
+
+**comp25 결과·develop 수리(09-10 저녁).** comp25(서 있는 제안 첫 라운드): 24개 중 12 배달(씨앗 5종·방향 3종, 건폐 21~51%, 용적 66~192%), 심사 3.1~4.74, 시트 https://claude.ai/code/artifact/27d48ed4-5157-43ae-af5f-c4fca3a2bfdd, 타일 https://claude.ai/code/artifact/5c40f2c0-0c0e-4d69-b425-98df7afe0d13. 12개 중 9개가 join:split → 원리까지 교차(ARR `1f87002`). develop이 comp21부터 죽어 있던 진짜 이유: exact 자식은 법의 몫을 빼지 않아 절단 아래서 전부 '치수 변경' 거부(외부 `e4141b56`, comp25 자식 0→6). 개발자 되먹임 루프는 generate 거부에만(MassAgent `89d80a7`). **comp26**은 `--book-count 24`(48후보)로 도는 중 — 사용자가 '최대한 다양한 매스'를 원함. 라운드 한 바퀴 ≈ 40분(저작 8·빌드 10·심사 10·개발 10+).
+
+**기저볼륨이 블록의 한 칸이었다(09-10 오후, comp23→comp25).** comp23에서 씨앗을 교차해도 타일이 전부 '필지 크기 상자 + 지붕 위 조각'이었다 — `book_adapter`의 스코프 모델이 셀에 단어를 적용한 뒤 블록의 나머지를 합쳤다(massv2 국소 편집용). 문장 모드는 `recompose_remainder=False`(ARR `73f7a3e`): 기저볼륨이 객체. 동반 수리: 3층 중심(9.5 m)과 책의 반높이 이음이 겹쳐 수직 문장 전부 거부 → 프로브 2% 비켜감(외부 `bdca3ea4`, 옛 좌석 인증 유지 `533c15a0`). comp24(첫 '책다운' 24개)는 21개 탈락: 중력 12(공중에 뜬 바 배열), 건축면적 투영 4, 줄기 위 블록 등 → 저자 제안이 **서 있는 경로만**(단위 스케일 COM∈지면접촉 볼록껍질 + 지면접촉 ≥ 평면투영 15%, ARR `5b49359`·`f3151cc`), 절단 뒤 맞닿은 조각은 한 건물(largest-piece 폐기). comp23 완주(12단계, 개발자 되먹임 루프 작동). comp24 시트 `runs/study-comp24`. **comp25**가 서 있는 제안으로 도는 첫 라운드. 남은 것: 치수 의도가 평면을 GFA로 스케일하므로 씨앗은 비례로만 남는다; 건축면적 투영 게이트(계단식 배열의 투영 > 1,497.9)는 맞는 거부.
+
+**빌드가 페이로드의 처음 12개만 남겼다(09-10 오후, comp22).** 이음매 수리 뒤 comp22(BOOK-only, 새 저작 120문장: 6라벨 고르게, 3방향 ~40, 4종 원리, 향 동쪽=도로, GFA 3,900~5,500)는 18/24 배달(건폐 중앙 39%·최대 57%, 용적 중앙 166%·최대 215%, 위반 0), 시트 `runs/study-comp22`(BOOK 2안 4.96/4.84 + comp19 massv2 4.94, 아티팩트 https://claude.ai/code/artifact/8a745eaa-9b1b-4345-86c0-474bef30f5e7). **그런데 심사대의 24개가 전부 1/1·long_axis** — `creative_floor_portfolio` Phase A가 원본을 '적격 목록의 처음 target개'로 잡고 탐색도 거기서 파생하는데 저자가 라벨별로 묶어 써서 그랬다(거부 0). 수리: 기저 씨앗 × 방향 교차 정렬(ARR `78ec9dd`·다음 커밋), 같은 페이로드 오프라인 재빌드 = 6씨앗×2방향, 방향당 4. 단, 치수 의도(GFA/5층)가 평면을 스케일하므로 씨앗 차이는 크기가 아니라 **평면 비례·단면 프로파일**로 남는다(층면적 전부 900~1,300 m²). comp22 12단계는 개발자 자식 3(두 개의 바, 틈)이 컴파일 실패로 멈춤 → 되먹임 재시도 루프(MassAgent `bb7f664`)·사유 명시(ARR `456ffdd`). **comp23**(BOOK-only)이 이 상태로 돌고 있다 — 확인할 것: 스테이지 타일의 base_seed 6종·방향 3종, 12단계 완주.
+
+**이음매가 1층을 가져갔다(09-10 낮, comp21).** BOOK-only 문장 모드 첫 완주 시도에서 스테이지가 24문장 중 18개를 "authored BOOK floor has no delivered occupied section"(1층)으로 거부했고 옛 develop 좌석(comp03~10)도 같이 떨어졌다. 법정 봉투는 층 밴드 프리즘의 합집합인데 같은 평면의 두 밴드(9 m 아래)가 딱 맞닿아 커널 합집합에 내부 면이 남았고, 절단 결과를 `decompose()`가 z=0.2에서 둘로 갈라 '큰 조각이 건물' 규칙이 1층을 버렸다(부피 931.15 vs 931.61 — 절단은 맞았고 분리만 틀렸음). 수리: 인접 프리즘을 `max(1e-9, span·1e-7)` 겹침(ARR `c377027`, 테스트 `design/test_maas_legal_cut_seam.py`). 메모리로 재빌드하면 6→21/24 배달; 남은 둘(014·021)은 `floor_3_ambiguous_horizontal_skin_at_center`(문장의 단이 3층 중심 9.5 m와 겹침, 기존 계측 규칙). 같이 고친 것: 시트가 재건 못 하는 옛 좌석에서 죽지 않고 제쳐둔다(외부 저장소 `71c5ea1d`), 베이크 유령(`runs/board/unbakeable.json`)은 develop 부모가 못 된다(MassAgent `6c1ceed`; comp21 선택기가 comp19 유령 O1을 골라 12단계에서 REFUSED). comp21은 수리 전 스테이지(6 book)로 11단계 시트까지 있고 12단계에서 멈춤 — 점수 난 라운드는 재스테이지 금지라 **comp22**(BOOK-only, 새 저작)로 검증한다. 함정: `--book-payload`로 다른 라운드 페이로드를 주면 제안 경로가 라운드마다 달라 스키마에서 거부되고 그 파일이 `.rejected.json`으로 **옮겨진다**(comp21 영수증 깨짐 → 복원함). 페이로드 재사용 금지.
+
+**BOOK 저자 문장 모드(09-10 아침, comp20부터).** 저자는 `book-language` 격자 경로를 고르고 치수(FAR 상한의 0.6~0.95)·향을 선언, 실현기(`design/maas/book_language/sentence_author.py`)가 페이지 감사 경로로 짓는다. 대지 사실은 저자 컨텍스트 `site_facts`; 자세는 지면 접촉 최대·향 우선; 법이 지운 층은 `floors_removed_by_law`. 자유 AST는 develop 전용. comp19 시트 `runs/study-comp19`(BOOK 3안 5.00/5이나 건폐 13~20% — 저자가 FAR 상한을 JSON으로 받고도 작게 선언한 마지막 라운드). comp19 develop은 개발자 호스트가 파일을 안 써서 실패(3회) — 개발자도 문장/짧은 계약이 필요할 수 있다.
 
 **정직하게 남겨둘 것.** (a) 심사받는 BOOK 매스는
 `compile_site_bound_geometry_program_to_source_mass`를 타며 밴드마다 `covers()`를 요구해

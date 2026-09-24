@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import re
 from dataclasses import asdict, dataclass
@@ -29,9 +30,12 @@ from .schema import (
     ArchitecturePublicCase,
     ArchitectureReviewState,
 )
-from .secure_files import AuthenticatedTree
+from .secure_files import AuthenticatedTree, read_authenticated_file
 from .pilot_gate import (
     ALLOWED_CASE_STAGES,
+    PILOT_SCORING_PROVENANCE_SCHEMA,
+    PILOT_SUMMARY_V2_SCHEMA,
+    PilotScoringProvenance,
     PilotSummary,
     transaction_set_receipt,
 )
@@ -436,9 +440,7 @@ def _validate_raw_result(
     ):
         raise ValueError("raw result quality_score is invalid")
     converged_at = result.get("converged_at")
-    if converged_at is not None and (
-        type(converged_at) is not int or converged_at < 0
-    ):
+    if converged_at is not None and (type(converged_at) is not int or converged_at < 0):
         raise ValueError("raw result converged_at is invalid")
     if result.get("stage_results") is not None and not isinstance(
         result["stage_results"], list
@@ -597,9 +599,7 @@ def _validate_transaction(
         or (expected_resume_key is not None and identity != expected_resume_key)
     ):
         raise ValueError("run transaction identity mismatch")
-    canonical_identity = {
-        field: raw.get(field) for field in _RESUME_IDENTITY_FIELDS
-    }
+    canonical_identity = {field: raw.get(field) for field in _RESUME_IDENTITY_FIELDS}
     if sha256_json(canonical_identity) != identity:
         raise ValueError("canonical transaction identity mismatch")
     _require_exact_row_keys(raw, _RAW_KEYS, "raw transaction")
@@ -732,9 +732,7 @@ async def execute_run_plans(
         gold = gold_by_case.get(plan.case_id)
         if packet is None or gold is None:
             raise ValueError(f"packet/gold record missing for case: {plan.case_id}")
-        transaction_path = (
-            output_dir / "run_transactions" / f"{plan.resume_key}.json"
-        )
+        transaction_path = output_dir / "run_transactions" / f"{plan.resume_key}.json"
         prior_errors: list[Mapping[str, Any]] = []
         if transaction_path.is_file():
             transaction = _validate_transaction(
@@ -742,7 +740,10 @@ async def execute_run_plans(
                 expected_resume_key=plan.resume_key,
             )
             checkpoint = transaction.get("checkpoint")
-            if isinstance(checkpoint, Mapping) and checkpoint.get("status") == "completed":
+            if (
+                isinstance(checkpoint, Mapping)
+                and checkpoint.get("status") == "completed"
+            ):
                 _materialize_transactions(output_dir)
                 parsed_states += len(transaction["parsed"])
                 successful_parses += sum(
@@ -804,9 +805,7 @@ async def execute_run_plans(
             raise RuntimeError("run attempt loop produced no result")
 
         agent_turns = [
-            turn
-            for turn in result.turns
-            if str(turn.source).lower() != "user"
+            turn for turn in result.turns if str(turn.source).lower() != "user"
         ]
         prefixes = accumulate_prefix_states(
             tuple(
@@ -899,6 +898,20 @@ def _jsonl_rows(path: Path) -> list[Mapping[str, Any]]:
     return rows
 
 
+def _final_run_key(identity: Mapping[str, Any]) -> str:
+    return sha256_json(
+        {
+            "case_id": identity.get("case_id"),
+            "pattern": identity.get("pattern"),
+            "repeat": identity.get("repeat"),
+        }
+    )
+
+
+def _sorted_final_run_keys(keys: Sequence[str]) -> list[str]:
+    return sorted(keys, key=lambda value: value.encode("utf-8"))
+
+
 def summarize_pilot(
     *,
     output_dir: Path,
@@ -911,12 +924,25 @@ def summarize_pilot(
     """Summarize persisted artifacts for the independent pilot gate."""
 
     transactions = _materialize_transactions(output_dir)
+    planned_final_run_keys = [_final_run_key(plan.resume_identity) for plan in plans]
+    if len(planned_final_run_keys) != len(set(planned_final_run_keys)):
+        raise ValueError("pilot summary has a duplicate final-run key")
+    transaction_final_run_keys = [
+        _final_run_key(transaction["raw"]) for transaction in transactions
+    ]
+    if len(transaction_final_run_keys) != len(set(transaction_final_run_keys)):
+        raise ValueError("pilot summary has a duplicate final-run key")
+    planned_final_run_key_set = set(planned_final_run_keys)
+    transaction_final_run_key_set = set(transaction_final_run_keys)
+    if planned_final_run_key_set - transaction_final_run_key_set:
+        raise ValueError("pilot summary has a missing final-run key")
+    if transaction_final_run_key_set - planned_final_run_key_set:
+        raise ValueError("pilot summary has an unexpected final-run key")
     case_ids = {plan.case_id for plan in plans}
     relevant_gold = [gold_by_case[case_id] for case_id in sorted(case_ids)]
     plan_keys = {plan.resume_key for plan in plans}
     transaction_keys = {
-        str(transaction["raw"]["resume_key"])
-        for transaction in transactions
+        str(transaction["raw"]["resume_key"]) for transaction in transactions
     }
     if transaction_keys != plan_keys or len(transactions) != len(plan_keys):
         raise ValueError("pilot summary requires the exact transaction set")
@@ -926,12 +952,10 @@ def summarize_pilot(
         if str(transaction["raw"].get("resume_key")) in plan_keys
     ]
     parsed = [
-        row
-        for transaction in relevant_transactions
-        for row in transaction["parsed"]
+        row for transaction in relevant_transactions for row in transaction["parsed"]
     ]
     transaction_hash, transaction_count = transaction_set_receipt(output_dir)
-    final_rows: list[tuple[Any, Any, Mapping[str, Any]]] = []
+    final_rows: list[tuple[str, Any, Any, Mapping[str, Any]]] = []
     protocol_valid_runs = 0
     for transaction in relevant_transactions:
         parsed_rows = transaction["parsed"]
@@ -947,9 +971,7 @@ def summarize_pilot(
         if gold is None:
             raise ValueError(f"gold record missing for summarized case: {case_id}")
         agent_turn_rows = tuple(
-            turn
-            for turn in result["turns"]
-            if str(turn["source"]).lower() != "user"
+            turn for turn in result["turns"] if str(turn["source"]).lower() != "user"
         )
         prefixes = accumulate_prefix_states(
             tuple(
@@ -962,10 +984,7 @@ def summarize_pilot(
             packet,
         )
         if not (
-            len(prefixes)
-            == len(parsed_rows)
-            == len(score_rows)
-            == len(breakdown_rows)
+            len(prefixes) == len(parsed_rows) == len(score_rows) == len(breakdown_rows)
         ):
             raise ValueError("persisted ledger semantic mismatch: row count")
         recomputed_rows: list[tuple[Any, Any, Mapping[str, Any]]] = []
@@ -981,8 +1000,7 @@ def summarize_pilot(
             if (
                 parsed_row["source"] != str(turn["source"])
                 or parsed_row["parse_complete"] is not prefix.parse_complete
-                or parsed_row["parse_error_codes"]
-                != list(prefix.parse_error_codes)
+                or parsed_row["parse_error_codes"] != list(prefix.parse_error_codes)
                 or parsed_row["state"] != prefix.state.to_dict()
             ):
                 raise ValueError("persisted parsed-state semantic mismatch")
@@ -1009,11 +1027,9 @@ def summarize_pilot(
             }
             if persisted_breakdown != recomputed_breakdown:
                 raise ValueError("persisted breakdown semantic mismatch")
-            recomputed_rows.append(
-                (prefix, recomputed_score, recomputed_breakdown)
-            )
+            recomputed_rows.append((prefix, recomputed_score, recomputed_breakdown))
         if recomputed_rows:
-            final_rows.append(recomputed_rows[-1])
+            final_rows.append((_final_run_key(raw), *recomputed_rows[-1]))
         turns = tuple(
             SimpleNamespace(
                 source=str(turn["source"]),
@@ -1033,6 +1049,40 @@ def summarize_pilot(
             and not protocol_errors
         ):
             protocol_valid_runs += 1
+    final_run_keys = [key for key, _prefix, _score, _breakdown in final_rows]
+    if len(final_run_keys) != len(set(final_run_keys)):
+        raise ValueError("pilot summary has a duplicate final-run key")
+    final_run_key_set = set(final_run_keys)
+    if planned_final_run_key_set - final_run_key_set:
+        raise ValueError("pilot summary has a missing final-run key")
+    if final_run_key_set - planned_final_run_key_set:
+        raise ValueError("pilot summary has an unexpected final-run key")
+    sorted_final_run_keys = _sorted_final_run_keys(final_run_keys)
+    final_run_key_set_sha256 = sha256_json(sorted_final_run_keys)
+    scoring_provenance = PilotScoringProvenance(
+        schema_version=PILOT_SCORING_PROVENANCE_SCHEMA,
+        scorer_sha256=hashlib.sha256(
+            read_authenticated_file(
+                Path(__file__).with_name("architecture_metrics.py"),
+                label="architecture metrics scorer",
+            )
+        ).hexdigest(),
+        final_run_key_set_sha256=final_run_key_set_sha256,
+        final_run_key_count=len(final_run_keys),
+        unique_final_run_key_count=len(final_run_key_set),
+        missing_final_run_key_count=0,
+        duplicate_final_run_key_count=0,
+        reference_join_count=len(final_rows),
+        common_denominator=len(final_rows),
+        numerator_key_set_binding_sha256=sha256_json(
+            {
+                "blocking": final_run_key_set_sha256,
+                "decision": final_run_key_set_sha256,
+                "missing_evidence": final_run_key_set_sha256,
+                "verdict": final_run_key_set_sha256,
+            }
+        ),
+    )
     return PilotSummary(
         planned_runs=len(plans),
         completed_runs=sum(
@@ -1043,31 +1093,32 @@ def summarize_pilot(
         successful_parses=sum(row.get("parse_complete") is True for row in parsed),
         final_runs=len(final_rows),
         successful_final_parses=sum(
-            prefix.parse_complete
-            for prefix, _score, _breakdown in final_rows
+            prefix.parse_complete for _key, prefix, _score, _breakdown in final_rows
         ),
         correct_final_decisions=sum(
-            breakdown["decision_score"] == 1.0
-            for _prefix, _score, breakdown in final_rows
+            prefix.parse_complete and breakdown["decision_score"] == 1.0
+            for _key, prefix, _score, breakdown in final_rows
         ),
         correct_final_verdicts=sum(
-            score.verdict_score == 1.0
-            for _prefix, score, _breakdown in final_rows
+            prefix.parse_complete and score.verdict_score == 1.0
+            for _key, prefix, score, _breakdown in final_rows
         ),
         correct_final_blocking=sum(
-            breakdown["blocking_issue_f1"] == 1.0
-            for _prefix, _score, breakdown in final_rows
+            prefix.parse_complete and breakdown["blocking_issue_f1"] == 1.0
+            for _key, prefix, _score, breakdown in final_rows
         ),
         correct_final_missing_evidence=sum(
-            breakdown["missing_evidence_f1"] == 1.0
-            for _prefix, _score, breakdown in final_rows
+            prefix.parse_complete and breakdown["missing_evidence_f1"] == 1.0
+            for _key, prefix, _score, breakdown in final_rows
         ),
         protocol_valid_runs=protocol_valid_runs,
         run_errors=sum(
             transaction["checkpoint"]["status"] == "error"
             for transaction in relevant_transactions
         ),
-        retried_runs=sum(bool(transaction["errors"]) for transaction in relevant_transactions),
+        retried_runs=sum(
+            bool(transaction["errors"]) for transaction in relevant_transactions
+        ),
         safe_cases=sum(
             record.expected_decision == "STOP_ACCEPT" for record in relevant_gold
         ),
@@ -1091,4 +1142,6 @@ def summarize_pilot(
         transaction_set_sha256=(
             transaction_hash if transaction_count == len(relevant_transactions) else ""
         ),
+        schema_version=PILOT_SUMMARY_V2_SCHEMA,
+        scoring_provenance=scoring_provenance,
     )

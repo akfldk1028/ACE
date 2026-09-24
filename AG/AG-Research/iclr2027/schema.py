@@ -139,9 +139,7 @@ def _assert_public_release_safe(value: Any, path: str = "public_case") -> None:
             if _contains_raw_pnu(key):
                 raise ValueError(f"raw PNU is forbidden at {path}.{key}")
             _assert_public_release_safe(item, f"{path}.{key}")
-    elif isinstance(value, Sequence) and not isinstance(
-        value, (str, bytes, bytearray)
-    ):
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         for index, item in enumerate(value):
             _assert_public_release_safe(item, f"{path}[{index}]")
     elif isinstance(value, str):
@@ -280,7 +278,9 @@ class ArchitectureEvidencePacket:
                         "materialization portfolio_attempt requires a supported route_kind"
                     )
             elif self.route_kind is not None:
-                raise ValueError("route_kind is only valid for materialization attempts")
+                raise ValueError(
+                    "route_kind is only valid for materialization attempts"
+                )
         if not self.evidence:
             raise ValueError("evidence must not be empty")
         evidence_ids = [
@@ -416,7 +416,9 @@ class ArchitecturePublicCase:
                         "materialization portfolio_attempt requires a supported route_kind"
                     )
             elif self.route_kind is not None:
-                raise ValueError("route_kind is only valid for materialization attempts")
+                raise ValueError(
+                    "route_kind is only valid for materialization attempts"
+                )
         if not self.evidence:
             raise ValueError("evidence must not be empty")
         evidence_ids = [
@@ -568,9 +570,7 @@ class PrivateCaseBinding:
         return cls(
             public_case_id=str(payload.get("public_case_id") or ""),
             public_case_sha256=str(payload.get("public_case_sha256") or ""),
-            internal_packet_sha256=str(
-                payload.get("internal_packet_sha256") or ""
-            ),
+            internal_packet_sha256=str(payload.get("internal_packet_sha256") or ""),
             gold_record_sha256=str(payload.get("gold_record_sha256") or ""),
             packet=ArchitectureEvidencePacket.from_dict(packet),
         )
@@ -602,19 +602,39 @@ class ArchitectureReviewState:
             "candidate_floor_context.typed_ledger_missing",
         }
     )
+    ALLOWED_BLOCKING_ISSUE_CODES = frozenset(
+        {
+            "identity.attempt_hash_mismatch",
+            "evidence.portfolio_attempt_incomplete",
+            "selection.no_admitted_candidate",
+            "materialization.no_candidate_reached_ledger",
+            "preflight.program_site_infeasible",
+            "site.boundary_failed",
+            "geometry.compilation_failed",
+            "identity.hash_mismatch",
+            "law.projection_failed",
+            "parking.supply_shortage",
+            "program.capacity_failed",
+        }
+    )
 
     def __post_init__(self) -> None:
         unknown_domains = set(self.checked_domains) - _DOMAINS
         if unknown_domains:
             raise ValueError(f"unknown checked_domains: {sorted(unknown_domains)}")
         unknown_missing_codes = (
-            set(self.missing_evidence_codes)
-            - self.ALLOWED_MISSING_EVIDENCE_CODES
+            set(self.missing_evidence_codes) - self.ALLOWED_MISSING_EVIDENCE_CODES
         )
         if unknown_missing_codes:
             raise ValueError(
-                "unknown missing_evidence_codes: "
-                f"{sorted(unknown_missing_codes)}"
+                f"unknown missing_evidence_codes: {sorted(unknown_missing_codes)}"
+            )
+        unknown_blocking_codes = (
+            set(self.blocking_issue_codes) - self.ALLOWED_BLOCKING_ISSUE_CODES
+        )
+        if unknown_blocking_codes:
+            raise ValueError(
+                f"unknown blocking_issue_codes: {sorted(unknown_blocking_codes)}"
             )
         if self.recommended_decision not in _REVIEW_DECISIONS:
             raise ValueError("unsupported recommended_decision")
@@ -624,7 +644,9 @@ class ArchitectureReviewState:
     @classmethod
     def from_dict(cls, payload: Mapping[str, Any]) -> "ArchitectureReviewState":
         return cls(
-            checked_domains=_string_tuple(payload.get("checked_domains", ()), "checked_domains"),
+            checked_domains=_string_tuple(
+                payload.get("checked_domains", ()), "checked_domains"
+            ),
             blocking_issue_codes=_string_tuple(
                 payload.get("blocking_issue_codes", ()),
                 "blocking_issue_codes",

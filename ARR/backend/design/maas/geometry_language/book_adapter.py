@@ -227,8 +227,18 @@ class BookProjectionFailure(ValueError):
 def _apply_book_projection_to_geometry_program(
     program: GeometryProgram,
     sequence: VerbSequence,
+    *,
+    recompose_remainder: bool = True,
 ) -> GeometryProgram:
-    """Return a program whose real root embodies BOOK scope and operations."""
+    """Return a program whose real root embodies BOOK scope and operations.
+
+    `recompose_remainder` is the scope model: the base volume is a cell of
+    the block, the words act on the cell, and the rest of the block is put
+    back. That is a local edit of a larger mass. A BOOK sentence is the
+    book's page instead - the base volume IS the object and there is no
+    rest of the block - so the sentence author passes False: comp23's 1/16
+    sentences were a site-sized box with three small bars on its roof.
+    """
     calls = book_projection_calls(sequence)
     if not calls:
         return program
@@ -295,7 +305,7 @@ def _apply_book_projection_to_geometry_program(
     )
     remainder = ""
     current = selected
-    if scope.requested_fraction < 1.0 - 1e-9:
+    if scope.requested_fraction < 1.0 - 1e-9 and recompose_remainder:
         remainder = add(
             "boolean", "difference", (original_root, selected), {},
             verb="select_book_scope",
@@ -377,6 +387,8 @@ def _apply_book_projection_to_geometry_program(
 def apply_book_projection_to_geometry_program(
     program: GeometryProgram,
     sequence: VerbSequence,
+    *,
+    recompose_remainder: bool = True,
 ) -> GeometryProgram:
     """Apply BOOK while preserving bounded typed failure evidence."""
 
@@ -387,7 +399,8 @@ def apply_book_projection_to_geometry_program(
     verbs = [str(call.verb) for call in calls]
     root = program.node_map.get(program.root_id)
     try:
-        return _apply_book_projection_to_geometry_program(program, sequence)
+        return _apply_book_projection_to_geometry_program(
+            program, sequence, recompose_remainder=recompose_remainder)
     except BookProjectionFailure:
         raise
     except (TypeError, ValueError) as exc:

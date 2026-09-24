@@ -1,0 +1,16 @@
+start
+schema loaded
+payload loaded: 120 programs
+validator ready
+validation complete: 7 errors
+  ERROR: {'id': 'br2', 'kind': 'macro', 'operator': 'book_branch', 'inputs': ['br1'], 'parameters': [{'name': 'angle_degrees', 'value_type': 'number', 'numeric_value': 340.0}, {'name': 'trunk_ratio', 'value_type': 'number', 'numeric_value': 0.52, 'string_value': '', 'boolean_value': False, 'vector_value': []
+    path: ['programs', 29, 'nodes', 3]
+  ERROR: {'id': 'ra', 'kind': 'macro', 'operator': 'related_array', 'inputs': ['br'], 'parameters': [{'name': 'axis', 'value_type': 'string', 'string_value': 'z'}, {'name': 'count', 'value_type': 'number', 'numeric_value': 2}, {'name': 'mode', 'value_type': 'string', 'string_value': 'pack'}, {'name': 'spacin
+    path: ['programs', 41, 'nodes', 3]
+  ERROR: {'id': 'br2', 'kind': 'macro', 'operator': 'book_branch', 'inputs': ['br1'], 'parameters': [{'name': 'angle_degrees', 'value_type': 'number', 'numeric_value': 340.0}, {'name': 'trunk_ratio', 'value_type': 'number', 'numeric_value': 0.55, 'string_value': '', 'boolean_value': False, 'vector_value': []
+    path: ['programs', 45, 'nodes', 3]
+  ERROR: {'id': 'ra', 'kind': 'macro', 'operator': 'related_array', 'inputs': ['br'], 'parameters': [{'name': 'axis', 'value_type': 'string', 'string_value': 'z'}, {'name': 'count', 'value_type': 'number', 'numeric_value': 2}, {'name': 'mode', 'value_type': 'string', 'string_value': 'pack'}, {'name': 'spacin
+    path: ['programs', 57, 'nodes', 3]
+  ERROR: {'id': 'br2', 'kind': 'macro', 'operator': 'book_branch', 'inputs': ['br1'], 'parameters': [{'name': 'angle_degrees', 'value_type': 'number', 'numeric_value': 336.0}, {'name': 'trunk_ratio', 'value_type': 'number', 'numeric_value': 0.52, 'string_value': '', 'boolean_value': False, 'vector_value': []
+    path: ['programs', 61, 'nodes', 3]
+done

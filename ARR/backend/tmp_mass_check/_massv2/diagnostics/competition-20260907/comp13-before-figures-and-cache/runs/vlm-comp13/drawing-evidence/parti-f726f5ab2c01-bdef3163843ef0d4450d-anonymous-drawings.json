@@ -1,0 +1,20 @@
+{
+  "name": "sweep_0479_extrude_puncture_vault_mansard",
+  "shape_id": "bdef3163843ef0d4450d",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    459.6934090596126,
+    459.6934090596126
+  ],
+  "section_area_m2": 207.8487744854651,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "4d8f57b3cb258c9a13414c393736913f0793d7cfc39621dec36fa7b7a9618a47"
+}

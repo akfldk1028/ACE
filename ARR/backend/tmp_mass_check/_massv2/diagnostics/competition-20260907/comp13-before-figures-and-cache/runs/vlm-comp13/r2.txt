@@ -1,0 +1,100 @@
+TILE t01
+CONCEPT 4 | Chamfered three-storey block pierced by two rectangular courts; solid-void idea reads in mass, both plans and the tri-bar section.
+FEASIBILITY 5 | Continuous ring walls around two courts, no cantilevers or transfers; plainly buildable.
+SITE 4 | Footprint follows the parcel edges with chamfers, held back from the corners; courts orient with the long axis.
+EDITABILITY 4 | Ring-plan depth accepts cores and corridors around the voids without losing the perforated idea.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 3 | Faceted gable roofscape with a diagonal wedge cut into the ridge; one folded roof idea but the notch and the triangular prow compete.
+FEASIBILITY 4 | Solid five-storey mass on the ground; folded roof planes are conventional, the wedge slot is a shallow cut.
+SITE 4 | Occupies the parcel fully and turns with its edges; prow reaches into the acute corner.
+EDITABILITY 3 | Deep single mass takes cores easily but the folded ridge fixes the upper floors and the notch complicates them.
+WEIGHTED 3.45
+
+TILE t03
+CONCEPT 4 | Crossed stack of long bars lifted on small pads, log-pile section with air between layers; distinctive and legible.
+FEASIBILITY 2 | Upper bars span and cantilever far past tiny ground pads and bear only on bars below; heavy transfers drawn with no supports.
+SITE 3 | Bars lie oblique to the parcel and one bar end overruns the edge; the ground is largely released but not shaped.
+EDITABILITY 3 | Each bar is a thin office plate, but cores and vertical circulation have no continuous ground contact drawn.
+WEIGHTED 3.10
+
+TILE t04
+CONCEPT 3 | One flat canopy plate floating over two small ground boxes; a legible roof-over-pavilions idea but undeveloped.
+FEASIBILITY 3 | Wide thin plate overhangs both boxes on all sides; plausible with a deep slab, edges look too thin for the reach.
+SITE 3 | Plate roughly follows the parcel but the two boxes ignore the frontage; large open ground undefined.
+EDITABILITY 3 | Only two storeys of area under the plate; the plate itself is not shown as occupied floor.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 2 | Two arched piers under a small tray in one corner; reads as a furniture object, not a building.
+FEASIBILITY 3 | Small pieces at small scale are buildable, but the tray and piers do not add up to floors.
+SITE 1 | Sits in the far corner at 12 percent coverage and ignores almost all of the parcel.
+EDITABILITY 2 | No usable floor plates to develop; scaling it up would replace the idea.
+WEIGHTED 2.05
+
+TILE t06
+CONCEPT 3 | Ribbed folded roof sheet hovering over four small boxes; the folded plane is a clear image but the ground pieces are incidental.
+FEASIBILITY 2 | Section shows a paper-thin sheet spanning the whole parcel over one small box; no drawn support for the folds.
+SITE 3 | Sheet outline follows the parcel; the boxes below are scattered without a rule.
+EDITABILITY 2 | The sheet carries no floor; only two small storeys of area exist to develop.
+WEIGHTED 2.55
+
+TILE t07
+CONCEPT 3 | Stepped three-tier ziggurat with a mansard cap; coherent and legible though generic.
+FEASIBILITY 5 | Each tier sits on the one below; no cantilevers, transfers or thin members.
+SITE 4 | Base follows parcel edges with chamfers and the setbacks step away from every boundary.
+EDITABILITY 4 | Stacked plates take cores and terraces easily; the stepping survives any plan.
+WEIGHTED 3.90
+
+TILE t08
+CONCEPT 2 | Three piers under a small roofed tray, a portal in section; an object rather than a massing idea.
+FEASIBILITY 4 | Short spans between stubby piers, plausible at the small scale drawn.
+SITE 2 | Placed in one corner at 26 percent coverage with no relation to the parcel edges.
+EDITABILITY 2 | Little floor area and no plate to extend without abandoning the tray.
+WEIGHTED 2.50
+
+TILE t09
+CONCEPT 3 | Table-top plate over four ground boxes with a stepped corner terrace; roof-over-pavilions with one gesture of hierarchy.
+FEASIBILITY 3 | Broad plate spans between boxes and overhangs; the stepped corner adds mass at the edge but supports are drawn.
+SITE 4 | Plate follows the chamfered parcel outline closely; the terrace corner faces the acute edge.
+EDITABILITY 3 | Ground boxes are separate footprints; connecting them under the plate is possible but nothing is drawn.
+WEIGHTED 3.20
+
+TILE t10
+CONCEPT 4 | Cluster of six gabled and butterfly-roofed houses forming a village; strong, legible roofscape and lanes between.
+FEASIBILITY 4 | Simple two-storey pitched volumes on the ground; the V roofs are ordinary.
+SITE 4 | Pieces spread across the whole parcel with open lanes and a scale that suits the edges.
+EDITABILITY 4 | Each house is a small plate that takes its own core; the cluster survives edits.
+WEIGHTED 4.00
+
+TILE t11
+CONCEPT 4 | Pinwheel of shifted plates stacked with cantilevers; distinctive sectional hierarchy.
+FEASIBILITY 3 | Upper plates bridge between two separated ground footprints and overhang; plausible with transfers but heavy.
+SITE 3 | Two ground footprints leave much of the parcel open; the stack does not address the edges.
+EDITABILITY 3 | Plates are office-deep but the offsets fix where cores can rise.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 4 | Single lens-shaped five-storey bar crossing the parcel with a puncture through its crown; one clear idea.
+FEASIBILITY 4 | Solid bar on the ground, rectangular section; the roof puncture is a small void.
+SITE 3 | Cuts the parcel diagonally at 18 percent coverage leaving two large open halves; edge relation is a choice, not a response.
+EDITABILITY 4 | Long thin plate takes cores and a spine corridor; the lens shape survives.
+WEIGHTED 3.80
+
+TILE t13
+CONCEPT 2 | Five scattered low boxes across the parcel with no ordering rule; no idea reads.
+FEASIBILITY 4 | Simple two-storey boxes on the ground.
+SITE 2 | Pieces sit randomly within the parcel and leave most of it undefined at 14 percent coverage.
+EDITABILITY 2 | Tiny separate footprints give little to develop.
+WEIGHTED 2.50
+
+TILE t14
+CONCEPT 2 | Large flat plate on three small piers with a small attic box; the plate is the only idea.
+FEASIBILITY 2 | Section shows the plate on a single thin leg with wide overhangs; the plate is very thin for the span.
+SITE 3 | Plate follows the parcel edges; the piers below do not relate to the frontage.
+EDITABILITY 2 | The plate carries no floor and the piers hold little area.
+WEIGHTED 2.20
+
+RANKING: t01, t10, t07, t12, t02, t11, t09, t03, t04, t06, t08, t13, t14, t05
+VERDICT: t01 and t10 would advance: the twin-court block and the gabled village each carry one legible idea that is buildable and responds to the parcel. t07 and t12 follow as clean, developable singles. The plate-over-pavilion family (t04, t06, t09, t14) and the small corner objects (t05, t08, t13) do not show enough volume or structure to be developed.

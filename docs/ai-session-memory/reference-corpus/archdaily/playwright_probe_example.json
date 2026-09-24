@@ -1,0 +1,18 @@
+{
+  "schema_version": "arr.maas.archdaily_playwright_probe.v1",
+  "start_url": "https://example.com",
+  "final_url": "https://example.com/",
+  "title": "Example Domain",
+  "goto_error": "",
+  "blocked_signal": false,
+  "response_statuses": [],
+  "page_errors": [],
+  "anchor_count": 1,
+  "image_count": 0,
+  "project_link_count": 0,
+  "project_links": [],
+  "sample_images": [],
+  "body_text_start": "Example Domain\n\nThis domain is for use in documentation examples without needing permission. Avoid use in operations.\n\nLearn more",
+  "screenshot_path": "",
+  "screenshot_error": "page.screenshot: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+}

@@ -1,0 +1,3 @@
+Wrote 120 programs to D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\inputs\book-comp18.json
+Unique paths: 78, max reuse: 2
+Principles: 46

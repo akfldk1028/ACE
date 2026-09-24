@@ -1,0 +1,16 @@
+start
+schema loaded
+payload loaded: 120 programs
+validator ready
+validation complete: 399 errors
+  ERROR: {'id': 'bv', 'kind': 'modifier', 'operator': 'book_base_volume', 'inputs': ['m0'], 'parameters': [{'name': 'label', 'value_type': 'string', 'string_value': '1/1'}, {'name': 'orientation', 'value_type': 'string', 'string_value': 'long_axis'}], 'semantic_role': 'dominant_mass'} is not valid under any 
+    path: ['programs', 0, 'nodes', 2]
+  ERROR: {'id': 'acc', 'kind': 'modifier', 'operator': 'courtyard', 'inputs': ['bnd'], 'parameters': [{'name': 'margin_ratio', 'value_type': 'number', 'numeric_value': 0.15}, {'name': 'open_side', 'value_type': 'string', 'string_value': 'east'}], 'semantic_role': 'public_threshold'} is not valid under any of
+    path: ['programs', 0, 'nodes', 4]
+  ERROR: {'id': 'bv', 'kind': 'modifier', 'operator': 'book_base_volume', 'inputs': ['m0'], 'parameters': [{'name': 'label', 'value_type': 'string', 'string_value': '1/1'}, {'name': 'orientation', 'value_type': 'string', 'string_value': 'long_axis'}], 'semantic_role': 'dominant_mass'} is not valid under any 
+    path: ['programs', 1, 'nodes', 2]
+  ERROR: {'id': 'frac', 'kind': 'modifier', 'operator': 'book_fracture', 'inputs': ['bv'], 'parameters': [{'name': 'axis', 'value_type': 'string', 'string_value': 'x'}, {'name': 'gap_ratio', 'value_type': 'number', 'numeric_value': 0.12000000000000001}, {'name': 'angle_degrees', 'value_type': 'number', 'nume
+    path: ['programs', 1, 'nodes', 3]
+  ERROR: {'id': 'acc', 'kind': 'modifier', 'operator': 'notch', 'inputs': ['frac'], 'parameters': [{'name': 'side', 'value_type': 'string', 'string_value': 'east'}, {'name': 'corner', 'value_type': 'string', 'string_value': 'se'}, {'name': 'ratio', 'value_type': 'number', 'numeric_value': 0.22}, {'name': 'wi
+    path: ['programs', 1, 'nodes', 4]
+done

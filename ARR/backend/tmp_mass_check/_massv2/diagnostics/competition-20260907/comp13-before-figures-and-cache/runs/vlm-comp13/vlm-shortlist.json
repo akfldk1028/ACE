@@ -1,0 +1,156 @@
+[
+ {
+  "tile": "t01",
+  "score": 4.32,
+  "corrected": 4.32,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_saddle_garden_room^centred",
+  "coverage_pct": 42.8,
+  "shape_id": "6923de71637888d65e74",
+  "certificate_id": "42442a4bb835d5c74902"
+ },
+ {
+  "tile": "t07",
+  "score": 3.9,
+  "corrected": 3.9,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sweep_0231_stack_butterfly_mansard",
+  "coverage_pct": 59.9,
+  "shape_id": "1d7ceca98bc88940856d",
+  "certificate_id": "962976571ba46e0ade8d"
+ },
+ {
+  "tile": "t10",
+  "score": 3.73,
+  "corrected": 3.73,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "field_under_butterfly_wings~held_ground^centred",
+  "coverage_pct": 33.9,
+  "shape_id": "fc872fd2512792462217",
+  "certificate_id": "29472f5ac556793eb595"
+ },
+ {
+  "tile": "t12",
+  "score": 3.67,
+  "corrected": 3.67,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sweep_0479_extrude_puncture_vault_mansard",
+  "coverage_pct": 18.4,
+  "shape_id": "bdef3163843ef0d4450d",
+  "certificate_id": "2e9d276bef3152e289f6"
+ },
+ {
+  "tile": "t11",
+  "score": 3.42,
+  "corrected": 3.42,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "ruled_winding_taper",
+  "coverage_pct": 41.0,
+  "shape_id": "9fd1dfd167855ec2a6dc",
+  "certificate_id": "6e0151aba7cb2fcfd940"
+ },
+ {
+  "tile": "t02",
+  "score": 3.35,
+  "corrected": 3.35,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "slipped_twin_gables~full_ground^off_open",
+  "coverage_pct": 59.9,
+  "shape_id": "e16ae12f363cc76ba571",
+  "certificate_id": "e0955501f749fd52e056"
+ },
+ {
+  "tile": "t09",
+  "score": 3.2,
+  "corrected": 3.2,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "wide01_0115_aggregate_taper",
+  "coverage_pct": 55.5,
+  "shape_id": "bdd79cbfc29194111026",
+  "certificate_id": "e377d86129e0e5381306"
+ },
+ {
+  "tile": "t03",
+  "score": 2.92,
+  "corrected": 2.92,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "house_pile_lifted_on_legs~full_ground^centred",
+  "coverage_pct": 37.6,
+  "shape_id": "75bbca0e76a8d9cc5270",
+  "certificate_id": "953d7dc017f0576ed48c"
+ },
+ {
+  "tile": "t08",
+  "score": 2.85,
+  "corrected": 2.85,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "sangok_c07_grounded_wings_common_roof~full_ground^to_open",
+  "coverage_pct": 26.2,
+  "shape_id": "11fd6faef83d12fb48be",
+  "certificate_id": "69083cede6ebf7df69d1"
+ },
+ {
+  "tile": "t04",
+  "score": 2.73,
+  "corrected": 2.73,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "slipped_crown",
+  "coverage_pct": 54.9,
+  "shape_id": "cf66a8bcda0bd043951a",
+  "certificate_id": "60eff22bcf6ecd898d2d"
+ },
+ {
+  "tile": "t13",
+  "score": 2.65,
+  "corrected": 2.65,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "wild01_0124_aggregate_carve",
+  "coverage_pct": 14.1,
+  "shape_id": "ab337864cf8b1c70708c",
+  "certificate_id": "ab8c2665e01f03df52e0"
+ },
+ {
+  "tile": "t06",
+  "score": 2.55,
+  "corrected": 2.55,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "sweep03_0011_aggregate_mansard_fold",
+  "coverage_pct": 52.9,
+  "shape_id": "d30dbe42ef12fcf621b6",
+  "certificate_id": "9b503a307e05d7b49f3f"
+ },
+ {
+  "tile": "t14",
+  "score": 2.32,
+  "corrected": 2.32,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "oma_netherlands_dance_theatre",
+  "coverage_pct": 49.3,
+  "shape_id": "013f67a94b1a52f84ad1",
+  "certificate_id": "5ba7e2a431e493b80027"
+ },
+ {
+  "tile": "t05",
+  "score": 2.27,
+  "corrected": 2.27,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "comp10_distributed_halls_rising_roofs~dispersed_ground^to_open",
+  "coverage_pct": 11.9,
+  "shape_id": "d873e0ed0d4bf009af50",
+  "certificate_id": "641a26f9d7510a155c59"
+ }
+]

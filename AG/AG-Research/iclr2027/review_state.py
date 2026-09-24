@@ -61,7 +61,9 @@ class PrefixReviewState:
     parse_error_codes: tuple[str, ...]
 
 
-def _incomplete_state(candidate: ArchitectureReviewState | None = None) -> ArchitectureReviewState:
+def _incomplete_state(
+    candidate: ArchitectureReviewState | None = None,
+) -> ArchitectureReviewState:
     return ArchitectureReviewState(
         checked_domains=candidate.checked_domains if candidate else (),
         blocking_issue_codes=candidate.blocking_issue_codes if candidate else (),
@@ -74,7 +76,9 @@ def _incomplete_state(candidate: ArchitectureReviewState | None = None) -> Archi
 
 def _decision_is_consistent(candidate: ArchitectureReviewState) -> bool:
     if candidate.recommended_decision == "STOP_ACCEPT":
-        return not candidate.blocking_issue_codes and not candidate.missing_evidence_codes
+        return (
+            not candidate.blocking_issue_codes and not candidate.missing_evidence_codes
+        )
     if candidate.recommended_decision == "STOP_REJECT":
         return bool(candidate.blocking_issue_codes)
     return bool(candidate.missing_evidence_codes) and not candidate.blocking_issue_codes
@@ -88,9 +92,7 @@ def parse_review_state(
     """Return the last valid ARCH_REVIEW_STATE block or an incomplete state."""
 
     allowed_evidence_ids = (
-        _KNOWN_EVIDENCE_IDS
-        if known_evidence_ids is None
-        else set(known_evidence_ids)
+        _KNOWN_EVIDENCE_IDS if known_evidence_ids is None else set(known_evidence_ids)
     )
 
     candidates: list[tuple[str, bool]] = [
@@ -128,7 +130,9 @@ def parse_review_state(
             observed_errors.append("state_not_object")
             continue
         expected_fields = _STATE_FIELDS | (
-            {_STATE_SCHEMA_FIELD} if self_tagged or _STATE_SCHEMA_FIELD in payload else set()
+            {_STATE_SCHEMA_FIELD}
+            if self_tagged or _STATE_SCHEMA_FIELD in payload
+            else set()
         )
         if set(payload) != expected_fields:
             observed_errors.append("unexpected_field")
@@ -179,8 +183,6 @@ def accumulate_prefix_states(
 
     available_ids = {str(item["evidence_id"]) for item in packet.evidence}
     domains: set[str] = set()
-    issues: set[str] = set()
-    missing: set[str] = set()
     evidence_ids: set[str] = set()
     prefixes: list[PrefixReviewState] = []
     for index, turn in enumerate(turns):
@@ -188,18 +190,21 @@ def accumulate_prefix_states(
             turn.content,
             known_evidence_ids=available_ids,
         )
-        domains.update(parsed.state.checked_domains)
-        issues.update(parsed.state.blocking_issue_codes)
-        missing.update(parsed.state.missing_evidence_codes)
-        evidence_ids.update(parsed.state.evidence_ids)
         errors = list(parsed.error_codes)
-        if not evidence_ids.issubset(available_ids):
+        if not set(parsed.state.evidence_ids).issubset(available_ids):
             errors.append("unknown_evidence_id")
         complete = parsed.complete and not errors
+        if complete:
+            domains.update(parsed.state.checked_domains)
+            evidence_ids.update(parsed.state.evidence_ids)
         state = ArchitectureReviewState(
             checked_domains=tuple(sorted(domains)),
-            blocking_issue_codes=tuple(sorted(issues)),
-            missing_evidence_codes=tuple(sorted(missing)),
+            blocking_issue_codes=(
+                parsed.state.blocking_issue_codes if complete else ()
+            ),
+            missing_evidence_codes=(
+                parsed.state.missing_evidence_codes if complete else ()
+            ),
             evidence_ids=tuple(sorted(evidence_ids)),
             recommended_decision=(
                 parsed.state.recommended_decision if complete else "CONTINUE"

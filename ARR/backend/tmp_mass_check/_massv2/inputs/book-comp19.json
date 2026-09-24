@@ -1,0 +1,2294 @@
+{
+  "programs": [
+    {
+      "name": "p01_slab_bend_court",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "book_composition_path_id": "book:path:53c55b4da48903af110459fa120baeaec3b186edf22d6890fa718d0ad6b1f5b5",
+      "intent_tags": [
+        "bend",
+        "courtyard",
+        "east_access",
+        "public_office"
+      ],
+      "rationale": "A slab bent on x-axis 24 degrees (4 subdivisions) creates a curved C-arm in plan. Courtyard inscribed open east gives the public threshold. Slab 2.2×1.45×0.28 allows the bend arc to read continuously without closing the court.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1350.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "bnd",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 24.0
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 4.0
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "courtyard",
+          "inputs": [
+            "bnd"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p02_bar_interlock_notch",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "book_composition_path_id": "book:path:05470e618703ead632e6029bac7312306f05a6f404cb1a84f60043e0fb2b6b5f",
+      "intent_tags": [
+        "interlock",
+        "bar",
+        "notch",
+        "public_office"
+      ],
+      "rationale": "Two bar volumes interlock at their shared zone (axis x, bar_ratio 0.38), forming an L-shaped occupied body. Corner notch at east signals the address entry where the two arms meet the road.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.8,
+                0.62,
+                0.48
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "ilk",
+          "kind": "macro",
+          "operator": "interlock_related",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 0.0
+            },
+            {
+              "name": "bar_ratio",
+              "value_type": "number",
+              "numeric_value": 0.38,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "distance_ratio",
+              "value_type": "number",
+              "numeric_value": 0.22,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "outward_sign",
+              "value_type": "number",
+              "numeric_value": 1.0,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "ilk"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.22
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.7
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p03_tower_twist_carve",
+      "base_form_id": "cube",
+      "base_seed": "tower",
+      "book_composition_path_id": "book:path:b161eb4c3bb6230cd34980d091fc44bf52f7d2648e59f55b39dc46e64225dc46",
+      "intent_tags": [
+        "twist",
+        "tower",
+        "carve_void",
+        "public_office"
+      ],
+      "rationale": "Tower seed twisted 32 degrees on z-axis (4 subdivisions) produces a continuously rotating plan that resolves at ground as an east-facing carve void entry threshold.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                0.68,
+                0.68,
+                2.5
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "twi",
+          "kind": "modifier",
+          "operator": "twist",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 32.0
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 4.0
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": [
+            "twi"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.3
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p04_slab_taper_branch_notch",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "book_composition_path_id": "book:path:0bac03a066888497ad4cdc5a727e609bdb620a3ef13ef9cc5394a46de7a09449",
+      "intent_tags": [
+        "taper",
+        "book_branch",
+        "notch",
+        "slab",
+        "public_office"
+      ],
+      "rationale": "A slab tapered on z-axis (end_scale 0.62 at top) gives a pyramidal section. A book_branch at 0 degrees (arm_ratio 0.35) extends a compact eastward arm. Notch at east edge signals the entry without interrupting the taper.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "tap",
+          "kind": "modifier",
+          "operator": "taper",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "end_scale",
+              "value_type": "vector",
+              "vector_value": [
+                0.62,
+                0.62
+              ]
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 3.0
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "brn",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": [
+            "tap"
+          ],
+          "parameters": [
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 0.0
+            },
+            {
+              "name": "arm_ratio",
+              "value_type": "number",
+              "numeric_value": 0.35,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "trunk_ratio",
+              "value_type": "number",
+              "numeric_value": 0.65,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "vertical_anchor",
+              "value_type": "string",
+              "string_value": "input_base"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "brn"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.6
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p05_bar_fracture_court",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "book_composition_path_id": "book:path:9042c82e97a383fc1f1e97948ac87e0bac17a95d0d8587255d48710c0ac64040",
+      "intent_tags": [
+        "fracture",
+        "bar",
+        "courtyard",
+        "public_office"
+      ],
+      "rationale": "A bar fractured at 22 degrees creates a wedge gap opening east. A courtyard at east follows as the public court bounded by the angled fracture face. The fracture's outward_sign pushes the break away from the road.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1280.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.8,
+                0.62,
+                0.48
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "frc",
+          "kind": "macro",
+          "operator": "book_fracture",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 22.0
+            },
+            {
+              "name": "gap_ratio",
+              "value_type": "number",
+              "numeric_value": 0.08
+            },
+            {
+              "name": "outward_sign",
+              "value_type": "number",
+              "numeric_value": 1.0,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "retained_back_ratio",
+              "value_type": "number",
+              "numeric_value": 0.55,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "courtyard",
+          "inputs": [
+            "frc"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.3
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p06_block_inflate_expand_notch",
+      "base_form_id": "cube",
+      "base_seed": "block",
+      "book_composition_path_id": "book:path:423e633a08a43369b6ccda29d5604fc061c6e20e52e460c9867ddd1e5b13c2c0",
+      "intent_tags": [
+        "inflate",
+        "boundary_expand",
+        "notch",
+        "public_office"
+      ],
+      "rationale": "A block inflated on z-axis produces a swollen crown section. boundary_expand on x-axis (+0.18) enlarges the east elevation. Notch at east signals the entry within the inflated facade.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1050.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "inf",
+          "kind": "modifier",
+          "operator": "inflate",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "factor",
+              "value_type": "number",
+              "numeric_value": 1.22,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 4.0
+            },
+            {
+              "name": "profile_power",
+              "value_type": "number",
+              "numeric_value": 1.8,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "middle_scale",
+              "value_type": "number",
+              "numeric_value": 1.15,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "bex",
+          "kind": "macro",
+          "operator": "boundary_expand",
+          "inputs": [
+            "inf"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "amount",
+              "value_type": "number",
+              "numeric_value": 0.18
+            },
+            {
+              "name": "shoulder_fraction",
+              "value_type": "number",
+              "numeric_value": 0.35,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "bex"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.25
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.55
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p07_bar_overlap_notch",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "book_composition_path_id": "book:path:aadaf4340a4980ec0c691cf6c70bf78936b4b4b1471a6340d384abcae9ee0a2c",
+      "intent_tags": [
+        "overlap",
+        "bar",
+        "notch",
+        "public_office"
+      ],
+      "rationale": "Two bar volumes partially overlap on y-axis (shift_ratio 0.38, slab_ratio 0.45) forming an H-plan as one connected solid. A notch at east signals the public entry between the overlapping bar ends at the street face.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.8,
+                0.62,
+                0.48
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "ovl",
+          "kind": "macro",
+          "operator": "overlap_related",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "y"
+            },
+            {
+              "name": "shift_ratio",
+              "value_type": "number",
+              "numeric_value": 0.38,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "slab_ratio",
+              "value_type": "number",
+              "numeric_value": 0.45,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "outward_sign",
+              "value_type": "number",
+              "numeric_value": 1.0,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "vertical_overlap",
+              "value_type": "number",
+              "numeric_value": 0.65,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "ovl"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.25
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.55
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p08_slab_shear_book_notch",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "book_composition_path_id": "book:path:1979434c5e8e807c4be6783d18b4216d8d0ce4ab3b77f08477b5ad7325b525fb",
+      "intent_tags": [
+        "shear",
+        "book_notch",
+        "slab",
+        "public_office"
+      ],
+      "rationale": "A slab is sheared on z-axis in x-direction (amount 0.28) creating an oblique top face. book_notch at east face (ratio 0.28) inscribes the public entry into the shear-faced elevation.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1180.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "shr",
+          "kind": "transform",
+          "operator": "shear",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "z"
+            },
+            {
+              "name": "direction",
+              "value_type": "string",
+              "numeric_value": 0.0,
+              "string_value": "x",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "amount",
+              "value_type": "number",
+              "numeric_value": 0.28
+            },
+            {
+              "name": "pivot",
+              "value_type": "vector",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "book_notch",
+          "inputs": [
+            "shr"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "corner",
+              "value_type": "string",
+              "string_value": "se"
+            },
+            {
+              "name": "outward_sign",
+              "value_type": "number",
+              "numeric_value": 1.0,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.28
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p09_bar_bend_branch_notch",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "book_composition_path_id": "book:path:b5ca07c63bd9437f0b85f18355a83a85b02d1529169ff6667d786630774fe76e",
+      "intent_tags": [
+        "bend",
+        "book_branch",
+        "notch",
+        "bar",
+        "public_office"
+      ],
+      "rationale": "A bar is bent 20 degrees on x-axis; a book_branch at 90 degrees (arm_ratio 0.42) creates an L-plan. Notch at east signals the entry at the elbow junction where the bend meets the branch.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 1320.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.8,
+                0.62,
+                0.48
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "bnd",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 20.0
+            },
+            {
+              "name": "subdivisions",
+              "value_type": "number",
+              "numeric_value": 4.0
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "brn",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": [
+            "bnd"
+          ],
+          "parameters": [
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 90.0
+            },
+            {
+              "name": "arm_ratio",
+              "value_type": "number",
+              "numeric_value": 0.42,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "trunk_ratio",
+              "value_type": "number",
+              "numeric_value": 0.58,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "vertical_anchor",
+              "value_type": "string",
+              "string_value": "input_base"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "brn"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.22
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.6
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p10_slab_profiled_hall_notch",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "book_composition_path_id": "book:path:eccfafc4718361d6aec40a901f53b344d4bff77683f4887715da5adcce05157f",
+      "intent_tags": [
+        "profiled_hall",
+        "barrel",
+        "slab",
+        "notch",
+        "public_office"
+      ],
+      "rationale": "A slab receives a barrel profiled_hall spanning the y-axis giving a continuous barrel vault cross-section. Notch at east is the public entry reading as the low point of the vault against the street.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1150.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "phl",
+          "kind": "macro",
+          "operator": "profiled_hall",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "section_family",
+              "value_type": "string",
+              "string_value": "barrel"
+            },
+            {
+              "name": "span_axis",
+              "value_type": "string",
+              "string_value": "y"
+            },
+            {
+              "name": "section_controls",
+              "value_type": "structured_json",
+              "structured_json": "{\"controls\": [[0.0, 0.1], [0.5, 1.0], [1.0, 0.1]]}"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "phl"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.25
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.6
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p11_slab_split_wing_notch",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "book_composition_path_id": "book:path:9c9d6d2d18bf525d39eb0c2299651d643b20f3f3e0de68975addd59e346d58d2",
+      "intent_tags": [
+        "split_wing",
+        "slab",
+        "notch",
+        "public_office"
+      ],
+      "rationale": "A slab split into two parallel wings along x-axis (gap_ratio 0.12, bridge=true) creates a double-bar plan with bridge spine. Notch at east marks the entry between the wings at the street.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                2.2,
+                1.45,
+                0.28
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "sw",
+          "kind": "macro",
+          "operator": "split_wing",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "bridge",
+              "value_type": "boolean",
+              "boolean_value": true
+            },
+            {
+              "name": "connector_width_ratio",
+              "value_type": "number",
+              "numeric_value": 0.22,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "gap_ratio",
+              "value_type": "number",
+              "numeric_value": 0.12
+            },
+            {
+              "name": "ground_spine",
+              "value_type": "boolean",
+              "boolean_value": false
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.95
+            },
+            {
+              "name": "layout",
+              "value_type": "string",
+              "string_value": "parallel"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": [
+            "sw"
+          ],
+          "parameters": [
+            {
+              "name": "side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "ratio",
+              "value_type": "number",
+              "numeric_value": 0.22
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.55
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    },
+    {
+      "name": "p12_tower_branch_branch_carve",
+      "base_form_id": "cube",
+      "base_seed": "tower",
+      "book_composition_path_id": "book:path:def59b665a24ebd51c08a3812668edc1a6131552a8055b2d7cb88de8de90f4f5",
+      "intent_tags": [
+        "book_branch",
+        "tower",
+        "carve_void",
+        "public_office"
+      ],
+      "rationale": "A tower receives two sequential branches: first at 90 degrees (arm_ratio 0.38) then at -90 degrees (arm_ratio 0.30), creating a T-plan. carve_void at east opens the base of the trunk as public court.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.5,
+        "target_gfa_m2": 1050.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "root_id": "acc",
+      "nodes": [
+        {
+          "id": "b0",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "center",
+              "value_type": "boolean",
+              "boolean_value": true
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "s0",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": [
+            "b0"
+          ],
+          "parameters": [
+            {
+              "name": "vector",
+              "value_type": "vector",
+              "vector_value": [
+                0.68,
+                0.68,
+                2.5
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "m0",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "s0"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1,
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "brn1",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": [
+            "m0"
+          ],
+          "parameters": [
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": 90.0
+            },
+            {
+              "name": "arm_ratio",
+              "value_type": "number",
+              "numeric_value": 0.38,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "trunk_ratio",
+              "value_type": "number",
+              "numeric_value": 0.62,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "vertical_anchor",
+              "value_type": "string",
+              "string_value": "input_base"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "brn2",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": [
+            "brn1"
+          ],
+          "parameters": [
+            {
+              "name": "angle_degrees",
+              "value_type": "number",
+              "numeric_value": -90.0
+            },
+            {
+              "name": "arm_ratio",
+              "value_type": "number",
+              "numeric_value": 0.3,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "trunk_ratio",
+              "value_type": "number",
+              "numeric_value": 0.7,
+              "string_value": "",
+              "boolean_value": false,
+              "vector_value": [],
+              "structured_json": "null"
+            },
+            {
+              "name": "vertical_anchor",
+              "value_type": "string",
+              "string_value": "input_base"
+            }
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "acc",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": [
+            "brn2"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ]
+    }
+  ],
+  "book_principle_ids": [
+    "book:combination:15:taper+bend",
+    "book:operative:fracture",
+    "book:combination:07:branch+branch",
+    "book:operative:twist",
+    "book:case:64:overlap+expand",
+    "book:operative:inflate",
+    "book:aggregation:pack+stack:branch",
+    "book:operative:compress",
+    "book:aggregation:stack:bend",
+    "book:operative:interlock",
+    "book:combination:16:bend+branch"
+  ]
+}

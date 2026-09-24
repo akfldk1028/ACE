@@ -1,4 +1,4 @@
-"""Page-reviewed kernel lowering contract for the thirty BOOK operatives."""
+"""Page-reviewed kernel lowering contract for the thirty BOOK operatives and the five aggregations."""
 
 from __future__ import annotations
 
@@ -62,6 +62,16 @@ BOOK_OPERATIVE_LOWERING: dict[str, BookOperativeLowering] = {
     ),
     "inscribe": BookOperativeLowering(frozenset({"courtyard"})),
     "puncture": BookOperativeLowering(frozenset({"puncture"})),
+    # The aggregation layer, pp.50-58. The BOOK records no transformation for
+    # these five, and without a contract the author had no word for them:
+    # comp18's 120 programs used 24 of the 35 and none of these. Each lowers
+    # to the operator its verb file names (`executed_by`); delivery is still
+    # one connected solid, so an array or a reflection must be joined.
+    "array": BookOperativeLowering(frozenset({"related_array"})),
+    "join": BookOperativeLowering(frozenset({"join_related"})),
+    "pack": BookOperativeLowering(frozenset({"related_array"})),
+    "reflect": BookOperativeLowering(frozenset({"mirror_array"})),
+    "stack": BookOperativeLowering(frozenset({"stepped_mass"})),
 }
 
 

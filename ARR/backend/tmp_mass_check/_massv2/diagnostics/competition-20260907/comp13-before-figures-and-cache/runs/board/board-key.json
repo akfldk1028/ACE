@@ -1,0 +1,252 @@
+[
+ {
+  "label": "O1",
+  "name": "sangok_saddle_garden_room^centred",
+  "score": 4.32,
+  "round": "vlm-comp13",
+  "shape_id": "6923de71637888d65e74",
+  "certificate_id": "42442a4bb835d5c74902"
+ },
+ {
+  "label": "O2",
+  "name": "sweep_0231_stack_butterfly_mansard",
+  "score": 3.9,
+  "round": "vlm-comp13",
+  "shape_id": "1d7ceca98bc88940856d",
+  "certificate_id": "962976571ba46e0ade8d"
+ },
+ {
+  "label": "O3",
+  "name": "book:book-comp13:morph-compact-mid:creative-008",
+  "score": 3.8,
+  "round": "vlm-book-comp13",
+  "shape_id": "fbce6f52c2a7f49c67a3",
+  "certificate_id": "9f6d96b37e8ea4895193"
+ },
+ {
+  "label": "O4",
+  "name": "book:book-comp13:morph-compact-mid:creative-009",
+  "score": 3.75,
+  "round": "vlm-book-comp13",
+  "shape_id": "6986b5f575dbc867aefb",
+  "certificate_id": "72efe43df835bf77d15c"
+ },
+ {
+  "label": "O5",
+  "name": "field_under_butterfly_wings~held_ground^centred",
+  "score": 3.73,
+  "round": "vlm-comp13",
+  "shape_id": "fc872fd2512792462217",
+  "certificate_id": "29472f5ac556793eb595"
+ },
+ {
+  "label": "O6",
+  "name": "book:book-comp13:morph-compact-mid:creative-010",
+  "score": 3.73,
+  "round": "vlm-book-comp13",
+  "shape_id": "267e54956b66b4d74d7e",
+  "certificate_id": "89de1afdf89785d60781"
+ },
+ {
+  "label": "O7",
+  "name": "sweep_0479_extrude_puncture_vault_mansard",
+  "score": 3.67,
+  "round": "vlm-comp13",
+  "shape_id": "bdef3163843ef0d4450d",
+  "certificate_id": "2e9d276bef3152e289f6"
+ },
+ {
+  "label": "O8",
+  "name": "book:book-comp13:morph-compact-low:creative-006",
+  "score": 3.65,
+  "round": "vlm-book-comp13",
+  "shape_id": "7eb610212c8594efa9ee",
+  "certificate_id": "83bbe4d374fb6b5b77d5"
+ },
+ {
+  "label": "O9",
+  "name": "book:book-comp13:morph-compact-mid:creative-007",
+  "score": 3.63,
+  "round": "vlm-book-comp13",
+  "shape_id": "a6d538b20ff30bda1021",
+  "certificate_id": "0cf96f1f6c9c04e7ea9c"
+ },
+ {
+  "label": "O10",
+  "name": "book:book-comp13:morph-curved-low:creative-001",
+  "score": 3.53,
+  "round": "vlm-book-comp13",
+  "shape_id": "a9f195967d9b9a1f4430",
+  "certificate_id": "69249fc20432ff9a9e07"
+ },
+ {
+  "label": "O11",
+  "name": "book:book-comp13:morph-compact-low:creative-005",
+  "score": 3.5,
+  "round": "vlm-book-comp13",
+  "shape_id": "81f24c49fd99a2f213c3",
+  "certificate_id": "55a74c6ec8c1f785be0e"
+ },
+ {
+  "label": "O12",
+  "name": "book:book-develop-comp03:exact-authored-development:creative-001",
+  "score": 3.47,
+  "round": "vlm-book-comp13",
+  "shape_id": "536350c6419e5917d6a7",
+  "certificate_id": "61058cb880ca3a41fe6b"
+ },
+ {
+  "label": "O13",
+  "name": "book:book-develop-comp12:exact-authored-development:creative-002",
+  "score": 3.45,
+  "round": "vlm-book-comp13",
+  "shape_id": "f413c82b42c717e26a69",
+  "certificate_id": "823870db6d402401af54"
+ },
+ {
+  "label": "O14",
+  "name": "book:book-comp11:morph-compact-mid:creative-012",
+  "score": 3.45,
+  "round": "vlm-book-comp13",
+  "shape_id": "dacbb205cef6ed7a1d3e",
+  "certificate_id": "4589e41b0f45a7cf59bf"
+ },
+ {
+  "label": "O15",
+  "name": "book:book-comp13:morph-compact-mid:creative-012",
+  "score": 3.45,
+  "round": "vlm-book-comp13",
+  "shape_id": "dacbb205cef6ed7a1d3e",
+  "certificate_id": "2ecd804a24970d62c8fa"
+ },
+ {
+  "label": "O16",
+  "name": "ruled_winding_taper",
+  "score": 3.42,
+  "round": "vlm-comp13",
+  "shape_id": "9fd1dfd167855ec2a6dc",
+  "certificate_id": "6e0151aba7cb2fcfd940"
+ },
+ {
+  "label": "O17",
+  "name": "book:book-comp13:morph-oblique-mid:creative-002",
+  "score": 3.42,
+  "round": "vlm-book-comp13",
+  "shape_id": "27b052d1ca884a5599b2",
+  "certificate_id": "2a3633acd60f57e877ee"
+ },
+ {
+  "label": "O18",
+  "name": "slipped_twin_gables~full_ground^off_open",
+  "score": 3.35,
+  "round": "vlm-comp13",
+  "shape_id": "e16ae12f363cc76ba571",
+  "certificate_id": "e0955501f749fd52e056"
+ },
+ {
+  "label": "O19",
+  "name": "book:book-comp13:morph-compact-mid:creative-011",
+  "score": 3.35,
+  "round": "vlm-book-comp13",
+  "shape_id": "ce63ea701f8ca3bb4096",
+  "certificate_id": "e7f9d4e55192b1c53ceb"
+ },
+ {
+  "label": "O20",
+  "name": "book:book-comp13:morph-compact-mid:creative-003",
+  "score": 3.3,
+  "round": "vlm-book-comp13",
+  "shape_id": "4abaecbf93d355347425",
+  "certificate_id": "a4cede74d0512eb1d14c"
+ },
+ {
+  "label": "O21",
+  "name": "wide01_0115_aggregate_taper",
+  "score": 3.2,
+  "round": "vlm-comp13",
+  "shape_id": "bdd79cbfc29194111026",
+  "certificate_id": "e377d86129e0e5381306"
+ },
+ {
+  "label": "O22",
+  "name": "book:book-comp13:morph-compact-mid:creative-013",
+  "score": 3.18,
+  "round": "vlm-book-comp13",
+  "shape_id": "a929d5887e94370076aa",
+  "certificate_id": "9f77bc5c3f0935c09049"
+ },
+ {
+  "label": "O23",
+  "name": "book:book-comp13:morph-curved-mid:creative-004",
+  "score": 3.08,
+  "round": "vlm-book-comp13",
+  "shape_id": "d8c7681d14fdb92697f1",
+  "certificate_id": "bd4bc552a7e7cafac15f"
+ },
+ {
+  "label": "C1",
+  "name": "one_round_tower^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C2",
+  "name": "one_wide_slab^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C3",
+  "name": "slab_on_pilotis^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C4",
+  "name": "stadium_slab_tower^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C5",
+  "name": "two_drums_one_court^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C6",
+  "name": "round_tower_low_plate^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C7",
+  "name": "lifted_round_disc^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C8",
+  "name": "drum_that_steps_once^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C9",
+  "name": "one_gable_bar^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C10",
+  "name": "twin_gable_bars^centred",
+  "score": null,
+  "round": "canon"
+ },
+ {
+  "label": "C11",
+  "name": "one_court_block^centred",
+  "score": null,
+  "round": "canon"
+ }
+]

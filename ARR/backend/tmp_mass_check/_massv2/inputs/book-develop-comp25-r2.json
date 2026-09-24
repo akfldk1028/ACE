@@ -1,0 +1,683 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-comp24:morph-compact-tall:creative-019",
+  "parent_shape_id": "7a170ae62282f2a81942",
+  "parent_program_hash": "20d6481fc843720fdd99809239df891f0839650c5862cf436e892f4776e8d58f",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d01_quarter_bar_long_lift",
+      "book_composition_path_id": "book:path:2c5965d4d40f0975213c85479d0e3e213fe5b93d39341d53e95ffc56eecdb28b",
+      "root_id": "book02_lift",
+      "rationale": "R1 showed a 1/1 long_axis piloti exposes the full 2500m2 ground but reduces GFA to ~3200m2 vs target 4907m2. This child tests a 1/4 long_axis bar (approximately 350-400m2 footprint, narrowest bar on the long parcel axis, NW quadrant) lifted on piloti at rise_ratio=0.20 (one full storey clearance, ~3.8m). The 1/4 footprint concentrates programme into a compact slab, leaving approximately 2150m2 of unobstructed site for surface parking on the SE side adjacent to the permitted vehicle access frontage ([78.23,36.6]->[57.3,0.0]). A 2150m2 surface zone with a 43m frontage edge can accommodate 4 double-loaded rows (16m module) = approximately 50 stalls, satisfying 49 required. Tradeoff: GFA delivered approximately 1/4 base * 5 storeys - piloti = ~4 occupied floors * ~400m2 = ~1600m2 (well below 4907m2 target, -67%; material conflict reported). Inherited 5-storey/3.8m/19m height contract preserved; book_base_volume label=1/4, orientation=long_axis per path book:path:2c5965d4d40f0975213c85479d0e3e213fe5b93d39341d53e95ffc56eecdb28b (1/4 long_axis carve+offset v10, reinterpreted as lift application).",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/4"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "long_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/4 long_axis bar lifted on piloti (rise_ratio=0.20, one full storey). Footprint ~350-400m2 leaves ~2150m2 site for SE surface parking. Estimated 4 rows * 13 stalls = 52 stalls satisfies 49-space requirement. Differs from R1 d01 (1/1 long_axis + lift) by using 1/4 base: much less programme, much more ground released.",
+        "unresolved_conflicts": "GFA ~1600m2 vs target 4907m2 (-67%); piloti structural column grid unverified; parking count requires remeasurement against delivered shape; ground lobby and vertical circulation unmodelled.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d02_half_short_carve_east",
+      "book_composition_path_id": "book:path:c1e62670012fcb8579fbcffa7319dec624625ce39e6a1a6f310ffa7b7da846f3",
+      "root_id": "book02_carve_void",
+      "rationale": "R1 used 1/2 long_axis + terrace (NW half bar). This child uses 1/2 short_axis (building occupies half the parcel width, oriented on the short cross-axis, creating a deep NW-to-SW slab) with a carve_void on the east/open side (margin_ratio=0.40). The 1/2 short_axis base occupies the west half of the parcel; carve_void open_side=east removes 40% of the mass volume on the east face, creating a large recessed void opening toward the SE vehicle access frontage. This void in the lower portion of the mass and the east setback opens approximately 1200-1400m2 of SE ground for surface parking. At 43m frontage length, 3 single-loaded rows (11m depth each) = approximately 39 stalls, supplemented by the carved recess as covered parking under cantilevered upper floors = potentially 10-15 additional stalls. Conflicts: combined parking delivery requires remeasurement; carved void reduces GFA to approximately 2500m2 vs 4907m2 target (-49%); east facade articulation may require structural transfer beam not modelled. Inherited 5-storey/3.8m/19m height preserved.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/2"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "short_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_carve_void",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.40
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "parking_void"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/2 short_axis base with carve_void east (margin_ratio=0.40). West half of parcel occupied; 40% east void opens SE face for surface parking access. Approx 39-54 stalls depending on parcel geometry vs SE frontage. Differs from R1 by using short_axis orientation and carve_void without lift.",
+        "unresolved_conflicts": "GFA ~2500m2 after carve vs 4907m2 target (-49%); void structural transfer beam not modelled; parking count requires shape remeasurement; short_axis orientation vs parcel shape needs verification.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d03_eighth_short_lift",
+      "book_composition_path_id": "book:path:4590a56c9147d27bafdb471808f63058eafb94b7e06408408ef1832fec75a857",
+      "root_id": "book02_lift",
+      "rationale": "R1 tested 1/1, 1/2, 3/8 base volumes. This child tests 1/8 short_axis: the smallest occupied bar on the short parcel axis, creating a minimal-footprint tower slab (approximately 190-220m2 footprint). Lifted on piloti (rise_ratio=0.20, ~3.8m clearance), this releases approximately 2300m2 of site area for surface parking from the SE access edge. A 2300m2 surface zone at 43m frontage can fit 4-5 double-loaded rows = 52-65 stalls, comfortably satisfying 49 required. The 1/8 short_axis slab reads as a slender civic tower — spatially distinct from R1's 1/1 (full-site) and 3/8 (L-shape) lifted options. Tradeoff: GFA approximately 4 occupied floors * ~200m2 = ~800m2 (severe shortfall vs 4907m2 target, -84%; material conflict reported). 5-storey/3.8m/19m height inherited. Short_axis orientation places the narrow face toward the SE road — civic address differs from long_axis bars.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/8"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "short_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/8 short_axis lifted on piloti (rise_ratio=0.20). Minimal ~190-220m2 footprint releases ~2300m2 for SE surface parking. Estimated 4-5 double-loaded rows * 13 stalls = 52-65 stalls. Spatially distinct from R1: slender cross-axis tower vs R1 longitudinal bars.",
+        "unresolved_conflicts": "GFA ~800m2 vs 4907m2 target (-84%); severe programme shortfall; structural viability of 1/8-footprint piloti tower requires specialist review; parking count requires shape remeasurement.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d04_three_eighth_vert_lift",
+      "book_composition_path_id": "book:path:d98b350315f2d544c592a34728243da5e2525214ca928122dd5e4116955169f2",
+      "root_id": "book02_lift",
+      "rationale": "R1 used 3/8 long_axis + lift (L-shape bar in NW quadrant, long axis). This child uses 3/8 vertical: the same L-of-three-octants shape but with vertical orientation, meaning the three cells of the L are distributed vertically (stacked) rather than horizontally. The resulting mass is a compact mid-rise volume (3/8 of parcel area stacked upward, occupying approximately 750m2 of ground across 3/8 of the plan). Lifted on piloti (rise_ratio=0.20, ~3.8m clearance), the ground plane is freed under the piloti and across the remaining 5/8 of the site for parking. The 3/8 vertical orientation places mass more centrally in the parcel, with the 3-octant stack distributed in plan rather than stretched along the long axis — this creates a more compact urban building profile. Estimated available parking area on SE side: approximately 1700-1800m2, fitting 3 double-loaded rows = approximately 39 stalls + single loaded row = ~13 stalls = 52 total. Conflict: GFA from 4 occupied floors * ~750m2 = ~3000m2 vs target 4907m2 (-39%). Height/storey contract preserved at 5/3.8m/19m.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "3/8"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "vertical"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "3/8 vertical lifted on piloti (rise_ratio=0.20). Compact 3-octant vertically-organized mass frees ~1700-1800m2 SE area for parking. Estimated 52 stalls. Differs from R1 d04 (3/8 long_axis) by using vertical orientation: more compact plan, different urban proportion.",
+        "unresolved_conflicts": "GFA ~3000m2 vs 4907m2 target (-39%); 3/8 vertical mass geometry requires verification; parking count requires shape remeasurement; piloti column grid not modelled.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d05_half_vert_carve_east",
+      "book_composition_path_id": "book:path:5aa35fa1d4f5bc3c2a49d9656fcb7f0aa9b93d544093e3d5c33486046f6588a3",
+      "root_id": "book02_carve_void",
+      "rationale": "R1 used 1/1 vertical + courtyard (open courtyard on east, full parcel). This child uses 1/2 vertical + carve_void east. The 1/2 vertical base occupies half the parcel distributed vertically (a compact slab-half over the NW portion of the site). A carve_void with open_side=east and margin_ratio=0.35 removes 35% of the volume on the east face, creating a recessed open zone toward the SE vehicle access frontage. This differs from R1's 1/1 vertical courtyard (which carves through the full parcel ring) by using a 1/2 base — the west half of the parcel remains solid while the east void creates a SE-facing parking recess. Estimated available parking on SE + carved east zone: approximately 1400-1600m2, supporting 3 double-loaded rows = ~39 stalls + single loaded = ~13 stalls = ~52 total. The 1/2 vertical + carve makes a wider, lower proportion than the 1/1 bar — a horizontal reading building rather than a tower, different formal principle from R1. GFA approximately 1/2 base * 5 floors * (1 - 0.35 carve) = ~1630m2 (conflict vs 4907m2 target, -67%). 5-storey/3.8m/19m height preserved.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/2"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "vertical"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_carve_void",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.35
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "parking_void"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/2 vertical base with carve_void east (margin_ratio=0.35). NW half of parcel occupied; 35% east void carves SE access zone. Estimated ~52 stalls. Differs from R1 d05 (1/1 vertical + courtyard) by using 1/2 base: half-site slab with east void vs full-ring courtyard.",
+        "unresolved_conflicts": "GFA ~1630m2 vs 4907m2 target (-67%); void depth and structural clearance not modelled; parking count requires shape remeasurement; 1/2 vertical plan geometry needs site-fit verification.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25r2_d06_sixteenth_short_lift",
+      "book_composition_path_id": "book:path:dfaf29dcf45ffca827c75bc859a89a8f32bcbfcd729fc47953bcf18f4154f183",
+      "root_id": "book02_lift",
+      "rationale": "This child tests the extreme minimal-footprint option: 1/16 short_axis (approximately 95-120m2 footprint, the smallest cell of the parcel grid, oriented on the short cross-axis) lifted on piloti (rise_ratio=0.20, ~3.8m clearance). This is the maximum-ground-release strategy: approximately 2380m2 of site freed for surface parking. At 43m vehicle access frontage, 5 double-loaded rows (16m each, 5*16=80m depth; parcel is approximately 62m wide — fits 3 rows north-south + 2 rows east-west within irregular boundary) = up to 65 stalls, definitively satisfying 49 required. The 1/16 short_axis lifted volume is spatially the most civic-open proposition: almost the entire site reads as a single ground-level public parking and forecourt zone, with one slender tower-pavilion rising above. Tradeoff: GFA approximately 4 occupied floors * ~100m2 = ~400m2 (extreme shortfall vs 4907m2 target, -92%; major conflict reported). This tests the upper bound of parking provision at the cost of programme. 5-storey/3.8m/19m inherited.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/16"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "short_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/16 short_axis (minimal footprint ~100m2) lifted on piloti (rise_ratio=0.20). ~2380m2 site freed for surface parking. Estimated 5 rows * 13 stalls = 65 stalls — maximum parking provision, definitively satisfies 49. Extreme footprint reduction: tests upper bound of parking-vs-programme tradeoff.",
+        "unresolved_conflicts": "GFA ~400m2 vs 4907m2 target (-92%); severe programme shortfall — this mass cannot deliver the required facility area; structural viability of 1/16-footprint piloti requires review; parking count requires shape remeasurement; programme conflict must be resolved before permit compliance.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    }
+  ]
+}

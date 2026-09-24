@@ -48,8 +48,25 @@ def validate_development_payload(payload, context, *, expected_count):
         raise ValueError(f'development requires exactly {expected_count} geometry_programs')
     parsed = []
     names, hashes = set(), set()
-    for raw in programs:
-        program = GeometryProgram.from_dict(raw)
+    for index, raw in enumerate(programs):
+        # The developer writes the author's schema: typed nodes whose
+        # `parameters` is an array of {name, value_type, *_value}. That is
+        # what the author decoder reads; `from_dict` reads the kernel's
+        # dict form and answered "parameters/provenance must be objects"
+        # to a payload that followed the schema it was handed.
+        nodes = raw.get('nodes') if isinstance(raw, dict) else None
+        typed = isinstance(nodes, list) and any(
+            isinstance(node, dict) and isinstance(node.get('parameters'), list)
+            for node in nodes)
+        if typed:
+            from .geometry_language.llm_adapter import (
+                _canonicalize_program_relation_suffix,
+                _program_from_structured_author_item,
+            )
+            program = _canonicalize_program_relation_suffix(
+                _program_from_structured_author_item(raw, index=index))
+        else:
+            program = GeometryProgram.from_dict(raw)
         if not program.name or program.name in names or program.program_hash() in hashes:
             raise ValueError('development child names and programs must be unique')
         for key, binding in (('parent_name', 'parent'), ('parent_shape_id', 'parent_shape_id')):
@@ -119,7 +136,21 @@ def build_exact_development_portfolio(payload, context, *, expected_count):
             capacity_ceiling_m2=context['target_gfa_m2'],
             author_evidence=dict(authored.author_evidence), physical_contract=context)
         if candidate is None:
-            raise ValueError(f'exact development child {index + 1} failed physical compilation')
+            # Name the child and the reason: the cycle feeds this line back
+            # to the developer, and "failed physical compilation" alone told
+            # it nothing about which of a dozen silent refusals it was.
+            from .creative_floor_portfolio import _connected_compilation
+            from .geometry_language.compiler import compile_geometry_program
+            try:
+                compilation = compile_geometry_program(authored.program)
+                reason = ('not one connected solid'
+                          f' (components={int(compilation.metrics.get("component_count", 0) or 0)})'
+                          if not _connected_compilation(compilation)
+                          else 'physical sizing under the inherited parent contract refused')
+            except (RuntimeError, TypeError, ValueError) as exc:
+                reason = f'compiler: {exc}'
+            raise ValueError(f'exact development child {index + 1} ({raw_program.name}) '
+                             f'failed physical compilation: {reason}')
         candidate['development_lineage'] = deepcopy(marker)
         candidate['storey_evidence']['capacity_authority'] = 'verified_parent_delivery_target; final imported area is measured separately'
         candidate['lineage']['stages'] = [s for s in candidate['lineage']['stages'] if s != 'typed_book_relation']

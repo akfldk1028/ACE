@@ -109,8 +109,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         count = int(options["count"])
-        if count < 1 or count > 100:
-            raise CommandError("--count must be between 1 and 100")
+        # The name is the command's history, not its ceiling: the cycle's
+        # BOOK track authors BOOK_COUNT programs (120 for comp18), and the
+        # first batch to pass the importer stopped here.
+        if count < 1 or count > 200:
+            raise CommandError("--count must be between 1 and 200")
         pnu = str(options["pnu"] or "").strip()
         if not pnu:
             raise CommandError("--pnu is required")

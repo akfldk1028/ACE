@@ -9,10 +9,18 @@ class ResearchSchemaTests(unittest.TestCase):
     def _imports(self):
         try:
             from iclr2027.io import canonical_json, sha256_json
-            from iclr2027.schema import ArchitectureEvidencePacket, ArchitectureReviewState
+            from iclr2027.schema import (
+                ArchitectureEvidencePacket,
+                ArchitectureReviewState,
+            )
         except (ImportError, ModuleNotFoundError) as exc:
             self.fail(f"schema modules are missing: {exc}")
-        return canonical_json, sha256_json, ArchitectureEvidencePacket, ArchitectureReviewState
+        return (
+            canonical_json,
+            sha256_json,
+            ArchitectureEvidencePacket,
+            ArchitectureReviewState,
+        )
 
     def _packet_payload(self) -> dict[str, object]:
         return {
@@ -72,7 +80,9 @@ class ResearchSchemaTests(unittest.TestCase):
         self.assertEqual(restored, packet)
         self.assertEqual(sha256_json(restored), sha256_json(packet))
 
-    def test_portfolio_attempt_round_trip_requires_attempt_identity_and_null_execution_trio(self) -> None:
+    def test_portfolio_attempt_round_trip_requires_attempt_identity_and_null_execution_trio(
+        self,
+    ) -> None:
         _, _, ArchitectureEvidencePacket, _ = self._imports()
 
         packet = ArchitectureEvidencePacket.from_dict(self._attempt_payload())
@@ -248,7 +258,9 @@ class ResearchSchemaTests(unittest.TestCase):
             record,
         )
 
-    def test_gold_continue_requires_missing_evidence_separate_from_blockers(self) -> None:
+    def test_gold_continue_requires_missing_evidence_separate_from_blockers(
+        self,
+    ) -> None:
         from iclr2027.schema import ArchitectureGoldRecord
 
         record = ArchitectureGoldRecord.from_dict(

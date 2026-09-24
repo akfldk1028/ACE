@@ -1,0 +1,127 @@
+{
+ "parent": "field_under_butterfly_wings~held_ground^centred",
+ "parent_shape_id": "fc872fd2512792462217",
+ "schemes": [
+  {
+   "name": "butterfly_field_wide_lanes",
+   "primary_language": "porous_field",
+   "secondary_language": "five three-storey pavilions under butterfly roofs, spread wider so no two plans touch and every gap is a lane",
+   "formal_principle": "The field of V roofs is kept and the lanes are made real: spread 1.8 opens every gap to a lane a person walks down, so the pavilions read as a village with streets, not a cluster with cracks.",
+   "dominant_gesture": "a field of V roofs with real lanes",
+   "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+   "floor_height_m": 3.4,
+   "design_argument_ko": "겹치던 평면을 벌려 틈을 골목으로 만든다.",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.8,
+     "height": 0.55,
+     "tie": 0,
+     "storeys": 3,
+     "why": "Spread 1.8 answers the overlapping plans the jury saw: every pavilion stands clear and every gap is a lane."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.8,
+     "at": 0.5,
+     "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+    }
+   ]
+  },
+  {
+   "name": "butterfly_field_with_a_canopy",
+   "primary_language": "porous_field",
+   "secondary_language": "five pavilions under butterfly roofs, a shared canopy reaching toward the open side as the field's front",
+   "formal_principle": "A field needs a front: the pavilions keep their valleys, and one canopy reaches toward the open side so the street reads an entry and the cluster gains the frontage hierarchy the jury missed.",
+   "dominant_gesture": "a field of V roofs with a front canopy",
+   "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+   "floor_height_m": 3.4,
+   "design_argument_ko": "열린 변으로 뻗는 캐노피가 밭에 정면과 입구를 준다.",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.6,
+     "height": 0.55,
+     "tie": 0,
+     "storeys": 3,
+     "why": "Five pavilions at the parent's scale and spacing."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.8,
+     "at": 0.5,
+     "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+    },
+    {
+     "op": "canopy",
+     "reach": 0.3,
+     "at": 0.9,
+     "toward": "open",
+     "why": "A canopy toward the open side gives the field a front and an entry the jury said it lacked."
+    }
+   ]
+  },
+  {
+   "name": "butterfly_field_toward_the_street",
+   "primary_language": "porous_field",
+   "secondary_language": "five pavilions under butterfly roofs, the whole field pushed toward the open side so it fronts the street",
+   "formal_principle": "A field needs a front: the pavilions keep their valleys and the cluster moves toward the open side, so the street meets the first pavilions instead of a leftover strip and the empty west tip is filled.",
+   "dominant_gesture": "V roofs fronting the street",
+   "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+   "floor_height_m": 3.4,
+   "design_argument_ko": "밭 전체를 열린 변으로 밀어 거리가 첫 파빌리온과 만나게 한다.",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 5,
+     "spread": 1.6,
+     "height": 0.55,
+     "tie": 0,
+     "storeys": 3,
+     "why": "Five pavilions at the parent's scale and spacing."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.8,
+     "at": 0.5,
+     "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+    },
+    {
+     "op": "expand",
+     "ratio": 1.2,
+     "toward": "open",
+     "why": "The field grows toward the open side so its front reaches the street; the west tip stops being empty."
+    }
+   ]
+  },
+  {
+   "name": "butterfly_field_of_four",
+   "primary_language": "porous_field",
+   "secondary_language": "four larger pavilions under shallower butterfly roofs, each plate big enough for its own core",
+   "formal_principle": "Fewer, larger houses: four pavilions give each a floor plate that takes a core and a stair, and shallower valleys stop the pitch cutting the top floor - the field stays a field with fewer, stronger pieces.",
+   "dominant_gesture": "four larger V-roof pavilions",
+   "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+   "floor_height_m": 3.4,
+   "design_argument_ko": "네 채로 줄여 코어를 넣고 골을 얕게 해 최상층을 지킨다.",
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.9,
+     "height": 0.6,
+     "tie": 0,
+     "storeys": 3,
+     "why": "Four pavilions answer the core-per-house remark: each plate is large enough for its own core."
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.7,
+     "at": 0.5,
+     "why": "Shallower valleys so the top floor is not cut by the pitch, as the jury noted."
+    }
+   ]
+  }
+ ]
+}

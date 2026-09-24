@@ -10,12 +10,18 @@ from pathlib import Path
 
 from experiment_utils import RunResult, TurnRecord
 from iclr2027.exp08 import build_run_plan, execute_run_plans
-from iclr2027.projection import ProjectionIdentity, project_gold_record, project_public_case
+from iclr2027.projection import (
+    ProjectionIdentity,
+    project_gold_record,
+    project_public_case,
+)
 from iclr2027.schema import ArchitectureEvidencePacket, ArchitectureGoldRecord
 
 
 class Exp08BreakdownPersistenceTests(unittest.TestCase):
-    def test_breakdown_rows_match_scores_and_rebuild_deterministically_after_retry(self) -> None:
+    def test_breakdown_rows_match_scores_and_rebuild_deterministically_after_retry(
+        self,
+    ) -> None:
         packet = ArchitectureEvidencePacket(
             case_id="dev-case-breakdown-01",
             pnu="1168011800104170004",
@@ -24,9 +30,7 @@ class Exp08BreakdownPersistenceTests(unittest.TestCase):
             execution_id="execution-1",
             program_hash="a" * 64,
             geometry_hash="b" * 64,
-            evidence=(
-                {"evidence_id": "evidence:site_agent", "domain": "site"},
-            ),
+            evidence=({"evidence_id": "evidence:site_agent", "domain": "site"},),
         )
         gold = ArchitectureGoldRecord(
             case_id=packet.case_id,
@@ -154,12 +158,15 @@ class Exp08BreakdownPersistenceTests(unittest.TestCase):
                 },
             )
             self.assertEqual(
-                {key: breakdown_rows[0][key] for key in (
-                    "subject_stage",
-                    "decision_score",
-                    "blocking_issue_f1",
-                    "missing_evidence_f1",
-                )},
+                {
+                    key: breakdown_rows[0][key]
+                    for key in (
+                        "subject_stage",
+                        "decision_score",
+                        "blocking_issue_f1",
+                        "missing_evidence_f1",
+                    )
+                },
                 {
                     "subject_stage": "execution",
                     "decision_score": "1.0",

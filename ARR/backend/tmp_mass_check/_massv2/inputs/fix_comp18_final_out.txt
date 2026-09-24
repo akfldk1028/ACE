@@ -1,0 +1,40 @@
+Loading D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\inputs\book-comp18.rejected.json ...
+Total programs: 120
+Prog 1 base_seed: slab
+Prog 1 nodes count: 5
+Node 0 keys: ['id', 'kind', 'operator', 'inputs', 'parameters', 'semantic_role']
+Node 0: {
+  "id": "b0",
+  "kind": "primitive",
+  "operator": "box",
+  "inputs": [],
+  "parameters": [
+    {
+      "name": "width",
+      "value_type": "number",
+      "numeric_value": 1.0
+    },
+    {
+      "name": "depth",
+      "value_type": "number",
+      "numeric_value": 1.0
+    },
+    {
+      "name": "height",
+      "value_type": "number",
+      "numeric_value": 1.0
+    },
+    {
+      "name": "center",
+      "value_type": "boolean",
+      "boolean_value": true
+    }
+  ],
+  "semantic_role": "domina
+
+Total to fix: 40
+Traceback (most recent call last):
+  File "D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\inputs\fix_comp18_final.py", line 32, in <module>
+    ops = [n['op'] for n in p.get('nodes', [])]
+           ~^^^^^^
+KeyError: 'op'

@@ -1,0 +1,27 @@
+{
+  "schema_version": "arr.maas.hf_reference_manifest.v1",
+  "datasets": [
+    {
+      "dataset_id": "terminusresearch/photo-architecture",
+      "role": "primary_architecture_photo_corpus",
+      "source_url": "https://huggingface.co/datasets/terminusresearch/photo-architecture",
+      "notes": "Architecture/building image corpus with CogVLM captions.",
+      "tags": ["architecture", "building", "photo", "captioned"]
+    },
+    {
+      "dataset_id": "Morris0401/Year-Guessr-Dataset",
+      "role": "building_metadata_prior",
+      "source_url": "https://huggingface.co/datasets/Morris0401/Year-Guessr-Dataset",
+      "notes": "Architecture images with age/region metadata.",
+      "tags": ["architecture", "building_age", "region", "metadata"]
+    },
+    {
+      "dataset_id": "gatecitypreservation/architectural_styles",
+      "role": "style_label_prior",
+      "source_url": "https://huggingface.co/gatecitypreservation/architectural_styles",
+      "notes": "Small style classifier reference for architectural style labels.",
+      "tags": ["architectural_style", "facade", "style"]
+    }
+  ]
+}
+

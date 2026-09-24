@@ -1,0 +1,20 @@
+{
+  "name": "butterfly_field_toward_the_street",
+  "shape_id": "a72b024e3990b24c1207",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    848.8450209486814,
+    848.8450209486814
+  ],
+  "section_area_m2": 423.1035545539876,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "4ee893d5a8b5b46897c195461f5e93b9fb8f2369e76484fb0f57eb18456cb029"
+}

@@ -1,0 +1,14 @@
+{
+  "download_images": true,
+  "image_count": 54,
+  "images_dir": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\massing_diversity_20260711\\images",
+  "item_count": 54,
+  "limit": 54,
+  "metadata_jsonl": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\massing_diversity_20260711\\metadata.jsonl",
+  "pages": 3,
+  "query": "",
+  "schema_version": "arr.maas.archdaily_api_collection.v1",
+  "site": "us",
+  "source": "archdaily_api",
+  "start_path": "/projects"
+}

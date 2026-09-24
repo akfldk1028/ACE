@@ -1,0 +1,14 @@
+{
+  "download_images": true,
+  "image_count": 36,
+  "images_dir": "docs/ai-session-memory/reference-corpus/archdaily/api/houses/images",
+  "item_count": 36,
+  "limit": 36,
+  "metadata_jsonl": "docs/ai-session-memory/reference-corpus/archdaily/api/houses/metadata.jsonl",
+  "pages": 2,
+  "query": "",
+  "schema_version": "arr.maas.archdaily_api_collection.v1",
+  "site": "us",
+  "source": "archdaily_api",
+  "start_path": "/projects/categories/houses"
+}

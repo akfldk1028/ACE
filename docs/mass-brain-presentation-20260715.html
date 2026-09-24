@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mass-Brain · 건축 설계 관계 기억 시스템</title>
+  <style>
+    :root {
+      --ink:#e9f2ff; --muted:#8fa5bf; --line:#263b55; --panel:#101d2e;
+      --cyan:#35d3c8; --blue:#5ea0ff; --orange:#ff9f43; --pink:#ff6ea8;
+      --green:#67d391; --red:#ff7777; --bg:#07111f;
+    }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { background:var(--bg); color:var(--ink); font-family:"Pretendard","Noto Sans KR",Arial,sans-serif; }
+    .slide { width:1920px; height:1080px; padding:54px 68px 42px; position:relative; background:
+      radial-gradient(circle at 83% 8%, rgba(53,211,200,.12), transparent 25%),
+      linear-gradient(145deg, #07111f 0%, #091727 58%, #07111f 100%); }
+    header { display:flex; justify-content:space-between; align-items:flex-start; }
+    .eyebrow { color:var(--cyan); font-weight:800; letter-spacing:.14em; font-size:16px; }
+    h1 { margin:8px 0 6px; font-size:44px; line-height:1.12; letter-spacing:-.035em; }
+    .subtitle { color:var(--muted); font-size:18px; }
+    .status { display:flex; align-items:center; gap:10px; border:1px solid #40506a; border-radius:99px; padding:11px 18px; font-weight:700; background:#0c192a; }
+    .status i { width:10px; height:10px; border-radius:50%; background:var(--orange); box-shadow:0 0 16px var(--orange); }
+    .grid { display:grid; grid-template-columns: 1.2fr 2.3fr 1.08fr; gap:24px; margin-top:32px; height:756px; }
+    .panel { border:1px solid var(--line); border-radius:18px; background:rgba(16,29,46,.92); box-shadow:0 18px 50px rgba(0,0,0,.22); overflow:hidden; }
+    .panel-head { padding:20px 22px 14px; border-bottom:1px solid var(--line); }
+    .panel-head b { font-size:20px; }
+    .panel-head span { display:block; margin-top:5px; color:var(--muted); font-size:13px; }
+    .corpus { padding:18px 20px; display:grid; gap:14px; }
+    .source { border:1px solid #28425e; border-radius:14px; padding:14px; background:#0b1829; }
+    .source-top { display:flex; gap:14px; align-items:center; }
+    .thumb { width:78px; height:58px; border-radius:9px; object-fit:cover; border:1px solid #39536f; background:#1b2b3c; }
+    .source h3 { margin:0 0 5px; font-size:17px; }
+    .source p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .count { margin-left:auto; color:var(--cyan); font-size:25px; font-weight:900; }
+    .grammar { display:flex; flex-wrap:wrap; gap:7px; margin-top:11px; }
+    .chip { padding:6px 9px; border-radius:7px; color:#cfe0f4; background:#172a40; border:1px solid #29435f; font-size:12px; font-weight:700; }
+    .warning { padding:13px 14px; border-radius:12px; border:1px solid rgba(255,159,67,.45); background:rgba(255,159,67,.08); color:#ffd0a2; font-size:13px; line-height:1.5; }
+    .flow { padding:22px; position:relative; }
+    .flow-row { display:grid; grid-template-columns:1fr 64px 1fr 64px 1fr; align-items:stretch; gap:0; }
+    .flow-row + .flow-row { margin-top:20px; }
+    .node { min-height:172px; border:1px solid #31516f; border-radius:16px; padding:18px; background:linear-gradient(160deg,#102139,#0b1727); position:relative; }
+    .node::before { content:""; position:absolute; width:9px; height:9px; border-radius:50%; top:20px; right:17px; background:var(--cyan); box-shadow:0 0 13px var(--cyan); }
+    .node.orange::before { background:var(--orange); box-shadow:0 0 13px var(--orange); }
+    .node.blue::before { background:var(--blue); box-shadow:0 0 13px var(--blue); }
+    .node.pink::before { background:var(--pink); box-shadow:0 0 13px var(--pink); }
+    .num { color:var(--muted); font-size:12px; font-weight:900; letter-spacing:.12em; }
+    .node h3 { margin:10px 0 8px; font-size:19px; }
+    .node p { color:var(--muted); font-size:13px; line-height:1.48; margin:0; }
+    .node strong { color:#fff; }
+    .arrow { display:grid; place-items:center; color:#4d7397; font-size:30px; }
+    .feedback { margin-top:20px; border:1px dashed #3b617d; border-radius:14px; padding:13px 18px; display:flex; align-items:center; justify-content:space-between; color:#a9bfd5; font-size:13px; background:rgba(53,211,200,.035); }
+    .feedback b { color:var(--cyan); }
+    .metric-wrap { padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .metric { padding:14px; border-radius:13px; background:#0b1828; border:1px solid #263e58; min-height:88px; }
+    .metric strong { display:block; font-size:29px; color:#fff; }
+    .metric span { display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35; }
+    .real { grid-column:1 / -1; border-color:rgba(53,211,200,.38); background:rgba(53,211,200,.055); }
+    .promotion { margin:0 18px 16px; padding:14px; border:1px solid rgba(255,119,119,.36); border-radius:13px; background:rgba(255,119,119,.055); }
+    .promotion h3 { margin:0 0 8px; color:#ffaaaa; font-size:15px; }
+    .promotion ul { padding-left:18px; margin:0; color:#becde0; font-size:12px; line-height:1.55; }
+    .legend { margin:0 18px; padding-top:15px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; line-height:1.6; }
+    footer { position:absolute; left:68px; right:68px; bottom:24px; display:flex; justify-content:space-between; color:#607a98; font-size:12px; }
+    footer b { color:#9db3cb; }
+  </style>
+</head>
+<body>
+<main class="slide">
+  <header>
+    <div>
+      <div class="eyebrow">ARR × GRL · DOMAIN REASONING MEMORY</div>
+      <h1>Mass-Brain: 건축언어를 “형태 이름”이 아닌<br/>실행 가능한 공간 관계로 기억하는 시스템</h1>
+      <div class="subtitle">실제 PNU 1168011800104170004 · 2026-07-15 DB 스냅샷</div>
+    </div>
+    <div class="status"><i></i> SHADOW 검증 중 · 자동 승격 전</div>
+  </header>
+
+  <section class="grid">
+    <article class="panel">
+      <div class="panel-head"><b>01. 설계 지식 입력</b><span>건축사의 언어와 사례를 좌표 복사가 아닌 원리로 추상화</span></div>
+      <div class="corpus">
+        <div class="source">
+          <div class="source-top">
+            <img class="thumb" src="260506/BOOK/스캔_smallpdf_1.jpg" alt="건축 언어 책 스캔" />
+            <div><h3>건축언어 BOOK</h3><p>건축사가 제공한 설계 언어·도해</p></div><div class="count">69p</div>
+          </div>
+        </div>
+        <div class="source">
+          <div class="source-top">
+            <img class="thumb" src="images.jpg" alt="건축 레퍼런스" />
+            <div><h3>ArchDaily + 레퍼런스</h3><p>프로그램·형상·공간관계의 시각 사례</p></div><div class="count">338</div>
+          </div>
+        </div>
+        <div class="source">
+          <h3>관계 어휘 · 현재 7축</h3>
+          <div class="grammar">
+            <span class="chip">PRESERVE 보존</span><span class="chip">CARVE 비우기</span>
+            <span class="chip">STEP 단차</span><span class="chip">BEND 흐름</span>
+            <span class="chip">BRIDGE 연결</span><span class="chip">CLUSTER 군집</span>
+            <span class="chip">FOLD 절곡</span>
+          </div>
+        </div>
+        <div class="warning"><b>중요:</b> 이미지/책을 많이 넣는 것만으로 학습되지 않는다. VLM이 관계를 추출하고, 실제 컴파일·평가 결과가 다시 기억으로 돌아와야 한다.</div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><b>02. 실제 생성·검증 폐루프</b><span>LLM/VLM의 말이 아니라 typed graph와 기하 실행 결과가 설계 근거</span></div>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="node">
+            <div class="num">A · DISTILL</div><h3>VLM 관계 추상화</h3>
+            <p>이미지와 책에서 <strong>void, step, bend, bridge, hierarchy</strong>를 추출. 건물 좌표와 고유 외형은 복사하지 않음.</p>
+          </div><div class="arrow">→</div>
+          <div class="node blue">
+            <div class="num">B · REMEMBER</div><h3>GRL 관계 기억</h3>
+            <p>언어·프로그램·대지맥락·성공/실패를 append-only 버전으로 보존. 유사성과 대비 관계를 탐색.</p>
+          </div><div class="arrow">→</div>
+          <div class="node pink">
+            <div class="num">C · RECOMBINE</div><h3>Mass-Brain 재조합</h3>
+            <p>검증된 부모의 <strong>coherent typed subgraph</strong>를 최대 3개 주요 조작으로 결합해 MassDSL 제안 생성.</p>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="node orange">
+            <div class="num">F · PROMOTE</div><h3>성과 기억·승격</h3>
+            <p>VLM 승률, 사용자 선택, hard-gate 동등성을 누적. 조건 충족 전에는 <strong>shadow 슬롯 0</strong> 유지.</p>
+          </div><div class="arrow">←</div>
+          <div class="node">
+            <div class="num">E · CRITIQUE</div><h3>VLM + 건축가 피드백</h3>
+            <p>시각 품질을 점수만 매기지 않고 typed graph-edit로 환류. 실패 유형과 사용자 선택을 함께 기록.</p>
+          </div><div class="arrow">←</div>
+          <div class="node blue">
+            <div class="num">D · COMPILE & GATE</div><h3>ARR 실제 기하·법규 검증</h3>
+            <p>PNU 대지에 컴파일한 뒤 FAR/BCR/높이/주차/clean-mass를 hard gate로 검사. 미실행 제안은 학습 성공으로 인정하지 않음.</p>
+          </div>
+        </div>
+        <div class="feedback"><span>↺ 성공·실패 모두 <b>관계 프로필 + 실행 그래프 + 평가 근거</b>로 다음 세대에 환류</span><span>법규/VLM 우회 불가</span></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><b>03. 현재 실데이터</b><span>발표용 수치와 한계를 함께 공개</span></div>
+      <div class="metric-wrap">
+        <div class="metric"><strong>64</strong><span>실제 PNU 건축언어 노드</span></div>
+        <div class="metric"><strong>2,016</strong><span>동일/대비 관계 쌍</span></div>
+        <div class="metric"><strong>2</strong><span>append-only 그래프 버전</span></div>
+        <div class="metric"><strong>94 + 6</strong><span>실행 가능 + 실험 제안</span></div>
+        <div class="metric"><strong>28</strong><span>저장된 실행 결과</span></div>
+        <div class="metric"><strong>2 / 14</strong><span>v100 제안 중 실제 VLM 도달</span></div>
+        <div class="metric real"><strong>19 / 20</strong><span>v100 기존 포트폴리오 보존 · 시각 floor는 아직 실패</span></div>
+      </div>
+      <div class="promotion">
+        <h3>아직 자동학습 승격 불가</h3>
+        <ul><li>5개 실제 프로젝트와 100회 blind 비교 필요</li><li>VLM 승률 60%·사용자 선택률 30% 필요</li><li>법규·주차 hard-gate 동등성 입증 필요</li></ul>
+      </div>
+      <div class="legend"><b>현재 병목</b><br/>BOOK/이미지 → typed relation graph 자동 변환, 평가된 부모만 재사용, 14개 중 2개에 그친 exact compile 생존률 개선.</div>
+    </article>
+  </section>
+  <footer><span><b>표현 원칙:</b> precedent 복제가 아닌 관계·조작 문법의 일반화</span><span>Mass-Brain v0.1 · GRL contract v1 · ARR integration</span></footer>
+</main>
+</body>
+</html>

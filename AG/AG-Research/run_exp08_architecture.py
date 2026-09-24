@@ -17,14 +17,15 @@ from typing import Any, Sequence
 
 from iclr2027.exp08 import build_run_plan, execute_run_plans, summarize_pilot
 from iclr2027.architecture_teams import ArchitectureTeamFactory
+from iclr2027.architecture_target_roster import verify_frozen_target_roster
 from iclr2027.dataset import CASE_MANIFEST_SCHEMA, verify_frozen_registry
 from iclr2027.io import sha256_json, write_json_atomic
 from iclr2027.pilot_gate import ALLOWED_CASE_STAGES
 from iclr2027.projection import ProjectionIdentity, verify_private_case_binding
 from iclr2027.release import load_projection_identity
 from iclr2027.run_manifest import (
-    RUN_IDENTITY_FIELDS,
     RUN_MANIFEST_SCHEMA,
+    RUN_MANIFEST_V3_SCHEMA,
     run_manifest_identity,
     validate_run_manifest,
 )
@@ -60,9 +61,7 @@ def _runtime_dependency_digest(
                 raise ValueError(f"runtime dependency has no source: {module_name}")
             module_path = Path(module_file).resolve()
             discovered.append(
-                module_path.parent
-                if module_path.name == "__init__.py"
-                else module_path
+                module_path.parent if module_path.name == "__init__.py" else module_path
             )
         roots = tuple(discovered)
 
@@ -83,9 +82,7 @@ def _runtime_dependency_digest(
             raise ValueError("runtime dependency root has no Python source")
         dependency_digest.update(str(dependency_root).encode("utf-8"))
         for path in files:
-            dependency_digest.update(
-                path.relative_to(base).as_posix().encode("utf-8")
-            )
+            dependency_digest.update(path.relative_to(base).as_posix().encode("utf-8"))
             dependency_digest.update(path.read_bytes())
     return dependency_digest.hexdigest()
 
@@ -251,9 +248,10 @@ def _load_manifest_bound_cases(
         ):
             raise ValueError(f"case manifest hash mismatch: {key}")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if not isinstance(manifest, dict) or manifest.get(
-            "schema_version"
-        ) != CASE_MANIFEST_SCHEMA:
+        if (
+            not isinstance(manifest, dict)
+            or manifest.get("schema_version") != CASE_MANIFEST_SCHEMA
+        ):
             raise ValueError(f"unsupported case manifest schema: {key}")
         files = manifest.get("files")
         if not isinstance(files, dict):
@@ -291,9 +289,7 @@ def _load_manifest_bound_cases(
         gold_records = typed_by_side["gold"]
         if not (len(publics) == len(bindings) == len(gold_records)):
             raise ValueError(f"case triplet cardinality mismatch: {key}")
-        for public_case, binding, gold_record in zip(
-            publics, bindings, gold_records
-        ):
+        for public_case, binding, gold_record in zip(publics, bindings, gold_records):
             packet = verify_private_case_binding(
                 public_case,
                 binding,
@@ -316,11 +312,7 @@ def _validate_input_hashes(value: Any, *, expected_count: int) -> None:
         raise ValueError("run manifest input_hashes cardinality is invalid")
     for key, digest in value.items():
         match = _INPUT_HASH_KEY.fullmatch(str(key))
-        if (
-            match is None
-            or not isinstance(digest, str)
-            or match.group(1) != digest
-        ):
+        if match is None or not isinstance(digest, str) or match.group(1) != digest:
             raise ValueError("run manifest input_hashes are not condition-blind")
 
 
@@ -351,13 +343,10 @@ def _existing_compatible_manifest(
     if not path.is_file():
         return None
     raw_existing = json.loads(path.read_text(encoding="utf-8"))
-    if (
-        not isinstance(raw_existing, dict)
-        or raw_existing.get("schema_version") != RUN_MANIFEST_SCHEMA
-    ):
-        raise ValueError(
-            "unsupported run manifest schema; use a new --checkpoint-dir"
-        )
+    if not isinstance(raw_existing, dict) or raw_existing.get(
+        "schema_version"
+    ) != proposed.get("schema_version"):
+        raise ValueError("unsupported run manifest schema; use a new --checkpoint-dir")
     proposed_hashes = proposed.get("input_hashes")
     expected_hash_count = (
         len(proposed_hashes) if isinstance(proposed_hashes, dict) else 0
@@ -376,12 +365,14 @@ def _existing_compatible_manifest(
         existing = validate_run_manifest(raw_existing)
         proposed = validate_run_manifest(proposed)
     except ValueError as exc:
-        raise ValueError(str(exc)) from exc
+        raise ValueError(
+            "incompatible run directory; use a new --checkpoint-dir"
+        ) from exc
     existing_identity = run_manifest_identity(existing)
     proposed_identity = run_manifest_identity(proposed)
     mismatched = [
         field
-        for field in RUN_IDENTITY_FIELDS
+        for field in proposed_identity
         if existing_identity[field] != proposed_identity[field]
     ]
     if mismatched:
@@ -425,6 +416,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("data/iclr2027/freeze_receipt.json"),
     )
+    parser.add_argument("--target-roster", type=Path)
+    parser.add_argument("--target-roster-receipt", type=Path)
     parser.add_argument(
         "--checkpoint-dir",
         type=Path,
@@ -445,10 +438,28 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    has_target_roster = args.target_roster is not None
+    has_target_roster_receipt = args.target_roster_receipt is not None
+    if has_target_roster != has_target_roster_receipt:
+        raise ValueError(
+            "--target-roster and --target-roster-receipt must be supplied together"
+        )
+    has_target_sidecar = has_target_roster and has_target_roster_receipt
     if args.allow_unfrozen and not args.dry_run:
         raise ValueError("--allow-unfrozen is permitted only with --dry-run")
+    if has_target_sidecar and args.allow_unfrozen:
+        raise ValueError("target roster sidecars do not permit --allow-unfrozen")
+    if has_target_sidecar and args.split != "dev":
+        raise ValueError("target roster sidecars require --split dev")
+    target_roster_receipt = None
     if not args.allow_unfrozen:
         projection_identity = load_projection_identity(args.projection_identity)
+        if has_target_sidecar:
+            target_roster_receipt = verify_frozen_target_roster(
+                args.target_roster,
+                args.target_roster_receipt,
+                projection_identity_commitment=projection_identity.commitment,
+            )
         split_manifest = verify_frozen_registry(
             args.registry,
             split_manifest_path=args.split_manifest,
@@ -468,9 +479,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         input_mode = "frozen_private_binding"
         identity_commitment: str | None = projection_identity.commitment
-        registry_core_hash: str | None = str(
-            split_manifest["registry_core_sha256"]
-        )
+        registry_core_hash: str | None = str(split_manifest["registry_core_sha256"])
         split_manifest_hash: str | None = hashlib.sha256(
             args.split_manifest.read_bytes()
         ).hexdigest()
@@ -507,9 +516,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         model=args.model,
         code_commit=code_commit,
     )
-    args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    manifest = validate_run_manifest({
-        "schema_version": RUN_MANIFEST_SCHEMA,
+    manifest_payload = {
+        "schema_version": (
+            RUN_MANIFEST_V3_SCHEMA
+            if target_roster_receipt is not None
+            else RUN_MANIFEST_SCHEMA
+        ),
         "input_mode": input_mode,
         "split": args.split,
         "patterns": list(args.patterns),
@@ -533,11 +545,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         "identity_commitment": identity_commitment,
         "registry_core_sha256": registry_core_hash,
         "split_manifest_sha256": split_manifest_hash,
-        "plan_sha256": sha256_json(
-            [plan.resume_identity for plan in plans]
-        ),
+        "plan_sha256": sha256_json([plan.resume_identity for plan in plans]),
         "executed": False,
-    })
+    }
+    if target_roster_receipt is not None:
+        manifest_payload.update(
+            {
+                "target_roster_sha256": target_roster_receipt.target_roster_sha256,
+                "target_roster_receipt_sha256": target_roster_receipt.receipt_sha256,
+                "combined_dev_target_count": (
+                    target_roster_receipt.combined_dev_target_count
+                ),
+            }
+        )
+    manifest = validate_run_manifest(manifest_payload)
     existing_manifest = _existing_compatible_manifest(
         args.checkpoint_dir,
         manifest,
@@ -547,6 +568,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if existing_manifest is not None:
         manifest = existing_manifest if existing_manifest["executed"] else manifest
+    args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
     write_json_atomic(
         args.checkpoint_dir / "run_plan.json",
         [plan.to_dict() for plan in plans],
@@ -561,11 +583,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if not args.confirm_paid_run:
         raise ValueError("actual execution requires --confirm-paid-run")
-    if (
-        args.estimated_cost_per_run_usd is None
-        or args.estimated_cost_per_run_usd < 0.0
-    ):
-        raise ValueError("actual execution requires a nonnegative cost estimate per run")
+    if args.estimated_cost_per_run_usd is None or args.estimated_cost_per_run_usd < 0.0:
+        raise ValueError(
+            "actual execution requires a nonnegative cost estimate per run"
+        )
     if not args.estimated_completion_date:
         raise ValueError("actual execution requires --estimated-completion-date")
     completion_date = date.fromisoformat(args.estimated_completion_date)
@@ -589,7 +610,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             packets_by_case=packets_by_case,
             gold_by_case=gold_by_case,
             output_dir=args.checkpoint_dir,
-            team_builder=lambda pattern, model, allowed_evidence_ids: ArchitectureTeamFactory.build(
+            team_builder=lambda pattern,
+            model,
+            allowed_evidence_ids: ArchitectureTeamFactory.build(
                 pattern,
                 model=model,
                 allowed_evidence_ids=allowed_evidence_ids,
@@ -625,9 +648,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         estimated_total_cost_usd=estimated_total_cost,
     )
     summary_payload = {
-        **asdict(summary),
-        "estimated_completion_date": summary.estimated_completion_date.isoformat(),
-        "fault_families": list(summary.fault_families),
+        **summary.to_dict(),
         "stage_case_counts": manifest["stage_case_counts"],
     }
     write_json_atomic(args.checkpoint_dir / "pilot_summary.json", summary_payload)

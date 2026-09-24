@@ -1,0 +1,14 @@
+{
+  "download_images": true,
+  "image_count": 36,
+  "images_dir": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\sports_architecture\\images",
+  "item_count": 36,
+  "limit": 36,
+  "metadata_jsonl": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\sports_architecture\\metadata.jsonl",
+  "pages": 2,
+  "query": "",
+  "schema_version": "arr.maas.archdaily_api_collection.v1",
+  "site": "us",
+  "source": "archdaily_api",
+  "start_path": "/projects/categories/sports-architecture"
+}

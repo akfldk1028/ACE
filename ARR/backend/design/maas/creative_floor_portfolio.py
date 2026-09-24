@@ -213,8 +213,10 @@ def build_creative_floor_portfolio_report(
 
     target = int(target_count)
     ceiling = float(capacity_ceiling_m2)
-    if target < 1 or target > 100:
-        raise ValueError("target_count must be between 1 and 100")
+    # 200, with the command: the cycle's BOOK track authors BOOK_COUNT
+    # programs (120 for comp18).
+    if target < 1 or target > 200:
+        raise ValueError("target_count must be between 1 and 200")
     if not isfinite(ceiling) or ceiling <= 0.0:
         raise ValueError("capacity_ceiling_m2 must be positive")
 
@@ -309,6 +311,47 @@ def build_creative_floor_portfolio_report(
             continue
         stage_counts["structural_pass"] += 1
         eligible.append((input_index, authored, source_program_hash))
+
+    # Originals are the first `target` eligible programs, and the payload's
+    # order decided which: comp22's author wrote its 120 sentences grouped
+    # by base volume, so all twelve originals (and the explorations derived
+    # from them) were 1/1 while the other five labels waited behind them.
+    # The eligible list is interleaved by base seed, one from each in turn,
+    # payload order kept within a seed; programs without a seed are one group.
+    # Orientation too: with the seeds alone interleaved, all twelve of the
+    # same payload were long_axis. Within a seed the orientations take
+    # turns, and each seed starts its turn one orientation later than the
+    # seed before it, so twelve originals are six seeds by two orientations.
+    def _round_robin(queues):
+        out: list[tuple[int, Any, str]] = []
+        live = [list(queue) for queue in queues if queue]
+        while live:
+            for queue in list(live):
+                out.append(queue.pop(0))
+                if not queue:
+                    live.remove(queue)
+        return out
+
+    # And the principle: comp25's twelve were nine of one principle
+    # (join:split), the author's first sentence for every seed and
+    # orientation. Within an orientation the principles take turns too.
+    by_seed: dict[str, dict[str, dict[str, list[tuple[int, Any, str]]]]] = {}
+    for item in eligible:
+        metadata = item[1].program.metadata if isinstance(item[1].program.metadata, dict) else {}
+        by_seed.setdefault(str(metadata.get("base_seed") or ""), {}).setdefault(
+            str(metadata.get("book_orientation") or ""), {}).setdefault(
+            str(metadata.get("book_principle_id") or ""), []).append(item)
+    seed_queues = []
+    for seed_index, orientations in enumerate(by_seed.values()):
+        keys = list(orientations)
+        start = seed_index % len(keys)
+        orientation_queues = []
+        for orientation_index, key in enumerate(keys[start:] + keys[:start]):
+            principles = list(orientations[key].values())
+            turn = (seed_index + orientation_index) % len(principles)
+            orientation_queues.append(_round_robin(principles[turn:] + principles[:turn]))
+        seed_queues.append(_round_robin(orientation_queues))
+    eligible = _round_robin(seed_queues)
 
     source_ids = sorted({source_hash for _index, _authored, source_hash in eligible})
     # A round salt: the same payload in a later round meets a different
@@ -618,8 +661,8 @@ def build_creative_floor_portfolio(
 
     requested_count = int(count)
     ceiling = float(capacity_ceiling_m2)
-    if requested_count < 1 or requested_count > 100:
-        raise ValueError("count must be between 1 and 100")
+    if requested_count < 1 or requested_count > 200:
+        raise ValueError("count must be between 1 and 200")
     if not isfinite(ceiling) or ceiling <= 0.0:
         raise ValueError("capacity_ceiling_m2 must be positive")
 

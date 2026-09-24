@@ -1,0 +1,23 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "건축법규, 조례 임계치, 42개 규제 및 법정 주차대수 산정 에이전트",
+  "label": "Law Agent",
+  "config": {
+    "name": "law_agent",
+    "a2a_server_url": "http://localhost:8301",
+    "description": "건축법, 서울시 조례 건폐율/용적률 및 주차장법 시행령 별표1 계산",
+    "timeout": 300,
+    "skills": [
+      {"name": "law_land_analyze", "description": "대지 분석 및 용도지역, 주차 규제"},
+      {"name": "law_parcel_limits", "description": "조례 건폐율/용적률 및 면적 상한"},
+      {"name": "law_health", "description": "법규 엔진 헬스체크"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/25_ACE/agents/Lawagent/a2a/server.py",
+    "port": 8301,
+    "framework": "a2a_sdk_1_0"
+  }
+}

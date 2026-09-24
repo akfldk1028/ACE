@@ -1,0 +1,878 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-comp24:morph-compact-tall:creative-019",
+  "parent_shape_id": "7a170ae62282f2a81942",
+  "parent_program_hash": "20d6481fc843720fdd99809239df891f0839650c5862cf436e892f4776e8d58f",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d01_full_piloti_lift",
+      "book_composition_path_id": "book:path:e3bf742756cffd17883ca0b1e1c853ade41ebfc089e21d58c53370dfb829a029",
+      "root_id": "book02_lift",
+      "rationale": "Parent comp24-creative-019 delivers a compact-tall 5-storey mass with ~995m2 footprint leaving only 1463m2 available area on an irregular trapezoidal site. The parking solver placed 4 of 49 required stalls (45 unmet). Surface parking is structurally blocked because the building projection dominates the SE quadrant where the only permissible vehicle access frontage (SE edge [78.23,36.6]->[57.3,0.0]) is located. This child raises the full 1/1 long_axis mass on piloti at rise_ratio=0.20 (~3.8m clearance, one full storey), releasing the complete ~2500m2 site ground plane for parking. From the SE vehicle access edge (~43m clear), a single-loaded 90-degree module (11m depth: 5m stall + 6m aisle) can fit 4 rows along the parcel length = approximately 4 rows × 13 stalls = 52 stalls, satisfying the 49-space requirement including 2 accessible stalls. Spatial benefit: continuous public ground plane under piloti, civic edge on SE road. Conflict: GFA from 4 upper floors at ~800m2/floor = ~3200m2 vs target 4907m2 (-35%); inherited 5-storey/3.8m height preserved; piloti column grid and ground lobby not modelled in this mass stage.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/1"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "long_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Raises full 1/1 long_axis building on piloti at rise_ratio=0.20 (~3.8m clearance). Full site ground plane ~2500m2 freed for surface parking from SE access edge. Estimated 4 rows * 13 stalls = 52 stalls satisfies 49-space requirement.",
+        "unresolved_conflicts": "GFA delivered from 4 upper floors ~3200m2 vs contract target 4907m2 (-35%); piloti column spacing and structural capacity unverified at mass stage; ground lobby and vertical circulation core not placed; parking count requires remeasurement against delivered shape and SE frontage.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d02_half_bar_nw_se_parking",
+      "book_composition_path_id": "book:path:098d164f2dac1c44c5c33f388d1b2d94709de0fb3384379578d44d870b24f3fa",
+      "root_id": "book02_terrace",
+      "rationale": "The parent 995m2 footprint leaves only ~1463m2 available area, with SE parking limited to a narrow strip. This child uses a 1/2 long_axis seed to occupy only the NW half of the parcel (approximately 500m2 base), concentrating building mass away from the SE vehicle access frontage. The SE half of the site (~1250m2) becomes a clear surface parking zone connected directly to the SE road frontage. From the 43m vehicle access edge, 3 double-loaded rows * ~16 stalls = 48 stalls, satisfying 49 required (marginal; reported as near-satisfying; exact count depends on parcel geometry). A terrace (levels=2, setback_ratio=0.25, direction=x toward open/east) at upper floors steps the NW bar back, reducing shadow toward SE and creating a civic stepped profile. GFA: 1/2 base * 5 storeys * ~500m2/floor = ~2500m2 before terrace + terrace additions = approximately 3000-3500m2 (conflict vs target 4907m2, -30% to -40%; reported).",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/2"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "long_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_terrace",
+          "kind": "macro",
+          "operator": "terrace",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "levels",
+              "value_type": "number",
+              "numeric_value": 2
+            },
+            {
+              "name": "setback_ratio",
+              "value_type": "number",
+              "numeric_value": 0.25
+            },
+            {
+              "name": "direction",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "direction_sign",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "shift_per_level",
+              "value_type": "vector",
+              "vector_value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "semantic_role": "stepped_mass"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/2 long_axis seed occupies NW half of parcel. SE half ~1250m2 freed for surface parking along SE vehicle access frontage. Estimated 3 double-loaded rows * 16 stalls = 48 stalls; near-satisfying 49 requirement. Terrace steps back at upper floors.",
+        "unresolved_conflicts": "GFA ~3000-3500m2 vs target 4907m2 (-30-40%); deliberate density trade for parking. Exact parking count requires remeasurement against delivered shape. Terrace direction=x assumed aligned toward SE; parcel orientation to be confirmed.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d03_split_wing_parking_gap",
+      "book_composition_path_id": "book:path:e1085d42ea1641d73c5c3cf048ba765291bc487e8611b8b84a5f8b4457022dd3",
+      "root_id": "book02_split_wing",
+      "rationale": "The parking solver failed because the full footprint blocks the SE parking zone. This child splits the 1/1 short_axis mass into two parallel bars with gap_ratio=0.22 (creating ~11m gap on the ~50m parcel short axis = single-loaded 90-deg module depth). The gap runs NW-SE parallel to the vehicle access frontage, providing a clear aisle. Each bar faces the gap: stalls are placed against both bar faces inside the gap, and additional stalls along the SE frontage. Estimated parking: gap 40m run = 8 stalls each side = 16; plus SE strip = 33 stalls; total ~49, satisfying requirement. GFA: two bars, each ~375m2/floor * 5 = 1875m2 * 2 = 3750m2. ground_spine=true joins the two bars at grade with a low connecting slab, ensuring one connected solid; the upper gap remains open for parking. Spatial benefit: covered ground passage under spine between bars creates public through-route. Conflict: gap_ratio measurement depends on parcel dimensions; parking count requires remeasurement against delivered shape.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/1"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "short_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_split_wing",
+          "kind": "macro",
+          "operator": "split_wing",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "axis",
+              "value_type": "string",
+              "string_value": "x"
+            },
+            {
+              "name": "gap_ratio",
+              "value_type": "number",
+              "numeric_value": 0.22
+            },
+            {
+              "name": "height_ratio",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "bridge",
+              "value_type": "boolean",
+              "boolean_value": false
+            },
+            {
+              "name": "ground_spine",
+              "value_type": "boolean",
+              "boolean_value": true
+            },
+            {
+              "name": "ground_spine_width_ratio",
+              "value_type": "number",
+              "numeric_value": 0.1
+            },
+            {
+              "name": "ground_spine_height_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            },
+            {
+              "name": "layout",
+              "value_type": "string",
+              "string_value": "split"
+            },
+            {
+              "name": "connector_width_ratio",
+              "value_type": "number",
+              "numeric_value": 0.15
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Splits full 1/1 body into two bars with gap_ratio=0.22 (~11m gap on ~50m parcel). Gap = single-loaded aisle. Gap 40m run * 2 sides = 16 stalls; SE strip ~33 stalls; total ~49 satisfies requirement. ground_spine=true adds a low slab (ground_spine_height_ratio=0.2, ~0.76m) connecting the two bars at grade into one solid; upper gap remains open for parking access.",
+        "unresolved_conflicts": "GFA ~3750m2 vs target 4907m2 (-24%); gap_ratio exact measurement depends on parcel geometry. Parking count requires remeasurement. ground_spine slab (width_ratio=0.10, height_ratio=0.20) closes the ground gap; its height (~0.76m) is below vehicle clearance so parking runs to the side aisles rather than under the spine. axis=x gap assumed aligns toward SE access; must be confirmed against parcel orientation.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d04_three_eighth_l_lift",
+      "book_composition_path_id": "book:path:a3c6628aa86e6962b40c7261c2e7a8dca6c03b248f6b27bd92ebfdffd0318b3b",
+      "root_id": "book02_lift",
+      "rationale": "This child combines two parking strategies: reduced footprint (3/8 L-shape = 75% of full mass) and piloti lift. The 3/8 long_axis seed creates an L of three octants, whose notch naturally points toward the SE vehicle access. The lift (rise_ratio=0.20, ~3.8m) raises the L mass entirely, leaving the full ~2500m2 ground plane clear for parking. The L notch provides sheltered covered transition at the SE entry where drivers arrive. Parking: same as child 1, ~52 stalls from full ground access. GFA: 3/8 * parent footprint * 5 floors = ~1870m2 (conflict vs 4907m2 target, -62%; reported). Spatial benefit: L geometry creates entry/back-of-house differentiation; piloti corner at notch gives civic presence at vehicle and pedestrian arrival. Unresolved: L orientation controlled by orientation parameter only; actual L notch direction requires confirmation against parcel geometry.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "3/8"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "long_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "3/8 L-shape mass raised on piloti at rise_ratio=0.20. Full ~2500m2 ground plane freed. L notch oriented to SE vehicle access entry. ~52 stalls estimated from full ground access.",
+        "unresolved_conflicts": "GFA ~1870m2 vs target 4907m2 (-62%); large area deficit reported. L orientation and notch direction depend on parcel geometry interpretation. Piloti column grid unverified. Parking count requires remeasurement.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d05_full_courtyard_se_open",
+      "book_composition_path_id": "book:path:22098fdac9c87c4564a3dce72c38897c6a1d1497ef8573fd1eac17ee38f21533",
+      "root_id": "book02_courtyard",
+      "rationale": "The parent solid block at 995m2 footprint leaves insufficient SE ground for parking. This child carves an open courtyard in the SE face of the full 1/1 vertical mass, using courtyard(margin_ratio=0.30, open_side=east). The 30% margin creates a U-shaped building that recedes from the SE road frontage by ~15m (0.30 * ~50m parcel depth), freeing ~750m2 of SE ground inside the courtyard opening plus the remaining SE open strip. Combined available area: ~1463m2 minus building re-footprint = ~1100m2 open SE. Parking from SE: courtyard interior 25m wide * 30m deep = ~750m2 can hold 2 rows * 12 stalls = 24; SE frontage strip = 25 stalls; total ~49, satisfying requirement. GFA: U-plan ~5 floors, area depends on margin but ~4000-4500m2 (conflict vs 4907m2 target, -8% to -18%; reported). Spatial benefit: civic courtyard facing road; U-plan organizes building around central void; parking inside sheltered court.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/1"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "vertical"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_courtyard",
+          "kind": "macro",
+          "operator": "courtyard",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.3
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "civic_void"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Carves open-sided courtyard on east (SE access) face with margin_ratio=0.30. U-plan opens ~750m2 interior court + SE frontage strip = ~1100m2 open area. Estimated courtyard 2 rows * 12 stalls = 24 + SE 25 stalls = 49 stalls, satisfying requirement.",
+        "unresolved_conflicts": "GFA ~4000-4500m2 vs target 4907m2 (-8-18%); courtyard reduces usable floor area. Parking inside open courtyard requires aisle clearance from vehicle access entry; open_side=east maps to parcel SE frontage by program-frame convention; must be confirmed. Parking count requires remeasurement against delivered shape.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp25_d06_carve_void_se_plus_lift",
+      "book_composition_path_id": "book:path:e2c013fbdb205e7b1623ff23a989a428d59bb5918148150dbc035a3784cca3a0",
+      "root_id": "book03_lift",
+      "rationale": "This child combines carve_void and lift to maximize the SE parking envelope while preserving density in the NW portion of the site. First, carve_void(margin_ratio=0.28, open_side=east) removes the SE ~28% of the 1/1 long_axis mass, creating an open SE notch at ground and upper levels. Then lift(rise_ratio=0.20) raises the remaining carved mass on piloti, freeing the entire ground plane (~2500m2). The combination creates a large SE open zone under the carved lift for covered/sheltered parking, plus the full remaining ground plane. Estimated parking: full ground ~2500m2 at 11m module = 4 rows * 13 stalls = 52 stalls, satisfying 49 requirement. GFA: 1/1 - 28% void = ~72% * ~800m2/floor * 4 upper floors = ~2300m2 (conflict vs 4907m2 -53%; reported). Spatial benefit: large sheltered civic entry/arrival zone at SE; clear differentiation between NW programme bar and SE civic/parking base. Conflict: carve_void + lift interaction: lift applied after carve_void; combined rise_ratio=0.20 applied to carved solid; structural column placement at SE corner removed by carve is unverified.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4906.57,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {
+              "name": "width",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "depth",
+              "value_type": "number",
+              "numeric_value": 1.0
+            },
+            {
+              "name": "height",
+              "value_type": "number",
+              "numeric_value": 1.0
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": [
+            "unit_box"
+          ],
+          "parameters": [
+            {
+              "name": "matrix4",
+              "value_type": "matrix4",
+              "matrix4_value": [
+                [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  1.0,
+                  0.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                [
+                  0.0,
+                  0.0,
+                  0.0,
+                  1.0
+                ]
+              ]
+            }
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": [
+            "seed_block"
+          ],
+          "parameters": [
+            {
+              "name": "label",
+              "value_type": "string",
+              "string_value": "1/1"
+            },
+            {
+              "name": "orientation",
+              "value_type": "string",
+              "string_value": "long_axis"
+            }
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_carve_void",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": [
+            "book01_book_base_volume"
+          ],
+          "parameters": [
+            {
+              "name": "margin_ratio",
+              "value_type": "number",
+              "numeric_value": 0.28
+            },
+            {
+              "name": "open_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_void"
+        },
+        {
+          "id": "book03_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": [
+            "book02_carve_void"
+          ],
+          "parameters": [
+            {
+              "name": "rise_ratio",
+              "value_type": "number",
+              "numeric_value": 0.2
+            },
+            {
+              "name": "support_ratio",
+              "value_type": "number",
+              "numeric_value": 0.07
+            },
+            {
+              "name": "access_side",
+              "value_type": "string",
+              "string_value": "east"
+            }
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "carve_void(margin_ratio=0.28, open_side=east) removes SE ~28% of mass. lift(rise_ratio=0.20) raises carved solid on piloti. Full ~2500m2 ground plane freed. Estimated 4 rows * 13 stalls = 52 stalls satisfies 49 requirement.",
+        "unresolved_conflicts": "GFA ~2300m2 vs target 4907m2 (-53%); large area deficit from combined carve+lift. carve_void + lift interaction must be verified; structural column placement at SE void corner unverified. open_side=east maps to SE access frontage; parking count requires remeasurement.",
+        "parent_shape_id": "7a170ae62282f2a81942"
+      }
+    }
+  ]
+}

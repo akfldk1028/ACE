@@ -1,0 +1,198 @@
+{
+ "schemes": [
+  {
+   "name": "oval_dome_hall",
+   "primary_language": "solid_body",
+   "secondary_language": "a low oval hall whose own top rises to a dome, with the ground graded up to it from the open side",
+   "formal_principle": "One figure, one section: the oval plan has no corners to answer the parcel's skew, and the domed top makes the hall's centre its tallest room, so the building is read in one glance from the street as a single civic volume; the graded ground carries the public up to the raised entry without a stair.",
+   "dominant_gesture": "an oval hall crowned by a dome on a graded ground",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "oval",
+     "height": 0.5,
+     "storeys": 3,
+     "why": "An oval plan turns the skewed parcel into a figure with no corner to resolve; three storeys keeps the hall under the five-storey law with the dome above it."
+    },
+    {
+     "op": "crown",
+     "form": "dome",
+     "sag": 0.35,
+     "why": "The hall's own top rises to its centre - the tallest room is the middle one, so the section says what the plan says."
+    },
+    {
+     "op": "grade",
+     "smooth": true,
+     "run": 0.6,
+     "toward": "open",
+     "walk": true,
+     "why": "The ground is lifted toward the open side so the entry is reached on a walkable slope rather than a stair, and the dome is seen over a rising ground."
+    }
+   ]
+  },
+  {
+   "name": "stacked_saddle_terraces",
+   "primary_language": "solid_body",
+   "secondary_language": "three stacked tiers of unequal size whose top tier carries a saddle roof, with the ground stepping down toward the open side",
+   "formal_principle": "Hierarchy by stacking: each tier is smaller than the one below so the terraces face the open side, and the saddle top gives the highest tier a ridge across the parcel rather than a flat lid - the mass reads as a stepped hill with a crest.",
+   "dominant_gesture": "stepped tiers with a saddle crest and terraced ground",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "stack",
+     "n": 3,
+     "contrast": 1.6,
+     "height": 0.8,
+     "why": "Three tiers of contrasting size make terraces; contrast 1.6 keeps each step readable at five storeys total."
+    },
+    {
+     "op": "crown",
+     "form": "saddle",
+     "sag": 0.3,
+     "along": "long",
+     "why": "The top tier's own roof rises at its long ends and dips at the middle, a crest across the parcel instead of a flat lid."
+    },
+    {
+     "op": "grade",
+     "steps": 3,
+     "run": 0.5,
+     "toward": "open",
+     "why": "Three ground steps toward the open side continue the stacking into the site so the terraces start at the street."
+    }
+   ]
+  },
+  {
+   "name": "court_under_vaults",
+   "primary_language": "open_figure",
+   "secondary_language": "a low ring around a court, its bar carrying three vaults, with a sunken garden inscribed in the court",
+   "formal_principle": "A court is the figure and the vaults are its rhythm: the ring holds a shared garden away from the street, three vaults give the bar a repeating section legible from every side, and the garden is inscribed one level down so the court has depth as well as enclosure.",
+   "dominant_gesture": "a vaulted ring around a sunken court",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.3,
+     "height": 0.5,
+     "storeys": 3,
+     "why": "A ring of three storeys holds a court; bar 0.3 keeps rooms one span deep and daylit from both sides."
+    },
+    {
+     "op": "vault",
+     "rise": 0.8,
+     "bays": 3,
+     "why": "Three vaults across the bar give the ring a rhythm and a section that is not a slab."
+    },
+    {
+     "op": "inscribe",
+     "size": 0.4,
+     "depth": 0.3,
+     "why": "The court floor is inscribed a level down so the ring's ground floor opens onto a garden with height."
+    }
+   ]
+  },
+  {
+   "name": "split_gable_twins",
+   "primary_language": "solid_body",
+   "secondary_language": "a trapezoidal body split into two bars across a six-metre lane, each bar under its own gable",
+   "formal_principle": "Two bars, one lane: splitting the trapezoid opens a lane the width of a room that the street sees through, and the gables make the pair read as two houses of one family rather than one block with a slot.",
+   "dominant_gesture": "twin gabled bars across a lane",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "trapezoidal",
+     "height": 0.6,
+     "storeys": 4,
+     "why": "A trapezoid follows the parcel's skew; four storeys under the five-storey law."
+    },
+    {
+     "op": "split",
+     "ratio": 0.45,
+     "gap": 6,
+     "along": "long",
+     "why": "Split along the long axis with a six-metre lane - wide enough to read as a street, not a joint."
+    },
+    {
+     "op": "gable",
+     "pitch": 0.8,
+     "along": "long",
+     "bays": 2,
+     "why": "Each bar carries a gable so the pair reads as two houses; two bays keep the ridge within a storey."
+    }
+   ]
+  },
+  {
+   "name": "dished_field_of_rooms",
+   "primary_language": "porous_field",
+   "secondary_language": "four separate room-blocks lifted on supports, their tops dished toward their centres, tied loosely into a field",
+   "formal_principle": "A field rather than a block: four rooms stand apart so the ground runs between them, the dish tops collect the sky at each room's centre, and lifting them frees the ground as a shared covered field under the rooms.",
+   "dominant_gesture": "four lifted rooms with dished tops over an open ground",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "aggregate",
+     "n": 4,
+     "spread": 1.4,
+     "height": 0.5,
+     "storeys": 3,
+     "tie": 0.2,
+     "why": "Four rooms spread 1.4 leave ground between them; a loose tie keeps them one composition."
+    },
+    {
+     "op": "crown",
+     "form": "dish",
+     "sag": 0.35,
+     "why": "Each room's top dips to its centre - a dish that reads as a roof that holds, not a lid."
+    },
+    {
+     "op": "lift",
+     "clearance": 0.3,
+     "why": "Lifting the rooms frees the ground beneath as a covered public field."
+    }
+   ]
+  },
+  {
+   "name": "folded_plate_on_plinth",
+   "primary_language": "carved_body",
+   "secondary_language": "a chamfered two-storey plinth carrying a lodged upper body under a folded roof, the plinth punctured twice for light",
+   "formal_principle": "A plinth and a crown: the low chamfered base takes the parcel's edges, the lodged body above is the figure the street sees, and the folded roof gives that figure a profile; two punctures bring daylight down through the plinth to the rooms below.",
+   "dominant_gesture": "a folded-roof body lodged on a punctured plinth",
+   "reference_basis": "authored new work",
+   "floor_height_m": 3.6,
+   "ops": [
+    {
+     "op": "extrude",
+     "profile": "chamfered",
+     "height": 0.4,
+     "storeys": 2,
+     "why": "A two-storey chamfered plinth follows the parcel edges and stays low."
+    },
+    {
+     "op": "lodge",
+     "size": 0.4,
+     "over": 0.3,
+     "height": 0.6,
+     "why": "A smaller body lodged on the plinth is the figure; size 0.4 leaves plinth roof as terrace."
+    },
+    {
+     "op": "fold",
+     "folds": 2,
+     "pitch": 0.5,
+     "why": "The lodged body's roof folds twice - a profile, not a lid, declared shallow to survive delivery."
+    },
+    {
+     "op": "puncture",
+     "n": 2,
+     "size": 0.25,
+     "why": "Two punctures through the plinth bring daylight to the deep rooms below."
+    }
+   ]
+  }
+ ]
+}

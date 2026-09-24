@@ -16,10 +16,10 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-# Load OPENAI_API_KEY from law-domain-agents .env if not set
+# Load OPENAI_API_KEY from the statute search server's .env (agents/Lawagent/server/law-search) if not set
 if not os.environ.get('OPENAI_API_KEY'):
     env_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..',
-                            'AG', 'agent', 'law-domain-agents', '.env')
+                            'agents', 'Lawagent', 'server', 'law-search', '.env')
     env_path = os.path.normpath(env_path)
     if os.path.exists(env_path):
         with open(env_path, encoding='utf-8') as f:

@@ -1,0 +1,14 @@
+{
+  "download_images": true,
+  "image_count": 18,
+  "images_dir": "/mnt/d/Data/25_ACE/docs/ai-session-memory/reference-corpus/archdaily/api/offices/images",
+  "item_count": 18,
+  "limit": 24,
+  "metadata_jsonl": "/mnt/d/Data/25_ACE/docs/ai-session-memory/reference-corpus/archdaily/api/offices/metadata.jsonl",
+  "pages": 1,
+  "query": "",
+  "schema_version": "arr.maas.archdaily_api_collection.v1",
+  "site": "us",
+  "source": "archdaily_api",
+  "start_path": "/projects/categories/offices"
+}

@@ -1,0 +1,9 @@
+{
+  "collection_name": "initial_smoke",
+  "image_count": 6,
+  "images_dir": "docs/ai-session-memory/reference-corpus/archdaily/seeded/initial_smoke/images",
+  "item_count": 6,
+  "metadata_jsonl": "docs/ai-session-memory/reference-corpus/archdaily/seeded/initial_smoke/metadata.jsonl",
+  "schema_version": "arr.maas.archdaily_seed_collection.v1",
+  "source": "archdaily_api_legacy_smoke_moved"
+}

@@ -1,0 +1,1 @@
+{"cache_hit": false, "cache_schema_version": "arr.maas.geometry_vlm_cache.v2", "concept_scores": {"gesture_clarity": 0.92, "hierarchy": 0.92}, "critic_actions": ["needs_profiled_surface"], "geometry_edits": [], "model": "fake-vlm", "response_id": "resp-4-92", "score": 0.92}

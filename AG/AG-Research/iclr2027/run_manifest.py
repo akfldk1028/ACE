@@ -15,6 +15,7 @@ from .pilot_gate import ALLOWED_CASE_STAGES
 
 
 RUN_MANIFEST_SCHEMA = "ace.iclr2027.exp08_run_manifest.v2"
+RUN_MANIFEST_V3_SCHEMA = "ace.iclr2027.exp08_run_manifest.v3"
 RUN_IDENTITY_FIELDS = (
     "schema_version",
     "input_mode",
@@ -34,11 +35,27 @@ RUN_IDENTITY_FIELDS = (
     "split_manifest_sha256",
     "plan_sha256",
 )
+RUN_V3_IDENTITY_FIELDS = (
+    *RUN_IDENTITY_FIELDS,
+    "target_roster_sha256",
+    "target_roster_receipt_sha256",
+    "combined_dev_target_count",
+)
 
-_PLANNED_FIELDS = frozenset((*RUN_IDENTITY_FIELDS, "executed"))
-_EXECUTED_FIELDS = frozenset(
+_V2_PLANNED_FIELDS = frozenset((*RUN_IDENTITY_FIELDS, "executed"))
+_V2_EXECUTED_FIELDS = frozenset(
     (
-        *_PLANNED_FIELDS,
+        *_V2_PLANNED_FIELDS,
+        "execution",
+        "estimated_cost_per_run_usd",
+        "estimated_total_cost_usd",
+        "estimated_completion_date",
+    )
+)
+_V3_PLANNED_FIELDS = frozenset((*RUN_V3_IDENTITY_FIELDS, "executed"))
+_V3_EXECUTED_FIELDS = frozenset(
+    (
+        *_V3_PLANNED_FIELDS,
         "execution",
         "estimated_cost_per_run_usd",
         "estimated_total_cost_usd",
@@ -65,6 +82,8 @@ _SHA256_VALUE_FIELDS = frozenset(
         "registry_core_sha256",
         "split_manifest_sha256",
         "plan_sha256",
+        "target_roster_sha256",
+        "target_roster_receipt_sha256",
     }
 )
 _FORBIDDEN_PRIVACY_TOKENS = frozenset(
@@ -210,7 +229,7 @@ def _validate_execution(value: Any, *, planned_run_count: int) -> None:
 
 
 def validate_run_manifest(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Validate an exact v2 manifest and return an unaliased canonical copy."""
+    """Validate an exact v2 or v3 manifest and return an unaliased copy."""
 
     if not isinstance(payload, Mapping):
         raise ValueError("run manifest must be an object")
@@ -218,13 +237,20 @@ def validate_run_manifest(payload: Mapping[str, Any]) -> dict[str, Any]:
     executed = payload.get("executed")
     if type(executed) is not bool:
         raise ValueError("executed must be a native boolean")
+    schema = payload.get("schema_version")
+    if schema == RUN_MANIFEST_SCHEMA:
+        planned_fields = _V2_PLANNED_FIELDS
+        executed_fields = _V2_EXECUTED_FIELDS
+    elif schema == RUN_MANIFEST_V3_SCHEMA:
+        planned_fields = _V3_PLANNED_FIELDS
+        executed_fields = _V3_EXECUTED_FIELDS
+    else:
+        raise ValueError("unsupported run manifest schema")
     _require_exact_keys(
         payload,
-        _EXECUTED_FIELDS if executed else _PLANNED_FIELDS,
+        executed_fields if executed else planned_fields,
         "run manifest",
     )
-    if payload["schema_version"] != RUN_MANIFEST_SCHEMA:
-        raise ValueError("unsupported run manifest schema")
     input_mode = payload["input_mode"]
     if not isinstance(input_mode, str) or input_mode not in _INPUT_MODES:
         raise ValueError("unsupported run manifest input_mode")
@@ -279,6 +305,20 @@ def validate_run_manifest(payload: Mapping[str, Any]) -> dict[str, Any]:
     else:
         for field in commitment_fields:
             _sha256(payload[field], field)
+    if schema == RUN_MANIFEST_V3_SCHEMA:
+        if input_mode != "frozen_private_binding" or split != "dev":
+            raise ValueError("v3 run manifest requires frozen private dev input")
+        _sha256(payload["target_roster_sha256"], "target_roster_sha256")
+        _sha256(
+            payload["target_roster_receipt_sha256"],
+            "target_roster_receipt_sha256",
+        )
+        combined_count = _native_positive_int(
+            payload["combined_dev_target_count"],
+            "combined_dev_target_count",
+        )
+        if combined_count != 64:
+            raise ValueError("combined_dev_target_count must be exactly 64")
     if executed:
         _validate_execution(payload["execution"], planned_run_count=planned_run_count)
         per_run = _nonnegative_number(
@@ -322,13 +362,19 @@ def run_manifest_identity(payload: Mapping[str, Any]) -> dict[str, Any]:
     validated = validate_run_manifest(payload)
     return {
         field: copy.deepcopy(validated[field])
-        for field in RUN_IDENTITY_FIELDS
+        for field in (
+            RUN_V3_IDENTITY_FIELDS
+            if validated["schema_version"] == RUN_MANIFEST_V3_SCHEMA
+            else RUN_IDENTITY_FIELDS
+        )
     }
 
 
 __all__ = (
     "RUN_IDENTITY_FIELDS",
     "RUN_MANIFEST_SCHEMA",
+    "RUN_MANIFEST_V3_SCHEMA",
+    "RUN_V3_IDENTITY_FIELDS",
     "run_manifest_identity",
     "validate_run_manifest",
 )

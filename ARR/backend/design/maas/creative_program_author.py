@@ -65,7 +65,15 @@ def authored_programs_from_payload(
         if isinstance(item, dict) and item.get(KEY) is not None:
             validate_intent(item[KEY])
     exact_programs = payload.get("geometry_programs")
-    if isinstance(exact_programs, list):
+    if isinstance(payload.get("sentences"), list):
+        # BOOK sentences: the grammar builds the geometry; the author chose,
+        # sized and faced. See book_language/sentence_author.py.
+        import os
+        from .book_language.sentence_author import realize_sentence_payload
+        programs = realize_sentence_payload(
+            payload, expected_count=expected_count,
+            building_type=os.environ.get("BUILDING_TYPE") or None)
+    elif isinstance(exact_programs, list):
         programs = tuple(
             GeometryProgram.from_dict(item)
             for item in exact_programs

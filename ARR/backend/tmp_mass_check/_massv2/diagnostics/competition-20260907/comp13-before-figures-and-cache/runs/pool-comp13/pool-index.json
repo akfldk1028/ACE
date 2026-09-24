@@ -1,0 +1,908 @@
+[
+ {
+  "rank": 1,
+  "storeys": 6.0,
+  "name": "sweep_0479_extrude_puncture_vault_mansard",
+  "shape_id": "bdef3163843ef0d4450d"
+ },
+ {
+  "rank": 2,
+  "storeys": 6.0,
+  "name": "wide01_0141_extrude_grade_butterfly",
+  "shape_id": "4fb784eac10078e62297"
+ },
+ {
+  "rank": 3,
+  "storeys": 5.0,
+  "name": "mansard_ring_holds_the_court",
+  "shape_id": "1246d1751ba55e367982"
+ },
+ {
+  "rank": 4,
+  "storeys": 5.0,
+  "name": "sweep_0188_loop_mansard_canopy~held_ground^centred",
+  "shape_id": "6e6ec744aa4dd2ca3b83"
+ },
+ {
+  "rank": 5,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~dispersed_ground^off_open",
+  "shape_id": "4354e35024523a04aaef"
+ },
+ {
+  "rank": 6,
+  "storeys": 5.0,
+  "name": "i_bakgong_gori~dispersed_ground^cross_open",
+  "shape_id": "08c0101cef8049411f94"
+ },
+ {
+  "rank": 7,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~dispersed_ground^to_open",
+  "shape_id": "2302135e0398d499add1"
+ },
+ {
+  "rank": 8,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~worked_ground^to_open",
+  "shape_id": "f160f8517d6bcdb1c3f1"
+ },
+ {
+  "rank": 9,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~dispersed_ground^cross_open",
+  "shape_id": "06f7e25846c986596ef3"
+ },
+ {
+  "rank": 10,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~held_ground^off_open",
+  "shape_id": "c8dc110713ac23bb7cc7"
+ },
+ {
+  "rank": 11,
+  "storeys": 5.0,
+  "name": "sangok_c05_folded_room_comb",
+  "shape_id": "6206bda28d08f1199911"
+ },
+ {
+  "rank": 12,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~full_ground^off_open",
+  "shape_id": "2cc6f178f1c9a57c0019"
+ },
+ {
+  "rank": 13,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~held_ground",
+  "shape_id": "68d3e5c48d0f209c7b1e"
+ },
+ {
+  "rank": 14,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+^centred",
+  "shape_id": "8ba1ac7217161838065f"
+ },
+ {
+  "rank": 15,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~worked_ground^centred",
+  "shape_id": "4cec6cbddeeeca7ce0bb"
+ },
+ {
+  "rank": 16,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~held_ground^centred",
+  "shape_id": "fac8d67f025430327fc1"
+ },
+ {
+  "rank": 17,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~worked_ground",
+  "shape_id": "d681e57c428b703e1009"
+ },
+ {
+  "rank": 18,
+  "storeys": 5.0,
+  "name": "sweep_0227_loop_mansard_fold",
+  "shape_id": "422e4a6d38078975f4c8"
+ },
+ {
+  "rank": 19,
+  "storeys": 5.0,
+  "name": "sangok_open_court_threshold^centred",
+  "shape_id": "da70edfebc23b894ef3e"
+ },
+ {
+  "rank": 20,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open",
+  "shape_id": "c996dcd9e59262e65225"
+ },
+ {
+  "rank": 21,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~full_ground^to_open",
+  "shape_id": "72c542402cef29366dfc"
+ },
+ {
+  "rank": 22,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+",
+  "shape_id": "0a5cd53b8ef6d60da31a"
+ },
+ {
+  "rank": 23,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~worked_ground^cross_open",
+  "shape_id": "311c742b8a1b3dcf25f8"
+ },
+ {
+  "rank": 24,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~full_ground",
+  "shape_id": "1be82e7038fb5b52a814"
+ },
+ {
+  "rank": 25,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "shape_id": "40115b02b09902f83d13"
+ },
+ {
+  "rank": 26,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~full_ground^centred",
+  "shape_id": "8cea48dc1e0f41f8f3da"
+ },
+ {
+  "rank": 27,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~worked_ground^off_open",
+  "shape_id": "461b9f5b3aa58df29d76"
+ },
+ {
+  "rank": 28,
+  "storeys": 5.0,
+  "name": "d_bakgong_madang~full_ground^centred",
+  "shape_id": "5249ae2b2cc1a4777476"
+ },
+ {
+  "rank": 29,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~full_ground^cross_open",
+  "shape_id": "e9989994d64a2f4dc97a"
+ },
+ {
+  "rank": 30,
+  "storeys": 5.0,
+  "name": "sangok_c05_inhabited_inclined_ring~full_ground^off_open",
+  "shape_id": "1f6279c8b7100b0a5c62"
+ },
+ {
+  "rank": 31,
+  "storeys": 5.0,
+  "name": "spine_vault_arcade~dispersed_ground^to_open",
+  "shape_id": "8678f25a20f1f2bcbe76"
+ },
+ {
+  "rank": 32,
+  "storeys": 5.0,
+  "name": "loop_butterfly_open__d07_bar+~held_ground^cross_open",
+  "shape_id": "db42b2f889b34680019d"
+ },
+ {
+  "rank": 33,
+  "storeys": 5.0,
+  "name": "c_thrust_ramp",
+  "shape_id": "a31e73b958b3796164d9"
+ },
+ {
+  "rank": 34,
+  "storeys": 4.7,
+  "name": "split_gable_twins~full_ground^off_open",
+  "shape_id": "3d6ad61767af06531742"
+ },
+ {
+  "rank": 35,
+  "storeys": 4.7,
+  "name": "split_gable_twins~worked_ground^off_open",
+  "shape_id": "4ad85e1e1e78a666b507"
+ },
+ {
+  "rank": 36,
+  "storeys": 4.6,
+  "name": "split_gable_twins~full_ground",
+  "shape_id": "60fdd7190ce7c7ef2e9c"
+ },
+ {
+  "rank": 37,
+  "storeys": 4.6,
+  "name": "split_gable_twins~full_ground^centred",
+  "shape_id": "910b5637a1d2d8f73616"
+ },
+ {
+  "rank": 38,
+  "storeys": 4.6,
+  "name": "split_gable_twins~worked_ground",
+  "shape_id": "391ea0494845714c5d2c"
+ },
+ {
+  "rank": 39,
+  "storeys": 4.6,
+  "name": "split_gable_twins~full_ground^cross_open",
+  "shape_id": "ce30976e2f3112bf4433"
+ },
+ {
+  "rank": 40,
+  "storeys": 4.5,
+  "name": "split_gable_twins~worked_ground^centred",
+  "shape_id": "2cca4406d0141170f273"
+ },
+ {
+  "rank": 41,
+  "storeys": 4.5,
+  "name": "split_gable_twins~worked_ground^cross_open",
+  "shape_id": "9bb94184c770e9608318"
+ },
+ {
+  "rank": 42,
+  "storeys": 4.5,
+  "name": "split_gable_twins~full_ground^to_open",
+  "shape_id": "6d7156d77cddba111222"
+ },
+ {
+  "rank": 43,
+  "storeys": 4.4,
+  "name": "split_gable_twins~worked_ground^to_open",
+  "shape_id": "d17758d96fa677fcc7b3"
+ },
+ {
+  "rank": 44,
+  "storeys": 4.1,
+  "name": "slipped_twin_gables~full_ground^off_open",
+  "shape_id": "e16ae12f363cc76ba571"
+ },
+ {
+  "rank": 45,
+  "storeys": 4.0,
+  "name": "street_bar_wears_the_valley~worked_ground^centred",
+  "shape_id": "83bfc8bc5dbf05bc119d"
+ },
+ {
+  "rank": 46,
+  "storeys": 4.0,
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "shape_id": "70050afda2ba70381aa3"
+ },
+ {
+  "rank": 47,
+  "storeys": 4.0,
+  "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+  "shape_id": "5307259b76e79138a459"
+ },
+ {
+  "rank": 48,
+  "storeys": 4.0,
+  "name": "three_vaults_low_over_a_hall~full_ground^to_open",
+  "shape_id": "cfbaf8aab3b114dfd593"
+ },
+ {
+  "rank": 49,
+  "storeys": 4.0,
+  "name": "sawtooth_fold_hall~full_ground^centred",
+  "shape_id": "4df9145bc7a7d57e35b0"
+ },
+ {
+  "rank": 50,
+  "storeys": 4.0,
+  "name": "audit_sink",
+  "shape_id": "19dd57d88d63b3884c2e"
+ },
+ {
+  "rank": 51,
+  "storeys": 4.0,
+  "name": "sweep03_0047_extrude_mansard_canopy~worked_ground^to_open",
+  "shape_id": "8eaca4ac015409326243"
+ },
+ {
+  "rank": 52,
+  "storeys": 4.0,
+  "name": "cranked_bar_parcel~held_ground^cross_open",
+  "shape_id": "1774549f3147b072fa0e"
+ },
+ {
+  "rank": 53,
+  "storeys": 4.0,
+  "name": "sweep_0520_extrude_gable_butterfly_pinch",
+  "shape_id": "db2dabeda9f50e85eb46"
+ },
+ {
+  "rank": 54,
+  "storeys": 4.0,
+  "name": "wide01_0030_extrude_compress",
+  "shape_id": "941cfdd9a82b1eb53167"
+ },
+ {
+  "rank": 55,
+  "storeys": 4.0,
+  "name": "sweep03_0090_extrude_butterfly_fold_expand",
+  "shape_id": "8959b1814f2dc4980f21"
+ },
+ {
+  "rank": 56,
+  "storeys": 3.9,
+  "name": "loop_roof_opposite_mid_tall^centred",
+  "shape_id": "d3278fc76a372b964297"
+ },
+ {
+  "rank": 57,
+  "storeys": 3.8,
+  "name": "wide01_0070_extrude_compress_branch",
+  "shape_id": "93a9779c788f268d2099"
+ },
+ {
+  "rank": 58,
+  "storeys": 3.7,
+  "name": "chamfered_ring_field~full_ground^centred",
+  "shape_id": "6faf67ab5ba43fbff362"
+ },
+ {
+  "rank": 59,
+  "storeys": 3.6,
+  "name": "lodge_bridge_spine^centred",
+  "shape_id": "73e2e91b6e983e717689"
+ },
+ {
+  "rank": 60,
+  "storeys": 3.5,
+  "name": "ring_holds_its_court_aloft^centred",
+  "shape_id": "3e40642abe6f187b8b0d"
+ },
+ {
+  "rank": 61,
+  "storeys": 3.5,
+  "name": "sweep03_0106_loop_lift",
+  "shape_id": "d4ea35b9c71c5dd81a31"
+ },
+ {
+  "rank": 62,
+  "storeys": 3.4,
+  "name": "wild01_0129_loop_compress_interlock",
+  "shape_id": "376cb5ca06f43f4dd4a6"
+ },
+ {
+  "rank": 63,
+  "storeys": 3.2,
+  "name": "mies_square_plate~worked_ground^centred",
+  "shape_id": "8c6c9965bef26d7e8cdf"
+ },
+ {
+  "rank": 64,
+  "storeys": 3.2,
+  "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+  "shape_id": "11e2e6eec15a6f8b60ee"
+ },
+ {
+  "rank": 65,
+  "storeys": 3.2,
+  "name": "faceted_rampart_ring~worked_ground",
+  "shape_id": "f84e72cfe8d2a7f8dc64"
+ },
+ {
+  "rank": 66,
+  "storeys": 3.2,
+  "name": "wild01_0089_loop_twist",
+  "shape_id": "8ecd40a2a8f381511768"
+ },
+ {
+  "rank": 67,
+  "storeys": 3.0,
+  "name": "sangok_c04_civic_court",
+  "shape_id": "1383191c9cfbbec4c6b1"
+ },
+ {
+  "rank": 68,
+  "storeys": 3.0,
+  "name": "kr_three_ranges_one_tall_vault~held_ground",
+  "shape_id": "004258622e3e59e71e4c"
+ },
+ {
+  "rank": 69,
+  "storeys": 3.0,
+  "name": "two_fronts_share_one_valley~held_ground",
+  "shape_id": "198e3ffaa840817e92ce"
+ },
+ {
+  "rank": 70,
+  "storeys": 3.0,
+  "name": "sun_draws_the_long_slope~held_ground",
+  "shape_id": "2c224712ee75590b8528"
+ },
+ {
+  "rank": 71,
+  "storeys": 3.0,
+  "name": "wide01_0021_extrude_compress",
+  "shape_id": "3e1c29e08a906bd5150d"
+ },
+ {
+  "rank": 72,
+  "storeys": 3.0,
+  "name": "three_folds_carry_north_light~worked_ground",
+  "shape_id": "c4eee52c18c5a402e285"
+ },
+ {
+  "rank": 73,
+  "storeys": 3.0,
+  "name": "sweep03_0022_loop_mansard_fold~held_ground^centred",
+  "shape_id": "df4eaeec67895d7378b7"
+ },
+ {
+  "rank": 74,
+  "storeys": 3.0,
+  "name": "sangok_saddle_garden_room^centred",
+  "shape_id": "6923de71637888d65e74"
+ },
+ {
+  "rank": 75,
+  "storeys": 3.0,
+  "name": "sangok_c03_descending_civic_court",
+  "shape_id": "161c0058c29d26930843"
+ },
+ {
+  "rank": 76,
+  "storeys": 2.8,
+  "name": "ring_warped_roofs~worked_ground^cross_open",
+  "shape_id": "fa7f3df5e60b203b3a2e"
+ },
+ {
+  "rank": 77,
+  "storeys": 2.7,
+  "name": "field_under_butterfly_wings~held_ground^centred",
+  "shape_id": "fc872fd2512792462217"
+ },
+ {
+  "rank": 78,
+  "storeys": 2.7,
+  "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+  "shape_id": "7d3f2e4b92afe8526709"
+ },
+ {
+  "rank": 79,
+  "storeys": 2.6,
+  "name": "sangok_c04_hall_daily_street~full_ground^centred",
+  "shape_id": "57c2b01b0c870f71d8dc"
+ },
+ {
+  "rank": 80,
+  "storeys": 2.6,
+  "name": "sangok_c03_three_houses_common_ground~full_ground^centred",
+  "shape_id": "b8d88d8ec599faea1d32"
+ },
+ {
+  "rank": 81,
+  "storeys": 2.6,
+  "name": "sangok_terrace_lantern^centred",
+  "shape_id": "0cf92fe0101ad89b4746"
+ },
+ {
+  "rank": 82,
+  "storeys": 2.6,
+  "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+  "shape_id": "41a8739e010fce1dbb40"
+ },
+ {
+  "rank": 83,
+  "storeys": 2.5,
+  "name": "house_pile_lifted_on_legs~full_ground^centred",
+  "shape_id": "c12e20dd2f92e77093b5"
+ },
+ {
+  "rank": 84,
+  "storeys": 2.5,
+  "name": "loop_bar_stepped_roof_one_corner~full_ground",
+  "shape_id": "9594a548829da2183962"
+ },
+ {
+  "rank": 85,
+  "storeys": 2.5,
+  "name": "sangok_c05_radial_three_wings~held_ground",
+  "shape_id": "9488af685a38c2c075f9"
+ },
+ {
+  "rank": 86,
+  "storeys": 2.5,
+  "name": "sangok_c04_three_houses^cross_open",
+  "shape_id": "c3e46aaebcffab294545"
+ },
+ {
+  "rank": 87,
+  "storeys": 2.2,
+  "name": "folded_plate_on_plinth",
+  "shape_id": "19861730007233f47b0c"
+ },
+ {
+  "rank": 88,
+  "storeys": 2.2,
+  "name": "folded_plate_on_plinth^centred",
+  "shape_id": "fef725aab7bf9d149dce"
+ },
+ {
+  "rank": 89,
+  "storeys": 2.2,
+  "name": "low_hall_under_a_thin_canopy^centred",
+  "shape_id": "c28c21d9fc3882c821ee"
+ },
+ {
+  "rank": 90,
+  "storeys": 2.1,
+  "name": "stilted_tall_cluster",
+  "shape_id": "58c8bf31798ebff3f0e0"
+ },
+ {
+  "rank": 91,
+  "storeys": 2.1,
+  "name": "ruled_winding_taper",
+  "shape_id": "9fd1dfd167855ec2a6dc"
+ },
+ {
+  "rank": 92,
+  "storeys": 2.1,
+  "name": "sweep_0184_stack_compress^cross_open",
+  "shape_id": "0c8aabec9056d29c0a2e"
+ },
+ {
+  "rank": 93,
+  "storeys": 2.0,
+  "name": "gable_row_on_ground~held_ground",
+  "shape_id": "d954f8deb2b7a9cb8399"
+ },
+ {
+  "rank": 94,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~dispersed_ground^off_open",
+  "shape_id": "e27df4d2edb68fdfae25"
+ },
+ {
+  "rank": 95,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~worked_ground^to_open",
+  "shape_id": "41f9fd07e75af1a3f866"
+ },
+ {
+  "rank": 96,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~worked_ground^off_open",
+  "shape_id": "bb10c4b73dcc81ba8c6e"
+ },
+ {
+  "rank": 97,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~dispersed_ground^centred",
+  "shape_id": "9827f9a3c6cee1e4fb9e"
+ },
+ {
+  "rank": 98,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~dispersed_ground",
+  "shape_id": "dc12661da7449f5e66fc"
+ },
+ {
+  "rank": 99,
+  "storeys": 2.0,
+  "name": "mansard_crowned_cluster",
+  "shape_id": "96a4b3c6733308e5792e"
+ },
+ {
+  "rank": 100,
+  "storeys": 2.0,
+  "name": "sweep_0212_loop_gable~held_ground^centred",
+  "shape_id": "285c31e168b5c168a58c"
+ },
+ {
+  "rank": 101,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~held_ground^centred",
+  "shape_id": "bd6b701d199d23a389b8"
+ },
+ {
+  "rank": 102,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~worked_ground^centred",
+  "shape_id": "a3261952422c480ab466"
+ },
+ {
+  "rank": 103,
+  "storeys": 2.0,
+  "name": "sangok_c03_open_and_quiet_gardens",
+  "shape_id": "c826c97e61a77e9b4e01"
+ },
+ {
+  "rank": 104,
+  "storeys": 2.0,
+  "name": "sangok_c02_open_and_quiet_gardens",
+  "shape_id": "145ccc25b33c9237e730"
+ },
+ {
+  "rank": 105,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~full_ground^centred",
+  "shape_id": "7401dd34393b1018311d"
+ },
+ {
+  "rank": 106,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base",
+  "shape_id": "2226439b75e80bba88bc"
+ },
+ {
+  "rank": 107,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base^centred",
+  "shape_id": "fb245cc31e845e73165e"
+ },
+ {
+  "rank": 108,
+  "storeys": 2.0,
+  "name": "butterfly_bar_sunk~dispersed_ground^to_open",
+  "shape_id": "5b6925094825729115cf"
+ },
+ {
+  "rank": 109,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~full_ground",
+  "shape_id": "211bd87a04412e6d25a5"
+ },
+ {
+  "rank": 110,
+  "storeys": 2.0,
+  "name": "sangok_c04_two_gardens~full_ground^cross_open",
+  "shape_id": "e0efd2fcf3269d302770"
+ },
+ {
+  "rank": 111,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "shape_id": "64c94edfe13ebcdc018e"
+ },
+ {
+  "rank": 112,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~full_ground^to_open",
+  "shape_id": "6d45bf8f35834f0b2295"
+ },
+ {
+  "rank": 113,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~dispersed_ground^cross_open",
+  "shape_id": "2047fce01c9a08261d9a"
+ },
+ {
+  "rank": 114,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~dispersed_ground^to_open",
+  "shape_id": "118b308c47781d76fd40"
+ },
+ {
+  "rank": 115,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~held_ground",
+  "shape_id": "fdef05d4b7426cb1ddc8"
+ },
+ {
+  "rank": 116,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~worked_ground",
+  "shape_id": "28942f25f7f2d6dc65b2"
+ },
+ {
+  "rank": 117,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~full_ground^off_open",
+  "shape_id": "daadf0804abbd3178a5f"
+ },
+ {
+  "rank": 118,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~worked_ground^cross_open",
+  "shape_id": "20036b77a6d1fc7a8ecf"
+ },
+ {
+  "rank": 119,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~held_ground^cross_open",
+  "shape_id": "3925cdb8038b54464f04"
+ },
+ {
+  "rank": 120,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~held_ground^off_open",
+  "shape_id": "1ec127acc3012423a8ee"
+ },
+ {
+  "rank": 121,
+  "storeys": 2.0,
+  "name": "sangok_c04_develop_perforated_base~held_ground^to_open",
+  "shape_id": "0b0eb6a52a825f05a868"
+ },
+ {
+  "rank": 122,
+  "storeys": 2.0,
+  "name": "comp10_distributed_halls_rising_roofs~dispersed_ground^to_open",
+  "shape_id": "d873e0ed0d4bf009af50"
+ },
+ {
+  "rank": 123,
+  "storeys": 1.9,
+  "name": "sangok_c07_grounded_wings_common_roof~full_ground^to_open",
+  "shape_id": "11fd6faef83d12fb48be"
+ },
+ {
+  "rank": 124,
+  "storeys": 1.9,
+  "name": "sweep_0231_stack_butterfly_mansard",
+  "shape_id": "1d7ceca98bc88940856d"
+ },
+ {
+  "rank": 125,
+  "storeys": 1.9,
+  "name": "wild01_0106_loop_grade",
+  "shape_id": "1047b17858297e7e709a"
+ },
+ {
+  "rank": 126,
+  "storeys": 1.8,
+  "name": "grade_hill_open_face^centred",
+  "shape_id": "597be82a1cf2a7eab9aa"
+ },
+ {
+  "rank": 127,
+  "storeys": 1.7,
+  "name": "sangok_c05_bearing_bar_assembly^off_open",
+  "shape_id": "7fff5ae98ac9727ca0f9"
+ },
+ {
+  "rank": 128,
+  "storeys": 1.7,
+  "name": "wide01_0168_aggregate_split",
+  "shape_id": "d2e053ca28aef8f1f46e"
+ },
+ {
+  "rank": 129,
+  "storeys": 1.7,
+  "name": "one_cut_four_towers",
+  "shape_id": "8e3936691de1c56ec088"
+ },
+ {
+  "rank": 130,
+  "storeys": 1.7,
+  "name": "d_saltbox_haengryeol~worked_ground",
+  "shape_id": "06fe4ba6bd0b51fa4643"
+ },
+ {
+  "rank": 131,
+  "storeys": 1.7,
+  "name": "wide01_0197_stack_taper",
+  "shape_id": "7a563815fa7e72f2bf5a"
+ },
+ {
+  "rank": 132,
+  "storeys": 1.6,
+  "name": "butterfly_saltbox_pair",
+  "shape_id": "151b01b0da12a804f1db"
+ },
+ {
+  "rank": 133,
+  "storeys": 1.6,
+  "name": "wide01_0135_loop_twist_butterfly",
+  "shape_id": "7510aefeadc5d3128565"
+ },
+ {
+  "rank": 134,
+  "storeys": 1.5,
+  "name": "dished_field_of_rooms^centred",
+  "shape_id": "7a48b1f080b0bf5cc7d3"
+ },
+ {
+  "rank": 135,
+  "storeys": 1.5,
+  "name": "dished_field_of_rooms",
+  "shape_id": "3b2bcd857c0979b0acb2"
+ },
+ {
+  "rank": 136,
+  "storeys": 1.5,
+  "name": "sweep03_0155_aggregate_mansard_butterfly",
+  "shape_id": "5c6fbcc57c3e69201651"
+ },
+ {
+  "rank": 137,
+  "storeys": 1.4,
+  "name": "court_bitten_slab_pile",
+  "shape_id": "40d0c30a8787b49ae2ef"
+ },
+ {
+  "rank": 138,
+  "storeys": 1.4,
+  "name": "sweep03_0183_aggregate_butterfly",
+  "shape_id": "04c80b6002657eb09daa"
+ },
+ {
+  "rank": 139,
+  "storeys": 1.4,
+  "name": "wild01_0116_aggregate_grade",
+  "shape_id": "a1f4a3270d94c93cfc5e"
+ },
+ {
+  "rank": 140,
+  "storeys": 1.3,
+  "name": "wide01_0201_aggregate_mansard",
+  "shape_id": "c25432b07826f6a8fe69"
+ },
+ {
+  "rank": 141,
+  "storeys": 1.1,
+  "name": "slipped_crown",
+  "shape_id": "cf66a8bcda0bd043951a"
+ },
+ {
+  "rank": 142,
+  "storeys": 1.0,
+  "name": "sweep_0525_loop_butterfly_fold",
+  "shape_id": "b5b0b79b194c6d0bd92d"
+ },
+ {
+  "rank": 143,
+  "storeys": 1.0,
+  "name": "wild01_0135_loop_carve",
+  "shape_id": "1bc57bddcc543a7f4ddd"
+ },
+ {
+  "rank": 144,
+  "storeys": 1.0,
+  "name": "wild01_0140_aggregate_bend",
+  "shape_id": "0612cd20b5ca8c5804b5"
+ },
+ {
+  "rank": 145,
+  "storeys": 1.0,
+  "name": "wild01_0091_aggregate_branch",
+  "shape_id": "a3edada6e9df0aaf7583"
+ },
+ {
+  "rank": 146,
+  "storeys": 1.0,
+  "name": "wild01_0124_aggregate_carve",
+  "shape_id": "ab337864cf8b1c70708c"
+ },
+ {
+  "rank": 147,
+  "storeys": 0.9,
+  "name": "wide01_0208_aggregate_rotate",
+  "shape_id": "00a904021bf163db5dce"
+ },
+ {
+  "rank": 148,
+  "storeys": 0.9,
+  "name": "wide01_0115_aggregate_taper",
+  "shape_id": "bdd79cbfc29194111026"
+ },
+ {
+  "rank": 149,
+  "storeys": 0.6,
+  "name": "oma_netherlands_dance_theatre",
+  "shape_id": "013f67a94b1a52f84ad1"
+ },
+ {
+  "rank": 150,
+  "storeys": 0.5,
+  "name": "sweep_0305_aggregate_vault_butterfly",
+  "shape_id": "0a9d0130d7e9feae8ba6"
+ },
+ {
+  "rank": 151,
+  "storeys": 0.5,
+  "name": "sweep03_0011_aggregate_mansard_fold",
+  "shape_id": "d30dbe42ef12fcf621b6"
+ }
+]

@@ -1,0 +1,20 @@
+{
+  "name": "wild01_0124_aggregate_carve",
+  "shape_id": "ab337864cf8b1c70708c",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    350.796213414338,
+    314.1263405110677
+  ],
+  "section_area_m2": 52.973882988274035,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "8abf354ddf487458db006a3ddc8bb38296af18d247aae971d759343a542c9e1c"
+}

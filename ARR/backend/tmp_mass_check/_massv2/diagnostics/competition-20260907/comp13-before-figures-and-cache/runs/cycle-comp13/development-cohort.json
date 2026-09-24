@@ -1,0 +1,48 @@
+{
+  "rule": "not developed in the last three completed cycles while another eligible figure exists",
+  "recently_developed_lineages": [
+    "morph-compact-mid",
+    "morph-curved-low"
+  ],
+  "parent_lineage": "field_under_butterfly_wings",
+  "eligible_names": [
+    "sangok_saddle_garden_room^centred",
+    "sweep_0231_stack_butterfly_mansard",
+    "book:book-comp13:morph-compact-mid:creative-008",
+    "book:book-comp13:morph-compact-mid:creative-009",
+    "field_under_butterfly_wings~held_ground^centred",
+    "book:book-comp13:morph-compact-mid:creative-010",
+    "sweep_0479_extrude_puncture_vault_mansard",
+    "book:book-comp13:morph-compact-low:creative-006",
+    "book:book-comp13:morph-compact-mid:creative-007",
+    "book:book-comp13:morph-curved-low:creative-001",
+    "book:book-comp13:morph-compact-low:creative-005",
+    "book:book-develop-comp03:exact-authored-development:creative-001",
+    "book:book-develop-comp12:exact-authored-development:creative-002",
+    "book:book-comp11:morph-compact-mid:creative-012",
+    "book:book-comp13:morph-compact-mid:creative-012",
+    "ruled_winding_taper",
+    "book:book-comp13:morph-oblique-mid:creative-002",
+    "slipped_twin_gables~full_ground^off_open",
+    "book:book-comp13:morph-compact-mid:creative-011",
+    "book:book-comp13:morph-compact-mid:creative-003",
+    "wide01_0115_aggregate_taper",
+    "book:book-comp13:morph-compact-mid:creative-013",
+    "book:book-comp13:morph-curved-mid:creative-004"
+  ],
+  "fresh_names": [
+    "sangok_saddle_garden_room^centred",
+    "sweep_0231_stack_butterfly_mansard",
+    "field_under_butterfly_wings~held_ground^centred",
+    "sweep_0479_extrude_puncture_vault_mansard",
+    "book:book-comp13:morph-compact-low:creative-006",
+    "book:book-comp13:morph-compact-low:creative-005",
+    "book:book-develop-comp03:exact-authored-development:creative-001",
+    "ruled_winding_taper",
+    "book:book-comp13:morph-oblique-mid:creative-002",
+    "slipped_twin_gables~full_ground^off_open",
+    "wide01_0115_aggregate_taper",
+    "book:book-comp13:morph-curved-mid:creative-004"
+  ],
+  "cohort_exhausted": false
+}

@@ -14,6 +14,8 @@ import json
 import math
 from typing import Any, ClassVar, NoReturn
 
+from iclr2027.architecture_target_roster import verify_frozen_target_roster
+
 
 __all__ = (
     "PreCallDesignLockError",
@@ -410,7 +412,9 @@ class _Record:
         if "synthetic_only" in field_names:
             payload["synthetic_only"] = True
         unsigned = {
-            name: _plain(payload[name]) for name in field_names if name != cls.HASH_FIELD
+            name: _plain(payload[name])
+            for name in field_names
+            if name != cls.HASH_FIELD
         }
         payload[cls.HASH_FIELD] = _sha256(unsigned)
         return cls(**payload)
@@ -445,7 +449,9 @@ class _Record:
         for name, value in payload.items():
             if name in cls.RECORD_FIELDS:
                 if type(value) is not dict:
-                    raise PreCallDesignLockError(f"{name} must be a nested record object")
+                    raise PreCallDesignLockError(
+                        f"{name} must be a nested record object"
+                    )
                 value = cls.RECORD_FIELDS[name].from_dict(value)
             elif name in cls.RECORD_TUPLE_FIELDS:
                 if type(value) is not list:
@@ -506,6 +512,58 @@ class _Record:
 
 
 @dataclass(frozen=True, slots=True)
+class VerifiedArchitectureInventoryV2(_Record):
+    """Verified public inventory facts; this view confers no call authority."""
+
+    schema_version: str
+    site_count: int
+    target_unit_count: int
+    target_roster_sha256: str
+    freeze_receipt_sha256: str
+    projection_identity_commitment: str
+    view_sha256: str
+
+    SCHEMA: ClassVar[str] = "ace.iclr2027.verified_architecture_inventory.v2"
+    HASH_FIELD: ClassVar[str] = "view_sha256"
+
+    def _validate(self) -> None:
+        _require_exact_int(self.site_count, "site_count")
+        _require_exact_int(self.target_unit_count, "target_unit_count")
+        if self.site_count != 8:
+            raise PreCallDesignLockError("site_count must be exactly 8")
+        if self.target_unit_count != 64:
+            raise PreCallDesignLockError("target_unit_count must be exactly 64")
+        for name in (
+            "target_roster_sha256",
+            "freeze_receipt_sha256",
+            "projection_identity_commitment",
+        ):
+            _require_sha256(getattr(self, name), name)
+
+
+def verify_architecture_inventory_receipt(
+    roster_path: Any,
+    receipt_path: Any,
+    *,
+    projection_identity_commitment: str,
+) -> VerifiedArchitectureInventoryV2:
+    """Derive a non-authorizing inventory view from verified public sidecars."""
+
+    receipt = verify_frozen_target_roster(
+        roster_path,
+        receipt_path,
+        projection_identity_commitment=projection_identity_commitment,
+    )
+    return VerifiedArchitectureInventoryV2.create(
+        site_count=receipt.combined_dev_site_count,
+        target_unit_count=receipt.combined_dev_target_count,
+        target_roster_sha256=receipt.target_roster_sha256,
+        freeze_receipt_sha256=receipt.receipt_sha256,
+        projection_identity_commitment=projection_identity_commitment,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class CurrentArchitectureInventoryFactV3(_Record):
     schema_version: str
     gate0_inventory_file_sha256: str
@@ -547,13 +605,18 @@ class CurrentArchitectureInventoryFactV3(_Record):
             "standardized_action_required_count",
         ):
             _require_exact_int(getattr(self, name), name)
-        if self.standardized_action_covered_count > self.standardized_action_required_count:
+        if (
+            self.standardized_action_covered_count
+            > self.standardized_action_required_count
+        ):
             raise PreCallDesignLockError("covered actions exceed required actions")
         if self.typed_unit_roster_status not in {"absent", "present"}:
             raise PreCallDesignLockError("typed_unit_roster_status is invalid")
         if self.typed_unit_roster_status == "absent":
             if self.typed_unit_count is not None:
-                raise PreCallDesignLockError("absent typed roster requires a null count")
+                raise PreCallDesignLockError(
+                    "absent typed roster requires a null count"
+                )
         else:
             _require_exact_int(self.typed_unit_count, "typed_unit_count", minimum=1)
         _require_exact_bool(self.synthetic_only, "synthetic_only")
@@ -587,10 +650,24 @@ class GateCheckResultV3(_Record):
 
     def _validate(self) -> None:
         _require_text(self.check_id, "check_id")
-        for name in ("domain_id", "candidate_ref", "scenario_ref", "effect_ref", "fold_ref"):
+        for name in (
+            "domain_id",
+            "candidate_ref",
+            "scenario_ref",
+            "effect_ref",
+            "fold_ref",
+        ):
             _require_text(getattr(self, name), name, optional=True)
         _require_text(self.predicate_id, "predicate_id")
-        if self.comparison_operator not in {"eq", "ge", "le", "gt", "lt", "is_none", "is_not_none"}:
+        if self.comparison_operator not in {
+            "eq",
+            "ge",
+            "le",
+            "gt",
+            "lt",
+            "is_none",
+            "is_not_none",
+        }:
             raise PreCallDesignLockError("comparison_operator is invalid")
         _require_json_native_value(self.expected_value, "expected_value")
         _require_json_native_value(self.observed_value, "observed_value")
@@ -599,7 +676,9 @@ class GateCheckResultV3(_Record):
             self.comparison_operator, self.expected_value, self.observed_value
         )
         if self.passed is not recomputed:
-            raise PreCallDesignLockError("passed disagrees with the recomputed predicate")
+            raise PreCallDesignLockError(
+                "passed disagrees with the recomputed predicate"
+            )
         _byte_sorted_unique(self.reason_codes, "reason_codes")
         if self.passed:
             if self.reason_codes != ("all_pre_call_checks_passed",):
@@ -636,7 +715,9 @@ class ArchitectureE1E2E3PreCallDesignLockV3(_Record):
     synthetic_only: bool
     lock_sha256: str
 
-    SCHEMA: ClassVar[str] = _SCHEMA_PREFIX + "architecture_e1_e2_e3_pre_call_design_lock_v3"
+    SCHEMA: ClassVar[str] = (
+        _SCHEMA_PREFIX + "architecture_e1_e2_e3_pre_call_design_lock_v3"
+    )
     HASH_FIELD: ClassVar[str] = "lock_sha256"
     RECORD_FIELDS: ClassVar[dict[str, type[_Record]]] = {
         "current_inventory_fact": CurrentArchitectureInventoryFactV3
@@ -647,7 +728,9 @@ class ArchitectureE1E2E3PreCallDesignLockV3(_Record):
         if self.authority_mode != "synthetic":
             raise PreCallDesignLockError("synthetic authority_mode must be exact")
         if type(self.current_inventory_fact) is not CurrentArchitectureInventoryFactV3:
-            raise PreCallDesignLockError("current_inventory_fact must have its exact record type")
+            raise PreCallDesignLockError(
+                "current_inventory_fact must have its exact record type"
+            )
         for name in (
             "simulation_freeze_plan",
             "external_anchor_receipt",
@@ -668,9 +751,13 @@ class ArchitectureE1E2E3PreCallDesignLockV3(_Record):
             _require_exact_float(value, name)
             if value != expected:
                 raise PreCallDesignLockError(f"{name} is not frozen")
-        _byte_sorted_unique(self.implementation_code_sha256s, "implementation_code_sha256s")
+        _byte_sorted_unique(
+            self.implementation_code_sha256s, "implementation_code_sha256s"
+        )
         if self.implementation_code_sha256s != (_SYNTHETIC_IMPLEMENTATION_SHA256,):
-            raise PreCallDesignLockError("implementation closure is not the frozen synthetic closure")
+            raise PreCallDesignLockError(
+                "implementation closure is not the frozen synthetic closure"
+            )
         _require_exact_bool(self.synthetic_only, "synthetic_only")
         if not self.synthetic_only:
             raise PreCallDesignLockError("synthetic lock cannot be upgraded")
@@ -735,7 +822,10 @@ class PreCallDesignLockResultV3(_Record):
             raise PreCallDesignLockError("gate_checks must be a nonempty exact tuple")
         if any(type(gate) is not GateCheckResultV3 for gate in self.gate_checks):
             raise PreCallDesignLockError("gate_checks contain a foreign record type")
-        for name in ("architecture_selected_candidate_ref", "jci_selected_candidate_ref"):
+        for name in (
+            "architecture_selected_candidate_ref",
+            "jci_selected_candidate_ref",
+        ):
             _require_text(getattr(self, name), name, optional=True)
         count_fields = (
             "architecture_cluster_count",
@@ -798,7 +888,9 @@ class PreCallDesignLockResultV3(_Record):
         if common_authority != _CURRENT_GATE_AUTHORITY_SHA256S:
             raise PreCallDesignLockError("current gate closure authority is not exact")
         if self.lock_sha256 not in common_authority:
-            raise PreCallDesignLockError("current result closure lock binding is not exact")
+            raise PreCallDesignLockError(
+                "current result closure lock binding is not exact"
+            )
         for reason, gate in zip(_CURRENT_REASONS, self.gate_checks, strict=True):
             operator, expected, observed = _current_gate_values(reason)
             expected_domain = (
@@ -922,7 +1014,9 @@ def _assert_current_continuity(fact: CurrentArchitectureInventoryFactV3) -> None
         and fact.synthetic_only
     )
     if not exact:
-        raise PreCallDesignLockError("current continuity fixture does not match frozen facts")
+        raise PreCallDesignLockError(
+            "current continuity fixture does not match frozen facts"
+        )
 
 
 def validate_synthetic_pre_call_design_lock(
@@ -945,7 +1039,9 @@ def validate_synthetic_pre_call_design_lock(
         gates.append(
             GateCheckResultV3.create(
                 check_id=f"current::{reason}",
-                domain_id="architecture" if reason.startswith("architecture_") else None,
+                domain_id="architecture"
+                if reason.startswith("architecture_")
+                else None,
                 candidate_ref=None,
                 scenario_ref=None,
                 effect_ref=None,
@@ -993,13 +1089,17 @@ def validate_authenticated_pre_call_design_lock(
     """Fail before inspecting ``view`` because the external trust root is absent."""
 
     del view
-    raise NeedsContextError("NEEDS_CONTEXT: authenticated launcher capability is absent")
+    raise NeedsContextError(
+        "NEEDS_CONTEXT: authenticated launcher capability is absent"
+    )
 
 
 def require_authenticated_pre_call_authority() -> NoReturn:
     """Require the externally delivered authority unavailable in synthetic Phase A."""
 
-    raise NeedsContextError("NEEDS_CONTEXT: authenticated launcher capability is absent")
+    raise NeedsContextError(
+        "NEEDS_CONTEXT: authenticated launcher capability is absent"
+    )
 
 
 def _fixture_digest(label: str) -> str:

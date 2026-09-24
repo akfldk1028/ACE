@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 3 | A single extruded crescent; the concave side implies a court but nothing else defines it, and there is no sectional idea beyond one height.
+FEASIBILITY 4 | A three-storey curved extrusion with no overhangs or thin pieces; structurally unremarkable.
+SITE 3 | Rotated to the parcel's oblique edges and held clear of them, but the arc addresses no particular frontage and leaves the wide end of the parcel empty.
+EDITABILITY 4 | A curved bar plan takes cores and corridors easily; the curved facade is the only cost.
+WEIGHTED 3.45
+
+TILE t02
+CONCEPT 4 | A rotating stack of three plates around a common pivot is one clear idea; the shifting overhangs and shadows give real hierarchy.
+FEASIBILITY 3 | Each plate cantilevers well past the one below and the section shows the notched offsets; workable around a central core, but the drawn overhangs are large for single-storey-deep plates.
+SITE 3 | The base plate roughly parallels the long parcel edge, but the rotations above are self-referential rather than a response to the site.
+EDITABILITY 3 | Every plate is a clean rectangle, yet cores and risers are confined to the small zone where all three overlap.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 3 | Two parallel bars of different heights with a stepped end and two low outriders; a slot between bars is legible but the ensemble reads as an assembly rather than one idea.
+FEASIBILITY 4 | All pieces are grounded extrusions; the stepped bar and the short bridging stub are trivial to build.
+SITE 3 | The bars follow the parcel's right-hand edges and the small blocks sit at the frontage, but the wide left end of the parcel is left as leftover.
+EDITABILITY 4 | Straight bars with simple cores; the slot survives any floor development.
+WEIGHTED 3.45
+
+TILE t04
+CONCEPT 3 | A single tapered, faceted monolith; sculpturally legible but there is no solid-void relationship and no internal hierarchy.
+FEASIBILITY 3 | The section flares outward above the base and warps on all faces; buildable with inclined structure over five storeys, but every floor edge differs.
+SITE 2 | An object centred on the parcel at 45 degrees, indifferent to edges and frontage; the widest end of the site is ignored.
+EDITABILITY 3 | The diamond plan takes a core, but warped facades constrain every floor plate and any change to the taper breaks the idea.
+WEIGHTED 2.80
+
+TILE t05
+CONCEPT 3 | A pinwheel of four unequal arms extruded to one height; the plan has a clear centre but the section is flat.
+FEASIBILITY 4 | A three-storey extrusion with a small step; nothing unsupported.
+SITE 3 | Rotated to the parcel geometry and centred, arms reaching toward the corners, but no edge is actually engaged.
+EDITABILITY 4 | A core at the crossing and four wings is an easy plan to develop.
+WEIGHTED 3.45
+
+TILE t06
+CONCEPT 2 | Twin long bars separated by a slot too narrow to be a court, with a small appendage at one end; a diagram of parallel slabs rather than an idea.
+FEASIBILITY 5 | Two-storey grounded bars; nothing to question.
+SITE 3 | The bars parallel the parcel's upper edge and fill its length, but at two storeys they underuse the permitted scale and treat the oblique edges as leftover.
+EDITABILITY 4 | Straight bars develop easily, though the slot is too tight to become anything.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 4 | A single bar lifted on two end blocks, leaving the entire ground between them open; the section states one idea unambiguously.
+FEASIBILITY 3 | The bar spans a long clear distance between the two legs as a single-storey-deep beam; achievable as a storey-deep truss but the drawing shows no intermediate support.
+SITE 3 | The bar parallels the long parcel edge and the two legs frame a through-passage, but the elevated slab does not resolve the wide left end.
+EDITABILITY 3 | Cores live only in the two legs; the bridge floor is fixed in depth and the ground void cannot be infilled without losing the idea.
+WEIGHTED 3.35
+
+TILE t08
+CONCEPT 4 | A U-shaped base stepping up toward a taller stacked corner reads as a terraced hill around a court; solid, void and section all support the same idea.
+FEASIBILITY 4 | Every step sits on the mass below; the section shows a continuous stepped profile with no overhangs.
+SITE 3 | The U opens toward one side and follows the parcel's right-hand edges; the composition sits clear of all boundaries but engages none.
+EDITABILITY 4 | Terraced plates give clear floors and roof decks; cores fit in the tall stack while the court stays.
+WEIGHTED 3.80
+
+TILE t09
+CONCEPT 3 | A low L bar with a taller L set behind it forms a slot court; legible, but the upper L's left arm appears to hover just above the lower bar, leaving the relation between the two pieces unresolved.
+FEASIBILITY 3 | Mostly grounded, yet the drawn gap under the upper arm implies a cantilever the section does not explain.
+SITE 3 | Both Ls run with the parcel's right-hand edges and the open corner faces the wide end; the highest coverage in the set.
+EDITABILITY 4 | Thick L plates develop easily, and the slot is wide enough to remain a court.
+WEIGHTED 3.20
+
+TILE t10
+CONCEPT 4 | A closed ring around a court with four corner pavilions rising above it; ground and upper plans state two distinct orders that reinforce each other.
+FEASIBILITY 4 | Ring and pavilions are all grounded stacks; the section shows two solid L profiles.
+SITE 3 | The ring is rotated to the parcel and centred, inward-facing; it neither engages nor offends the edges, and leaves capacity unused.
+EDITABILITY 3 | The ring plan is easy, but four small towers each need their own vertical circulation.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 2 | A rectangular block with two stepped notches; the notches articulate corners but do not add up to an idea.
+FEASIBILITY 5 | A three-storey box with setbacks; nothing to question.
+SITE 3 | Rotated to the parcel's right-hand edges and held well inside; the rectangle ignores the wide end.
+EDITABILITY 4 | A simple rectangular plate develops without constraint.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 3 | Two parallel bars, the rear taller, linked by an upper bridge over a ground gap, with a small box on the front roof; the bridge is the idea but it is thin in the drawing.
+FEASIBILITY 4 | Short bridge span between two grounded bars; the section shows a clear portal.
+SITE 3 | Bars follow the parcel's right-hand edges and the passage between them runs toward the wide end; low coverage leaves much of the site open.
+EDITABILITY 4 | Two straight bars with a bridge; cores in each bar, the passage preserved.
+WEIGHTED 3.45
+
+TILE t13
+CONCEPT 2 | The same notched box as a plain rectangle, with a thin L-shaped fin added on the roof that reads as a token rather than an element.
+FEASIBILITY 4 | The block is trivial; the roof fin is a thin freestanding member of no consequence.
+SITE 3 | Rotated to the right-hand parcel edges and centred; no edge engaged.
+EDITABILITY 4 | A rectangular plate; the fin can go without loss.
+WEIGHTED 3.10
+
+TILE t14
+CONCEPT 3 | The tapered monolith with a small L fin on its roof; the fin does not change the reading of a single sculptural block without void.
+FEASIBILITY 3 | Flared, warped faces over five storeys plus a thin rooftop member; buildable with inclined structure but every floor differs.
+SITE 2 | Centred at 45 degrees and indifferent to the parcel's edges and its wide end.
+EDITABILITY 3 | Warped facades constrain every floor edge; the diamond plan takes a core.
+WEIGHTED 2.80
+
+TILE t15
+CONCEPT 3 | A star of tapered blades with a triangular void through the middle, most of it lifted; bold, but the geometry is muddled by undercuts and an unclear relation between the void and the feet.
+FEASIBILITY 2 | The plan cuts and section show only two small feet under a three-storey star of long blades; the cantilevers on each blade are far beyond what the drawn supports explain.
+SITE 3 | Rotated and centred, the blades reach toward the corners; the lifted ground is open but no frontage is addressed.
+EDITABILITY 2 | Tapered blades on two feet leave little room for cores and no way to add support without destroying the lift.
+WEIGHTED 2.55
+
+TILE t16
+CONCEPT 3 | The stepped-terrace scheme with its front bar lifted above a thin hovering plate; the terraced idea remains but the lifted front confuses ground and base.
+FEASIBILITY 3 | The section now shows the two halves separated and a thin slab under the front block with an unexplained gap beneath it.
+SITE 3 | Same rotation and placement as the terraced scheme; the U opens toward one side.
+EDITABILITY 3 | The terraces develop well, but the thin plate and the split section demand resolution before floors can be planned.
+WEIGHTED 3.00
+
+TILE t17
+CONCEPT 2 | Two parallel bars of different heights with a small ground stub; a slab pairing with no sectional or solid-void idea beyond the gap between them.
+FEASIBILITY 5 | Two grounded extrusions; nothing to question.
+SITE 3 | Bars run with the parcel's right-hand edges but occupy only a fraction of the site and leave the wide end unaddressed.
+EDITABILITY 4 | Straight bars develop easily and the gap remains.
+WEIGHTED 3.35
+
+TILE t18
+CONCEPT 3 | Two parallel bars linked by an upper bridge over a ground gap with a rooftop box on the front bar; identical in reading to the twin-bar bridge scheme, the bridge is the idea but thin.
+FEASIBILITY 4 | Short bridge between grounded bars; the section shows a clear portal.
+SITE 3 | Bars follow the parcel's right-hand edges; the passage runs toward the wide end; low coverage.
+EDITABILITY 4 | Two straight bars with a bridge and cores in each.
+WEIGHTED 3.45
+
+TILE t19
+CONCEPT 3 | Twin bars whose upper level joins into an H through a full bridge; the upper plan makes the link legible and the ground passage beneath it is the void that carries the scheme.
+FEASIBILITY 4 | The bridge spans the short gap between two grounded bars; the section shows the portal cleanly.
+SITE 3 | Bars follow the parcel's right-hand edges; the passage opens toward the wide end; low coverage leaves the rest of the site open.
+EDITABILITY 4 | Two bars and a bridge; cores in each bar, the H plan develops directly.
+WEIGHTED 3.45
+
+RANKING: t08, t10, t19, t12, t18, t03, t01, t05, t07, t02, t06, t17, t11, t09, t13, t16, t04, t14, t15
+VERDICT: The set is dominated by extruded bars and boxes at low utilisation; only the terraced court (t08), the ring with corner pavilions (t10) and the lifted bar (t07) state an idea in section as well as plan. t08 and t10 would advance, with the bridged twin bars (t19) as a third if the bridge is developed; the tapered monoliths and the lifted star should not, the star for unsupported cantilevers and the monoliths for ignoring the parcel entirely. Several tiles are near-duplicates differing only by a rooftop fin or a lifted plate, and those tokens add nothing.

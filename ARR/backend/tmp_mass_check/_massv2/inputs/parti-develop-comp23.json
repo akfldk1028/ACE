@@ -1,0 +1,285 @@
+{
+ "parent": "comp19_tower_twisting_above_compact_podium^centred",
+ "parent_shape_id": "635278050e71a98765c7",
+ "schemes": [
+  {
+   "name": "podium_edge_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "the rotated tower is shifted to the open-side edge of the podium so three faces of ground become one gathered civic apron and the street reads a clear corner address",
+   "formal_principle": "부모의 탑은 기단 한가운데에 얹혀 세 면의 남은 지붕이 잔여물이 되었다. 탑을 열린 변 모서리로 민 뒤 기단 세 면이 한 방향의 내부 마당으로 모이고, 거리는 탑 모서리와 직접 만난다.",
+   "dominant_gesture": "모서리 탑과 한쪽으로 몰린 기단 테라스",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the four-storey podium, the rotated tower and the open-side carve are all kept; what changes is where the tower is placed on the podium lid",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑을 한쪽 모서리로 밀어 기단 지붕이 한 방향의 마당이 된다.",
+    "spatial_strategy": "부모에서 탑은 기단 중심에 있어 나머지 기단 지붕이 사방의 잔여 여백이 됐다. 열린 변 쪽 모서리에 탑을 붙이면 나머지 기단 지붕이 하나의 연속된 업무 테라스가 되고, 거리에서는 탑 모서리가 정면이 된다.",
+    "tradeoff": "이동한 탑은 기단 가장자리의 구조 연속성을 요구하고, 기단 지붕의 외부 이용 및 방수는 검증이 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium occupies 62% of the height budget; the seed and storey count are inherited"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess is the directional move that makes the podium readable from the street; kept in every child"
+    },
+    {
+     "op": "nest",
+     "size": 0.38,
+     "proud": 0.88,
+     "turn": 38,
+     "why": "the tower is the parent's identity; turn 38 is inherited; size slightly narrowed to make room beside the edge"
+    },
+    {
+     "op": "shift",
+     "ratio": 0.32,
+     "toward": "open",
+     "on": "nest_volume",
+     "why": "moving the tower toward the open side consolidates the unused podium lid into one directed terrace rather than a residue on three sides"
+    }
+   ]
+  },
+  {
+   "name": "tower_with_butterfly_cap",
+   "primary_language": "solid_body",
+   "secondary_language": "the rotated tower above the podium gains a butterfly roof so its V-valley is the tower's crown and the section gains a figure the plain box lacked",
+   "formal_principle": "부모의 탑은 위로 솟았지만 단면 없이 평평한 뚜껑으로 끝났다. 버터플라이 지붕을 얹으면 탑의 꼭대기가 안쪽으로 내려앉는 V형이 되어 탑이 기단에서 위로 갈수록 부피가 아니라 형태를 갖는다.",
+   "dominant_gesture": "기단 위 버터플라이 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the four-storey podium, the nested rotated tower and the open-side carve are all kept; a section verb is added to the tower",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑 꼭대기에 버터플라이 지붕을 얹어 단면 없이 끝나던 탑에 형태를 준다.",
+    "spatial_strategy": "부모의 탑은 중심이 비어 있지 않고 꼭대기에도 형태 결정이 없어 단순 직육면체였다. 버터플라이 V지붕은 탑 꼭대기에서 가운데로 빗물이 모이는 골짜기를 만들고, 기단과 탑의 단면 위계가 생긴다.",
+    "tradeoff": "지붕 골짜기의 배수와 탑 상부 구조체가 실측되지 않았다. 버터플라이 처마 내밈이 법규선을 넘지 않도록 검토가 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium at 62% of the height budget; inherited"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's entry recess on the open face; inherited as a constant of the parent's identity"
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.85,
+     "turn": 38,
+     "why": "the parent's nested rotated tower; all three parameters inherited"
+    },
+    {
+     "op": "butterfly",
+     "pitch": 0.55,
+     "at": 0.5,
+     "on": "nest_volume",
+     "why": "a V-valley is added to the tower's crown so the section closes with a figure instead of a flat lid; pitch 0.55 gives a readable valley without exceeding the 1.5-storey cap"
+    }
+   ]
+  },
+  {
+   "name": "slotted_podium_passage",
+   "primary_language": "carved_body",
+   "secondary_language": "a slot carved through the podium beneath the tower connects the open street to the back of the site, making the ground floor a public passage and the tower a gate",
+   "formal_principle": "부모의 기단은 막힌 덩어리로 서서 앞뒤를 분리했다. 탑 아래 기단을 관통하는 슬롯을 내면 통행로가 생기고 탑은 문이 되며, 기단은 막힌 뒤쪽에서 열린 앞쪽으로 연결된다.",
+   "dominant_gesture": "관통 통로 위에 선 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the rotated tower and the entry carve are kept; the podium is carved through to make a passage, changing the ground-floor organization",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단을 관통하는 슬롯을 내어 탑이 문이 되고 지면이 이어진다.",
+    "spatial_strategy": "기단이 닫혀 있어 열린 변과 뒷면의 관계가 없었다. 기단을 탑 아래에서 관통시키면 지면이 이어지고 탑은 통로 위의 게이트가 된다. 기단의 나머지 두 날개는 각각 분리된 공공 홀 역할을 할 수 있다.",
+    "tradeoff": "관통된 기단 두 날개의 유효 깊이와 탑 하중 전달 경로가 검증되지 않았다. 열린 변 기존 카브와의 슬롯 중복 여부를 단면에서 확인해야 한다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium; inherited"
+    },
+    {
+     "op": "split",
+     "ratio": 0.48,
+     "along": "cross",
+     "first": "entry_wing",
+     "second": "back_wing",
+     "contrast": 1.2,
+     "gap": 0,
+     "why": "the podium is divided into two named wings so the following carve can target the passage between them; gap is 0 so the wings remain one structural solid and only the carve opens the slot"
+    },
+    {
+     "op": "carve",
+     "size": 0.32,
+     "at": "cross",
+     "reach": 1.0,
+     "why": "a full-depth carve through the cross axis of the podium creates the passage that turns the tower into a gate; reach 1.0 ensures it passes through the whole body"
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.85,
+     "turn": 38,
+     "why": "the parent's rotated tower; all three parameters inherited; it now sits above the carved-through podium"
+    }
+   ]
+  },
+  {
+   "name": "twin_towers_on_podium",
+   "primary_language": "solid_body",
+   "secondary_language": "two unequal rotated towers rise from the podium, one taller and one shorter, the space between them a slot of sky above the plinth",
+   "formal_principle": "부모의 탑은 하나라 기단 위에 단일 피크가 생겼다. 탑을 두 개의 크기가 다른 탑으로 바꾸면 기단 위에 두 개의 다른 높이가 생기고, 그 사이 틈이 하늘 슬롯이 되어 기단 지붕을 위에서 분절한다.",
+   "dominant_gesture": "기단 위 크기 다른 두 탑과 하늘 슬롯",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the four-storey podium and the open-side carve are kept; the single nested tower is replaced by two unequal towers differing from O21 (four towers in one block with one cut) by having only two volumes on a grounded podium",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑을 둘로 나눠 기단 위에 높이 차이와 그 사이 하늘 틈을 만든다.",
+    "spatial_strategy": "하나의 탑은 기단 위에 단일 피크를 만들 뿐이었다. 두 탑은 높이 위계와 그 사이 슬롯을 제공한다. 크기가 다른 두 탑은 회의실과 사무 공간을 구분하는 근거가 될 수 있다.",
+    "tradeoff": "두 탑의 구조 각각과 기단과의 연결, 그리고 탑 사이 슬롯의 채광 깊이는 이 단계에서 미검증이다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium; inherited"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess; inherited"
+    },
+    {
+     "op": "aggregate",
+     "n": 2,
+     "spread": 1.4,
+     "height": 0.75,
+     "tie": 0.0,
+     "turn": 38,
+     "why": "two towers of unequal height replace the single nest; spread 1.4 separates them so the gap is a readable sky slot above the podium lid; turn 38 inherits the parent's rotational identity; tie 0 means no shared base plate — the podium below already provides the ground"
+    },
+    {
+     "op": "taper",
+     "ratio": 0.72,
+     "on": "object_1",
+     "why": "the second tower is tapered to make the two clearly different and to give the pair a visible height hierarchy rather than two equal volumes"
+    }
+   ]
+  },
+  {
+   "name": "bar_podium_edge_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "the podium is halved in plan depth by a back split so a narrower bar holds the tower and the released ground becomes a front-to-back clearing",
+   "formal_principle": "부모의 기단은 씨앗의 절반을 거의 전부 채워 기단 주변 지면이 잔여였다. 기단 뒤쪽 절반을 분리하고 탑만 나머지 전면 바 위에 올리면, 뒷면 지면이 기단을 끊고 열린 공간이 된다.",
+   "dominant_gesture": "앞 바 위의 탑, 뒤 지면 개방",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the rotated tower and the open-side carve are kept; the podium is halved in depth to release ground behind it — this differs from O7 (one bar cut in two halves slid apart) because the cut yields not two equal bars but a tall bar-plus-tower and a freed ground",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단을 깊이 방향으로 반으로 잘라 탑이 얇은 전면 바 위에 서고 뒷면이 지면이 된다.",
+    "spatial_strategy": "부모의 기단은 씨앗 절반을 꽉 채워 주변이 좁은 잔여였다. 기단을 가로로 반으로 나누면 탑은 전면 바 위에 더 뚜렷하게 서고, 뒷면은 주차 또는 공원이 되어 도시에 열린다.",
+    "tradeoff": "탑 아래 전면 바가 얇아져 코어 배치와 엘리베이터 위치가 제한된다. 뒷면 지면의 이용은 프로그램 없이 미지로 남는다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium; inherited"
+    },
+    {
+     "op": "split",
+     "ratio": 0.52,
+     "along": "cross",
+     "first": "front_bar",
+     "second": "released_ground",
+     "contrast": 1.6,
+     "gap": 0,
+     "why": "the podium is split along its depth axis; the front bar keeps the tower and the back portion is removed to release ground; gap 0 so the split is a plan reduction not an air gap"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.5,
+     "on": "front_bar",
+     "why": "the parent's open-side entry recess, now applied to the narrower front bar"
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 1.0,
+     "turn": 38,
+     "on": "front_bar",
+     "why": "the rotated tower inherits the parent's turn; proud 1.0 makes the tower as tall above the bar as the bar itself, giving it the height the slimmer plan demands to maintain the podium-tower proportion"
+    }
+   ]
+  },
+  {
+   "name": "ring_podium_tower",
+   "primary_language": "open_figure",
+   "secondary_language": "the solid podium is replaced by a loop of four bars enclosing an open court, and the rotated tower rises from one corner of that ring",
+   "formal_principle": "부모의 기단은 닫힌 덩어리라 탑 아래 지면이 없었다. 기단을 루프로 바꾸면 기단 내부에 마당이 생기고 탑은 루프 한 귀퉁이에서 올라와 마당 위에 선 기념비가 된다.",
+   "dominant_gesture": "마당을 두른 루프 위 모서리 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed and the rotated tower are kept; the solid podium is replaced by a loop to introduce a court — this differs from O13 (a lifted court ring) because the court ring stays grounded and the tower rises only from one corner, not the whole ring",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단을 루프로 바꿔 마당을 열고, 탑이 루프 한 귀퉁이에서 올라온다.",
+    "spatial_strategy": "닫힌 기단은 빛 없는 중심부를 만들고 탑이 그 위에 서면 의미 없는 지붕만 생겼다. 루프로 바꾸면 마당이 채광과 통기를 가져오고, 탑은 루프의 한 모서리에서 올라와 마당 위 피크가 된다.",
+    "tradeoff": "루프의 바 폭이 실내 깊이를 결정하므로 bar 비율이 작으면 복도만 남는다. 마당의 규모와 루프 내 동선은 미검증이다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "loop",
+     "bar": 0.28,
+     "height": 0.62,
+     "why": "the solid podium becomes a four-bar ring; bar 0.28 gives usable depth (approximately 5–6 m per bar on the half-plot seed) and height 0.62 inherits the parent's podium level"
+    },
+    {
+     "op": "carve",
+     "size": 0.26,
+     "at": "open",
+     "reach": 0.4,
+     "why": "the parent's open-side recess is kept at the loop's open face to maintain the directional entry reading"
+    },
+    {
+     "op": "nest",
+     "size": 0.38,
+     "proud": 0.9,
+     "turn": 38,
+     "why": "the rotated tower is placed at the loop's corner; size slightly reduced so it fits within the bar width; proud 0.9 gives height above the loop ring; turn 38 is inherited"
+    },
+    {
+     "op": "shift",
+     "ratio": 0.28,
+     "toward": "back",
+     "on": "nest_volume",
+     "why": "moving the tower toward the back corner of the ring makes it the back-corner element that reads as a peak from the street, while the open court leads the approach"
+    }
+   ]
+  }
+ ]
+}

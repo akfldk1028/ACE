@@ -24,7 +24,10 @@ REQUIRED_FAULT_FAMILIES = {
 }
 PILOT_PATTERNS = ("rr3", "sel3", "swm3", "refl3", "debate3")
 PILOT_EXPECTED_DEV_CASES = 30
-PILOT_SUMMARY_SCHEMA = "ace.iclr2027.pilot_summary.v1"
+PILOT_SUMMARY_V1_SCHEMA = "ace.iclr2027.pilot_summary.v1"
+PILOT_SUMMARY_V2_SCHEMA = "ace.iclr2027.pilot_summary.v2"
+PILOT_SCORING_PROVENANCE_SCHEMA = "ace.iclr2027.pilot_scoring_provenance.v1"
+PILOT_SUMMARY_SCHEMA = PILOT_SUMMARY_V1_SCHEMA
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 ALLOWED_CASE_STAGES = frozenset(
     {
@@ -35,6 +38,101 @@ ALLOWED_CASE_STAGES = frozenset(
         "candidate_floor_context",
     }
 )
+
+_PILOT_SUMMARY_V1_KEYS = frozenset(
+    {
+        "schema_version",
+        "transaction_set_sha256",
+        "planned_runs",
+        "completed_runs",
+        "parsed_states",
+        "successful_parses",
+        "final_runs",
+        "successful_final_parses",
+        "correct_final_decisions",
+        "correct_final_verdicts",
+        "correct_final_blocking",
+        "correct_final_missing_evidence",
+        "protocol_valid_runs",
+        "run_errors",
+        "retried_runs",
+        "safe_cases",
+        "unsafe_cases",
+        "continue_cases",
+        "fault_families",
+        "estimated_completion_date",
+        "estimated_total_cost_usd",
+        "stage_case_counts",
+    }
+)
+_PILOT_SUMMARY_V2_KEYS = _PILOT_SUMMARY_V1_KEYS | {"scoring_provenance"}
+_PILOT_SCORING_PROVENANCE_KEYS = frozenset(
+    {
+        "schema_version",
+        "scorer_sha256",
+        "final_run_key_set_sha256",
+        "final_run_key_count",
+        "unique_final_run_key_count",
+        "missing_final_run_key_count",
+        "duplicate_final_run_key_count",
+        "reference_join_count",
+        "common_denominator",
+        "numerator_key_set_binding_sha256",
+    }
+)
+
+
+@dataclass(frozen=True)
+class PilotScoringProvenance:
+    schema_version: str
+    scorer_sha256: str
+    final_run_key_set_sha256: str
+    final_run_key_count: int
+    unique_final_run_key_count: int
+    missing_final_run_key_count: int
+    duplicate_final_run_key_count: int
+    reference_join_count: int
+    common_denominator: int
+    numerator_key_set_binding_sha256: str
+
+    def __post_init__(self) -> None:
+        self.validate()
+
+    def validate(self) -> None:
+        if self.schema_version != PILOT_SCORING_PROVENANCE_SCHEMA:
+            raise ValueError("pilot scoring provenance schema is invalid")
+        for field_name in (
+            "scorer_sha256",
+            "final_run_key_set_sha256",
+            "numerator_key_set_binding_sha256",
+        ):
+            value = getattr(self, field_name)
+            if not isinstance(value, str) or _SHA256.fullmatch(value) is None:
+                raise ValueError(f"pilot scoring provenance {field_name} is invalid")
+        for field_name in (
+            "final_run_key_count",
+            "unique_final_run_key_count",
+            "missing_final_run_key_count",
+            "duplicate_final_run_key_count",
+            "reference_join_count",
+            "common_denominator",
+        ):
+            value = getattr(self, field_name)
+            if type(value) is not int or value < 0:
+                raise ValueError(f"pilot scoring provenance {field_name} is invalid")
+
+    @classmethod
+    def from_dict(cls, payload: Any) -> PilotScoringProvenance:
+        if (
+            not isinstance(payload, dict)
+            or set(payload) != _PILOT_SCORING_PROVENANCE_KEYS
+        ):
+            raise ValueError("pilot scoring provenance keys are invalid")
+        return cls(**payload)
+
+    def to_dict(self) -> dict[str, Any]:
+        self.validate()
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -61,6 +159,38 @@ class PilotSummary:
     schema_version: str = PILOT_SUMMARY_SCHEMA
     transaction_set_sha256: str = ""
     retried_runs: int = 0
+    scoring_provenance: PilotScoringProvenance | None = None
+
+    def __post_init__(self) -> None:
+        self.validate_schema_provenance()
+
+    def validate_schema_provenance(self) -> None:
+        if self.schema_version == PILOT_SUMMARY_V1_SCHEMA:
+            valid = self.scoring_provenance is None
+        elif self.schema_version == PILOT_SUMMARY_V2_SCHEMA:
+            valid = isinstance(
+                self.scoring_provenance,
+                PilotScoringProvenance,
+            )
+        else:
+            valid = False
+        if not valid:
+            raise ValueError("pilot summary schema/provenance pairing is invalid")
+        if self.scoring_provenance is not None:
+            self.scoring_provenance.validate()
+
+    def to_dict(self) -> dict[str, Any]:
+        self.validate_schema_provenance()
+        payload = asdict(self)
+        payload["estimated_completion_date"] = (
+            self.estimated_completion_date.isoformat()
+        )
+        payload["fault_families"] = list(self.fault_families)
+        if self.scoring_provenance is None:
+            payload.pop("scoring_provenance")
+        else:
+            payload["scoring_provenance"] = self.scoring_provenance.to_dict()
+        return payload
 
 
 @dataclass(frozen=True)
@@ -80,9 +210,13 @@ class PilotGateResult:
     unsafe_share: float
     continue_share: float
     estimated_total_cost_usd: float | None
+    evaluation_profile: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        payload = asdict(self)
+        if self.evaluation_profile is None:
+            payload.pop("evaluation_profile")
+        return payload
 
 
 def evaluate_pilot(
@@ -93,6 +227,7 @@ def evaluate_pilot(
     observed_transaction_count: int | None = None,
     deadline: date = date(2026, 9, 2),
 ) -> PilotGateResult:
+    summary.validate_schema_provenance()
     summary_counts = (
         summary.planned_runs,
         summary.completed_runs,
@@ -188,9 +323,7 @@ def evaluate_pilot(
         manifest = run_manifest if isinstance(run_manifest, dict) else {}
         manifest_exact = False
     patterns = manifest.get("patterns")
-    exact_patterns = (
-        isinstance(patterns, list) and tuple(patterns) == PILOT_PATTERNS
-    )
+    exact_patterns = isinstance(patterns, list) and tuple(patterns) == PILOT_PATTERNS
     repeats = manifest.get("repeats")
     exact_repeats = type(repeats) is int and repeats == 3
     expected_case_count = manifest.get("expected_case_count")
@@ -202,9 +335,7 @@ def evaluate_pilot(
         and type(case_count) is int
         and case_count > 0
     )
-    expected_runs = (
-        case_count * len(PILOT_PATTERNS) * 3 if valid_case_counts else -1
-    )
+    expected_runs = case_count * len(PILOT_PATTERNS) * 3 if valid_case_counts else -1
     manifest_stage_counts = manifest.get("stage_case_counts")
     manifest_decision_counts = manifest.get("decision_case_counts")
     summary_decision_counts = {
@@ -243,20 +374,16 @@ def evaluate_pilot(
     summary_stages_valid = valid_stage_counts(summary.stage_case_counts)
     checks = {
         "run_manifest_exact": manifest_exact,
-        "pilot_summary_schema": (
-            summary.schema_version == PILOT_SUMMARY_SCHEMA
-        ),
+        "pilot_summary_schema": True,
         "transaction_set_bound": (
             isinstance(observed_transaction_set_sha256, str)
             and _SHA256.fullmatch(observed_transaction_set_sha256) is not None
-            and summary.transaction_set_sha256
-            == observed_transaction_set_sha256
+            and summary.transaction_set_sha256 == observed_transaction_set_sha256
             and type(observed_transaction_count) is int
             and observed_transaction_count == summary.planned_runs
         ),
         "run_manifest_schema": (
-            manifest.get("schema_version")
-            == "ace.iclr2027.exp08_run_manifest.v2"
+            manifest.get("schema_version") == "ace.iclr2027.exp08_run_manifest.v2"
         ),
         "pilot_summary_count_domains": summary_count_domains,
         "pilot_split_dev": manifest.get("split") == "dev",
@@ -282,8 +409,7 @@ def evaluate_pilot(
         ),
         "parse_success_at_least_95pct": parse_rate >= 0.95,
         "all_completed_runs_have_final_state": (
-            summary_count_domains
-            and summary.final_runs == summary.completed_runs
+            summary_count_domains and summary.final_runs == summary.completed_runs
         ),
         "all_final_states_parse_complete": final_parse_rate == 1.0,
         "all_runs_protocol_valid": protocol_valid_rate == 1.0,
@@ -329,6 +455,74 @@ def evaluate_pilot(
             and summary.estimated_total_cost_usd >= 0.0
         ),
     }
+    evaluation_profile = None
+    if summary.schema_version == PILOT_SUMMARY_V2_SCHEMA:
+        evaluation_profile = "terminal_state_v2"
+        provenance = summary.scoring_provenance
+        if isinstance(provenance, PilotScoringProvenance):
+            expected_binding = sha256_json(
+                {
+                    "blocking": provenance.final_run_key_set_sha256,
+                    "decision": provenance.final_run_key_set_sha256,
+                    "missing_evidence": provenance.final_run_key_set_sha256,
+                    "verdict": provenance.final_run_key_set_sha256,
+                }
+            )
+            scorer_sha256 = hashlib.sha256(
+                read_authenticated_file(
+                    Path(__file__).with_name("architecture_metrics.py"),
+                    label="architecture metrics scorer",
+                )
+            ).hexdigest()
+            checks.update(
+                {
+                    "final_run_keys_unique": (
+                        provenance.duplicate_final_run_key_count == 0
+                        and provenance.unique_final_run_key_count
+                        == provenance.final_run_key_count
+                    ),
+                    "final_run_keys_complete": (
+                        provenance.missing_final_run_key_count == 0
+                        and provenance.final_run_key_count == summary.final_runs
+                        and provenance.unique_final_run_key_count == summary.final_runs
+                    ),
+                    "reference_join_one_to_one": (
+                        provenance.reference_join_count
+                        == provenance.final_run_key_count
+                        == summary.final_runs
+                    ),
+                    "common_denominator_consistent": (
+                        provenance.common_denominator == summary.final_runs
+                    ),
+                    "scorer_identity": (provenance.scorer_sha256 == scorer_sha256),
+                    "numerator_key_set_bound": (
+                        provenance.numerator_key_set_binding_sha256 == expected_binding
+                    ),
+                    "correct_final_numerators_bounded_by_successful_parses": (
+                        summary_count_domains
+                        and summary.correct_final_decisions
+                        <= summary.successful_final_parses
+                        and summary.correct_final_verdicts
+                        <= summary.successful_final_parses
+                        and summary.correct_final_blocking
+                        <= summary.successful_final_parses
+                        and summary.correct_final_missing_evidence
+                        <= summary.successful_final_parses
+                    ),
+                }
+            )
+        else:
+            checks.update(
+                {
+                    "final_run_keys_unique": False,
+                    "final_run_keys_complete": False,
+                    "reference_join_one_to_one": False,
+                    "common_denominator_consistent": False,
+                    "scorer_identity": False,
+                    "numerator_key_set_bound": False,
+                    "correct_final_numerators_bounded_by_successful_parses": False,
+                }
+            )
     return PilotGateResult(
         passed=all(checks.values()),
         checks=checks,
@@ -345,6 +539,7 @@ def evaluate_pilot(
         unsafe_share=unsafe_share,
         continue_share=continue_share,
         estimated_total_cost_usd=summary.estimated_total_cost_usd,
+        evaluation_profile=evaluation_profile,
     )
 
 
@@ -355,32 +550,22 @@ def _load_summary(results: Path) -> PilotSummary:
             label="pilot summary",
         ).decode("utf-8")
     )
-    expected_keys = {
-        "schema_version",
-        "transaction_set_sha256",
-        "planned_runs",
-        "completed_runs",
-        "parsed_states",
-        "successful_parses",
-        "final_runs",
-        "successful_final_parses",
-        "correct_final_decisions",
-        "correct_final_verdicts",
-        "correct_final_blocking",
-        "correct_final_missing_evidence",
-        "protocol_valid_runs",
-        "run_errors",
-        "retried_runs",
-        "safe_cases",
-        "unsafe_cases",
-        "continue_cases",
-        "fault_families",
-        "estimated_completion_date",
-        "estimated_total_cost_usd",
-        "stage_case_counts",
-    }
-    if not isinstance(payload, dict) or set(payload) != expected_keys:
+    if not isinstance(payload, dict):
+        raise ValueError("pilot summary must be an object")
+    schema_version = payload.get("schema_version")
+    if schema_version == PILOT_SUMMARY_V1_SCHEMA:
+        expected_keys = _PILOT_SUMMARY_V1_KEYS
+    elif schema_version == PILOT_SUMMARY_V2_SCHEMA:
+        expected_keys = _PILOT_SUMMARY_V2_KEYS
+    else:
+        raise ValueError("pilot summary schema_version is unsupported")
+    if set(payload) != expected_keys:
         raise ValueError("pilot summary schema keys are invalid")
+    scoring_provenance = (
+        PilotScoringProvenance.from_dict(payload["scoring_provenance"])
+        if schema_version == PILOT_SUMMARY_V2_SCHEMA
+        else None
+    )
     return PilotSummary(
         planned_runs=payload["planned_runs"],
         completed_runs=payload["completed_runs"],
@@ -391,9 +576,7 @@ def _load_summary(results: Path) -> PilotSummary:
         correct_final_decisions=payload["correct_final_decisions"],
         correct_final_verdicts=payload["correct_final_verdicts"],
         correct_final_blocking=payload["correct_final_blocking"],
-        correct_final_missing_evidence=payload[
-            "correct_final_missing_evidence"
-        ],
+        correct_final_missing_evidence=payload["correct_final_missing_evidence"],
         protocol_valid_runs=payload["protocol_valid_runs"],
         run_errors=payload["run_errors"],
         retried_runs=payload["retried_runs"],
@@ -408,6 +591,7 @@ def _load_summary(results: Path) -> PilotSummary:
         stage_case_counts=payload.get("stage_case_counts"),
         schema_version=payload["schema_version"],
         transaction_set_sha256=payload["transaction_set_sha256"],
+        scoring_provenance=scoring_provenance,
     )
 
 

@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
+from .architecture_target_roster import verify_frozen_target_roster
 from .arr_adapter import packet_from_arr_artifacts
 from .faults import CHALLENGE_FAMILY_CENSUS, FAULT_REGISTRY, assign_fault_families
 from .io import sha256_json, write_json_atomic, write_jsonl_atomic
@@ -78,6 +79,26 @@ def registry_expected_bundle_counts(registry: Mapping[str, Any]) -> dict[str, in
                 f"expected {split} bundle count does not match site count times three"
             )
     return counts
+
+
+def verified_development_target_count(
+    *,
+    target_roster_path: Path | None,
+    target_roster_receipt_path: Path | None,
+    projection_identity_commitment: str,
+) -> int | None:
+    """Return receipt-bound typed-target count without changing legacy cases."""
+
+    if (target_roster_path is None) != (target_roster_receipt_path is None):
+        raise ValueError("target roster and receipt must be supplied together")
+    if target_roster_path is None:
+        return None
+    receipt = verify_frozen_target_roster(
+        target_roster_path,
+        target_roster_receipt_path,
+        projection_identity_commitment=projection_identity_commitment,
+    )
+    return receipt.combined_dev_target_count
 
 
 @dataclass(frozen=True)
@@ -216,25 +237,19 @@ def _challenge_native_result(native: CaseBuildResult) -> CaseBuildResult:
     execution_packets = tuple(
         packet for packet in native.packets if packet.subject_kind == "execution"
     )
-    expected_native_count = native.expected_bundle_counts.get(
-        f"{native.split}.native"
-    )
+    expected_native_count = native.expected_bundle_counts.get(f"{native.split}.native")
     complete_development = (
         native.split == "dev"
         and expected_native_count is not None
         and len(native.packets) == expected_native_count
     )
-    if complete_development and len(execution_packets) != len(
-        CHALLENGE_FAMILY_CENSUS
-    ):
+    if complete_development and len(execution_packets) != len(CHALLENGE_FAMILY_CENSUS):
         raise ValueError(
             f"a complete development challenge requires exactly "
             f"{len(CHALLENGE_FAMILY_CENSUS)} "
             "execution packets"
         )
-    assignment = assign_fault_families(
-        packet.case_id for packet in execution_packets
-    )
+    assignment = assign_fault_families(packet.case_id for packet in execution_packets)
     if complete_development and sorted(assignment.values()) != sorted(
         CHALLENGE_FAMILY_CENSUS
     ):
@@ -258,9 +273,7 @@ def _challenge_native_result(native: CaseBuildResult) -> CaseBuildResult:
             payload["attempt_hash"] = "0" * 64
             challenged = ArchitectureEvidencePacket.from_dict(payload)
         packets.append(challenged)
-        gold_records.append(
-            gold_from_validation(challenged, mutation_family=family)
-        )
+        gold_records.append(gold_from_validation(challenged, mutation_family=family))
     return CaseBuildResult(
         split=native.split,
         condition="challenged",
@@ -418,9 +431,7 @@ def update_split_manifest(
         "registry_core_sha256"
     ):
         raise ValueError("split manifest registry core mismatch")
-    if payload.get("identity_commitment") != bundle_manifest.get(
-        "identity_commitment"
-    ):
+    if payload.get("identity_commitment") != bundle_manifest.get("identity_commitment"):
         raise ValueError("split manifest identity commitment mismatch")
     relative_path = os.path.relpath(
         bundle_manifest_path.resolve(),
@@ -537,16 +548,21 @@ def _verify_split_manifest(
             raise ValueError(f"case manifest registry core mismatch: {key}")
         if manifest.get("identity_commitment") != projection_identity.commitment:
             raise ValueError(f"case manifest identity commitment mismatch: {key}")
-        if _strict_positive_count(
-            manifest.get("case_count"), "bundle manifest"
-        ) != expected_count:
+        if (
+            _strict_positive_count(manifest.get("case_count"), "bundle manifest")
+            != expected_count
+        ):
             raise ValueError(f"case count mismatch: {key}")
-        if _strict_positive_count(
-            entry.get("case_count"), "split manifest entry"
-        ) != expected_count:
+        if (
+            _strict_positive_count(entry.get("case_count"), "split manifest entry")
+            != expected_count
+        ):
             raise ValueError(f"split entry case count mismatch: {key}")
         expected_ids = list(manifest.get("case_ids") or ())
-        if len(expected_ids) != expected_count or len(set(expected_ids)) != expected_count:
+        if (
+            len(expected_ids) != expected_count
+            or len(set(expected_ids)) != expected_count
+        ):
             raise ValueError(f"case ID cardinality mismatch: {key}")
         sources = manifest.get("sources")
         if not isinstance(sources, list) or not sources:
@@ -586,9 +602,10 @@ def _verify_split_manifest(
                 raise ValueError(f"{side} file entry missing: {key}")
             if file_entry.get("schema_version") != expected_schemas[side]:
                 raise ValueError(f"{side} file schema mismatch: {key}")
-            if _strict_positive_count(
-                file_entry.get("record_count"), f"{side} file"
-            ) != expected_count:
+            if (
+                _strict_positive_count(file_entry.get("record_count"), f"{side} file")
+                != expected_count
+            ):
                 raise ValueError(f"{side} record count mismatch: {key}")
             data_path = manifest_path.parent / str(file_entry.get("path") or "")
             if _sha256_file(data_path) != file_entry.get("sha256"):
@@ -674,8 +691,7 @@ def freeze_site_registry(
         for entry in split_manifest["bundles"].values()
         for case_id in _read_json_object(
             (
-                split_manifest_path.parent
-                / str(entry.get("manifest_path") or "")
+                split_manifest_path.parent / str(entry.get("manifest_path") or "")
             ).resolve(),
             "case manifest",
         )["case_ids"]
@@ -726,7 +742,10 @@ def verify_frozen_registry(
         "public_registry_sha256",
         "public_case_set_sha256",
     }
-    if set(receipt) != receipt_keys or receipt.get("schema_version") != FREEZE_RECEIPT_SCHEMA:
+    if (
+        set(receipt) != receipt_keys
+        or receipt.get("schema_version") != FREEZE_RECEIPT_SCHEMA
+    ):
         raise ValueError("unsupported freeze receipt schema")
     core_hash = registry_core_sha256(registry)
     if receipt.get("registry_core_sha256") != core_hash:
@@ -748,7 +767,10 @@ def verify_frozen_registry(
         projection_identity,
         registry_core_hash=core_hash,
     )
-    if _read_json_object(public_registry_path, "public registry") != expected_public_registry:
+    if (
+        _read_json_object(public_registry_path, "public registry")
+        != expected_public_registry
+    ):
         raise ValueError("public registry projection mismatch")
     split_manifest = _verify_split_manifest(
         registry,
@@ -761,8 +783,7 @@ def verify_frozen_registry(
         for entry in split_manifest["bundles"].values()
         for case_id in _read_json_object(
             (
-                split_manifest_path.parent
-                / str(entry.get("manifest_path") or "")
+                split_manifest_path.parent / str(entry.get("manifest_path") or "")
             ).resolve(),
             "case manifest",
         )["case_ids"]

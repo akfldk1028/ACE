@@ -1,0 +1,276 @@
+{
+ "parent": "comp19_tower_twisting_above_compact_podium^centred",
+ "parent_shape_id": "635278050e71a98765c7",
+ "schemes": [
+  {
+   "name": "mansard_podium_needle_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "the podium earns its own sectional identity through a mansard shoulder before the slender rotated tower rises from its flat crest",
+   "formal_principle": "부모의 기단은 평평한 뚜껑으로 끝나 단면이 없었다. 맨사드 어깨를 기단에 붙이면 기단이 자기 단면을 가지며, 탑은 그 정수리 위에서 더 뚜렷하게 분리된 피크가 된다.",
+   "dominant_gesture": "단면을 가진 기단 위 침상 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the four-storey podium proportion, the open-side carve and the rotated tower are kept; a mansard section verb is added to the podium body — this differs from comp23:tower_with_butterfly_cap (which sections only the tower) by giving the podium itself a sectional profile",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단에 맨사드 어깨를 붙여 기단 자체가 단면 형태를 갖는다.",
+    "spatial_strategy": "부모의 기단은 평평한 직육면체로 단면 정체성이 없었다. 맨사드 어깨는 기단 상부를 가파른 경사면으로 처리해 기단이 하나의 형태 결정을 가지게 하고, 탑은 그 위에 더 명확하게 분리된 요소로 서게 된다. 기단과 탑의 단면 위계가 생긴다.",
+    "tradeoff": "맨사드 어깨가 법규선 안에 머물러야 하며, 어깨 면의 내부 이용 가능 깊이가 줄어들 수 있다. 정수리 면적이 넓은 씨앗에서 맨사드가 얕게 표현될 수 있어 shoulder를 크게 선언했다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.58,
+     "storeys": 4,
+     "why": "the parent's four-storey podium occupies approximately 58% of the height budget; storeys inherited; slight reduction to allow the mansard shoulder to read clearly within the overall composition without exceeding the storey cap"
+    },
+    {
+     "op": "mansard",
+     "pitch": 0.65,
+     "shoulder": 0.28,
+     "why": "a steep mansard shoulder is applied to the podium so the podium body has its own section — shoulder 0.28 of the bar width gives the sloped face enough run to be legible; pitch 0.65 is steep enough to read as a masonry shouldered parapet rather than a shallow bevel; the podium changes from an inert box to a form that belongs to the section"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess is kept; it establishes the directional address that the mansard podium continues in elevation"
+    },
+    {
+     "op": "nest",
+     "size": 0.36,
+     "proud": 0.82,
+     "turn": 38,
+     "why": "the rotated tower inherits the parent's 38-degree turn; size is slightly reduced so the tower reads as a needle above the wider mansard shoulder rather than competing with it in footprint; proud 0.82 gives it clear height above the podium crest"
+    }
+   ]
+  },
+  {
+   "name": "inscribed_court_corner_tower",
+   "primary_language": "carved_body",
+   "secondary_language": "the solid podium lid is inscribed with a sunken court that does not touch the edges, and the rotated tower rises from the corner farthest from the open side",
+   "formal_principle": "부모의 기단은 내부가 없는 덩어리였다. 기단 윗면에 모서리 닿지 않는 내려앉는 마당을 새기면 기단 지붕이 조직되고, 탑은 뒤쪽 모서리에서 올라와 마당을 내려다보는 랜드마크가 된다.",
+   "dominant_gesture": "기단 지붕의 침강 마당과 뒷모서리 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, four-storey podium and rotated tower are kept; inscribe adds a recessed court to the podium roof — this differs from comp23:ring_podium_tower (which replaces the solid podium with a loop) and comp23:slotted_podium_passage (which carves through the podium at ground level) by keeping the podium solid and placing the court void in the lid, not in the plan or at ground",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단 지붕에 내려앉는 마당을 새겨 기단 위에 외부 공간이 생기고 탑이 그 가장자리에서 올라온다.",
+    "spatial_strategy": "기단 지붕은 아무 조직도 없는 잔여였다. inscribe로 모서리 닿지 않는 침강 마당을 만들면 기단 지붕이 옥상 마당과 그 둘레 동선으로 나뉘고, 탑이 그 모서리에서 올라와 마당에 대한 참조점이 된다. 지붕 마당은 공공 업무시설의 세미 퍼블릭 옥상으로 이용 가능하다.",
+    "tradeoff": "침강 마당의 깊이가 방 깊이 요건(2.4m)과 무관하므로 inscribe는 실내 공간 면제를 받으나, 방수 및 배수 계획이 필요하다. 마당 크기(size 0.38)가 기단 면적의 38%를 차지해 실내 기단 면적이 줄어든다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium at 62% of the height budget; seed and storeys inherited"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess; kept to maintain the directional address of the parent"
+    },
+    {
+     "op": "inscribe",
+     "size": 0.38,
+     "depth": 0.28,
+     "why": "a sunken court is inscribed into the podium lid without touching the perimeter edges; depth 0.28 of the podium height gives a readable recess visible from the tower; size 0.38 is large enough to read as a court but leaves a perimeter band for occupied terrace circulation"
+    },
+    {
+     "op": "nest",
+     "size": 0.38,
+     "proud": 0.88,
+     "turn": 38,
+     "why": "the rotated tower rises from the podium; turn 38 is inherited from the parent; it now overlooks the inscribed court below, establishing a visual relationship between the tower occupant and the roof court"
+    },
+    {
+     "op": "shift",
+     "ratio": 0.25,
+     "toward": "back",
+     "on": "nest_volume",
+     "why": "moving the tower toward the back corner maximises the distance from the street entry and puts it at the opposite corner from the open-side carve, so the tower becomes a rear landmark above the inscribed court"
+    }
+   ]
+  },
+  {
+   "name": "stagger_tower_on_podium",
+   "primary_language": "solid_body",
+   "secondary_language": "the rotated tower is replaced by a nested mass that steps progressively toward the open side level by level, so the tower leans rather than rotates and each floor plate has a different view",
+   "formal_principle": "부모의 탑은 평면이 돌아 꼭대기가 대각선을 향했지만, 매 층에서 같은 자리에 서 있었다. 탑을 층마다 열린 변 쪽으로 조금씩 미끄러지게 하면 탑이 기울어지며 층마다 더 많은 전면부를 향하게 되고, 단면에서 기울어진 피크가 된다.",
+   "dominant_gesture": "열린 변 쪽으로 층마다 미끄러지는 기울어진 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, four-storey podium, open-side carve and nested tower position are kept; the rotation (turn) is replaced by stagger — this differs from O24 (four masses alternately shifted between faces) and O6 (blocks alternating orientation) because only the tower stagger is the proposition and it is one-directional toward the open side",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑을 회전 대신 층마다 열린 변으로 미끄러뜨려 기울어진 탑이 된다.",
+    "spatial_strategy": "부모의 탑은 수직으로 서서 평면이 돌아갔다. 동일 방향으로 층마다 이동하면 탑이 기울어지며 상층부가 더 많은 도로 전면을 향한다. 기단 위 기울어진 매스는 하부 기단과 상부 탑 사이의 긴장 관계를 단면에서 읽히게 한다.",
+    "tradeoff": "stagger가 누적되면 상층부가 기단 가장자리를 넘어 캔틸레버 상태가 될 수 있다. 구조 가능 여부는 미검증이다. 탑의 층고 및 기단과의 하중 전달은 독립 검토가 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium at 62% of the height budget; inherited"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess; inherited to keep the directional address"
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.85,
+     "turn": 0,
+     "why": "the parent's nested tower is kept in position and proportion; turn is set to 0 so rotation is removed — the stagger below replaces the rotational identity with a lean identity; proud 0.85 is inherited"
+    },
+    {
+     "op": "stagger",
+     "ratio": 0.22,
+     "toward": "open",
+     "on": "nest_volume",
+     "why": "the tower steps progressively toward the open side so each successive level overhangs the one below; ratio 0.22 keeps each step within the structural clearance gate while producing a legible lean across the tower's full height"
+    }
+   ]
+  },
+  {
+   "name": "cantilever_crown_on_podium",
+   "primary_language": "solid_body",
+   "secondary_language": "the upper two levels of the podium project as a cantilever toward the open side so the top of the mass overhangs the entry court and the building reads as a shelf rather than a tower",
+   "formal_principle": "부모의 탑은 위로 빠져나갔다. 대신 기단 상층부가 열린 변 위로 내밀면, 건물이 탑으로 솟는 것이 아니라 진입로 위로 몸체를 뻗어 이용자를 덮는 셸프가 된다.",
+   "dominant_gesture": "기단 위층이 진입 앞마당 위로 내밀어 덮는 캔틸레버 셸프",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed and the open-side carve are kept; the nested tower is replaced by a cantilever that projects from the top of the podium — this differs from O8 (a court ring lifted whole) and comp23:slotted_podium_passage (passage through the podium at ground) because the cantilever is an inhabited upper floor projecting over the cleared entry, not a lifted ring",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑 대신 기단 상층부가 캔틸레버로 내밀어 진입 앞마당 위를 덮는 셸프가 된다.",
+    "spatial_strategy": "부모는 기단 위에 탑이 솟는 수직 강조였다. 상층부를 캔틸레버로 내밀면 수직 피크 대신 수평 내밈이 생기고, 내민 판 아래가 보행자 진입 공간이 된다. 공공업무시설의 시민 진입에 적합한 그늘과 지붕을 제공한다.",
+    "tradeoff": "캔틸레버 reach는 구조 게이트 상한(0.40) 이내로 제한된다. 내밈 끝부분의 구조 검토와 법규선 여유 확인이 필요하다. 대지 꽉 찬 몸체에서 내밀면 일조 봉투가 먹을 수 있으므로 carve로 여유를 먼저 만들었다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.78,
+     "storeys": 5,
+     "why": "the podium is raised to five storeys to allow the cantilever to project from the upper levels; without the tower, the full height budget can go into the podium body; height 0.78 of the budget leaves room within the 5-storey legal cap"
+    },
+    {
+     "op": "carve",
+     "size": 0.32,
+     "at": "open",
+     "reach": 0.5,
+     "why": "a deeper open-side carve than the parent creates the recess the cantilever will overhang; the cleared ground below the future cantilever becomes the entry court; carve first so the body is no longer site-filling before cantilever is applied"
+    },
+    {
+     "op": "cantilever",
+     "reach": 0.35,
+     "levels": 3,
+     "toward": "open",
+     "why": "the upper three levels project toward the open side over the carved entry court; reach 0.35 is within the 0.40 structural gate; levels 3 means the top three slabs overhang progressively creating a stepped-shelf section visible from the street"
+    }
+   ]
+  },
+  {
+   "name": "lifted_bar_rotated_crown",
+   "primary_language": "open_figure",
+   "secondary_language": "the podium is lifted off the ground so the entire site level becomes a public clearing, and the rotated volume is nested into the floating bar as the occupied presence",
+   "formal_principle": "부모의 기단은 지면에 서서 지면을 가렸다. 기단을 들어올리면 지면 전체가 공공 영역이 되고, 들어 올려진 판 안에 돌아선 매스가 박혀 내려다보는 건물이 된다.",
+   "dominant_gesture": "들린 기단 아래 열린 지면, 돌아선 볼륨이 박힌 판",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed and the rotated nested volume are kept; lift replaces the grounded podium with a floating bar — this differs from O8 (a court ring of four bars lifted) because the lifted body is a single bar not a ring, and the rotation is preserved inside the floating mass rather than abandoned; differs from OMA Shenzhen Stock Exchange (podium plate raised) because here the whole occupiable body lifts, not just a podium plate",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단을 지면에서 들어올려 지면을 공공에 열고, 들린 판에 돌아선 매스가 박힌다.",
+    "spatial_strategy": "부모의 기단은 지면을 점유해 주변 지면이 좁은 잔여였다. lift로 기단 전체를 들어올리면 지면이 한 번에 열리고 필로티 아래 전면이 공공 공간이 된다. 들린 판 안에 돌아선 nest 볼륨이 박혀 상부에서 내려다보는 매스가 생긴다.",
+    "tradeoff": "들린 판 아래 필로티 구조와 수직 동선(계단·엘리베이터)이 미검증이다. 이 단계에서 서포트 스크린을 지나면 실측이 필요하다. 법규상 필로티 하부 바닥면적 산정 방식도 확인이 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's podium proportion is kept as the base mass before lifting; four storeys and 62% height budget are inherited"
+    },
+    {
+     "op": "lift",
+     "clearance": 0.28,
+     "why": "the entire bar is raised 28% of the storey height off the ground; this opens the full ground footprint of the half-plot seed as a public clearing; clearance 0.28 is within the 0.1–0.4 range and gives approximately one storey of clear head height below the floating body"
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side carve is applied to the lifted body to maintain the directional address and make the open face legible from the street even in the elevated position"
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.72,
+     "turn": 38,
+     "why": "the rotated volume is nested into the lifted bar; turn 38 is inherited from the parent; proud 0.72 means the nested mass protrudes 72% of its own height above the lifted bar lid, giving height without exceeding the legal five-storey cap across the combined stack"
+    }
+   ]
+  },
+  {
+   "name": "gabled_asymmetric_split_podium",
+   "primary_language": "solid_body",
+   "secondary_language": "the podium is split into two unequal wings of different height and the taller back wing receives a gable section so the building reads as a pitched-roof civic hall beside a grounded plinth",
+   "formal_principle": "부모의 기단은 높이가 같은 덩어리라 단면이 없었다. 기단을 높이 다른 두 날개로 분리하고, 높은 날개에 박공 지붕을 얹으면 시민 홀의 단면 특성이 생기고, 낮은 날개는 전면 기단이 된다.",
+   "dominant_gesture": "낮은 전면 기단과 박공 지붕을 가진 높은 후면 홀",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed is kept; the solid podium is split into a short entry plinth and a taller gabled hall — the nested rotated tower is removed and the gable section becomes the formal identity — this differs from O3 (single slope where a diagonal bar receives the push) and O7 (concertina roof over a quarter-depth bar) because here the gable is over the full back wing and the front wing remains flat-topped as a plinth",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "기단을 두 날개로 나누고 후면 날개에 박공 지붕을 얹어 시민 홀의 단면 특성을 만든다.",
+    "spatial_strategy": "부모는 탑이 위로 솟는 수직 원리였다. 여기서는 탑을 없애고 기단 자체를 분화한다. 전면 낮은 날개는 지면 진입 플린스가 되고, 후면 높은 날개는 박공 지붕을 가진 시민 집회 공간이 된다. 공공업무시설에서 하나의 지붕 단면이 건물 정체성이 될 수 있다.",
+    "tradeoff": "박공 지붕의 피치(0.45)가 넓은 씨앗(half-plot)에서 얕게 읽힐 수 있다. 내부 깊이가 길어 자연 채광이 부족할 수 있으며 이는 미검증이다. 탑이 없어 상층 FAR 활용이 낮아진다는 트레이드오프가 있다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.75,
+     "storeys": 5,
+     "why": "with the tower removed, the full height budget goes into the split podium; five storeys at 75% of the height budget gives the taller back wing room to carry a legible gable section above it"
+    },
+    {
+     "op": "split",
+     "ratio": 0.42,
+     "along": "cross",
+     "first": "entry_plinth",
+     "second": "civic_hall",
+     "contrast": 1.8,
+     "gap": 0,
+     "why": "the podium is split along its depth axis into a shallower entry plinth (42% of depth) and a deeper civic hall (58%); contrast 1.8 gives the back wing substantially more height than the front; gap 0 means they share a structure joint and no air gap is introduced"
+    },
+    {
+     "op": "carve",
+     "size": 0.3,
+     "at": "open",
+     "reach": 0.48,
+     "on": "entry_plinth",
+     "why": "the parent's open-side entry recess is maintained on the lower entry plinth; it establishes the directional address below the taller back hall"
+    },
+    {
+     "op": "gable",
+     "pitch": 0.45,
+     "along": "long",
+     "on": "civic_hall",
+     "why": "a gable section is applied to the taller back wing so its ridge runs along the long axis; pitch 0.45 (run:rise ≈ 1:0.45) gives a readable roof slope above the hall without exceeding the storey-cap; the gable replaces the rotated tower as the building's formal identity and section figure"
+    }
+   ]
+  }
+ ]
+}

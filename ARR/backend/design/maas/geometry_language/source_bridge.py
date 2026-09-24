@@ -2575,6 +2575,8 @@ def compile_geometry_program_to_source_mass(
     gate_policy: GeometryGatePolicy | None = None,
     height_m: float | None = None,
     clip_to_host: bool = False,
+    clip_sections: tuple | None = None,
+    facing_angle_deg: float | None = None,
 ) -> SourceMass | None:
     """Fit one compiled solid into a normalized host and preserve its mesh.
 
@@ -2606,6 +2608,8 @@ def compile_geometry_program_to_source_mass(
         gate_policy=gate_policy,
         height_m=height_m,
         clip_to_host=clip_to_host,
+        clip_sections=clip_sections,
+        facing_angle_deg=facing_angle_deg,
     )
 
 
@@ -2617,6 +2621,8 @@ def _compile_geometry_program_to_source_mass(
     upper_fit_strength: float = 0.0,
     height_m: float | None = None,
     clip_to_host: bool = False,
+    clip_sections: tuple | None = None,
+    facing_angle_deg: float | None = None,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
     name: str | None = None,
@@ -2698,7 +2704,8 @@ def _compile_geometry_program_to_source_mass(
             base_seed_area_cap = float(host.area) * base_seed_plan_fraction
             effective_target_plan_area = base_seed_area_cap
         transformed = (_pose_metric_vertices_to_host(
-                compilation, host, clip_to_host=clip_to_host)
+                compilation, host, clip_to_host=clip_to_host,
+                clip_sections=clip_sections, facing_angle_deg=facing_angle_deg)
             if placement_policy == POLICY else _fit_vertices_to_host(
                 compilation, host, target_plan_area=effective_target_plan_area,
                 minimum_plan_area=minimum_plan_area,
@@ -2734,6 +2741,20 @@ def _compile_geometry_program_to_source_mass(
                 )
                 legal_fit_mode = "height_interpolated_lower_upper_principal_frames"
                 host_fit_matrix4_exact = False
+    if clip_to_host:
+        # The cut itself. The bands were already clipped to the host and the
+        # plan measured through it, but the mesh that gets drawn, judged and
+        # sectioned still stood past the boundary, and the delivered floor
+        # evidence read "mesh area missing from proxy" on every FAR-sized
+        # intent. The posed mesh is intersected with the host prism here,
+        # so everything downstream - surfaces, sections, certificate - is
+        # the building the law leaves.
+        clipped = _clip_world_mesh_to_host(world_vertices, compilation.triangles, host,
+                                           sections=clip_sections)
+        if clipped is None:
+            return None
+        world_vertices, clipped_triangles = clipped
+        compilation = replace(compilation, triangles=clipped_triangles)
     achieved_plan_area = _mesh_plan_projection_area(
         world_vertices,
         compilation.triangles,
@@ -2855,7 +2876,8 @@ def _compile_geometry_program_to_source_mass(
             # rest of this file exists to prevent. `_polygon_parts` is what the
             # section above already uses to split one.
             pieces = (
-                [piece for piece in _polygon_parts(part.intersection(host))
+                [piece for piece in _polygon_parts(part.intersection(
+                    _clip_host_for_band(host, clip_sections, bottom, top)))
                  if not piece.is_empty and piece.area > 1e-9]
                 if clip_to_host else [part]
             )
@@ -3046,6 +3068,23 @@ def _compile_geometry_program_to_source_mass(
         ),
         "datum_m": round(
             min((float(z) for _x, _y, z in world_vertices), default=0.0), 3),
+        # The polygon the legal line cut this mass at, in the same world
+        # frame as the fit matrix. A measurement that rebuilds the authored
+        # solid to compare it with the delivery clips it to this first.
+        **({"legal_host_clip": {
+            "exterior": [[float(x), float(y)] for x, y in list(orient(host, sign=1.0).exterior.coords)[:-1]],
+            "holes": [[[float(x), float(y)] for x, y in list(hole.coords)[:-1]]
+                      for hole in orient(host, sign=1.0).interiors],
+            # Floor by floor, in the same normalized z as the fit matrix: the
+            # law's plan shrinks with height (정북일조), and a measurement that
+            # rebuilds the authored solid clips each floor to its own section.
+            "sections": [{
+                "lo": float(lo), "hi": float(hi),
+                "exterior": [[float(x), float(y)] for x, y in list(orient(poly, sign=1.0).exterior.coords)[:-1]],
+                "holes": [[[float(x), float(y)] for x, y in list(hole.coords)[:-1]]
+                          for hole in orient(poly, sign=1.0).interiors],
+            } for lo, hi, poly in (clip_sections or ())],
+        }} if clip_to_host else {}),
     }
     return SourceMass(
         name=name or f"geometry_program__{program.name}",
@@ -3637,7 +3676,146 @@ def _normalized_program_space_zones(
     return zones
 
 
-def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = False):
+def _clip_host_for_band(host, sections, bottom, top):
+    """The legal section this band stands in; the ground host when none given."""
+    if not sections:
+        return host
+    z = (float(bottom) + float(top)) / 2.0
+    for lo, hi, poly in sections:
+        if float(lo) - 1e-9 <= z < float(hi) + 1e-9:
+            return poly
+    return min(sections, key=lambda item: min(abs(z - float(item[0])), abs(z - float(item[1]))))[2]
+
+
+def _clip_world_mesh_to_host(vertices, triangles, host, sections=None):
+    """Intersect a posed mesh with the host prism; keep the largest piece.
+
+    Returns (vertices, triangles) in the same world frame, or None when the
+    kernel cannot make a solid of it or nothing is left inside. A cut can
+    leave more than one piece (a wing severed at the boundary); the largest
+    is the building and the rest is what the law took.
+    """
+    import numpy as np
+    import manifold3d as m3d
+    raw_vertices = np.asarray(vertices, dtype=float)
+    raw_triangles = np.asarray(triangles, dtype=np.int64)
+    if raw_vertices.ndim != 2 or raw_vertices.shape[1] != 3 or not len(raw_triangles):
+        return None
+    # Double precision: the reference this cut is later measured against is
+    # the authored solid clipped in float64, and a float32 mesh in parcel
+    # metres differs from it by ~5e-5 m2 per floor, past the export tolerance.
+    mesh_type = getattr(m3d, "Mesh64", None) or m3d.Mesh
+    mesh = mesh_type(raw_vertices, raw_triangles.astype(np.uint32, copy=False))
+    mesh.merge()
+    solid = m3d.Manifold(mesh)
+    if "NoError" not in str(solid.status()) or solid.is_empty():
+        return None
+    z_low = float(raw_vertices[:, 2].min())
+    z_high = float(raw_vertices[:, 2].max())
+
+    def prism_of(polygon, lo, hi):
+        ring = orient(polygon, sign=1.0)
+        exterior = np.asarray(list(ring.exterior.coords)[:-1], dtype=float)
+        holes = [np.asarray(list(hole.coords)[:-1], dtype=float) for hole in ring.interiors]
+        return (
+            m3d.CrossSection([exterior, *holes])
+            .extrude(max(hi - lo, 1e-6))
+            .translate((0.0, 0.0, lo))
+        )
+
+    if sections:
+        # The legal envelope: one prism per floor section, the bottom one
+        # reaching below the mesh and the top one above it. Adjacent prisms
+        # overlap by a hair: stacked exactly, the kernel's union kept the
+        # coincident face between two bands with the same plan as an internal
+        # seam, the cut inherited it, decompose() split the building there,
+        # and the largest-piece rule below threw the ground floor away
+        # (comp21: 18 of 24 sentences refused for "no delivered occupied
+        # section" on floor 1, whose legal section was the whole parcel).
+        ordered = sorted(sections, key=lambda item: float(item[0]))
+        overlap = max(1e-9, (z_high - z_low) * 1e-7)
+        prisms = []
+        for index, (lo, hi, poly) in enumerate(ordered):
+            lo = float(lo) - overlap; hi = float(hi) + overlap
+            if index == 0:
+                lo = min(lo, z_low - 1.0)
+            if index == len(ordered) - 1:
+                hi = max(hi, z_high + 1.0)
+            prisms.append(prism_of(poly, lo, hi))
+        envelope = m3d.Manifold.batch_boolean(prisms, m3d.OpType.Add) if len(prisms) > 1 else prisms[0]
+    else:
+        envelope = prism_of(host, z_low - 1.0, z_high + 1.0)
+    cut = m3d.Manifold.batch_boolean([solid, envelope], m3d.OpType.Intersect)
+    if cut.is_empty():
+        return None
+    pieces = cut.decompose() or [cut]
+    if len(pieces) > 1:
+        # Pieces that touch are one building: the kernel's decompose splits
+        # a composition of bars meeting face to face (comp24: an array of
+        # three, the upper two dropped and floors 3-5 read at half their
+        # reference). Touching pieces - bounding boxes meeting within a
+        # hair - are clustered, and the cluster with the most volume is
+        # kept; only what stands apart in space is what the law severed.
+        def _size(piece):
+            try:
+                return float(piece.volume())
+            except Exception:  # older kernels: bounding box stands in
+                lo, hi = piece.bounding_box()
+                return float((hi[0] - lo[0]) * (hi[1] - lo[1]) * (hi[2] - lo[2]))
+        boxes = [np.asarray(piece.bounding_box(), dtype=float).reshape(2, 3) for piece in pieces]
+        eps = max(1e-9, (z_high - z_low) * 1e-6)
+        parent = list(range(len(pieces)))
+        def _find(i):
+            while parent[i] != i:
+                parent[i] = parent[parent[i]]
+                i = parent[i]
+            return i
+        for i in range(len(pieces)):
+            for j in range(i + 1, len(pieces)):
+                if all(boxes[i][0][k] <= boxes[j][1][k] + eps and boxes[j][0][k] <= boxes[i][1][k] + eps
+                       for k in range(3)):
+                    parent[_find(i)] = _find(j)
+        clusters: dict[int, list] = {}
+        for index, piece in enumerate(pieces):
+            clusters.setdefault(_find(index), []).append(piece)
+        kept = max(clusters.values(), key=lambda group: sum(_size(piece) for piece in group))
+        cut = kept[0] if len(kept) == 1 else m3d.Manifold.batch_boolean(kept, m3d.OpType.Add)
+    out = cut.to_mesh64()
+    out_vertices = np.asarray(out.vert_properties, dtype=float)[:, :3]
+    out_triangles = np.asarray(out.tri_verts, dtype=np.int64)
+    if not len(out_triangles):
+        return None
+    return (
+        tuple((float(x), float(y), float(z)) for x, y, z in out_vertices),
+        tuple((int(a), int(b), int(c)) for a, b, c in out_triangles),
+    )
+
+
+def _ground_contact_area(vertices, triangles, host=None) -> float:
+    """Area of the faces that stand on the lowest plane, inside `host` if given."""
+    if not vertices or not triangles:
+        return 0.0
+    z_low = min(v[2] for v in vertices)
+    span = max(v[2] for v in vertices) - z_low
+    eps = max(1e-6, span * 1e-4)
+    faces = []
+    for a, b, c in triangles:
+        pa, pb, pc = vertices[a], vertices[b], vertices[c]
+        if all(abs(pt[2] - z_low) <= eps for pt in (pa, pb, pc)):
+            poly = Polygon([(pa[0], pa[1]), (pb[0], pb[1]), (pc[0], pc[1])])
+            if poly.area > 1e-9:
+                faces.append(poly)
+    if not faces:
+        return 0.0
+    ground = unary_union(faces)
+    if host is not None:
+        ground = ground.intersection(host)
+    return float(ground.area)
+
+
+def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = False,
+                                  clip_sections: tuple | None = None,
+                                  facing_angle_deg: float | None = None):
     """Finite rigid pose search; inability to place is a refusal, never a resize.
 
     `clip_to_host` does not break that contract - a cut is not a resize. It is
@@ -3658,20 +3836,42 @@ def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = Fal
     span = max(v[2] for v in vertices) - minimum_z
     if span <= 1e-9:
         return None
+    # The poses to try. With the legal line cutting, the first pose used to
+    # be returned unchecked, and six of twelve comp18 masses had their base
+    # posed outside the parcel: the cut left 23 m2 of ground under a 10,000
+    # m3 body and the gravity screen refused them. Every pose is now cut and
+    # measured, and the one that keeps the most ground inside the parcel
+    # wins; a facing angle (the sentence's road side turned to the road) is
+    # tried first and wins ties.
+    angles = [target_angle - source_angle, target_angle - source_angle + 90.0, 0.0]
+    if facing_angle_deg is not None:
+        angles.insert(0, float(facing_angle_deg))
+    ground_section = clip_sections[0][2] if clip_sections else host
+    best = None
     for center in (host.centroid, host.representative_point()):
-        for angle in (target_angle - source_angle, target_angle - source_angle + 90.0, 0.0):
+        for angle in angles:
             matrix = compose_matrix4(
                 translation_matrix4((-plan.centroid.x, -plan.centroid.y, -minimum_z)),
                 rotation_matrix4((0.0, 0.0, angle)),
                 scale_matrix4((1.0, 1.0, 1.0 / span)),
                 translation_matrix4((center.x, center.y, 0.0)))
             world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
-            if clip_to_host or _mesh_plan_projection_inside_host(
-                world, compilation.triangles, host
-            ):
-                return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
-                    world_vertices=world, achieved_plan_area_m2=_mesh_plan_projection_area(world, compilation.triangles))
-    return None
+            if not clip_to_host:
+                if _mesh_plan_projection_inside_host(world, compilation.triangles, host):
+                    return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
+                        world_vertices=world, achieved_plan_area_m2=_mesh_plan_projection_area(world, compilation.triangles))
+                continue
+            clipped = _clip_world_mesh_to_host(world, compilation.triangles, host, sections=clip_sections)
+            if clipped is None:
+                continue
+            score = _ground_contact_area(clipped[0], clipped[1], ground_section)
+            if best is None or score > best[0] + 1e-6:
+                best = (score, matrix, world)
+    if best is None:
+        return None
+    _score, matrix, world = best
+    return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
+        world_vertices=world, achieved_plan_area_m2=_mesh_plan_projection_area(world, compilation.triangles))
 
 
 def _fit_vertices_to_host(

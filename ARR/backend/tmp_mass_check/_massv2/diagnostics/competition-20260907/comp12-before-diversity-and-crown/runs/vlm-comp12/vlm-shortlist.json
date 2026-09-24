@@ -1,0 +1,90 @@
+[
+ {
+  "tile": "t01",
+  "score": 4.1,
+  "corrected": 4.1,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "comp10_continuous_court_rising_edges~full_ground^cross_open",
+  "coverage_pct": 26.6,
+  "shape_id": "5307259b76e79138a459",
+  "certificate_id": "1d7d37bd040dc38a3e71"
+ },
+ {
+  "tile": "t02",
+  "score": 3.93,
+  "corrected": 3.93,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c04_develop_perforated_base~full_ground^cross_open",
+  "coverage_pct": 26.5,
+  "shape_id": "64c94edfe13ebcdc018e",
+  "certificate_id": "1f9e9d919af107b31378"
+ },
+ {
+  "tile": "t07",
+  "score": 3.72,
+  "corrected": 3.72,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c07_stepped_interlocking_sections~full_ground^centred",
+  "coverage_pct": 55.0,
+  "shape_id": "7d3f2e4b92afe8526709",
+  "certificate_id": "5250875ba26b27f4ed9a"
+ },
+ {
+  "tile": "t08",
+  "score": 3.6,
+  "corrected": 3.6,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "loop_butterfly_open__d07_bar+~held_ground^to_open",
+  "coverage_pct": 17.6,
+  "shape_id": "40115b02b09902f83d13",
+  "certificate_id": "d5daa53a0e5d499ddf13"
+ },
+ {
+  "tile": "t06",
+  "score": 3.35,
+  "corrected": 3.35,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c07_four_rotated_occupied_blocks~held_ground",
+  "coverage_pct": 37.8,
+  "shape_id": "41a8739e010fce1dbb40",
+  "certificate_id": "9673e6ce544dd6a1af60"
+ },
+ {
+  "tile": "t04",
+  "score": 3.12,
+  "corrected": 3.12,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c07_offset_paired_bar_levels~full_ground^off_open",
+  "coverage_pct": 14.7,
+  "shape_id": "11e2e6eec15a6f8b60ee",
+  "certificate_id": "8f8a0555145d746ac031"
+ },
+ {
+  "tile": "t05",
+  "score": 3.0,
+  "corrected": 3.0,
+  "pass": true,
+  "correction": "none_no_anchors",
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "coverage_pct": 23.4,
+  "shape_id": "70050afda2ba70381aa3",
+  "certificate_id": "e83977d4f93a66b785de"
+ },
+ {
+  "tile": "t03",
+  "score": 2.35,
+  "corrected": 2.35,
+  "pass": false,
+  "correction": "none_no_anchors",
+  "name": "comp10_distributed_halls_rising_roofs~dispersed_ground^to_open",
+  "coverage_pct": 11.9,
+  "shape_id": "d873e0ed0d4bf009af50",
+  "certificate_id": "641a26f9d7510a155c59"
+ }
+]

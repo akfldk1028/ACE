@@ -1,0 +1,100 @@
+TILE t01
+CONCEPT 4 | A single perimeter block carved by two rectangular courtyards - solid ring, two voids, hierarchy read cleanly in plan, section and roof.
+FEASIBILITY 5 | Three-storey extrusion with continuous bearing walls; no cantilevers, no transfers, courtyard bays are ordinary spans.
+SITE 4 | Footprint traces the parcel outline with near-even setbacks and the voids align with the long axis; sharp western tip left as ground.
+EDITABILITY 4 | Courtyard ring depths suit office floorplates and cores; only the tapered corners resist regular bays.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 3 | A faceted double-gable roof with a slot between the two ridges gives a crystalline silhouette, but the idea stays in the roof; the body below is a compressed extrusion.
+FEASIBILITY 4 | Solid mass on the ground with no separated pieces; the ridge slot and folded planes are buildable roof geometry.
+SITE 3 | Fills the parcel to near its edges with a notched plan; the folds do not read as responses to any specific edge or orientation.
+EDITABILITY 3 | Five-storey proxy under a sloped roof means the upper floors are cut by the pitch; plan notches are arbitrary for cores.
+WEIGHTED 3.25
+
+TILE t03
+CONCEPT 3 | A lifted pile of bars - four short ground stubs carrying two long crossing beams - is a legible stacking idea though visually a loose jumble.
+FEASIBILITY 2 | The upper bars bear on small stubs at scattered points with long overhangs and one bar floats over a corner; the section shows only two tiny ground pieces below a wide upper mass.
+SITE 3 | Bars lie diagonally across the parcel and overshoot its edges at several ends; orientation not tied to any boundary.
+EDITABILITY 2 | Narrow bars stacked at odd angles leave no continuous ground floor or shared core position; 95% FAR is spread thin.
+WEIGHTED 2.55
+
+TILE t04
+CONCEPT 3 | A large flat plate hovering above two low blocks - a clear canopy-over-pavilions parti, but the plate is the only gesture.
+FEASIBILITY 3 | The plate is thin and extends well beyond the two supports on every side; deep overhangs need a structural depth not drawn.
+SITE 3 | The plate follows the parcel outline while the blocks sit centrally; the western tip is left as open ground.
+EDITABILITY 3 | Only two storeys and 61% FAR; adding floors beneath the canopy would erase the idea.
+WEIGHTED 3.00
+
+TILE t05
+CONCEPT 2 | A small tri-pier table with a thin top plate; a pavilion-scale object, not a massing idea for an office parcel.
+FEASIBILITY 3 | Three solid piers with vault cuts carry a thin plate over a short span; buildable but the plate is drawn without depth.
+SITE 2 | Occupies one corner and leaves nearly the whole parcel empty; no response to edges or frontage.
+EDITABILITY 2 | 12% coverage and 23% FAR leave almost nothing to develop; growing the piers would produce a different building.
+WEIGHTED 2.25
+
+TILE t06
+CONCEPT 3 | Folded roof sheets drifting above four small blocks - a floating-roof parti with real formal energy in the folds.
+FEASIBILITY 2 | The roof is a paper-thin plate clear of the blocks; the upper plan cut shows only three lines and the section a sliver floating above one block, so nothing is drawn to carry it.
+SITE 3 | The roof outline roughly follows the parcel and shades most of it; the four blocks sit inside comfortably.
+EDITABILITY 2 | Two storeys and 26% FAR; the roof is not occupiable and the blocks are too small for cores and floors.
+WEIGHTED 2.55
+
+TILE t07
+CONCEPT 3 | A three-tier stepped ziggurat with a tapered cap; clear and disciplined but the most generic sectional idea in the set.
+FEASIBILITY 5 | Each tier bears fully on the one below; no cantilevers, no separated pieces.
+SITE 4 | The base terrace follows the parcel outline with even setbacks; the upper tiers rotate to a regular square.
+EDITABILITY 4 | Ample stacked floorplates and a central position for cores; terraces give usable roof levels.
+WEIGHTED 3.90
+
+TILE t08
+CONCEPT 3 | A three-pier portal with a thin cap plate; the section shows a clean frame idea but the mass is a single object.
+FEASIBILITY 3 | Substantial piers with a modest span between them; the plate is thin but the section reads as a stable portal.
+SITE 3 | Sits centrally at a modest 26% coverage with no edge alignment; much of the parcel left open.
+EDITABILITY 3 | Piers can hold cores and the plate can thicken to floors, but 51% FAR leaves little to develop.
+WEIGHTED 3.00
+
+TILE t09
+CONCEPT 3 | A broad plate with a stepped edge floating over four scattered blocks; big-roof parti, softened by the stepped profile.
+FEASIBILITY 3 | The section shows the plate resting on two legs with long spans between; overhangs at the corners are unsupported as drawn.
+SITE 3 | The plate covers the parcel outline closely; the blocks below are scattered without clear alignment.
+EDITABILITY 3 | Three-storey proxy with 51% FAR; the roof plate can absorb floors, but the blocks are too small for cores.
+WEIGHTED 3.00
+
+TILE t10
+CONCEPT 4 | A village of six pitched and butterfly-roofed houses; the silhouette and the gaps between them are a distinctive, legible idea.
+FEASIBILITY 4 | Each house is a solid extrusion standing on its own footprint; roofs are ordinary pitches.
+SITE 3 | The cluster spreads across the parcel with gaps but does not align with any edge; the sharp west tip is left empty.
+EDITABILITY 3 | Six small footprints each need a core and stair; roof pitches cut the upper floor; the gaps are the idea and must be kept.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 4 | Shifted stacked plates - a pinwheel of slabs stepping up to a small tower - reads as a strong tectonic idea in the aerial view.
+FEASIBILITY 3 | The main slab overhangs its two ground footprints substantially; plan cuts show only two small ground pieces under a much wider upper mass.
+SITE 3 | The stack sits in the middle of the parcel with plates aligned to neither edge; the slabs project toward the boundaries.
+EDITABILITY 3 | Plates are deep enough for office floors, but cores must fall within the two ground footprints, which are small.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 4 | A tall lens-shaped sliver slicing diagonally across the parcel; a single bold gesture with a small roof puncture.
+FEASIBILITY 4 | A solid five-storey extrusion of moderate width; the puncture is small and the mass stands without transfers.
+SITE 3 | Ignores the parcel edges - the bar crosses the site and leaves large triangular remainders on both sides.
+EDITABILITY 3 | Narrow plan depth at both tips; the core fits in the middle but the ends taper to unusable width.
+WEIGHTED 3.60
+
+TILE t13
+CONCEPT 2 | Five scattered low blocks with no ordering rule; reads as remnants rather than a composition.
+FEASIBILITY 4 | Each block is a simple two-storey solid on the ground.
+SITE 2 | Blocks are dropped across the parcel without alignment or spacing logic; 14% coverage on an office site.
+EDITABILITY 2 | 14% FAR and no relation between blocks means development would have to invent the idea from scratch.
+WEIGHTED 2.50
+
+TILE t14
+CONCEPT 3 | A thin canopy plate over three small pods with an appended corner block; a floating-roof parti with a slight asymmetry.
+FEASIBILITY 2 | The section is a T - a thin plate on a single stem - and the plate overhangs the three pods on all sides; nothing drawn carries the far edge.
+SITE 3 | The plate follows the parcel outline; the pods sit along the south edge and the western tip remains open.
+EDITABILITY 2 | 28% FAR in three tiny pods; the plate is not occupiable and the pods are too small for cores.
+WEIGHTED 2.55
+
+RANKING: t01, t07, t10, t12, t11, t02, t09, t04, t08, t14, t03, t06, t13, t05
+VERDICT: The set is dominated by one repeated parti - a thin plate hovering over small blocks - which in t04, t06, t09 and t14 is drawn without the structure to carry it and with too little floor area to develop. Only t01 delivers a whole-parcel idea with solid section, edge response and developable floorplates; t07 is safe but generic, and t10 and t12 hold distinctive ideas worth carrying. t01 advances, with t07, t10 and t12 as reserves; the plate schemes should not advance until a section shows what holds the plate up.

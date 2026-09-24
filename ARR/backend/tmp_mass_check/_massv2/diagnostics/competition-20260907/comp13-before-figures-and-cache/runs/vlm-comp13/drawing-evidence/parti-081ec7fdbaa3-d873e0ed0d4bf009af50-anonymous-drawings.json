@@ -1,0 +1,20 @@
+{
+  "name": "comp10_distributed_halls_rising_roofs~dispersed_ground^to_open",
+  "shape_id": "d873e0ed0d4bf009af50",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    144.21952261918145,
+    144.21952261918145
+  ],
+  "section_area_m2": 214.0485149742552,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "41eefa3cf29fd02eab16dd407d8e13ed9e4d55436da43ba706feb5586e63f915"
+}

@@ -34,7 +34,10 @@ class ChallengedCaseTests(unittest.TestCase):
     def test_each_fault_mutates_evidence_and_derives_typed_rejection(self) -> None:
         try:
             from iclr2027.faults import FAULT_REGISTRY
-            from iclr2027.validators import gold_from_validation, validate_evidence_packet
+            from iclr2027.validators import (
+                gold_from_validation,
+                validate_evidence_packet,
+            )
         except (ImportError, ModuleNotFoundError) as exc:
             self.fail(f"fault or validator module is missing: {exc}")
 
@@ -117,9 +120,9 @@ class ChallengedCaseTests(unittest.TestCase):
                     if item["evidence_id"] == evidence_id
                 )
                 if evidence_id == "evidence:law_graph_agent":
-                    record["evidence"]["legal_projection"][
-                        "volume_retention"
-                    ] = "malformed"
+                    record["evidence"]["legal_projection"]["volume_retention"] = (
+                        "malformed"
+                    )
                 else:
                     record["evidence"]["required_spaces"] = "malformed"
                 malformed = ArchitectureEvidencePacket.from_dict(payload)
@@ -321,13 +324,13 @@ class ChallengedCaseTests(unittest.TestCase):
 
         self.assertTrue(accepted.admissible)
 
-    def test_terminal_claim_rejects_invented_blocking_issue(self) -> None:
+    def test_terminal_claim_rejects_mismatched_blocking_issue(self) -> None:
         from iclr2027.schema import ArchitectureReviewState
         from iclr2027.validators import validate_terminal_admissibility
 
         claim = ArchitectureReviewState(
             checked_domains=("site", "geometry", "law", "parking", "program"),
-            blocking_issue_codes=("law.invented_failure",),
+            blocking_issue_codes=("law.projection_failed",),
             missing_evidence_codes=(),
             evidence_ids=tuple(
                 str(item["evidence_id"]) for item in self.packet.evidence

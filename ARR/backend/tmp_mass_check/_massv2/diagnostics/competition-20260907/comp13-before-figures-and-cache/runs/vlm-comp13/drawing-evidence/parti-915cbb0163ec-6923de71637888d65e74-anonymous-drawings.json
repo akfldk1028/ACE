@@ -1,0 +1,20 @@
+{
+  "name": "sangok_saddle_garden_room^centred",
+  "shape_id": "6923de71637888d65e74",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1069.6367403393147,
+    1069.6367403393147
+  ],
+  "section_area_m2": 213.8288742754977,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "9109c840541db7cceb872337b313273988753f52ec197df3cabfed01ded2300d"
+}

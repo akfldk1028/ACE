@@ -1,0 +1,100 @@
+TILE t01
+CONCEPT 4 | A single perforated slab with two rectangular light wells; the courtyard rhythm reads clearly in plan, section and mass.
+FEASIBILITY 5 | Three-storey solid ring with regular voids; no cantilevers, transfers or thin members are drawn.
+SITE 4 | Footprint rotates to the parcel's long diagonal and leaves the acute west corner open; a calm, edge-aware placement.
+EDITABILITY 5 | Ring floors around two wells give obvious core and circulation positions and a repeatable facade.
+WEIGHTED 4.45
+
+TILE t02
+CONCEPT 4 | A folded roof landscape over a five-storey body with a wedge slot; the roofscape is distinctive and hierarchical.
+FEASIBILITY 3 | Overlapping folded planes are buildable, but the thin wedge slot between roof planes is an awkward sliver.
+SITE 3 | Fills the parcel to 60 percent and roughly follows its edges; the slot does not obviously address any edge.
+EDITABILITY 3 | Upper floors under sloped roofs constrain floor plates; the roof geometry will resist plan revision.
+WEIGHTED 3.35
+
+TILE t03
+CONCEPT 4 | Crosswise stacked bars lifted on small stubs - a log-pile of linear floors, legible and bold.
+FEASIBILITY 2 | Long bars rest on tiny ground stubs with large cantilevers; the section shows unsupported floating rectangles.
+SITE 3 | Bars run across the parcel diagonal and fit within it, but do not read the edges or the frontage.
+EDITABILITY 3 | Linear floors are simple, yet cores and stairs must fit in the small stubs, limiting development.
+WEIGHTED 3.10
+
+TILE t04
+CONCEPT 2 | A large thin plate hovering over two small plinth boxes; the plate is a canopy, not a volume, and the idea is thin.
+FEASIBILITY 2 | The plate spans far beyond the two supporting boxes with no drawn structure; the section is a single thin line.
+SITE 3 | The plate covers the parcel centre and turns to the edges, but occupies little usable volume.
+EDITABILITY 2 | A canopy cannot be developed as floors without redesigning it; only the two boxes carry program.
+WEIGHTED 2.20
+
+TILE t05
+CONCEPT 2 | Three small towers with a shared lid and a curved scoop, tucked into a corner; too small to register as an idea for this parcel.
+FEASIBILITY 4 | Compact solids with a modest lid; the scoop cut is plausible.
+SITE 2 | Sits at 12 percent coverage in one corner and leaves the parcel empty without a stated reason.
+EDITABILITY 2 | Tiny separated footprints leave little room for cores or connected floors.
+WEIGHTED 2.50
+
+TILE t06
+CONCEPT 3 | A faceted folded plate floating over four small blocks; the roofscape is expressive but the plate has no body.
+FEASIBILITY 2 | The upper plan shows only slivers and the section a thin folded line over a single box - a large thin plate on small supports.
+SITE 3 | The plate fills the parcel and aligns with its edges; the blocks below are scattered without edge logic.
+EDITABILITY 2 | The folded plate is not a floor; usable program is limited to the four small boxes.
+WEIGHTED 2.55
+
+TILE t07
+CONCEPT 3 | A three-tier stepped ziggurat with a mansard crown; clear hierarchy, though a familiar figure.
+FEASIBILITY 5 | Each tier sits fully on the one below; no cantilevers or transfers.
+SITE 4 | The ground tier fills the parcel to its edges and rotates with it; the steps pull back from every side.
+EDITABILITY 4 | Terraced floors give straightforward plates and central core placement, at the cost of shrinking upper areas.
+WEIGHTED 3.90
+
+TILE t08
+CONCEPT 3 | Three blocks under a common cap forming a portal; the pinwheel of legs and lid is legible but modest.
+FEASIBILITY 4 | Short spans between substantial legs; the section portal is plausible.
+SITE 2 | Placed in the parcel centre at 26 percent with no response to the edges or the frontage.
+EDITABILITY 3 | Legs carry cores easily, but connecting floors between the three blocks is limited to the cap.
+WEIGHTED 3.05
+
+TILE t09
+CONCEPT 3 | A two-storey tapered plate spanning four pavilions; the hovering slab has enough body to be a volume.
+FEASIBILITY 3 | The plate spans between four blocks with notched underside; plausible with transfer structure, not drawn.
+SITE 4 | The plate fills the parcel and follows its edges closely; the pavilions register the corners.
+EDITABILITY 4 | Two full upper plates and four bases give workable floors and core positions.
+WEIGHTED 3.40
+
+TILE t10
+CONCEPT 4 | A village of six pitched and butterfly-roof houses; distinctive silhouette and a clear collective idea.
+FEASIBILITY 4 | Small compact volumes with simple roofs; some plan polygons overlap, which needs resolving.
+SITE 3 | Pavilions are distributed across the parcel with roughly aligned edges, but no clear frontage hierarchy.
+EDITABILITY 3 | Small footprints and pitched roofs limit floor plates; each house needs its own core.
+WEIGHTED 3.60
+
+TILE t11
+CONCEPT 4 | Rotated stacked plates in a pinwheel; the shifting slabs give a strong sectional and plan hierarchy.
+FEASIBILITY 3 | The wide middle plate bridges between two ground footprints and cantilevers beyond them; achievable but heavy.
+SITE 3 | The stack runs diagonally across the parcel and fits within it, but does not read the edges.
+EDITABILITY 4 | Flat plates at every level develop easily; cores fit in the two ground blocks.
+WEIGHTED 3.55
+
+TILE t12
+CONCEPT 4 | A single lens-shaped five-storey blade crossing the parcel with one small puncture; a simple, decisive figure.
+FEASIBILITY 4 | A thin but continuous solid; the tapered ends are narrow and the puncture is small.
+SITE 3 | The blade spans the parcel across its short axis and leaves both sides open; a clear stance but no edge response.
+EDITABILITY 3 | Narrow lens floors and tapered ends constrain layout; a core fits only in the middle.
+WEIGHTED 3.60
+
+TILE t13
+CONCEPT 2 | Five scattered two-storey boxes with no shared figure; the drawing shows dispersal rather than an idea.
+FEASIBILITY 5 | Simple ground-bearing boxes.
+SITE 2 | Boxes are spread across the parcel without alignment to edges or frontage, at 14 percent coverage.
+EDITABILITY 3 | Each box is easy to develop, but there is no framework for connecting them.
+WEIGHTED 2.95
+
+TILE t14
+CONCEPT 2 | A large thin plate over three small pods; the table figure has little hierarchy beyond the lid.
+FEASIBILITY 2 | The section shows the plate on a single stem; the plate spans far beyond the pods with no drawn structure.
+SITE 3 | The plate follows the parcel edges; the pods below are unrelated to them.
+EDITABILITY 2 | The thin plate cannot be developed as floors; program is confined to the pods.
+WEIGHTED 2.20
+
+RANKING: t01, t07, t12, t10, t11, t09, t02, t03, t08, t13, t06, t05, t04, t14
+VERDICT: t01 is the clear advance - one perforated slab with real courtyards, fully buildable and edge-aware. t07, t12, t10 and t11 follow as legible figures worth developing, with t11 and t03 needing their cantilevers resolved. The floating thin-plate schemes (t04, t06, t14) and the dispersed or corner-sited fragments (t05, t13) do not present enough positive volume to advance.

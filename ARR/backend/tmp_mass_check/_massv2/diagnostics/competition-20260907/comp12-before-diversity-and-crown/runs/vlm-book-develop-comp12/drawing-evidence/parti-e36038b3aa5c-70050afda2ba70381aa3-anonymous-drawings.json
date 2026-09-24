@@ -1,0 +1,20 @@
+{
+  "name": "sangok_c07_inhabited_bridge_between_piers~held_ground^to_open",
+  "shape_id": "70050afda2ba70381aa3",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.8
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    282.98157344846294,
+    292.23695858488867
+  ],
+  "section_area_m2": 277.0273364968451,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "f859d6f24f6425b174087ee09b50ab287104dd1fca4763deb867af2f934ebc77"
+}

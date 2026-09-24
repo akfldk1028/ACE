@@ -1,0 +1,14 @@
+{
+  "download_images": true,
+  "image_count": 37,
+  "images_dir": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\neighborhood_architecture\\images",
+  "item_count": 40,
+  "limit": 40,
+  "metadata_jsonl": "D:\\Data\\25_ACE\\docs\\ai-session-memory\\reference-corpus\\archdaily\\api\\neighborhood_architecture\\metadata.jsonl",
+  "pages": 3,
+  "query": "community center retail",
+  "schema_version": "arr.maas.archdaily_api_collection.v1",
+  "site": "us",
+  "source": "archdaily_api",
+  "start_path": "/projects"
+}

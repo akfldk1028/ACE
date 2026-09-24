@@ -1,0 +1,20 @@
+{
+  "name": "oma_netherlands_dance_theatre",
+  "shape_id": "013f67a94b1a52f84ad1",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.7
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    382.229737648968,
+    382.229737648968
+  ],
+  "section_area_m2": 83.87494112850526,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "5dfd13b7dade948901abb2f35cf1f26c244b9bf5df6631bd9623f45b1f973e3e"
+}

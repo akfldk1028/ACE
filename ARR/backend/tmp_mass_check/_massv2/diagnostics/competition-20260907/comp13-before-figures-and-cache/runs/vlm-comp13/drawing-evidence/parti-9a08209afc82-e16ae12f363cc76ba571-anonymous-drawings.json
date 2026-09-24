@@ -1,0 +1,20 @@
+{
+  "name": "slipped_twin_gables~full_ground^off_open",
+  "shape_id": "e16ae12f363cc76ba571",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.0
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1497.8719044352606,
+    1497.8719044352606
+  ],
+  "section_area_m2": 805.4032139909339,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "993ae53511095f5c6678201270d6cfc5c74aaa9731017374f66eb033dc3d3239"
+}

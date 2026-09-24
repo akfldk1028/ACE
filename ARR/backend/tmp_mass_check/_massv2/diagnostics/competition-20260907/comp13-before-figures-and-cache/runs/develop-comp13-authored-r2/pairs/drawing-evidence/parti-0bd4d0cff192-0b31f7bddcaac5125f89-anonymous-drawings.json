@@ -1,0 +1,20 @@
+{
+  "name": "butterfly_field_of_four",
+  "shape_id": "0b31f7bddcaac5125f89",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    866.9049937262158,
+    866.9049937262158
+  ],
+  "section_area_m2": 415.40976374002935,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "7fb0285f340b97a6378d5b8b6e44814bfc205261e2a8a2ed1fc9d5096ec812a7"
+}

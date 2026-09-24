@@ -1,0 +1,2044 @@
+{
+  "sentences": [
+    {
+      "name": "unit_la_taper_array",
+      "book_composition_path_id": "book:path:a710809a71e7bdbf5cdf0a6ebd54c3b64c39840a8907c47f680a01f91757f53d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Full unit slab along long axis; taper tapers the crown while array repeats bays east-west across the parcel, graduating floor plates toward the northern setback limit."
+    },
+    {
+      "name": "unit_la_split_join",
+      "book_composition_path_id": "book:path:2b9f0896c3202e198222105941d7dbd75ab37166533f0e727fa16ed97a40d993",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split divides the bar mid-length; join stitches the halves with a bridging link that opens a passage from the east road through to the rear garden, reading as a permeable slab."
+    },
+    {
+      "name": "unit_la_inflate_pack",
+      "book_composition_path_id": "book:path:3ec0a4f444052631006f0678771eab44ed965d0f0dde1c0dcd110ea69383b32b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Full unit inflated along the long axis swells the mid-section, softening the street profile; packing the volume against the legal envelope recovers GFA without added height."
+    },
+    {
+      "name": "unit_la_bend_stack",
+      "book_composition_path_id": "book:path:043d066b82a2ff4aca495dc867486b7bf0ad8a9928adb1c57af8aa26e52ee68d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "The unit slab is bent gently along the long axis to break the hard street edge; floors are stacked so each level steps outward toward the south, maximizing sunlit depth per floor."
+    },
+    {
+      "name": "unit_la_branch_v5",
+      "book_composition_path_id": "book:path:ab06753bac93861221424c504992d0e2c072902c79db2d656126e5a8b8131705",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "A trunk bar along the long axis sends one branch arm toward the courtyard rear; the branch holds secondary programme distinct from the access spine, tested at 5-storey height."
+    },
+    {
+      "name": "unit_la_embed_embed",
+      "book_composition_path_id": "book:path:ca2581e9b52984ac65a0c5a7953d4f2b6fb9b521f6ea2ff6c11aff137da78805",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double embed nests two recesses within the 1/1 long-axis body: a public loggia at ground on the east and a service void on the west, articulating entry without reducing footprint."
+    },
+    {
+      "name": "unit_la_bend_branch",
+      "book_composition_path_id": "book:path:0f8262fc79192fe01181519783716e3581cb8de5e42d9aec46abfaf9e767c16d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend curves the long-axis bar into a gentle arc facing east; a branch arm off the inflection point hosts vertical circulation, letting facades read as continuous curved ribbon."
+    },
+    {
+      "name": "unit_sa_rotate_stack",
+      "book_composition_path_id": "book:path:5fbd3c86a87fe3b2d25f515a027809e2d7c2e59efeec8d36f1c5ca3fd6f1b809",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Full unit oriented short-axis; rotation about the vertical centres the figure on the parcel, stacking bays along the north-south span to address the sunlight setback with a stepped profile."
+    },
+    {
+      "name": "unit_sa_taper_array",
+      "book_composition_path_id": "book:path:8d723a9bcdbfe9959f2c0ff4c8bc273140a9f0ce55a205dbc0a9636f1d680388",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Short-axis unit with tapering crowns arrayed along its depth; each taper bay steps the roofline, producing a corrugated silhouette that handles the legal section above 11 m gracefully."
+    },
+    {
+      "name": "unit_sa_split_join_sa",
+      "book_composition_path_id": "book:path:8a6a5dabc0f20f5f20627df21ed80811e7a5bf5f16b90d30549fc972b184e96c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split opens the short-axis bar along the east face; join reconnects with a recessed link just wide enough for shared entry, testing a figure that reads as two pavilions on one base."
+    },
+    {
+      "name": "unit_sa_inflate_pack",
+      "book_composition_path_id": "book:path:a50c0b94c417a8217c53cade19fb7ec36b4e59988b8ec899f6741c799ae578bf",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "The 1/1 short-axis body is inflated transversely to bow the east and west faces; packing against the boundary captures a barrel-vaulted silhouette within the site envelope."
+    },
+    {
+      "name": "unit_sa_branch_v9",
+      "book_composition_path_id": "book:path:4f4032192fc1d0eef9fc4b3aaff1d24683f0d288115b76ee52ece1ad1306bcbf",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Short-axis trunk splits one branch toward the north; lower branch floors remain within the setback threshold, so the legal section is met organically by the branching geometry."
+    },
+    {
+      "name": "unit_sa_bend_shift",
+      "book_composition_path_id": "book:path:ea6f1996d459cc3f34f4412a343af76a0528c5b9172e542821a78bf898467c61",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend gently curves the short-axis bar east-west; shift slides the upper portion northward, creating an overhang shading the ground entry on the east while honoring the setback on the north."
+    },
+    {
+      "name": "unit_sa_branch_expand",
+      "book_composition_path_id": "book:path:ab6df11ebf9cfcc71b550df863e827a70b61f369c9e1e43baec0706f815ad09d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Branch on the short-axis unit spawns an expanded wing; the expansion redistributes floor area from a tall single bar to a branched T, improving daylight access to internal corridor floors."
+    },
+    {
+      "name": "unit_v_carve",
+      "book_composition_path_id": "book:path:c6f14f7492bdb7a0f445b8343a1daa3dfdab264bb7e8e2b42413546bcf07c795",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Full unit oriented vertical; carve removes a corner volume to open a covered outdoor space at ground level, reducing ground coverage to meet the cap while the upper body remains solid."
+    },
+    {
+      "name": "unit_v_fracture",
+      "book_composition_path_id": "book:path:3f284b1d9c260421a376449e59172a05e1a96e93a8ec048033aa9edbd827de36",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Fracture splits the vertical unit into two tilted halves with a narrow gap; the gap acts as a light shaft from roof to ground, making the full-unit tower legible as two inclined slabs."
+    },
+    {
+      "name": "unit_v_lift",
+      "book_composition_path_id": "book:path:be3d5e0700a8dc7dbde64b470a9b58784e1c97270a4fa86adb2b0ead9789e205",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "The vertical bar is lifted on pilotis, freeing the ground plane for public passage from the east road through to the park to the west; the upper volume hovers within the FAR budget."
+    },
+    {
+      "name": "unit_v_overlap",
+      "book_composition_path_id": "book:path:355c58e9b5d5adcad8638ecbd3791d037b5bac31eaafffa821a42ae34a2ae7ce",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Two vertical units overlap at mid-section, creating a shared zone at upper floors; the overlap zone allows double-loaded internal street at the junction of the two programme wings."
+    },
+    {
+      "name": "unit_v_inscribe_inscr",
+      "book_composition_path_id": "book:path:3409b9380e10dadbe69dadf829ccf15c252863864f5fb53e1a5074d46f46289b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4500.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double inscribe nests two progressively smaller volumes inside the full-unit vertical; the result is a Russian-doll tower whose inner shell defines a top-lit atrium with two gallery rings."
+    },
+    {
+      "name": "unit_v_shift_shift",
+      "book_composition_path_id": "book:path:d3ff246eac3fe1ef1be38d9631883ad2da40736b84d651717f32066d4c25331a",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Two successive horizontal shifts slide alternate floor bands east and west; the resultant zigzag section creates cantilevered sun-shade at each level, tested at 5 storeys on the full-unit vertical."
+    },
+    {
+      "name": "unit_v_split_embed",
+      "book_composition_path_id": "book:path:d526007354b5326e102501d11877292eb74338b1eb319ace597be4648079c9c3",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split divides the vertical unit east-west; an embed void is inserted at the split face, creating a recessed vertical slot that reads as an internal street between the two slabs from the east."
+    },
+    {
+      "name": "one16_la_rot_stack",
+      "book_composition_path_id": "book:path:1f8d4d379e2f7721952ab154a2de3e521c12931d8f509bd637dc5915f17c8415",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Sixteenth-unit cell, long axis; rotation and stacking assemble a shallow bar from small repeated bays; the long edge addresses the east road with a fine-grain rhythm suited to retail at grade."
+    },
+    {
+      "name": "one16_la_pinch_join",
+      "book_composition_path_id": "book:path:31fcaac35c88a7a94e8b6d8539b25e458021d460f2bcb2c20eae7c0fc98ae49e",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pinch and join aggregate sixteenth-unit cells; pinch waists each cell before joining them into a linked chain, producing a figure with expressed joints at each programmatic transition along the bar."
+    },
+    {
+      "name": "one16_la_branch_stack",
+      "book_composition_path_id": "book:path:0e69d3d6a2da11ef0417063e486002fbbd02d59373d7b122dc286cf4ac82f388",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pack-stack-branch on the 1/16 long-axis cell layers bays vertically then sends a branch arm off the top, creating a compact podium-with-tower form whose tower arm reads as a discrete marker."
+    },
+    {
+      "name": "one16_la_skew_reflect",
+      "book_composition_path_id": "book:path:83b7dcf8c3f26126f426d6a6356250c5f5b594052b6693eb242a2c7915fec231",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Skew and reflect-pack on the sixteenth-unit long-axis cell generates an asymmetric figure; skewing the cell obliquely then reflecting produces a diamond plan with the obtuse corner facing the road."
+    },
+    {
+      "name": "one16_la_carve",
+      "book_composition_path_id": "book:path:e688755db39221a5149ee86da6b9b27bc447a63773c68e278e13b81804ba194f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Carve removes a corner from the 1/16 long-axis aggregation; the carved recess provides covered entry at grade without eating into upper-floor area, keeping FAR efficient at only four bays wide."
+    },
+    {
+      "name": "one16_la_lift",
+      "book_composition_path_id": "book:path:829d679c0441ff37c27f91c71bde0bd365ad4f56ddd5ae0c10da56577d316300",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift raises the sixteenth-unit long-axis body on a pedestal; the raised ground allows parking or service to pass beneath while the long bar floats above the street at storey-height entry."
+    },
+    {
+      "name": "one16_la_taper_taper",
+      "book_composition_path_id": "book:path:750b66087041cded453d994983bfac2a41482ef9f8a72f6c562fe573c89457c7",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double taper applied to the 1/16 long-axis cell tapers both the plan and the section: plan tapers toward the north, section tapers toward the top, producing a wedge-shaped bar on a small base."
+    },
+    {
+      "name": "one16_sa_taper_array",
+      "book_composition_path_id": "book:path:0fa633209ca799a19f90d1001b975a41c6ceffc46074be166912d6a615265791",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Sixteenth-unit cell short-axis; taper array replicates a tapering prism sideways, creating a stepped terrace that descends from east to west, maximizing solar access for each bay."
+    },
+    {
+      "name": "one16_sa_split_join",
+      "book_composition_path_id": "book:path:a11848e543dc2337cb66f1526c0a3f872e503a07847bc00601a4a908baa40a9f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 3900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split-join on the 1/16 short-axis cell opens a slot between two halves; with a minimal cell the slot is a tight light-shaft that serves as circulation spine between cellular office bays."
+    },
+    {
+      "name": "one16_sa_branch_stack",
+      "book_composition_path_id": "book:path:ccc7457dde55b790e9d988153ac7f7ca2f070a4b5713d302c4e7da9260edfc82",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pack-stack-branch on the short-axis sixteenth cell builds a compact cluster: three bays stacked then a branch turns north, testing how a small unit cell can form an L without wasting land."
+    },
+    {
+      "name": "one16_sa_bend_shift",
+      "book_composition_path_id": "book:path:5cf046ea177a71175f6b6315b21a9b903f333699401c89e909a0c4fc0b425995",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend and shift on the 1/16 short-axis cell curves the narrow bar and shifts the upper half; the result is a cranked finger that addresses both the east road and the northern open space."
+    },
+    {
+      "name": "one16_sa_lift_carve",
+      "book_composition_path_id": "book:path:8cdc9a52c96fbc49f690d06e3d5c3121a614766b28b69cfd5344058ba1885f58",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift and carve on the sixteenth short-axis cell lift the volume and carve a corner; the ground plane opens at both the lifted base and the carved corner for cross-flow pedestrian access."
+    },
+    {
+      "name": "one16_sa_overlap_rot",
+      "book_composition_path_id": "book:path:4c6f982b73ac8581cb31be0174f08e53e3a459b351b04a63677e3ef7309f161f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4500.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap and rotate on the 1/16 short-axis cell create a two-arm pinwheel at small scale; rotation angles the second arm off-axis, producing a figure that opens a sheltered corner on the east."
+    },
+    {
+      "name": "one16_sa_notch_notch",
+      "book_composition_path_id": "book:path:75e0111ab92142afed57c5390abd8f1cc1b501d7774052ab1e45479a16643d5f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double notch on the 1/16 short-axis cell carves two successive corners; the notches register the parcel's north and south limits, stepping the small bar down within the legal setback zone."
+    },
+    {
+      "name": "one16_v_taper_array",
+      "book_composition_path_id": "book:path:8b6a3145a54bb79493110d669ac9ac7aafed6ab5b94f867ac5cf433efbaea3b9",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Sixteenth-unit cell vertical; taper array assembles a row of tapering finger towers sharing a podium; each finger tapers inward at top, reducing the upper-floor legal plan footprint naturally."
+    },
+    {
+      "name": "one16_v_split_join_v",
+      "book_composition_path_id": "book:path:7cdea6c9189918ffaf99b050a6fe3160a69747f18cf1089b5f1cedcbbcc8851b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 3900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split and join on the 1/16 vertical cell separate two thin towers then join them at mid-height with a bridge floor; the bridge creates a shared social level at the parcel's nodal midpoint."
+    },
+    {
+      "name": "one16_v_inflate",
+      "book_composition_path_id": "book:path:6d625c50112b441df1818f7abd585e1ddadf81cf2f056579ee3a9e68d0c7be11",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Inflate on the 1/16 vertical cell swells the slim tower at its mid-section; the belly of the tower holds double-height programme, contrasting with slimmer base and crown for structural logic."
+    },
+    {
+      "name": "one16_v_compress",
+      "book_composition_path_id": "book:path:1a472a7bda86993a519bc8dac82cf0686df430e5e35ff074496066c5ef1886a4",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 3800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Compress shortens the 1/16 vertical cell to four storeys; the compact, wide-base form fills the ground coverage allowance while keeping FAR moderate and leaving rooftop for equipment or green."
+    },
+    {
+      "name": "one16_v_grade",
+      "book_composition_path_id": "book:path:ba5ea5aca6bfd4138a89ad960518224fadff287bef3d8c2a84a3aa9c0697d652",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Grade slopes the base of the sixteenth-unit vertical to follow an assumed site topography; the inclined ground plane produces split-level entry from the east road, enriching the ground experience."
+    },
+    {
+      "name": "one16_v_lodge",
+      "book_composition_path_id": "book:path:edd7b5f1d8d2606d2fcc5470164dc4f6c1517fc2d22bbd581dbb0afa23e0fe2f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lodge inserts the sixteenth-unit vertical into a retaining plinth; the lodged condition buries service floors below grade, reducing above-ground mass while staying within the legal floor-count cap."
+    },
+    {
+      "name": "one16_v_embed_branch",
+      "book_composition_path_id": "book:path:9ab38908390f7e8e8e1ba61ce9bac11d8349be8a33f383419f3e6e30e61f1c2f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the 1/16 vertical cell embed a void then spawn a branch; the embedded void is a vertical light shaft and the branch arm accommodates stairs at the perimeter of the tower."
+    },
+    {
+      "name": "half_la_rot_stack",
+      "book_composition_path_id": "book:path:edf82429a273bb1659ac60eea667a9b589b5cf870573210335767410e61a79c7",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Half-unit long-axis bar rotated and stacked produces a pinwheel plan; the two horizontal bays of the half-cell rotate at successive levels to create a dynamic offset silhouette against the east road."
+    },
+    {
+      "name": "half_la_split_join",
+      "book_composition_path_id": "book:path:85cb00edf34b1b809e828a1695657bea0c91642bd69f4be0401598483d0bc3f1",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Half-unit long-axis split joins its two halves with a recessed throat; the joint opens a covered loggia from east to west at grade, channeling pedestrian flow off the road into the site interior."
+    },
+    {
+      "name": "half_la_inflate",
+      "book_composition_path_id": "book:path:e80871caaec52dfb54f8cc29ca605d987468c6fbb81e37a39a658313ec1d3ad0",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Inflate on the half long-axis bar balloons the mid-bay; the swollen bay holds a double-height reading room at level 2, expressing public programme through form rather than signage."
+    },
+    {
+      "name": "half_la_compress",
+      "book_composition_path_id": "book:path:2beba165c0ae4ce8e606c6b3b4331e982315da2b6db3890419e12a7c8442c6d0",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Compress shortens the half long-axis bar in plan; the compact footprint leaves a garden strip on the west and respects the ground-coverage limit while still meeting GFA through five storeys."
+    },
+    {
+      "name": "half_la_grade",
+      "book_composition_path_id": "book:path:96677fba34e50638540e5708a1032906a23cec3cf038eb3557931e755b292504",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Grade inclines the ground section of the half long-axis bar, creating a sloped plinth that descends from the elevated east road to the lower rear; storey heights remain constant above the plinth."
+    },
+    {
+      "name": "half_la_embed_overlap",
+      "book_composition_path_id": "book:path:9ceea8aa764166e8a543a890ab2897ed45f2f1a3c2abc5050138b4da72d3e18c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and overlap on the half long-axis volume embed a recessed service void then overlap two wings; the overlap zone holds a shared atrium between the two programme halves of the bar."
+    },
+    {
+      "name": "half_la_bend_bend",
+      "book_composition_path_id": "book:path:d27c17a5ffdbc2a2e8e21469690b2edb7fee2248e6f888c84b73680ee2e68005",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double bend on the half long-axis bar curves the volume twice along its length; the S-curve plan tests how a continuous double-bend slab wraps the northeast and southeast site corners."
+    },
+    {
+      "name": "half_sa_rot_stack",
+      "book_composition_path_id": "book:path:0173346488ef1f96a08d4921771ef77d796ba2d05ca81fbc6beb294a69a0985b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Half-unit short-axis with rotation and stacking; rotating then stacking the short-axis half-cell produces a compact multi-bay block whose east face maximizes road frontage in a narrow depth."
+    },
+    {
+      "name": "half_sa_embed",
+      "book_composition_path_id": "book:path:71172b433e4401077bc70a8177d9be089b7ca566ee98a3130598a011b25f10f2",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed on the half short-axis bar carves a public void into the east face; the recessed entry volume frames the approach from the road, distinguishing public threshold from office floor plate above."
+    },
+    {
+      "name": "half_sa_inflate_v0",
+      "book_composition_path_id": "book:path:f4153272373527424b091555b0f8476bd3ef01dd89a8a33d95fff66d5eee593a",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Inflate on the half short-axis bar swells the east-facing facade to a bow; the bowed surface maximizes glazed area toward the morning sun while the flat west wall contains services and circulation."
+    },
+    {
+      "name": "half_sa_puncture",
+      "book_composition_path_id": "book:path:449b7eff984cdee23ec73bdcc143b46e1ea7c29a5a674d6cc59aa1e5e25d73d4",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Puncture pierces the half short-axis bar with a horizontal void at level 3; the void acts as a sky-bridge reading room open to both faces, reducing FAR by one bay but creating a signature civic gesture."
+    },
+    {
+      "name": "half_sa_overlap_expnd",
+      "book_composition_path_id": "book:path:e13f2608ef75b4d7c3f786e6f640a0a8dcda1c1d405a74718e68aee42099fb7b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap-expand on the half short-axis bar grows an overlapping wing; the expansion fills the south zone of the parcel while the original bar anchors the east frontage, yielding an L-shaped plan."
+    },
+    {
+      "name": "half_sa_shift_notch",
+      "book_composition_path_id": "book:path:8106cafdcdfe714a481aa4971f7354adfcd5d546e1c63bfc1f7b0954bbd88027",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Shift and notch on the half short-axis bar slide the upper half off-center then notch the northeast corner; the notch provides the required north setback relief while the shift animates the street profile."
+    },
+    {
+      "name": "half_sa_split_split",
+      "book_composition_path_id": "book:path:6deff1ff6dee1c5dc8266858df43a1f30c3c82b46d41327aebc905597b4f54a8",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double split on the half short-axis volume creates three parallel slabs; the two gaps between slabs become north-south passages connecting the east road to the rear service zone."
+    },
+    {
+      "name": "half_v_taper_array",
+      "book_composition_path_id": "book:path:3d8d56fecc7c343222124a91b4831070924ddc4715d9fd18d3ab277306981812",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Half-unit vertical with taper-array generates a series of tapered slabs rising from a common base; the array stepping manages the legal-section slope above 9 m with an expressive silhouette."
+    },
+    {
+      "name": "half_v_embed",
+      "book_composition_path_id": "book:path:1a0fac731b8c1f76d6855a9c5d070c22ae9fbe5207feb9186ad26cc3c3831e2b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed on the half vertical bar cuts a recessed slot into the east face at ground and first floor; the slot is a covered public arcade under the office floors, activated by the east road pedestrian flow."
+    },
+    {
+      "name": "half_v_inflate_v4",
+      "book_composition_path_id": "book:path:1234223182cbe36e91c77fd222bdc66abda6465ea78e0beedd0e38fe7240e138",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Inflate on the half vertical bar bulges the mid-section outward; the bulge at level 2-3 holds a civic reading gallery with panoramic views, expressing institutional character from the street."
+    },
+    {
+      "name": "half_v_carve_offset",
+      "book_composition_path_id": "book:path:928a3ce3d41b5952aaf0b63504f72dfbd71c471ccc246db32e6db7a807c713a3",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Carve and offset on the half vertical: carve removes a corner at ground for covered entry; offset steps the upper floors back from the north, satisfying the sunlight setback organically."
+    },
+    {
+      "name": "half_v_overlap_expand",
+      "book_composition_path_id": "book:path:eaa815798040e09e52ce873478ab482ddaa8720219a836fc6949cbe2144441f7",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap-expand on the half vertical grows a secondary wing from an overlap zone; the expansion fills the south and west areas while the original slender bar anchors the east entry frontage."
+    },
+    {
+      "name": "half_v_branch_branch",
+      "book_composition_path_id": "book:path:ca8ec6f2b7508effcc160a6b05a675a99783127430f1a26605d3bc59198501c3",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double branch on the half vertical unit splits two arms from the main trunk at different heights; the lower arm is a covered public extension and the upper arm holds premium office floors with views."
+    },
+    {
+      "name": "half_v_shift_notch",
+      "book_composition_path_id": "book:path:92f7a24ec19b6ccb6b0e8b16adde98a946305da03c2cfd634918c0482b57880a",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Shift and notch on the half vertical slide the top two floors south then notch the north corner; the shift creates a cantilevered reading shelf and the notch provides the legal north setback clearance."
+    },
+    {
+      "name": "qtr_la_taper_array",
+      "book_composition_path_id": "book:path:a09a778641bbfc01d741ba49af2d9e3b89ec188babc9b553f8b8d4f0a2db97ce",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Quarter-unit long-axis bar with taper-array creates a colonnade of progressively thinner bays; the taper engages the north setback by making the northernmost bay the narrowest, staying within the legal plan."
+    },
+    {
+      "name": "qtr_la_split_join",
+      "book_composition_path_id": "book:path:a9b38795629766ab5d77b1ad4531bd17e6fafe23b3989d6790e3a3c036a9060f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Quarter-unit long-axis split and join open a breezeway at mid-length; the join reconnects at upper floors over the breezeway, producing a figure with a roofed public passage under the office slab."
+    },
+    {
+      "name": "qtr_la_branch_stack",
+      "book_composition_path_id": "book:path:a4604fc946520728dc08df77b19c1ef4401a29ea3b81f2e77d96eae1ea4ea624",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pack-stack-branch on the quarter long-axis cell fills the east strip first then branches a wing toward the western rear; the wing holds ancillary function separate from the primary frontage bar."
+    },
+    {
+      "name": "qtr_la_embed",
+      "book_composition_path_id": "book:path:bb1fe1b5b26a0a159ed16ac4a5d43fa88dd46cfe38563f889eebb6810c0959bd",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed on the quarter long-axis bar carves a recessed gallery into the lower two floors on the east; the embed opens a semi-public art lobby under the private office floor without losing GFA above."
+    },
+    {
+      "name": "qtr_la_puncture",
+      "book_composition_path_id": "book:path:9c8a5d4706397df56185327a97de056f02d0a41aa0dfa85b6e5520e8824ed8e6",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Puncture pierces the quarter long-axis bar with two voids stacked vertically; the voids are top-lit shafts bringing daylight to the deep-plan interior of the long bar, reducing artificial lighting load."
+    },
+    {
+      "name": "qtr_la_embed_overlap",
+      "book_composition_path_id": "book:path:7d367b4ff98602c1f30ff689993c3db12a4616b619b96d1dc998da5d328fe650",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and overlap on the quarter long-axis volume embed a service core then overlap a programme wing; the wing steps the massing back from the north setback while the core keeps the primary bar slim."
+    },
+    {
+      "name": "qtr_la_taper_bend",
+      "book_composition_path_id": "book:path:0bac03a066888497ad4cdc5a727e609bdb620a3ef13ef9cc5394a46de7a09449",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Taper and bend on the quarter long-axis bar taper the plan toward the north then curve it gently; the curved taper resolves the north setback wedge with a smooth, gradual reduction rather than a hard step."
+    },
+    {
+      "name": "qtr_sa_rot_stack",
+      "book_composition_path_id": "book:path:dece7d23000d6f31772d946f17b2d680c5d473a9eb2238a5e04f2ef1b804995e",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Quarter-unit short-axis with rotate-array-stack assembles four rotated bays into a compact windmill; the rotating plan provides each office bay with a different street orientation, tested at 5 storeys."
+    },
+    {
+      "name": "qtr_sa_taper_array",
+      "book_composition_path_id": "book:path:5011a11030a962ca13e8ea0e5b481ff6c085a3fe176693984eb49163da60865b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4500.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Taper array on the quarter short-axis cell lines up a series of tapered prisms; the array traces the parcel's north-south span, each prism slightly offset to create a stepping green terrace roofscape."
+    },
+    {
+      "name": "qtr_sa_expand",
+      "book_composition_path_id": "book:path:f70efb0aee546c16c56fcce608edd78b50f1c4274008c6936711d39956134ac9",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Expand on the quarter short-axis bar grows the volume outward in plan; the expansion fills the remaining ground coverage allowance while the original quarter-cell anchor provides the primary structure."
+    },
+    {
+      "name": "qtr_sa_nest",
+      "book_composition_path_id": "book:path:28b1e1c92f3edbd894d016bc5a88a24923f917e5e16d7c909b01faad89d8268b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Nest on the quarter short-axis bar inserts a smaller volume inside the primary shell; the nested inner volume is a discrete conference suite within the office bar, readable from the street as a box within a box."
+    },
+    {
+      "name": "qtr_sa_embed_branch",
+      "book_composition_path_id": "book:path:fbb4065ce07878506f1e42275f167be779c65a87d8e7add940af4bfafa5d2147",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the quarter short-axis cell embed a public recess then branch an upper arm; the branch sweeps toward the south, capturing afternoon light for the uppermost floor of the compact bar."
+    },
+    {
+      "name": "qtr_sa_bend_shift",
+      "book_composition_path_id": "book:path:aa364aab410d96138a519ce47fc51c25cf4cef110561172c2da6cdcde4cf3b36",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend and shift on the quarter short-axis cell curve the bar then slide the upper half; the cranked and shifted form reduces northern shadow throw and addresses the east road with a dynamic curved facade."
+    },
+    {
+      "name": "qtr_sa_intersect_split",
+      "book_composition_path_id": "book:path:aed72ec7bd0d9d9d47a937444221169abc6e115a77e21b35525045d7c63a8ec9",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Intersect and split on the quarter short-axis bar cross two volumes then split the combined solid; the split reveals an internal atrium at the intersection, lit from above through the roof plane."
+    },
+    {
+      "name": "qtr_v_rot_stack",
+      "book_composition_path_id": "book:path:e3ecfd64f9603f335d84fd13804798d015b5639da6c3be4ccf9293f2a20b14e9",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Quarter-unit vertical with rotate-array-stack creates a spiral cluster of four small towers; each tower rotates 15 degrees from the one below, producing a twisted bundle that tapers by legal floor reduction."
+    },
+    {
+      "name": "qtr_v_pinch_join",
+      "book_composition_path_id": "book:path:92f3efd55e72853616c2512d048a6a11e0e784577a06ffc897dabd7c84fbfe11",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pinch-join-array on the quarter vertical cell pinches the cell to a waist then joins it to a copy; the joined double-tower shares a pinched structural bridge at mid-height, creating a distinctive silhouette."
+    },
+    {
+      "name": "qtr_v_expand",
+      "book_composition_path_id": "book:path:8f98dd596edaeaaf2eb261225135ff7f984896d6bb8af56342b9e01b6b85016c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Expand on the quarter vertical tower grows the footprint to fill the ground capacity; the expansion is confined to the first two floors forming a wider base, giving the tower a pyramidal ground presence."
+    },
+    {
+      "name": "qtr_v_twist",
+      "book_composition_path_id": "book:path:0610f12920c81661f32f8a69c829742db85ba695720e8c72cafd0de06bd5e33c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Twist on the quarter vertical bar rotates the top floor relative to the ground; a 30-degree twist over five storeys creates helical corner offices at each level, facing a different direction of the site."
+    },
+    {
+      "name": "qtr_v_embed_branch",
+      "book_composition_path_id": "book:path:fd2a51f90ebda6f087b762f1e04916e09d4e0acaf142935c042511edd60a75a3",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the quarter vertical embed a void at level 2 then branch a floor plate arm; the arm cantilevers east over the road setback, creating a covered entry porch at pedestrian scale."
+    },
+    {
+      "name": "qtr_v_overlap_expand",
+      "book_composition_path_id": "book:path:87fb697a9701d4991845f82905b1c239bf4dfecc9a78988f57e3d529875cd529",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap-expand on the quarter vertical overlaps two quarter towers then expands the combined body; the expansion grows a shared podium from which the two towers rise as distinct fingers, each within the legal plan."
+    },
+    {
+      "name": "qtr_v_bend_branch",
+      "book_composition_path_id": "book:path:dc61de6da50aa4057a9039ad49a5c5374e27f09ff07d34beb6b72f020124bace",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend and branch on the quarter vertical curve the tower shaft then spawn a branch floor plate; the branch provides a distinctive setback level at floor 3 that honors the legal-plan reduction above 11 m."
+    },
+    {
+      "name": "eighth_la_rot_stack",
+      "book_composition_path_id": "book:path:901e2f2c40c01110ad3d7b2ee43569856e18024fb5cdda573b141afe61036c8d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4500.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Eighth-unit long-axis with rotate-array-stack builds a row of rotated cells sharing a common plinth; the plinth unifies the small cells at grade while the rotated upper volumes individuate each bay."
+    },
+    {
+      "name": "eighth_la_pack_branch",
+      "book_composition_path_id": "book:path:b233bac803ab5248f53ba76d2681bc6b46027c5f0cc0c1f7a871827ca649b966",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pack-stack-branch on the eighth long-axis cell packs multiple cells into a bar then branches one arm upward; the branch acts as a stair tower rising above the bar to mark the east entry from the road."
+    },
+    {
+      "name": "eighth_la_expand",
+      "book_composition_path_id": "book:path:e436102950ca9787dbf6c14b15f6b62613bf4e0db818ddfdd3d1944254d28bf2",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Expand on the eighth long-axis cell grows each cell outward to touch neighbors, forming a solid bar from a series of smaller units; the expansion reveals the original cell rhythm as expressed joints in the facade."
+    },
+    {
+      "name": "eighth_la_embed_branch",
+      "book_composition_path_id": "book:path:8f6e1ae547817f47b8e3cd0e30c839090499462c8447523a8bcaeb71fd5acb46",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the eighth long-axis cell embed a void in each cell's east face then branch cells together; the voids become a rhythm of recessed shopfronts with the branch linking retail bays at mezzanine level."
+    },
+    {
+      "name": "eighth_la_overlap_rot",
+      "book_composition_path_id": "book:path:0534b7c766c22bf03e7f6830b1a48b86f5e5a9e9558183ff3ac8a9e189badd4b",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap and rotate on the eighth long-axis cell cross two cells at 45 degrees; the crossed form generates an X-plan with four projecting fins, tested at 5 storeys against the parcel boundary conditions."
+    },
+    {
+      "name": "eighth_la_notch_notch",
+      "book_composition_path_id": "book:path:ec1be2ce444976a6fe8d5241f70e753fdda94794aaa961da3885ac0bfa8b602c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double notch on the eighth long-axis cell corners both the northeast and northwest; the notches carve the minimal cell to produce a cross-arm plan, each arm aligned to a site edge condition."
+    },
+    {
+      "name": "eighth_sa_taper_array",
+      "book_composition_path_id": "book:path:efcb882b8a489238c52735ef3411a67d7317a721c14d332aa5742817f445005d",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Eighth-unit short-axis with taper-array produces a row of small tapering prisms; the taper on each cell steps the northern edge down within the setback zone, meeting the legal section naturally."
+    },
+    {
+      "name": "eighth_sa_pinch_join",
+      "book_composition_path_id": "book:path:34794cee873623e59b0c246b38db50204cf6d061550bee140331baf1e128d365",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pinch-join-array on the eighth short-axis cell pinches each cell to a waist and joins them into a chain; the chain reads as a linked necklace of cellular bays with glass slots at each pinch joint."
+    },
+    {
+      "name": "eighth_sa_bend",
+      "book_composition_path_id": "book:path:179eb2e5314f6b0d26965e9346159add2a937d61c8797b12b115a339ead3ca6e",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend on the eighth short-axis cell gently curves each small slab transversely; the curved faces address the east road with a scalloped elevation, each scoop creating a sheltered entry alcove."
+    },
+    {
+      "name": "eighth_sa_interlock",
+      "book_composition_path_id": "book:path:8942650086557bf0859fb558414316dd5749640dd31f48387f75684c67d839cb",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Interlock on the eighth short-axis cell crosses two cells to create an interlocked cross; the cross plan provides corner office suites at every floor of the 5-storey compact cluster."
+    },
+    {
+      "name": "eighth_sa_shear",
+      "book_composition_path_id": "book:path:2fef2d4f5d200e732d88e0b40e4b9f82a53bee1eaafe6e98fb56a4baf40f02b2",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Shear on the eighth short-axis cell applies a horizontal shear to the small bar; the shearing produces a parallelogram plan with angled east and west faces that animate the narrow parcel frontage."
+    },
+    {
+      "name": "eighth_sa_embed_taper",
+      "book_composition_path_id": "book:path:f2a7521322e94b83e0d71e66f4d3cbf0db038ec37fe671ee0b602d8d722bfcd9",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and taper on the eighth short-axis cell embed a public void and taper the crown; the taper responds to the north legal-plan reduction and the embed provides a sheltered reading nook at the base."
+    },
+    {
+      "name": "eighth_v_taper_array",
+      "book_composition_path_id": "book:path:d5aa93c7557a048f49a060d3049b2f0c82650dfcf408989cf576bfe7fd2c8d61",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Eighth-unit vertical with taper-array stacks tapered cells into a cluster of thin tapering fingers; each finger peaks at a different height within the legal-section envelope, producing an irregular skyline."
+    },
+    {
+      "name": "eighth_v_split_join",
+      "book_composition_path_id": "book:path:6463db53fe2ce284b04c6d1009f9c84ccd1818db6d74231820fab25c84a26509",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split-join on the eighth vertical cell separates and reconnects two thin towers at level 3; the connection is a shared sky-terrace floor linking programme on either side of the narrow light slot."
+    },
+    {
+      "name": "eighth_v_shear",
+      "book_composition_path_id": "book:path:48c6b4405e4898e9648cfc1656c565420a4e1e775cb6adb6e20af2c0ce6774f0",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4500.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Shear on the eighth vertical bar applies a lateral shear to each tower, leaning the tops slightly eastward; the lean responds to the solar path, maximizing north-face shadow relief on the sunlight setback side."
+    },
+    {
+      "name": "eighth_v_notch",
+      "book_composition_path_id": "book:path:a336d47da71df76d5885562dd69539b820dc59ca1826772d4e29593e82af0653",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Notch on the eighth vertical cell carves the northeast corner of the small tower; the notch provides the mandatory north setback relief while the remaining three faces of the tower remain solid and full-height."
+    },
+    {
+      "name": "eighth_v_embed_taper",
+      "book_composition_path_id": "book:path:2ae448764f5d8188ec751224695f004b31f6fedea5517011f961a79ed40c1251",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4600.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and taper on the eighth vertical embed a public hall at grade and taper the upper body; the hall is covered by the tapered tower, creating a sheltered civic space at the base of the slender column."
+    },
+    {
+      "name": "eighth_v_lift_extrude",
+      "book_composition_path_id": "book:path:2ecd94cbb42d87c8764678d71dcddbe17e2cdc2496401d9d2d7ff08acd1f8b80",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift and extrude on the eighth vertical cell lift the small tower on a plinth then extrude one face; the extruded face creates a cantilevered reading shelf visible from the east road, marking the public entry."
+    },
+    {
+      "name": "three8_la_rot_stack",
+      "book_composition_path_id": "book:path:86baf80ca300512dcb2c8ef62280aa3c2fbf26f33eff4525cf7f9e71eff43390",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Three-eighths long-axis L-octant rotated and stacked builds a rotated L; the horizontal bays of the L rotate at each level, creating a twisting facade that distributes solar exposure around the east frontage."
+    },
+    {
+      "name": "three8_la_split_join",
+      "book_composition_path_id": "book:path:9c8ddea68096dca9c66d3041064c100ab84b8a0ee014de005be3a3903a0795fa",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split and join on the 3/8 long-axis L open a slot between the two octants; join reconnects them at the upper floors with a bridge slab, producing a permeable base and a unified upper mass."
+    },
+    {
+      "name": "three8_la_bend",
+      "book_composition_path_id": "book:path:5c97d45d35fc0656bcbe097d11dd7aa0fe3dae6ddaeca49567694b6d65d1645c",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Bend on the 3/8 long-axis L curves the arm; the L bends into a C-shape wrapping a sheltered courtyard on three sides, with the open east face addressing the road as the primary entry."
+    },
+    {
+      "name": "three8_la_embed_branch",
+      "book_composition_path_id": "book:path:3ebfdf7cd65bdef74f86f610d6075160ace99999fe5268b9eaafeb0ca3aa25bb",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the 3/8 long-axis L embed a public loggia in the inner corner then branch an arm across; the branch creates a bridging element that encloses the courtyard above the loggia."
+    },
+    {
+      "name": "three8_la_lift_carve",
+      "book_composition_path_id": "book:path:863a953c2e1665ab51418d5dff545acedad25862ed03c46a037c3cf851e73c8e",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift and carve on the 3/8 long-axis L raise the body off the ground then carve the inner corner; the lifted carve produces a shaded gateway below the hovering L-plan volume, inviting approach from the east."
+    },
+    {
+      "name": "three8_la_expand_shift",
+      "book_composition_path_id": "book:path:985b75949ffb2c0e6a063019a0bc0c83dd0679cc7647403667b7eba9dfb41ac7",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Expand and shift on the 3/8 long-axis L grow each arm outward then shift the upper half; the shift animates the street silhouette while the expanded footprint fills the ground coverage allowance."
+    },
+    {
+      "name": "three8_sa_rot_stack",
+      "book_composition_path_id": "book:path:e242192f19ed8836e208dbe5ce5f97f8e75b27b009d11180325ad8e43272fef6",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Three-eighths short-axis L rotated and stacked creates a horizontal L addressed to the east; each stacked level of the L rotates slightly, producing a twisted L that tapers by legal plan reduction above 9 m."
+    },
+    {
+      "name": "three8_sa_split_join",
+      "book_composition_path_id": "book:path:a0652337986d2c86cd1af28cc603918904d24a1cf5d4b472ab5234ac38c8c5ce",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4800.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Split-join on the 3/8 short-axis L opens a slot in the long arm and bridges it with a glass link; the link allows light from both outer faces to reach the inner corridor of the L."
+    },
+    {
+      "name": "three8_sa_embed_branch",
+      "book_composition_path_id": "book:path:cd6385966b49496794da9c7b9ad562f34fb3d611f6d41b9911def091b0e02559",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and branch on the 3/8 short-axis L embed a public hall in the corner bay then branch a secondary arm; the branch extends the programme into the south zone of the parcel, filling the coverage capacity."
+    },
+    {
+      "name": "three8_sa_lift_carve",
+      "book_composition_path_id": "book:path:6942d962c6a5af0111e424f7dc8cfa9c7a443b37bcf81012dcfe6ff60eb194b4",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4700.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift and carve on the 3/8 short-axis L raise the floor slab and carve the inner corner of the L; the carved corner becomes a sheltered outdoor space under the overhang, connecting the east road to the garden."
+    },
+    {
+      "name": "three8_sa_overlap_rot",
+      "book_composition_path_id": "book:path:16275845875a3986478d5e3a99adc5a4b65d1d4775e753727fcdb21adb801903",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Overlap and rotate on the 3/8 short-axis L rotate one octant off-axis; the rotated octant creates an angled corner that marks the north-east parcel boundary as a visible hinge in the L-plan."
+    },
+    {
+      "name": "three8_sa_notch_notch",
+      "book_composition_path_id": "book:path:324928e1c093278aefcbc9f885de64695b8eb110ab1820cb2499cc49120c8bd0",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Double notch on the 3/8 short-axis L carves both the outer northeast and outer southwest corners; the double notch creates a cross-axis reading in the otherwise L-shaped mass, adding spatial complexity."
+    },
+    {
+      "name": "three8_v_rot_stack",
+      "book_composition_path_id": "book:path:cc94274c281447c00240d9cb47ec8e31988fde966feee37cc84b5952f73be14f",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5200.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Three-eighths vertical L-octant rotated and stacked produces a rotating L tower; the L arms rotate between levels creating a dynamic silhouette on the east skyline while the core remains continuous."
+    },
+    {
+      "name": "three8_v_pinch_join",
+      "book_composition_path_id": "book:path:e9f2e1780ca0d2d36193a9f081ddc2015bcc2c64130a1b483fcf12522bb024a5",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5000.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Pinch-join-array on the 3/8 vertical cell pinches the L at the corner bay and joins it to a second L; the two joined L volumes create a T-plan with an expressed pinch joint at the junction above the podium."
+    },
+    {
+      "name": "three8_v_expand_shift",
+      "book_composition_path_id": "book:path:274c8f17e35e45cd477a4c0f0c6dc83e94bf7aebd2b849cdfdffdccfcceb22b8",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5400.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Expand and shift on the 3/8 vertical L expand the two arms then shift the upper body; the shifted crown hovers over the lower expanded base, creating a dramatic overhang on the south and east faces."
+    },
+    {
+      "name": "three8_v_embed_overlap",
+      "book_composition_path_id": "book:path:5f13ebdf218e4ae1f0eb776db2e764f879bfd34410d353a3e29da0a419e040e6",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Embed and overlap on the 3/8 vertical L embed a civic atrium in the corner and overlap a wing; the overlapping wing closes the inner corner at the upper levels, forming a full-height covered atrium below."
+    },
+    {
+      "name": "three8_v_lift_carve",
+      "book_composition_path_id": "book:path:0a9ed38e01169310f0bc09115eabe6763ff0d49999b0a535b490949e9c530fec",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4900.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Lift and carve on the 3/8 vertical L lift the body and carve the corner under the L arm; the carved underside of the arm becomes a shaded public gateway between the east road and the inner precinct."
+    },
+    {
+      "name": "three8_v_intersect",
+      "book_composition_path_id": "book:path:e89a416c8b1923d31e9c5cdd1104dddb66f32eaa004642b6ffafde8305ec7677",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 5300.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "facing": {
+        "access_side": "east",
+        "north_side": "north"
+      },
+      "rationale": "Intersect-intersect on the 3/8 vertical L crosses the two L arms twice; the double intersection creates a compact diamond-plan solid at the crossing zone, acting as a structural and programmatic kernel."
+    }
+  ]
+}

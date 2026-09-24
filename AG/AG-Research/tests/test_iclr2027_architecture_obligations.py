@@ -99,7 +99,9 @@ def _site_record(**overrides: object) -> dict[str, object]:
     return record
 
 
-def _domain_record(evidence_id: str, domain: str, status: str = "passed") -> dict[str, object]:
+def _domain_record(
+    evidence_id: str, domain: str, status: str = "passed"
+) -> dict[str, object]:
     return {
         "evidence_id": evidence_id,
         "domain": domain,
@@ -144,9 +146,7 @@ def _portfolio_case() -> ArchitecturePublicCase:
         execution_id=None,
         program_hash=None,
         geometry_hash=None,
-        evidence=(
-            _domain_record("evidence:portfolio_attempt", "program", "failed"),
-        ),
+        evidence=(_domain_record("evidence:portfolio_attempt", "program", "failed"),),
         subject_kind="portfolio_attempt",
         source_artifact_sha256=_SOURCE_HASH,
         attempt_id="attempt:" + "f" * 64,
@@ -182,12 +182,9 @@ def _prefix(
 
 
 def _beliefs_by_family(state: ObligationState) -> dict[str, dict[str, object]]:
-    family_by_id = {
-        item["obligation_id"]: item["family"] for item in _EXPECTED_SPECS
-    }
+    family_by_id = {item["obligation_id"]: item["family"] for item in _EXPECTED_SPECS}
     return {
-        family_by_id[belief.obligation_id]: belief.to_dict()
-        for belief in state.beliefs
+        family_by_id[belief.obligation_id]: belief.to_dict() for belief in state.beliefs
     }
 
 
@@ -206,7 +203,9 @@ class ArchitectureObligationDeclarationTests(unittest.TestCase):
             ("public_case",),
         )
 
-    def test_declaration_keeps_all_families_when_law_and_parking_are_absent(self) -> None:
+    def test_declaration_keeps_all_families_when_law_and_parking_are_absent(
+        self,
+    ) -> None:
         evidence = tuple(
             record
             for record in _full_evidence()
@@ -216,13 +215,16 @@ class ArchitectureObligationDeclarationTests(unittest.TestCase):
 
         specs = declared_architecture_obligations(_case(evidence))
 
-        self.assertEqual(tuple(spec.family for spec in specs), (
-            "site/evidence",
-            "law",
-            "parking",
-            "program",
-            "geometry",
-        ))
+        self.assertEqual(
+            tuple(spec.family for spec in specs),
+            (
+                "site/evidence",
+                "law",
+                "parking",
+                "program",
+                "geometry",
+            ),
+        )
 
     def test_exact_type_and_execution_subject_are_required(self) -> None:
         with self.assertRaisesRegex(TypeError, "ArchitecturePublicCase"):
@@ -324,11 +326,16 @@ class ArchitectureAdmissionTests(unittest.TestCase):
                     validate_public_architecture_admission(_case((record, *tail)))
 
     def test_site_record_is_required_and_no_second_site_domain_is_allowed(self) -> None:
-        no_site = tuple(record for record in _full_evidence() if record["domain"] != "site")
+        no_site = tuple(
+            record for record in _full_evidence() if record["domain"] != "site"
+        )
         with self.assertRaisesRegex(ValueError, "site"):
             validate_public_architecture_admission(_case(no_site))
 
-        duplicate_site_domain = (*_full_evidence(), _domain_record("evidence:other", "site"))
+        duplicate_site_domain = (
+            *_full_evidence(),
+            _domain_record("evidence:other", "site"),
+        )
         with self.assertRaisesRegex(ValueError, "site"):
             validate_public_architecture_admission(_case(duplicate_site_domain))
 
@@ -363,15 +370,18 @@ class ArchitecturePublicStateTests(unittest.TestCase):
                 "parse_error_codes": list(prefix.parse_error_codes),
             },
         }
-        expected = "prefix:" + hashlib.sha256(
-            json.dumps(
-                payload,
-                ensure_ascii=False,
-                allow_nan=False,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        ).hexdigest()
+        expected = (
+            "prefix:"
+            + hashlib.sha256(
+                json.dumps(
+                    payload,
+                    ensure_ascii=False,
+                    allow_nan=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest()
+        )
 
         state = public_obligation_state(case, prefix)
 
@@ -411,7 +421,9 @@ class ArchitecturePublicStateTests(unittest.TestCase):
         self.assertFalse(silent.hard_gate_passed)
         self.assertFalse(reported.hard_gate_passed)
 
-    def test_prefix_authored_beliefs_transition_without_status_or_truth_inference(self) -> None:
+    def test_prefix_authored_beliefs_transition_without_status_or_truth_inference(
+        self,
+    ) -> None:
         case = _case(_full_evidence(law_status="failed"))
         unchecked = _beliefs_by_family(public_obligation_state(case, _prefix()))
         resolved = _beliefs_by_family(
@@ -428,7 +440,7 @@ class ArchitecturePublicStateTests(unittest.TestCase):
                 case,
                 _prefix(
                     checked=("site", "law"),
-                    issues=("identity.site_mismatch", "law.setback_conflict"),
+                    issues=("identity.hash_mismatch", "law.projection_failed"),
                     cited=("evidence:site_agent", "evidence:law_graph_agent"),
                 ),
             )
@@ -448,15 +460,17 @@ class ArchitecturePublicStateTests(unittest.TestCase):
         )
         self.assertEqual(unresolved["site/evidence"]["status"], "unresolved")
 
-    def test_all_allowed_code_prefixes_map_and_unknown_prefixes_fail_closed(self) -> None:
+    def test_all_allowed_code_prefixes_map_and_unknown_prefixes_fail_closed(
+        self,
+    ) -> None:
         expected = {
-            "site.observed_problem": "site/evidence",
-            "identity.observed_problem": "site/evidence",
-            "evidence.observed_problem": "site/evidence",
-            "law.observed_problem": "law",
-            "parking.observed_problem": "parking",
-            "program.observed_problem": "program",
-            "geometry.observed_problem": "geometry",
+            "site.boundary_failed": "site/evidence",
+            "identity.hash_mismatch": "site/evidence",
+            "evidence.portfolio_attempt_incomplete": "site/evidence",
+            "law.projection_failed": "law",
+            "parking.supply_shortage": "parking",
+            "program.capacity_failed": "program",
+            "geometry.compilation_failed": "geometry",
         }
         for code, family in expected.items():
             with self.subTest(code=code):
@@ -465,13 +479,19 @@ class ArchitecturePublicStateTests(unittest.TestCase):
                 )
                 self.assertEqual(beliefs[family]["status"], "unresolved")
 
-        for code in ("zoning.observed_problem", "candidate_floor_context.typed_ledger_missing", "law"):
+        for code in (
+            "zoning.observed_problem",
+            "candidate_floor_context.typed_ledger_missing",
+            "law",
+        ):
             with self.subTest(code=code):
-                prefix = (
-                    _prefix(missing=(code,))
+                prefix = _prefix(
+                    missing=(code,)
                     if code == "candidate_floor_context.typed_ledger_missing"
-                    else _prefix(issues=(code,))
+                    else ()
                 )
+                if code != "candidate_floor_context.typed_ledger_missing":
+                    object.__setattr__(prefix.state, "blocking_issue_codes", (code,))
                 with self.assertRaisesRegex(ValueError, "unknown.*prefix"):
                     public_obligation_state(_case(), prefix)
 
@@ -534,7 +554,9 @@ class ArchitecturePublicStateTests(unittest.TestCase):
             ).hard_gate_passed
         )
 
-    def test_parse_error_tuple_keeps_an_otherwise_complete_direct_prefix_gated(self) -> None:
+    def test_parse_error_tuple_keeps_an_otherwise_complete_direct_prefix_gated(
+        self,
+    ) -> None:
         prefix = PrefixReviewState(
             turn_index=4,
             state=ArchitectureReviewState(
@@ -553,7 +575,9 @@ class ArchitecturePublicStateTests(unittest.TestCase):
 
         self.assertFalse(state.hard_gate_passed)
 
-    def test_unknown_citation_keeps_an_otherwise_complete_direct_prefix_gated(self) -> None:
+    def test_unknown_citation_keeps_an_otherwise_complete_direct_prefix_gated(
+        self,
+    ) -> None:
         prefix = PrefixReviewState(
             turn_index=4,
             state=ArchitectureReviewState(
@@ -572,7 +596,9 @@ class ArchitecturePublicStateTests(unittest.TestCase):
 
         self.assertFalse(state.hard_gate_passed)
 
-    def test_cumulative_cost_uses_task_one_validation_and_state_has_no_action_fields(self) -> None:
+    def test_cumulative_cost_uses_task_one_validation_and_state_has_no_action_fields(
+        self,
+    ) -> None:
         state = public_obligation_state(_case(), _prefix(), cumulative_cost=-0.0)
         self.assertEqual(state.cumulative_cost, 0.0)
         self.assertEqual(math.copysign(1.0, state.cumulative_cost), 1.0)
@@ -582,7 +608,8 @@ class ArchitecturePublicStateTests(unittest.TestCase):
         )
         self.assertTrue(
             all(
-                set(belief) == {
+                set(belief)
+                == {
                     "obligation_id",
                     "status",
                     "unresolved_probability",
@@ -610,7 +637,9 @@ class ArchitecturePublicStateTests(unittest.TestCase):
         for bad_cost in (-1.0, float("nan"), float("inf"), True):
             with self.subTest(cost=bad_cost):
                 with self.assertRaises((TypeError, ValueError)):
-                    public_obligation_state(_case(), _prefix(), cumulative_cost=bad_cost)
+                    public_obligation_state(
+                        _case(), _prefix(), cumulative_cost=bad_cost
+                    )
 
     def test_malformed_prefix_types_fail_closed(self) -> None:
         malformed_prefixes = (
@@ -640,11 +669,13 @@ class ArchitecturePublicStateTests(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "PrefixReviewState"):
             public_obligation_state(_case(), object())  # type: ignore[arg-type]
 
-    def test_hidden_fixture_is_not_an_input_and_cannot_change_any_public_output(self) -> None:
+    def test_hidden_fixture_is_not_an_input_and_cannot_change_any_public_output(
+        self,
+    ) -> None:
         case = _case()
         prefix = _prefix(
             checked=("site", "law"),
-            issues=("law.observed_problem",),
+            issues=("law.projection_failed",),
             cited=("evidence:site_agent", "evidence:law_graph_agent"),
         )
         hidden_fixture = {

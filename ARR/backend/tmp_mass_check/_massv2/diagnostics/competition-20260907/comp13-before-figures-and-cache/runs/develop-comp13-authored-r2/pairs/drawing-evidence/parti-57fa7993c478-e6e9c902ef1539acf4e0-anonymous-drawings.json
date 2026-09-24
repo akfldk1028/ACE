@@ -1,0 +1,20 @@
+{
+  "name": "butterfly_field_wide_lanes",
+  "shape_id": "e6e9c902ef1539acf4e0",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    959.0526885594993,
+    924.8497972062568
+  ],
+  "section_area_m2": 406.5019516143899,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "8a1270e4e5d8bae726317ca0813e02226045e1fc51b931c8608f0e7c0ec908f8"
+}

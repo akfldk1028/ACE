@@ -1,0 +1,20 @@
+{
+  "name": "house_pile_lifted_on_legs~full_ground^centred",
+  "shape_id": "75bbca0e76a8d9cc5270",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    345.9482394107672,
+    548.8061835109967
+  ],
+  "section_area_m2": 121.58157064012396,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "33b1f37f041ecf717d8b7de581c76bf23b21b6520c5fb200aa781f8ff8e131da"
+}

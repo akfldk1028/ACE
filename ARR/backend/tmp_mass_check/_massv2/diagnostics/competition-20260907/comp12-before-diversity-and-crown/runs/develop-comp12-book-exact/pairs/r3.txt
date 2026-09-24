@@ -1,0 +1,4 @@
+PAIR p01: A - The narrower central connection leaves a clearer outdoor slot between the stepped wings.
+PAIR p02: B - The recessed upper middle creates a more legible terrace and a clearer hierarchy beneath the rear roof.
+PAIR p03: B - The smaller raised front volume gives the surrounding terrace more breathing room and balances the stepped massing.
+PAIR p04: A - The straight courtyard edge aligns with the rectangular wings more coherently than the angled central edge.

@@ -1,0 +1,5 @@
+Schema validation: PASSED (0 errors)
+Written 120 sentences to D:\Data\25_ACE\ARR\backend\tmp_mass_check\_massv2\inputs\book-comp22.json
+Path IDs unique: 120
+Names unique: 120
+Count: 120 sentences across 6 base volumes x 3 orientations

@@ -1,0 +1,20 @@
+{
+  "name": "sweep03_0011_aggregate_mansard_fold",
+  "shape_id": "d30dbe42ef12fcf621b6",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    649.3432672780539,
+    31.20442062752042
+  ],
+  "section_area_m2": 62.15166039934211,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "b7785af2ea184892e1a1ee1534d5803d042b8585116d91e69332a469574145a7"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "slipped_crown",
+  "shape_id": "cf66a8bcda0bd043951a",
+  "anonymous_image": true,
+  "image_footer": "common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    5.4
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    768.1215427496659,
+    768.1215427496659
+  ],
+  "section_area_m2": 127.17485951702945,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "2577a64a0a1194047013eb4d52694aae88580a915807a1d1a1f8cebd647d9bb3"
+}

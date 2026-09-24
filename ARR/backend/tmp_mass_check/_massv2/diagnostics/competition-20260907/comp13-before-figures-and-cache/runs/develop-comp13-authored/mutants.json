@@ -1,0 +1,208 @@
+{
+ "parent": "field_under_butterfly_wings~held_ground^centred",
+ "parent_scheme": {
+  "name": "field_under_butterfly_wings",
+  "primary_language": "porous_field",
+  "secondary_language": "five three-storey pavilions standing apart, each under a V-shaped butterfly roof - valleys catching the rain in the middle of every roof",
+  "formal_principle": "Rain and daylight both want to be collected at the centre of each pavilion, so every roof folds inward as a butterfly: five valleys in a field, each pavilion's two wings lifting its eaves outward to the yard.",
+  "dominant_gesture": "a field of V roofs",
+  "reference_basis": "authored new work",
+  "floor_height_m": 3.4,
+  "ops": [
+   {
+    "op": "aggregate",
+    "n": 5,
+    "spread": 1.6,
+    "height": 0.55,
+    "tie": 0,
+    "storeys": 3,
+    "why": "Input: five pavilions in a yard. Limit: height 0.55 declares mid; spread 1.6 keeps yard between."
+   },
+   {
+    "op": "butterfly",
+    "pitch": 0.8,
+    "at": 0.5,
+    "why": "Input: each pavilion collects rain and light at its centre. Limit: pitch 0.8 keeps the valley inside the cap on pavilions this size."
+   }
+  ]
+ },
+ "parent_shape_id": "fc872fd2512792462217",
+ "run": "comp13",
+ "author_mode": "payload",
+ "authored_payload": {
+  "path": "D:\\Data\\25_ACE\\ARR\\backend\\tmp_mass_check\\_massv2\\inputs\\parti-develop-comp13.json",
+  "sha256": "3c471b0b132ae17908132c8964c5a3a6a8b2cf290bbb7a49785e2955b6098bf9"
+ },
+ "children": [
+  {
+   "name": "butterfly_field_wide_lanes",
+   "scheme": {
+    "name": "butterfly_field_wide_lanes",
+    "primary_language": "porous_field",
+    "secondary_language": "five three-storey pavilions under butterfly roofs, spread wider so no two plans touch, tied by a low shared ground plate",
+    "formal_principle": "The field of V roofs is kept and the lanes are made real: spread 1.8 opens every gap to a lane a person walks down, and a low tie plate under the five gives the field one ground and one address.",
+    "dominant_gesture": "a field of V roofs on one tie plate",
+    "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+    "floor_height_m": 3.4,
+    "design_argument_ko": "겹치던 평면을 벌려 골목을 만들고 낮은 공용 판이 다섯을 하나의 밭으로 묶는다.",
+    "ops": [
+     {
+      "op": "aggregate",
+      "n": 5,
+      "spread": 1.8,
+      "height": 0.55,
+      "tie": 0.3,
+      "storeys": 3,
+      "why": "Spread 1.8 answers the overlapping plans: every pavilion stands clear; tie 0.3 gives the cluster one shared ground plate so the field reads as one project."
+     },
+     {
+      "op": "butterfly",
+      "pitch": 0.8,
+      "at": 0.5,
+      "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+     }
+    ]
+   },
+   "variant": "butterfly_field_wide_lanes~held_ground^centred",
+   "delivered": false,
+   "eligibility": {
+    "accepted": false,
+    "reasons": [
+     "legal_fit_or_compile_failed"
+    ]
+   }
+  },
+  {
+   "name": "butterfly_field_with_a_canopy",
+   "scheme": {
+    "name": "butterfly_field_with_a_canopy",
+    "primary_language": "porous_field",
+    "secondary_language": "five pavilions under butterfly roofs, a shared canopy reaching toward the open side as the field's front",
+    "formal_principle": "A field needs a front: the pavilions keep their valleys, and one canopy reaches out toward the open side so the street reads an entry and the cluster gains the frontage hierarchy the jury missed.",
+    "dominant_gesture": "a field of V roofs with a front canopy",
+    "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+    "floor_height_m": 3.4,
+    "design_argument_ko": "열린 변으로 뻗는 캐노피가 밭에 정면과 입구를 준다.",
+    "ops": [
+     {
+      "op": "aggregate",
+      "n": 5,
+      "spread": 1.6,
+      "height": 0.55,
+      "tie": 0.2,
+      "storeys": 3,
+      "why": "Five pavilions kept at the parent's scale; tie 0.2 adds a thin shared ground."
+     },
+     {
+      "op": "butterfly",
+      "pitch": 0.8,
+      "at": 0.5,
+      "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+     },
+     {
+      "op": "canopy",
+      "reach": 0.3,
+      "at": 0.9,
+      "toward": "open",
+      "why": "A canopy toward the open side gives the field a front and an entry the jury said it lacked."
+     }
+    ]
+   },
+   "variant": "butterfly_field_with_a_canopy~held_ground^centred",
+   "delivered": false,
+   "eligibility": {
+    "accepted": false,
+    "reasons": [
+     "legal_fit_or_compile_failed"
+    ]
+   }
+  },
+  {
+   "name": "butterfly_field_toward_the_street",
+   "scheme": {
+    "name": "butterfly_field_toward_the_street",
+    "primary_language": "porous_field",
+    "secondary_language": "five pavilions under butterfly roofs, the whole field pushed toward the open side so it fronts the street",
+    "formal_principle": "A field needs a front: the pavilions keep their valleys and the cluster moves toward the open side, so the street meets the first pavilions instead of a leftover strip - the frontage hierarchy the jury missed.",
+    "dominant_gesture": "V roofs fronting the street",
+    "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+    "floor_height_m": 3.4,
+    "design_argument_ko": "밭 전체를 열린 변으로 밀어 거리가 첫 파빌리온과 만나게 한다.",
+    "ops": [
+     {
+      "op": "aggregate",
+      "n": 5,
+      "spread": 1.7,
+      "height": 0.5,
+      "tie": 0.25,
+      "storeys": 3,
+      "why": "Five pavilions spread 1.7 so plans clear; a tie plate is the court floor."
+     },
+     {
+      "op": "butterfly",
+      "pitch": 0.8,
+      "at": 0.5,
+      "why": "Every roof still folds inward as a butterfly - the valley is the idea and is kept in every child."
+     },
+     {
+      "op": "expand",
+      "ratio": 1.2,
+      "toward": "open",
+      "why": "The field grows toward the open side so its front reaches the street; the west tip stops being empty."
+     }
+    ]
+   },
+   "variant": "butterfly_field_toward_the_street~held_ground^centred",
+   "delivered": false,
+   "eligibility": {
+    "accepted": false,
+    "reasons": [
+     "legal_fit_or_compile_failed"
+    ]
+   }
+  },
+  {
+   "name": "butterfly_field_of_four_lifted",
+   "scheme": {
+    "name": "butterfly_field_of_four_lifted",
+    "primary_language": "porous_field",
+    "secondary_language": "four larger pavilions under butterfly roofs, lifted on supports so the whole ground is one public field",
+    "formal_principle": "Fewer, larger houses and a free ground: four pavilions give each a floor plate that takes a core, and lifting them makes the ground under the field continuous - the public room the gaps only hinted at.",
+    "dominant_gesture": "four lifted V-roof pavilions over one ground",
+    "reference_basis": "development of field_under_butterfly_wings: the field of V roofs is kept; the jury's overlap, frontage and core remarks are answered",
+    "floor_height_m": 3.4,
+    "design_argument_ko": "네 채로 줄여 코어를 넣고, 들어 올려 지면 전체를 공용 밭으로 만든다.",
+    "ops": [
+     {
+      "op": "aggregate",
+      "n": 4,
+      "spread": 1.9,
+      "height": 0.6,
+      "tie": 0.0,
+      "storeys": 3,
+      "why": "Four pavilions answer the core-per-house remark: each plate is large enough for its own core."
+     },
+     {
+      "op": "lift",
+      "clearance": 0.3,
+      "why": "Lifting frees the ground as one continuous public field under the roofs."
+     },
+     {
+      "op": "butterfly",
+      "pitch": 0.7,
+      "at": 0.5,
+      "why": "Shallower valleys so the top floor is not cut by the pitch, as the jury noted; said after the lift so the raised houses carry them."
+     }
+    ]
+   },
+   "variant": "butterfly_field_of_four_lifted~held_ground^centred",
+   "delivered": false,
+   "eligibility": {
+    "accepted": false,
+    "reasons": [
+     "legal_fit_or_compile_failed"
+    ]
+   }
+  }
+ ]
+}

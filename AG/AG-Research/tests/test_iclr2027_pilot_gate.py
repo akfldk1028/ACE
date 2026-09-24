@@ -12,7 +12,11 @@ from datetime import date
 from pathlib import Path
 from unittest import mock
 
-from iclr2027.projection import ProjectionIdentity, project_gold_record, project_public_case
+from iclr2027.projection import (
+    ProjectionIdentity,
+    project_gold_record,
+    project_public_case,
+)
 from iclr2027.schema import ArchitecturePublicCase
 
 
@@ -187,14 +191,10 @@ class Exp08PlanningTests(unittest.TestCase):
                 cwd=root,
                 check=True,
             )
-            subprocess.run(
-                ["git", "config", "user.name", "Test"], cwd=root, check=True
-            )
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=root, check=True)
             (root / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
             subprocess.run(["git", "add", "module.py"], cwd=root, check=True)
-            subprocess.run(
-                ["git", "commit", "-qm", "initial"], cwd=root, check=True
-            )
+            subprocess.run(["git", "commit", "-qm", "initial"], cwd=root, check=True)
 
             with self.assertRaisesRegex(RuntimeError, "code identity"):
                 _git_code_identity(
@@ -285,7 +285,9 @@ class Exp08PlanningTests(unittest.TestCase):
                             "STOP_ACCEPT" if condition == "native" else "STOP_REJECT"
                         ),
                         "blocking_issue_codes": (
-                            [] if condition == "native" else ["geometry.compilation_failed"]
+                            []
+                            if condition == "native"
+                            else ["geometry.compilation_failed"]
                         ),
                         "required_evidence_ids": ["evidence:geometry_agent"],
                         "mutation_family": (
@@ -461,10 +463,7 @@ class Exp08PlanningTests(unittest.TestCase):
         from iclr2027.validators import gold_from_validation
 
         fixture = (
-            Path(__file__).parent
-            / "fixtures"
-            / "iclr2027"
-            / "native_summary.json"
+            Path(__file__).parent / "fixtures" / "iclr2027" / "native_summary.json"
         )
         packet, _ = packet_from_arr_artifacts(
             fixture,
@@ -609,7 +608,7 @@ class Exp08PlanningTests(unittest.TestCase):
             transaction_path = next((output_dir / "run_transactions").glob("*.json"))
             original_transaction = transaction_path.read_bytes()
             transaction_path.unlink()
-            with self.assertRaisesRegex(ValueError, "exact transaction set"):
+            with self.assertRaisesRegex(ValueError, "missing final-run key"):
                 summarize_pilot(
                     output_dir=output_dir,
                     plans=plans,
@@ -620,11 +619,11 @@ class Exp08PlanningTests(unittest.TestCase):
                 )
             transaction_path.write_bytes(original_transaction)
             transaction = json.loads(transaction_path.read_text(encoding="utf-8"))
-            transaction["raw"]["result"]["turns"][-1]["content"] = (
-                transaction["raw"]["result"]["turns"][-1]["content"].replace(
-                    '"recommended_decision": "STOP_ACCEPT"',
-                    '"recommended_decision": "STOP_REJECT"',
-                )
+            transaction["raw"]["result"]["turns"][-1]["content"] = transaction["raw"][
+                "result"
+            ]["turns"][-1]["content"].replace(
+                '"recommended_decision": "STOP_ACCEPT"',
+                '"recommended_decision": "STOP_REJECT"',
             )
             transaction_path.write_text(json.dumps(transaction), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "semantic mismatch"):
@@ -645,7 +644,9 @@ class Exp08PlanningTests(unittest.TestCase):
         from iclr2027.exp08 import build_run_plan, execute_run_plans
         from iclr2027.validators import gold_from_validation
 
-        fixture = Path(__file__).parent / "fixtures" / "iclr2027" / "native_summary.json"
+        fixture = (
+            Path(__file__).parent / "fixtures" / "iclr2027" / "native_summary.json"
+        )
         packet, _ = packet_from_arr_artifacts(
             fixture,
             pnu="1168011800104170004",
@@ -751,9 +752,12 @@ class PilotGateSecureInputTests(unittest.TestCase):
             ("pilot_summary.json", pilot_gate._load_summary),
             ("run_manifest.json", pilot_gate._load_run_manifest),
         ):
-            with self.subTest(filename=filename), tempfile.TemporaryDirectory(
-                prefix="ace-pilot-input-hardlink-"
-            ) as temporary:
+            with (
+                self.subTest(filename=filename),
+                tempfile.TemporaryDirectory(
+                    prefix="ace-pilot-input-hardlink-"
+                ) as temporary,
+            ):
                 root = Path(temporary)
                 outside = root / f"outside-{filename}"
                 outside.write_bytes(
@@ -811,9 +815,12 @@ class PilotGateSecureInputTests(unittest.TestCase):
             ("exp08", exp08, exp08.load_validated_transactions),
             ("pilot", pilot_gate, pilot_gate.transaction_set_receipt),
         ):
-            with self.subTest(label=label), tempfile.TemporaryDirectory(
-                prefix="ace-transaction-junction-"
-            ) as temporary:
+            with (
+                self.subTest(label=label),
+                tempfile.TemporaryDirectory(
+                    prefix="ace-transaction-junction-"
+                ) as temporary,
+            ):
                 base = Path(temporary)
                 results = base / "results"
                 results.mkdir()
@@ -932,8 +939,7 @@ class PilotGateTests(unittest.TestCase):
                 "CONTINUE": 2,
             },
             "input_hashes": {
-                f"input:{index:064x}": f"{index:064x}"
-                for index in range(1, 7)
+                f"input:{index:064x}": f"{index:064x}" for index in range(1, 7)
             },
             "identity_commitment": "a" * 64,
             "registry_core_sha256": "b" * 64,
@@ -1009,9 +1015,7 @@ class PilotGateTests(unittest.TestCase):
         self.assertFalse(final_failure.checks["final_decision_at_least_95pct"])
         self.assertFalse(final_failure.checks["final_verdict_at_least_95pct"])
         self.assertFalse(final_failure.checks["final_blocking_at_least_95pct"])
-        self.assertFalse(
-            final_failure.checks["final_missing_evidence_at_least_95pct"]
-        )
+        self.assertFalse(final_failure.checks["final_missing_evidence_at_least_95pct"])
 
         seven_case_summary = PilotSummary(
             **{

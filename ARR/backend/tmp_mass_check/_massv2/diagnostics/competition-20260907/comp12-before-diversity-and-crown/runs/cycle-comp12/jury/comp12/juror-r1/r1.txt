@@ -1,0 +1,58 @@
+TILE t01
+CONCEPT 4 | A continuous courtyard ring and gently concave crown form a coherent solid-void composition with clear sectional identity.
+FEASIBILITY 5 | Vertically continuous occupied bands avoid major transfers; the shaped roof is a plausible localized construction challenge.
+SITE 4 | The central placement balances perimeter open space and an internal court while broadly aligning with the parcel geometry.
+EDITABILITY 4 | Repeated ring plans offer a stable basis for floors and circulation, although the variable crown needs careful upper-floor resolution.
+WEIGHTED 4.25
+
+TILE t02
+CONCEPT 4 | An enclosed court paired with an open-sided recess gives the low mass a legible hierarchy of two distinct voids.
+FEASIBILITY 4 | Most volumes have direct bearing, with local spanning required over the ground-level cuts shown in the plan.
+SITE 3 | The mass leaves substantial perimeter space, but the direction of its open recess has no demonstrated frontage relationship.
+EDITABILITY 4 | Connected upper bands and simple heights support development, while ground-level separations require circulation coordination.
+WEIGHTED 3.80
+
+TILE t03
+CONCEPT 3 | A broad thin cap above clustered tall pieces is recognizable, but the curved gaps weaken the relationship between roof and positive volumes.
+FEASIBILITY 2 | The section shows a cap separated from the curved tops below; its support and transfer arrangement remain unresolved in the evidence.
+SITE 2 | A small cluster occupies one parcel end without establishing a clear spatial relationship to the large remaining open area.
+EDITABILITY 2 | Fragmented occupied pieces and the disconnected cap complicate continuous floors and circulation while preserving the composition.
+WEIGHTED 2.35
+
+TILE t04
+CONCEPT 3 | Offset stacked blocks create a readable step in section, though their hierarchy and surrounding voids remain modestly developed.
+FEASIBILITY 4 | Substantial overlapping volumes make the offsets plausible, with localized cantilever or transfer design still needed.
+SITE 2 | The compact stack crowds one side of the parcel and leaves the larger open area spatially undefined.
+EDITABILITY 3 | Regular blocks can accept floors, but shifting upper footprints constrain a continuous core and connections between volumes.
+WEIGHTED 3.05
+
+TILE t05
+CONCEPT 3 | A large passage beneath a compact monolith is clear, but the remaining envelope has little secondary articulation.
+FEASIBILITY 3 | Broad side masses support a substantial overhead volume, making the major span plausible but structurally consequential.
+SITE 3 | The clipped perimeter acknowledges the parcel end, while the relationship between the passage and the open site remains unestablished.
+EDITABILITY 3 | The separated lower occupied bands require coordinated vertical circulation and an upper connection that preserves the large opening.
+WEIGHTED 3.00
+
+TILE t06
+CONCEPT 4 | Rotated horizontal volumes produce a strong layered silhouette and alternating recesses with a consistent formal operation.
+FEASIBILITY 3 | Overlapping plates provide potential bearing zones, but changing directions and projecting ends demand coordinated transfers.
+SITE 3 | The centered assembly distributes open space around it, although the multiple rotations lack a demonstrated relation to parcel edges.
+EDITABILITY 3 | Broad floor areas are usable, but a common core and structural grid must negotiate changing footprints without erasing the offsets.
+WEIGHTED 3.35
+
+TILE t07
+CONCEPT 3 | A broad base, layered setbacks and smaller crown establish hierarchy, though the projecting side pieces dilute its otherwise simple order.
+FEASIBILITY 4 | Most stacked volumes overlap substantially, with localized projections presenting manageable development questions.
+SITE 4 | The broad footprint and clipped base engage the parcel geometry while upper setbacks moderate the mass toward its perimeter.
+EDITABILITY 4 | Contiguous floor areas and a substantial shared footprint support cores and circulation, with deep lower plates needing further spatial study.
+WEIGHTED 3.65
+
+TILE t08
+CONCEPT 4 | A compact courtyard ring gains distinctive crown articulation from folded and interrupted upper bands, though their junctions are visually busy.
+FEASIBILITY 4 | Continuous ground and upper ring plans give plausible vertical bearing; the roof folds and junctions need detailed resolution.
+SITE 3 | The ring preserves a defined internal void but concentrates toward one parcel end without explaining the larger external open space.
+EDITABILITY 3 | Narrow occupied bands and the fragmented crown constrain core placement and upper-floor development while retaining the idea.
+WEIGHTED 3.60
+
+RANKING: t01, t02, t07, t08, t06, t04, t05, t03
+VERDICT: Advance t01 for its coherent courtyard volume, expressive section and straightforward vertical continuity, with t02 as a complementary investigation of connected open and enclosed voids. Retain t07 and t08 as secondary options: the former offers a robust stepped framework, while the latter needs simplification at the crown and proof of workable occupied bands. These judgments concern the supplied massing evidence and do not establish legal compliance or an undisclosed programme fit.

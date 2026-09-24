@@ -134,18 +134,22 @@ class RunnerV2Tests(unittest.TestCase):
                     successful_parses=planned * 2,
                 )
 
-            with patch.object(
-                runner,
-                "_bind_runtime_dependencies",
-                return_value="fixture-commit-deps-" + "f" * 16,
-            ), patch.object(
-                runner,
-                "execute_run_plans",
-                new=first_execution,
-            ), patch.object(
-                runner,
-                "summarize_pilot",
-                new=_complete_pilot_summary,
+            with (
+                patch.object(
+                    runner,
+                    "_bind_runtime_dependencies",
+                    return_value="fixture-commit-deps-" + "f" * 16,
+                ),
+                patch.object(
+                    runner,
+                    "execute_run_plans",
+                    new=first_execution,
+                ),
+                patch.object(
+                    runner,
+                    "summarize_pilot",
+                    new=_complete_pilot_summary,
+                ),
             ):
                 self.assertEqual(runner.main(args), 0)
 
@@ -166,23 +170,28 @@ class RunnerV2Tests(unittest.TestCase):
             resumed_args = list(args)
             resumed_args[resumed_args.index("0.25")] = "0.50"
             resumed_args[resumed_args.index("2026-09-01")] = "2026-09-02"
-            with patch.object(
-                runner,
-                "_bind_runtime_dependencies",
-                return_value="fixture-commit-deps-" + "f" * 16,
-            ), patch.object(
-                runner,
-                "execute_run_plans",
-                new=all_skipped,
-            ), patch.object(
-                runner,
-                "summarize_pilot",
-                new=_complete_pilot_summary,
-            ), patch.object(
-                runner,
-                "write_json_atomic",
-                wraps=runner.write_json_atomic,
-            ) as write_spy:
+            with (
+                patch.object(
+                    runner,
+                    "_bind_runtime_dependencies",
+                    return_value="fixture-commit-deps-" + "f" * 16,
+                ),
+                patch.object(
+                    runner,
+                    "execute_run_plans",
+                    new=all_skipped,
+                ),
+                patch.object(
+                    runner,
+                    "summarize_pilot",
+                    new=_complete_pilot_summary,
+                ),
+                patch.object(
+                    runner,
+                    "write_json_atomic",
+                    wraps=runner.write_json_atomic,
+                ) as write_spy,
+            ):
                 self.assertEqual(runner.main(resumed_args), 0)
 
             protected_writes = {
@@ -193,7 +202,9 @@ class RunnerV2Tests(unittest.TestCase):
             }
             self.assertEqual(protected_writes, set())
             self.assertEqual(manifest_path.read_bytes(), manifest_before)
-            self.assertEqual((output / "pilot_summary.json").read_bytes(), summary_before)
+            self.assertEqual(
+                (output / "pilot_summary.json").read_bytes(), summary_before
+            )
             payload_after = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual(payload_after["execution"], payload_before["execution"])
             self.assertEqual(
@@ -209,7 +220,9 @@ class RunnerV2Tests(unittest.TestCase):
                 payload_before["estimated_completion_date"],
             )
 
-    def test_executed_resume_with_new_completion_or_error_fails_without_writes(self) -> None:
+    def test_executed_resume_with_new_completion_or_error_fails_without_writes(
+        self,
+    ) -> None:
         from iclr2027.exp08 import ExecutionSummary
         import run_exp08_architecture as runner
 
@@ -226,18 +239,22 @@ class RunnerV2Tests(unittest.TestCase):
                     successful_parses=planned,
                 )
 
-            with patch.object(
-                runner,
-                "_bind_runtime_dependencies",
-                return_value="fixture-commit-deps-" + "f" * 16,
-            ), patch.object(
-                runner,
-                "execute_run_plans",
-                new=first_execution,
-            ), patch.object(
-                runner,
-                "summarize_pilot",
-                new=_complete_pilot_summary,
+            with (
+                patch.object(
+                    runner,
+                    "_bind_runtime_dependencies",
+                    return_value="fixture-commit-deps-" + "f" * 16,
+                ),
+                patch.object(
+                    runner,
+                    "execute_run_plans",
+                    new=first_execution,
+                ),
+                patch.object(
+                    runner,
+                    "summarize_pilot",
+                    new=_complete_pilot_summary,
+                ),
             ):
                 self.assertEqual(runner.main(args), 0)
 
@@ -259,23 +276,28 @@ class RunnerV2Tests(unittest.TestCase):
                             successful_parses=int(error_runs == 0),
                         )
 
-                    with patch.object(
-                        runner,
-                        "_bind_runtime_dependencies",
-                        return_value="fixture-commit-deps-" + "f" * 16,
-                    ), patch.object(
-                        runner,
-                        "execute_run_plans",
-                        new=abnormal_execution,
-                    ), patch.object(
-                        runner,
-                        "summarize_pilot",
-                        new=_complete_pilot_summary,
-                    ), patch.object(
-                        runner,
-                        "write_json_atomic",
-                        wraps=runner.write_json_atomic,
-                    ) as write_spy:
+                    with (
+                        patch.object(
+                            runner,
+                            "_bind_runtime_dependencies",
+                            return_value="fixture-commit-deps-" + "f" * 16,
+                        ),
+                        patch.object(
+                            runner,
+                            "execute_run_plans",
+                            new=abnormal_execution,
+                        ),
+                        patch.object(
+                            runner,
+                            "summarize_pilot",
+                            new=_complete_pilot_summary,
+                        ),
+                        patch.object(
+                            runner,
+                            "write_json_atomic",
+                            wraps=runner.write_json_atomic,
+                        ) as write_spy,
+                    ):
                         with self.assertRaisesRegex(ValueError, "executed resume"):
                             runner.main(args)
 
@@ -335,18 +357,22 @@ class RunnerV2Tests(unittest.TestCase):
                     successful_parses=59,
                 )
 
-            with patch.object(
-                runner,
-                "_bind_runtime_dependencies",
-                return_value=dependency_commit,
-            ), patch.object(
-                runner,
-                "execute_run_plans",
-                new=partial_resume,
-            ), patch.object(
-                runner,
-                "summarize_pilot",
-                new=strict_total_summary,
+            with (
+                patch.object(
+                    runner,
+                    "_bind_runtime_dependencies",
+                    return_value=dependency_commit,
+                ),
+                patch.object(
+                    runner,
+                    "execute_run_plans",
+                    new=partial_resume,
+                ),
+                patch.object(
+                    runner,
+                    "summarize_pilot",
+                    new=strict_total_summary,
+                ),
             ):
                 self.assertEqual(runner.main(args), 0)
 
@@ -403,18 +429,22 @@ class RunnerV2Tests(unittest.TestCase):
                     successful_parses=55,
                 )
 
-            with patch.object(
-                runner,
-                "_bind_runtime_dependencies",
-                return_value=dependency_commit,
-            ), patch.object(
-                runner,
-                "execute_run_plans",
-                new=partial_resume,
-            ), patch.object(
-                runner,
-                "summarize_pilot",
-                new=strict_total_summary,
+            with (
+                patch.object(
+                    runner,
+                    "_bind_runtime_dependencies",
+                    return_value=dependency_commit,
+                ),
+                patch.object(
+                    runner,
+                    "execute_run_plans",
+                    new=partial_resume,
+                ),
+                patch.object(
+                    runner,
+                    "summarize_pilot",
+                    new=strict_total_summary,
+                ),
             ):
                 self.assertEqual(runner.main(args), 0)
 
@@ -459,7 +489,9 @@ class RunnerV2Tests(unittest.TestCase):
                 code_commit="fixture-commit",
             )
 
-    def test_unfrozen_dry_run_reads_public_cases_only_and_writes_manifest_v2(self) -> None:
+    def test_unfrozen_dry_run_reads_public_cases_only_and_writes_manifest_v2(
+        self,
+    ) -> None:
         from iclr2027.io import write_jsonl_atomic
         from run_exp08_architecture import main
 
@@ -542,9 +574,7 @@ class RunnerV2Tests(unittest.TestCase):
                 public_registry_path=public_registry,
                 freeze_receipt_path=receipt,
             )
-            split_manifest = json.loads(
-                split_manifest_path.read_text(encoding="utf-8")
-            )
+            split_manifest = json.loads(split_manifest_path.read_text(encoding="utf-8"))
 
             public, packets, gold, hashes = _load_manifest_bound_cases(
                 split_manifest,
@@ -556,13 +586,17 @@ class RunnerV2Tests(unittest.TestCase):
             public_ids = {case.case_id for case in public}
             self.assertEqual(public_ids, set(packets))
             self.assertEqual(public_ids, set(gold))
-            self.assertTrue(all(packet.case_id not in public_ids for packet in packets.values()))
+            self.assertTrue(
+                all(packet.case_id not in public_ids for packet in packets.values())
+            )
             self.assertEqual(len(hashes), 6)
             self.assertTrue(
                 all(re.fullmatch(r"input:[0-9a-f]{64}", key) for key in hashes)
             )
             rendered_hashes = json.dumps(hashes, sort_keys=True)
-            self.assertIsNone(re.search(r"(?<![A-Za-z])native(?![A-Za-z])", rendered_hashes))
+            self.assertIsNone(
+                re.search(r"(?<![A-Za-z])native(?![A-Za-z])", rendered_hashes)
+            )
             self.assertIsNone(
                 re.search(r"(?<![A-Za-z])challenged(?![A-Za-z])", rendered_hashes)
             )
@@ -614,7 +648,9 @@ class RunnerV2Tests(unittest.TestCase):
                     projection_identity=identity,
                 )
 
-    def test_frozen_run_manifest_is_condition_blind_and_preserves_six_hashes(self) -> None:
+    def test_frozen_run_manifest_is_condition_blind_and_preserves_six_hashes(
+        self,
+    ) -> None:
         from iclr2027.dataset import freeze_site_registry
         from run_exp08_architecture import main
         from tests.test_iclr2027_freeze_v2 import FreezeV2Tests

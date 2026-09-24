@@ -1,0 +1,135 @@
+TILE t01
+CONCEPT 3 | One curved crescent bar extruded straight up; a single clear gesture, but no sectional hierarchy and the concave side is undeveloped.
+FEASIBILITY 5 | Simple three-storey extrusion, fully grounded, no cantilevers or thin members.
+SITE 3 | Sits diagonally mid-parcel; the curve gestures at a court but does not hold any parcel edge.
+EDITABILITY 4 | Floors, core and facade develop easily; the curve survives any planning.
+WEIGHTED 3.70
+
+TILE t02
+CONCEPT 4 | Three rotated slabs pinwheel around a centre; the stack is legible and the offsets make real terraces and overhangs.
+FEASIBILITY 3 | The top slab projects well past the middle one and a single thin vertical line is the only visible support at that corner.
+SITE 3 | Rotated stack floats mid-parcel; the rotation does not read as answering the site edges.
+EDITABILITY 4 | Each slab is a clean plate; a core through the overlap zone preserves the idea.
+WEIGHTED 3.55
+
+TILE t03
+CONCEPT 3 | Two parallel bars with a stepped upper link and small satellite blocks; the family is legible but the pieces read as separate parts rather than one idea.
+FEASIBILITY 3 | The section shows a small detached square perched above a lower block; the link piece and satellites do not clearly bear on anything.
+SITE 3 | Bars run diagonally across the parcel without engaging its edges.
+EDITABILITY 3 | The bars are easy but the fragmented satellites and link would need reconciling before floors can be drawn.
+WEIGHTED 3.00
+
+TILE t04
+CONCEPT 3 | One twisted tapering prism; a strong object but an object, with no solid-void relationship to the ground.
+FEASIBILITY 4 | Ruled twisted faces and a widening then narrowing section are buildable; no separated pieces.
+SITE 2 | A freestanding lozenge centred on the parcel, indifferent to frontage or edges.
+EDITABILITY 3 | A cored tower plans easily but the warped skins constrain every floor edge.
+WEIGHTED 3.05
+
+TILE t05
+CONCEPT 2 | Two rotated rectangles overlapped and extruded; a footprint diagram, not a sectional idea.
+FEASIBILITY 5 | Solid three-storey extrusion, fully grounded.
+SITE 3 | Centred and rotated on the parcel with no edge response, though the arms suggest four outdoor pockets.
+EDITABILITY 4 | Plain plates; easy to develop without losing what little is there.
+WEIGHTED 3.35
+
+TILE t06
+CONCEPT 3 | Twin low bars separated by a narrow slot, plus a small ground stub; clear and calm but thin as an idea.
+FEASIBILITY 5 | Two-storey solid bars on the ground; nothing to resolve.
+SITE 4 | The bars align with the long parcel edge and leave the pointed end free; the most edge-aware plan in the set.
+EDITABILITY 4 | Long plates with the slot as the circulation seam; straightforward.
+WEIGHTED 3.90
+
+TILE t07
+CONCEPT 4 | A single long bar lifted on two piers over an open ground; a clear table idea with a real void beneath.
+FEASIBILITY 3 | The clear span between piers and the end overhangs are long for a bar this shallow; a deep truss would be needed and is not shown.
+SITE 4 | Bar runs with the long parcel edge and releases the ground; the piers land inside the footprint.
+EDITABILITY 4 | Piers become cores, the bar takes two floors; the idea survives development.
+WEIGHTED 3.75
+
+TILE t08
+CONCEPT 4 | A U base stepping up into stacked boxes toward a peak; terraces and hierarchy are legible.
+FEASIBILITY 4 | Boxes bear on the boxes below with modest offsets; the section shows a short bridge over a gap.
+SITE 3 | Compact cluster rotated mid-parcel; the U court opens but not toward any identified edge.
+EDITABILITY 4 | Each box is a room-sized plate; cores can sit in the overlaps.
+WEIGHTED 3.80
+
+TILE t09
+CONCEPT 4 | An L court at ground with a second L slab stepping over it; clear solid-void and a two-level hierarchy.
+FEASIBILITY 5 | Solid three-storey L pieces, fully grounded, the upper L bears directly on the lower.
+SITE 3 | The court opens toward one parcel corner; the L is rotated against rather than along the parcel edges.
+EDITABILITY 4 | Court-facing corridor and corner core are natural; the step survives planning.
+WEIGHTED 4.05
+
+TILE t10
+CONCEPT 4 | A courtyard ring at ground with four separate pavilions on its roof; podium-and-pavilion hierarchy is distinctive and legible.
+FEASIBILITY 4 | Pavilions sit on the ring walls; no cantilevers, though the ring is thin for a three-storey stack.
+SITE 3 | Ring rotated mid-parcel; the court is inward and does not address the frontage.
+EDITABILITY 4 | Ring for shared floors, pavilions as tenancies; the idea is easy to develop.
+WEIGHTED 3.80
+
+TILE t11
+CONCEPT 2 | A three-storey block with two corner notches; subtraction without a resulting idea.
+FEASIBILITY 5 | Solid, grounded, orthogonal.
+SITE 3 | Rotated block in the parcel centre.
+EDITABILITY 4 | Any office plan fits.
+WEIGHTED 3.35
+
+TILE t12
+CONCEPT 3 | Two parallel bars joined by an upper bridge into an H, with a small box riding one bar; the H reads but the pieces are undifferentiated.
+FEASIBILITY 4 | The bridge spans a modest gap at the top level; the section shows it bearing on both bars.
+SITE 3 | Bars run diagonally; the H court opens to the sides but not to an edge.
+EDITABILITY 4 | Two bars plus a link floor; simple to plan.
+WEIGHTED 3.45
+
+TILE t13
+CONCEPT 2 | The same notched block as a plain box with a vestigial L sliver on the roof; the sliver adds nothing.
+FEASIBILITY 5 | Solid and grounded; the roof sliver is trivial.
+SITE 3 | Rotated block mid-parcel.
+EDITABILITY 4 | Easy to plan; the sliver would be removed in development.
+WEIGHTED 3.35
+
+TILE t14
+CONCEPT 3 | The twisted prism again with a thin fin left on the roof; the fin is rubble, not articulation.
+FEASIBILITY 3 | The prism is fine but the drawing carries a thin unsupported plate on the roof.
+SITE 2 | Freestanding object centred on the parcel.
+EDITABILITY 3 | Warped skins constrain the floors; the fin must be deleted.
+WEIGHTED 2.80
+
+TILE t15
+CONCEPT 3 | Two splayed wings with a tapered void between; the X and its wedge gap are a real gesture.
+FEASIBILITY 2 | Both plan cuts show only two small pads under the wings, so most of the mass is lifted on long cantilevers that are not drawn.
+SITE 3 | Wings rotated mid-parcel; the wedge void faces no identified edge.
+EDITABILITY 3 | The wings are plannable but the ground contact would have to be redesigned first.
+WEIGHTED 2.75
+
+TILE t16
+CONCEPT 3 | The stepped U cluster but with a thin floating plate and a dotted seam along the base; the composition has broken.
+FEASIBILITY 2 | A thin horizontal plate hangs off the base with no support and the seam reads as a split block.
+SITE 3 | Compact cluster rotated mid-parcel.
+EDITABILITY 3 | The upper boxes are fine but the base must be rebuilt before floors can be drawn.
+WEIGHTED 2.75
+
+TILE t17
+CONCEPT 2 | Two parallel bars of unequal length with a ground stub; a diagram of two buildings, no shared idea.
+FEASIBILITY 5 | Solid grounded bars.
+SITE 3 | Diagonal placement with low coverage leaves loose ground on all sides.
+EDITABILITY 4 | Plain bars; anything fits.
+WEIGHTED 3.35
+
+TILE t18
+CONCEPT 3 | Two bars joined by an upper bridge into an H with a small riding box; reads exactly as the other H scheme.
+FEASIBILITY 4 | Bridge bears on both bars at the top level.
+SITE 3 | Diagonal bars, court not addressed to an edge.
+EDITABILITY 4 | Two bars and a link; simple.
+WEIGHTED 3.45
+
+TILE t19
+CONCEPT 3 | The H bars with the bridge dropped to a mid level and a slot cut into one bar; the slot gives a little more hierarchy.
+FEASIBILITY 4 | Bridge bears on both bars; the slot leaves a thin lip but nothing unsupported.
+SITE 3 | Diagonal placement, court open to the side.
+EDITABILITY 4 | Bars plus link; the slot survives as a stair or void.
+WEIGHTED 3.45
+
+RANKING: t09, t06, t10, t08, t07, t01, t02, t12, t19, t18, t05, t11, t13, t17, t04, t03, t14, t15, t16
+VERDICT: The set is dominated by rotated extrusions parked in the parcel centre; only t06 and t07 use the long parcel edge, and only t09, t10 and t08 pair a ground void with a second sectional level. t09 advances on the strength of its court-and-step, with t10, t08, t07 and t06 worth a second round; t02 has the boldest section but must show its support. The near-duplicates (t11/t13, t12/t18, t04/t14) and the broken tiles t15 and t16 should not proceed.

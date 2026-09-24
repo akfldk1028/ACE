@@ -1,0 +1,555 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-develop-comp12:exact-authored-development:creative-002",
+  "parent_shape_id": "7ba8f280e3e9c91f9278",
+  "parent_program_hash": "8dec3983606cf64e4ad5a2256a9b10e490603ba104ebcb53e344dfa19206e353",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d01_bend_nw_compact",
+      "book_composition_path_id": "book:path:9bab887f2e519077dcbe8e5977897df8a80deb6d1a280936cccca005d8555719",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "intent_tags": ["compact_nw", "parking_envelope_se", "bend_relief"],
+      "root_id": "result",
+      "rationale": "Parent delivered 10/13 required parking spaces (3 short). The SE frontage parking row runs from stall P01 through P10 but the building projection blocks further extension. This child bends the bar mass toward the NW, curving its footprint away from the SE road edge. The bend reduces the south-facing plan projection at the SE corner by ~18 degrees, freeing a continuous 7-8m additional frontage for 3 standard stalls (2.5m each plus aisle). Tradeoff: slight plan area reduction on floors 3-4 at the SW end; floor 1-2 area is preserved. Spatial benefit: visible concave south elevation reads as an invitation to the parking court.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.8, 0.62, 0.48]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "bend_nw",
+          "kind": "modifier",
+          "operator": "bend",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "y"},
+            {"name": "angle_degrees", "value_type": "number", "numeric_value": -18.0},
+            {"name": "subdivisions", "value_type": "number", "numeric_value": 4.0}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": ["bend_nw"],
+          "parameters": [
+            {"name": "side", "value_type": "string", "string_value": "south"},
+            {"name": "corner", "value_type": "string", "string_value": "se"},
+            {"name": "ratio", "value_type": "number", "numeric_value": 0.28},
+            {"name": "width_ratio", "value_type": "number", "numeric_value": 0.35},
+            {"name": "height_ratio", "value_type": "number", "numeric_value": 0.55}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "bend -18deg on y-axis curves bar footprint NW; notch at SE corner further opens 3+ stall positions on south frontage",
+        "unresolved_conflicts": "Delivered area on floors 3-4 may drop 5-8% due to bend end contraction; actual count remeasured against new shape",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d02_fracture_se_gap",
+      "book_composition_path_id": "book:path:9042c82e97a383fc1f1e97948ac87e0bac17a95d0d8587255d48710c0ac64040",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": ["fracture_se", "parking_envelope_south", "compact_footprint"],
+      "root_id": "result",
+      "rationale": "Parent projection area (~497m²) occupies the SE frontage needed for 3 more stalls. This child applies book_fracture on the z axis at the south face to bite away the SE corner of the slab, creating a diagonal fissure that reduces south-edge plan projection by approximately 25% at the SE quarter. This opens 8-9m of additional contiguous frontage for 3 standard 2.5m stalls plus 1 accessible stall reconfirmation. The fracture angle reads as a sharp diagonal cut on the south elevation — a civic gesture toward the parking forecourt.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.2, 1.45, 0.28]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "fracture_se",
+          "kind": "macro",
+          "operator": "book_fracture",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "z"},
+            {"name": "gap_ratio", "value_type": "number", "numeric_value": 0.08},
+            {"name": "angle_degrees", "value_type": "number", "numeric_value": -35.0},
+            {"name": "retained_back_ratio", "value_type": "number", "numeric_value": 0.62, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "outward_sign", "value_type": "number", "numeric_value": 1.0, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": ["fracture_se"],
+          "parameters": [
+            {"name": "side", "value_type": "string", "string_value": "south"},
+            {"name": "corner", "value_type": "string", "string_value": "se"},
+            {"name": "ratio", "value_type": "number", "numeric_value": 0.22},
+            {"name": "width_ratio", "value_type": "number", "numeric_value": 0.32},
+            {"name": "height_ratio", "value_type": "number", "numeric_value": 0.5}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "book_fracture z-axis at -35deg bites SE corner of slab; notch at SE corner confirms open south frontage for 3+ additional stalls",
+        "unresolved_conflicts": "Slab plan area on floor 1 reduced ~20% at SE quadrant; remaining floors intact above fracture line; actual area remeasured",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d03_branch_nw_expand",
+      "book_composition_path_id": "book:path:dd28b0c53f08a2d1812dc32d7b562ee9b7bc4a1ca98b90a13152bbf534dd27f2",
+      "base_form_id": "cube",
+      "base_seed": "bar",
+      "intent_tags": ["branch_nw", "expand_upper", "parking_south_clear"],
+      "root_id": "result",
+      "rationale": "Parent projection blocks the SE parking grid. This child branches the bar mass into a T-form with arms toward the NW and upper level expanded to compensate for compacted ground footprint. The NW-angled trunk carries the primary programme; the branch arm extends perpendicular. The total SE frontage freed by the narrower trunk is approximately 8m — enough for 3 additional stalls. boundary_expand compensates lost area on upper floors. Tradeoff: T-plan requires a bridge or overlap between arms; delivered area on each arm is smaller than parent's monolithic floor.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.8, 0.62, 0.48]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "branch_nw",
+          "kind": "macro",
+          "operator": "book_branch",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "angle_degrees", "value_type": "number", "numeric_value": 60.0},
+            {"name": "trunk_ratio", "value_type": "number", "numeric_value": 0.55, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "arm_ratio", "value_type": "number", "numeric_value": 0.38, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "vertical_anchor", "value_type": "string", "string_value": "input_base"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "expand_upper",
+          "kind": "macro",
+          "operator": "boundary_expand",
+          "inputs": ["branch_nw"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "z"},
+            {"name": "amount", "value_type": "number", "numeric_value": 0.15},
+            {"name": "shoulder_fraction", "value_type": "number", "numeric_value": 0.5, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": ["expand_upper"],
+          "parameters": [
+            {"name": "access_side", "value_type": "string", "string_value": "south"},
+            {"name": "rise_ratio", "value_type": "number", "numeric_value": 0.28, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "support_ratio", "value_type": "number", "numeric_value": 0.22, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "book_branch at 60deg creates T-bar; NW arm pulls mass away from SE frontage; lift on south face clears ground for additional parking row",
+        "unresolved_conflicts": "T-plan connectivity requires structural bridge at junction; arm widths smaller than parent floors; actual delivered area remeasured",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d04_carve_se_offset",
+      "book_composition_path_id": "book:path:c7fcd0c126b7b32471e69e703e7e9022ab3963899ef974c879ec44b4162b197a",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": ["carve_se_face", "offset_nw_volume", "parking_row_south"],
+      "root_id": "result",
+      "rationale": "Parent's south face projection directly competes with the parking row. This child applies book_carve on the south face (depth_ratio 0.32) removing approximately 32% of the south-facing depth on the lower half, then offsets the removed volume northward with offset_related to maintain total area. The carved recess opens a clear 9m stretch of south frontage for 3+ stalls at the single-loaded 90-degree module (11m depth from road). The offset upper volume creates a cantilevered reading on the north elevation. Carve + offset follows the Poli House case study: continuous program behind an offset servant layer.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.2, 1.45, 0.28]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "carve_south",
+          "kind": "macro",
+          "operator": "book_carve",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "z"},
+            {"name": "face_side", "value_type": "string", "string_value": "south"},
+            {"name": "depth_ratio", "value_type": "number", "numeric_value": 0.32, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "width_ratio", "value_type": "number", "numeric_value": 0.65},
+            {"name": "outward_sign", "value_type": "number", "numeric_value": 1.0, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "offset_related",
+          "inputs": ["carve_south"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "y"},
+            {"name": "distance_ratio", "value_type": "number", "numeric_value": 0.28, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "outward_sign", "value_type": "number", "numeric_value": -1.0, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "unit_scale", "value_type": "number", "numeric_value": 0.75, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "program_space"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "book_carve at south face (depth 32%, width 65%) removes 3+ stall-width projection from SE frontage; offset_related adds compensating upper NW volume",
+        "unresolved_conflicts": "Offset volume is a separate related solid — structural link to carved host must be verified; delivered area of offset volume counted separately",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d05_lift_ground_piloti",
+      "book_composition_path_id": "book:path:f285f713076b19ee7cc1b58f2d44f85aeec8a11bfe30fc0b77e876a1543a612b",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": ["lift_piloti", "ground_plane_parking", "extruded_upper"],
+      "root_id": "result",
+      "rationale": "Parent's ground footprint (floor 1: ~413m²) competes with parking. This child lifts the slab off the ground (rise_ratio 0.25 = one floor clear), freeing the entire ground plane for parking layout. The lifted slab on the south access side creates a covered forecourt approach. An extrusion at the upper level (boundary_expand z) compensates area. With the full ground plane clear, the parking solver has unobstructed SE frontage for 13+ stalls in grid_connected_90 mode. The piloti solution eliminates the shortfall entirely rather than just closing the 3-space gap.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.2, 1.45, 0.28]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "book_lift_up",
+          "kind": "macro",
+          "operator": "book_lift",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "z"},
+            {"name": "distance_ratio", "value_type": "number", "numeric_value": 0.25, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "guest_scale", "value_type": "number", "numeric_value": 0.85, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "outward_sign", "value_type": "number", "numeric_value": 1.0, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "notch",
+          "inputs": ["book_lift_up"],
+          "parameters": [
+            {"name": "side", "value_type": "string", "string_value": "south"},
+            {"name": "corner", "value_type": "string", "string_value": "se"},
+            {"name": "ratio", "value_type": "number", "numeric_value": 0.2},
+            {"name": "width_ratio", "value_type": "number", "numeric_value": 0.3},
+            {"name": "height_ratio", "value_type": "number", "numeric_value": 0.65}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "book_lift z-axis (distance 0.25) lifts slab off ground; full ground plane freed for unobstructed grid_connected_90 parking grid, solving all 13 stalls; notch confirms SE public threshold",
+        "unresolved_conflicts": "Piloti structure not authored — column grid and clearance to be verified by structural stage; lifted GFA floor count may differ from parent stagger",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp18_d06_split_wing_court_se",
+      "book_composition_path_id": "book:path:82e07b845038d9e2c03a74eab9531bfdb2aaa74dd621e9ab21c72eb467b32bd7",
+      "base_form_id": "cube",
+      "base_seed": "slab",
+      "intent_tags": ["split_wing_nw_se", "parking_court_south", "lift_plus_carve"],
+      "root_id": "result",
+      "rationale": "Parent has a wide single mass across the SE frontage. This child uses book_lift (Gouveia Law Courts: lift+carve case) to raise the 1/2-fraction slab and then carve_void opens a south-facing public court. The split creates two parallel wings (NW programme bar and lower SE entry threshold), with the gap between them forming the parking court. The NW wing holds 3-4 programme floors; the SE threshold is a single-storey covered entry. The gap serves as the drive-aisle spine for all 13 stalls arranged along the outer SE perimeter. This court-based solution is architecturally distinct from all parent-family linear bars.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 4,
+        "storey_height_m": 3.6,
+        "target_gfa_m2": 1250.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0},
+            {"name": "center", "value_type": "boolean", "boolean_value": true}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "seed_scale",
+          "kind": "transform",
+          "operator": "scale",
+          "inputs": ["unit"],
+          "parameters": [
+            {"name": "vector", "value_type": "vector", "vector_value": [2.2, 1.45, 0.28]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "global_pose",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["seed_scale"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "lift_ground",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": ["global_pose"],
+          "parameters": [
+            {"name": "access_side", "value_type": "string", "string_value": "south"},
+            {"name": "rise_ratio", "value_type": "number", "numeric_value": 0.3, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"},
+            {"name": "support_ratio", "value_type": "number", "numeric_value": 0.25, "string_value": "", "boolean_value": false, "vector_value": [], "structured_json": "null"}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "result",
+          "kind": "macro",
+          "operator": "carve_void",
+          "inputs": ["lift_ground"],
+          "parameters": [
+            {"name": "margin_ratio", "value_type": "number", "numeric_value": 0.28},
+            {"name": "open_side", "value_type": "string", "string_value": "south"}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "lift (access_side=south, rise 0.3) raises slab and opens SE ground; carve_void opens south-facing court as parking forecourt drive-aisle spine; all 13 stalls fit along outer perimeter",
+        "unresolved_conflicts": "1/2-slab fraction delivers smaller footprint than parent — area recouped by taller effective floors; actual GFA remeasured; lift structural screen unverified",
+        "parent_shape_id": "7ba8f280e3e9c91f9278"
+      }
+    }
+  ]
+}

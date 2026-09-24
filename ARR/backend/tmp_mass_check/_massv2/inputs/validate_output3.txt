@@ -1,0 +1,7 @@
+start
+schema loaded
+payload loaded: 120 programs
+validator ready
+validation complete: 0 errors
+ALL VALID
+done

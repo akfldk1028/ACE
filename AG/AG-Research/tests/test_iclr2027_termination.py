@@ -15,7 +15,7 @@ def _block(
     payload = {
         "checked_domains": ["geometry"],
         "blocking_issue_codes": (
-            ["geometry.test_blocker"] if decision == "STOP_REJECT" else []
+            ["geometry.compilation_failed"] if decision == "STOP_REJECT" else []
         ),
         "missing_evidence_codes": (
             ["law.required_evidence_missing"] if decision == "CONTINUE" else []

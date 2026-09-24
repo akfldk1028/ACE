@@ -1,0 +1,20 @@
+{
+  "name": "sweep_0231_stack_butterfly_mansard",
+  "shape_id": "1d7ceca98bc88940856d",
+  "anonymous_image": false,
+  "image_footer": "sweep_0231_stack_butterfly_mansard | 1d7ceca98bc88940856d | common scale; no room layout or entrance assumed",
+  "geometry_basis": "source_volume_solid",
+  "proxy_volumes_used": false,
+  "plan_cuts_m": [
+    1.2,
+    4.6
+  ],
+  "section_y_m": 32.436545798890215,
+  "plan_areas_m2": [
+    1497.363437783359,
+    803.5728487903335
+  ],
+  "section_area_m2": 345.7459113654344,
+  "coordinate_basis": "source world XY and mass-base Z; datum locates ground only",
+  "png_sha256": "452dbe7c380f21e082a9e3557ed9c053643cfd4775bc213af4c8e6adf7372c3e"
+}

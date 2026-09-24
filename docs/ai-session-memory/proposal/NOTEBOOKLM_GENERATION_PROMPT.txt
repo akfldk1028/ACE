@@ -1,0 +1,45 @@
+Create a Korean academic thesis proposal slide deck based strictly on the uploaded sources.
+
+Working title:
+Graph DB와 협업형 멀티에이전트를 활용한 건축설계 자동화 및 법규 검증 방법 연구
+
+Audience:
+Architecture professors and design researchers, including reviewers who are not engineering or AI specialists.
+
+Core narrative:
+legal complexity -> disconnected design generation and review -> need for evidence -> Graph DB -> collaborative multi-agent workflow -> deterministic legal/parking/geometry verification -> proposed architectural design automation method.
+
+Core message:
+Architectural design automation is not simple mass generation. The goal is to generate and review early-stage design alternatives while preserving legal basis, validation evidence, violations, repair requests, and candidate lineage.
+
+Must include:
+- Korean building laws, enforcement decrees, enforcement rules, parking law, local ordinances, zoning, road/daylight constraints, BCR/FAR.
+- Parking as a clear example: required parking count is a legal calculation, but actual parking placement is a geometric feasibility problem.
+- Graph DB as the structure connecting legal articles, parcel/site conditions, candidates, constraints, violations, evidence artifacts, repair requests, decisions, and candidate lineage.
+- Multi-agent collaboration: Law Agent, Parking Agent, Design/MAAS Agent, Geometry Agent, Review Agent.
+- Deterministic validators as the source of legal and geometric truth.
+- Latest 2024-2026 literature: optimization-based massing, constraint-aware generation, architectural 3D/diffusion, and code compliance/legal AI.
+- Current MAAS verification evidence and implementation references from the uploaded sources.
+
+Visual theme is mandatory:
+- White or near-white background on all slides.
+- Thin light-gray architectural diagram lines.
+- Subtle grid and construction-line feel.
+- Deep green or dark teal only as accent.
+- Charcoal text.
+- Muted rust only for violations or repair warnings.
+- Use clean architectural diagrams, legal flowcharts, Graph DB node-link diagrams, multi-agent workflow diagrams, literature comparison tables, and massing/evidence visuals.
+- Avoid dark backgrounds, gradients, neon, startup pitch style, cartoon icons, glossy tech graphics, and generic AI robot imagery.
+
+Deck requirements:
+- 27 slides.
+- Korean slide text.
+- One main idea per slide.
+- Concise titles and bullets.
+- Speaker-note style detail where appropriate.
+- The deck should feel like a serious graduate architecture-school thesis proposal.
+
+Important constraints:
+- Do not claim this research invented SSIEA, EvoMass, diffusion models, or multi-agent systems.
+- Position the contribution as system integration for Korean architectural law, deterministic verification, evidence tracking, and collaborative agent workflow.
+- If a claim is not supported by the uploaded sources, mark it as needing verification instead of inventing it.

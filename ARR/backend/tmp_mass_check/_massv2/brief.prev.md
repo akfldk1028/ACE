@@ -1,8 +1,9 @@
 # Architectural massing author brief - assembled from canonical owners
 
-Return only one {"schemes":[...]} JSON object. Exactly 6 schemes. Required scheme keys: name,
+Return only one {"schemes":[...]} JSON object. Exactly 12 schemes. Required scheme keys: name,
 primary_language, secondary_language, formal_principle (one Korean sentence for the final sheet),
 dominant_gesture, reference_basis (verified facts or original authorship), floor_height_m,
+base_volume and base_orientation (the opening - see its section below; omitting them opens on the whole parcel),
 ops (each with op, supported parameters, and a concise why: input -> operation -> visible change -> function -> limitation).
 Use the live grammar's parameter units and ranges. Start with extrude|loop|aggregate|stack.
 Operational authoring instructions are in English; user-facing sheet descriptions may be Korean.
@@ -283,6 +284,7 @@ Storey count and metric height are different constraints. Do not mark unverified
 - **book:book-comp01:morph-voided-tall:creative-030** — 최약축 CONCEPT 1.0 (전축 C1.0, F1.0, S1.7, E1.0) : 평면 윤곽과 분리된 면만 보여 완성된 덩어리의 개념을 읽을 수 없다. / 큰 지면 윤곽과 떠 있는 작은 면의 관계만 보여 입체 개념이 완결되지 않는다.
 - **book:book-comp02:morph-voided-low:creative-022** — 최약축 CONCEPT 1.0 (전축 C1.0, F5.0, S2.0, E5.0) : The almost unmodified rectangular block has no distinguishing formal idea visible in the mass. / The image is essentially an unarticulated rectangular prism with little formal identity.
 - **book:book-comp03:morph-voided-low:creative-022** — 최약축 CONCEPT 1.0 (전축 C1.0, F5.0, S2.0, E5.0) : The unmodified rectangular block offers almost no distinctive formal proposition. / The plain rectangular extrusion provides little memorable formal idea.
+- **book:book-comp23:morph-voided-mid:creative-005** — 최약축 CONCEPT 1.0 (전축 C1.0, F4.0, S2.7, E3.3) : Plain monolithic cube with a small incidental service cluster on one corner; no legible architectural idea, hi / An undifferentiated rectangular box with negligible rooftop service fragments; no architectural idea is legibl
 - **book:book:inflated:creative-006** — 최약축 CONCEPT 1.0 (전축 C1.0, F1.0, S1.0, E1.0) : There is no building - a hairline sliver on an empty field. / Nothing is built; a single sliver on an empty parcel.
 - **book:book:interlocking_tilted_discs:creative-014** — 최약축 CONCEPT 1.0 (전축 C1.0, F1.3, S1.0, E1.0) : A thumbnail of interlocking discs, unreadable at building scale. / 1% coverage, a mechanical curio rather than a civic building.
 - **book:book:interlocking_tilted_discs:creative-029** — 최약축 CONCEPT 1.0 (전축 C1.0, F1.3, S1.0, E1.0) : A pole with fins; nothing legible as architecture. / A 1% sliver; not a proposal.
@@ -295,17 +297,16 @@ Storey count and metric height are different constraints. Do not mark unverified
 - **book:book:thin_disc_cluster:creative-058** — 최약축 CONCEPT 1.0 (전축 C1.0, F1.0, S1.0, E1.0) : A pin with a crumb on top; nothing legible. / 1% coverage; a stick and a drum.
 - **book:cultural__01__program_cultural_court_bridge__universal_0_0_f772e33305__diagnostic_anchor_prismatic__book_operative_skew__search_v5** — 최약축 CONCEPT 1.0 (전축 C1.0, F5.0, S1.7, E3.3) : An unmodified three-storey bar; nothing has happened to it, and nothing will be remembered. / An extruded bar in three layers - there is no formal idea to remember, only a default.
 - **book:cultural__02__program_cultural_split_gallery_ramp__universal_2_8_b99c5ef711__book_case_64_overlap+expand__search_v5** — 최약축 SITE 1.0 (전축 C2.0, F4.0, S1.0, E2.3) : 7% of a 2,500 m2 parcel, dropped in the middle - a model on a board, not a building on a site. / 7% coverage and 43% FAR - the least claim on the parcel of anything on the board, and no relation to its geome
-- **aggregate_pack_house_field** — 최약축 CONCEPT 1.3 (전축 C1.3, F1.7, S2.3, E1.7) : The sentence promises six gabled house identities; the mass delivers a flat layered plate on four fins with no / The six gabled houses are simply not there - what is delivered is a flat plate on four blades with the units c
 
 ### 라운드 총평
-- [vlm-book-comp13] The set is dominated by rotated extrusions parked in the parcel centre; only t06 and t07 use the long parcel edge, and only t09, t10 and t08 pair a ground void with a second sectional level. t09 advances on the strength of its court-and-step, with t10, t08, t07 and t06 worth a second round; t02 has 
-- [vlm-book-comp13] t09 advances on its own: the nested L court is the only scheme whose height hierarchy, plan and parcel diagonal agree. t08, t07 and t10 carry a real sectional idea (terrace, lifted bar, ring with pavilions) and merit a second round; the twin-bar and H variants (t05, t06, t12, t17, t18, t19) are buil
-- [vlm-comp14] Only t11 combines a distinctive idea with sound structure and a real working of the supplied ground and floor allowances, and it should advance. t01, t14, t13 and t10 form a credible second group - the first three for buildable clarity, t10 for the only genuine sectional hierarchy in the set, though
-- [vlm-comp14] The set divides into masses that commit to the parcel and masses that scatter across it, and only the first group survives scrutiny - t11's split gabled volume, t14's drum on a plinth and t09's shifted slabs each state one idea that the section and plan confirm, and each of them would advance. t13 a
-- [vlm-comp14] The set divides into masses that make one controlled move and masses that merely scatter or float; t11 is the clear leader, cleaving a well-used volume with a figural slot that is at once the idea, the circulation and the buildable logic, and it should advance. Behind it t13, t14 and t06 each hold a
-- [vlm-book-comp14] The set divides into three groups - terraced court schemes (t08, t16) that carry one idea through mass, plan and section without asking for undrawn structure; competent bar compositions (t15, t03, t01, t07, t09, t06) that are buildable but mostly restate a single move; and a tail of plain extrusions
-- [vlm-book-comp14] Only t08 and its relatives t16 and t10 show a mass whose plan actually changes between the two cuts, and t08 does it while remaining entirely buildable, so it should advance first; t03 and t15 follow as the most disciplined site-responsive schemes, with t07's lifted bar worth advancing as a distinct
-- [vlm-book-comp14] Only a handful of these propose anything in section - t07 lifts a bar clear of the ground, t10 dissolves a courtyard ring into pavilions above, and t19 joins above what it separates below - and those three are what I would advance. A second group (t01, t02, t04, t14) is formally ambitious but leaves
+- [vlm-book-comp22] t03's incised-slot bar and t02's asymmetric setback pyramid are the strongest candidates — t03 for its clear solid-void idea and high FAR efficiency, t02 for structural confidence and sectional hierarchy — and both are ready to advance to schematic development. t19's banded octagonal podium offers t
+- [vlm-book-comp22] The three bar-subtraction alternatives t03, t07 and t09 lead the set by combining full FAR utilisation with clear solid-void hierarchy and editable floor plates, making them the most architecturally resolved and practically viable candidates to advance; t10 follows as a credible hollow-core ziggurat
+- [vlm-book-comp23] t07 and t13 are the clear candidates to advance: t07 delivers a disciplined twin-bar slot diagram with strong sectional hierarchy, good FAR utilisation and straightforward development potential, while t13 exploits the maximum permitted footprint through a carved-courtyard concept that is spatially c
+- [vlm-book-comp23] t02 and t07 lead the set with equal weighted scores, each articulating a single clear solid-void idea — a bisecting datum blade and a bipartite slot composition respectively — while remaining fully feasible and editable for an office building; both should advance. t13 is a credible third for its eff
+- [vlm-book-comp23] t07 leads the set by combining a clear bi-polar slot-void concept with high structural legibility and editable floor plates, making it the most ready for architectural development; t13 follows as the strongest site performer with FAR 188% and a parcel-responsive footprint, though its massing concept
+- [vlm-book-comp24] t09 stands clearly above the field by offering the only well-resolved plinth-and-tower hierarchy with a spatially motivated central slot void, adequate FAR, and a plan that responds to the irregular parcel boundary; it is the strongest candidate to advance. t02 is the most disciplined single-concept
+- [vlm-book-comp24] t02, t05 and t08 lead the set on the combination of a clear massing idea, structural plausibility and editable floor geometry; t02's singular monolithic block with slot is the most immediately buildable and office-capable, while t05 and t08 offer a courtyard-frame alternative that is spatially riche
+- [vlm-book-comp24] t09 is the clear leader — it is the only tile that combines a genuinely sectional spatial idea (carved courtyard with rising fin elements) with credible FAR utilisation and a well-developed base floor-plate, and it should advance to the next stage; t02 is the most buildable and editable scheme and m
 
 
 ## Development champions already carried into the corpus
@@ -318,6 +319,8 @@ These comparisons were judged. Treat them as specific evidence, not a guarantee 
 - **book:book-develop-comp09:exact-authored-development:creative-002** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp09:morph-curved-low:creative-001 in a blind pairwise comparison
 - **book:book-develop-comp10:exact-authored-development:creative-001** — - : all 3 independent juror sessions preferred this variant to parent book:book-develop-comp08:exact-authored-development:creative-001 in a blind pairwise comparison
 - **book:book-develop-comp12:exact-authored-development:creative-002** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp12:morph-compact-mid:creative-012 in a blind pairwise comparison
+- **book:book-develop-comp15:exact-authored-development:creative-002** — - : all 3 independent juror sessions preferred this variant to parent book:book-comp15:morph-compact-mid:creative-008 in a blind pairwise comparison
+- **podium_edge_tower** — ops[0].storeys None -> 4, ops[1].op nest -> carve, ops[1].size 0.42 -> 0.28, ops[1].at None -> open, ops[1].reach None -> 0.45, ops[2].op carve -> nest, ops[2].size 0.28 -> 0.38, ops[2].proud None -> 0.88, ops[2].turn None -> 38, ops[3].op None -> shift, ops[3].ratio None -> 0.32, ops[3].toward None -> open, ops[3].on None -> nest_volume : all 3 independent juror sessions preferred this variant to parent comp19_tower_twisting_above_compact_podium^centred in a blind pairwise comparison
 - **loop_butterfly_open__d07_bar+** — ops[0].bar 0.23 -> 0.265 : all 1 independent juror sessions preferred this variant to parent loop_butterfly_open in a blind pairwise comparison
 
 ## Reference sentences: how the reference offices are said in this language
@@ -326,37 +329,37 @@ Read these as partis, not as templates: the demand below is to differ from every
 ### BIG (12)
 - **big_via57west** — A perimeter court is held low on three corners and pulled into a single peak on the fourth, so the roof becomes one warped slope falling toward the water. — `loop(bar=0.3, height=0.9, profile=trapezoidal) → split(ratio=0.34, along=cross, first=peak, second=skirt, gap=0) → taper(ratio=0.35, on=skirt) → carve(size=0.45, at=open, reach=0.6)`
 - **big_8house** — A single perimeter block is squeezed at its waist into two unequal courtyards and tipped so one corner rises and the opposite sinks to the ground. — `loop(bar=0.3, height=0.75) → split(ratio=0.42, along=cross, first=north_court, second=south_court, gap=0.18) → taper(ratio=0.4, on=south_court) → carve(size=0.4, at=open, reach=0.3)`
-- **big_mountain_dwellings** — The mandatory parking is built as an inclined artificial hill and a single-storey layer of housing is draped over its sloping roof. — `stack(n=5, contrast=1.35, height=0.8, align=back) → split(ratio=0.38, along=cross, first=garage, second=homes, gap=0) → shear(ratio=0.3, on=homes, toward=open) → carve(size=0.3, at=back, reach=0.35)`
+- **big_mountain_dwellings** — The mandatory parking is built as an inclined artificial hill and a single-storey layer of housing is draped over its sloping roof. — `stack(n=5, contrast=1.35, height=0.8, align=back) → split(ratio=0.38, along=cross, first=garage, second=homes, gap=0) → stagger(ratio=0.3, on=homes, toward=open) → carve(size=0.3, at=back, reach=0.35)`
 - **big_79_and_park** — A perimeter block of small modules is given a different height at every module so the roof reads as a hill, low against the park and high against the city. — `loop(bar=0.28, height=0.7) → split(ratio=0.4, along=open, first=park_edge, second=city_edge, gap=0) → taper(ratio=0.38, on=park_edge) → carve(size=0.35, at=open, reach=0.3)`
-- **big_the_twist** — One straight gallery bar is thrown across the river and warped about its own axis near midspan, so a horizontal end on the low bank becomes a vertical end on the high bank. — `extrude(height=0.28) → lift(clearance=0.35, on=body) → split(ratio=0.45, along=cross, first=low_end, second=high_end, gap=0) → shear(ratio=0.35, on=high_end, toward=cross)`
-- **big_vancouver_house** — A tower is bitten away at its base by the clearance from an elevated bridge ramp, and grows back to a full plate only above the height where that clearance ends. — `extrude(height=1.0) → carve(size=0.55, at=back, reach=0.35) → split(ratio=0.32, along=back, first=podium, second=tower, gap=0.2) → shear(ratio=0.2, on=tower, toward=open)`
-- **big_lego_house** — Twenty-one unequal brick volumes are interlocked around and above a covered public room, and one oversized brick locks the pile. — `aggregate(n=6, spread=1.5, height=0.5, tie=0.3) → carve(size=0.5, at=open, reach=0.3) → taper(ratio=0.55, on=object_5) → shear(ratio=0.25, on=object_3, toward=cross)`
+- **big_the_twist** — One straight gallery bar is thrown across the river and warped about its own axis near midspan, so a horizontal end on the low bank becomes a vertical end on the high bank. — `extrude(height=0.28) → lift(clearance=0.35, on=body) → split(ratio=0.45, along=cross, first=low_end, second=high_end, gap=0) → stagger(ratio=0.35, on=high_end, toward=cross)`
+- **big_vancouver_house** — A tower is bitten away at its base by the clearance from an elevated bridge ramp, and grows back to a full plate only above the height where that clearance ends. — `extrude(height=1.0) → carve(size=0.55, at=back, reach=0.35) → split(ratio=0.32, along=back, first=podium, second=tower, gap=0.2) → stagger(ratio=0.2, on=tower, toward=open)`
+- **big_lego_house** — Twenty-one unequal brick volumes are interlocked around and above a covered public room, and one oversized brick locks the pile. — `aggregate(n=6, spread=1.5, height=0.5, tie=0.3) → carve(size=0.5, at=open, reach=0.3) → taper(ratio=0.55, on=object_5) → stagger(ratio=0.25, on=object_3, toward=cross)`
 - **big_copenhill** — The plant machinery is ordered by its own height and one continuous roof plane is laid over that order, turning the by-product of the section into a public slope. — `extrude(height=0.95) → split(ratio=0.4, along=open, first=furnace, second=slope, gap=0) → taper(ratio=0.35) → carve(size=0.3, at=cross, reach=0.3)`
-- **big_kaktus_towers** — Two towers of unequal height rise from a shared plinth and every floor plate is rotated slightly so the facade becomes a field of pointed balconies. — `aggregate(n=2, spread=1.35, height=0.9, tie=0.25, profile=hexagon) → carve(size=0.3, at=open, reach=0.85) → shear(ratio=0.18, on=object_1, toward=cross) → lift(clearance=0.15, on=field_plate)`
-- **big_one_high_line** — Two towers of unequal height share one podium and each turns out of the other's way, opening a reciprocal slot of view between them. — `aggregate(n=2, spread=1.4, height=0.95, tie=0.18) → shear(ratio=0.3, on=object_0, toward=open) → shear(ratio=0.25, on=object_1, toward=back) → carve(size=0.4, at=cross, reach=0.2)`
-- **big_grove_at_grand_bay** — Two towers stand in one garden and each rotates its plates as it climbs, tuned so neither moves into the other's line of sight. — `aggregate(n=2, spread=1.28, height=0.8, tie=0.14) → shear(ratio=0.32, on=object_0, toward=open) → shear(ratio=0.22, on=object_1, toward=cross) → lift(clearance=0.15, on=field_plate)`
+- **big_kaktus_towers** — Two towers of unequal height rise from a shared plinth and every floor plate is rotated slightly so the facade becomes a field of pointed balconies. — `aggregate(n=2, spread=1.35, height=0.9, tie=0.25, profile=hexagon) → carve(size=0.3, at=open, reach=0.85) → stagger(ratio=0.18, on=object_1, toward=cross) → lift(clearance=0.15, on=field_plate)`
+- **big_one_high_line** — Two towers of unequal height share one podium and each turns out of the other's way, opening a reciprocal slot of view between them. — `aggregate(n=2, spread=1.4, height=0.95, tie=0.18) → stagger(ratio=0.3, on=object_0, toward=open) → stagger(ratio=0.25, on=object_1, toward=back) → carve(size=0.4, at=cross, reach=0.2)`
+- **big_grove_at_grand_bay** — Two towers stand in one garden and each rotates its plates as it climbs, tuned so neither moves into the other's line of sight. — `aggregate(n=2, spread=1.28, height=0.8, tie=0.14) → stagger(ratio=0.32, on=object_0, toward=open) → stagger(ratio=0.22, on=object_1, toward=cross) → lift(clearance=0.15, on=field_plate)`
 - **big_the_spiral** — The stepped setback is taken one floor at a time and chained so it rotates around all four faces, turning a ziggurat into one continuous green ribbon. — `stack(n=6, contrast=1.28, height=1.0, align=cross) → carve(size=0.3, at=open, reach=0.85) → carve(size=0.4, at=back, reach=0.12) → taper(ratio=0.7)`
 
 ### OMA (12)
-- **oma_seattle_library** — Five programme platforms of unequal size are stacked and slid past one another so the leftover space between them becomes the public volume. — `stack(n=5, contrast=1.3, height=0.62, align=open) → shear(ratio=0.3, toward=open, on=tier_1) → shear(ratio=0.22, toward=back, on=tier_3) → carve(size=0.34, at=open, reach=0.45)`
-- **oma_cctv** — The whole production chain is bent into a continuous loop so the building has no top and no hierarchy of height. — `loop(bar=0.3, height=0.85, profile=concave_l) → shear(ratio=0.22, toward=open, on=bar_w) → carve(size=0.3, at=open, reach=0.35)`
-- **oma_de_rotterdam** — Three unequal towers of different programme are shifted against each other and tied down by one common plinth. — `aggregate(n=3, spread=1.35, height=0.85, tie=0.16) → shear(ratio=0.24, toward=open, on=object_1) → shear(ratio=0.3, toward=back, on=object_2) → carve(size=0.28, at=open, reach=0.4)`
+- **oma_seattle_library** — Five programme platforms of unequal size are stacked and slid past one another so the leftover space between them becomes the public volume. — `stack(n=5, contrast=1.3, height=0.62, align=open) → stagger(ratio=0.3, toward=open, on=tier_1) → stagger(ratio=0.22, toward=back, on=tier_3) → carve(size=0.34, at=open, reach=0.45)`
+- **oma_cctv** — The whole production chain is bent into a continuous loop so the building has no top and no hierarchy of height. — `loop(bar=0.3, height=0.85, profile=concave_l) → stagger(ratio=0.22, toward=open, on=bar_w) → carve(size=0.3, at=open, reach=0.35)`
+- **oma_de_rotterdam** — Three unequal towers of different programme are shifted against each other and tied down by one common plinth. — `aggregate(n=3, spread=1.35, height=0.85, tie=0.16) → stagger(ratio=0.24, toward=open, on=object_1) → stagger(ratio=0.3, toward=back, on=object_2) → carve(size=0.28, at=open, reach=0.4)`
 - **oma_casa_da_musica** — One white faceted solid stands alone on a square and the concert hall is bored straight through it, glazed at both ends. — `extrude(height=0.6, profile=faceted) → carve(size=0.5, at=open, reach=1.0) → carve(size=0.3, at=cross, reach=0.45)`
 - **oma_timmerhuis** — A repeated modular cell is aggregated and set back as it rises, dissolving into two irregular peaks rather than one tower. — `aggregate(n=4, spread=1.45, height=0.75, tie=0.14) → taper(ratio=0.55) → taper(ratio=0.75) → carve(size=0.3, at=back, reach=0.5)`
 - **oma_milstein_hall** — A single thin studio plate is raised on supports and pushed across the street so it joins two existing buildings at their second floor. — `extrude(height=0.22) → lift(clearance=0.35, on=body) → carve(size=0.32, at=back, reach=0.45)`
-- **oma_kunsthal** — A square block is cut by a road and a ramp into unequal parts held at two different ground levels. — `extrude(height=0.35) → split(ratio=0.45, along=cross, first=dike_hall, second=park_hall, gap=0.18) → lift(clearance=0.2, on=dike_hall) → shear(ratio=0.22, toward=open, on=park_hall)`
-- **oma_educatorium** — A single slab is split unequally and one half is pushed out and pulled up so floor, wall and roof are one surface. — `extrude(height=0.4) → split(ratio=0.6, along=open, first=hall_stack, second=canteen_wing, gap=0.0) → shear(ratio=0.26, toward=open, on=hall_stack) → taper(ratio=0.7, on=hall_stack)`
+- **oma_kunsthal** — A square block is cut by a road and a ramp into unequal parts held at two different ground levels. — `extrude(height=0.35) → split(ratio=0.45, along=cross, first=dike_hall, second=park_hall, gap=0.18) → lift(clearance=0.2, on=dike_hall) → stagger(ratio=0.22, toward=open, on=park_hall)`
+- **oma_educatorium** — A single slab is split unequally and one half is pushed out and pulled up so floor, wall and roof are one surface. — `extrude(height=0.4) → split(ratio=0.6, along=open, first=hall_stack, second=canteen_wing, gap=0.0) → stagger(ratio=0.26, toward=open, on=hall_stack) → taper(ratio=0.7, on=hall_stack)`
 - **oma_shenzhen_stock_exchange** — The podium that should sit on the ground is cut from the shaft and raised high, leaving the whole ground plane to the city. — `extrude(height=0.95) → split(ratio=0.35, along=cross, first=podium_plate, second=tower_shaft, gap=0.0) → lift(clearance=0.3, on=podium_plate) → taper(ratio=0.65)`
-- **oma_taipei_performing_arts** — Three theatres of different size are docked into a single central volume raised clear of the ground. — `aggregate(n=3, spread=1.6, height=0.5, tie=0.38, profile=hexagon) → lift(clearance=0.28, on=field_plate) → shear(ratio=0.26, toward=open, on=object_0) → taper(ratio=0.6, on=object_1)`
-- **oma_fondazione_prada** — New volumes of deliberately different character are set among retained distillery sheds so the courtyard, not any building, is the centre. — `aggregate(n=5, spread=1.7, height=0.7, tie=0.12) → taper(ratio=0.6, on=object_0) → shear(ratio=0.24, toward=cross, on=object_1) → carve(size=0.35, at=open, reach=0.45)`
-- **oma_netherlands_embassy** — The block the city demanded is split into a freestanding cube and a thin wall that keeps the street line, with a route carved through the cube. — `extrude(height=0.55) → split(ratio=0.62, along=back, first=cube, second=wall_wing, gap=0.3) → shear(ratio=0.2, toward=cross, on=wall_wing) → carve(size=0.35, at=open, reach=0.6)`
+- **oma_taipei_performing_arts** — Three theatres of different size are docked into a single central volume raised clear of the ground. — `aggregate(n=3, spread=1.6, height=0.5, tie=0.38, profile=hexagon) → lift(clearance=0.28, on=field_plate) → stagger(ratio=0.26, toward=open, on=object_0) → taper(ratio=0.6, on=object_1)`
+- **oma_fondazione_prada** — New volumes of deliberately different character are set among retained distillery sheds so the courtyard, not any building, is the centre. — `aggregate(n=5, spread=1.7, height=0.7, tie=0.12) → taper(ratio=0.6, on=object_0) → stagger(ratio=0.24, toward=cross, on=object_1) → carve(size=0.35, at=open, reach=0.45)`
+- **oma_netherlands_embassy** — The block the city demanded is split into a freestanding cube and a thin wall that keeps the street line, with a route carved through the cube. — `extrude(height=0.55) → split(ratio=0.62, along=back, first=cube, second=wall_wing, gap=0.3) → stagger(ratio=0.2, toward=cross, on=wall_wing) → carve(size=0.35, at=open, reach=0.6)`
 
 ### SANAA (12)
 - **sanaa_kanazawa** — A single low circular boundary holds galleries of unequal size so the building has no front and no back. — `aggregate(n=5, spread=1.9, height=0.5, tie=0.3, profile=oval) → carve(size=0.32, at=cross, reach=0.5) → carve(size=0.28, at=open, reach=0.7)`
 - **sanaa_rolex** — One continuous single-storey slab covers the site and is perforated and lifted so the ground never stops. — `extrude(height=0.18, profile=stadium) → carve(size=0.42, at=cross, reach=0.6) → carve(size=0.3, at=open, reach=0.8) → lift(clearance=0.25, on=body)`
 - **sanaa_zollverein** — A single full-height cube occupies a fraction of the site and refuses to spread. — `extrude(height=1.0) → carve(size=0.32, at=open, reach=0.3) → carve(size=0.27, at=cross, reach=0.28)`
 - **sanaa_toledo_glass** — Rooms are separate glass enclosures inside one low square roof, never sharing a wall. — `aggregate(n=6, spread=1.6, height=0.22, tie=0.12, profile=oval) → carve(size=0.3, at=cross, reach=0.5) → carve(size=0.27, at=open, reach=0.6)`
-- **sanaa_new_museum** — Six tiers stack on a narrow mid-block lot and slide off each other, each shift a skylight. — `stack(n=6, contrast=1.3, height=0.85, align=back) → shear(ratio=0.24, toward=open, on=tier_2) → shear(ratio=0.2, toward=cross, on=tier_4)`
+- **sanaa_new_museum** — Six tiers stack on a narrow mid-block lot and slide off each other, each shift a skylight. — `stack(n=6, contrast=1.3, height=0.85, align=back) → stagger(ratio=0.24, toward=open, on=tier_2) → stagger(ratio=0.2, toward=cross, on=tier_4)`
 - **sanaa_louvre_lens** — Five unequal single-storey volumes touch corner to corner along 300 m. — `aggregate(n=5, spread=1.35, height=0.15, tie=0.08, profile=trapezoidal) → carve(size=0.32, at=open, reach=0.45)`
 - **nishizawa_moriyama** — One dwelling is dispersed into unequal detached volumes so the leftover ground becomes a street. — `aggregate(n=6, spread=2.0, height=0.45, tie=0.08) → carve(size=0.3, at=cross, reach=0.7)`
 - **sanaa_dior_omotesando** — The trapezoidal plot is extruded to the legal cap at near-full coverage, and only the top is pulled back. — `extrude(height=0.92) → carve(size=0.26, at=open, reach=0.25)`
@@ -372,7 +375,7 @@ Read these as partis, not as templates: the demand below is to differ from every
 4. gable은 발자국을 넓혀 선언한 틈을 닫는다 — 틈이 논지면 gable 금지.
 5. `extract`의 gap은 **호스트폭 비율** 좌표계다 — 미터 규칙과 혼동 금지.
 6. stack으로 밴드가 된 몸에 cantilever는 조용하다.
-7. 대지 꽉 찬 몸 위에서 cantilever·shear 금지 — 일조 봉투가 먹는다.
+7. 대지 꽉 찬 몸 위에서 cantilever·stagger 금지 — 일조 봉투가 먹는다.
 8. `cantilever`·`canopy`의 reach 상한 0.40 — 구조 게이트 backspan 1.6의 역산 r/(1+r) × 0.65. 실측 통과값 0.28.
 9. `fold`의 낙차는 배달에서 +35%까지 부푼 실측 — 얕게 선언하라. 접힘은 렌더 이음선 상한(점 8개 = 접힘 3개)까지.
 10. 방은 유효깊이 2.4m — 그보다 얇은 판을 원하면 canopy(방 면제)로 말하라.
@@ -382,7 +385,35 @@ Read these as partis, not as templates: the demand below is to differ from every
 ## Current board: differ from every entry at the level of formal principle
 The common curator reserves one seat per family, not per renamed parameter variation.
 
-No judged and baked seats exist in the current era yet.
+- O1 (4.94): a squat four-storey podium gives up one storey to a slender tower whose plan rotates as it rises
+- O2 (4.85): book:book-comp24:morph-compact-tall:creative-019
+- O3 (4.77): 지붕 전체가 이웃 쪽으로 오르는 한 장의 경사면이 되고, 그 몸통을 비스듬히 관통하는 바 하나가 경사의 미는 힘을 받아낸다.
+- O4 (4.73): one bar cut in two and the halves slid apart, the taller half taking what the lower gives up
+- O5 (4.63): wide01_0184_loop_grade_embed
+- O6 (4.62): Four distinct occupied blocks alternate orientation above one grounded block
+- O7 (4.59): a concertina roof over a bar a quarter of the plot depth
+- O8 (4.57): a court ring of four three-storey bars lifted whole into the air - the court kept as a rectangle of sky above, the ground below one continuous public clearing
+- O9 (4.52): a continuous three-sided house descends toward the open side of its civic court
+- O10 (4.48): an L of three quarters of the plan at half the height, wrapping the street corner
+- O11 (4.47): sweep_0184_stack_compress
+- O12 (4.32): four square towers standing as one block, pierced by a single shared cut
+- O13 (4.30): three compact public houses address shared outdoor ground with one larger gathering hall
+- O14 (4.27): book:book-comp24:morph-compact-low:creative-012
+- O15 (4.19): sweep03_0022_loop_mansard_fold
+- O16 (4.15): book:book-comp24:morph-curved-low:creative-024
+- O17 (4.13): Three grounded room volumes share a thin elevated roof plane
+- O18 (4.00): four equal halls set inside one plot-wide frame without touching
+- O19 (3.83): 열린 중정을 둘러싼 점유 몸체의 지붕이 두 방향으로 오르내리며 외곽과 내부를 함께 조직한다.
+- O20 (3.71): wide01_0115_aggregate_taper
+- O21 (3.68): sweep_0231_stack_butterfly_mansard
+- O22 (3.66): a mid-rise pile of kite-plan units turning by a constant alternating angle and shrinking by a constant ratio, every footprint seated inside the one below
+- O23 (3.59): sweep-figures01_0026_aggregate_butterfly_grade
+- O24 (3.57): 네 켜의 점유 매스를 번갈아 이동해 입면과 층 사이의 외부 여백을 조직한다.
+- O25 (3.54): two slipped boxes, the upper roof sliding one step further
+- O26 (3.49): An occupied upper bridge joins two grounded room-depth piers
+- O27 (3.27): 큰 주민 홀과 일상 업무길
+- O28 (3.20): two gabled bodies sharing one overlapped bay, slipped past each other so each keeps its own yard and sky
+- O29 (3.14): six two-storey wings in radial arrangement each under a warped roof plate with all corners lifted - the six warped plates hover above the court as a crown of ascending eaves
 
 ---
 
@@ -392,6 +423,7 @@ Verb: parameters. Ranges are the validator's; enum values are listed. A word not
 - **aggregate**: arrangement, height 0.1..1.0, levels, method, n 2..12, reach 0.0..1.0, spread 1.05..2.5, tie 0.0..0.4, turn, unit
 - **align**: face, to
 - **approach**: depth, width
+- **array**: n 2..6, step 1.05..2.0
 - **bend**: degrees -90.0..90.0, segments
 - **branch**: height 0.1..1.0, n 2..6, reach 0.0..1.0
 - **butterfly**: along, at, pitch
@@ -412,6 +444,7 @@ Verb: parameters. Ranges are the validator's; enum values are listed. A word not
 - **inscribe**: across, at, depth, size 0.1..0.7
 - **interlock**: bite, reach 0.0..1.0, size 0.1..0.7
 - **intersect**: climb, degrees -90.0..90.0, first, level, size 0.1..0.7
+- **join**: height 0.1..1.0, level 0.0..0.6, size 0.1..0.5
 - **lift**: clearance 0.1..0.4
 - **lodge**: at, height 0.1..1.0, over, size 0.1..0.7
 - **loop**: bar 0.15..0.4, height 0.1..1.0, step 0.4..1.0
@@ -419,24 +452,50 @@ Verb: parameters. Ranges are the validator's; enum values are listed. A word not
 - **merge**: height 0.1..1.0
 - **nest**: proud, size 0.1..0.7, turn
 - **notch**: at, size 0.15..0.5
-- **offset**: ratio 0.15..0.95, toward
+- **offset**: height 0.1..1.0, ratio 0.15..0.95, toward
 - **overlap**: bite, height 0.1..1.0, slip
+- **pack**: fill 0.3..0.9, n 2..9
 - **pinch**: ratio 0.15..0.95, segments
 - **puncture**: n 1..3, size 0.1..0.45
+- **reflect**: across, clear 1.0..1.6
 - **roof**: corners, eave, rise, sag 0.0..0.6, thin
 - **rotate**: degrees -90.0..90.0
 - **shape**: bottom_surface, plan_region, top_surface
-- **shear**: ratio 0.15..0.95, toward
+- **shear**: angle 5.0..45.0, side, toward
 - **shift**: ratio 0.15..0.95, toward
 - **sink**: depth
 - **skew**: degrees -90.0..90.0, toward
 - **split**: along, contrast 1.2..3.5, first, gap 0.0..12.0, ratio 0.3..0.75, second
-- **stack**: align, contrast 1.2..3.5, grow, height 0.1..1.0, n 2..6
+- **stack**: align, contrast 1.0..3.5, grow, height 0.1..1.0, n 2..6
+- **stagger**: ratio 0.15..0.95, toward
 - **taper**: ratio 0.15..0.95
 - **twist**: degrees -90.0..90.0
 - **vault**: along, bays, rise
 
 Universal on every verb: about, on, profile, storeys.
+
+## The opening - what this mass is cut from, said once at the top of the scheme
+The BOOK's grammar is three parts and this is the first: choose a body, perform
+one action on it, explore its bounded variations. Two scheme-level keys, beside
+`name` and `floor_height_m`:
+
+- **base_volume**: 1/1 | 1/2 | 3/8 | 1/4 | 1/8 | 1/16
+- **base_orientation**: long_axis | short_axis | vertical
+
+`base_volume` is how much of the parcel seed the mass starts as and
+`base_orientation` is which axis carries the fraction: `1/4` + `vertical` is a
+low wide plate over the whole plot, `1/4` + `long_axis` is a bar a quarter of
+its length. A fraction shorter than one storey is refused rather than quietly
+rounded up to the next one.
+Omitting both opens on `1/1`, the whole parcel, which is what every sentence in
+the corpus does. Say it deliberately.
+
+The opening has two more parts, both already in the table above and both just as
+unused. `profile` on the first verb sets the base PLAN for the whole scheme - ten
+are built and 83.6% of delivered bodies are square. A section verb said early -
+gable, mansard, butterfly, vault, fold - gives the base SECTION; 84.4% of
+delivered bodies are flat-topped. A section is a base shape, not an assembly, and
+no matrix turns a square into a circle. Choose all four.
 
 ---
 

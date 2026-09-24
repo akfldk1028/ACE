@@ -1,0 +1,9 @@
+{
+  "schema_version": "ace.iclr2027.design_receipt.v1",
+  "document": "2026-08-19-iclr2027-option-b-design.md",
+  "document_bytes": 11885,
+  "document_sha256": "95f54cbd8ec5ea0700d967b9128d568690fcb118eda588dff35917e007f532a1",
+  "effective_date": "2026-08-19",
+  "status": "approved_prospective_amendment",
+  "timing_disclosure": "development_collection_started_before_amendment; cats_training_calibration_method_lock_and_test_access_not_started"
+}

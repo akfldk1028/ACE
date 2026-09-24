@@ -1,0 +1,465 @@
+{
+  "mode": "exact-authored-development",
+  "inherit_parent_dimensions": true,
+  "parent": "book:book-comp22:morph-compact-mid:creative-011",
+  "parent_shape_id": "9ec0f4edc4015dfdb3be",
+  "parent_program_hash": "35cfa947f24b75de130c557fceffeb4b621960617939229672967213d2892d74",
+  "geometry_programs": [
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d01_full_lift_piloti",
+      "book_composition_path_id": "book:path:8aaae0ea27a8a4f5198ab001e5372d48a405842e57564f58d151192c5414e506",
+      "root_id": "book02_lift",
+      "rationale": "Parent compact-mid mass occupies 1126m2 of 1267m2 available area, leaving only 1 stall of 47 placed. This child raises the full 1/1 long_axis mass on piloti at rise_ratio=0.20 (one storey clearance ~3.8m), exposing the complete site ground plane for parking. Parking: ~2500m2 site at 11m single-loaded module from SE access edge can fit 4 rows of 12 stalls = 48, satisfying the 47-space requirement. GFA: 4 upper floors at parent proportions ~4503m2 (vs target 4698m2, -4% conflict reported). Piloti structural grid and ground lobby not modelled in this mass.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4698.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "1/1"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "rise_ratio", "value_type": "number", "numeric_value": 0.20},
+            {"name": "support_ratio", "value_type": "number", "numeric_value": 0.08},
+            {"name": "access_side", "value_type": "string", "string_value": "east"}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Raises full 1/1 long_axis building on piloti at rise_ratio=0.20 (~3.8m clearance). Full site ground plane ~2500m2 freed for parking from SE access edge. Estimated 4 rows * 12 stalls = 48 stalls, satisfying 47-space requirement.",
+        "unresolved_conflicts": "GFA delivered ~4503m2 vs target 4698m2 (-4%); piloti column spacing and structural capacity unverified; ground lobby/vertical core not placed in this mass stage.",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d02_half_bar_se_open",
+      "book_composition_path_id": "book:path:a325f9b7144f8cff0c8b9c5a4405d6e4300264341299ebb9f13903480959c611",
+      "root_id": "book02_clip",
+      "rationale": "Parent 1126m2 footprint blocks parking. This child uses a 1/2 long_axis seed (half of parcel in long dimension) to halve the building footprint, placing the mass toward the NW. The SE half (~1250m2) is freed for surface parking at the permissible SE vehicle access edge. 5 floors at ~620m2/floor = 3100m2 GFA (conflict vs target 4698m2 reported). SE parking: 43m frontage, 11m single-loaded = 3 rows * 17 stalls = 51 stalls, satisfying 47. Spatial benefit: generous SE open ground with a clear civic bar along NW edge.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 3100.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "1/2"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_clip",
+          "kind": "modifier",
+          "operator": "clip",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "normal", "value_type": "vector", "vector_value": [0.0, -1.0, 0.0]},
+            {"name": "offset_ratio", "value_type": "number", "numeric_value": 0.15},
+            {"name": "keep_side", "value_type": "string", "string_value": "negative"}
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "1/2 long_axis seed occupies NW half of site. Clip trims any SE overflow, freeing SE ~1250m2 for surface parking. 3 rows * 17 stalls = 51 stalls from SE frontage; satisfies 47 requirement.",
+        "unresolved_conflicts": "GFA ~3100m2 vs contract target 4698m2 (-34%); deliberate lower-density trade for parking certainty. Clip direction assumes book_base_volume aligns with parcel long axis. Parking count remeasured against new shape.",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d03_split_wing_gap_parking",
+      "book_composition_path_id": "book:path:3176731a1df1ce6f87ae8ac1c1667f83f6469968d77b38d74ffc005dbdc0c52e",
+      "root_id": "book02_split_wing",
+      "rationale": "Split full mass into two parallel bars with an 11m clear gap aligned to the SE vehicle access frontage. The gap creates a single-loaded 90-degree parking aisle serving stalls on each side. gap_ratio=0.22 on ~50m parcel width = ~11m gap (single-loaded module: 5m stall + 6m aisle). Each bar: ~25m wide * 5 floors. Total GFA: 2 bars * 25m * 25m * 5 = ~6250m2 (conflict vs 4698m2 target reported). Parking in gap: 25m run = 10 stalls each side = 20; SE open zone adds ~27 stalls = 47 total. Satisfies requirement if SE zone connects.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4698.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "1/1"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_split_wing",
+          "kind": "macro",
+          "operator": "split_wing",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "axis", "value_type": "string", "string_value": "y"},
+            {"name": "gap_ratio", "value_type": "number", "numeric_value": 0.22},
+            {"name": "height_ratio", "value_type": "number", "numeric_value": 1.0},
+            {"name": "bridge", "value_type": "boolean", "boolean_value": false},
+            {"name": "ground_spine", "value_type": "boolean", "boolean_value": false},
+            {"name": "ground_spine_width_ratio", "value_type": "number", "numeric_value": 0.12},
+            {"name": "ground_spine_height_ratio", "value_type": "number", "numeric_value": 0.20},
+            {"name": "access_side", "value_type": "string", "string_value": "east"},
+            {"name": "layout", "value_type": "string", "string_value": "split"},
+            {"name": "connector_width_ratio", "value_type": "number", "numeric_value": 0.15}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Splits full 1/1 body into two parallel bars with gap_ratio=0.22 (~11m gap on 50m parcel width). Gap provides single-loaded parking aisle. Gap 25m run = 10 stalls each side = 20; SE frontage zone adds ~27 = 47 total. Satisfies requirement.",
+        "unresolved_conflicts": "GFA from two bars likely exceeds 4698m2 target. gap_ratio=0.22 exact measurement depends on parcel geometry. Parking count (20 in gap + 27 SE) requires remeasurement against new shape. SE zone connectivity to vehicle access unverified.",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d04_three_eighth_compact_lift",
+      "book_composition_path_id": "book:path:9d3ca52627e2d5cfe4d161ee495083da751b47a5d3b70474adc1158eacf5d283",
+      "root_id": "book03_lift",
+      "rationale": "Uses 3/8 seed (three octants of the unit cube as an L-shape) with lift. The 3/8 mass occupies ~75% of the parent footprint on piloti, freeing ground entirely. GFA: 3/8 * ~1126m2 * 5 floors = ~3166m2 (conflict vs 4698m2 target). Parking: full site ground ~2500m2 at 11m module = 4 rows * 12 stalls = 48 stalls. The L-shape places a notch toward the SE where the parking access naturally sits. Spatial benefit: the piloti ground plane reads as a unified civic void under the cantilever; the L notch provides shelter at the parking entrance.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 3166.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "3/8"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book03_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "rise_ratio", "value_type": "number", "numeric_value": 0.20},
+            {"name": "support_ratio", "value_type": "number", "numeric_value": 0.07},
+            {"name": "access_side", "value_type": "string", "string_value": "east"}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "3/8 long_axis L-mass on piloti (rise_ratio=0.20) opens full site ground for parking. L notch toward SE provides sheltered parking access. ~2500m2 ground = 48 stalls at 11m module. Satisfies 47 requirement.",
+        "unresolved_conflicts": "GFA ~3166m2 vs target 4698m2 (-33%). Explicit lower-density trade for guaranteed parking compliance. 3/8 L-orientation on parcel unverified; actual notch position depends on BOOK projection.",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d05_terrace_se_release",
+      "book_composition_path_id": "book:path:ca92e92d94d0178e5ecaf55506ca676f6bffac409ee603f0aa3e0d9699679d37",
+      "root_id": "book02_terrace",
+      "rationale": "Keeps the full-scale 1/1 long_axis mass but applies aggressive terracing on the SE side (direction x, 3 levels, setback_ratio=0.30), releasing SE ground in steps. Floor 1 SE: 30% reduction frees ~338m2; floor 2 SE: additional 30% frees ~440m2 total. Ground parking zone expands from parent's ~140m2 to ~580m2. At 11m module: 53m run = 21 stalls; plus original SE strip = 30 stalls total. Still 17 short of 47. Conflict reported. GFA lost: 2 floors * 30% setback of ~1126m2 = ~676m2; delivered ~4022m2 vs target 4698m2 (-14%). Most parking improvement of SE-setback strategies.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4698.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "1/1"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_terrace",
+          "kind": "macro",
+          "operator": "terrace",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "levels", "value_type": "number", "numeric_value": 3.0},
+            {"name": "setback_ratio", "value_type": "number", "numeric_value": 0.30},
+            {"name": "direction", "value_type": "string", "string_value": "x"},
+            {"name": "direction_sign", "value_type": "number", "numeric_value": 1.0},
+            {"name": "shift_per_level", "value_type": "vector", "vector_value": [0.0, 0.0, 0.0]}
+          ],
+          "semantic_role": "dominant_mass"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "3-level terrace at 30% setback releases SE side in steps. Ground parking expands from 140m2 to ~580m2 = ~30 stalls. Still 17 stalls short of 47 requirement. Partial improvement only.",
+        "unresolved_conflicts": "Terrace yields only ~30 stalls vs 47 required - shortfall 17 persists. direction='x' assumed to align with SE direction of parcel; actual alignment depends on book_base_volume projection in parcel frame. GFA ~4022m2 vs 4698m2 target (-14%).",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    },
+    {
+      "schema_version": "arr.maas.geometry_program.v1",
+      "name": "comp22_d06_stepped_mass_lift_combined",
+      "book_composition_path_id": "book:path:73b89ecc06bf02bddde4aa6a65c4105913cf54a6b06cb9605f2ca6f7c510a2e9",
+      "root_id": "book03_lift",
+      "rationale": "Combines stepped_mass (2 levels, 0.25 setback toward SE) with lift (rise_ratio=0.20). Stepped_mass creates a podium base at 1/5 of height, then the tower steps back; lift raises both tiers on piloti. The stepped piloti profile opens the ground plane while creating a distinctive civic silhouette. GFA: full-site 1/1 seed, 5 floors with 25% setback at floor 2 = ~3900m2 (vs 4698m2 target, -17%). Ground parking: ~2500m2 at 11m module = 4 rows * 12 = 48 stalls; satisfies 47-space requirement. Spatial principle: a stepping civic landmark rising from an open public ground plane.",
+      "dimensional_intent": {
+        "schema_version": "arr.maas.dimensional_intent.v1",
+        "storey_count": 5,
+        "storey_height_m": 3.8,
+        "target_gfa_m2": 4698.0,
+        "delivery_policy": "preserve_physical_dimensions",
+        "programme_status": "unknown"
+      },
+      "nodes": [
+        {
+          "id": "unit_box",
+          "kind": "primitive",
+          "operator": "box",
+          "inputs": [],
+          "parameters": [
+            {"name": "width", "value_type": "number", "numeric_value": 1.0},
+            {"name": "depth", "value_type": "number", "numeric_value": 1.0},
+            {"name": "height", "value_type": "number", "numeric_value": 1.0}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "seed_block",
+          "kind": "transform",
+          "operator": "matrix4",
+          "inputs": ["unit_box"],
+          "parameters": [
+            {"name": "matrix4", "value_type": "matrix4", "matrix4_value": [
+              [1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]
+            ]}
+          ],
+          "semantic_role": "base_seed"
+        },
+        {
+          "id": "book01_book_base_volume",
+          "kind": "modifier",
+          "operator": "book_base_volume",
+          "inputs": ["seed_block"],
+          "parameters": [
+            {"name": "label", "value_type": "string", "string_value": "1/1"},
+            {"name": "orientation", "value_type": "string", "string_value": "long_axis"}
+          ],
+          "semantic_role": "book_mutated_dominant"
+        },
+        {
+          "id": "book02_stepped",
+          "kind": "macro",
+          "operator": "stepped_mass",
+          "inputs": ["book01_book_base_volume"],
+          "parameters": [
+            {"name": "levels", "value_type": "number", "numeric_value": 2.0},
+            {"name": "setback_ratio", "value_type": "number", "numeric_value": 0.25},
+            {"name": "direction", "value_type": "string", "string_value": "x"},
+            {"name": "shift_per_level", "value_type": "vector", "vector_value": [0.0, 0.0, 0.0]},
+            {"name": "podium_scale", "value_type": "number", "numeric_value": 0.60},
+            {"name": "podium_height_ratio", "value_type": "number", "numeric_value": 0.20}
+          ],
+          "semantic_role": "dominant_mass"
+        },
+        {
+          "id": "book03_lift",
+          "kind": "macro",
+          "operator": "lift",
+          "inputs": ["book02_stepped"],
+          "parameters": [
+            {"name": "rise_ratio", "value_type": "number", "numeric_value": 0.20},
+            {"name": "support_ratio", "value_type": "number", "numeric_value": 0.06},
+            {"name": "access_side", "value_type": "string", "string_value": "east"}
+          ],
+          "semantic_role": "public_threshold"
+        }
+      ],
+      "metadata": {
+        "parking_repair_response": "Stepped_mass (2 levels, 25% SE setback) combined with lift (rise_ratio=0.20) exposes full site ground for parking. Ground plane ~2500m2 at 11m module = 48 stalls; satisfies 47-space requirement. Stepped silhouette adds civic character.",
+        "unresolved_conflicts": "GFA ~3900m2 vs target 4698m2 (-17%). Stepped-then-lift sequence depends on operator composition order; structural transfer from stepped cantilever not verified. Parking count remeasured against new shape.",
+        "parent_shape_id": "9ec0f4edc4015dfdb3be"
+      }
+    }
+  ]
+}

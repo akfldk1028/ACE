@@ -257,6 +257,96 @@
      "why": "Open a substantial front recess in the actual body as an entrance-space hypothesis; doors and accessible paths remain unresolved."
     }
    ]
+  },
+  {
+   "name": "podium_edge_tower",
+   "primary_language": "solid_body",
+   "secondary_language": "the rotated tower is shifted to the open-side edge of the podium so three faces of ground become one gathered civic apron and the street reads a clear corner address",
+   "formal_principle": "부모의 탑은 기단 한가운데에 얹혀 세 면의 남은 지붕이 잔여물이 되었다. 탑을 열린 변 모서리로 민 뒤 기단 세 면이 한 방향의 내부 마당으로 모이고, 거리는 탑 모서리와 직접 만난다.",
+   "dominant_gesture": "모서리 탑과 한쪽으로 몰린 기단 테라스",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, the four-storey podium, the rotated tower and the open-side carve are all kept; what changes is where the tower is placed on the podium lid",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑을 한쪽 모서리로 밀어 기단 지붕이 한 방향의 마당이 된다.",
+    "spatial_strategy": "부모에서 탑은 기단 중심에 있어 나머지 기단 지붕이 사방의 잔여 여백이 됐다. 열린 변 쪽 모서리에 탑을 붙이면 나머지 기단 지붕이 하나의 연속된 업무 테라스가 되고, 거리에서는 탑 모서리가 정면이 된다.",
+    "tradeoff": "이동한 탑은 기단 가장자리의 구조 연속성을 요구하고, 기단 지붕의 외부 이용 및 방수는 검증이 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium occupies 62% of the height budget; the seed and storey count are inherited. Developed: storeys None -> 4, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess is the directional move that makes the podium readable from the street; kept in every child. Developed: op nest -> carve, size 0.42 -> 0.28, at None -> open, reach None -> 0.45, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "nest",
+     "size": 0.38,
+     "proud": 0.88,
+     "turn": 38,
+     "why": "the tower is the parent's identity; turn 38 is inherited; size slightly narrowed to make room beside the edge. Developed: op carve -> nest, size 0.28 -> 0.38, proud None -> 0.88, turn None -> 38, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "shift",
+     "ratio": 0.32,
+     "toward": "open",
+     "on": "nest_volume",
+     "why": "moving the tower toward the open side consolidates the unused podium lid into one directed terrace rather than a residue on three sides. Developed: op None -> shift, ratio None -> 0.32, toward None -> open, on None -> nest_volume, chosen over the parent by a unanimous blind pairwise jury."
+    }
+   ]
+  },
+  {
+   "name": "stagger_tower_on_podium",
+   "primary_language": "solid_body",
+   "secondary_language": "the rotated tower is replaced by a nested mass that steps progressively toward the open side level by level, so the tower leans rather than rotates and each floor plate has a different view",
+   "formal_principle": "부모의 탑은 평면이 돌아 꼭대기가 대각선을 향했지만, 매 층에서 같은 자리에 서 있었다. 탑을 층마다 열린 변 쪽으로 조금씩 미끄러지게 하면 탑이 기울어지며 층마다 더 많은 전면부를 향하게 되고, 단면에서 기울어진 피크가 된다.",
+   "dominant_gesture": "열린 변 쪽으로 층마다 미끄러지는 기울어진 탑",
+   "reference_basis": "development of comp19_tower_twisting_above_compact_podium: the half-plot vertical seed, four-storey podium, open-side carve and nested tower position are kept; the rotation (turn) is replaced by stagger — this differs from O24 (four masses alternately shifted between faces) and O6 (blocks alternating orientation) because only the tower stagger is the proposition and it is one-directional toward the open side",
+   "floor_height_m": 3.8,
+   "design_argument_ko": {
+    "title": "탑을 회전 대신 층마다 열린 변으로 미끄러뜨려 기울어진 탑이 된다.",
+    "spatial_strategy": "부모의 탑은 수직으로 서서 평면이 돌아갔다. 동일 방향으로 층마다 이동하면 탑이 기울어지며 상층부가 더 많은 도로 전면을 향한다. 기단 위 기울어진 매스는 하부 기단과 상부 탑 사이의 긴장 관계를 단면에서 읽히게 한다.",
+    "tradeoff": "stagger가 누적되면 상층부가 기단 가장자리를 넘어 캔틸레버 상태가 될 수 있다. 구조 가능 여부는 미검증이다. 탑의 층고 및 기단과의 하중 전달은 독립 검토가 필요하다."
+   },
+   "base_volume": "1/2",
+   "base_orientation": "vertical",
+   "ops": [
+    {
+     "op": "extrude",
+     "height": 0.62,
+     "storeys": 4,
+     "why": "the parent's four-storey podium at 62% of the height budget; inherited. Developed: storeys None -> 4, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "carve",
+     "size": 0.28,
+     "at": "open",
+     "reach": 0.45,
+     "why": "the parent's open-side entry recess; inherited to keep the directional address. Developed: op nest -> carve, size 0.42 -> 0.28, at None -> open, reach None -> 0.45, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "nest",
+     "size": 0.42,
+     "proud": 0.85,
+     "turn": 0,
+     "why": "the parent's nested tower is kept in position and proportion; turn is set to 0 so rotation is removed — the stagger below replaces the rotational identity with a lean identity; proud 0.85 is inherited. Developed: op carve -> nest, size 0.28 -> 0.42, proud None -> 0.85, turn None -> 0, chosen over the parent by a unanimous blind pairwise jury."
+    },
+    {
+     "op": "stagger",
+     "ratio": 0.22,
+     "toward": "open",
+     "on": "nest_volume",
+     "why": "the tower steps progressively toward the open side so each successive level overhangs the one below; ratio 0.22 keeps each step within the structural clearance gate while producing a legible lean across the tower's full height. Developed: op None -> stagger, ratio None -> 0.22, toward None -> open, on None -> nest_volume, chosen over the parent by a unanimous blind pairwise jury."
+    }
+   ]
   }
  ]
 }

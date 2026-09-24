@@ -1,0 +1,24 @@
+{
+  "provider": "autogenstudio.a2a.A2AAgent",
+  "component_type": "agent",
+  "version": 1,
+  "description": "건축 배치, 코어, 주차 구획 기하 합성 및 GIS 3D 맥락 분석 에이전트",
+  "label": "MasterPlan Agent",
+  "config": {
+    "name": "masterplan_agent",
+    "a2a_server_url": "http://localhost:8302",
+    "description": "Lawagent 임계치 기반 건물 Footprint, 25% 코어, 8대 주차구획 자동 배치 및 GeoJSON/PNG 도면 생성",
+    "timeout": 300,
+    "skills": [
+      {"name": "masterplan_layout_synthesize", "description": "건물 및 부설주차장 기하 배치 합성"},
+      {"name": "masterplan_site_brief", "description": "법규+오버레이+GIS 통합 브리프 생성"},
+      {"name": "masterplan_context_resolve", "description": "3D 주변 건물 층수 및 표고 추출"},
+      {"name": "masterplan_health", "description": "마스터플랜 에이전트 헬스체크"}
+    ]
+  },
+  "_source": {
+    "agent_file": "D:/Data/25_ACE/agents/MasterPlanagent/a2a/server.py",
+    "port": 8302,
+    "framework": "a2a_sdk_1_0"
+  }
+}

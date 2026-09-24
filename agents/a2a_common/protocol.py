@@ -7,13 +7,30 @@ ships) and each agent's tests assert the copy still matches. Change it here, the
 It knows nothing about any agent: tool bodies, message prefixes and argument policies
 are injected by that agent's tools.py. Wire format, task states and card layout are the
 same for every agent, so one client (the Orchestrator's A2AAdapter) talks to all.
+
+Two transport-level facts live here as well, because every agent needs them and none
+should state them differently:
+
+- **Which code is answering.** `code_identity` reads the checkout's git hash so the
+  card version, the health reply and the caller's receipt all say the same thing;
+  "is the fix live?" then has an answer other than sending a query and guessing.
+- **Which call this is.** The caller puts a trace record on `Message.metadata` (see
+  the Orchestrator's `adapters/a2a.py`). `execute` reads it, logs it, writes one full
+  record per hop to a JSONL file, echoes it on the reply, and holds it in
+  `CURRENT_TRACE` for the duration of the tool so a tool that calls another agent can
+  forward it. Tools receive only their own `**kwargs`; the contextvar is how the record
+  reaches them without a signature change.
 """
 from __future__ import annotations
 
 import inspect
 import json
 import logging
+import subprocess
+import time
+from contextvars import ContextVar
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Awaitable, Callable
 from uuid import uuid4
 
@@ -33,11 +50,17 @@ from a2a.types import (
     TaskStatus,
     TaskStatusUpdateEvent,
 )
+from google.protobuf.json_format import MessageToDict
 from google.protobuf.timestamp_pb2 import Timestamp
 
 ToolFn = Callable[..., Awaitable[str]]
 Parser = Callable[[str], tuple[str, dict[str, Any]]]
 Binder = Callable[[ToolFn, dict[str, Any]], dict[str, Any]]
+
+# The inbound trace record for the call in progress, plus the A2A ids the server minted
+# or accepted for it. Set by ToolExecutor.execute, visible to the tool and to anything
+# the tool awaits or runs in a thread.
+CURRENT_TRACE: ContextVar[dict[str, Any] | None] = ContextVar("a2a_trace", default=None)
 
 
 def parse_json_message(text: str) -> tuple[str, dict[str, Any]] | None:
@@ -59,6 +82,70 @@ def _now() -> Timestamp:
     return ts
 
 
+def code_identity(root: Path, entry: Path, git: str | None = "git") -> dict[str, Any]:
+    """`{"git": short hash | None, "dirty": bool | None, "entry_mtime": iso | None}`. Never raises.
+
+    `git` first: `rev-parse --short HEAD` and `status --porcelain`. Without a usable git
+    (ProgramAgent and the Orchestrator worker are launched from PowerShell, where it may
+    be off PATH) the hash is read straight from `.git/HEAD` and the ref it names; `dirty`
+    is then None rather than a guess. A server must boot without git, and a health reply
+    must say what it does not know.
+    """
+    identity: dict[str, Any] = {"git": None, "dirty": None, "entry_mtime": None}
+    try:
+        identity["entry_mtime"] = datetime.fromtimestamp(
+            entry.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
+    except OSError:
+        pass
+    if git:
+        try:
+            def run(*args: str) -> str:
+                return subprocess.run([git, "-C", str(root), *args], capture_output=True, text=True,
+                                      timeout=5, check=True).stdout.strip()
+            identity["git"] = run("rev-parse", "--short", "HEAD") or None
+            identity["dirty"] = bool(run("status", "--porcelain"))
+            return identity
+        except Exception:
+            pass
+    try:
+        dot_git = root / ".git"
+        head = (dot_git / "HEAD").read_text(encoding="utf-8").strip()
+        if head.startswith("ref: "):
+            ref = head[5:]
+            ref_file = dot_git / ref
+            if ref_file.exists():
+                sha = ref_file.read_text(encoding="utf-8").strip()
+            else:
+                sha = next((line.split()[0] for line in
+                            (dot_git / "packed-refs").read_text(encoding="utf-8").splitlines()
+                            if line.endswith(" " + ref)), "")
+        else:
+            sha = head
+        identity["git"] = sha[:7] or None
+    except Exception:
+        pass
+    return identity
+
+
+def version_string(base: str, identity: dict[str, Any]) -> str:
+    """`0.1.0+4ed9e4c`, `0.1.0+4ed9e4c.dirty`, or the bare base when no hash is known."""
+    if not identity.get("git"):
+        return base
+    return f"{base}+{identity['git']}" + (".dirty" if identity.get("dirty") else "")
+
+
+def _trace_of(context: RequestContext) -> dict[str, Any]:
+    """The caller's trace record, or {} when the message carries none."""
+    message = context.message
+    if message is None:
+        return {}
+    try:
+        trace = MessageToDict(message.metadata).get("trace")
+    except Exception:
+        return {}
+    return trace if isinstance(trace, dict) else {}
+
+
 class ToolExecutor(AgentExecutor):
     """Routes one A2A message to one tool; the tool's JSON text is the reply verbatim.
 
@@ -67,46 +154,85 @@ class ToolExecutor(AgentExecutor):
     (needs_evidence), the adapter never turns it into a pass or a failure.
     """
 
-    def __init__(self, tools: dict[str, ToolFn], parser: Parser, binder: Binder, logger_name: str = "a2a.tools"):
+    def __init__(self, tools: dict[str, ToolFn], parser: Parser, binder: Binder, logger_name: str = "a2a.tools",
+                 *, version: str = "", hop_log: Path | None = None):
         self.tools = tools
         self.parser = parser
         self.binder = binder
         self.logger = logging.getLogger(logger_name)
+        self.version = version
+        self.hop_log = hop_log
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         task_id = context.task_id
         context_id = context.context_id or str(uuid4())
         text = context.get_user_input()
+        trace = _trace_of(context)
+        token = CURRENT_TRACE.set({**trace, "a2a_task_id": task_id, "a2a_context_id": context_id})
+        started = time.perf_counter()
+        tool, kwargs = "", {}
         try:
-            tool, args = self.parser(text)
-            fn = self.tools.get(tool)
-            if fn is None:
-                raise ValueError(f"unknown tool {tool!r}; exposed: {', '.join(self.tools)}")
-            kwargs = self.binder(fn, args)
-        except Exception as exc:
-            await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_FAILED,
-                             json.dumps({"error": str(exc)}, ensure_ascii=False))
-            return
-        self.logger.info("A2A %s %s", tool, json.dumps(kwargs, ensure_ascii=False, default=str)[:120])
-        await event_queue.enqueue_event(TaskStatusUpdateEvent(
-            task_id=task_id, context_id=context_id,
-            status=TaskStatus(state=TaskState.TASK_STATE_WORKING, timestamp=_now()),
-        ))
-        try:
-            result = await fn(**kwargs)
-        except Exception as exc:
-            self.logger.exception("tool %s raised", tool)
-            await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_FAILED,
-                             json.dumps({"error": f"{type(exc).__name__}: {exc}", "tool": tool}, ensure_ascii=False))
-            return
-        await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_COMPLETED, result,
-                         metadata={"tool": tool, "args": kwargs})
+            try:
+                tool, args = self.parser(text)
+                fn = self.tools.get(tool)
+                if fn is None:
+                    raise ValueError(f"unknown tool {tool!r}; exposed: {', '.join(self.tools)}")
+                kwargs = self.binder(fn, args)
+            except Exception as exc:
+                await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_FAILED,
+                                 json.dumps({"error": str(exc)}, ensure_ascii=False))
+                self._record(tool, kwargs, trace, task_id, context_id, "rejected", started, 0)
+                return
+            self.logger.info("A2A %s run=%s req=%s task=%s hop=%s ctx=%s args=%s", tool,
+                             trace.get("run_id", ""), trace.get("request_id", ""), trace.get("task_id", ""),
+                             trace.get("hop", ""), context_id,
+                             json.dumps(kwargs, ensure_ascii=False, default=str)[:120])
+            await event_queue.enqueue_event(TaskStatusUpdateEvent(
+                task_id=task_id, context_id=context_id,
+                status=TaskStatus(state=TaskState.TASK_STATE_WORKING, timestamp=_now()),
+            ))
+            try:
+                result = await fn(**kwargs)
+            except Exception as exc:
+                self.logger.exception("tool %s raised", tool)
+                await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_FAILED,
+                                 json.dumps({"error": f"{type(exc).__name__}: {exc}", "tool": tool}, ensure_ascii=False))
+                self._record(tool, kwargs, trace, task_id, context_id, "failed", started, 0)
+                return
+            await self._emit(event_queue, task_id, context_id, TaskState.TASK_STATE_COMPLETED, result,
+                             metadata={"tool": tool, "args": kwargs, "trace": trace, "version": self.version})
+            self._record(tool, kwargs, trace, task_id, context_id, "completed", started, len(result))
+        finally:
+            CURRENT_TRACE.reset(token)
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         await event_queue.enqueue_event(TaskStatusUpdateEvent(
             task_id=context.task_id, context_id=context.context_id or str(uuid4()),
             status=TaskStatus(state=TaskState.TASK_STATE_CANCELED, timestamp=_now()),
         ))
+
+    def _record(self, tool: str, kwargs: dict[str, Any], trace: dict[str, Any], task_id: str,
+                context_id: str, state: str, started: float, reply_bytes: int) -> None:
+        """One JSON line per hop, with the full arguments the console line truncates.
+
+        The console keeps 120 characters so a tail stays readable; this file is where a
+        failed run is reconstructed. A record that cannot be written is reported and
+        dropped - it never fails the call it describes.
+        """
+        if self.hop_log is None:
+            return
+        try:
+            self.hop_log.parent.mkdir(parents=True, exist_ok=True)
+            with self.hop_log.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps({
+                    "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+                    "agent": self.logger.name, "version": self.version, "tool": tool, "trace": trace,
+                    "a2a_task_id": task_id, "a2a_context_id": context_id, "args": kwargs,
+                    "state": state, "elapsed_ms": round((time.perf_counter() - started) * 1000),
+                    "reply_bytes": reply_bytes,
+                }, ensure_ascii=False, default=str) + "\n")
+        except Exception:
+            self.logger.warning("hop log unavailable at %s", self.hop_log)
 
     @staticmethod
     async def _emit(event_queue: EventQueue, task_id: str, context_id: str, state: int, text: str,
@@ -138,7 +264,7 @@ def build_agent_card(*, name: str, description: str, tools: dict[str, ToolFn], e
 
 
 def build_tool_app(*, card: AgentCard, executor: ToolExecutor, agent_id: str, version: str, port: int,
-                   cors: bool = False):
+                   cors: bool = False, build: dict[str, Any] | None = None):
     """FastAPI app: JSON-RPC at `/`, card at `/.well-known/agent-card.json`, `/health` listing the tools."""
     handler = DefaultRequestHandler(agent_executor=executor, task_store=InMemoryTaskStore())
     app = A2AFastAPIApplication(agent_card=card, http_handler=handler).build()
@@ -150,10 +276,11 @@ def build_tool_app(*, card: AgentCard, executor: ToolExecutor, agent_id: str, ve
 
     @app.get("/health")
     async def health() -> dict[str, Any]:
-        return {"agent": agent_id, "version": version, "port": port, "tools": tools,
+        return {"agent": agent_id, "version": version, "build": build or {}, "port": port, "tools": tools,
                 "card": "/.well-known/agent-card.json", "jsonrpc": "/"}
 
     return app
 
 
-__all__ = ["Binder", "Parser", "ToolExecutor", "ToolFn", "build_agent_card", "build_tool_app", "parse_json_message"]
+__all__ = ["Binder", "CURRENT_TRACE", "Parser", "ToolExecutor", "ToolFn", "build_agent_card",
+           "build_tool_app", "code_identity", "parse_json_message", "version_string"]

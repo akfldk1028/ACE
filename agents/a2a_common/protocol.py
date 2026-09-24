@@ -8,25 +8,23 @@ It knows nothing about any agent: tool bodies, message prefixes and argument pol
 are injected by that agent's tools.py. Wire format, task states and card layout are the
 same for every agent, so one client (the Orchestrator's A2AAdapter) talks to all.
 
-Two transport-level facts live here as well, because every agent needs them and none
-should state them differently:
+One transport-level fact lives here as well, because every agent needs it and none
+should state it differently - **which call this is**. The caller puts a trace record on
+`Message.metadata` (see the Orchestrator's `adapters/a2a.py`). `execute` reads it, logs
+it, writes one full record per hop to a JSONL file, echoes it on the reply, and holds it
+in `CURRENT_TRACE` for the duration of the tool so a tool that calls another agent can
+forward it. Tools receive only their own `**kwargs`; the contextvar is how the record
+reaches them without a signature change.
 
-- **Which code is answering.** `code_identity` reads the checkout's git hash so the
-  card version, the health reply and the caller's receipt all say the same thing;
-  "is the fix live?" then has an answer other than sending a query and guessing.
-- **Which call this is.** The caller puts a trace record on `Message.metadata` (see
-  the Orchestrator's `adapters/a2a.py`). `execute` reads it, logs it, writes one full
-  record per hop to a JSONL file, echoes it on the reply, and holds it in
-  `CURRENT_TRACE` for the duration of the tool so a tool that calls another agent can
-  forward it. Tools receive only their own `**kwargs`; the contextvar is how the record
-  reaches them without a signature change.
+Which *code* is answering is the sibling identity.py (standard library only, so tools.py
+can import it without pulling this module's SDK); this module does not import it. The
+server passes the version string in as `ToolExecutor(version=...)`.
 """
 from __future__ import annotations
 
 import inspect
 import json
 import logging
-import subprocess
 import time
 from contextvars import ContextVar
 from datetime import datetime, timezone
@@ -80,58 +78,6 @@ def _now() -> Timestamp:
     ts = Timestamp()
     ts.FromDatetime(datetime.now(timezone.utc))
     return ts
-
-
-def code_identity(root: Path, entry: Path, git: str | None = "git") -> dict[str, Any]:
-    """`{"git": short hash | None, "dirty": bool | None, "entry_mtime": iso | None}`. Never raises.
-
-    `git` first: `rev-parse --short HEAD` and `status --porcelain`. Without a usable git
-    (ProgramAgent and the Orchestrator worker are launched from PowerShell, where it may
-    be off PATH) the hash is read straight from `.git/HEAD` and the ref it names; `dirty`
-    is then None rather than a guess. A server must boot without git, and a health reply
-    must say what it does not know.
-    """
-    identity: dict[str, Any] = {"git": None, "dirty": None, "entry_mtime": None}
-    try:
-        identity["entry_mtime"] = datetime.fromtimestamp(
-            entry.stat().st_mtime, timezone.utc).isoformat(timespec="seconds")
-    except OSError:
-        pass
-    if git:
-        try:
-            def run(*args: str) -> str:
-                return subprocess.run([git, "-C", str(root), *args], capture_output=True, text=True,
-                                      timeout=5, check=True).stdout.strip()
-            identity["git"] = run("rev-parse", "--short", "HEAD") or None
-            identity["dirty"] = bool(run("status", "--porcelain"))
-            return identity
-        except Exception:
-            pass
-    try:
-        dot_git = root / ".git"
-        head = (dot_git / "HEAD").read_text(encoding="utf-8").strip()
-        if head.startswith("ref: "):
-            ref = head[5:]
-            ref_file = dot_git / ref
-            if ref_file.exists():
-                sha = ref_file.read_text(encoding="utf-8").strip()
-            else:
-                sha = next((line.split()[0] for line in
-                            (dot_git / "packed-refs").read_text(encoding="utf-8").splitlines()
-                            if line.endswith(" " + ref)), "")
-        else:
-            sha = head
-        identity["git"] = sha[:7] or None
-    except Exception:
-        pass
-    return identity
-
-
-def version_string(base: str, identity: dict[str, Any]) -> str:
-    """`0.1.0+4ed9e4c`, `0.1.0+4ed9e4c.dirty`, or the bare base when no hash is known."""
-    if not identity.get("git"):
-        return base
-    return f"{base}+{identity['git']}" + (".dirty" if identity.get("dirty") else "")
 
 
 def _trace_of(context: RequestContext) -> dict[str, Any]:
@@ -283,4 +229,4 @@ def build_tool_app(*, card: AgentCard, executor: ToolExecutor, agent_id: str, ve
 
 
 __all__ = ["Binder", "CURRENT_TRACE", "Parser", "ToolExecutor", "ToolFn", "build_agent_card",
-           "build_tool_app", "code_identity", "parse_json_message", "version_string"]
+           "build_tool_app", "parse_json_message"]

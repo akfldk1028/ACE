@@ -60,6 +60,22 @@
    무상태(5·12) · 제어 흐름은 `graph.py`가 소유하고 owner는 소견을 낼 뿐(8) · 한 owner 한 슬라이스(10).
 8. **프롬프트는 코드 밖**: `SOUL.md`/`RULES.md`/`skills/*/SKILL.md`. 결정론 규칙을 프롬프트에 적지 말고,
    프롬프트를 파이썬 문자열에 박지 않는다.
+9. **전송 어댑터는 한 소유자 — `agents/a2a_common/protocol.py`.** 에이전트마다 저장소가 따로라
+   `a2a_service/protocol.py`는 그 파일의 **복사본**으로 배포되지만, 각 에이전트의
+   `tests/test_protocol_canonical.py`가 AST 단위로 같은지 검사한다(모듈 docstring만 예외).
+   바꿀 때는 정본을 고치고 복사한다. 2026-09-24 재검토에서 드러난 것: 이 파일이 5개 저장소에
+   복사돼 있고(그중 하나는 docstring만 다름) ProgramAgent와 Lawagent는 각자 다른 실행기를
+   들고 있었다 — 규약 §3-3(한 사실 한 파일)을 가장 크게 어긴 곳은 Lawagent가 아니라 **전송층**이었다.
+   ProgramAgent는 정본으로 옮겼고(도구 표는 그대로 `program_tools.TOOLS`), Lawagent는 아직이다.
+
+### 재검토 메모 (2026-09-24)
+
+첫 판단 "Lawagent `mcp/server.py`가 규칙이자 도구 표면"은 과했다. 다시 읽으니 그 763줄의 도구 본문은
+대부분 `law-search`(:8011) HTTP 호출, ARR `land.views` Django 호출, Neo4j 조회, 법제처 API 래퍼다 —
+**규칙은 `server/law-search/`와 `ARR/backend/law`에 있고, 이 파일은 네 개의 백엔드를 한 어댑터에 묶은
+것**이다. 위반의 종류는 "규칙이 전송 안에 있다"가 아니라 "한 파일이 네 백엔드를 안다"(§3-4)와 크기다.
+그래서 Lawagent의 첫 단계는 규칙 패키지 추출이 아니라 **백엔드별 클라이언트 모듈 분리**
+(`law_search_client.py` / `arr_land.py` / `graph.py` / `moleg.py`)이고, 그 다음이 공유 전송 채택이다.
 
 ## 4. 알려진 공통 잔재 (지우지 않았다 — 사용자 결정)
 

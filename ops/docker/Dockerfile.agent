@@ -2,16 +2,27 @@
 # Build contexts (compose): agent = the agent folder, a2a = the pinned sibling SDK checkout.
 # The layout inside the image mirrors the disk (/app/agents/<Agent>, /app/agents/a2a) so nothing needs a path override.
 FROM ghcr.io/astral-sh/uv:0.9.17 AS uv
+
+# The SDK's build backend (uv-dynamic-versioning) needs git to compute its version, so the wheel is built in a
+# stage that has git; the runtime image has none, and identity.py then reports "dirty" as unknown rather than
+# guessing from a tree whose line endings differ from the index.
+FROM python:3.13-slim AS sdk
+COPY --from=uv /uv /usr/local/bin/uv
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+COPY --from=a2a . /app/agents/a2a
+RUN uv build --wheel /app/agents/a2a --out-dir /wheels
+
 FROM python:3.13-slim
 ARG AGENT
 ARG LOCK
 COPY --from=uv /uv /usr/local/bin/uv
 ENV PYTHONUTF8=1 PYTHONUNBUFFERED=1
-COPY --from=a2a . /app/agents/a2a
 WORKDIR /app/agents/${AGENT}
-# The Phase 1 lock is the dependency declaration; the SDK is installed from the checkout with --no-deps, as on the host.
+# The Phase 1 lock is the dependency declaration; the SDK is installed from the built wheel with --no-deps, as on the host.
 COPY --from=agent ${LOCK} ./
+COPY --from=sdk /wheels /wheels
 RUN uv pip install --system --no-cache -r ${LOCK} \
- && uv pip install --system --no-cache --no-deps /app/agents/a2a
-# .git comes along so identity.py can read HEAD; without a git binary "dirty" is reported as unknown, not guessed.
+ && uv pip install --system --no-cache --no-deps /wheels/*.whl \
+ && rm -rf /wheels
+# .git comes along so identity.py can read HEAD for the card version.
 COPY --from=agent . .

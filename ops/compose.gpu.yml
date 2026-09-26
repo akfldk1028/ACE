@@ -1,0 +1,17 @@
+# GPU variant of law-search (RTX 4070 Ti through WSL2). Query embedding is sub-second on CPU after warm-up,
+# so this only pays off for bulk re-embedding (scripts/reembed.py, 43k texts). Use:
+#   docker compose -f compose.yml -f compose.gpu.yml up -d --build law-search
+services:
+  law-search:
+    build:
+      args:
+        TORCH_INDEX: https://download.pytorch.org/whl/cu128
+    environment:
+      EMBED_LOCAL_DEVICE: cuda
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

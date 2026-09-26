@@ -1,0 +1,4 @@
+# secrets and large binaries never enter the repo
+.env
+neo4j/plugins/*.jar
+dumps/

@@ -1,0 +1,17 @@
+# One image recipe for the pure A2A agents (Revision, Requirement, DesignIntent): no ARR, no sibling imports.
+# Build contexts (compose): agent = the agent folder, a2a = the pinned sibling SDK checkout.
+# The layout inside the image mirrors the disk (/app/agents/<Agent>, /app/agents/a2a) so nothing needs a path override.
+FROM ghcr.io/astral-sh/uv:0.9.17 AS uv
+FROM python:3.13-slim
+ARG AGENT
+ARG LOCK
+COPY --from=uv /uv /usr/local/bin/uv
+ENV PYTHONUTF8=1 PYTHONUNBUFFERED=1
+COPY --from=a2a . /app/agents/a2a
+WORKDIR /app/agents/${AGENT}
+# The Phase 1 lock is the dependency declaration; the SDK is installed from the checkout with --no-deps, as on the host.
+COPY --from=agent ${LOCK} ./
+RUN uv pip install --system --no-cache -r ${LOCK} \
+ && uv pip install --system --no-cache --no-deps /app/agents/a2a
+# .git comes along so identity.py can read HEAD; without a git binary "dirty" is reported as unknown, not guessed.
+COPY --from=agent . .

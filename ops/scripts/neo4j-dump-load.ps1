@@ -1,8 +1,17 @@
 # Move the Desktop Enterprise graph into the compose volume by dump/load (never a raw file copy).
 # Precondition: the Desktop DBMS is STOPPED (7687 not listening) - neo4j-admin needs the store offline.
-# The Desktop data directory is mounted read-only, so the original is never touched; the dump is also the first backup.
 #
-#   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step dump    # Desktop data -> D:\ace-neo4j\dumps\neo4j.dump
+# What the 2026-09-26 cutover taught, and this script encodes:
+#   * neo4j-admin dump WRITES into the store directory (lock + metadata), so a read-only mount of the Desktop
+#     data fails with "You do not have permission to dump the database". The Desktop data is therefore copied
+#     to D:\ace-neo4j\desktop-copy first (robocopy, ~90 s for 2.8 GB) and the dump runs on the copy; the original
+#     is never opened for writing.
+#   * The image entrypoint chowns /data and refuses a directory it cannot write, so neo4j-admin is invoked
+#     directly with --entrypoint for the dump. The load goes through compose (named volume, writable).
+#   * Under Git Bash, docker arguments starting with / get rewritten to C:\Program Files\Git\...; set
+#     MSYS_NO_PATHCONV=1 there. PowerShell needs nothing.
+#
+#   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step dump    # Desktop data -> copy -> D:\ace-neo4j\dumps\neo4j.dump
 #   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step load    # dump -> compose volume (server not running)
 #   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step verify  # start the container, compare to the desktop baseline
 param([Parameter(Mandatory)][ValidateSet('dump', 'load', 'verify')][string]$Step)
@@ -10,6 +19,7 @@ $ErrorActionPreference = 'Stop'
 $ops = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $image = 'neo4j:2025.08.0-enterprise'   # exactly the Desktop version; a newer image would upgrade the store on first start
 $desktop = Join-Path $env:USERPROFILE '.Neo4jDesktop2\Data\dbmss\dbms-23e9404b-8efc-4706-adc0-90e1c20445ab'
+$copy = 'D:\ace-neo4j\desktop-copy\data'
 $dumps = 'D:\ace-neo4j\dumps'
 
 function Assert-PortFree([int]$port) {
@@ -20,9 +30,11 @@ function Assert-PortFree([int]$port) {
 switch ($Step) {
     'dump' {
         Assert-PortFree 7687
-        New-Item -ItemType Directory -Path $dumps -Force | Out-Null
-        docker run --rm -v "${desktop}\data:/data:ro" -v "${dumps}:/dumps" -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes `
-            $image neo4j-admin database dump neo4j --to-path=/dumps --overwrite-destination=true
+        New-Item -ItemType Directory -Path $dumps, $copy -Force | Out-Null
+        robocopy (Join-Path $desktop 'data') $copy /E /NFL /NDL /NJH /R:1 /W:1 | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }   # 0-7 are success codes
+        docker run --rm --entrypoint /var/lib/neo4j/bin/neo4j-admin -v "${copy}:/data" -v "${dumps}:/dumps" `
+            -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes $image database dump neo4j --to-path=/dumps --overwrite-destination=true
         if ($LASTEXITCODE -ne 0) { throw 'dump failed' }
         Get-ChildItem $dumps | Format-Table Name, @{n = 'MB'; e = { [int]($_.Length / 1MB) } }, LastWriteTime
     }

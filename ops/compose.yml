@@ -22,8 +22,7 @@ services:
     image: neo4j:2025.08.0-enterprise   # exactly the Desktop version - a newer image would upgrade the store on first start
     environment:
       NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD}          # for the healthcheck shell only
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}      # any other NEO4J_* variable is read as a server setting, so nothing else goes here
       NEO4J_server_memory_heap_initial__size: 1G
       NEO4J_server_memory_heap_max__size: 2G
       NEO4J_server_memory_pagecache_size: 1G
@@ -36,7 +35,7 @@ services:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"
     healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -a bolt://localhost:7687 -u neo4j -p \"$$NEO4J_PASSWORD\" 'RETURN 1' > /dev/null"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]   # discovery endpoint answers only once the DBMS is up
       interval: 15s
       timeout: 10s
       retries: 12

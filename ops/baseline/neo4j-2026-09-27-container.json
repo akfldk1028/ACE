@@ -1,0 +1,1607 @@
+{
+  "tag": "container",
+  "date": "2026-09-27",
+  "uri": "bolt://localhost:7687",
+  "counts": {
+    "nodes": 38173,
+    "relationships": 93530,
+    "HANG": 15473,
+    "JO": 5408,
+    "LAW": 74,
+    "HANG_with_embedding_local": 15473,
+    "JO_with_embedding_local": 0,
+    "CONTAINS": 38053,
+    "CITES": 16758,
+    "DELEGATES_TO": 4586
+  },
+  "labels": {
+    "APPENDIX": 2,
+    "AccessibleParkingFacilityRule": 4,
+    "Agent": 0,
+    "AgentExecution": 0,
+    "Artifact": 0,
+    "Capability": 0,
+    "Chunk": 0,
+    "Decision": 0,
+    "Domain": 7,
+    "Evidence": 0,
+    "GWAN": 0,
+    "HANG": 15473,
+    "HO": 14095,
+    "JANG": 316,
+    "JEOL": 133,
+    "JO": 5408,
+    "LAW": 74,
+    "LocalOrdinance": 1,
+    "LocalParkingRequirementRule": 14,
+    "MOK": 2628,
+    "Message": 0,
+    "POI": 0,
+    "PYEON": 0,
+    "ParkingLayoutRule": 7,
+    "ParkingRequirementRule": 11,
+    "Policy": 0,
+    "Regulation": 0,
+    "RoadNode": 0,
+    "Role": 0,
+    "SNDB": 0,
+    "Session": 0,
+    "Task": 0,
+    "Tool": 0,
+    "Turn": 0,
+    "User": 0,
+    "Zone": 0,
+    "__Entity__": 0
+  },
+  "rel_types": {
+    "BELONGS_TO_DOMAIN": 6149,
+    "CITES": 16758,
+    "CONTAINS": 38053,
+    "DEFINES_STALL_DIMENSION": 1,
+    "DELEGATES_TO": 4586,
+    "DERIVED_FROM": 7,
+    "DETAILED_BY": 4,
+    "ENFORCED_BY": 2,
+    "HAS_ACCESSIBILITY_RULE": 4,
+    "HAS_APPENDIX": 2,
+    "HAS_LAYOUT_RULE": 7,
+    "HAS_RATIO_RANGE": 1,
+    "HAS_REQUIREMENT_RULE": 25,
+    "HAS_THRESHOLD": 1,
+    "NEXT": 27913,
+    "OVERRIDES": 14,
+    "PROTECTS_MINIMUM_SPACES": 1,
+    "REFERENCES": 1,
+    "RELATED_DOMAIN": 1
+  },
+  "vector_indexes": [
+    {
+      "name": "contains_embedding",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "CONTAINS"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "contains_embedding_local",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "CONTAINS"
+      ],
+      "properties": [
+        "embedding_local"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_centroid_idx",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "centroid_embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_embedding_index",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_embedding_local",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "embedding_local"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "vector",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    }
+  ],
+  "all_indexes": [
+    {
+      "name": "accessible_parking_rule_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AccessibleParkingFacilityRule"
+      ],
+      "properties": [
+        "rule_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "agent_execution_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AgentExecution"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "agent_slug_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Agent"
+      ],
+      "properties": [
+        "slug"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "agent_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Agent"
+      ],
+      "properties": [
+        "type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "appendix_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "APPENDIX"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "artifact_created",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Artifact"
+      ],
+      "properties": [
+        "created_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "artifact_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Artifact"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "artifact_task_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Artifact"
+      ],
+      "properties": [
+        "task_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "artifact_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Artifact"
+      ],
+      "properties": [
+        "artifact_type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "capability_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Capability"
+      ],
+      "properties": [
+        "category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "capability_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Capability"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "capability_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Capability"
+      ],
+      "properties": [
+        "name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "chunk_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "chunk_base_law_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "chunk_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "chunk_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "chunk_level_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "chunk_level"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "constraint_907a464e",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "__Entity__"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "contains_embedding",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "CONTAINS"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "contains_embedding_local",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "CONTAINS"
+      ],
+      "properties": [
+        "embedding_local"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "decision_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Decision"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "decision_timestamp",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Decision"
+      ],
+      "properties": [
+        "timestamp"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "decision_turn_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Decision"
+      ],
+      "properties": [
+        "turn_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "decision_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Decision"
+      ],
+      "properties": [
+        "decision_type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_centroid_idx",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "centroid_embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_created_at_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "created_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "domain_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "domain_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "domain_node_count_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Domain"
+      ],
+      "properties": [
+        "node_count"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "entities",
+      "type": "FULLTEXT",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "User",
+        "Agent",
+        "Message",
+        "Session",
+        "Capability",
+        "Turn",
+        "AgentExecution",
+        "Task",
+        "Tool",
+        "Decision",
+        "Evidence",
+        "Artifact",
+        "Policy",
+        "Role",
+        "__Entity__",
+        "LAW",
+        "PYEON",
+        "JANG",
+        "JEOL",
+        "GWAN",
+        "JO",
+        "HANG",
+        "HO",
+        "MOK"
+      ],
+      "properties": [
+        "id",
+        "description"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "evidence_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Evidence"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "evidence_source_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Evidence"
+      ],
+      "properties": [
+        "source"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "evidence_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Evidence"
+      ],
+      "properties": [
+        "evidence_type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "exec_agent_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AgentExecution"
+      ],
+      "properties": [
+        "agent_slug"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "exec_started_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AgentExecution"
+      ],
+      "properties": [
+        "started_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "exec_status_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AgentExecution"
+      ],
+      "properties": [
+        "status"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "exec_turn_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "AgentExecution"
+      ],
+      "properties": [
+        "turn_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "gwan_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "GWAN"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_base_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_content_fulltext",
+      "type": "FULLTEXT",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "content"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_embedding_index",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_embedding_local",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "embedding_local"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_law_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "law_category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_law_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "hang_law_unit_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HANG"
+      ],
+      "properties": [
+        "law_name",
+        "unit_number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_base_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_law_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "law_category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_law_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "ho_law_unit_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "HO"
+      ],
+      "properties": [
+        "law_name",
+        "unit_number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "index_3d6eb12",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "RoadNode"
+      ],
+      "properties": [
+        "point"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "index_7132ff10",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "POI"
+      ],
+      "properties": [
+        "point"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "index_72fc22cd",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Regulation"
+      ],
+      "properties": [
+        "type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "index_c1850f21",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "SNDB"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "index_f18f4273",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Zone"
+      ],
+      "properties": [
+        "name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jang_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JANG"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jeol_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JEOL"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_base_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_content_fulltext",
+      "type": "FULLTEXT",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "title",
+        "content"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_law_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "law_category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_law_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_law_unit_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "law_name",
+        "unit_number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_number_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "jo_title_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "JO"
+      ],
+      "properties": [
+        "title"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "keyword",
+      "type": "FULLTEXT",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "text"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_base_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "law_category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "law_number_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LAW"
+      ],
+      "properties": [
+        "law_number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "local_ordinance_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LocalOrdinance"
+      ],
+      "properties": [
+        "ordinance_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "local_parking_requirement_rule_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "LocalParkingRequirementRule"
+      ],
+      "properties": [
+        "rule_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "message_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Message"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "message_role_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Message"
+      ],
+      "properties": [
+        "role"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "message_session_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Message"
+      ],
+      "properties": [
+        "session_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "message_timestamp_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Message"
+      ],
+      "properties": [
+        "timestamp"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "message_turn_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Message"
+      ],
+      "properties": [
+        "turn_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_agent_id_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "agent_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_base_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "base_law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_law_category_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "law_category"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_law_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "law_name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "mok_law_unit_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "MOK"
+      ],
+      "properties": [
+        "law_name",
+        "unit_number"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "parking_layout_rule_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "ParkingLayoutRule"
+      ],
+      "properties": [
+        "rule_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "parking_requirement_rule_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "ParkingRequirementRule"
+      ],
+      "properties": [
+        "rule_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "policy_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Policy"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "policy_scope_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Policy"
+      ],
+      "properties": [
+        "scope"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "policy_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Policy"
+      ],
+      "properties": [
+        "policy_type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "pyeon_fullid_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "PYEON"
+      ],
+      "properties": [
+        "full_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "role_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Role"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "role_level_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Role"
+      ],
+      "properties": [
+        "permission_level"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "role_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Role"
+      ],
+      "properties": [
+        "name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_created",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "created_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_id",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "session_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_started_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "started_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_status_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "status"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "session_user_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Session"
+      ],
+      "properties": [
+        "user_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_assigned_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "assigned_to"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_created",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "created_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_deadline_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "deadline"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_status_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "status"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "task_turn_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Task"
+      ],
+      "properties": [
+        "turn_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "tool_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Tool"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "tool_name_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Tool"
+      ],
+      "properties": [
+        "name"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "tool_type_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Tool"
+      ],
+      "properties": [
+        "type"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "turn_created",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Turn"
+      ],
+      "properties": [
+        "created_at"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "turn_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Turn"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "turn_sequence_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Turn"
+      ],
+      "properties": [
+        "sequence"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "turn_session_idx",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Turn"
+      ],
+      "properties": [
+        "session_id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "user_id_unique",
+      "type": "RANGE",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "User"
+      ],
+      "properties": [
+        "id"
+      ],
+      "populationPercent": 100.0
+    },
+    {
+      "name": "vector",
+      "type": "VECTOR",
+      "state": "ONLINE",
+      "labelsOrTypes": [
+        "Chunk"
+      ],
+      "properties": [
+        "embedding"
+      ],
+      "populationPercent": 100.0
+    }
+  ],
+  "smoke": {
+    "index": "hang_embedding_local",
+    "self_at_rank_1": false,
+    "top_scores": [
+      0.996432,
+      0.996432,
+      0.996432
+    ]
+  }
+}

@@ -11,9 +11,9 @@ from design.maas.agents.shared.evidence import (
 from design.maas.agents.shared.types import AgentCard, AgentContext, AgentResult
 
 
-class ParkingAgent:
-    agent_id = "parking_agent"
-    display_name = "Parking Agent"
+class MasterPlanAgent:
+    agent_id = "master_plan_agent"
+    display_name = "Master Plan Agent"
     role = "Summarize parking count/layout precheck evidence for the selected candidate."
 
     def run(self, context: AgentContext) -> AgentResult:
@@ -47,8 +47,8 @@ class ParkingAgent:
             display_name=self.display_name,
             description=self.role,
             skills=["parking_count_review", "layout_candidate_review"],
-            endpoint="/design/maas/agents/parking_agent",
+            endpoint="/design/maas/agents/master_plan_agent",
         ).to_dict()
 
 
-__all__ = ["ParkingAgent"]
+__all__ = ["MasterPlanAgent"]

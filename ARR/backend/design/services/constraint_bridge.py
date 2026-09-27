@@ -26,10 +26,19 @@ def regulations_to_constraints(regulation_result: dict) -> list[dict]:
         List of constraint dicts for GA job spec outputs.
     """
     constraints = []
+    coverage = regulation_result.get("municipal_coverage")
+    if coverage is not None:
+        if not isinstance(coverage, dict) or coverage.get("status") != "available_snapshot":
+            raise ValueError("binding municipal ordinance caps need evidence before geometry generation")
+        for key in ("bcr_pct", "far_pct"):
+            value = regulation_result.get(key)
+            if (isinstance(value, bool) or not isinstance(value, (int, float))
+                    or not math.isfinite(value) or value <= 0):
+                raise ValueError("binding BCR/FAR caps must both be finite positive values")
 
     # BCR (Building Coverage Ratio) — must be less than limit
     bcr = regulation_result.get("bcr_pct")
-    if bcr is None:
+    if "bcr_pct" not in regulation_result:
         bcr = regulation_result.get("bcr_limit")
     if bcr is not None:
         constraints.append({
@@ -43,7 +52,7 @@ def regulations_to_constraints(regulation_result: dict) -> list[dict]:
 
     # FAR (Floor Area Ratio) — must be less than limit
     far = regulation_result.get("far_pct")
-    if far is None:
+    if "far_pct" not in regulation_result:
         far = regulation_result.get("far_limit")
     if far is not None:
         constraints.append({

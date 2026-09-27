@@ -17,7 +17,7 @@ from design.maas.agents.shared.types import AgentEvidence, AgentHandoff, Executi
 SPECIALIST_SEQUENCE = (
     "maas_geometry_agent",
     "law_graph_agent",
-    "parking_agent",
+    "master_plan_agent",
     "review_agent",
 )
 
@@ -170,6 +170,17 @@ def build_default_execution_executors(
         return collect_law_agent_evidence(identity, context)
 
     def parking(identity: ExecutionIdentity, accumulated: Sequence[AgentEvidence]) -> AgentEvidence:
+        # A MasterPlanagent layout hand-off (masterplan.layout.v1) takes the
+        # master_plan_agent seat when present; it is identity-checked and
+        # fails closed. Otherwise the legacy parking hard-gate evidence is read.
+        from design.maas.agents.master_plan_agent.handoff import (
+            evidence_from_masterplan_layout,
+            is_masterplan_layout,
+        )
+
+        masterplan = downstream.get("masterplan")
+        if is_masterplan_layout(masterplan):
+            return evidence_from_masterplan_layout(identity, masterplan)
         payload = downstream.get("parking")
         payload = dict(payload) if isinstance(payload, Mapping) else {}
         failed = str(payload.get("status") or "") == "failed" or (
@@ -178,8 +189,8 @@ def build_default_execution_executors(
         passed = str(payload.get("status") or "") == "passed" or payload.get("hard_pass") is True
         status = "failed" if failed else "passed" if passed else "needs_evidence"
         return AgentEvidence(
-            evidence_id="evidence:parking_agent",
-            agent="parking_agent",
+            evidence_id="evidence:master_plan_agent",
+            agent="master_plan_agent",
             status=status,
             summary=f"parking specialist status={status}",
             identity=identity,
@@ -201,7 +212,7 @@ def build_default_execution_executors(
     return {
         "maas_geometry_agent": geometry,
         "law_graph_agent": law,
-        "parking_agent": parking,
+        "master_plan_agent": parking,
         "review_agent": review,
     }
 

@@ -906,6 +906,14 @@ class MaasLawGraphIdentityTest(TestCase):
                 "design.maas.parking_requirements._load_rules",
                 return_value=rules,
             ),
+            # The real seed now carries reviewed local ordinance rows (with a
+            # source_sha256), which the loader attaches and reports as
+            # "neo4j_with_reviewed_local_sources". This test is about the
+            # graph source label, so hand it an empty seed.
+            patch(
+                "design.maas.parking_requirements._load_structured_seed_rules",
+                return_value={},
+            ),
         ):
             driver = driver_factory.return_value
             driver.session.return_value.__enter__.return_value = object()
@@ -916,6 +924,26 @@ class MaasLawGraphIdentityTest(TestCase):
         self.assertEqual(graph["status"], "loaded")
         self.assertEqual(graph["source"], "neo4j")
         self.assertEqual(graph["graph_status"], "available")
+
+        with (
+            patch(
+                "design.maas.parking_requirements.GraphDatabase.driver"
+            ) as driver_factory,
+            patch(
+                "design.maas.parking_requirements._load_rules",
+                return_value=dict(rules),
+            ),
+            patch(
+                "design.maas.parking_requirements._load_structured_seed_rules",
+                return_value={"local": [{"pnu_prefix": "41150", "base_rule_id": "r1", "source_sha256": "x"}]},
+            ),
+        ):
+            driver = driver_factory.return_value
+            driver.session.return_value.__enter__.return_value = object()
+            with_reviewed = load_parking_requirement_rules(
+                options={"use_neo4j": True},
+            )
+        self.assertEqual(with_reviewed["source"], "neo4j_with_reviewed_local_sources")
         with patch(
             "design.maas.parking_requirements.GraphDatabase.driver"
         ) as driver_factory:

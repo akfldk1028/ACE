@@ -10,11 +10,11 @@ handoff sequence.
 
 ## Flow
 
-`design_orchestrator -> law_graph_agent -> parking_agent -> llm_architect_agent -> massdsl_agent -> maas_geometry_agent -> grammar_critic_agent -> preference_distiller_agent -> review_agent`
+`design_orchestrator -> law_graph_agent -> master_plan_agent -> llm_architect_agent -> massdsl_agent -> maas_geometry_agent -> grammar_critic_agent -> preference_distiller_agent -> review_agent`
 
 - `design_orchestrator`: routes a PNU/design candidate into the law-to-design flow.
 - `law_graph_agent`: checks FAR/BCR/height against structured legal constraints.
-- `parking_agent`: summarizes parking count and layout precheck evidence.
+- `master_plan_agent`: summarizes parking count and layout precheck evidence.
 - `llm_architect_agent`: owns LLM-authored architectural language, primary/secondary language, composition rule, authored parameter source, and revision request.
 - `massdsl_agent`: converts legal/parking evidence and selected candidate data
   into the deterministic `arr.maas.massdsl.proposal.v1` contract.
@@ -98,7 +98,7 @@ versioned memory live together.
   - composition rule evidence,
   - parameter-source audit,
   - revision request when parking/legal/orderliness fails.
-- `parking_agent` now hands off to `llm_architect_agent`, and
+- `master_plan_agent` now hands off to `llm_architect_agent`, and
   `llm_architect_agent` hands off to `massdsl_agent`.
 
 ## 2026-06-30 MassDSL Agent Loop V1

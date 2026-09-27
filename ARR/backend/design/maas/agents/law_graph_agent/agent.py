@@ -44,7 +44,7 @@ class LawGraphAgent:
                 "height_limit": height_limit,
             },
             role=self.role,
-            next_agent="parking_agent",
+            next_agent="master_plan_agent",
         )
 
     def build_card(self) -> dict[str, Any]:

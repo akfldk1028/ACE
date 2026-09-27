@@ -112,7 +112,7 @@ def merge_agent_stage_evidence(
     rows = rows if isinstance(rows, list) else []
     stage_by_agent = {
         "law_graph_agent": "law",
-        "parking_agent": "parking",
+        "master_plan_agent": "parking",
         "selector": "selector",
     }
     status_map = {

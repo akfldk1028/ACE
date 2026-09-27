@@ -51,7 +51,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             executors={
                 "maas_geometry_agent": self._executor("maas_geometry_agent"),
                 "law_graph_agent": self._executor("law_graph_agent"),
-                "parking_agent": self._executor("parking_agent"),
+                "master_plan_agent": self._executor("master_plan_agent"),
                 "review_agent": self._executor("review_agent"),
             },
         )
@@ -61,7 +61,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             [
                 "maas_geometry_agent",
                 "law_graph_agent",
-                "parking_agent",
+                "master_plan_agent",
                 "review_agent",
                 "selector",
             ],
@@ -71,8 +71,8 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             [
                 ("design_orchestrator", "maas_geometry_agent"),
                 ("maas_geometry_agent", "law_graph_agent"),
-                ("law_graph_agent", "parking_agent"),
-                ("parking_agent", "review_agent"),
+                ("law_graph_agent", "master_plan_agent"),
+                ("master_plan_agent", "review_agent"),
                 ("review_agent", "selector"),
             ],
         )
@@ -93,7 +93,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
             executors={
                 "maas_geometry_agent": self._executor("maas_geometry_agent"),
                 "law_graph_agent": self._executor("law_graph_agent", "needs_evidence"),
-                "parking_agent": self._executor("parking_agent"),
+                "master_plan_agent": self._executor("master_plan_agent"),
                 "review_agent": self._executor("review_agent"),
             },
         )
@@ -122,7 +122,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
                 executors={
                     "maas_geometry_agent": corrupt_geometry,
                     "law_graph_agent": self._executor("law_graph_agent"),
-                    "parking_agent": self._executor("parking_agent"),
+                    "master_plan_agent": self._executor("master_plan_agent"),
                     "review_agent": self._executor("review_agent"),
                 },
             )
@@ -149,7 +149,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
                 executors={
                     "maas_geometry_agent": corrupt_capacity_plan,
                     "law_graph_agent": self._executor("law_graph_agent"),
-                    "parking_agent": self._executor("parking_agent"),
+                    "master_plan_agent": self._executor("master_plan_agent"),
                     "review_agent": self._executor("review_agent"),
                 },
             )
@@ -327,7 +327,7 @@ class ExecutionCollaborationContractTests(SimpleTestCase):
                 collaboration_executors={
                     "maas_geometry_agent": factory("maas_geometry_agent"),
                     "law_graph_agent": factory("law_graph_agent"),
-                    "parking_agent": factory("parking_agent"),
+                    "master_plan_agent": factory("master_plan_agent"),
                     "review_agent": factory("review_agent"),
                 },
             )

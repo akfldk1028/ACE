@@ -59,12 +59,17 @@ def sentence_payload_schema(offered_path_ids: list[str] | tuple[str, ...], *, co
     sentence = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["name", "book_composition_path_id", INTENT_KEY, "facing", "rationale"],
+        "required": ["name", "book_composition_path_id", INTENT_KEY, "facing", "site_fit", "rationale"],
         "properties": {
             "name": {"type": "string", "minLength": 3, "maxLength": 80, "pattern": "^[a-z0-9_]+$"},
             "book_composition_path_id": {"enum": list(offered_path_ids)},
             INTENT_KEY: intent_schema(),
             "facing": facing,
+            # How the figure meets the parcel: fitted inside and trimmed
+            # (impose) or placed at its size and cut to the outline (inherit).
+            # The author's call, sentence by sentence; the harness only obeys it.
+            "site_fit": {"type": "string", "enum": ["impose", "inherit"]},
+            "base_seed": {"type": "string", "enum": ["block", "slab", "bar", "tower", "profiled_prism"]},
             "rationale": {"type": "string", "minLength": 10, "maxLength": 600},
         },
     }
@@ -157,16 +162,13 @@ def _program_seed(building_type: str | None):
     raise BookSentenceError("no program seed sequence is registered")
 
 
-GROUND_CONTACT_RATIO = 0.15  # a lifted block on cores still stands; a block on a stem (0.05) does not
 
 
 def standing_evidence(compilation) -> dict[str, float | None]:
     """The standing margin and how much of the plan stands on the ground.
 
-    A block on a stem passes the centre-of-mass test and is still not a
-    building at this scale (comp24: 108 m2 of stem under 2,215 m2 of body,
-    the stem posed outside the parcel and cut away). The ground contact
-    must be at least GROUND_CONTACT_RATIO of the plan projection.
+    The ground-contact ratio is evidence for the record; only the
+    centre-of-mass margin refuses (physics, the same test the stage runs).
     """
     import numpy as np
     from shapely.geometry import Polygon
@@ -192,8 +194,8 @@ def _stands(evidence: dict[str, float | None]) -> str:
         return "no_ground_contact"
     if margin <= 0.0:
         return f"centre_of_mass_{-margin:.3f}_outside_ground"
-    if ratio is None or ratio < GROUND_CONTACT_RATIO:
-        return f"ground_contact_{(ratio or 0.0):.2f}_of_plan_below_{GROUND_CONTACT_RATIO}"
+    # The ground-contact ratio is reported, not judged: how much of a plan
+    # stands on the ground is taste, and taste is the jury's. Physics only.
     return ""
 
 
@@ -258,6 +260,9 @@ def realize_book_sentence(
     for key in ("access_side", "north_side"):
         if facing.get(key) not in SIDES:
             raise BookSentenceError(f"facing_{key}_must_be_one_of_{'/'.join(SIDES)}")
+    site_fit = str(sentence.get("site_fit") or "inherit")
+    if site_fit not in ("impose", "inherit"):
+        raise BookSentenceError("site_fit_must_be_impose_or_inherit")
     variants = book_sentence_variants(verbs, count=BOOK_VARIATION_COUNT)
     if not 0 <= int(path.variation_index) < len(variants):
         raise BookSentenceError(f"variation_out_of_range:{path.variation_index}")
@@ -267,7 +272,10 @@ def realize_book_sentence(
         base_volume_label=path.base_volume_label,
         orientation=path.orientation,
     )
-    base = base_seed_program("block", site_extent=site_extent)
+    base_seed_id = str(sentence.get("base_seed") or "")
+    if not base_seed_id or base_seed_id not in ("block", "slab", "bar", "tower", "profiled_prism"):
+        base_seed_id = "block"
+    base = base_seed_program(base_seed_id, site_extent=site_extent, variation_index=int(path.variation_index))
     # The base volume is the object, not a cell of the block with the rest
     # of the block put back (that is the scope model massv2 edits with).
     program = apply_book_projection_to_geometry_program(base, sequence, recompose_remainder=False)
@@ -285,6 +293,7 @@ def realize_book_sentence(
         "book_variation_index": int(path.variation_index),
         INTENT_KEY: intent,
         "facing": {"access_side": facing["access_side"], "north_side": facing["north_side"]},
+        "site_fit": site_fit,
         "rationale": str(sentence.get("rationale") or ""),
     })
 
@@ -415,10 +424,10 @@ def sentence_prompt(context: dict[str, Any], offer: list[dict[str, Any]], *, cou
     """The author's instructions - short, because the grammar does the work."""
 
     facts = context.get("site_facts") or {}
-    far = float(facts.get("far_capacity_m2") or context.get("capacity_ceiling_m2") or 0.0)
-    ground = float(facts.get("ground_capacity_m2") or 0.0)
-    cap = int(facts.get("storey_cap") or 0)
-    storey_m = float(facts.get("storey_height_m") or 0.0)
+    far = facts.get("far_capacity_m2", context.get("capacity_ceiling_m2"))
+    ground = facts.get("ground_capacity_m2", context.get("ground_capacity_m2"))
+    cap = facts.get("storey_cap")
+    storey_m = facts.get("storey_height_m")
     lines = [
         f"You are the BOOK author. Write exactly {count} BOOK sentences to {output_path}, valid against {schema_path}.",
         "",
@@ -426,28 +435,43 @@ def sentence_prompt(context: dict[str, Any], offer: list[dict[str, Any]], *, cou
         "an orientation (long_axis, short_axis, vertical), one principle (an operative word, a combination of two, an aggregation, or a case study) and a bounded variation. "
         "You choose the path from the OFFER below by its path_id; the grammar builds the geometry. You do not write nodes, operators or parameters.",
         "",
-        "For each sentence give: name (snake_case, unique), book_composition_path_id (from the offer, each id at most once), dimensional_intent, facing, rationale.",
+        "For each sentence give: name (snake_case, unique), book_composition_path_id (from the offer, each id at most once), dimensional_intent, facing, site_fit, base_seed, rationale.",
         "",
-        # Density was "5 storeys, 0.60-0.95 of the FAR capacity" for every
-        # sentence, and 6,242 m2 on five floors is a 1,250 m2 plate: every
-        # base volume was scaled into the same 19 m block and the book's
-        # words became scratches on it (comp26: 30 delivered, most of them
-        # a full-site box with a shallow notch). The figure sets the size.
-        "DIMENSIONAL INTENT - size to the figure, within the parcel's allowance:",
-        f"  storey_count: 2 to {cap}; storey_height_m: {storey_m}. The plan you ask for is target_gfa_m2 / storey_count: "
-        f"it may not exceed {ground:,.0f} (coverage capacity), and a 1/16, 1/8 or 1/4 figure, a bar or a tower keeps its proportion "
-        f"only if that plan stays well under half of it - give such a figure fewer storeys or less area, never a full-site plate.",
-        f"  target_gfa_m2: between {0.35 * far:,.0f} and {0.95 * far:,.0f} (FAR capacity {far:,.0f}). At least a third of the batch must still "
-        f"use {cap} storeys and 0.60 or more of the FAR capacity, so the client sees the allowance filled as well as the figures.",
+        "AUTHORING INTENT:",
+        "  Author materially distinct spatial and sectional propositions for the project brief. "
+        "Choose BOOK paths for their architectural purpose; there are no required operator counts, "
+        "base-volume quotas, portfolio typologies or office styles.",
+        "  Read the entire frozen project brief, including programme requirements and prior critique:",
+        __import__("json").dumps(context.get("project_brief") or {"status": "unknown"}, ensure_ascii=False),
+        "",
+        "DIMENSIONAL INTENT - you decide the size; the law bounds it:",
+        f"  FAR capacity m2: {far if far is not None else 'unknown'}; "
+        f"coverage capacity m2: {ground if ground is not None else 'unknown'}; "
+        f"legal storey cap: {cap if cap else 'unknown'}; "
+        f"storey_height_m: {storey_m if storey_m else 'unknown'}. "
+        "Choose target_gfa_m2 and storey_count from explicit programme requirements and the measured site constraints. "
+        "Check the requested floor areas against coverage and legal_plan_by_height; "
+        "do not infer a sunlight-setback exemption from a floor count or an assumed height threshold. "
+        "For lifted or cantilevered schemes, ground support (piloti columns or grounded base) is required so the solid does not float in air. "
+        "Internal cores and room layouts belong to schematic floor plans, not massing. "
+        "Decide both from the figure and say the plan in rationale.",
+        "  Missing site, legal or programme facts remain unknown. Capacity is a ceiling, not a programme target or minimum.",
+        "",
+        "SITE FIT - how the figure meets the parcel, your call per sentence:",
+        "  site_fit: impose - the figure is scaled down until it stands almost entirely inside the parcel, then trimmed; its shape survives, its area shrinks. "
+        "inherit - the figure is placed at its authored size and the parcel outline cuts it; its area survives, its shape takes the outline. "
+        "Neither changes the law: both are checked against the same lines.",
         "  delivery_policy: preserve_physical_dimensions; programme_status: unknown; schema_version: arr.maas.dimensional_intent.v1.",
         "",
         "FACING - the program's own sides are east(+x), west(-x), north(+y), south(-y):",
-        f"  access_side: which program side faces the road. The road is on the parcel's {facts.get('access_side_world') or 'unknown'} side ({facts.get('access_basis')}).",
-        f"  north_side: which program side takes the sunlight setback. The legal plan shrinks above 9 m on the parcel's {facts.get('sunlight_setback_side_world') or 'unknown'} side: "
-        f"{facts.get('ground_legal_plan_m2')} m2 at ground -> {facts.get('top_floor_legal_plan_m2')} m2 at the top floor. Put the lower part of a stepped or split figure there.",
+        f"  access_side: which program side faces measured access. The evidenced parcel access side is {facts.get('access_side_world') or 'unknown'} "
+        f"(basis: {facts.get('access_basis') or 'unknown'}); use access_direction_world_xy for alignment.",
+        f"  north_side: which program side takes the sunlight setback. The evidenced parcel setback side is {facts.get('sunlight_setback_side_world') or 'unknown'}. "
+        "Use legal_plan_by_height below to assess the actual legal section profile; a missing direction or profile is unknown.",
+        "  Access alignment is exact. north_side must be the nearest local cardinal side toward the legal setback after that rotation; contradictions are refused. "
+        "If no directional legal setback is evidenced, north_side remains an explicitly unverified preference, not an executed true-north claim.",
         "",
-        "SPREAD - the batch must use every base volume (all six labels) and every orientation; at least a third of the sentences must be combinations, aggregations or case studies; "
-        "no two sentences may share a path_id; prefer paths whose words differ.",
+        "SPREAD - no two sentences may share a path_id; choose distinct propositions that serve the brief.",
         "",
         "SITE FACTS (json):",
         __import__("json").dumps(facts, ensure_ascii=False),

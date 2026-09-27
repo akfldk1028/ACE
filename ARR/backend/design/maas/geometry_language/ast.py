@@ -71,6 +71,8 @@ OPERATORS_BY_KIND: dict[str, frozenset[str]] = {
         "stepped_mass",
         "profiled_hall",
         "book_branch",
+        "book_stack",
+        "book_array",
         "boundary_expand",
         "shift_related",
         "offset_related",

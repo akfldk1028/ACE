@@ -3096,7 +3096,7 @@ class MaasLegalVariantsTest(TestCase):
         self.assertEqual(list(FLOW_AGENT_SEQUENCE), [
             "design_orchestrator",
             "law_graph_agent",
-            "parking_agent",
+            "master_plan_agent",
             "massdsl_agent",
             "maas_geometry_agent",
             "grammar_critic_agent",

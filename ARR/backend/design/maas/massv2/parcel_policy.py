@@ -143,11 +143,18 @@ def default_building_type(pnu, requested=None):
 
 @lru_cache(maxsize=16)
 def _frontage_shapes(pnu):
+    reg = (_POLICIES.get(str(pnu)) or {}).get('frontage_registration')
+    return frontage_shapes_from_registration(reg) if reg is not None else None
+
+
+def frontage_shapes_from_registration(reg):
+    """Pure owner interpretation of a supplied official-plan registration.
+
+    A2A consumers can use the exact received snapshot rather than re-querying
+    a process-local policy. Parcel identity/frame binding remains the caller's.
+    """
     from shapely.geometry import LineString, Polygon
     from shapely.ops import unary_union
-    reg = (_POLICIES.get(str(pnu)) or {}).get('frontage_registration')
-    if reg is None:
-        return None
     ring = reg['reference_parcel_ring_local_m']
     reference = Polygon(ring)
     allowed = reference

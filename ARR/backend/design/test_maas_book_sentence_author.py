@@ -33,6 +33,7 @@ def _sentence(path_id: str, index: int = 0) -> dict:
         "book_composition_path_id": path_id,
         "dimensional_intent": dict(INTENT),
         "facing": dict(FACING),
+        "site_fit": "impose" if index % 2 else "inherit",
         "rationale": "a test sentence chosen from the lattice for the grammar to build",
     }
 

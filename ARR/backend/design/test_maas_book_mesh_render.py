@@ -20,6 +20,27 @@ def mesh_source():
 
 
 class BookMeshRenderTests(TestCase):
+    def test_lower_view_preserves_geometry_and_restores_default_pixels(self):
+        source = mesh_source()
+        before = physical_triangles(source)
+        with tempfile.TemporaryDirectory() as folder:
+            paths = [Path(folder) / f'view-{i}.png' for i in range(3)]
+            for path, options in zip(paths, ({}, {'pitch_degrees': 8, 'yaw_degrees': 50}, {})):
+                render_masses([('same', source, {})], path, columns=1,
+                              tile=(450, 430), style='massing', **options)
+            pixels = [Image.open(path).tobytes() for path in paths]
+            self.assertNotEqual(pixels[0], pixels[1])
+            self.assertEqual(pixels[0], pixels[2])
+        self.assertEqual(before, physical_triangles(source))
+
+    def test_camera_restores_after_a_failed_render(self):
+        from design.maas.massv2 import render
+        original = render._YAW, render._PITCH
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaisesRegex(ValueError, 'nothing to render'):
+                render_masses([], Path(folder) / 'empty.png', pitch_degrees=8, yaw_degrees=50)
+        self.assertEqual(original, (render._YAW, render._PITCH))
+
     def test_world_coordinates_use_centroid_and_height_without_adding_datum(self):
         source = mesh_source()
         source = replace(source, metadata={**source.metadata, 'datum_m': 2})

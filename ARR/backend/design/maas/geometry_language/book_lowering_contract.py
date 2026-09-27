@@ -18,7 +18,7 @@ BOOK_OPERATIVE_LOWERING: dict[str, BookOperativeLowering] = {
     "branch": BookOperativeLowering(frozenset({"book_branch"})),
     "merge": BookOperativeLowering(frozenset({"merge_related"})),
     "nest": BookOperativeLowering(frozenset({"nested_related"}), frozenset({"courtyard"})),
-    "offset": BookOperativeLowering(frozenset({"nested_related"}), frozenset({"translate"})),
+    "offset": BookOperativeLowering(frozenset({"book_array"}), frozenset({"translate"})),
     "bend": BookOperativeLowering(frozenset({"bend"})),
     "skew": BookOperativeLowering(frozenset({"shear"})),
     "split": BookOperativeLowering(
@@ -67,11 +67,11 @@ BOOK_OPERATIVE_LOWERING: dict[str, BookOperativeLowering] = {
     # comp18's 120 programs used 24 of the 35 and none of these. Each lowers
     # to the operator its verb file names (`executed_by`); delivery is still
     # one connected solid, so an array or a reflection must be joined.
-    "array": BookOperativeLowering(frozenset({"related_array"})),
+    "array": BookOperativeLowering(frozenset({"book_array"})),
     "join": BookOperativeLowering(frozenset({"join_related"})),
-    "pack": BookOperativeLowering(frozenset({"related_array"})),
+    "pack": BookOperativeLowering(frozenset({"book_array"})),
     "reflect": BookOperativeLowering(frozenset({"mirror_array"})),
-    "stack": BookOperativeLowering(frozenset({"stepped_mass"})),
+    "stack": BookOperativeLowering(frozenset({"book_stack"})),
 }
 
 

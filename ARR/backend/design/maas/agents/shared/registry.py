@@ -11,7 +11,7 @@ from design.maas.agents.law_graph_agent.agent import LawGraphAgent
 from design.maas.agents.llm_architect_agent.agent import LLMArchitectAgent
 from design.maas.agents.maas_geometry_agent.agent import MaasGeometryAgent
 from design.maas.agents.massdsl_agent.agent import MassDSLAgent
-from design.maas.agents.parking_agent.agent import ParkingAgent
+from design.maas.agents.master_plan_agent.agent import MasterPlanAgent
 from design.maas.agents.preference_distiller_agent.agent import PreferenceDistillerAgent
 from design.maas.agents.review_agent.agent import ReviewAgent
 from design.maas.agents.shared.types import AgentContext, MaasAgent
@@ -24,7 +24,7 @@ def build_agent_registry() -> dict[str, MaasAgent]:
     agents: list[MaasAgent] = [
         DesignOrchestratorAgent(),
         LawGraphAgent(),
-        ParkingAgent(),
+        MasterPlanAgent(),
         LLMArchitectAgent(),
         MassDSLAgent(),
         MaasGeometryAgent(),

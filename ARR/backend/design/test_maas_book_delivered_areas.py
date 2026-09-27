@@ -83,14 +83,18 @@ class DeliveredBookAreaTests(TestCase):
         self.assertFalse(evidence['measurement_consistent'])
         self.assertTrue(any('floor_3_mesh_area_missing_from_proxy' in issue for issue in evidence['measurement_issues']))
 
-    def test_floor_center_on_horizontal_skin_is_not_silently_certified(self):
+    def test_floor_center_on_horizontal_skin_is_probed_beside_it(self):
         candidate = record()
         candidate['geometry_artifact']['storeyEvidence']['floor_center_elevations_m'] = [1.5, 3, 7.5]
         site = SimpleNamespace(pnu='unregistered-unit-fixture', ground_capacity_m2=1500,
                                far_capacity_m2=6000, floor_height_m=3, parcel_area_m2=2500)
-        source, reason = book_import._compile_record(candidate, box(0, 0, 20, 20), site)
-        self.assertIsNone(source)
-        self.assertIn('floor_2_ambiguous_horizontal_skin_at_center', reason)
+        source, entry = book_import._compile_record(candidate, box(0, 0, 20, 20), site)
+        # The probe steps off a skin at a floor's centre plane and records
+        # the offset; the book's half-height joint was floor 3's centre on
+        # every vertical sentence (comp23), and refusing it was the rule.
+        self.assertIsNotNone(source, entry)
+        offsets = entry['delivered_floor_evidence'].get('floor_center_probe_offsets') or []
+        self.assertTrue(any(abs(offset) > 0 for offset in offsets), offsets)
 
     def test_certificate_rejects_an_entry_reusing_other_geometry_measurements(self):
         from vlm_shortlist import seat_certificate

@@ -1,4 +1,4 @@
-# Parking Agent Rules
+# Master Plan Agent Rules
 
 1. Distinguish `parkingCountSatisfied`, `parkingMassStagePass`, and `parkingPermitPass`.
 2. Never present mass-stage precheck as permit-final parking approval.

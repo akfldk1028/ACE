@@ -1390,39 +1390,33 @@ def _lift(frame: _Frame, op: Operation) -> None:
     # `occupiable=False` because that is what they are: columns are built and
     # they are not 연면적. A ruler that counts them counts the scaffolding as
     # the building.
-    frame.placements = rest + raised + [
-        # Under the volume that was lifted, not under the site. These bounds
-        # were being computed and then ignored: the supports were sized and
-        # placed from `frame.width`/`frame.depth`, so lifting one half of a
-        # split building stood four legs across the whole parcel and welded the
-        # two halves together. Villa dall'Ava's sentence is two apartments
-        # standing apart, its `split` opens 3.8 m, and the `lift` after it closed
-        # the mass to a single piece - it lost every pair it appeared in.
-        frame.box(leg_role, w=base_w * leg, d=base_d * leg,
-                  occupiable=False,
-                  # From wherever the lifted volume was standing, not from the
-                  # ground. `z=0.0` was hardcoded, so lifting the top of a stack
-                  # drew its legs at grade - buried inside the tiers below,
-                  # seven metres under the gap they were meant to hold open.
-                  # Maison Bordeaux says the heaviest dwelling does not touch
-                  # what is under it; the gap was there at 7.2-10.6 m and
-                  # nothing in the drawing showed anything holding it up.
-                  #
-                  # Exactly the clearance, not a hair over. Overlapping into
-                  # the slab cut a sliver band whose depth was 5% of the leg,
-                  # and the raised plate then measured 540 times its own depth
-                  # across that sliver - a span rule reading a rounding error.
-                  z=stood_at, h=clearance, turn=base_turn,
-                  # The corners step out on the plate's axes, so they are
-                  # turned with it before they become frame offsets.
-                  dx=base_x + _turned(sx * base_w * (0.5 - leg / 2.0) * 0.78,
-                                      sy * base_d * (0.5 - leg / 2.0) * 0.78,
-                                      base_turn)[0],
-                  dy=base_y + _turned(sx * base_w * (0.5 - leg / 2.0) * 0.78,
-                                      sy * base_d * (0.5 - leg / 2.0) * 0.78,
-                                      base_turn)[1])
+    # Slender circular pilotis (원형 기둥)
+    # Architectural proportion: slender cylinders (지름 0.55m ~ 0.85m), not massive boxes.
+    col_dia = max(0.55, min(0.85, min(base_w, base_d) * 0.07))
+    inset_x = max(col_dia * 1.5, base_w * 0.08)
+    inset_y = max(col_dia * 1.5, base_d * 0.08)
+    pos_x = base_w * 0.5 - inset_x
+    pos_y = base_d * 0.5 - inset_y
+
+    col_offsets = [
+        (sx * pos_x, sy * pos_y)
         for sx, sy in ((-1, -1), (1, 1), (1, -1), (-1, 1))
     ]
+    if base_w > 16.0:
+        col_offsets.extend([(0.0, -pos_y), (0.0, pos_y)])
+    if base_d > 16.0:
+        col_offsets.extend([(-pos_x, 0.0), (pos_x, 0.0)])
+
+    frame.placements = rest + raised + [
+        frame.box(leg_role, w=col_dia, d=col_dia,
+                  occupiable=False,
+                  z=stood_at, h=clearance, turn=base_turn,
+                  dx=base_x + _turned(ox, oy, base_turn)[0],
+                  dy=base_y + _turned(ox, oy, base_turn)[1],
+                  plan="circle")
+        for ox, oy in col_offsets
+    ]
+
 
 
 def _loop(frame: _Frame, op: Operation) -> None:

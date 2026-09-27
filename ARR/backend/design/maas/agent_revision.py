@@ -138,7 +138,7 @@ def build_agent_revision_trace(
                 "action": "preserve legal envelope and FAR/BCR/height gates as hard constraints",
             },
             {
-                "agent": "parking_agent",
+                "agent": "master_plan_agent",
                 "action": "keep only mass-stage parking-feasible candidates in final review set",
             },
             {

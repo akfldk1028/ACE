@@ -192,7 +192,25 @@ def load_legal_site(pnu: str, *, building_type: str | None = None) -> LegalSite:
     from land.services import land_api, regulation_calculator, road_frontage, zoning_mapper
     from land.services.setback_geometry import compute_setback_lines
 
-    land_info = land_api.get_land_use_info(pnu)
+    # Zoning is static and the certificate of every judged mass carries the
+    # limits derived from it. One Vworld timeout on 2026-09-10 answered with
+    # the land-use list missing, the area-weighted FAR moved from 249.7094%
+    # to 249.67%, and every seat on the board - and every anchor - stopped
+    # matching its certificate. A complete answer is kept beside the parcel
+    # boundary cache and is the answer from then on; delete the file to refresh.
+    import json as _json
+    from design.services.site_geometry import PARCEL_BOUNDARY_CACHE_DIR
+    zoning_cache = PARCEL_BOUNDARY_CACHE_DIR / f"{pnu}.zoning.json"
+    cached_zoning = None
+    if zoning_cache.exists():
+        try:
+            cached_zoning = _json.loads(zoning_cache.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            cached_zoning = None
+    if cached_zoning is not None:
+        land_info = cached_zoning["land_info"]
+    else:
+        land_info = land_api.get_land_use_info(pnu)
     zones = land_info.get("zones") or []
     # 국토계획법 제84조: a parcel across two 용도지역 is governed by how much of it
     # is in each, so the split is measured before the limits are asked for. It is
@@ -201,7 +219,9 @@ def load_legal_site(pnu: str, *, building_type: str | None = None) -> LegalSite:
     # `needs_zone_areas` and the site refuses itself below, rather than this
     # quietly substituting a guess.
     areas: dict[str, float] = {}
-    if len(zones) > 1:
+    if cached_zoning is not None:
+        areas = {str(k): float(v) for k, v in (cached_zoning.get("areas") or {}).items()}
+    elif len(zones) > 1:
         from land.services import zone_geometry
 
         try:
@@ -220,6 +240,14 @@ def load_legal_site(pnu: str, *, building_type: str | None = None) -> LegalSite:
                 f"{pnu} straddles {len(zones)} zones and the area split is "
                 f"unavailable ({error}); 제84조 needs the areas"
             ) from error
+    if (cached_zoning is None and land_info.get("success") and zones
+            and not land_info.get("errors") and (len(zones) == 1 or areas)):
+        try:
+            PARCEL_BOUNDARY_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            zoning_cache.write_text(_json.dumps({"pnu": pnu, "land_info": land_info, "areas": areas},
+                                                ensure_ascii=False, indent=1), encoding="utf-8")
+        except (OSError, TypeError, ValueError):
+            pass
     limits = zoning_mapper.resolve_limits(zones, areas) if zones else {}
     zone_names = [
         item["zone_name"] if isinstance(item, dict) else str(item)
@@ -235,7 +263,10 @@ def load_legal_site(pnu: str, *, building_type: str | None = None) -> LegalSite:
         zone_areas=areas,
         use_llm_extraction=False,
     )
-    constraints = regulations_to_constraints(regulation)
+    try:
+        constraints = regulations_to_constraints(regulation)
+    except ValueError as exc:
+        raise LegalSiteUnavailable(f"{pnu}: {exc}") from exc
     if not constraints:
         raise LegalSiteUnavailable(f"{pnu} regulation lookup returned no constraints")
 

@@ -29,9 +29,10 @@ from .profiles import plan_names
 
 _SYSTEM = (
     "You are an architect composing building massing for a competition entry. "
-    "You compose masses from placed rectangular volumes - a plinth, a bar, a "
-    "tower, a cut court - the way OMA, SANAA and BIG compose them: few volumes, "
-    "clear hierarchy, one decisive move per scheme. "
+    "You compose masses across diverse architectural typologies - monolithic plinths, "
+    "terraced slopes, porous courtyard fields, sculpted towers, or low-rise pavilions. "
+    "Explore contrasting spatial philosophies across your schemes, from bold iconic moves "
+    "to quiet, high-efficiency contextual responses. "
     "A deterministic legal solver sizes and clips whatever you propose, so do "
     "not try to satisfy floor area or setbacks. Compose."
 )

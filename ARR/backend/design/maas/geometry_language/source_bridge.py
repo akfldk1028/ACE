@@ -2577,6 +2577,7 @@ def compile_geometry_program_to_source_mass(
     clip_to_host: bool = False,
     clip_sections: tuple | None = None,
     facing_angle_deg: float | None = None,
+    impose_fit: bool = False,
 ) -> SourceMass | None:
     """Fit one compiled solid into a normalized host and preserve its mesh.
 
@@ -2610,6 +2611,7 @@ def compile_geometry_program_to_source_mass(
         clip_to_host=clip_to_host,
         clip_sections=clip_sections,
         facing_angle_deg=facing_angle_deg,
+        impose_fit=impose_fit,
     )
 
 
@@ -2623,6 +2625,7 @@ def _compile_geometry_program_to_source_mass(
     clip_to_host: bool = False,
     clip_sections: tuple | None = None,
     facing_angle_deg: float | None = None,
+    impose_fit: bool = False,
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
     name: str | None = None,
@@ -2705,11 +2708,12 @@ def _compile_geometry_program_to_source_mass(
             effective_target_plan_area = base_seed_area_cap
         transformed = (_pose_metric_vertices_to_host(
                 compilation, host, clip_to_host=clip_to_host,
-                clip_sections=clip_sections, facing_angle_deg=facing_angle_deg)
+                clip_sections=clip_sections, facing_angle_deg=facing_angle_deg,
+                impose_fit=impose_fit)
             if placement_policy == POLICY else _fit_vertices_to_host(
                 compilation, host, target_plan_area=effective_target_plan_area,
                 minimum_plan_area=minimum_plan_area,
-                clip_to_host=clip_to_host))
+                clip_to_host=clip_to_host, facing_angle_deg=facing_angle_deg))
         if transformed is None:
             return None
         world_vertices = transformed.world_vertices
@@ -2723,6 +2727,7 @@ def _compile_geometry_program_to_source_mass(
                 _fit_vertices_to_host(
                     compilation,
                     repaired_upper_host,
+                    facing_angle_deg=facing_angle_deg,
                     target_plan_area=effective_target_plan_area,
                     minimum_plan_area=minimum_plan_area,
                 )
@@ -3084,6 +3089,10 @@ def _compile_geometry_program_to_source_mass(
                 "holes": [[[float(x), float(y)] for x, y in list(hole.coords)[:-1]]
                           for hole in orient(poly, sign=1.0).interiors],
             } for lo, hi, poly in (clip_sections or ())],
+            # The uniform plan scale the impose fit chose (1.0 = only cut).
+            "impose_scale": (abs(host_fit_matrix4[0][0] * host_fit_matrix4[1][1]
+                                 - host_fit_matrix4[0][1] * host_fit_matrix4[1][0]) ** 0.5
+                             if impose_fit else 1.0),
         }} if clip_to_host else {}),
     }
     return SourceMass(
@@ -3813,9 +3822,14 @@ def _ground_contact_area(vertices, triangles, host=None) -> float:
     return float(ground.area)
 
 
+IMPOSED_RETENTION = 0.92   # massv2 legal_fit._IMPOSED_RETENTION
+IMPOSE_STEPS = 14          # massv2 legal_fit._IMPOSE_STEPS: 1.0, 0.94, ... 0.22
+
+
 def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = False,
                                   clip_sections: tuple | None = None,
-                                  facing_angle_deg: float | None = None):
+                                  facing_angle_deg: float | None = None,
+                                  impose_fit: bool = False):
     """Finite rigid pose search; inability to place is a refusal, never a resize.
 
     `clip_to_host` does not break that contract - a cut is not a resize. It is
@@ -3836,26 +3850,44 @@ def _pose_metric_vertices_to_host(compilation, host, *, clip_to_host: bool = Fal
     span = max(v[2] for v in vertices) - minimum_z
     if span <= 1e-9:
         return None
-    # The poses to try. With the legal line cutting, the first pose used to
-    # be returned unchecked, and six of twelve comp18 masses had their base
-    # posed outside the parcel: the cut left 23 m2 of ground under a 10,000
-    # m3 body and the gravity screen refused them. Every pose is now cut and
-    # measured, and the one that keeps the most ground inside the parcel
-    # wins; a facing angle (the sentence's road side turned to the road) is
-    # tried first and wins ties.
-    angles = [target_angle - source_angle, target_angle - source_angle + 90.0, 0.0]
-    if facing_angle_deg is not None:
-        angles.insert(0, float(facing_angle_deg))
+    # An authored angle is a constraint. Search only translation/allowed fit
+    # at that angle; legacy unrequested poses still maximize ground contact.
+    angles = ([float(facing_angle_deg)] if facing_angle_deg is not None else
+              [target_angle - source_angle, target_angle - source_angle + 90.0, 0.0])
     ground_section = clip_sections[0][2] if clip_sections else host
+    # massv2's plot modes, ported (legal_fit._drawn_inside): a scheme that
+    # imposes its own figure is brought *inside* the parcel - scanned down
+    # 6% a step until at least 92% of its plan is legal - and the cut then
+    # removes a trim rather than the design. Cutting every BOOK sentence to
+    # the parcel made comp26's tiles casts of the parcel outline; the
+    # figures the client liked in massv2 were all fitted this way. A scheme
+    # that takes the plot's outline (a 1/1 split, a stack) still inherits it.
+    factors = ([1.0 - step * 0.06 for step in range(IMPOSE_STEPS)]
+               if (clip_to_host and impose_fit) else [1.0])
     best = None
     for center in (host.centroid, host.representative_point()):
         for angle in angles:
-            matrix = compose_matrix4(
-                translation_matrix4((-plan.centroid.x, -plan.centroid.y, -minimum_z)),
-                rotation_matrix4((0.0, 0.0, angle)),
-                scale_matrix4((1.0, 1.0, 1.0 / span)),
-                translation_matrix4((center.x, center.y, 0.0)))
-            world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
+            chosen = None
+            for factor in factors:
+                matrix = compose_matrix4(
+                    translation_matrix4((-plan.centroid.x, -plan.centroid.y, -minimum_z)),
+                    rotation_matrix4((0.0, 0.0, angle)),
+                    scale_matrix4((factor, factor, 1.0 / span)),
+                    translation_matrix4((center.x, center.y, 0.0)))
+                world = tuple(transform_point3(matrix, vertex) for vertex in vertices)
+                if len(factors) == 1:
+                    chosen = (matrix, world)
+                    break
+                whole = _mesh_plan_projection_area(world, compilation.triangles)
+                if whole <= 1e-9:
+                    continue
+                kept = _mesh_plan_projection_area(world, compilation.triangles, host)
+                chosen = (matrix, world)
+                if kept / whole >= IMPOSED_RETENTION:
+                    break
+            if chosen is None:
+                continue
+            matrix, world = chosen
             if not clip_to_host:
                 if _mesh_plan_projection_inside_host(world, compilation.triangles, host):
                     return HostFitTransform(matrix4=matrix, inverse_matrix4=inverse_matrix4(matrix),
@@ -3881,6 +3913,7 @@ def _fit_vertices_to_host(
     target_plan_area: float | None = None,
     minimum_plan_area: float | None = None,
     clip_to_host: bool = False,
+    facing_angle_deg: float | None = None,
 ) -> HostFitTransform | None:
     """Fit the compiled solid into the host plan.
 
@@ -3902,6 +3935,15 @@ def _fit_vertices_to_host(
         return None
     source_angle, source_width, source_depth = _principal_frame(plan)
     target_angle, target_width, target_depth = _principal_frame(host)
+    if facing_angle_deg is not None:
+        # Measure available space in the authored orientation. A uniform fit
+        # below preserves every local side, including oblique base geometry.
+        from shapely.affinity import rotate
+        target_angle = source_angle + float(facing_angle_deg)
+        oriented_host = rotate(host, -target_angle, origin='centroid')
+        left, bottom, right, top = oriented_host.bounds
+        target_width, target_depth = right - left, top - bottom
+
     if min(source_width, source_depth, target_width, target_depth) <= 1e-9:
         return None
     source_center = plan.centroid
@@ -3926,6 +3968,8 @@ def _fit_vertices_to_host(
         maximum_relative_stretch = 1.5
     long_scale = min(requested_long_scale, minimum_axis_scale * maximum_relative_stretch)
     short_scale = min(requested_short_scale, minimum_axis_scale * maximum_relative_stretch)
+    if facing_angle_deg is not None:
+        long_scale = short_scale = minimum_axis_scale
     min_z = min(vertex[2] for vertex in vertices)
     max_z = max(vertex[2] for vertex in vertices)
     z_span = max(max_z - min_z, 1e-9)
@@ -3980,7 +4024,8 @@ def _fit_vertices_to_host(
                 compilation.triangles,
             )
             if (
-                minimum_plan_area is not None
+                facing_angle_deg is None
+                and minimum_plan_area is not None
                 and actual_projection_area + 1e-7 < max(0.2, float(minimum_plan_area))
             ):
                 target_area = max(0.2, float(minimum_plan_area))

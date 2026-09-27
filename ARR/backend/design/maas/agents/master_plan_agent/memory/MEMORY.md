@@ -1,4 +1,4 @@
-# Parking Agent Memory
+# Master Plan Agent Memory
 
 Created: 2026-07-07
 
@@ -6,5 +6,5 @@ The user explicitly asked whether parking and mass agents can collaborate. The a
 
 Current handoff:
 
-`law_graph_agent -> parking_agent -> llm_architect_agent`
+`law_graph_agent -> master_plan_agent -> llm_architect_agent`
 

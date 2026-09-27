@@ -311,8 +311,23 @@ def _apply_book_projection_to_geometry_program(
             verb="select_book_scope",
         )
 
+    # BOOK pp.53-55: a stack repeats the body upward and carries the word it
+    # is paired with one step further per level. Mathematically that is
+    # stack(T^k B), the base repeated under powers of one rigid transform -
+    # not T applied once to B and the result piled. So the rotate or shift
+    # that a stack is paired with is folded into the stack and not appended
+    # on its own: the pile is of turned (or slid) copies of the same body.
+    stack_pairing = None
+    if any(item.verb == "stack" for item in calls):
+        for item in calls:
+            if item.verb == "stack":
+                break
+            if item.verb in ("rotate", "shift", "offset"):
+                stack_pairing = item
     verb_occurrences: dict[str, int] = {}
     for call_index, call in enumerate(calls, start=1):
+        if stack_pairing is not None and call is stack_pairing:
+            continue
         active_book_call_index = call_index
         occurrence_index = verb_occurrences.get(call.verb, 0)
         verb_occurrences[call.verb] = occurrence_index + 1
@@ -324,6 +339,7 @@ def _apply_book_projection_to_geometry_program(
             scope_orientation=scope.orientation,
             program_access_side=program_access_side,
             occurrence_index=occurrence_index,
+            stack_pairing=stack_pairing if call.verb == "stack" else None,
         )
 
     if remainder:
@@ -556,6 +572,7 @@ def _append_book_call(
     scope_orientation: str,
     program_access_side: str = "closed",
     occurrence_index: int = 0,
+    stack_pairing: VerbCall | None = None,
 ) -> str:
     verb = call.verb
     p = dict(call.params)
@@ -919,6 +936,17 @@ def _append_book_call(
                 "split_ratio": book_relation_invariant(verb, "split_ratio"),
             }, verb=verb)
         if verb == "offset":
+            # BOOK p.12: duplicate and translate - the body and one copy
+            # displaced by a fraction of itself, overlapping. It ran through
+            # `nested_related` (a shrunken copy inside the host with its roof
+            # showing), which drew the same small box on the roof as `nest`.
+            return add("macro", "book_array", (current,), {
+                "mode": "offset",
+                "axis": axis,
+                "count": 2,
+                "pitch_ratio": round(max(0.25, min(0.6, 0.25 + distance)), 4),
+            }, verb=verb)
+        if verb == "__offset_retired__":
             return add("macro", "nested_related", (current,), {
                 "axis": axis,
                 "distance_ratio": distance,
@@ -931,26 +959,36 @@ def _append_book_call(
             "guest_scale": _number(p, "guest_scale", 0.42),
         }, verb=verb)
     if verb in {"array", "pack"}:
+        # BOOK pp.50-58: the same body repeated, a row (array) or a grid
+        # (pack), copies meeting face to face. `related_array` was massv2's
+        # diminishing array - copies shrunk to two thirds, staggered, gapped
+        # - and its rows floated or came apart at the stage.
         count = max(2, min(4, int(round(_number(p, "n", 3)))))
-        return add("macro", "related_array", (current,), {
+        return add("macro", "book_array", (current,), {
             "mode": verb,
             "axis": axis,
             "count": count,
-            "spacing_ratio": max(0.08, min(0.50, _number(p, "spacing_ratio", 0.18))),
-            "unit_scale": max(0.60, min(0.82, _number(p, "unit_scale", 0.66))),
-            "stagger_ratio": max(0.0, min(0.28, _number(p, "stagger_ratio", 0.08))),
         }, verb=verb)
     if verb == "reflect":
         normal = [1.0, 0.0, 0.0] if axis == "x" else [0.0, 1.0, 0.0]
         return add("pattern", "mirror_array", (current,), {"normal": normal, "pivot": "center"}, verb=verb)
     if verb == "stack":
-        levels = max(2, min(4, int(round(_number(p, "levels", 3)))))
-        return add("macro", "stepped_mass", (current,), {
+        # BOOK pp.53-55: stack(T^k B) - the body repeated upward, the paired
+        # rigid transform applied k times to level k. The pairing's own
+        # variation sets the step: the rotate call's angle, the shift call's
+        # distance ratio. `stepped_mass` was a setback terrace of one body
+        # and the pairing acted once on the whole, so the book's stack
+        # (p.55, a pile of turned boxes) never came out.
+        levels = max(2, min(5, int(round(_number(p, "levels", 3)))))
+        pairing = stack_pairing.verb if stack_pairing is not None else ""
+        pairing_params = dict(stack_pairing.params) if stack_pairing is not None else {}
+        mode = {"rotate": "rotate", "shift": "shift", "offset": "shift"}.get(pairing, "none")
+        return add("macro", "book_stack", (current,), {
             "levels": levels,
-            "setback_ratio": _stack_setback_ratio(
-                levels=levels,
-                upper_ratio=_number(p, "upper_ratio", 1.0),
-            ),
+            "mode": mode,
+            "axis": _axis(pairing_params.get("axis", axis)),
+            "step_degrees": round(max(2.0, min(30.0, _number(pairing_params, "angle", 12.0))), 3),
+            "shift_ratio": round(max(0.04, min(0.30, _number(pairing_params, "distance_ratio", 0.18))), 4),
         }, verb=verb)
     # Every BOOK verb is expected to be covered explicitly. Raising here makes
     # omissions a compiler diagnostic instead of silently returning a box.

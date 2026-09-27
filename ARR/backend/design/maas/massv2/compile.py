@@ -51,6 +51,8 @@ _MINIMUM_BAND_M = 0.5
 _EDGE_TOLERANCE_M = 1e-3
 # A band whose remaining plan is slighter than this was cut away, not built.
 _MINIMUM_BAND_AREA_M2 = 1.0
+# Slender structural members (pilotis columns, thin cores) are built and must not be discarded as crumbs.
+_MINIMUM_STRUCTURAL_AREA_M2 = 0.05
 
 
 def _ring_at(placement: Placement, level: float) -> list[tuple[float, float]]:
@@ -450,11 +452,17 @@ def _band_parts(
         shape = shape.difference(unary_union(cutters))
     if shape.is_empty:
         return []
+    has_structural = any(
+        (not getattr(item, "occupiable", True) or getattr(item, "plan", "") == "circle" or getattr(item, "role", "") in ("column", "piloti", "support"))
+        for item in form.additive()
+        if _spans(item, low, high)
+    )
+    min_area = _MINIMUM_STRUCTURAL_AREA_M2 if has_structural else _MINIMUM_BAND_AREA_M2
     parts = list(_polygon_parts(shape))
     return [
         part
         for part in parts
-        if isinstance(part, Polygon) and part.area >= _MINIMUM_BAND_AREA_M2
+        if isinstance(part, Polygon) and part.area >= min_area
     ]
 
 
@@ -822,9 +830,10 @@ def _band_is_structure(form: MatrixForm, low: float, high: float) -> bool:
 def _part_is_structure(form: MatrixForm, low: float, high: float, part) -> bool:
     """Is everything standing on this part of the band something that holds a room up."""
 
+    min_overlap = 0.04 if part.area < 1.0 else 0.5
     occupants = [
         item for item in form.additive()
-        if _spans(item, low, high) and _plan(item).intersection(part).area > 0.5
+        if _spans(item, low, high) and _plan(item).intersection(part).area >= min_overlap
     ]
     return bool(occupants) and not any(item.occupiable for item in occupants)
 

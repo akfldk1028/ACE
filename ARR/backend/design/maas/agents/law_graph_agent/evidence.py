@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 import hashlib
 import json
 import sys
@@ -22,6 +23,24 @@ LawSearcher = Callable[[str, int], Mapping[str, Any]]
 
 LAW_SEARCH_TIMEOUT_SECONDS = 6.0
 LAW_SEARCH_CONNECT_TIMEOUT_SECONDS = 1.0
+
+
+def numeric_verdict_status(payload: Mapping[str, Any]) -> str:
+    """One contract for live binding and persisted numeric evidence.
+
+    Explicit failure wins. Success needs both actual evaluation and a literal
+    boolean pass; flags, aliases or partial producer payloads cannot imply it.
+    """
+    raw_status = payload.get("status")
+    status = raw_status.strip().lower() if isinstance(raw_status, str) else ""
+    if payload.get("hard_pass") is False or status in {"fail", "failed"}:
+        return "failed"
+    if raw_status is not None and not isinstance(raw_status, str):
+        return "needs_evidence"
+    if (payload.get("evaluated") is True and payload.get("hard_pass") is True
+            and status in {"", "pass", "passed"}):
+        return "passed"
+    return "needs_evidence"
 
 
 def collect_law_agent_evidence(
@@ -173,6 +192,15 @@ def bind_law_agent_evidence(
     ]
 
     missing: list[str] = []
+    claimed_snapshot_hash = str(snapshot.get("source_snapshot_hash") or "")
+    if not claimed_snapshot_hash:
+        missing.append("source_snapshot_hash_missing")
+    elif claimed_snapshot_hash != _canonical_payload_hash({
+        key: value for key, value in snapshot.items() if key != "source_snapshot_hash"
+    }):
+        missing.append("source_snapshot_hash_mismatch")
+    if snapshot.get("building_type") != str(context.get("building_type") or "building mass"):
+        missing.append("source_program_mismatch")
     if not graph_status["available"]:
         missing.append("neo4j_unavailable")
     elif not article_ids:
@@ -191,31 +219,23 @@ def bind_law_agent_evidence(
     # A numeric verdict that never ran is not a numeric verdict that passed.
     # Without this the agent reports "passed" on an empty preflight and the
     # selector, which reads only statuses, turns it into an acceptance.
-    numeric_evaluated = (
-        law.get("evaluated") is True
-        or law.get("hard_pass") is not None
-        or str(law.get("status") or "") in {"passed", "failed", "pass", "fail"}
-    )
-    if not numeric_evaluated:
+    numeric_status = numeric_verdict_status(law)
+    if numeric_status == "needs_evidence":
         missing.append("numeric_law_unevaluated")
 
-    numeric_failed = bool(
-        law.get("hard_pass") is False
-        and law.get("evaluated") is True
-    ) or str(law.get("status") or "") == "failed"
-    if numeric_failed:
+    if numeric_status == "failed":
         status = "failed"
     elif missing:
         status = "needs_evidence"
     else:
         status = "passed"
 
-    return AgentEvidence(
+    result = AgentEvidence(
         evidence_id="evidence:law_graph_agent",
         agent="law_graph_agent",
         status=status,
         summary=(
-            "legal evidence bound to PNU, law-domain search, and Neo4j"
+            "supplied numeric preflight passed; source evidence bound to this mass"
             if status == "passed"
             else f"legal evidence incomplete: {', '.join(missing) or 'numeric hard gate failed'}"
         ),
@@ -223,6 +243,8 @@ def bind_law_agent_evidence(
         evidence={
             "pnu": identity.pnu,
             "numeric_preflight": law,
+            "assessment_scope": "supplied_numeric_preflight",
+            "permit_compliance_verified": False,
             "neo4j": graph_status,
             "law_search": law_search,
             "articles": deepcopy(list(snapshot.get("articles") or ())),
@@ -237,6 +259,16 @@ def bind_law_agent_evidence(
             "missing_evidence": missing,
         },
     )
+    if result.status == "passed":
+        # The same contract applies before selection and after persistence.
+        issues = validate_persisted_law_agent_evidence(
+            result.to_dict(), canonical_agent_evidence_hash(result), expected_identity=identity,
+        )
+        if issues:
+            result = replace(result, status="needs_evidence",
+                summary="legal evidence incomplete: " + ", ".join(issues),
+                evidence={**result.evidence, "missing_evidence": list(issues)})
+    return result
 
 
 def canonical_agent_evidence_hash(
@@ -289,15 +321,7 @@ def validate_persisted_law_agent_evidence(
         if isinstance(numeric_preflight, Mapping)
         else {}
     )
-    if (
-        numeric_preflight.get("evaluated") is not True
-        or numeric_preflight.get("hard_pass") is not True
-        or (
-            str(numeric_preflight.get("status") or "").strip()
-            and str(numeric_preflight.get("status") or "").lower()
-            not in {"pass", "passed"}
-        )
-    ):
+    if numeric_verdict_status(numeric_preflight) != "passed":
         issues.append("law_agent_numeric_preflight_not_passed")
     neo4j = evidence.get("neo4j")
     neo4j = dict(neo4j) if isinstance(neo4j, Mapping) else {}

@@ -149,6 +149,14 @@ def measure_mesh_support(source, *, datum_m=None, critical_heights=True):
     if critical_heights:
         levels = sorted({float(p[2]) for p in vertices} | {datum})
         levels = [z for z in levels if datum <= z <= points[:, 2].max()]
+        if len(levels) > 40:
+            step = (levels[-1] - levels[0]) / 40.0
+            clustered = [levels[0]]
+            for z in levels[1:-1]:
+                if z - clustered[-1] >= step:
+                    clustered.append(z)
+            clustered.append(levels[-1])
+            levels = clustered
         events = [(z, 'vertex_height') for z in levels[1:-1]]
         probes = [((a+b)/2, 'interval_midpoint') for a, b in zip(levels, levels[1:])
                   if b-a > 2*length_resolution]

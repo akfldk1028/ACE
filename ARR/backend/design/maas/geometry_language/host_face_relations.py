@@ -69,6 +69,8 @@ _FACE_FRAMES: dict[str, tuple[int, float, int, int]] = {
     "bottom": (2, -1.0, 0, 1),
 }
 
+HOST_FACES = frozenset(_FACE_FRAMES)
+
 
 def sample_face_attachment_parameters(
     index: int,
@@ -179,6 +181,7 @@ def _lerp(bounds: tuple[float, float], unit: float) -> float:
 
 __all__ = [
     "ATTACH_PARAMETER_SPACE",
+    "HOST_FACES",
     "DEFAULT_FACE_ATTACHMENT_POLICY",
     "FaceAttachmentResolution",
     "FaceAttachmentSamplingPolicy",

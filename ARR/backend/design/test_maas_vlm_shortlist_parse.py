@@ -72,6 +72,11 @@ class VlmVerdictParseTests(SimpleTestCase):
 
         self.assertEqual(seen, {"t01": 2.70, "t02": 3.15, "t03": 4.00})
 
+    def test_windows_utf8_bom_preserves_the_first_tiles_score(self):
+        text = '\ufeff' + _block('t01', '2.70') + _block('t02', '3.15')
+        _module, _path, seen = self._read(text)
+        self.assertEqual(seen, {'t01': 2.70, 't02': 3.15})
+
     def test_a_block_with_no_weighted_refuses_instead_of_taking_the_next_score(self):
         # The defect itself: t02 has no WEIGHTED, so the old regex handed it
         # t03's 4.00 and t03 kept it too. Nothing downstream could tell.

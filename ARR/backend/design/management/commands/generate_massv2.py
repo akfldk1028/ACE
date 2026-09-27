@@ -411,6 +411,9 @@ class Command(BaseCommand):
 
         self.stdout.write(json.dumps(site.evidence(), ensure_ascii=False))
 
+        buildable = site.plan_at(0.0)
+        axis = site_open_side_direction(site) or (1.0, 0.0)
+
         forms = []
         if not options["authored_only"]:
             forms.extend(seed_forms(
@@ -471,6 +474,7 @@ class Command(BaseCommand):
         # UnboundLocalError after printing "nothing survived to draw", and the
         # summary that would have said so was never written.
         mistyped: list = []
+        faulty: list = []
         mute: list = []
         clipped: list = []
         idle: list = []
@@ -616,15 +620,23 @@ class Command(BaseCommand):
                                         _verdict_from_json(cached["unclipped"])))
                         continue
                 else:
-                    spoken = postcondition.check_sentence(
-                        parti,
-                        buildable=buildable,
-                        axis=axis,
-                        height_m=authored_height,
-                        allowed_at=None,
-                        storey_height_m=storey,
-                        place=_delivered_form,
-                    )
+                    try:
+                        spoken = postcondition.check_sentence(
+                            parti,
+                            buildable=buildable,
+                            axis=axis,
+                            height_m=authored_height,
+                            allowed_at=None,
+                            storey_height_m=storey,
+                            place=_delivered_form,
+                        )
+                    except (ValueError, TypeError) as fault:
+                        # One sentence's bad word is that sentence's refusal,
+                        # not the run's: comp27 wrote `inscribe across:
+                        # "court"` and the executor's float() took 246
+                        # candidates down with it.
+                        faulty.append((parti.name, f"{type(fault).__name__}: {str(fault)[:120]}"))
+                        continue
                     spoken_sitings = []
                 if cached is None and not spoken.honest:
                     # Silent because the word does nothing, or silent because
@@ -869,6 +881,10 @@ class Command(BaseCommand):
                     }
                 )
             forms.extend(written)
+            if faulty:
+                self.stdout.write(f"executor refused {len(faulty)} sentences for a word it cannot read:")
+                for name, why in faulty[:8]:
+                    self.stdout.write(f"  faulty: {name} -> {why}")
             if mistyped:
                 self.stdout.write(
                     f"words outside their fixed list: {len(mistyped)} sentences refused "

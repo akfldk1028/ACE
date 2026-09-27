@@ -5,7 +5,7 @@ from __future__ import annotations
 
 REVIEW_AGENT_SEQUENCE = (
     "law_graph_agent",
-    "parking_agent",
+    "master_plan_agent",
     "llm_architect_agent",
     "massdsl_agent",
     "maas_geometry_agent",
@@ -22,8 +22,8 @@ FLOW_AGENT_SEQUENCE = (
 FLOW_STEPS = [
     ("user", "design_orchestrator", "PNU/design 후보를 받으면 법규-주차-MassDSL-매스-문법검토 순서로 협업을 시작해."),
     ("design_orchestrator", "law_graph_agent", "Graph DB 법규 근거와 누락 evidence를 rule_id 중심으로 확인해."),
-    ("law_graph_agent", "parking_agent", "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해."),
-    ("parking_agent", "llm_architect_agent", "주차/법규 조건을 받아 LLM-authored 건축언어와 MassDSL 의도를 검토해."),
+    ("law_graph_agent", "master_plan_agent", "법규 검토 결과를 받아 주차 산정 대수와 연접/차로 조건을 검토해."),
+    ("master_plan_agent", "llm_architect_agent", "주차/법규 조건을 받아 LLM-authored 건축언어와 MassDSL 의도를 검토해."),
     ("llm_architect_agent", "massdsl_agent", "LLM 건축언어를 MassDSL sequence와 parameter-source contract로 넘겨."),
     ("massdsl_agent", "maas_geometry_agent", "MassDSL proposal을 source geometry와 MAAS repair 후보로 컴파일해."),
     ("maas_geometry_agent", "grammar_critic_agent", "컴파일된 매스의 도형언어, section connector, evidence 완결성을 검토해."),

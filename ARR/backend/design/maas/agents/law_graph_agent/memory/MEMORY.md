@@ -6,5 +6,5 @@ This agent anchors the MAAS method to deterministic legal evidence. It maps to t
 
 Current handoff:
 
-`design_orchestrator -> law_graph_agent -> parking_agent`
+`design_orchestrator -> law_graph_agent -> master_plan_agent`
 

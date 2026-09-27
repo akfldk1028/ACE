@@ -684,7 +684,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
                 collaboration_executors={
                     "maas_geometry_agent": evidence("maas_geometry_agent", "passed"),
                     "law_graph_agent": evidence("law_graph_agent", "needs_evidence"),
-                    "parking_agent": evidence("parking_agent", "needs_evidence"),
+                    "master_plan_agent": evidence("master_plan_agent", "needs_evidence"),
                     "review_agent": evidence("review_agent", "needs_evidence"),
                 },
             )
@@ -698,7 +698,7 @@ class MaasSingleExecutionTest(SimpleTestCase):
         self.assertEqual(stages["parking"]["status"], "needs_evidence")
         self.assertEqual(stages["selector"]["status"], "needs_evidence")
         self.assertEqual(stages["law"]["evidence"]["source_agent"], "law_graph_agent")
-        self.assertEqual(stages["parking"]["evidence"]["source_agent"], "parking_agent")
+        self.assertEqual(stages["parking"]["evidence"]["source_agent"], "master_plan_agent")
         self.assertEqual(nodes["flow:law"]["activation"], 1.0)
         self.assertEqual(nodes["flow:parking"]["activation"], 1.0)
         self.assertEqual(nodes["flow:selector"]["activation"], 1.0)

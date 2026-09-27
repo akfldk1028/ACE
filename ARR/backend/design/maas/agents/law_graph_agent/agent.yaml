@@ -12,7 +12,7 @@ output_contract:
   - legal_hard_gate_metrics
 handoffs:
   previous: design_orchestrator
-  next: parking_agent
+  next: master_plan_agent
 responsibilities:
   - verify_far_bcr_height
   - expose_legal_limits

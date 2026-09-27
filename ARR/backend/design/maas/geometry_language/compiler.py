@@ -1146,6 +1146,10 @@ def _macro(node: GeometryNode, inputs: list[Any]) -> tuple[Any, list[str]]:
         return m3d.Manifold.batch_boolean([inputs[0], inputs[1], bridge], m3d.OpType.Add), ["beam_between", "union"]
     if operator == "book_branch":
         return _book_branch_macro(base, p, node.id), ["end_scope", "paired_arm_rotate", "union"]
+    if operator == "book_stack":
+        return _book_stack_macro(base, p, node.id), ["level_copies", "per_level_transform", "union"]
+    if operator == "book_array":
+        return _book_array_macro(base, p, node.id), ["identical_copies", "translate", "union"]
     if operator == "book_split":
         return _book_terminal_split_macro(base, p, node.id), [
             "terminal_child_scope", "hinged_displacement", "union", "retained_trunk",
@@ -1640,6 +1644,106 @@ def _book_base_volume(solid, params: dict[str, Any], node_id: str):
     return m3d.Manifold.batch_boolean([solid, cutter], m3d.OpType.Intersect)
 
 
+def _book_array_macro(base, params: dict[str, Any], node_id: str):
+    """Repeat the body side by side - BOOK pp.50-58 array (a row) and pack (a grid).
+
+    `related_array` is massv2's diminishing array: copies shrunk to 0.66-0.82,
+    a cross stagger, a gap along the axis. The book repeats the same body at
+    its own size: array is T_k = translate(k * span) along one axis, pack is
+    the same on a grid, and copies meet face to face so the row is one body.
+    Mathematically the union of a body under a translation group, nothing more.
+    """
+
+    mode = str(params.get("mode") or "array").lower()
+    count = max(2, min(4, int(round(float(params.get("count", 3) or 3)))))
+    axis = str(params.get("axis") or "x")
+    # The pitch as a fraction of the body's extent: 1.0 is copies meeting
+    # face to face (array), less is overlapping copies - BOOK p.12 offset is
+    # the body and one copy displaced by a fraction of itself.
+    pitch_ratio = max(0.15, min(1.0, float(params.get("pitch_ratio", 1.0) or 1.0)))
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    span_x, span_y = maxx - minx, maxy - miny
+    if min(span_x, span_y) <= 1e-9 or base.is_empty():
+        raise GeometryCompileError("empty_book_array", "no body to repeat", node_id)
+    copies = []
+    if mode == "offset":
+        # BOOK p.12: the body and one copy displaced diagonally by a fraction
+        # of itself, so the union reads as two offset volumes in plan.
+        for index in range(count):
+            copies.append(base.translate((index * span_x * pitch_ratio, index * span_y * pitch_ratio, 0.0)))
+    elif mode == "pack":
+        # A grid: count along the axis, two across it. Packed means dense:
+        # the pitch is 92% of the body's extent, so bodies that do not fill
+        # their box (a bulge, a skew, a branch) still meet their neighbours
+        # and the grid is one body; a box grid simply overlaps a little.
+        across = 2
+        pitch_x, pitch_y = span_x * 0.92, span_y * 0.92
+        for index in range(count):
+            for row in range(across):
+                dx = index * pitch_x if axis == "x" else row * pitch_x
+                dy = row * pitch_y if axis == "x" else index * pitch_y
+                copies.append(base.translate((dx, dy, 0.0)))
+    else:
+        for index in range(count):
+            copies.append(base.translate((index * span_x * pitch_ratio, 0.0, 0.0) if axis == "x"
+                                         else (0.0, index * span_y * pitch_ratio, 0.0)))
+    row = m3d.Manifold.batch_boolean(copies, m3d.OpType.Add)
+    if row.is_empty():
+        raise GeometryCompileError("empty_book_array", "array union is empty", node_id)
+    # Back to the body's own centre so the pose search sees the same frame.
+    rminx, rminy, _rz, rmaxx, rmaxy, _rzt = _bounds(row)
+    return row.translate((((minx + maxx) - (rminx + rmaxx)) / 2.0, ((miny + maxy) - (rminy + rmaxy)) / 2.0, 0.0))
+
+
+def _book_stack_macro(base, params: dict[str, Any], node_id: str):
+    """Stack the body in levels, each level carried one step further - BOOK pp.53-55.
+
+    `stack` was lowered to `stepped_mass`, a setback terrace of one body, and
+    the word paired with it (rotate, shift) then acted once on the whole. The
+    book's stack is the base volume repeated upward with the pairing applied
+    per level: p.55 is a pile of boxes each turned a little more, and the
+    same rule with a shift is a pile stepping sideways. Every level keeps its
+    full plan; the pile's height is the body's height.
+    """
+
+    levels = max(2, min(5, int(round(float(params.get("levels", 3) or 3)))))
+    mode = str(params.get("mode") or "none")
+    axis = str(params.get("axis") or "x")
+    step_degrees = float(params.get("step_degrees", 12.0) or 0.0)
+    shift_ratio = float(params.get("shift_ratio", 0.15) or 0.0)
+    minx, miny, minz, maxx, maxy, maxz = _bounds(base)
+    height = maxz - minz
+    if height <= 1e-9 or base.is_empty():
+        raise GeometryCompileError("empty_book_stack", "no body to stack", node_id)
+    centre_x, centre_y = (minx + maxx) / 2.0, (miny + maxy) / 2.0
+    extent = (maxx - minx) if axis == "x" else (maxy - miny)
+    level_height = height / levels
+    # One level: the body at its own plan, a level tall, its bottom at z = 0.
+    unit = base.translate((0.0, 0.0, -minz)).scale((1.0, 1.0, 1.0 / levels))
+    pieces = []
+    for index in range(levels):
+        piece = unit
+        if index and mode == "rotate":
+            piece = (piece.translate((-centre_x, -centre_y, 0.0))
+                     .rotate((0.0, 0.0, step_degrees * index))
+                     .translate((centre_x, centre_y, 0.0)))
+        elif index and mode == "shift":
+            offset = shift_ratio * extent * index
+            piece = piece.translate((offset, 0.0, 0.0) if axis == "x" else (0.0, offset, 0.0))
+        if index:
+            # Levels meet face to face; the copies are of one flat-topped body
+            # (the pairing is applied per level, never as a hinge before the
+            # pile), so the union merges the shared plane exactly.
+            piece = piece.translate((0.0, 0.0, minz + index * level_height))
+        else:
+            piece = piece.translate((0.0, 0.0, minz))
+        pieces.append(piece)
+    pile = m3d.Manifold.batch_boolean(pieces, m3d.OpType.Add)
+    if pile.is_empty():
+        raise GeometryCompileError("empty_book_stack", "stack union is empty", node_id)
+    return pile
+
+
 def _book_branch_macro(base, params: dict[str, Any], node_id: str):
     """Grow two arms from one end of the live trunk.
 
@@ -2044,6 +2148,9 @@ def _nested_related_macro(base, params: dict[str, Any], node_id: str):
         raise GeometryCompileError("invalid_axis", axis_name, node_id)
     axis = 0 if axis_name == "x" else 1
     unit_scale = max(0.12, min(0.80, float(params.get("unit_scale", 0.50))))
+    # BOOK p.11 nest: the inner volume is read through the roof; at the old
+    # 8-13% reveal it was a knob on a box, so the reveal is a fifth of the
+    # host's height plus a fifth of the inner volume's own.
     height_scale = 0.62 + unit_scale * 0.24
     related = _around_pivot(
         base,
@@ -2052,7 +2159,7 @@ def _nested_related_macro(base, params: dict[str, Any], node_id: str):
     )
     distance_ratio = max(-0.34, min(0.34, float(params.get("distance_ratio", 0.0))))
     plan_shift = spans[axis] * (1.0 - unit_scale) * 0.42 * (distance_ratio / 0.34)
-    roof_reveal = spans[2] * (0.08 + 0.10 * unit_scale)
+    roof_reveal = spans[2] * (0.20 + 0.20 * unit_scale)
     vertical_shift = spans[2] * (1.0 - height_scale) / 2.0 + roof_reveal
     vector = [0.0, 0.0, vertical_shift]
     vector[axis] = plan_shift

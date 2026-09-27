@@ -504,26 +504,35 @@ def render_masses(
     tile: tuple[int, int] = (330, 300),
     style: str = "clay",
     yaw_degrees: float | None = None,
+    pitch_degrees: float | None = None,
 ) -> Path:
     """Contact sheet, one compiled mass per tile, captioned with its numbers.
 
-    `yaw_degrees` turns the camera for this call only. One fixed viewpoint
+    `yaw_degrees` and `pitch_degrees` turn the camera for this call only. Lower
+    views can expose real undercrofts hidden by the default roof-first view.
+    One fixed viewpoint
     was a single point of failure for the judges - a move aimed away from the
     default yaw could hide entirely - so a judging round renders each mass
     twice, the second time from the other side.
     """
 
-    global _YAW
-    if yaw_degrees is not None:
-        prior = _YAW
-        _YAW = math.radians(yaw_degrees)
+    global _YAW, _PITCH
+    if yaw_degrees is not None or pitch_degrees is not None:
+        if any(value is not None and not math.isfinite(value)
+               for value in (yaw_degrees, pitch_degrees)):
+            raise ValueError("camera angles must be finite")
+        prior = _YAW, _PITCH
+        if yaw_degrees is not None:
+            _YAW = math.radians(yaw_degrees)
+        if pitch_degrees is not None:
+            _PITCH = math.radians(pitch_degrees)
         try:
             return render_masses(
                 items, output, site_ring=site_ring, columns=columns,
                 tile=tile, style=style,
             )
         finally:
-            _YAW = prior
+            _YAW, _PITCH = prior
 
     entries = list(items)
     if not entries:

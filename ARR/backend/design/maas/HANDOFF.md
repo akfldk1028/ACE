@@ -248,10 +248,10 @@ Updated: 2026-07-31
   contract; the orchestrator owns the canonical flow.
 - Current backend structure:
   - `agents/orchestrator/flow.py`: canonical handoff sequence
-    `user -> design_orchestrator -> law_graph_agent -> parking_agent -> maas_geometry_agent -> review_agent -> design_orchestrator`.
+    `user -> design_orchestrator -> law_graph_agent -> master_plan_agent -> maas_geometry_agent -> review_agent -> design_orchestrator`.
   - `agents/orchestrator/agent.py`: top-level routing card/result.
   - `agents/law_graph_agent/agent.py`: FAR/BCR/height constraint review.
-  - `agents/parking_agent/agent.py`: parking count/layout precheck review.
+  - `agents/master_plan_agent/agent.py`: parking count/layout precheck review.
   - `agents/maas_geometry_agent/agent.py`: MAAS operation/shape explanation.
   - `agents/review_agent/agent.py`: rejected-candidate/final audit summary.
   - `agents/shared/types.py`: `AgentContext`, `AgentResult`, `AgentCard`, `MaasAgent`.
@@ -261,7 +261,7 @@ Updated: 2026-07-31
 - Current agent ids are intentionally aligned with
   `JSON_MODULES/teams/041_MAAS_Legal_Design_Team.json` and frontend
   `ARR/frontend/src/design/components/ag-light-flow/agents/*`:
-  `law_graph_agent`, `parking_agent`, `maas_geometry_agent`, `review_agent`.
+  `law_graph_agent`, `master_plan_agent`, `maas_geometry_agent`, `review_agent`.
   Do not reintroduce old ids `law_agent`, `geometry_agent`, or
   `optimization_agent` in API output.
 - `ARR/backend/design/scripts/ag_light_agent_flow_cli.py` imports
@@ -270,7 +270,7 @@ Updated: 2026-07-31
 - Verified this session:
   - Python compile for modified agent/CLI files passed with `.venv/bin/python`.
   - Direct registry smoke check returned cards:
-    `design_orchestrator, law_graph_agent, parking_agent, maas_geometry_agent, review_agent`.
+    `design_orchestrator, law_graph_agent, master_plan_agent, maas_geometry_agent, review_agent`.
   - Django targeted tests passed:
     `test_interactive_operation_endpoint_returns_synced_metrics`,
     `test_interactive_offset_edge_returns_agent_reviewed_legal_mass`,
@@ -901,7 +901,7 @@ Current honest judgment:
     family, verbs, section-language flag, parking evidence flag, legal metrics,
     and issues.
 - Canonical flow is now:
-  `design_orchestrator -> law_graph_agent -> parking_agent -> massdsl_agent -> maas_geometry_agent -> grammar_critic_agent -> review_agent`.
+  `design_orchestrator -> law_graph_agent -> master_plan_agent -> massdsl_agent -> maas_geometry_agent -> grammar_critic_agent -> review_agent`.
 - `/design/maas/legal-variants/` attaches:
   - response-level `agent_reviews`, `agent_trace`, `a2ui_messages`,
     `massdsl_proposals`, `grammar_review`, `grammar_reviews`;

@@ -12,11 +12,13 @@
 #     MSYS_NO_PATHCONV=1 there. PowerShell needs nothing.
 #
 #   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step dump    # Desktop data -> copy -> D:\ace-neo4j\dumps\neo4j.dump
-#   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step load    # dump -> compose volume (server not running)
+#   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step load    # dump -> volume ace_neo4j-data (server not running; the
+#                                                                    #   volume must exist: docker volume create ace_neo4j-data)
 #   powershell -File ops/scripts/neo4j-dump-load.ps1 -Step verify  # start the container, compare to the desktop baseline
 param([Parameter(Mandatory)][ValidateSet('dump', 'load', 'verify')][string]$Step)
 $ErrorActionPreference = 'Stop'
 $ops = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$db = Join-Path $ops 'db'                # the graph's own compose project (ace-db)
 $image = 'neo4j:2025.08.0-enterprise'   # exactly the Desktop version; a newer image would upgrade the store on first start
 $desktop = Join-Path $env:USERPROFILE '.Neo4jDesktop2\Data\dbmss\dbms-23e9404b-8efc-4706-adc0-90e1c20445ab'
 $copy = 'D:\ace-neo4j\desktop-copy\data'
@@ -41,7 +43,7 @@ switch ($Step) {
     'load' {
         Assert-PortFree 7687
         if (-not (Test-Path (Join-Path $dumps 'neo4j.dump'))) { throw "no dump at $dumps\neo4j.dump - run -Step dump first" }
-        Push-Location $ops
+        Push-Location $db
         try {
             docker compose create neo4j
             if ($LASTEXITCODE -ne 0) { throw 'compose create failed' }
@@ -51,7 +53,7 @@ switch ($Step) {
         } finally { Pop-Location }
     }
     'verify' {
-        Push-Location $ops
+        Push-Location $db
         try {
             docker compose up -d --wait neo4j
             if ($LASTEXITCODE -ne 0) { throw 'neo4j did not become healthy' }

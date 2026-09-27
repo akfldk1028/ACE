@@ -1,14 +1,16 @@
-# Phase 2 of the agent-infra plan (plans/gleaming-wibbling-shell.md): the services with zero ARR coupling.
+# Application services with zero ARR coupling (agent-infra plan Phase 2, plans/gleaming-wibbling-shell.md):
 #
-#   neo4j        the law graph (58 statutes, ~38k nodes) - Enterprise, because the Desktop store is block format,
-#                which only Enterprise reads; NEO4J_ACCEPT_LICENSE_AGREEMENT=yes records the owner's decision (2026-09-24)
-#   law-search   :8011 hybrid retrieval over that graph with local bge-m3 embeddings (CPU here; compose.gpu.yml for CUDA)
+#   law-search   :8011 hybrid retrieval over the law graph with local bge-m3 embeddings (CPU here; compose.gpu.yml for CUDA)
 #   revision / requirement / design-intent   the three pure A2A agents (:8303 :8305 :8306)
+#
+# The graph itself is a separate project, db/compose.yml (ace-db): a database is not redeployed with code, so nothing
+# here can take it down. law-search reaches it as bolt://neo4j:7687 over the shared network ace-net, which db/ creates -
+# bring db/ up first (stack.ps1 does), otherwise law-search restarts until the graph answers.
 #
 # Every port is published on 127.0.0.1 only. The callers - Orchestrator worker, Law, MasterPlan, Site, Program - stay on
 # the host and keep their Phase 1 catalog URLs, so the Orchestrator configuration does not change at all.
-# Migration order and rollback per service: the plan's step table. Never start a host serve-a2a.sh for a port a
-# container holds - stop the container first (the script refuses to kill a non-python owner, but do not rely on it).
+# Never start a host serve-a2a.sh for a port a container holds - stop the container first (the script refuses to kill
+# a non-python owner, but do not rely on it).
 name: ace
 
 x-agent-health: &agent-health
@@ -18,31 +20,6 @@ x-agent-health: &agent-health
   start_period: 20s
 
 services:
-  neo4j:
-    image: neo4j:2025.08.0-enterprise   # exactly the Desktop version - a newer image would upgrade the store on first start
-    environment:
-      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}      # any other NEO4J_* variable is read as a server setting, so nothing else goes here
-      NEO4J_server_memory_heap_initial__size: 1G
-      NEO4J_server_memory_heap_max__size: 2G
-      NEO4J_server_memory_pagecache_size: 1G
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-      NEO4J_dbms_security_procedures_allowlist: apoc.*,genai.*
-    volumes:
-      - neo4j-data:/data
-      - ./neo4j/plugins:/plugins:ro          # apoc + genai jars of the same version, copied from Desktop (gitignored)
-    ports:
-      - "127.0.0.1:7474:7474"
-      - "127.0.0.1:7687:7687"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]   # discovery endpoint answers only once the DBMS is up
-      interval: 15s
-      timeout: 10s
-      retries: 12
-      start_period: 90s
-    mem_limit: 4g
-    restart: unless-stopped
-
   law-search:
     build:
       context: ../agents/Lawagent/server/law-search
@@ -60,9 +37,6 @@ services:
       HF_HOME: /hf
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
-    depends_on:
-      neo4j:
-        condition: service_healthy           # lifespan reads the domain list from the graph
     volumes:
       - hf-cache:/hf                         # seeded once by scripts/seed-hf-cache.ps1 (bge-m3, 2.3 GB)
     ports:
@@ -75,7 +49,7 @@ services:
       retries: 5
       start_period: 240s
     mem_limit: 6g
-    restart: unless-stopped
+    restart: unless-stopped                  # also covers "started before the graph answered": lifespan fails, container retries
 
   revision:
     build:
@@ -136,7 +110,11 @@ services:
     restart: unless-stopped
 
 volumes:
-  neo4j-data:
   hf-cache:
     name: ace_hf-cache                       # created and filled by scripts/seed-hf-cache.ps1 before first start
+    external: true
+
+networks:
+  default:
+    name: ace-net                            # created by db/compose.yml; every service here joins it by default
     external: true
